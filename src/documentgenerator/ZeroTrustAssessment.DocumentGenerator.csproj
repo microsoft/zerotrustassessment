@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\PolicyTemplate.pptx" />
+    <None Remove="Assets\ZeroTrustTemplate.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\ZeroTrustTemplate.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Graph.Beta" Version="5.22.0-preview" />
+    <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="21.2.8" />
+  </ItemGroup>
+
+</Project>
