@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ztassess
+name: Web API - Production
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           include-prerelease: true
 
       - name: Build with dotnet
-        run: dotnet build src/ztAssess.sln --configuration Release
+        run: dotnet build src/ZeroTrustAssessment.sln --configuration Release
 
       - name: dotnet publish
         run: dotnet publish src/webapi/webapi.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
