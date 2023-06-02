@@ -46,6 +46,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: .net-app
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -53,5 +56,8 @@ jobs:
         with:
           app-name: 'ztassess'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E45F0C7924E64466BB1586256F21BA06 }}
           package: .
+
+      - name: logout
+        run: |
+            az logout        
