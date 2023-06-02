@@ -31,7 +31,7 @@
     "eject": "react-scripts eject",
     "prestart": "node aspnetcore-https && node aspnetcore-react",
     "predeploy" : "npm run build",
-    "deploy" : "gh-pages -d build",
+    "deploy" : "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
