@@ -16,7 +16,7 @@ function App() {
     }, []);
 
     return (
-        <BrowserRouter>
+        <BrowserRouter basename="/zerotrustassessment" >
             <Routes>
                 <Route path="/" element={<PageLayout />}>
                     <Route index element={<Home />} />
