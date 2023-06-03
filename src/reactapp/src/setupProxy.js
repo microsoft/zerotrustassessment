@@ -1,7 +1,7 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const context = [
-    "/document",
+    "/zerotrustassessment/document",
 ];
 
 module.exports = function (app) {

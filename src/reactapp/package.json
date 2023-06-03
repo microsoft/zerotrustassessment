@@ -1,6 +1,7 @@
 {
   "name": "zerotrustassessment",
   "version": "0.1.0",
+  "homepage": "https://microsoft.github.io/zerotrustassessment/",
   "private": true,
   "dependencies": {
     "@azure/msal-browser": "^2.33.0",
@@ -26,7 +27,7 @@
   },
   "scripts": {
     "start": "set HTTPS=true&&react-scripts start",
-    "build": "CI=false && react-scripts build",
+    "build": "CI=true && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prestart": "node aspnetcore-https && node aspnetcore-react",
