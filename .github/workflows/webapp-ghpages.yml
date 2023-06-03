@@ -71,7 +71,7 @@ jobs:
           name: reactapp
           path: './src/reactapp/build'
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: github-pages
         uses: actions/deploy-pages@v2
         with:
           artifact_name: reactapp
