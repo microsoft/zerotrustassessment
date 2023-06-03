@@ -1,4 +1,4 @@
-name: Web App - Production
+name: Web App - GitHub Pages
 
 on:
   push:
@@ -46,4 +46,5 @@ jobs:
           cache: npm
 
       - name: Build and deploy to GitHub Pages
+        working-directory: ./src/reactapp/src
         run: npm run deploy
