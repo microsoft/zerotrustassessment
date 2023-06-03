@@ -45,6 +45,10 @@ jobs:
           node-version: 16.x
           cache: npm
 
+      - name: Install dependencies
+        working-directory: ./src/reactapp/src
+        run: npm install
+        
       - name: Build and deploy to GitHub Pages
         working-directory: ./src/reactapp/src
         run: npm run deploy
