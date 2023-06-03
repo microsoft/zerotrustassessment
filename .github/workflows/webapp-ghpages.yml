@@ -1,0 +1,49 @@
+name: Web App - Production
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Update API endpoint for environment
+        shell: pwsh
+        run: |
+          $apiEndPoint = 'https://ztassess.azurewebsites.net'
+          $clientId = 'df2798fc-2aed-4c3a-98ae-1776949480c4'
+          $envName = ''
+          $configFilePath = './src/reactapp/src/authConfig.js'
+          $config = Get-Content $configFilePath
+          $config = $config -replace "^.*apiEndPoint.*$", "    apiEndPoint: '$apiEndPoint'"
+          $config = $config -replace "^.*clientId.*$", "    clientId: '$clientId'"
+          $config = $config -replace "^.*envName.*$", "    envName: '$envName'"
+          Set-Content -Value $config -Path $configFilePath
+          Write-Output "Updating $configFilePath to -->"
+          Write-Output $config
+          $appjsPath = './src/reactapp/src/App.js'
+          $appjs = Get-Content $appjsPath
+          $appjs = $appjs -replace '<BrowserRouter>', '<BrowserRouter basename="/zerotrustassessment" >'
+          Set-Content -Value $appjs -Path $appjsPath
+          Write-Output "Updating $appjsPath to -->"
+          Write-Output $appjs
+
+      - name: Setup Node 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: npm
+
+      - name: Build and deploy to GitHub Pages
+        run: npm run deploy

@@ -1,5 +1,5 @@
 export const apiConfig = {
-    apiEndPoint: 'https://ztassess.azurewebsites.net/'
+    apiEndPoint: ''
 }
 
 export const msalConfig = {
