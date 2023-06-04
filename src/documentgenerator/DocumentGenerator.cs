@@ -13,9 +13,9 @@ public class DocumentGenerator
     {
         Stream templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
 
-        IWorkbook pptxDoc = OpenWorkbook(templateStream);
+        IWorkbook workbook = OpenWorkbook(templateStream);
 
-        GenerateDocument(graphData, pptxDoc, outputStream, configOptions);
+        GenerateDocument(graphData, workbook, outputStream, configOptions);
     }
 
     private static IWorkbook OpenWorkbook(Stream templateStream)
@@ -68,6 +68,7 @@ public class DocumentGenerator
             sheet.Range["TenantId"].Text = org.Id;
             sheet.Range["TenantName"].Text = org.DisplayName;
             sheet.Range["AssessmentRunBy"].Text = $"{_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
+            sheet.TextBoxes["txtIdentityStatus"].Text = "❌";
         }
 
         sheet.Range["AssessedOn"].Text = DateTime.Now.ToString("dd MMM yyyy");
