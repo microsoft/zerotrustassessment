@@ -11,17 +11,22 @@ public class DocumentGenerator
     #region GenerateDocument overloads
     public void GenerateDocument(GraphData graphData, Stream outputStream, ConfigOptions configOptions)
     {
-        Stream templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
-
-        IWorkbook workbook = OpenWorkbook(templateStream);
+        IWorkbook workbook = OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
 
         GenerateDocument(graphData, workbook, outputStream, configOptions);
+    }
+
+    private static IWorkbook OpenWorkbook(string resourceName)
+    {
+        Stream templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+        return OpenWorkbook(templateStream);
     }
 
     private static IWorkbook OpenWorkbook(Stream templateStream)
     {
         ExcelEngine excelEngine = GetExcelEngine();
         IWorkbook workbook = excelEngine.Excel.Workbooks.Open(templateStream);
+        templateStream.Dispose();
         return workbook;
     }
 
