@@ -70,12 +70,12 @@ public class DocumentGenerator
         if (_graphData.Organization != null && _graphData.Organization.Count > 0)
         {
             var org = _graphData.Organization.First();
-            sheet.Range["TenantId"].Text = org.Id;
-            sheet.Range["TenantName"].Text = org.DisplayName;
-            sheet.Range["AssessmentRunBy"].Text = $"{_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
+
+            var currentDate = DateTime.Now.ToString("dd MMM yyyy");
+            sheet.Range["HeaderTenantId"].Text = $"Tenant ID: {org.Id}";
+            sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {org.DisplayName}";
+            sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
             sheet.TextBoxes["txtIdentityStatus"].Text = "❌";
         }
-
-        sheet.Range["AssessedOn"].Text = DateTime.Now.ToString("dd MMM yyyy");
     }
 }
