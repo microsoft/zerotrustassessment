@@ -6,76 +6,33 @@ namespace ZeroTrustAssessment.DocumentGenerator;
 
 public class DocumentGenerator
 {
-    private GraphData _graphData = new ();
-
-    #region GenerateDocument overloads
     public void GenerateDocument(GraphData graphData, Stream outputStream, ConfigOptions configOptions)
     {
-        IWorkbook workbook = OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
+        IWorkbook workbook = ExcelHelper.OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
 
         GenerateDocument(graphData, workbook, outputStream, configOptions);
     }
 
-    private static IWorkbook OpenWorkbook(string resourceName)
-    {
-        Stream templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-        return OpenWorkbook(templateStream);
-    }
-
-    private static IWorkbook OpenWorkbook(Stream templateStream)
-    {
-        ExcelEngine excelEngine = GetExcelEngine();
-        IWorkbook workbook = excelEngine.Excel.Workbooks.Open(templateStream);
-        templateStream.Dispose();
-        return workbook;
-    }
-
-    private static ExcelEngine GetExcelEngine()
-    {
-        ExcelEngine excelEngine = new ExcelEngine();
-        IApplication application = excelEngine.Excel;
-        application.DefaultVersion = ExcelVersion.Xlsx;
-        return excelEngine;
-    }
-
     public void GenerateDocument(GraphData graphData, Stream templateFile, Stream outputStream, ConfigOptions configOptions)
     {        
-        IWorkbook pptxDoc = OpenWorkbook(templateFile);
+        IWorkbook pptxDoc = ExcelHelper.OpenWorkbook(templateFile);
         GenerateDocument(graphData, pptxDoc, outputStream, configOptions);
     }
 
     public void GenerateDocument(GraphData graphData, string templateFilePath, Stream outputStream, ConfigOptions configOptions)
     {
-        ExcelEngine excelEngine = GetExcelEngine();
+        ExcelEngine excelEngine = ExcelHelper.GetExcelEngine();
         FileStream inputStream = new FileStream(templateFilePath, FileMode.Open);
-        IWorkbook workbook = OpenWorkbook(inputStream);
+        IWorkbook workbook = ExcelHelper.OpenWorkbook(inputStream);
         GenerateDocument(graphData, workbook, outputStream, configOptions);
     }
-    #endregion
 
-    public void GenerateDocument(GraphData graphData, IWorkbook pptxDoc, Stream outputStream, ConfigOptions configOptions)
+    public void GenerateDocument(GraphData graphData, IWorkbook workbook, Stream outputStream, ConfigOptions configOptions)
     {
-        _graphData = graphData;
+        var ztWorkbook = new ZtWorkbook(workbook, graphData);
 
-        SetDocHeaderInfo(pptxDoc.Worksheets[0]);
-
-        pptxDoc.SaveAs(outputStream);
-
-        pptxDoc.Close();
-    } 
-
-    private void SetDocHeaderInfo(IWorksheet sheet)
-    {
-
-        if (_graphData.Organization != null && _graphData.Organization.Count > 0)
-        {
-            var org = _graphData.Organization.First();
-
-            var currentDate = DateTime.Now.ToString("dd MMM yyyy");
-            sheet.Range["HeaderTenantId"].Text = $"Tenant ID: {org.Id}";
-            sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {org.DisplayName}";
-            sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
-            sheet.TextBoxes["txtIdentityStatus"].Text = "❌";
-        }
+        ztWorkbook.GenerateDocument();
+        workbook.SaveAs(outputStream);
+        workbook.Close();
     }
 }
