@@ -15,7 +15,7 @@ public class GraphData
     public User? Me { get; set; }
     public ConfigOptions? ConfigOptions { get; private set; }
     private GraphHelper _graphHelper;
-
+    public Stream? OrganizationLogo { get; private set; }
     public GraphData()
     {
         ConfigOptions = null;
@@ -39,7 +39,13 @@ public class GraphData
         //TODO: Batch and call in parallel to improve perf
         Me = await _graphHelper.GetMe();
         Organization = await _graphHelper.GetOrganization();
-        //Policies = await _graphHelper.GetPolicies();
+        OrganizationLogo = await GetOrganizationLogo();
+    }
+
+    private async Task<Stream?> GetOrganizationLogo()
+    {
+        var logo = await _graphHelper.GetOrganizationBannerImage(Organization.First().Id);
+        return logo;
     }
 
     private GraphServiceClient GetGraphClientUsingAccessToken(string accessToken)
