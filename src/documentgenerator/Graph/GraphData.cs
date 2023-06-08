@@ -7,11 +7,13 @@ public class GraphData
 {
     private readonly GraphHelper _graphHelper;
     public StringDictionary? ObjectCache { get; set; }
-    public ICollection<Organization>? Organization { get; private set; }
-    public List<MobilityManagementPolicy>? MobilityManagementPolicies { get; private set; }
     public User? Me { get; set; }
     public ConfigOptions? ConfigOptions { get; private set; }
     public Stream? OrganizationLogo { get; private set; }
+
+    public ICollection<Organization>? Organization { get; private set; }
+    public List<MobilityManagementPolicy>? MobilityManagementPolicies { get; private set; }
+    public List<DeviceEnrollmentConfiguration>? DeviceEnrollmentConfigurations { get; private set; }
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -33,6 +35,7 @@ public class GraphData
         Organization = await _graphHelper.GetOrganization();
         OrganizationLogo = await GetOrganizationLogo();
         MobilityManagementPolicies = await _graphHelper.GetMobileDeviceManagementPolicies();
+        DeviceEnrollmentConfigurations = await _graphHelper.GetDeviceEnrollmentConfigurations();
     }
 
     private async Task<Stream?> GetOrganizationLogo()

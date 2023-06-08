@@ -59,7 +59,23 @@ public class GraphHelper
     {
         try
         {
-            var result = await _graph.Policies.MobileDeviceManagementPolicies.GetAsync();
+            var result = await _graph.Policies.MobileDeviceManagementPolicies.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "includedGroups" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<DeviceEnrollmentConfiguration>?> GetDeviceEnrollmentConfigurations()
+    {
+        try
+        {
+            var result = await _graph.DeviceManagement.DeviceEnrollmentConfigurations.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments" };
+            });
             return result?.Value;
         }
         catch { return null; }

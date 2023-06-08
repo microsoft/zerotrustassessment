@@ -33,6 +33,9 @@ public class SheetConfigDevice : SheetBase
             _sheet.SetText(row, startColumn, "MDM");
             _sheet.SetText(row, startColumn + 1, policy.DisplayName);
             _sheet.SetText(row, startColumn + 6, GetAppliesToName(policy.AppliesTo));
+            var groupName = policy.AppliesTo == PolicyScope.Selected && policy.IncludedGroups != null ?
+                string.Join(", ", policy.IncludedGroups.Select(x => x.DisplayName)) : "N/A";
+            _sheet.SetText(row, startColumn + 8, groupName);
             row++;
         }
     }
@@ -45,7 +48,7 @@ public class SheetConfigDevice : SheetBase
         {
             PolicyScope.None => "None",
             PolicyScope.All => "All",
-            PolicyScope.Selected => "Selected groups",
+            PolicyScope.Selected => "Some",
             _ => string.Empty,
         };
     }
