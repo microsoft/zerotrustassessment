@@ -11,10 +11,10 @@ public class SheetAssessmentDevice : SheetBase
 
     public void Generate()
     {
-        CheckIntuneEnrollment();
+        MdmWindowsEnrollment();
     }
 
-    private void CheckIntuneEnrollment()
+    private void MdmWindowsEnrollment()
     {
         var isMdmEnrolled = _graphData.MobilityManagementPolicies?.Any(x => x.IsValid == true && x?.AppliesTo != PolicyScope.None);
         var result = isMdmEnrolled.HasValue && isMdmEnrolled.Value ? AssessmentValue.Completed : AssessmentValue.NotStarted;
