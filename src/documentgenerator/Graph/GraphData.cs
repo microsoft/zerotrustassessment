@@ -1,25 +1,17 @@
 ﻿using System.Collections.Specialized;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using Azure.Core;
 using Microsoft.Kiota.Abstractions.Authentication;
-using Microsoft.Kiota.Serialization.Json;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Graph;
 
 public class GraphData
 {
+    private readonly GraphHelper _graphHelper;
     public StringDictionary? ObjectCache { get; set; }
-    public ICollection<Organization>? Organization { get; set; }
+    public ICollection<Organization>? Organization { get; private set; }
+    public List<MobilityManagementPolicy>? MobilityManagementPolicies { get; private set; }
     public User? Me { get; set; }
     public ConfigOptions? ConfigOptions { get; private set; }
-    private GraphHelper _graphHelper;
     public Stream? OrganizationLogo { get; private set; }
-    public GraphData()
-    {
-        ConfigOptions = null;
-    }
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -40,11 +32,17 @@ public class GraphData
         Me = await _graphHelper.GetMe();
         Organization = await _graphHelper.GetOrganization();
         OrganizationLogo = await GetOrganizationLogo();
+        MobilityManagementPolicies = await _graphHelper.GetMobileDeviceManagementPolicies();
     }
 
     private async Task<Stream?> GetOrganizationLogo()
     {
-        var logo = await _graphHelper.GetOrganizationBannerImage(Organization.First().Id);
+        var org = Organization?.FirstOrDefault();
+        Stream? logo = null;
+        if (org != null && org.Id != null)
+        {
+            logo = await _graphHelper.GetOrganizationBannerImage(org.Id);
+        }        
         return logo;
     }
 

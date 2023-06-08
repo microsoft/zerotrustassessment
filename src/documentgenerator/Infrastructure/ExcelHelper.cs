@@ -1,7 +1,7 @@
 ﻿using Syncfusion.XlsIO;
 using System.Reflection;
 
-namespace ZeroTrustAssessment.DocumentGenerator;
+namespace ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
 public class ExcelHelper
 {
@@ -21,7 +21,7 @@ public class ExcelHelper
 
     public static ExcelEngine GetExcelEngine()
     {
-        ExcelEngine excelEngine = new ExcelEngine();
+        ExcelEngine excelEngine = new();
         IApplication application = excelEngine.Excel;
         application.DefaultVersion = ExcelVersion.Xlsx;
         return excelEngine;
