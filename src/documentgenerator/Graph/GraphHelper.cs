@@ -80,4 +80,24 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<Group?> GetGroup(string groupId)
+    {
+        try
+        {
+            var result = await _graph.Groups[groupId].GetAsync();
+            return result;
+        }
+        catch { return null; }
+    }
+
+    public async Task<DeviceAndAppManagementAssignmentFilter?> GetDeviceManagementAssignmentFilter(string filterId)
+    {
+        try
+        {
+            var result = await _graph.DeviceManagement.AssignmentFilters[filterId].GetAsync();
+            return result;
+        }
+        catch { return null; }
+    }
 }

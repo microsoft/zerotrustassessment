@@ -45,7 +45,7 @@ public class GraphData
         if (org != null && org.Id != null)
         {
             logo = await _graphHelper.GetOrganizationBannerImage(org.Id);
-        }        
+        }
         return logo;
     }
 
@@ -57,6 +57,33 @@ public class GraphData
 
         var graphClient = new GraphServiceClient(accessTokenProvider, "https://graph.microsoft.com/beta");
         return graphClient;
+    }
+
+    internal string GetGroupName(string? groupId)
+    { //TODO add caching
+        if (groupId == null) return string.Empty;
+        var group = _graphHelper.GetGroup(groupId).Result;
+        if (group == null)
+        {
+            return "Deleted group";
+        }
+        else
+        {
+            return group.DisplayName ?? string.Empty;
+        }
+    }
+
+    internal string GetGroupAssignmentFilterName(string filterId)
+    { //TODO add caching
+        var filter = _graphHelper.GetDeviceManagementAssignmentFilter(filterId).Result;
+        if (filter == null)
+        {
+            return "Deleted filter";
+        }
+        else
+        {
+            return filter.DisplayName ?? string.Empty;
+        }
     }
 }
 

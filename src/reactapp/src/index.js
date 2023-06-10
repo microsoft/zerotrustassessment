@@ -10,7 +10,11 @@ import { msalConfig } from "./authConfig"
 
 Providers.globalProvider = new Msal2Provider({
     clientId: msalConfig.clientId,
-    scopes: ['Agreement.Read.All', 'CrossTenantInformation.ReadBasic.All', 'Directory.Read.All', 'Policy.Read.All', 'User.Read', 'DeviceManagementServiceConfig.Read.All'],
+    scopes: 
+        [
+            'Agreement.Read.All', 'CrossTenantInformation.ReadBasic.All', 'Directory.Read.All', 'Policy.Read.All', 'User.Read', 'DeviceManagementServiceConfig.Read.All',
+            'DeviceManagementConfiguration.Read.All'
+        ],
     loginType: 'redirect',
 });
 

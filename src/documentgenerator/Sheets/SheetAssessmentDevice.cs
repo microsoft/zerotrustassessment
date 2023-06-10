@@ -58,7 +58,7 @@ public class SheetAssessmentDevice : SheetBase
             // var isDeviceEnrollmentConfigured = enrollmentConfigs.Where(x => x.) _graphData.MobilityManagementPolicies?.Any(x => x.IsValid == true && x?.AppliesTo != PolicyScope.None);
             // var result = isDeviceEnrollmentConfigured.HasValue && isDeviceEnrollmentConfigured.Value ? AssessmentValue.Completed : AssessmentValue.NotStarted;
         }
-        //TODO: Check the group count and if empty set to In Progress.
+        //TODO: Future enhancement: Check transitive group count and if less than 10 (or maybe 10% of users) then set to In Progress.
         SetValue("CH00002_DeviceEnrollment_Android", android);
         SetValue("CH00003_DeviceEnrollment_Windows", windows);
         SetValue("CH00004_DeviceEnrollment_iOS", ios);
