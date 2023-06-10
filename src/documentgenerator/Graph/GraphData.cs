@@ -14,7 +14,7 @@ public class GraphData
     public ICollection<Organization>? Organization { get; private set; }
     public List<MobilityManagementPolicy>? MobilityManagementPolicies { get; private set; }
     public List<DeviceEnrollmentConfiguration>? DeviceEnrollmentConfigurations { get; private set; }
-
+    public List<RoleScopeTag>? RoleScopeTags { get; set; }
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -36,6 +36,7 @@ public class GraphData
         OrganizationLogo = await GetOrganizationLogo();
         MobilityManagementPolicies = await _graphHelper.GetMobileDeviceManagementPolicies();
         DeviceEnrollmentConfigurations = await _graphHelper.GetDeviceEnrollmentConfigurations();
+        RoleScopeTags = await _graphHelper.GetRoleScopeTags();
     }
 
     private async Task<Stream?> GetOrganizationLogo()
@@ -84,6 +85,24 @@ public class GraphData
         {
             return filter.DisplayName ?? string.Empty;
         }
+    }
+
+    internal string GetScopesString(List<string>? roleScopeTagIds)
+    {
+        var result = string.Empty;
+        if(RoleScopeTags != null && roleScopeTagIds != null)
+        {            
+            foreach(var id in roleScopeTagIds)
+            {
+                var tag = RoleScopeTags.FirstOrDefault(x => x.Id == id);
+                if(tag != null)
+                {
+                    if(result.Length != 0) result += ", ";
+                    result += tag.DisplayName;
+                }
+            }
+        }
+        return result;
     }
 }
 

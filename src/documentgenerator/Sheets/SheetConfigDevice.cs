@@ -1,5 +1,6 @@
 using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
+using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
@@ -61,19 +62,26 @@ public class SheetConfigDevice : SheetBase
 
         if (platformRestrictions != null)
         {
+            var restrictions = new Dictionary<string, DeviceEnrollmentPlatformRestrictionConfiguration>();
             foreach (var config in platformRestrictions)
             {
-                if (config is DeviceEnrollmentPlatformRestrictionConfiguration restriction)
+                if (config is DeviceEnrollmentPlatformRestrictionConfiguration restriction) //First iterate and create list to make it easier to sort
                 {
-                    string platform = GetEnrollmentRestrictionPlatformTypeName(restriction.PlatformType);
-                    int? priority = restriction.Priority;
-                    string? displayName = restriction.DisplayName;
-                    string assignments = "";
-
-                    assignments = GetGroupAssignmentTargetText(restriction.Assignments);
-
-                    AddRow(row, startColumn, platform, priority, displayName, restriction.PlatformRestriction, assignments);
+                    var sortKey = restriction.DisplayName + GetEnrollmentRestrictionPlatformTypeName(restriction.PlatformType) + restriction.Id;
+                    restrictions.Add(sortKey, restriction);
                 }
+            }
+            foreach (var item in restrictions.OrderBy(x => x.Key))
+            {
+                var restriction = item.Value;
+                var platform = GetEnrollmentRestrictionPlatformTypeName(restriction.PlatformType);
+                var priority = restriction.Priority;
+                var displayName = restriction.DisplayName;
+                var scopes = _graphData.GetScopesString(restriction.RoleScopeTagIds);
+                var assignments = GetGroupAssignmentTargetText(restriction.Assignments);
+
+                AddRow(row, startColumn, platform, priority, displayName, restriction.PlatformRestriction, scopes, assignments);
+
                 row++;
             }
         }
@@ -82,37 +90,35 @@ public class SheetConfigDevice : SheetBase
         if (defaultPlatformRestrictions != null && defaultPlatformRestrictions is DeviceEnrollmentPlatformRestrictionsConfiguration defaultRestriction)
         {
 
-            string platform = string.Empty;
-            int? priority = defaultRestriction.Priority;
-            string displayName = "Default";
-            string assignments = "All users and all devices";
-
-            platform = "Android Enterprise (work profile)";
-            AddRow(row, startColumn, platform, priority, displayName, defaultRestriction.AndroidForWorkRestriction, assignments);row++;
-            platform = "Android device administrator";
-            AddRow(row, startColumn, platform, priority, displayName, defaultRestriction.AndroidRestriction, assignments);row++;
-            platform = "iOS/iPadOS";
-            AddRow(row, startColumn, platform, priority, displayName, defaultRestriction.IosRestriction, assignments);row++;
-            platform = "macOS";
-            AddRow(row, startColumn, platform, priority, displayName, defaultRestriction.MacOSRestriction, assignments);row++;
-            platform = "Windows (MDM)";
-            AddRow(row, startColumn, platform, priority, displayName, defaultRestriction.WindowsRestriction, assignments);row++;
+            var platform = string.Empty;
+            var priority = defaultRestriction.Priority;
+            var displayName = "Default";
+            var scopes = _graphData.GetScopesString(defaultRestriction.RoleScopeTagIds);
+            var assignments = "All users and all devices";
+            
+            AddRow(row, startColumn, Labels.PlatformAndroidForWork, priority, displayName, defaultRestriction.AndroidForWorkRestriction, scopes, assignments); row++;
+            AddRow(row, startColumn, Labels.PlatformAndroid, priority, displayName, defaultRestriction.AndroidRestriction, scopes, assignments); row++;
+            AddRow(row, startColumn, Labels.PlatformIos, priority, displayName, defaultRestriction.IosRestriction, scopes, assignments); row++;
+            AddRow(row, startColumn, Labels.PlatformMacOs, priority, displayName, defaultRestriction.MacOSRestriction, scopes, assignments); row++;
+            AddRow(row, startColumn, Labels.PlatformWindows, priority, displayName, defaultRestriction.WindowsRestriction, scopes, assignments); row++;
         }
 
     }
-    private void AddRow(int row, int startColumn, string platform, int? priority, string? displayName, DeviceEnrollmentPlatformRestriction? platformRestriction, string assignments)
+    private void AddRow(int row, int startColumn, string platform, int? priority, string? displayName, DeviceEnrollmentPlatformRestriction? platformRestriction, string scopes, string assignments)
     {
         _sheet.SetText(row, startColumn, platform);
-        _sheet.SetValue(row, startColumn + 1, $"{priority}");
-        _sheet.SetText(row, startColumn + 2, displayName);
+        _sheet.SetValue(row, startColumn + 3, $"{priority}");
+        _sheet.SetText(row, startColumn + 4, displayName);
 
         if (platformRestriction != null)
         {
-            _sheet.SetText(row, startColumn + 6, GetIsBlockedString(platformRestriction.PlatformBlocked));
-            _sheet.SetText(row, startColumn + 7, GetString(platformRestriction.OsMinimumVersion));
-            _sheet.SetText(row, startColumn + 8, GetString(platformRestriction.OsMaximumVersion));
-            _sheet.SetText(row, startColumn + 9, GetIsBlockedString(platformRestriction.PersonalDeviceEnrollmentBlocked));
-            _sheet.SetText(row, startColumn + 11, assignments);
+            _sheet.SetText(row, startColumn + 8, GetIsBlockedString(platformRestriction.PlatformBlocked));
+            _sheet.SetText(row, startColumn + 9, GetString(platformRestriction.OsMinimumVersion));
+            _sheet.SetText(row, startColumn + 10, GetString(platformRestriction.OsMaximumVersion));
+            _sheet.SetText(row, startColumn + 11, GetIsBlockedString(platformRestriction.PersonalDeviceEnrollmentBlocked));
+            _sheet.SetText(row, startColumn + 13, platformRestriction.BlockedManufacturers?.Count > 0 ? string.Join(", ", platformRestriction.BlockedManufacturers) : string.Empty);
+            _sheet.SetText(row, startColumn + 15, scopes);
+            _sheet.SetText(row, startColumn + 16, assignments);
         }
     }
     private string GetString(string? value)
@@ -166,11 +172,11 @@ public class SheetConfigDevice : SheetBase
 
         return platformType switch
         {
-            EnrollmentRestrictionPlatformType.Android => "Android",
-            EnrollmentRestrictionPlatformType.AndroidForWork => "Windows",
-            EnrollmentRestrictionPlatformType.Windows => "Windows",
-            EnrollmentRestrictionPlatformType.Ios => "iOS",
-            EnrollmentRestrictionPlatformType.Mac => "macOS",
+            EnrollmentRestrictionPlatformType.Android => Labels.PlatformAndroid,
+            EnrollmentRestrictionPlatformType.AndroidForWork => Labels.PlatformAndroidForWork,
+            EnrollmentRestrictionPlatformType.Windows => Labels.PlatformWindows,
+            EnrollmentRestrictionPlatformType.Ios => Labels.PlatformIos,
+            EnrollmentRestrictionPlatformType.Mac => Labels.PlatformMacOs,
             _ => nameof(platformType),
         };
     }

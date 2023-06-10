@@ -100,4 +100,14 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<RoleScopeTag>?> GetRoleScopeTags()
+    {
+        try
+        {
+            var result = await _graph.DeviceManagement.RoleScopeTags.GetAsync();
+            return result.Value;
+        }
+        catch { return null; } 
+    }
 }
