@@ -30,8 +30,19 @@ public class SheetAssessmentDevice : SheetBase
         var ios = AssessmentValue.NotStarted;
         var macos = AssessmentValue.NotStarted;
 
+        //Check if any of the platforms are disabled in the default policy
+        var defaultPlatformRestrictions = _graphData.DeviceEnrollmentConfigurations?
+            .Where(x => x.DeviceEnrollmentConfigurationType == DeviceEnrollmentConfigurationType.PlatformRestrictions).FirstOrDefault();
+        if (defaultPlatformRestrictions != null && defaultPlatformRestrictions is DeviceEnrollmentPlatformRestrictionsConfiguration defaultRestriction)
+        {
+            if(defaultRestriction?.AndroidRestriction?.PlatformBlocked == false || 
+                defaultRestriction?.AndroidForWorkRestriction?.PlatformBlocked == false ) { android = AssessmentValue.Completed; }
+            if(defaultRestriction?.IosRestriction?.PlatformBlocked == false) { ios = AssessmentValue.Completed; }
+            if(defaultRestriction?.MacRestriction?.PlatformBlocked == false) { macos = AssessmentValue.Completed; }
+            if(defaultRestriction?.WindowsRestriction?.PlatformBlocked == false) { windows =  AssessmentValue.Completed; }
+        }
 
-        if (enrollmentConfigs != null)
+        if (enrollmentConfigs != null) //Check if a custom policy has been created and mark as completed if one is found.
         {
             foreach (var config in enrollmentConfigs)
             {
@@ -40,6 +51,7 @@ public class SheetAssessmentDevice : SheetBase
                     switch (restriction.PlatformType)
                     {
                         case EnrollmentRestrictionPlatformType.Android:
+                        case EnrollmentRestrictionPlatformType.AndroidForWork:
                             android = AssessmentValue.Completed;
                             break;
                         case EnrollmentRestrictionPlatformType.Windows:
@@ -54,10 +66,9 @@ public class SheetAssessmentDevice : SheetBase
                     }
                 }
             }
-
-            // var isDeviceEnrollmentConfigured = enrollmentConfigs.Where(x => x.) _graphData.MobilityManagementPolicies?.Any(x => x.IsValid == true && x?.AppliesTo != PolicyScope.None);
-            // var result = isDeviceEnrollmentConfigured.HasValue && isDeviceEnrollmentConfigured.Value ? AssessmentValue.Completed : AssessmentValue.NotStarted;
         }
+
+
         //TODO: Future enhancement: Check transitive group count and if less than 10 (or maybe 10% of users) then set to In Progress.
         SetValue("CH00002_DeviceEnrollment_Android", android);
         SetValue("CH00003_DeviceEnrollment_Windows", windows);
