@@ -15,6 +15,8 @@ public class GraphData
     public List<MobilityManagementPolicy>? MobilityManagementPolicies { get; private set; }
     public List<DeviceEnrollmentConfiguration>? DeviceEnrollmentConfigurations { get; private set; }
     public List<RoleScopeTag>? RoleScopeTags { get; set; }
+    public List<DeviceCompliancePolicy>? DeviceCompliancePolicies { get; set; }
+
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -37,6 +39,7 @@ public class GraphData
         MobilityManagementPolicies = await _graphHelper.GetMobileDeviceManagementPolicies();
         DeviceEnrollmentConfigurations = await _graphHelper.GetDeviceEnrollmentConfigurations();
         RoleScopeTags = await _graphHelper.GetRoleScopeTags();
+        DeviceCompliancePolicies = await _graphHelper.GetDeviceCompliancePolicies();
     }
 
     private async Task<Stream?> GetOrganizationLogo()
@@ -90,19 +93,71 @@ public class GraphData
     internal string GetScopesString(List<string>? roleScopeTagIds)
     {
         var result = string.Empty;
-        if(RoleScopeTags != null && roleScopeTagIds != null)
-        {            
-            foreach(var id in roleScopeTagIds)
+        if (RoleScopeTags != null && roleScopeTagIds != null)
+        {
+            foreach (var id in roleScopeTagIds)
             {
                 var tag = RoleScopeTags.FirstOrDefault(x => x.Id == id);
-                if(tag != null)
+                if (tag != null)
                 {
-                    if(result.Length != 0) result += ", ";
+                    if (result.Length != 0) result += ", ";
                     result += tag.DisplayName;
                 }
             }
         }
         return result;
+    }
+
+    internal string GetGroupAssignmentTargetText(List<EnrollmentConfigurationAssignment>? assignments)
+    {
+        string text = string.Empty;
+        if (assignments == null) return text;
+        foreach (var assignment in assignments)
+        {
+            string? filterId = null;
+            if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
+            {
+                text = "All users";
+                filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
+            }
+            else if (assignment.Target is GroupAssignmentTarget group)
+            {
+                if (text.Length > 0) text += ", ";
+                text += GetGroupName(group.GroupId);
+                filterId = group.DeviceAndAppManagementAssignmentFilterId;
+            }
+            text += GetAssignmentFilter(filterId);
+        }
+        return text;
+    }
+
+    internal string GetGroupAssignmentTargetText(List<DeviceCompliancePolicyAssignment>? assignments)
+    {
+        string text = string.Empty;
+        if (assignments == null) return text;
+        foreach (var assignment in assignments)
+        {
+            string? filterId = null;
+            if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
+            {
+                text = "All users";
+                filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
+            }
+            else if (assignment.Target is GroupAssignmentTarget group)
+            {
+                if (text.Length > 0) text += ", ";
+                text += GetGroupName(group.GroupId);
+                filterId = group.DeviceAndAppManagementAssignmentFilterId;
+            }
+            text += GetAssignmentFilter(filterId);
+        }
+        return text;
+    }
+
+    private string GetAssignmentFilter(string? filterId)
+    {
+        if (filterId == null || filterId == "00000000-0000-0000-0000-000000000000") return string.Empty;
+        return " (Filter: " + GetGroupAssignmentFilterName(filterId) + ")";
     }
 }
 

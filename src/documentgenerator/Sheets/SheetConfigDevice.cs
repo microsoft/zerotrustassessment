@@ -1,6 +1,7 @@
 using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
+using ZeroTrustAssessment.DocumentGenerator.ViewModels;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
@@ -14,6 +15,7 @@ public class SheetConfigDevice : SheetBase
     {
         MdmWindowsEnrollment();
         DeviceEnrollmentConfiguration();
+        DeviceCompliancePolicies();
     }
 
     private void MdmWindowsEnrollment()
@@ -49,16 +51,12 @@ public class SheetConfigDevice : SheetBase
             .OrderByDescending(x => x.Priority).ThenBy(x => x.DisplayName);
 
         var rowCount = (platformRestrictions?.Count() ?? 0) + 5;
-        // if (rowCount == 0)
-        // {
-        //     SetValue("Table_EnrollmentDevicePlatformRestrictions", "Not configured");
-        //     return;
-        // }
 
         var startColumn = _sheet.Range["Table_EnrollmentDevicePlatformRestrictions"].Column;
         var startRow = _sheet.Range["Table_EnrollmentDevicePlatformRestrictions"].Row;
 
         var row = startRow;
+        _sheet.InsertRow(startRow, rowCount);
 
         if (platformRestrictions != null)
         {
@@ -78,9 +76,9 @@ public class SheetConfigDevice : SheetBase
                 var priority = restriction.Priority;
                 var displayName = restriction.DisplayName;
                 var scopes = _graphData.GetScopesString(restriction.RoleScopeTagIds);
-                var assignments = GetGroupAssignmentTargetText(restriction.Assignments);
+                var assignments = _graphData.GetGroupAssignmentTargetText(restriction.Assignments);
 
-                AddRow(row, startColumn, platform, priority, displayName, restriction.PlatformRestriction, scopes, assignments);
+                AddDeviceEnrollmentRow(row, startColumn, platform, priority, displayName, restriction.PlatformRestriction, scopes, assignments);
 
                 row++;
             }
@@ -95,16 +93,16 @@ public class SheetConfigDevice : SheetBase
             var displayName = "Default";
             var scopes = _graphData.GetScopesString(defaultRestriction.RoleScopeTagIds);
             var assignments = "All users and all devices";
-            
-            AddRow(row, startColumn, Labels.PlatformAndroidForWork, priority, displayName, defaultRestriction.AndroidForWorkRestriction, scopes, assignments); row++;
-            AddRow(row, startColumn, Labels.PlatformAndroid, priority, displayName, defaultRestriction.AndroidRestriction, scopes, assignments); row++;
-            AddRow(row, startColumn, Labels.PlatformIos, priority, displayName, defaultRestriction.IosRestriction, scopes, assignments); row++;
-            AddRow(row, startColumn, Labels.PlatformMacOs, priority, displayName, defaultRestriction.MacOSRestriction, scopes, assignments); row++;
-            AddRow(row, startColumn, Labels.PlatformWindows, priority, displayName, defaultRestriction.WindowsRestriction, scopes, assignments); row++;
+
+            AddDeviceEnrollmentRow(row, startColumn, Labels.PlatformAndroidForWork, priority, displayName, defaultRestriction.AndroidForWorkRestriction, scopes, assignments); row++;
+            AddDeviceEnrollmentRow(row, startColumn, Labels.PlatformAndroid, priority, displayName, defaultRestriction.AndroidRestriction, scopes, assignments); row++;
+            AddDeviceEnrollmentRow(row, startColumn, Labels.PlatformIos, priority, displayName, defaultRestriction.IosRestriction, scopes, assignments); row++;
+            AddDeviceEnrollmentRow(row, startColumn, Labels.PlatformMacOs, priority, displayName, defaultRestriction.MacOSRestriction, scopes, assignments); row++;
+            AddDeviceEnrollmentRow(row, startColumn, Labels.PlatformWindows, priority, displayName, defaultRestriction.WindowsRestriction, scopes, assignments); row++;
         }
 
     }
-    private void AddRow(int row, int startColumn, string platform, int? priority, string? displayName, DeviceEnrollmentPlatformRestriction? platformRestriction, string scopes, string assignments)
+    private void AddDeviceEnrollmentRow(int row, int startColumn, string platform, int? priority, string? displayName, DeviceEnrollmentPlatformRestriction? platformRestriction, string scopes, string assignments)
     {
         _sheet.SetText(row, startColumn, platform);
         _sheet.SetValue(row, startColumn + 3, $"{priority}");
@@ -121,38 +119,75 @@ public class SheetConfigDevice : SheetBase
             _sheet.SetText(row, startColumn + 16, assignments);
         }
     }
+
+
+    private void DeviceCompliancePolicies()
+    {
+        //TODO Add linux
+        var compliancePolicies = _graphData.DeviceCompliancePolicies;
+
+        if (compliancePolicies == null || compliancePolicies.Count() == 0)
+        {
+            SetValue("Table_DeviceCompliancePolicies", "Not configured");
+        }
+
+        var rowCount = compliancePolicies?.Count() ?? 0;
+
+        var startColumn = _sheet.Range["Table_DeviceCompliancePolicies"].Column;
+        var startRow = _sheet.Range["Table_DeviceCompliancePolicies"].Row;
+
+        var row = startRow;
+        _sheet.InsertRow(startRow, rowCount);
+
+        if (compliancePolicies != null)
+        {
+            var view = new List<DeviceCompliancePolicyView>();
+
+            foreach (var policy in compliancePolicies)
+            {
+                view.Add(new DeviceCompliancePolicyView(_graphData, policy));
+            }
+
+            foreach (var item in view)
+            {
+                _sheet.SetText(row, startColumn, item.Platform);
+                _sheet.SetText(row, startColumn + 3, item.DisplayName);
+
+                _sheet.SetText(row, startColumn + 8, item.OsMinimumVersion);
+                _sheet.SetText(row, startColumn + 9, item.OsMaximumVersion);
+                _sheet.SetText(row, startColumn + 10, item.MobileOsMinimumVersion);
+                _sheet.SetText(row, startColumn + 11, item.MobileOsMaximumVersion);
+                _sheet.SetText(row, startColumn + 12, item.ValidOperatingSystemBuildRanges);
+                _sheet.SetText(row, startColumn + 13, item.PasswordRequired);
+                _sheet.SetText(row, startColumn + 14, item.PasswordBlockSimple);
+                _sheet.SetText(row, startColumn + 15, item.PasswordRequiredType);
+                _sheet.SetText(row, startColumn + 16, item.PasswordMinimumLength);
+                _sheet.SetText(row, startColumn + 17, item.PasswordMinutesOfInactivityBeforeLock);
+                _sheet.SetText(row, startColumn + 18, item.PasswordExpirationDays);
+                _sheet.SetText(row, startColumn + 19, item.PasswordPreviousPasswordBlockCount);
+                _sheet.SetText(row, startColumn + 20, item.PasswordRequiredToUnlockFromIdle);
+                _sheet.SetText(row, startColumn + 21, item.StorageRequireEncryption);
+                _sheet.SetText(row, startColumn + 22, item.ActiveFirewallRequired);
+                _sheet.SetText(row, startColumn + 23, item.TpmRequired);
+                _sheet.SetText(row, startColumn + 24, item.AntivirusRequired);
+                _sheet.SetText(row, startColumn + 25, item.AntiSpywareRequired);
+                _sheet.SetText(row, startColumn + 26, item.DefenderEnabled);
+                _sheet.SetText(row, startColumn + 27, item.DefenderVersion);
+
+                _sheet.SetText(row, startColumn + 28, item.Scopes);
+                _sheet.SetText(row, startColumn + 29, item.Assignments);
+
+                row++;
+            }
+        }
+    }
+
+
     private string GetString(string? value)
     {
         return value ?? string.Empty;
     }
-    private string GetGroupAssignmentTargetText(List<EnrollmentConfigurationAssignment>? assignments)
-    {
-        string text = string.Empty;
-        if (assignments == null) return text;
-        foreach (var assignment in assignments)
-        {
-            string? filterId = null;
-            if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
-            {
-                text = "All users";
-                filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
-            }
-            else if (assignment.Target is GroupAssignmentTarget group)
-            {
-                if (text.Length > 0) text += ", ";
-                text += _graphData.GetGroupName(group.GroupId);
-                filterId = group.DeviceAndAppManagementAssignmentFilterId;
-            }
-            text += GetAssignmentFilter(filterId);
-        }
-        return text;
-    }
 
-    private string GetAssignmentFilter(string? filterId)
-    {
-        if (filterId == null || filterId == "00000000-0000-0000-0000-000000000000") return string.Empty;
-        return " (Filter: " + _graphData.GetGroupAssignmentFilterName(filterId) + ")";
-    }
     private static string GetAppliesToName(PolicyScope? scope)
     {
         if (scope == null) return string.Empty;

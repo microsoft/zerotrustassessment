@@ -106,8 +106,21 @@ public class GraphHelper
         try
         {
             var result = await _graph.DeviceManagement.RoleScopeTags.GetAsync();
-            return result.Value;
+            return result?.Value;
         }
         catch { return null; } 
+    }
+
+    public async Task<List<DeviceCompliancePolicy>?> GetDeviceCompliancePolicies()
+    {
+        try
+        {
+            var result = await _graph.DeviceManagement.DeviceCompliancePolicies.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
     }
 }
