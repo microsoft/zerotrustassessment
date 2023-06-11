@@ -83,10 +83,10 @@ public class EnrollmentRestrictionView
     {
         if (platformRestriction != null)
         {
-            view.PlatformBlocked = SheetConfigDevice.GetIsBlockedString(platformRestriction.PlatformBlocked);
-            view.OsMinimumVersion = SheetConfigDevice.GetString(platformRestriction.OsMinimumVersion);
-            view.OsMaximumVersion = SheetConfigDevice.GetString(platformRestriction.OsMaximumVersion);
-            view.PersonalDeviceEnrollmentBlocked = SheetConfigDevice.GetIsBlockedString(platformRestriction.PersonalDeviceEnrollmentBlocked);
+            view.PlatformBlocked = GetIsBlockedString(platformRestriction.PlatformBlocked);
+            view.OsMinimumVersion = platformRestriction.OsMinimumVersion;
+            view.OsMaximumVersion = platformRestriction.OsMaximumVersion;
+            view.PersonalDeviceEnrollmentBlocked = GetIsBlockedString(platformRestriction.PersonalDeviceEnrollmentBlocked);
             view.BlockedManufacturers = platformRestriction.BlockedManufacturers?.Count > 0 ? string.Join(", ", platformRestriction.BlockedManufacturers) : string.Empty;
         }
     }
@@ -104,5 +104,11 @@ public class EnrollmentRestrictionView
             EnrollmentRestrictionPlatformType.Mac => Labels.PlatformMacOs,
             _ => nameof(platformType),
         };
+    }
+
+    private static string GetIsBlockedString(bool? value)
+    {
+        if (value == null) return string.Empty;
+        return (bool)value ? "Blocked" : "Allowed";
     }
 }
