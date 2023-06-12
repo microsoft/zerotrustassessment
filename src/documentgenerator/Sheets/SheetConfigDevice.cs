@@ -45,7 +45,7 @@ public class SheetConfigDevice : SheetBase
 
     private void DeviceEnrollmentConfiguration()
     {
-        var views = EnrollmentRestrictionView.GetViews(_graphData).OrderBy(x => x.Platform).ThenBy(x => x.DisplayName);
+        var views = EnrollmentRestrictionView.GetViews(_graphData).OrderByDescending((x => x.Priority)).ThenBy(x => x.Platform).ThenBy(x => x.DisplayName);
         var table = new ExcelTable(_sheet, "Table_EnrollmentDevicePlatformRestrictions");
         table.InitializeRows(views.Count());
         
@@ -67,7 +67,7 @@ public class SheetConfigDevice : SheetBase
 
     private void DeviceCompliancePolicies()
     {
-        var views = new DeviceCompliancePolicyViews(_graphData).GetViews();
+        var views = new DeviceCompliancePolicyViews(_graphData).GetViews().OrderBy(x => x.Platform).ThenBy(x => x.PolicyType).ThenBy(x => x.DisplayName);
 
         var table = new ExcelTable(_sheet, "Table_DeviceCompliancePolicies");
         if (views.Count() == 0)
@@ -82,30 +82,32 @@ public class SheetConfigDevice : SheetBase
             {
                 table.AddColumn(item.Platform, 3);
                 table.AddColumn(item.DisplayName, 5);
+                table.AddColumn(item.DefenderForEndPoint);
                 table.AddColumn(item.OsMinimumVersion);
                 table.AddColumn(item.OsMaximumVersion);
-                table.AddColumn(item.MobileOsMinimumVersion);
-                table.AddColumn(item.MobileOsMaximumVersion);
-                table.AddColumn(item.ValidOperatingSystemBuildRanges);
                 table.AddColumn(item.PasswordRequired);
-                table.AddColumn(item.PasswordBlockSimple);
-                table.AddColumn(item.PasswordRequiredType);
                 table.AddColumn(item.PasswordMinimumLength);
-                table.AddColumn(item.PasswordMinutesOfInactivityBeforeLock);
+                table.AddColumn(item.PasswordRequiredType, 2);
                 table.AddColumn(item.PasswordExpirationDays);
                 table.AddColumn(item.PasswordPreviousPasswordBlockCount);
-                table.AddColumn(item.PasswordRequiredToUnlockFromIdle);
+                table.AddColumn(item.PasswordMinutesOfInactivityBeforeLock);
                 table.AddColumn(item.StorageRequireEncryption);
+                table.AddColumn(item.SecurityBlockJailbrokenDevices);
                 table.AddColumn(item.ActiveFirewallRequired);
-                table.AddColumn(item.TpmRequired);
-                table.AddColumn(item.AntivirusRequired);
-                table.AddColumn(item.AntiSpywareRequired);
-                table.AddColumn(item.DefenderEnabled);
-                table.AddColumn(item.DefenderVersion);
-
                 table.AddColumn(item.Scopes);
                 table.AddColumn(item.Assignments);
                 table.NextRow();
+
+                // Move to Windows table
+                // table.AddColumn(item.MobileOsMinimumVersion);
+                // table.AddColumn(item.MobileOsMaximumVersion);
+                // table.AddColumn(item.ValidOperatingSystemBuildRanges);
+                // table.AddColumn(item.PasswordBlockSimple);               
+                // table.AddColumn(item.PasswordRequiredToUnlockFromIdle);                
+                // table.AddColumn(item.TpmRequired);
+                // table.AddColumn(item.AntivirusRequired);
+                // table.AddColumn(item.AntiSpywareRequired);               
+                // table.AddColumn(item.DefenderVersion);
             }
         }
     }
