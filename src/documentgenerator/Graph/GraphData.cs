@@ -1,5 +1,6 @@
 ﻿using System.Collections.Specialized;
 using Microsoft.Kiota.Abstractions.Authentication;
+using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Graph;
 
@@ -100,8 +101,7 @@ public class GraphData
                 var tag = RoleScopeTags.FirstOrDefault(x => x.Id == id);
                 if (tag != null)
                 {
-                    if (result.Length != 0) result += ", ";
-                    result += tag.DisplayName;
+                    result += Helper.AppendWithComma(result, tag.DisplayName);
                 }
             }
         }
@@ -122,8 +122,7 @@ public class GraphData
             }
             else if (assignment.Target is GroupAssignmentTarget group)
             {
-                if (text.Length > 0) text += ", ";
-                text += GetGroupName(group.GroupId);
+                text += Helper.AppendWithComma(text, GetGroupName(group.GroupId));
                 filterId = group.DeviceAndAppManagementAssignmentFilterId;
             }
             text += GetAssignmentFilter(filterId);
@@ -131,27 +130,51 @@ public class GraphData
         return text;
     }
 
-    internal string GetGroupAssignmentTargetText(List<DeviceCompliancePolicyAssignment>? assignments)
+    internal void GetGroupAssignmentTargetText(List<DeviceCompliancePolicyAssignment>? assignments, out string includedGroups, out string excludedGroups)
     {
-        string text = string.Empty;
-        if (assignments == null) return text;
-        foreach (var assignment in assignments)
+        var includedList = new List<string>();
+        var excludedList = new List<string>();
+        if (assignments != null && assignments.Count > 0)
         {
-            string? filterId = null;
-            if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
+            foreach (var assignment in assignments)
             {
-                text = "All users";
-                filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
+                string? filterId;
+                if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
+                {
+                    var text = "All users";
+                    filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Insert(0, text);
+                }
+                else if (assignment.Target is AllDevicesAssignmentTarget allDevices)
+                {
+                    var text = "All devices";
+                    filterId = allDevices.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Insert(0, text);
+                }
+                else if (assignment.Target is GroupAssignmentTarget group)
+                {
+                    var text = GetGroupName(group.GroupId);
+                    filterId = group.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Add(text);
+                }
+                else if (assignment.Target is ExclusionGroupAssignmentTarget excludedGroup)
+                {
+                    var text = GetGroupName(excludedGroup.GroupId);
+                    filterId = excludedGroup.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    excludedList.Add(text);
+                }
+                else
+                {
+                    includedList.Add("Unknown target");
+                }
             }
-            else if (assignment.Target is GroupAssignmentTarget group)
-            {
-                if (text.Length > 0) text += ", ";
-                text += GetGroupName(group.GroupId);
-                filterId = group.DeviceAndAppManagementAssignmentFilterId;
-            }
-            text += GetAssignmentFilter(filterId);
         }
-        return text;
+        includedGroups = string.Join(", ", includedList);
+        excludedGroups = string.Join(", ", excludedList);
     }
 
     private string GetAssignmentFilter(string? filterId)

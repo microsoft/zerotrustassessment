@@ -4,9 +4,8 @@ namespace ZeroTrustAssessment.DocumentGenerator.ViewModels;
 public class DeviceCompliancePolicyViews
 {
     private readonly GraphData _graphData;
-    private const string NotApplicableString = "N/A";
+    private const string NotApplicableString = "n/a";
     private const string RequireString = "Yes";
-    private const string NotRequiredString = "Not required";
     private const string ConfiguredString = "Configured";
     private const string NotConfiguredString = "Not configured";
     private const string BlockedString = "Blocked";
@@ -23,12 +22,15 @@ public class DeviceCompliancePolicyViews
         {
             foreach (var policy in compliancePolicies)
             {
+                string includedGroups, excludedGroups;
+                _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
                 var view = new DeviceCompliancePolicyView
                 {
                     Id = policy.Id,
                     DisplayName = policy.DisplayName,
                     Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
-                    Assignments = _graphData.GetGroupAssignmentTargetText(policy.Assignments)
+                    IncludedGroups = includedGroups,
+                    ExcludedGroups = excludedGroups
                 };
 
                 if (policy is Windows10CompliancePolicy windows10CompliancePolicy) { SetCompliancePolicyView(view, windows10CompliancePolicy); }
@@ -57,7 +59,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordCountToBlock?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = NotApplicableString;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
 
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, AospDeviceOwnerCompliancePolicy policy)
@@ -73,7 +77,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = NotApplicableString;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, AndroidCompliancePolicy policy)
     {
@@ -88,7 +94,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, AndroidWorkProfileCompliancePolicy policy)
     {
@@ -103,7 +111,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, IosCompliancePolicy policy)
     {
@@ -118,7 +128,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasscodePreviousPasscodeBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasscodeRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasscodeRequiredType);
-
+        view.StorageRequireEncryption = NotApplicableString;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
 
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, MacOSCompliancePolicy policy)
@@ -134,7 +146,8 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = NotApplicableString;
         view.ActiveFirewallRequired = policy.FirewallEnabled == true ? RequireString : string.Empty;
 
     }
@@ -151,7 +164,9 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = NotApplicableString;
+        view.ActiveFirewallRequired = NotApplicableString;
     }
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, Windows10CompliancePolicy policy)
     {
@@ -166,8 +181,10 @@ public class DeviceCompliancePolicyViews
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = NotApplicableString;
         view.ActiveFirewallRequired = policy.ActiveFirewallRequired == true ? RequireString : string.Empty;
+
         view.AntiSpywareRequired = policy.AntiSpywareRequired == true ? RequireString : string.Empty;
         view.AntivirusRequired = policy.AntivirusRequired == true ? RequireString : string.Empty;
         view.BitLockerEnabled = policy.BitLockerEnabled == true ? RequireString : string.Empty;
@@ -191,7 +208,7 @@ public class DeviceCompliancePolicyViews
         view.RtpEnabled = policy.RtpEnabled == true ? RequireString : string.Empty;
         view.SecureBootEnabled = policy.SecureBootEnabled == true ? RequireString : string.Empty;
         view.SignatureOutOfDate = policy.SignatureOutOfDate?.ToString() ?? string.Empty;
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
+        
         view.TpmRequired = policy.TpmRequired == true ? RequireString : string.Empty;
 
         if (policy.ValidOperatingSystemBuildRanges != null)

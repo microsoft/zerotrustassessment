@@ -94,8 +94,9 @@ public class SheetConfigDevice : SheetBase
                 table.AddColumn(item.StorageRequireEncryption);
                 table.AddColumn(item.SecurityBlockJailbrokenDevices);
                 table.AddColumn(item.ActiveFirewallRequired);
-                table.AddColumn(item.Scopes);
-                table.AddColumn(item.Assignments);
+                table.AddColumn(item.Scopes, 2);                
+                table.AddColumn(item.IncludedGroups, 2);
+                table.AddColumn(item.ExcludedGroups, 2);
                 table.NextRow();
 
                 // Move to Windows table

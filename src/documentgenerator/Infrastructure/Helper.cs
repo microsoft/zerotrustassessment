@@ -54,4 +54,9 @@ public static class Helper
         var shortId = $"{id.Substring(0, 4)}...{id.Substring(id.Length - 4, 4)}";
         return shortId;
     }
+
+    public static string? AppendWithComma(string str, string? stringToAppend)
+    {
+        return string.IsNullOrEmpty(str) ? stringToAppend : $", {stringToAppend}";
+    }
 }
