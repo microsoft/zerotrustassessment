@@ -18,7 +18,8 @@ public class DeviceCompliancePolicyView
 
     public string? RoleScopeTagIds { get; set; }
     public string? Scopes { get; set; }
-    public string? Assignments { get; set; }
+    public string? IncludedGroups { get; set; }
+    public string? ExcludedGroups { get; set; }
     
 
     //Android attributes

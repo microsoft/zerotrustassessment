@@ -105,6 +105,22 @@ public class DeviceCompliancePolicyViews
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
 
     }
+    private void SetCompliancePolicyView(DeviceCompliancePolicyView view, IosCompliancePolicy policy)
+    {
+        view.Platform = "iOS/iPadOS";
+        view.PolicyType = "iOS compliance policy";
+        view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
+        view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
+        view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
+        view.PasswordExpirationDays = policy.PasscodeExpirationDays?.ToString() ?? string.Empty;
+        view.PasswordMinutesOfInactivityBeforeLock = policy.PasscodeMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
+        view.PasswordMinimumLength = policy.PasscodeMinimumLength?.ToString() ?? string.Empty;
+        view.PasswordPreviousPasswordBlockCount = policy.PasscodePreviousPasscodeBlockCount?.ToString() ?? string.Empty;
+        view.PasswordRequired = policy.PasscodeRequired == true ? RequireString : string.Empty;
+        view.PasswordRequiredType = GetPasswordRequiredType(policy.PasscodeRequiredType);
+
+    }
+
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, MacOSCompliancePolicy policy)
     {
         view.Platform = "macOS";
@@ -119,20 +135,7 @@ public class DeviceCompliancePolicyViews
         view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
 
-    }
-    private void SetCompliancePolicyView(DeviceCompliancePolicyView view, IosCompliancePolicy policy)
-    {
-        view.Platform = "iOS/iPadOS";
-        view.PolicyType = "iOS compliance policy";
-        view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
-        view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-        view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-        view.PasswordExpirationDays = policy.PasscodeExpirationDays?.ToString() ?? string.Empty;
-        view.PasswordMinutesOfInactivityBeforeLock = policy.PasscodeMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-        view.PasswordMinimumLength = policy.PasscodeMinimumLength?.ToString() ?? string.Empty;
-        view.PasswordPreviousPasswordBlockCount = policy.PasscodePreviousPasscodeBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasscodeRequired == true ? RequireString : string.Empty;
-        view.PasswordRequiredType = GetPasswordRequiredType(policy.PasscodeRequiredType);
+        view.ActiveFirewallRequired = policy.FirewallEnabled == true ? RequireString : string.Empty;
 
     }
     private void SetCompliancePolicyView(DeviceCompliancePolicyView view, Windows81CompliancePolicy policy)
