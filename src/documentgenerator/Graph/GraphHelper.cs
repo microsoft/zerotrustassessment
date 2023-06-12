@@ -117,7 +117,7 @@ public class GraphHelper
         {
             var result = await _graph.DeviceManagement.DeviceCompliancePolicies.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments" };
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "scheduledActionsForRule($expand=scheduledActionConfigurations)" };
             });
             return result?.Value;
         }

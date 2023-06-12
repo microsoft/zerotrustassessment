@@ -59,4 +59,11 @@ public static class Helper
     {
         return string.IsNullOrEmpty(str) ? stringToAppend : $", {stringToAppend}";
     }
+
+    public static double ConvertHoursToTotalDays(double hours)
+    {
+        TimeSpan result = TimeSpan.FromHours(hours);
+
+        return result.TotalDays;
+    }
 }

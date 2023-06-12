@@ -93,8 +93,14 @@ public class SheetConfigDevice : SheetBase
                 table.AddColumn(item.PasswordMinutesOfInactivityBeforeLock);
                 table.AddColumn(item.StorageRequireEncryption);
                 table.AddColumn(item.SecurityBlockJailbrokenDevices);
+                table.AddColumn(item.DeviceThreatProtectionRequiredSecurityLevel);
                 table.AddColumn(item.ActiveFirewallRequired);
-                table.AddColumn(item.Scopes, 2);                
+                table.AddColumn(item.NoncomplianceActionPushNotification, 2);
+                table.AddColumn(item.NoncomplianceActionNotification, 2);
+                table.AddColumn(item.NoncomplianceActionRemoteLock, 2);
+                table.AddColumn(item.NoncomplianceActionBlock, 2);
+                table.AddColumn(item.NoncomplianceActionRetire, 2);
+                table.AddColumn(item.Scopes, 2);
                 table.AddColumn(item.IncludedGroups, 2);
                 table.AddColumn(item.ExcludedGroups, 2);
                 table.NextRow();

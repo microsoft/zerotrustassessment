@@ -153,19 +153,19 @@ public class GraphData
                     text += GetAssignmentFilter(filterId);
                     includedList.Insert(0, text);
                 }
-                else if (assignment.Target is GroupAssignmentTarget group)
-                {
-                    var text = GetGroupName(group.GroupId);
-                    filterId = group.DeviceAndAppManagementAssignmentFilterId;
-                    text += GetAssignmentFilter(filterId);
-                    includedList.Add(text);
-                }
                 else if (assignment.Target is ExclusionGroupAssignmentTarget excludedGroup)
                 {
                     var text = GetGroupName(excludedGroup.GroupId);
                     filterId = excludedGroup.DeviceAndAppManagementAssignmentFilterId;
                     text += GetAssignmentFilter(filterId);
                     excludedList.Add(text);
+                }
+                else if (assignment.Target is GroupAssignmentTarget group)
+                {
+                    var text = GetGroupName(group.GroupId);
+                    filterId = group.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Add(text);
                 }
                 else
                 {

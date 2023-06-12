@@ -15,12 +15,16 @@ public class DeviceCompliancePolicyView
     public string? PasswordPreviousPasswordBlockCount { get; set; }
     public string? PasswordRequired { get; set; }
     public string? PasswordRequiredType { get; set; }
-
+    public string? NoncomplianceActionPushNotification { get; set; }
+    public string? NoncomplianceActionNotification { get; set; }
+    public string? NoncomplianceActionRemoteLock { get; set; }
+    public string? NoncomplianceActionBlock { get; set; }
+    public string? NoncomplianceActionRetire { get; set; }
     public string? RoleScopeTagIds { get; set; }
     public string? Scopes { get; set; }
     public string? IncludedGroups { get; set; }
     public string? ExcludedGroups { get; set; }
-    
+
 
     //Android attributes
     public string? SecurityBlockJailbrokenDevices { get; set; }
