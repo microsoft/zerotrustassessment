@@ -115,8 +115,83 @@ public class SheetAssessmentDevice : SheetBase
         SetValue("CH00007_DeviceCompliance_Android_DeviceAdmin", androidComplianceState);
         SetValue("CH00008_DeviceCompliance_Android_EntCorp", androidDeviceOwnerComplianceState);
         SetValue("CH00009_DeviceCompliance_Android_EntPersonal", androidWorkProfileComplianceState);
-        SetValue("CH00009_DeviceCompliance_iOS", iosComplianceState);
-        SetValue("CH00009_DeviceCompliance_macOS", macOSComplianceState);
-        SetValue("CH00009_DeviceCompliance_Windows", windows10ComplianceState);
+        SetValue("CH00010_DeviceCompliance_iOS", iosComplianceState);
+        SetValue("CH00011_DeviceCompliance_macOS", macOSComplianceState);
+        SetValue("CH00012_DeviceCompliance_Windows", windows10ComplianceState);
+
+        CheckDeviceComplianceIosJailbreak(iosCompliancePolicies);
+        CheckDeviceComplianceBitLocker(windows10CompliancePolicies);
+        CheckDeviceComplianceDefenderEndPoint(compliancePolicies.Count() > 0, 
+            androidCompliancePolicies, androidDeviceOwnerCompliancePolicies, androidWorkProfileCompliancePolicies,
+            iosCompliancePolicies, macOSCompliancePolicies, windows10CompliancePolicies);
+    }
+
+    /// <summary>
+    /// Completed = At least one iOS compliance policy + All policies should have SecurityBlockJailbrokenDevices set to true.
+    /// </summary>
+    /// <param name="iosCompliancePolicies"></param>
+    private void CheckDeviceComplianceIosJailbreak(List<IosCompliancePolicy> iosCompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (iosCompliancePolicies.Count() > 0)
+        {
+            var isJailbreakEnabledOnAll = true;
+            foreach (var policy in iosCompliancePolicies)
+            {
+                isJailbreakEnabledOnAll = isJailbreakEnabledOnAll && policy.SecurityBlockJailbrokenDevices == true;
+            }
+            result = isJailbreakEnabledOnAll ? AssessmentValue.Completed : AssessmentValue.InProgress;
+        }
+        SetValue("CH00013_DeviceCompliance_iOS_Jailbreak", result);
+    }
+
+    /// <summary>
+    /// Completed = At least one Windows compliance policy + All policies should have Bi set to true.
+    /// </summary>
+    /// <param name="iosCompliancePolicies"></param>
+    private void CheckDeviceComplianceBitLocker(List<Windows10CompliancePolicy> windows10CompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (windows10CompliancePolicies.Count() > 0)
+        {
+            var isBitLockerEnabledOnAll = true;
+            foreach (var policy in windows10CompliancePolicies)
+            {
+                isBitLockerEnabledOnAll = isBitLockerEnabledOnAll && policy.BitLockerEnabled == true;
+            }
+            result = isBitLockerEnabledOnAll ? AssessmentValue.Completed : AssessmentValue.InProgress;
+        }
+        SetValue("CH00014_DeviceCompliance_Windows_BitLocker", result);
+    }
+
+    private void CheckDeviceComplianceDefenderEndPoint(bool hasPolicies,
+        List<AndroidCompliancePolicy> androidCompliancePolicies,
+        List<AndroidDeviceOwnerCompliancePolicy> androidDeviceOwnerCompliancePolicies,
+        List<AndroidWorkProfileCompliancePolicy> androidWorkProfileCompliancePolicies,
+        List<IosCompliancePolicy> iosCompliancePolicies,
+        List<MacOSCompliancePolicy> macOSCompliancePolicies,
+        List<Windows10CompliancePolicy> windows10CompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (hasPolicies)
+        {
+            var isDefenderEnabledOnAll = true;
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && windows10CompliancePolicies.All(x => x.DefenderEnabled == true);
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && macOSCompliancePolicies.All(x => IsAtpEnabled(x.AdvancedThreatProtectionRequiredSecurityLevel));
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && iosCompliancePolicies.All(x => IsAtpEnabled(x.AdvancedThreatProtectionRequiredSecurityLevel));
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && androidCompliancePolicies.All(x => IsAtpEnabled(x.AdvancedThreatProtectionRequiredSecurityLevel));
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && androidDeviceOwnerCompliancePolicies.All(x => IsAtpEnabled(x.AdvancedThreatProtectionRequiredSecurityLevel));
+            isDefenderEnabledOnAll = isDefenderEnabledOnAll && androidWorkProfileCompliancePolicies.All(x => IsAtpEnabled(x.AdvancedThreatProtectionRequiredSecurityLevel));
+            result = isDefenderEnabledOnAll ? AssessmentValue.Completed : AssessmentValue.InProgress;
+        }
+
+        SetValue("CH00015_DeviceCompliance_DefenderEndPoint", result);
+    }
+
+    private bool IsAtpEnabled(DeviceThreatProtectionLevel? atp)
+    {
+        return  atp != null &&
+                atp != DeviceThreatProtectionLevel.Unavailable &&
+                atp != DeviceThreatProtectionLevel.NotSet;
     }
 }
