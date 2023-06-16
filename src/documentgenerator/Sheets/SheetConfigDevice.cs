@@ -33,7 +33,7 @@ public class SheetConfigDevice : SheetBase
         foreach (var policy in _graphData.MobilityManagementPolicies.OrderByDescending(x => x.AppliesTo).ThenBy(x => x.DisplayName))
         {
             var groupName = policy.AppliesTo == PolicyScope.Selected && policy.IncludedGroups != null ?
-                string.Join(", ", policy.IncludedGroups.Select(x => x.DisplayName)) : "N/A";
+                string.Join(", ", policy.IncludedGroups.Select(x => x.DisplayName)) : Labels.NotApplicableString;
 
             table.AddColumn("MDM");
             table.AddColumn(policy.DisplayName, 5);

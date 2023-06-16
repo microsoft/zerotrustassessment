@@ -5,11 +5,6 @@ namespace ZeroTrustAssessment.DocumentGenerator.ViewModels;
 public class DeviceCompliancePolicyViews
 {
     private readonly GraphData _graphData;
-    private const string NotApplicableString = "n/a";
-    private const string RequireString = "Yes";
-    private const string ConfiguredString = "Configured";
-    private const string NotConfiguredString = "Not configured";
-    private const string BlockedString = "Blocked";
     public DeviceCompliancePolicyViews(GraphData graphData)
     {
         _graphData = graphData;
@@ -58,12 +53,12 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordCountToBlock?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = NotApplicableString;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
         view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -72,19 +67,19 @@ public class DeviceCompliancePolicyViews
     {
         view.Platform = "Android (AOSP)";
         view.PolicyType = "Android (AOSP) compliance policy";
-        view.DefenderForEndPoint = NotApplicableString;
+        view.DefenderForEndPoint = Labels.NotApplicableString;
         view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
         view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-        view.PasswordExpirationDays = NotApplicableString;
+        view.PasswordExpirationDays = Labels.NotApplicableString;
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-        view.PasswordPreviousPasswordBlockCount = NotApplicableString;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordPreviousPasswordBlockCount = Labels.NotApplicableString;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
-        view.DeviceThreatProtectionRequiredSecurityLevel = NotApplicableString;
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
+        view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -99,12 +94,12 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
         view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -119,12 +114,12 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
         view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -139,12 +134,12 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasscodeMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasscodeMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasscodePreviousPasscodeBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasscodeRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasscodeRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasscodeRequiredType);
-        view.StorageRequireEncryption = NotApplicableString;
-        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? BlockedString : string.Empty;
+        view.StorageRequireEncryption = Labels.NotApplicableString;
+        view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
         view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -160,12 +155,12 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = NotApplicableString;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
         view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-        view.ActiveFirewallRequired = policy.FirewallEnabled == true ? RequireString : string.Empty;
+        view.ActiveFirewallRequired = policy.FirewallEnabled == true ? Labels.RequireString : string.Empty;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
 
@@ -174,19 +169,19 @@ public class DeviceCompliancePolicyViews
     {
         view.Platform = "Windows 8.1 and later";
         view.PolicyType = "Windows 8 compliance policy";
-        view.DefenderForEndPoint = NotApplicableString;
+        view.DefenderForEndPoint = Labels.NotApplicableString;
         view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
         view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
         view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.DeviceThreatProtectionRequiredSecurityLevel = NotApplicableString;
-        view.SecurityBlockJailbrokenDevices = NotApplicableString;
-        view.ActiveFirewallRequired = NotApplicableString;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
+        view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
+        view.ActiveFirewallRequired = Labels.NotApplicableString;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
     }
@@ -201,40 +196,40 @@ public class DeviceCompliancePolicyViews
         view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
         view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
         view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? RequireString : string.Empty;
-        view.SecurityBlockJailbrokenDevices = NotApplicableString;
-        view.DeviceThreatProtectionRequiredSecurityLevel = NotApplicableString;
-        view.ActiveFirewallRequired = policy.ActiveFirewallRequired == true ? RequireString : string.Empty;
+        view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
+        view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
+        view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
+        view.ActiveFirewallRequired = policy.ActiveFirewallRequired == true ? Labels.RequireString : string.Empty;
 
         DeviceCompliancePolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
 
-        view.AntiSpywareRequired = policy.AntiSpywareRequired == true ? RequireString : string.Empty;
-        view.AntivirusRequired = policy.AntivirusRequired == true ? RequireString : string.Empty;
-        view.BitLockerEnabled = policy.BitLockerEnabled == true ? RequireString : string.Empty;
-        view.CodeIntegrityEnabled = policy.CodeIntegrityEnabled == true ? RequireString : string.Empty;
-        view.ConfigurationManagerComplianceRequired = policy.ConfigurationManagerComplianceRequired == true ? RequireString : string.Empty;
+        view.AntiSpywareRequired = policy.AntiSpywareRequired == true ? Labels.RequireString : string.Empty;
+        view.AntivirusRequired = policy.AntivirusRequired == true ? Labels.RequireString : string.Empty;
+        view.BitLockerEnabled = policy.BitLockerEnabled == true ? Labels.RequireString : string.Empty;
+        view.CodeIntegrityEnabled = policy.CodeIntegrityEnabled == true ? Labels.RequireString : string.Empty;
+        view.ConfigurationManagerComplianceRequired = policy.ConfigurationManagerComplianceRequired == true ? Labels.RequireString : string.Empty;
 
         view.DefenderVersion = policy.DefenderVersion ?? string.Empty;
-        view.DeviceCompliancePolicyScript = policy.DeviceCompliancePolicyScript == null ? NotConfiguredString : ConfiguredString;
+        view.DeviceCompliancePolicyScript = policy.DeviceCompliancePolicyScript == null ? Labels.NotConfiguredString : Labels.ConfiguredString;
 
 
-        view.EarlyLaunchAntiMalwareDriverEnabled = policy.EarlyLaunchAntiMalwareDriverEnabled == true ? RequireString : string.Empty;
+        view.EarlyLaunchAntiMalwareDriverEnabled = policy.EarlyLaunchAntiMalwareDriverEnabled == true ? Labels.RequireString : string.Empty;
         view.MobileOsMaximumVersion = policy.MobileOsMaximumVersion?.ToString() ?? string.Empty;
         view.MobileOsMinimumVersion = policy.MobileOsMinimumVersion?.ToString() ?? string.Empty;
-        view.PasswordBlockSimple = policy.PasswordBlockSimple == true ? BlockedString : string.Empty;
+        view.PasswordBlockSimple = policy.PasswordBlockSimple == true ? Labels.BlockedString : string.Empty;
         view.PasswordMinimumCharacterSetCount = policy.PasswordMinimumCharacterSetCount?.ToString() ?? string.Empty;
         view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-        view.PasswordRequired = policy.PasswordRequired == true ? RequireString : string.Empty;
-        view.PasswordRequiredToUnlockFromIdle = policy.PasswordRequiredToUnlockFromIdle == true ? RequireString : string.Empty;
-        view.RequireHealthyDeviceReport = policy.RequireHealthyDeviceReport == true ? RequireString : string.Empty;
+        view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
+        view.PasswordRequiredToUnlockFromIdle = policy.PasswordRequiredToUnlockFromIdle == true ? Labels.RequireString : string.Empty;
+        view.RequireHealthyDeviceReport = policy.RequireHealthyDeviceReport == true ? Labels.RequireString : string.Empty;
         view.RoleScopeTagIds = _graphData.GetScopesString(policy.RoleScopeTagIds);
-        view.RtpEnabled = policy.RtpEnabled == true ? RequireString : string.Empty;
-        view.SecureBootEnabled = policy.SecureBootEnabled == true ? RequireString : string.Empty;
+        view.RtpEnabled = policy.RtpEnabled == true ? Labels.RequireString : string.Empty;
+        view.SecureBootEnabled = policy.SecureBootEnabled == true ? Labels.RequireString : string.Empty;
         view.SignatureOutOfDate = policy.SignatureOutOfDate?.ToString() ?? string.Empty;
 
-        view.TpmRequired = policy.TpmRequired == true ? RequireString : string.Empty;
+        view.TpmRequired = policy.TpmRequired == true ? Labels.RequireString : string.Empty;
 
         if (policy.ValidOperatingSystemBuildRanges != null)
         {
@@ -287,7 +282,7 @@ public class DeviceCompliancePolicyViews
             RequiredPasswordType.DeviceDefault => "Device default",
             RequiredPasswordType.Numeric => "Numeric",
             RequiredPasswordType.Alphanumeric => "Alphanumeric",
-            _ => NotConfiguredString,
+            _ => Labels.NotConfiguredString,
         };
     }
 
@@ -303,7 +298,7 @@ public class DeviceCompliancePolicyViews
             AndroidDeviceOwnerRequiredPasswordType.LowSecurityBiometric => "Biometric (low security)",
             AndroidDeviceOwnerRequiredPasswordType.Numeric => "Numeric",
             AndroidDeviceOwnerRequiredPasswordType.NumericComplex => "Numeric complex",
-            _ => NotConfiguredString,
+            _ => Labels.NotConfiguredString,
         };
     }
 
@@ -319,7 +314,7 @@ public class DeviceCompliancePolicyViews
             AndroidRequiredPasswordType.LowSecurityBiometric => "Biometric (low security)",
             AndroidRequiredPasswordType.Numeric => "Numeric",
             AndroidRequiredPasswordType.NumericComplex => "Numeric complex",
-            _ => NotConfiguredString,
+            _ => Labels.NotConfiguredString,
         };
     }
 
@@ -332,7 +327,7 @@ public class DeviceCompliancePolicyViews
             DeviceThreatProtectionLevel.Low => "Low",
             DeviceThreatProtectionLevel.Medium => "Medium",
             DeviceThreatProtectionLevel.High => "High",
-            _ => NotConfiguredString,
+            _ => Labels.NotConfiguredString,
         };
     }
     private static string? GetDeviceThreatLevelString(DeviceThreatProtectionLevel? deviceThreatProtectionRequiredSecurityLevel)
@@ -344,7 +339,7 @@ public class DeviceCompliancePolicyViews
             DeviceThreatProtectionLevel.Low => "Low",
             DeviceThreatProtectionLevel.Medium => "Medium",
             DeviceThreatProtectionLevel.High => "High",
-            _ => NotConfiguredString,
+            _ => Labels.NotConfiguredString,
         };
     }
 }

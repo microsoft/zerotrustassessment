@@ -1,6 +1,4 @@
-﻿using Microsoft.Graph.Beta.Drives.Item.Items.Item.Workbook.Functions.Var_P;
-
-namespace ZeroTrustAssessment.DocumentGenerator.Graph;
+﻿namespace ZeroTrustAssessment.DocumentGenerator.Graph;
 
 public class GraphHelper
 {

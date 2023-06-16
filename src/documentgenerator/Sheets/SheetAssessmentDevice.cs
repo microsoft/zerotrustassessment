@@ -120,8 +120,10 @@ public class SheetAssessmentDevice : SheetBase
         SetValue("CH00012_DeviceCompliance_Windows", windows10ComplianceState);
 
         CheckDeviceComplianceIosJailbreak(iosCompliancePolicies);
+        CheckDeviceComplianceAndroidRoot(aospDeviceOwnerCompliancePolicies, androidCompliancePolicies, androidWorkProfileCompliancePolicies);
+
         CheckDeviceComplianceBitLocker(windows10CompliancePolicies);
-        CheckDeviceComplianceDefenderEndPoint(compliancePolicies.Count() > 0, 
+        CheckDeviceComplianceDefenderEndPoint(compliancePolicies.Count > 0,
             androidCompliancePolicies, androidDeviceOwnerCompliancePolicies, androidWorkProfileCompliancePolicies,
             iosCompliancePolicies, macOSCompliancePolicies, windows10CompliancePolicies);
     }
@@ -146,20 +148,73 @@ public class SheetAssessmentDevice : SheetBase
     }
 
     /// <summary>
+    /// Completed = At least one Android compliance policy + All policies should have Root set to blocked.
+    /// </summary>
+    /// <param name="iosCompliancePolicies"></param>
+    private void CheckDeviceComplianceAndroidRoot(
+        List<AospDeviceOwnerCompliancePolicy> aospDeviceOwnerCompliancePolicies,
+        List<AndroidCompliancePolicy> androidCompliancePolicies,
+        List<AndroidWorkProfileCompliancePolicy> androidWorkProfileCompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (aospDeviceOwnerCompliancePolicies.Count > 0)
+        {
+            if(aospDeviceOwnerCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            {
+                result = AssessmentValue.Completed;
+            }
+            else if (aospDeviceOwnerCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            {
+                result = AssessmentValue.InProgress;
+            }
+        }
+
+        if (result != AssessmentValue.InProgress && androidCompliancePolicies.Count > 0)
+        {
+            if(androidCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            {
+                result = AssessmentValue.Completed;
+            }
+            else if (androidCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            {
+                result = AssessmentValue.InProgress;
+            }
+        }
+
+        if (result != AssessmentValue.InProgress && androidWorkProfileCompliancePolicies.Count > 0)
+        {
+            if(androidWorkProfileCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            {
+                result = AssessmentValue.Completed;
+            }
+            else if (androidWorkProfileCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            {
+                result = AssessmentValue.InProgress;
+            }
+        }
+
+        SetValue("CH00015_DeviceCompliance_AndroidRoot", result);
+    }
+
+    /// <summary>
     /// Completed = At least one Windows compliance policy + All policies should have Bi set to true.
     /// </summary>
     /// <param name="iosCompliancePolicies"></param>
     private void CheckDeviceComplianceBitLocker(List<Windows10CompliancePolicy> windows10CompliancePolicies)
     {
         var result = AssessmentValue.NotStarted;
-        if (windows10CompliancePolicies.Count() > 0)
+        if (windows10CompliancePolicies.Count > 0)
         {
-            var isBitLockerEnabledOnAll = true;
-            foreach (var policy in windows10CompliancePolicies)
+            var isBitLockerEnabledOnAll = windows10CompliancePolicies.All(x => x.BitLockerEnabled == true);
+            var isBitLockerEnabledOnOne = windows10CompliancePolicies.Any(x => x.BitLockerEnabled == true); ;
+            if (isBitLockerEnabledOnAll)
             {
-                isBitLockerEnabledOnAll = isBitLockerEnabledOnAll && policy.BitLockerEnabled == true;
+                result = AssessmentValue.Completed;
             }
-            result = isBitLockerEnabledOnAll ? AssessmentValue.Completed : AssessmentValue.InProgress;
+            else if (isBitLockerEnabledOnOne)
+            {
+                result = AssessmentValue.InProgress;
+            }
         }
         SetValue("CH00014_DeviceCompliance_Windows_BitLocker", result);
     }
@@ -190,7 +245,7 @@ public class SheetAssessmentDevice : SheetBase
 
     private bool IsAtpEnabled(DeviceThreatProtectionLevel? atp)
     {
-        return  atp != null &&
+        return atp != null &&
                 atp != DeviceThreatProtectionLevel.Unavailable &&
                 atp != DeviceThreatProtectionLevel.NotSet;
     }
