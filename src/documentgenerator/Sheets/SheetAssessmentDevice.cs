@@ -126,6 +126,9 @@ public class SheetAssessmentDevice : SheetBase
         CheckDeviceComplianceDefenderEndPoint(compliancePolicies.Count > 0,
             androidCompliancePolicies, androidDeviceOwnerCompliancePolicies, androidWorkProfileCompliancePolicies,
             iosCompliancePolicies, macOSCompliancePolicies, windows10CompliancePolicies);
+
+        CheckDeviceComplianceWindowsFirewall(windows10CompliancePolicies);
+        CheckDeviceComplianceMacOSFirewall(macOSCompliancePolicies);
     }
 
     /// <summary>
@@ -217,6 +220,52 @@ public class SheetAssessmentDevice : SheetBase
             }
         }
         SetValue("CH00014_DeviceCompliance_Windows_BitLocker", result);
+    }
+
+    /// <summary>
+    /// Completed = At least one Windows compliance policy + All policies should have Firewall set to true.
+    /// </summary>
+    /// <param name="windows10CompliancePolicies"></param>
+    private void CheckDeviceComplianceWindowsFirewall(List<Windows10CompliancePolicy> windows10CompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (windows10CompliancePolicies.Count > 0)
+        {
+            var isFirewallEnabledOnAll = windows10CompliancePolicies.All(x => x.ActiveFirewallRequired == true);
+            var isFirewallEnabledOnOne = windows10CompliancePolicies.Any(x => x.ActiveFirewallRequired == true); ;
+            if (isFirewallEnabledOnAll)
+            {
+                result = AssessmentValue.Completed;
+            }
+            else if (isFirewallEnabledOnOne)
+            {
+                result = AssessmentValue.InProgress;
+            }
+        }
+        SetValue("CH00016_DeviceCompliance_Windows_Firewall", result);
+    }
+
+    /// <summary>
+    /// Completed = At least one Windows compliance policy + All policies should have Firewall set to true.
+    /// </summary>
+    /// <param name="windows10CompliancePolicies"></param>
+    private void CheckDeviceComplianceMacOSFirewall(List<MacOSCompliancePolicy> macOSCompliancePolicies)
+    {
+        var result = AssessmentValue.NotStarted;
+        if (macOSCompliancePolicies.Count > 0)
+        {
+            var isFirewallEnabledOnAll = macOSCompliancePolicies.All(x => x.FirewallEnabled == true);
+            var isFirewallEnabledOnOne = macOSCompliancePolicies.Any(x => x.FirewallEnabled == true); ;
+            if (isFirewallEnabledOnAll)
+            {
+                result = AssessmentValue.Completed;
+            }
+            else if (isFirewallEnabledOnOne)
+            {
+                result = AssessmentValue.InProgress;
+            }
+        }
+        SetValue("CH00016_DeviceCompliance_macOS_Firewall", result);
     }
 
     private void CheckDeviceComplianceDefenderEndPoint(bool hasPolicies,
