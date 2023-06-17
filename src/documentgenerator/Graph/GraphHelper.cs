@@ -121,4 +121,14 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<ManagedAppPolicy>?> GetManagedAppPolicies()
+    {
+        try
+        {
+            var result = await _graph.DeviceAppManagement.ManagedAppPolicies.GetAsync();
+            return result?.Value;
+        }
+        catch { return null; }
+    }
 }

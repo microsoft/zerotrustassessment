@@ -17,6 +17,7 @@ public class GraphData
     public List<DeviceEnrollmentConfiguration>? DeviceEnrollmentConfigurations { get; private set; }
     public List<RoleScopeTag>? RoleScopeTags { get; set; }
     public List<DeviceCompliancePolicy>? DeviceCompliancePolicies { get; set; }
+    public List<ManagedAppPolicy>? ManagedAppPolicies { get; set; }
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -41,6 +42,7 @@ public class GraphData
         DeviceEnrollmentConfigurations = await _graphHelper.GetDeviceEnrollmentConfigurations();
         RoleScopeTags = await _graphHelper.GetRoleScopeTags();
         DeviceCompliancePolicies = await _graphHelper.GetDeviceCompliancePolicies();
+        ManagedAppPolicies = await _graphHelper.GetManagedAppPolicies();
     }
 
     private async Task<Stream?> GetOrganizationLogo()

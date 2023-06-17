@@ -16,6 +16,7 @@ public class SheetConfigDevice : SheetBase
         MdmWindowsEnrollment();
         DeviceEnrollmentConfiguration();
         DeviceCompliancePolicies();
+        AppProtectionPolicies();
     }
 
     private void MdmWindowsEnrollment()
@@ -119,6 +120,60 @@ public class SheetConfigDevice : SheetBase
         }
     }
 
+    private void AppProtectionPolicies()
+    {
+        var views = new AppProtectionPolicyViews(_graphData).GetViews().OrderBy(x => x.Platform).ThenBy(x => x.DisplayName);
+
+        var table = new ExcelTable(_sheet, "Table_AppProtectionPolicies");
+        if (views.Count() == 0)
+        {
+            table.ShowNoDataMessage();
+        }
+        else
+        {
+            table.InitializeRows(views.Count());
+
+            foreach (var item in views)
+            {
+                table.AddColumn(item.Platform, 3);
+                table.AddColumn(item.DisplayName, 5);
+                table.AddColumn(item.PublicApps, 2);
+                // table.AddColumn(item.DefenderForEndPoint);
+                // table.AddColumn(item.OsMinimumVersion);
+                // table.AddColumn(item.OsMaximumVersion);
+                // table.AddColumn(item.PasswordRequired);
+                // table.AddColumn(item.PasswordMinimumLength);
+                // table.AddColumn(item.PasswordRequiredType, 2);
+                // table.AddColumn(item.PasswordExpirationDays);
+                // table.AddColumn(item.PasswordPreviousPasswordBlockCount);
+                // table.AddColumn(item.PasswordMinutesOfInactivityBeforeLock);
+                // table.AddColumn(item.StorageRequireEncryption);
+                // table.AddColumn(item.SecurityBlockJailbrokenDevices);
+                // table.AddColumn(item.DeviceThreatProtectionRequiredSecurityLevel);
+                // table.AddColumn(item.ActiveFirewallRequired);
+                // table.AddColumn(item.NoncomplianceActionPushNotification, 2);
+                // table.AddColumn(item.NoncomplianceActionNotification, 2);
+                // table.AddColumn(item.NoncomplianceActionRemoteLock, 2);
+                // table.AddColumn(item.NoncomplianceActionBlock, 2);
+                // table.AddColumn(item.NoncomplianceActionRetire, 2);
+                // table.AddColumn(item.Scopes, 2);
+                // table.AddColumn(item.IncludedGroups, 2);
+                // table.AddColumn(item.ExcludedGroups, 2);
+                table.NextRow();
+
+                // Move to Windows table
+                // table.AddColumn(item.MobileOsMinimumVersion);
+                // table.AddColumn(item.MobileOsMaximumVersion);
+                // table.AddColumn(item.ValidOperatingSystemBuildRanges);
+                // table.AddColumn(item.PasswordBlockSimple);               
+                // table.AddColumn(item.PasswordRequiredToUnlockFromIdle);                
+                // table.AddColumn(item.TpmRequired);
+                // table.AddColumn(item.AntivirusRequired);
+                // table.AddColumn(item.AntiSpywareRequired);               
+                // table.AddColumn(item.DefenderVersion);
+            }
+        }
+    }
     public static string GetAppliesToName(PolicyScope? scope)
     {
         if (scope == null) return string.Empty;
