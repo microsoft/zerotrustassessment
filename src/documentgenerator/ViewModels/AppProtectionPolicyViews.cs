@@ -47,10 +47,12 @@ public class AppProtectionPolicyViews
             DisplayName = policy.DisplayName,
             Platform = "iOS/iPadOS",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
+            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppProtocols),
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
         };
+        SetPublicAndCustomApps(view, policy);
         return view;
     }
 
@@ -65,11 +67,114 @@ public class AppProtectionPolicyViews
             DisplayName = policy.DisplayName,
             Platform = "Android",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
+            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppPackages),
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
         };
+        SetPublicAndCustomApps(view, policy);
         return view;
+    }
+
+    private string GetExemptedAppsString(List<Microsoft.Graph.Beta.Models.KeyValuePair>? exemptedAppPackages)
+    {
+        string exemptedApps = string.Empty;
+        if (exemptedAppPackages?.Count > 0)
+        {
+            foreach (var app in exemptedAppPackages)
+            {
+                exemptedApps += Helper.AppendWithComma(exemptedApps, $"{app.Name}:{app.Value}");
+            }
+        }
+        return exemptedApps;
+    }
+
+    private void SetPublicAndCustomApps(AppProtectionPolicyView view, AndroidManagedAppProtection policy)
+    {
+        string publicApps = string.Empty;
+        string customApps = string.Empty;
+
+        if (policy.Apps?.Count > 0)
+        {
+            var appStatuses = _graphData.ManagedAppStatusAndroid;
+            foreach (var app in policy.Apps)
+            {
+                bool appFound = false;
+                if (app.MobileAppIdentifier is AndroidMobileAppIdentifier appIdentifier)
+                {
+                    if (appIdentifier.PackageId != null)
+                    {
+                        if (appStatuses.TryGetValue(appIdentifier.PackageId, out var appInfo))
+                        {
+                            if (appInfo.IsFirstParty)
+                            {
+                                publicApps += Helper.AppendWithComma(publicApps, appInfo.DisplayName);
+                                appFound = true;
+                            }
+                            else
+                            {
+                                customApps += Helper.AppendWithComma(customApps, appInfo.DisplayName);
+                                appFound = true;
+                            }
+                        }
+                    }
+                }
+                if (!appFound)
+                {
+                    customApps += Helper.AppendWithComma(customApps, app.Id); //Add the raw ID if we don't find it
+                }
+            }
+        }
+        if(policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
+        {
+            view.PublicApps += publicApps;
+        }
+        
+        view.CustomApps += customApps;
+
+    }
+
+    private void SetPublicAndCustomApps(AppProtectionPolicyView view, IosManagedAppProtection policy)
+    {
+        string publicApps = string.Empty;
+        string customApps = string.Empty;
+
+        if (policy.Apps?.Count > 0)
+        {
+            var appStatuses = _graphData.ManagedAppStatusIos;
+            foreach (var app in policy.Apps)
+            {
+                bool appFound = false;
+                if (app.MobileAppIdentifier is IosMobileAppIdentifier appIdentifier)
+                {
+                    if (appIdentifier.BundleId != null)
+                    {
+                        if (appStatuses.TryGetValue(appIdentifier.BundleId, out var appInfo))
+                        {
+                            if (appInfo.IsFirstParty)
+                            {
+                                publicApps += Helper.AppendWithComma(publicApps, appInfo.DisplayName);
+                                appFound = true;
+                            }
+                            else
+                            {
+                                customApps += Helper.AppendWithComma(customApps, appInfo.DisplayName);
+                                appFound = true;
+                            }
+                        }
+                    }
+                }
+                if (!appFound)
+                {
+                    customApps += Helper.AppendWithComma(customApps, app.Id); //Add the raw ID if we don't find it
+                }
+            }
+        }
+        if(policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
+        {
+            view.PublicApps += publicApps;
+        }
+        view.CustomApps += customApps;
     }
 
     private AppProtectionPolicyView GetCompliancePolicyView(MdmWindowsInformationProtectionPolicy policy)
@@ -101,7 +206,7 @@ public class AppProtectionPolicyViews
 
         }
         if (appLockerFiles?.Count > 0)
-        {            
+        {
             var appList = string.Join(",", appLockerFiles.Select(x => x.DisplayName));
             appString += Helper.AppendWithComma(appString, appList);
         }
@@ -116,7 +221,7 @@ public class AppProtectionPolicyViews
             TargetedManagedAppGroupType.AllApps => "All apps",
             TargetedManagedAppGroupType.AllCoreMicrosoftApps => "Core Microsoft apps",
             TargetedManagedAppGroupType.AllMicrosoftApps => "All Microsoft apps",
-            TargetedManagedAppGroupType.SelectedPublicApps => "Selected apps",
+            TargetedManagedAppGroupType.SelectedPublicApps => "Selected apps: ",
             _ => string.Empty,
         };
     }

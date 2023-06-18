@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Text.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
@@ -20,6 +21,9 @@ public class GraphData
     public List<AndroidManagedAppProtection>? ManagedAppPoliciesAndroid { get; set; }
     public List<IosManagedAppProtection>? ManagedAppPoliciesIos { get; set; }
     public List<MdmWindowsInformationProtectionPolicy>? ManagedAppPoliciesWindows { get; set; }
+
+    public Dictionary<string, AppList> ManagedAppStatusIos { get; set; } = new Dictionary<string, AppList>();
+    public Dictionary<string, AppList> ManagedAppStatusAndroid { get; set; } = new Dictionary<string, AppList>();
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -47,6 +51,8 @@ public class GraphData
         ManagedAppPoliciesAndroid = await _graphHelper.GetManagedAppPoliciesAndroid();
         ManagedAppPoliciesIos = await _graphHelper.GetManagedAppPoliciesIos();
         ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
+
+        LoadManagedAppStatuses();
     }
 
     private async Task<Stream?> GetOrganizationLogo()
@@ -234,6 +240,26 @@ public class GraphData
     {
         if (filterId == null || filterId == "00000000-0000-0000-0000-000000000000") return string.Empty;
         return " (Filter: " + GetGroupAssignmentFilterName(filterId) + ")";
+    }
+
+    private async void LoadManagedAppStatuses()
+    {
+        var managedAppStatusRaw = await _graphHelper.GetManagedAppStatuses();
+        if (managedAppStatusRaw?.Content.AppList.Length > 0)
+        {
+            foreach (var item in managedAppStatusRaw.Content.AppList)
+            {
+                switch (item.AppIdentifier.OdataType)
+                {
+                    case "#microsoft.graph.iosMobileAppIdentifier":
+                        ManagedAppStatusIos.TryAdd(item.AppIdentifier.BundleId, item);
+                        break;
+                    case "#microsoft.graph.androidMobileAppIdentifier":
+                        ManagedAppStatusAndroid.TryAdd(item.AppIdentifier.PackageId, item);
+                        break;
+                }
+            }
+        }
     }
 }
 

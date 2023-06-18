@@ -55,7 +55,7 @@ public static class Helper
         return shortId;
     }
 
-    public static string? AppendWithComma(string str, string? stringToAppend)
+    public static string? AppendWithComma(string? str, string? stringToAppend)
     {
         return string.IsNullOrEmpty(str) ? stringToAppend : $", {stringToAppend}";
     }

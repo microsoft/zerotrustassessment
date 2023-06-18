@@ -1,4 +1,7 @@
-﻿namespace ZeroTrustAssessment.DocumentGenerator.Graph;
+﻿using System.Text.Json;
+using Microsoft.Kiota.Serialization.Json;
+
+namespace ZeroTrustAssessment.DocumentGenerator.Graph;
 
 public class GraphHelper
 {
@@ -59,7 +62,7 @@ public class GraphHelper
         {
             var result = await _graph.Policies.MobileDeviceManagementPolicies.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "includedGroups" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "includedGroups" };
             });
             return result?.Value;
         }
@@ -72,7 +75,7 @@ public class GraphHelper
         {
             var result = await _graph.DeviceManagement.DeviceEnrollmentConfigurations.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments" };
             });
             return result?.Value;
         }
@@ -106,7 +109,7 @@ public class GraphHelper
             var result = await _graph.DeviceManagement.RoleScopeTags.GetAsync();
             return result?.Value;
         }
-        catch { return null; } 
+        catch { return null; }
     }
 
     public async Task<List<DeviceCompliancePolicy>?> GetDeviceCompliancePolicies()
@@ -115,7 +118,7 @@ public class GraphHelper
         {
             var result = await _graph.DeviceManagement.DeviceCompliancePolicies.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "scheduledActionsForRule($expand=scheduledActionConfigurations)" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments", "scheduledActionsForRule($expand=scheduledActionConfigurations)" };
             });
             return result?.Value;
         }
@@ -128,7 +131,7 @@ public class GraphHelper
         {
             var result = await _graph.DeviceAppManagement.AndroidManagedAppProtections.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "apps", "deploymentSummary" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments", "apps", "deploymentSummary" };
             });
             return result?.Value;
         }
@@ -141,7 +144,7 @@ public class GraphHelper
         {
             var result = await _graph.DeviceAppManagement.IosManagedAppProtections.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "apps", "deploymentSummary" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments", "apps", "deploymentSummary" };
             });
             return result?.Value;
         }
@@ -154,11 +157,37 @@ public class GraphHelper
         {
             var result = await _graph.DeviceAppManagement.MdmWindowsInformationProtectionPolicies.GetAsync((requestConfiguration) =>
             {
-	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "protectedAppLockerFiles", "exemptAppLockerFiles" };
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments", "protectedAppLockerFiles", "exemptAppLockerFiles" };
             });
             return result?.Value;
         }
         catch { return null; }
     }
 
+    public async Task<GraphManagedAppStatusRaw?> GetManagedAppStatuses()
+    {
+        GraphManagedAppStatusRaw? result = null;
+        try
+        {
+            var statusRaw = (ManagedAppStatusRaw?)await _graph.DeviceAppManagement.ManagedAppStatuses["managedAppList"].GetAsync();
+
+            var seralizer = new JsonSerializationWriter();
+            seralizer.WriteObjectValue(string.Empty, statusRaw);
+            var serializedContent = seralizer.GetSerializedContent();
+            string jsonx = string.Empty;
+            using (var sr = new StreamReader(serializedContent))
+            {
+                jsonx = sr.ReadToEnd();
+            }
+
+            if (!string.IsNullOrEmpty(jsonx))
+            {
+                result = JsonSerializer.Deserialize<GraphManagedAppStatusRaw>(jsonx);
+            }
+
+
+            return result;
+        }
+        catch { return null; }
+    }
 }
