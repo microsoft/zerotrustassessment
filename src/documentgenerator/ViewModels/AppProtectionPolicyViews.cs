@@ -103,7 +103,7 @@ public class AppProtectionPolicyViews
         if (appLockerFiles?.Count > 0)
         {            
             var appList = string.Join(",", appLockerFiles.Select(x => x.DisplayName));
-            appString = Helper.AppendWithComma(appString, appList);
+            appString += Helper.AppendWithComma(appString, appList);
         }
 
         return appString;
