@@ -49,7 +49,7 @@ public class SheetConfigDevice : SheetBase
         var views = EnrollmentRestrictionView.GetViews(_graphData).OrderByDescending((x => x.Priority)).ThenBy(x => x.Platform).ThenBy(x => x.DisplayName);
         var table = new ExcelTable(_sheet, "Table_EnrollmentDevicePlatformRestrictions");
         table.InitializeRows(views.Count());
-        
+
         foreach (var view in views)
         {
             table.AddColumn(view.Platform, 3);
@@ -138,6 +138,10 @@ public class SheetConfigDevice : SheetBase
                 table.AddColumn(item.Platform, 3);
                 table.AddColumn(item.DisplayName, 5);
                 table.AddColumn(item.PublicApps, 2);
+                table.AddColumn(item.CustomApps, 1);
+                table.AddColumn(item.PreventBackups, 1);
+                table.AddColumn(item.SendOrgDataToOtherApps, 1);
+                table.AddColumn(item.AppsToExempt, 1);
                 // table.AddColumn(item.DefenderForEndPoint);
                 // table.AddColumn(item.OsMinimumVersion);
                 // table.AddColumn(item.OsMaximumVersion);
@@ -156,9 +160,9 @@ public class SheetConfigDevice : SheetBase
                 // table.AddColumn(item.NoncomplianceActionRemoteLock, 2);
                 // table.AddColumn(item.NoncomplianceActionBlock, 2);
                 // table.AddColumn(item.NoncomplianceActionRetire, 2);
-                // table.AddColumn(item.Scopes, 2);
-                // table.AddColumn(item.IncludedGroups, 2);
-                // table.AddColumn(item.ExcludedGroups, 2);
+                table.AddColumn(item.Scopes, 2);
+                table.AddColumn(item.IncludedGroups, 2);
+                table.AddColumn(item.ExcludedGroups, 2);
                 table.NextRow();
 
                 // Move to Windows table

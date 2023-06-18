@@ -17,7 +17,9 @@ public class GraphData
     public List<DeviceEnrollmentConfiguration>? DeviceEnrollmentConfigurations { get; private set; }
     public List<RoleScopeTag>? RoleScopeTags { get; set; }
     public List<DeviceCompliancePolicy>? DeviceCompliancePolicies { get; set; }
-    public List<ManagedAppPolicy>? ManagedAppPolicies { get; set; }
+    public List<AndroidManagedAppProtection>? ManagedAppPoliciesAndroid { get; set; }
+    public List<IosManagedAppProtection>? ManagedAppPoliciesIos { get; set; }
+    public List<MdmWindowsInformationProtectionPolicy>? ManagedAppPoliciesWindows { get; set; }
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -42,7 +44,9 @@ public class GraphData
         DeviceEnrollmentConfigurations = await _graphHelper.GetDeviceEnrollmentConfigurations();
         RoleScopeTags = await _graphHelper.GetRoleScopeTags();
         DeviceCompliancePolicies = await _graphHelper.GetDeviceCompliancePolicies();
-        ManagedAppPolicies = await _graphHelper.GetManagedAppPolicies();
+        ManagedAppPoliciesAndroid = await _graphHelper.GetManagedAppPoliciesAndroid();
+        ManagedAppPoliciesIos = await _graphHelper.GetManagedAppPoliciesIos();
+        ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
     }
 
     private async Task<Stream?> GetOrganizationLogo()
@@ -133,6 +137,53 @@ public class GraphData
     }
 
     internal void GetGroupAssignmentTargetText(List<DeviceCompliancePolicyAssignment>? assignments, out string includedGroups, out string excludedGroups)
+    {
+        var includedList = new List<string>();
+        var excludedList = new List<string>();
+        if (assignments != null && assignments.Count > 0)
+        {
+            foreach (var assignment in assignments)
+            {
+                string? filterId;
+                if (assignment.Target is AllLicensedUsersAssignmentTarget allUsers)
+                {
+                    var text = "All users";
+                    filterId = allUsers.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Insert(0, text);
+                }
+                else if (assignment.Target is AllDevicesAssignmentTarget allDevices)
+                {
+                    var text = "All devices";
+                    filterId = allDevices.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Insert(0, text);
+                }
+                else if (assignment.Target is ExclusionGroupAssignmentTarget excludedGroup)
+                {
+                    var text = GetGroupName(excludedGroup.GroupId);
+                    filterId = excludedGroup.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    excludedList.Add(text);
+                }
+                else if (assignment.Target is GroupAssignmentTarget group)
+                {
+                    var text = GetGroupName(group.GroupId);
+                    filterId = group.DeviceAndAppManagementAssignmentFilterId;
+                    text += GetAssignmentFilter(filterId);
+                    includedList.Add(text);
+                }
+                else
+                {
+                    includedList.Add("Unknown target");
+                }
+            }
+        }
+        includedGroups = string.Join(", ", includedList);
+        excludedGroups = string.Join(", ", excludedList);
+    }
+
+    internal void GetGroupAssignmentTargetText(List<TargetedManagedAppPolicyAssignment>? assignments, out string includedGroups, out string excludedGroups)
     {
         var includedList = new List<string>();
         var excludedList = new List<string>();

@@ -12,55 +12,101 @@ public class AppProtectionPolicyViews
     public List<AppProtectionPolicyView> GetViews()
     {
         var views = new List<AppProtectionPolicyView>();
-        var compliancePolicies = _graphData.ManagedAppPolicies;
-        if (compliancePolicies != null)
+
+        if (_graphData.ManagedAppPoliciesAndroid != null)
         {
-            foreach (var policy in compliancePolicies)
+            foreach (var policy in _graphData.ManagedAppPoliciesAndroid)
             {
-                var view = new AppProtectionPolicyView
-                {
-                    Id = policy.Id,
-                    DisplayName = policy.DisplayName,
-                };
-                var isAppProtectionPolicy = true;
-                if (policy is IosManagedAppProtection iosManagedAppProtection) { SetCompliancePolicyView(view, iosManagedAppProtection); }
-                else if (policy is AndroidManagedAppProtection androidManagedAppProtection) { SetCompliancePolicyView(view, androidManagedAppProtection); }
-                else if (policy is MdmWindowsInformationProtectionPolicy mdmWindowsInformationProtectionPolicy) { SetCompliancePolicyView(view, mdmWindowsInformationProtectionPolicy); }
-                else { isAppProtectionPolicy = false; }
-
-                if (isAppProtectionPolicy)
-                {
-                    view.Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds);
-                    // string includedGroups, excludedGroups;
-                    // _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
-
-                    // view.IncludedGroups = includedGroups,
-                    // view.ExcludedGroups = excludedGroups
-
-                    views.Add(view);
-                }
+                views.Add(GetCompliancePolicyView(policy));
+            }
+        }
+        if (_graphData.ManagedAppPoliciesIos != null)
+        {
+            foreach (var policy in _graphData.ManagedAppPoliciesIos)
+            {
+                views.Add(GetCompliancePolicyView(policy));
+            }
+        }
+        if (_graphData.ManagedAppPoliciesWindows != null)
+        {
+            foreach (var policy in _graphData.ManagedAppPoliciesWindows)
+            {
+                views.Add(GetCompliancePolicyView(policy));
             }
         }
         return views;
     }
-    private void SetCompliancePolicyView(AppProtectionPolicyView view, IosManagedAppProtection policy)
+    private AppProtectionPolicyView GetCompliancePolicyView(IosManagedAppProtection policy)
     {
-        view.Platform = "iOS/iPadOS";
-        view.PublicApps = GetAppGroupTypeString(policy.AppGroupType);
+        string includedGroups, excludedGroups;
+        _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
 
+        AppProtectionPolicyView view = new()
+        {
+            Id = policy.Id,
+            DisplayName = policy.DisplayName,
+            Platform = "iOS/iPadOS",
+            PublicApps = GetAppGroupTypeString(policy.AppGroupType),
+            Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
+            IncludedGroups = includedGroups,
+            ExcludedGroups = excludedGroups
+        };
+        return view;
     }
 
-    private void SetCompliancePolicyView(AppProtectionPolicyView view, AndroidManagedAppProtection policy)
+    private AppProtectionPolicyView GetCompliancePolicyView(AndroidManagedAppProtection policy)
     {
-        view.Platform = "Android";
-        view.PublicApps = GetAppGroupTypeString(policy.AppGroupType);
+        string includedGroups, excludedGroups;
+        _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
 
+        AppProtectionPolicyView view = new()
+        {
+            Id = policy.Id,
+            DisplayName = policy.DisplayName,
+            Platform = "Android",
+            PublicApps = GetAppGroupTypeString(policy.AppGroupType),
+            Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
+            IncludedGroups = includedGroups,
+            ExcludedGroups = excludedGroups
+        };
+        return view;
     }
 
-    private void SetCompliancePolicyView(AppProtectionPolicyView view, MdmWindowsInformationProtectionPolicy policy)
+    private AppProtectionPolicyView GetCompliancePolicyView(MdmWindowsInformationProtectionPolicy policy)
     {
-        view.Platform = "Windows";
+        string includedGroups, excludedGroups;
+        _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
 
+        AppProtectionPolicyView view = new()
+        {
+            Id = policy.Id,
+            DisplayName = policy.DisplayName,
+            Platform = "Windows",
+            PublicApps = Labels.NotApplicableString,
+            CustomApps = GetCustomAppsString(policy.ProtectedApps, policy.ProtectedAppLockerFiles),
+            Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
+            AppsToExempt = GetCustomAppsString(policy.ExemptApps, policy.ExemptAppLockerFiles),
+            IncludedGroups = includedGroups,
+            ExcludedGroups = excludedGroups
+        };
+        return view;
+    }
+
+    private string? GetCustomAppsString(List<WindowsInformationProtectionApp>? apps, List<WindowsInformationProtectionAppLockerFile>? appLockerFiles)
+    {
+        var appString = string.Empty;
+        if (apps?.Count > 0)
+        {
+            appString = string.Join(",", apps.Select(x => x.DisplayName));
+
+        }
+        if (appLockerFiles?.Count > 0)
+        {            
+            var appList = string.Join(",", appLockerFiles.Select(x => x.DisplayName));
+            appString = Helper.AppendWithComma(appString, appList);
+        }
+
+        return appString;
     }
 
     private string? GetAppGroupTypeString(TargetedManagedAppGroupType? appGroupType)

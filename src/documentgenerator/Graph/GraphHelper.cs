@@ -122,13 +122,43 @@ public class GraphHelper
         catch { return null; }
     }
 
-    public async Task<List<ManagedAppPolicy>?> GetManagedAppPolicies()
+    public async Task<List<AndroidManagedAppProtection>?> GetManagedAppPoliciesAndroid()
     {
         try
         {
-            var result = await _graph.DeviceAppManagement.ManagedAppPolicies.GetAsync();
+            var result = await _graph.DeviceAppManagement.AndroidManagedAppProtections.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "apps", "deploymentSummary" };
+            });
             return result?.Value;
         }
         catch { return null; }
     }
+
+    public async Task<List<IosManagedAppProtection>?> GetManagedAppPoliciesIos()
+    {
+        try
+        {
+            var result = await _graph.DeviceAppManagement.IosManagedAppProtections.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "apps", "deploymentSummary" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<MdmWindowsInformationProtectionPolicy>?> GetManagedAppPoliciesWindows()
+    {
+        try
+        {
+            var result = await _graph.DeviceAppManagement.MdmWindowsInformationProtectionPolicies.GetAsync((requestConfiguration) =>
+            {
+	            requestConfiguration.QueryParameters.Expand = new string []{ "assignments", "protectedAppLockerFiles", "exemptAppLockerFiles" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
 }
