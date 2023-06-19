@@ -18,7 +18,7 @@ public static class Labels
     {
         if (value == null)
         {
-            return String.Empty;
+            return string.Empty;
         }
         else if (value == true)
         {
@@ -27,6 +27,22 @@ public static class Labels
         else
         {
             return "No";
+        }
+    }
+
+        public static string GetLabelAllowBlockBlank(bool? isBlocked)
+    {
+        if (isBlocked == null)
+        {
+            return string.Empty;
+        }
+        else if (isBlocked == true)
+        {
+            return "Block";
+        }
+        else
+        {
+            return "Allow";
         }
     }
 }

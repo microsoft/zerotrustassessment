@@ -47,10 +47,33 @@ public class AppProtectionPolicyViews
             DisplayName = policy.DisplayName,
             Platform = "iOS/iPadOS",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
-            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppProtocols),
-            PreventBackups = Labels.GetLabelYesNoBlank(policy.DataBackupBlocked),
-            SendOrgDataToOtherApps = GetManagedAppDataTransferLevelLabel(policy.AllowedOutboundDataTransferDestinations, 
+            PreventBackups = Labels.GetLabelAllowBlockBlank(policy.DataBackupBlocked),
+            SendOrgDataToOtherApps = GetManagedAppDataTransferLevelLabel(policy.AllowedOutboundDataTransferDestinations,
                 policy.DisableProtectionOfManagedOutboundOpenInData, policy.FilterOpenInToOnlyManagedApps),
+            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppProtocols),
+            SaveCopiesOfOrgData = Labels.GetLabelAllowBlockBlank(policy.SaveAsBlocked),
+            AllowUserToSaveCopiesToSelectedServices = GetAllowedDataStorageLocations(policy.AllowedDataStorageLocations),
+            TransferTelecommunicationDataTo = GetDialerRestrictionLevel(policy.DialerRestrictionLevel),
+            ReceiveDataFromOtherApps = GetAllowedInboundDataTransfer(policy.AllowedInboundDataTransferSources, policy.ProtectInboundDataFromUnknownSources),
+            OpenDataIntoOrgDocuments = "",
+            AllowUsersToOpenDataFromSelectedServices = "",
+            RestrictCutCopyAndPasteBetweenOtherApps = "",
+            CutAndCopyCharacterLimitForAnyApp = "",
+            EncryptOrgData = "",
+            SyncPolicyManagedAppDataWithNativeAppsOrAddIns = "",
+            PrintingOrgData = "",
+            RestrictWebContentTransferWithOtherApps = "",
+            OrgDataNotifications = "",
+            MaxPinAttemptsAction = "",
+            OfflineGracePeriodBlockAccessMin = "",
+            OfflineGracePeriodWipeDataDays = "",
+            DisabedAccount = "",
+            MinAppVersionAction = "",
+            RootedJailbrokenDevices = "",
+            PrimaryMTDService = "",
+            MaxAllowedDeviceThreatLevel = "",
+            MinOSVersion = "",
+            MaxOSVersion = "",
 
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
@@ -71,10 +94,32 @@ public class AppProtectionPolicyViews
             DisplayName = policy.DisplayName,
             Platform = "Android",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
-            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppPackages),
-            PreventBackups = Labels.GetLabelYesNoBlank(policy.DataBackupBlocked),
+            PreventBackups = Labels.GetLabelAllowBlockBlank(policy.DataBackupBlocked),
             SendOrgDataToOtherApps = GetManagedAppDataTransferLevelLabel(policy.AllowedOutboundDataTransferDestinations, null, null),
-
+            AppsToExempt = GetExemptedAppsString(policy.ExemptedAppPackages),
+            SaveCopiesOfOrgData = Labels.GetLabelAllowBlockBlank(policy.SaveAsBlocked),
+            AllowUserToSaveCopiesToSelectedServices = GetAllowedDataStorageLocations(policy.AllowedDataStorageLocations),
+            TransferTelecommunicationDataTo = GetDialerRestrictionLevel(policy.DialerRestrictionLevel),
+            ReceiveDataFromOtherApps = GetAllowedInboundDataTransfer(policy.AllowedInboundDataTransferSources, null),
+            OpenDataIntoOrgDocuments = "",
+            AllowUsersToOpenDataFromSelectedServices = "",
+            RestrictCutCopyAndPasteBetweenOtherApps = "",
+            CutAndCopyCharacterLimitForAnyApp = "",
+            EncryptOrgData = "",
+            SyncPolicyManagedAppDataWithNativeAppsOrAddIns = "",
+            PrintingOrgData = "",
+            RestrictWebContentTransferWithOtherApps = "",
+            OrgDataNotifications = "",
+            MaxPinAttemptsAction = "",
+            OfflineGracePeriodBlockAccessMin = "",
+            OfflineGracePeriodWipeDataDays = "",
+            DisabedAccount = "",
+            MinAppVersionAction = "",
+            RootedJailbrokenDevices = "",
+            PrimaryMTDService = "",
+            MaxAllowedDeviceThreatLevel = "",
+            MinOSVersion = "",
+            MaxOSVersion = "",
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
@@ -95,10 +140,32 @@ public class AppProtectionPolicyViews
             Platform = "Windows",
             PublicApps = Labels.NotApplicableString,
             CustomApps = GetCustomAppsString(policy.ProtectedApps, policy.ProtectedAppLockerFiles),
-            AppsToExempt = GetCustomAppsString(policy.ExemptApps, policy.ExemptAppLockerFiles),
             PreventBackups = Labels.NotApplicableString,
             SendOrgDataToOtherApps = Labels.NotApplicableString,
-
+            AppsToExempt = GetCustomAppsString(policy.ExemptApps, policy.ExemptAppLockerFiles),
+            SaveCopiesOfOrgData = Labels.NotApplicableString,
+            AllowUserToSaveCopiesToSelectedServices = Labels.NotApplicableString,
+            TransferTelecommunicationDataTo = Labels.NotApplicableString,
+            ReceiveDataFromOtherApps = Labels.NotApplicableString,
+            OpenDataIntoOrgDocuments = Labels.NotApplicableString,
+            AllowUsersToOpenDataFromSelectedServices = Labels.NotApplicableString,
+            RestrictCutCopyAndPasteBetweenOtherApps = Labels.NotApplicableString,
+            CutAndCopyCharacterLimitForAnyApp = Labels.NotApplicableString,
+            EncryptOrgData = Labels.NotApplicableString,
+            SyncPolicyManagedAppDataWithNativeAppsOrAddIns = Labels.NotApplicableString,
+            PrintingOrgData = Labels.NotApplicableString,
+            RestrictWebContentTransferWithOtherApps = Labels.NotApplicableString,
+            OrgDataNotifications = Labels.NotApplicableString,
+            MaxPinAttemptsAction = Labels.NotApplicableString,
+            OfflineGracePeriodBlockAccessMin = Labels.NotApplicableString,
+            OfflineGracePeriodWipeDataDays = Labels.NotApplicableString,
+            DisabedAccount = Labels.NotApplicableString,
+            MinAppVersionAction = Labels.NotApplicableString,
+            RootedJailbrokenDevices = Labels.NotApplicableString,
+            PrimaryMTDService = Labels.NotApplicableString,
+            MaxAllowedDeviceThreatLevel = Labels.NotApplicableString,
+            MinOSVersion = Labels.NotApplicableString,
+            MaxOSVersion = Labels.NotApplicableString,
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
@@ -237,7 +304,7 @@ public class AppProtectionPolicyViews
     }
 
 
-    private static string GetManagedAppDataTransferLevelLabel(ManagedAppDataTransferLevel? allowedOutboundDataTransferDestinations, 
+    private static string GetManagedAppDataTransferLevelLabel(ManagedAppDataTransferLevel? allowedOutboundDataTransferDestinations,
         bool? disableProtectionOfManagedOutboundOpenInData, bool? filterOpenInToOnlyManagedApps)
     {
         switch (allowedOutboundDataTransferDestinations)
@@ -262,283 +329,58 @@ public class AppProtectionPolicyViews
         }
     }
 
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, AospDeviceOwnerCompliancePolicy policy)
-    // {
-    //     view.Platform = "Android (AOSP)";
-    //     view.PolicyType = "Android (AOSP) compliance policy";
-    //     view.DefenderForEndPoint = Labels.NotApplicableString;
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = Labels.NotApplicableString;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = Labels.NotApplicableString;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
-    //     view.ActiveFirewallRequired = Labels.NotApplicableString;
+    private string GetAllowedDataStorageLocations(List<ManagedAppDataStorageLocation?>? allowedDataStorageLocations)
+    {
+        string result = string.Empty;
+        if (allowedDataStorageLocations?.Count > 0)
+        {
+            foreach (var location in allowedDataStorageLocations)
+            {
+                string value = location?.ToString() ?? "";
+                string name = value switch
+                {
+                    "oneDriveForBusiness" => "OneDrive for Business",
+                    "sharePoint" => "SharePoint",
+                    "photoLibrary" => "Photo library ",
+                    "box" => "Box",
+                    "localStorage" => "Local storage",
+                    _ => value
+                };
+                result += Helper.AppendWithComma(result, value);
+            }
+        }
+        return result;
+    }
 
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-    // }
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, AndroidCompliancePolicy policy)
-    // {
-    //     view.Platform = "Android device administrator";
-    //     view.PolicyType = "Android compliance policy";
-    //     view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-    //     view.ActiveFirewallRequired = Labels.NotApplicableString;
+    private string GetDialerRestrictionLevel(ManagedAppPhoneNumberRedirectLevel? dialerRestrictionLevel)
+    {
+        return dialerRestrictionLevel switch
+        {
+            ManagedAppPhoneNumberRedirectLevel.AllApps => "Any dialer app",
+            ManagedAppPhoneNumberRedirectLevel.CustomApp => "A specific dialer app",
+            ManagedAppPhoneNumberRedirectLevel.Blocked => "None, do not transfer this data between apps",
+            ManagedAppPhoneNumberRedirectLevel.ManagedApps => "Any policy-managed dialer app",
+            _ => nameof(dialerRestrictionLevel),
+        };
+    }
 
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-    // }
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, AndroidWorkProfileCompliancePolicy policy)
-    // {
-    //     view.Platform = "Android Enterprise (Personal)";
-    //     view.PolicyType = "Personally-owned work profile";
-    //     view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-    //     view.ActiveFirewallRequired = Labels.NotApplicableString;
-
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-    // }
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, IosCompliancePolicy policy)
-    // {
-    //     view.Platform = "iOS/iPadOS";
-    //     view.PolicyType = "iOS compliance policy";
-    //     view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasscodeExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasscodeMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasscodeMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasscodePreviousPasscodeBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasscodeRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasscodeRequiredType);
-    //     view.StorageRequireEncryption = Labels.NotApplicableString;
-    //     view.SecurityBlockJailbrokenDevices = policy.SecurityBlockJailbrokenDevices == true ? Labels.BlockedString : string.Empty;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-    //     view.ActiveFirewallRequired = Labels.NotApplicableString;
-
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-    // }
-
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, MacOSCompliancePolicy policy)
-    // {
-    //     view.Platform = "macOS";
-    //     view.PolicyType = "Mac compliance policy";
-    //     view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.AdvancedThreatProtectionRequiredSecurityLevel);
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = GetDeviceThreatLevelString(policy.DeviceThreatProtectionRequiredSecurityLevel);
-    //     view.ActiveFirewallRequired = policy.FirewallEnabled == true ? Labels.RequireString : string.Empty;
-
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-
-    // }
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, Windows81CompliancePolicy policy)
-    // {
-    //     view.Platform = "Windows 8.1 and later";
-    //     view.PolicyType = "Windows 8 compliance policy";
-    //     view.DefenderForEndPoint = Labels.NotApplicableString;
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
-    //     view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
-    //     view.ActiveFirewallRequired = Labels.NotApplicableString;
-
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-    // }
-    // private void SetCompliancePolicyView(AppProtectionPolicyView view, Windows10CompliancePolicy policy)
-    // {
-    //     view.Platform = "Windows 10 and later";
-    //     view.PolicyType = "Windows 10/11 compliance policy";
-    //     view.DefenderForEndPoint = GetDefenderEndPointLabel(policy.DeviceThreatProtectionRequiredSecurityLevel);
-    //     view.OsMaximumVersion = policy.OsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.OsMinimumVersion = policy.OsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordExpirationDays = policy.PasswordExpirationDays?.ToString() ?? string.Empty;
-    //     view.PasswordMinutesOfInactivityBeforeLock = policy.PasswordMinutesOfInactivityBeforeLock?.ToString() ?? string.Empty;
-    //     view.PasswordMinimumLength = policy.PasswordMinimumLength?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredType = GetPasswordRequiredType(policy.PasswordRequiredType);
-    //     view.StorageRequireEncryption = policy.StorageRequireEncryption == true ? Labels.RequireString : string.Empty;
-    //     view.SecurityBlockJailbrokenDevices = Labels.NotApplicableString;
-    //     view.DeviceThreatProtectionRequiredSecurityLevel = Labels.NotApplicableString;
-    //     view.ActiveFirewallRequired = policy.ActiveFirewallRequired == true ? Labels.RequireString : string.Empty;
-
-    //     AppProtectionPolicyViews.SetActionForNoncompliance(view, policy.ScheduledActionsForRule);
-
-    //     view.AntiSpywareRequired = policy.AntiSpywareRequired == true ? Labels.RequireString : string.Empty;
-    //     view.AntivirusRequired = policy.AntivirusRequired == true ? Labels.RequireString : string.Empty;
-    //     view.BitLockerEnabled = policy.BitLockerEnabled == true ? Labels.RequireString : string.Empty;
-    //     view.CodeIntegrityEnabled = policy.CodeIntegrityEnabled == true ? Labels.RequireString : string.Empty;
-    //     view.ConfigurationManagerComplianceRequired = policy.ConfigurationManagerComplianceRequired == true ? Labels.RequireString : string.Empty;
-
-    //     view.DefenderVersion = policy.DefenderVersion ?? string.Empty;
-    //     view.DeviceCompliancePolicyScript = policy.DeviceCompliancePolicyScript == null ? Labels.NotConfiguredString : Labels.ConfiguredString;
-
-
-    //     view.EarlyLaunchAntiMalwareDriverEnabled = policy.EarlyLaunchAntiMalwareDriverEnabled == true ? Labels.RequireString : string.Empty;
-    //     view.MobileOsMaximumVersion = policy.MobileOsMaximumVersion?.ToString() ?? string.Empty;
-    //     view.MobileOsMinimumVersion = policy.MobileOsMinimumVersion?.ToString() ?? string.Empty;
-    //     view.PasswordBlockSimple = policy.PasswordBlockSimple == true ? Labels.BlockedString : string.Empty;
-    //     view.PasswordMinimumCharacterSetCount = policy.PasswordMinimumCharacterSetCount?.ToString() ?? string.Empty;
-    //     view.PasswordPreviousPasswordBlockCount = policy.PasswordPreviousPasswordBlockCount?.ToString() ?? string.Empty;
-    //     view.PasswordRequired = policy.PasswordRequired == true ? Labels.RequireString : string.Empty;
-    //     view.PasswordRequiredToUnlockFromIdle = policy.PasswordRequiredToUnlockFromIdle == true ? Labels.RequireString : string.Empty;
-    //     view.RequireHealthyDeviceReport = policy.RequireHealthyDeviceReport == true ? Labels.RequireString : string.Empty;
-    //     view.RoleScopeTagIds = _graphData.GetScopesString(policy.RoleScopeTagIds);
-    //     view.RtpEnabled = policy.RtpEnabled == true ? Labels.RequireString : string.Empty;
-    //     view.SecureBootEnabled = policy.SecureBootEnabled == true ? Labels.RequireString : string.Empty;
-    //     view.SignatureOutOfDate = policy.SignatureOutOfDate?.ToString() ?? string.Empty;
-
-    //     view.TpmRequired = policy.TpmRequired == true ? Labels.RequireString : string.Empty;
-
-    //     if (policy.ValidOperatingSystemBuildRanges != null)
-    //     {
-    //         foreach (var range in policy.ValidOperatingSystemBuildRanges)
-    //         {
-    //             if (!string.IsNullOrEmpty(view.ValidOperatingSystemBuildRanges)) view.ValidOperatingSystemBuildRanges += ", ";
-    //             view.ValidOperatingSystemBuildRanges += string.Format("({0} - {1})", range.LowestVersion?.ToString() ?? string.Empty, range.HighestVersion?.ToString() ?? string.Empty);
-    //         }
-    //     }
-    // }
-
-    // private static void SetActionForNoncompliance(AppProtectionPolicyView view, List<DeviceComplianceScheduledActionForRule>? scheduledActionsForRule)
-    // {
-    //     var config = scheduledActionsForRule?.FirstOrDefault()?.ScheduledActionConfigurations;
-    //     if (config != null)
-    //     {
-    //         foreach (var action in config)
-    //         {
-    //             if (action.GracePeriodHours.HasValue)
-    //             {
-    //                 var gracePeriod = Helper.ConvertHoursToTotalDays(action.GracePeriodHours.Value);
-    //                 var gracePeriodDays = gracePeriod == 0 ? "Immediately" : gracePeriod.ToString();
-    //                 switch (action.ActionType)
-    //                 {
-    //                     case DeviceComplianceActionType.Block:
-    //                         view.NoncomplianceActionBlock = gracePeriodDays;
-    //                         break;
-    //                     case DeviceComplianceActionType.PushNotification:
-    //                         view.NoncomplianceActionPushNotification = gracePeriodDays;
-    //                         break;
-    //                     case DeviceComplianceActionType.Notification:
-    //                         view.NoncomplianceActionNotification = gracePeriodDays;
-    //                         break;
-    //                     case DeviceComplianceActionType.RemoteLock:
-    //                         view.NoncomplianceActionRemoteLock = gracePeriodDays;
-    //                         break;
-    //                     case DeviceComplianceActionType.Retire:
-    //                         view.NoncomplianceActionRetire = gracePeriodDays;
-    //                         break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // private static string? GetPasswordRequiredType(RequiredPasswordType? passwordRequiredType)
-    // {
-    //     return passwordRequiredType switch
-    //     {
-    //         RequiredPasswordType.DeviceDefault => "Device default",
-    //         RequiredPasswordType.Numeric => "Numeric",
-    //         RequiredPasswordType.Alphanumeric => "Alphanumeric",
-    //         _ => Labels.NotConfiguredString,
-    //     };
-    // }
-
-    // private static string? GetPasswordRequiredType(AndroidDeviceOwnerRequiredPasswordType? passwordRequiredType)
-    // {
-    //     return passwordRequiredType switch
-    //     {
-    //         AndroidDeviceOwnerRequiredPasswordType.DeviceDefault => "Device default",
-    //         AndroidDeviceOwnerRequiredPasswordType.Alphabetic => "Alphabetic",
-    //         AndroidDeviceOwnerRequiredPasswordType.Alphanumeric => "Alphanumeric",
-    //         AndroidDeviceOwnerRequiredPasswordType.AlphanumericWithSymbols => "Alphanumeric with symbols",
-    //         AndroidDeviceOwnerRequiredPasswordType.Required => "Password required",
-    //         AndroidDeviceOwnerRequiredPasswordType.LowSecurityBiometric => "Biometric (low security)",
-    //         AndroidDeviceOwnerRequiredPasswordType.Numeric => "Numeric",
-    //         AndroidDeviceOwnerRequiredPasswordType.NumericComplex => "Numeric complex",
-    //         _ => Labels.NotConfiguredString,
-    //     };
-    // }
-
-    // private static string? GetPasswordRequiredType(AndroidRequiredPasswordType? passwordRequiredType)
-    // {
-    //     return passwordRequiredType switch
-    //     {
-    //         AndroidRequiredPasswordType.DeviceDefault => "Device default",
-    //         AndroidRequiredPasswordType.Alphabetic => "Alphabetic",
-    //         AndroidRequiredPasswordType.Alphanumeric => "Alphanumeric",
-    //         AndroidRequiredPasswordType.AlphanumericWithSymbols => "Alphanumeric with symbols",
-    //         AndroidRequiredPasswordType.Any => "Any",
-    //         AndroidRequiredPasswordType.LowSecurityBiometric => "Biometric (low security)",
-    //         AndroidRequiredPasswordType.Numeric => "Numeric",
-    //         AndroidRequiredPasswordType.NumericComplex => "Numeric complex",
-    //         _ => Labels.NotConfiguredString,
-    //     };
-    // }
-
-    // private static string GetDefenderEndPointLabel(DeviceThreatProtectionLevel? advancedThreatProtectionRequiredSecurityLevel)
-    // {
-    //     return advancedThreatProtectionRequiredSecurityLevel switch
-    //     {
-    //         DeviceThreatProtectionLevel.Unavailable or DeviceThreatProtectionLevel.NotSet => string.Empty,
-    //         DeviceThreatProtectionLevel.Secured => "Clear", // <-- This label is the only difference between device threat level and ATP
-    //         DeviceThreatProtectionLevel.Low => "Low",
-    //         DeviceThreatProtectionLevel.Medium => "Medium",
-    //         DeviceThreatProtectionLevel.High => "High",
-    //         _ => Labels.NotConfiguredString,
-    //     };
-    // }
-    // private static string? GetDeviceThreatLevelString(DeviceThreatProtectionLevel? deviceThreatProtectionRequiredSecurityLevel)
-    // {
-    //     return deviceThreatProtectionRequiredSecurityLevel switch
-    //     {
-    //         DeviceThreatProtectionLevel.Unavailable or DeviceThreatProtectionLevel.NotSet => string.Empty,
-    //         DeviceThreatProtectionLevel.Secured => "Secured", // <-- This label is the only difference between device threat level and ATP
-    //         DeviceThreatProtectionLevel.Low => "Low",
-    //         DeviceThreatProtectionLevel.Medium => "Medium",
-    //         DeviceThreatProtectionLevel.High => "High",
-    //         _ => Labels.NotConfiguredString,
-    //     };
-    // }
+    private string GetAllowedInboundDataTransfer(ManagedAppDataTransferLevel? allowedInboundDataTransferSources, bool? protectInboundDataFromUnknownSources)
+    {
+        switch (allowedInboundDataTransferSources)
+        {
+            case ManagedAppDataTransferLevel.None:
+                return "None";
+            case ManagedAppDataTransferLevel.AllApps:
+                var result = "All apps";
+                if (protectInboundDataFromUnknownSources == true)
+                {
+                    result += " with incoming org data";
+                }
+                return result;
+            case ManagedAppDataTransferLevel.ManagedApps:
+                return "Policy managed apps";
+            default:
+                return nameof(allowedInboundDataTransferSources);
+        }
+    }
 }
