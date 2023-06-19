@@ -138,9 +138,9 @@ public class SheetConfigDevice : SheetBase
                 table.AddColumn(item.Platform, 3);
                 table.AddColumn(item.DisplayName, 5);
                 table.AddColumn(item.PublicApps, 2);
-                table.AddColumn(item.CustomApps, 1);
+                table.AddColumn(item.CustomApps, 2);
                 table.AddColumn(item.PreventBackups, 1);
-                table.AddColumn(item.SendOrgDataToOtherApps, 1);
+                table.AddColumn(item.SendOrgDataToOtherApps, 2);
                 table.AddColumn(item.AppsToExempt, 1);
                 // table.AddColumn(item.DefenderForEndPoint);
                 // table.AddColumn(item.OsMinimumVersion);

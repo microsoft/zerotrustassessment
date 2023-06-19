@@ -48,6 +48,10 @@ public class AppProtectionPolicyViews
             Platform = "iOS/iPadOS",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
             AppsToExempt = GetExemptedAppsString(policy.ExemptedAppProtocols),
+            PreventBackups = Labels.GetLabelYesNoBlank(policy.DataBackupBlocked),
+            SendOrgDataToOtherApps = GetManagedAppDataTransferLevelLabel(policy.AllowedOutboundDataTransferDestinations, 
+                policy.DisableProtectionOfManagedOutboundOpenInData, policy.FilterOpenInToOnlyManagedApps),
+
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
@@ -68,11 +72,37 @@ public class AppProtectionPolicyViews
             Platform = "Android",
             PublicApps = GetAppGroupTypeString(policy.AppGroupType),
             AppsToExempt = GetExemptedAppsString(policy.ExemptedAppPackages),
+            PreventBackups = Labels.GetLabelYesNoBlank(policy.DataBackupBlocked),
+            SendOrgDataToOtherApps = GetManagedAppDataTransferLevelLabel(policy.AllowedOutboundDataTransferDestinations, null, null),
+
             Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
             IncludedGroups = includedGroups,
             ExcludedGroups = excludedGroups
         };
         SetPublicAndCustomApps(view, policy);
+        return view;
+    }
+
+    private AppProtectionPolicyView GetCompliancePolicyView(MdmWindowsInformationProtectionPolicy policy)
+    {
+        string includedGroups, excludedGroups;
+        _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
+
+        AppProtectionPolicyView view = new()
+        {
+            Id = policy.Id,
+            DisplayName = policy.DisplayName,
+            Platform = "Windows",
+            PublicApps = Labels.NotApplicableString,
+            CustomApps = GetCustomAppsString(policy.ProtectedApps, policy.ProtectedAppLockerFiles),
+            AppsToExempt = GetCustomAppsString(policy.ExemptApps, policy.ExemptAppLockerFiles),
+            PreventBackups = Labels.NotApplicableString,
+            SendOrgDataToOtherApps = Labels.NotApplicableString,
+
+            Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
+            IncludedGroups = includedGroups,
+            ExcludedGroups = excludedGroups
+        };
         return view;
     }
 
@@ -125,11 +155,11 @@ public class AppProtectionPolicyViews
                 }
             }
         }
-        if(policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
+        if (policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
         {
             view.PublicApps += publicApps;
         }
-        
+
         view.CustomApps += customApps;
 
     }
@@ -170,31 +200,11 @@ public class AppProtectionPolicyViews
                 }
             }
         }
-        if(policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
+        if (policy.AppGroupType == TargetedManagedAppGroupType.SelectedPublicApps) //Only show app names if they are selected apps
         {
             view.PublicApps += publicApps;
         }
         view.CustomApps += customApps;
-    }
-
-    private AppProtectionPolicyView GetCompliancePolicyView(MdmWindowsInformationProtectionPolicy policy)
-    {
-        string includedGroups, excludedGroups;
-        _graphData.GetGroupAssignmentTargetText(policy.Assignments, out includedGroups, out excludedGroups);
-
-        AppProtectionPolicyView view = new()
-        {
-            Id = policy.Id,
-            DisplayName = policy.DisplayName,
-            Platform = "Windows",
-            PublicApps = Labels.NotApplicableString,
-            CustomApps = GetCustomAppsString(policy.ProtectedApps, policy.ProtectedAppLockerFiles),
-            Scopes = _graphData.GetScopesString(policy.RoleScopeTagIds),
-            AppsToExempt = GetCustomAppsString(policy.ExemptApps, policy.ExemptAppLockerFiles),
-            IncludedGroups = includedGroups,
-            ExcludedGroups = excludedGroups
-        };
-        return view;
     }
 
     private string? GetCustomAppsString(List<WindowsInformationProtectionApp>? apps, List<WindowsInformationProtectionAppLockerFile>? appLockerFiles)
@@ -225,6 +235,33 @@ public class AppProtectionPolicyViews
             _ => string.Empty,
         };
     }
+
+
+    private static string GetManagedAppDataTransferLevelLabel(ManagedAppDataTransferLevel? allowedOutboundDataTransferDestinations, 
+        bool? disableProtectionOfManagedOutboundOpenInData, bool? filterOpenInToOnlyManagedApps)
+    {
+        switch (allowedOutboundDataTransferDestinations)
+        {
+            case ManagedAppDataTransferLevel.AllApps:
+                return "All apps";
+            case ManagedAppDataTransferLevel.None:
+                return "None";
+            case ManagedAppDataTransferLevel.ManagedApps:
+                var result = "Policy managed apps";
+                if (disableProtectionOfManagedOutboundOpenInData == true)
+                {
+                    result += " with OS sharing";
+                }
+                else if (filterOpenInToOnlyManagedApps == true)
+                {
+                    result += " with Open-In/Share filtering";
+                }
+                return result;
+            default:
+                return string.Empty;
+        }
+    }
+
     // private void SetCompliancePolicyView(AppProtectionPolicyView view, AospDeviceOwnerCompliancePolicy policy)
     // {
     //     view.Platform = "Android (AOSP)";

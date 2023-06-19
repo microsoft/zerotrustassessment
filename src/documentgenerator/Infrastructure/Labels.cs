@@ -14,5 +14,20 @@ public static class Labels
     public static readonly string NotConfiguredString = "Not configured";
     public static readonly string BlockedString = "Blocked";
 
+    public static string GetLabelYesNoBlank(bool? value)
+    {
+        if (value == null)
+        {
+            return String.Empty;
+        }
+        else if (value == true)
+        {
+            return "Yes";
+        }
+        else
+        {
+            return "No";
+        }
+    }
 }
 
