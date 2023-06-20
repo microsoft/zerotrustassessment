@@ -25,6 +25,7 @@ public class GraphData
     public Dictionary<string, AppList> ManagedAppStatusIos { get; set; } = new Dictionary<string, AppList>();
     public Dictionary<string, AppList> ManagedAppStatusAndroid { get; set; } = new Dictionary<string, AppList>();
 
+    public List<DeviceConfiguration>? DeviceConfigurations { get; set; } = new List<DeviceConfiguration>();
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -51,7 +52,7 @@ public class GraphData
         ManagedAppPoliciesAndroid = await _graphHelper.GetManagedAppPoliciesAndroid();
         ManagedAppPoliciesIos = await _graphHelper.GetManagedAppPoliciesIos();
         ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
-
+        DeviceConfigurations = await _graphHelper.GetDeviceConfigurations();
         LoadManagedAppStatuses();
     }
 

@@ -190,4 +190,17 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<DeviceConfiguration>?> GetDeviceConfigurations()
+    {
+        try
+        {
+            var result = await _graph.DeviceManagement.DeviceConfigurations.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Expand = new string[] { "assignments" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
 }

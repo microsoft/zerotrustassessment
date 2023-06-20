@@ -16,25 +16,7 @@ public class SheetAssessmentDevice : SheetBase
         DeviceComplianceConfiguration();
         AppProtectionConfiguration();
         WindowsHelloForBusiness();
-    }
-
-    private void WindowsHelloForBusiness()
-    {
-        var result = AssessmentValue.NotStarted;
-        var whfbConfig = _graphData.DeviceEnrollmentConfigurations?.Where(x => x.DeviceEnrollmentConfigurationType == DeviceEnrollmentConfigurationType.WindowsHelloForBusiness).FirstOrDefault();
-
-        if(whfbConfig != null)
-        {
-            if(whfbConfig is DeviceEnrollmentWindowsHelloForBusinessConfiguration config)
-            {
-                if(config.State == Enablement.Enabled)
-                {
-                    result = AssessmentValue.Completed;
-                }
-            }
-        }
-        SetValue("CH00021_AppProtect_WHfB", result);
-
+        WindowsUpdate();
     }
 
     private void MdmWindowsEnrollment()
@@ -173,7 +155,7 @@ public class SheetAssessmentDevice : SheetBase
         {
             iosJailbreak = AssessmentValue.Completed;
         }
-        
+
         SetValue("CH00019_AppProtect_Root_Android", androidRoot);
         SetValue("CH00020_AppProtect_Root_iOS", iosJailbreak);
 
@@ -349,5 +331,45 @@ public class SheetAssessmentDevice : SheetBase
                 atp != DeviceThreatProtectionLevel.NotSet;
     }
 
+    private void WindowsHelloForBusiness()
+    {
+        var result = AssessmentValue.NotStarted;
+        var whfbConfig = _graphData.DeviceEnrollmentConfigurations?.Where(x => x.DeviceEnrollmentConfigurationType == DeviceEnrollmentConfigurationType.WindowsHelloForBusiness).FirstOrDefault();
 
+        if (whfbConfig != null)
+        {
+            if (whfbConfig is DeviceEnrollmentWindowsHelloForBusinessConfiguration config)
+            {
+                if (config.State == Enablement.Enabled)
+                {
+                    result = AssessmentValue.Completed;
+                }
+            }
+        }
+        SetValue("CH00021_AppProtect_WHfB", result);
+    }
+
+    private void WindowsUpdate()
+    {
+        var result = AssessmentValue.NotStarted;
+        WindowsUpdateForBusinessConfiguration? windowsUpdate;
+        var configs = _graphData.DeviceConfigurations;
+
+        if (configs != null)
+        {
+            foreach (var config in configs)
+            {
+                if (config is WindowsUpdateForBusinessConfiguration windowsUpdateConfig)
+                {
+                    windowsUpdate = config as WindowsUpdateForBusinessConfiguration;
+                    if (windowsUpdate != null)
+                    {
+                        result = AssessmentValue.Completed;
+                        break;
+                    }
+                }
+            }
+            SetValue("CH00022_AppProtect_WindowsUpdate", result);
+        }
+    }
 }
