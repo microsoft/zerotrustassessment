@@ -15,6 +15,26 @@ public class SheetAssessmentDevice : SheetBase
         DeviceEnrollmentConfiguration();
         DeviceComplianceConfiguration();
         AppProtectionConfiguration();
+        WindowsHelloForBusiness();
+    }
+
+    private void WindowsHelloForBusiness()
+    {
+        var result = AssessmentValue.NotStarted;
+        var whfbConfig = _graphData.DeviceEnrollmentConfigurations?.Where(x => x.DeviceEnrollmentConfigurationType == DeviceEnrollmentConfigurationType.WindowsHelloForBusiness).FirstOrDefault();
+
+        if(whfbConfig != null)
+        {
+            if(whfbConfig is DeviceEnrollmentWindowsHelloForBusinessConfiguration config)
+            {
+                if(config.State == Enablement.Enabled)
+                {
+                    result = AssessmentValue.Completed;
+                }
+            }
+        }
+        SetValue("CH00021_AppProtect_WHfB", result);
+
     }
 
     private void MdmWindowsEnrollment()
