@@ -14,6 +14,7 @@ public class SheetAssessmentDevice : SheetBase
         MdmWindowsEnrollment();
         DeviceEnrollmentConfiguration();
         DeviceComplianceConfiguration();
+        AppProtectionConfiguration();
     }
 
     private void MdmWindowsEnrollment()
@@ -101,14 +102,13 @@ public class SheetAssessmentDevice : SheetBase
             else if (policy is Windows81CompliancePolicy windows81CompliancePolicy) { windows81CompliancePolicies.Add(windows81CompliancePolicy); }
         }
 
-        var aospDeviceOwnerComplianceState = aospDeviceOwnerCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var androidComplianceState = androidCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var androidDeviceOwnerComplianceState = androidDeviceOwnerCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var androidWorkProfileComplianceState = androidWorkProfileCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var iosComplianceState = iosCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var macOSComplianceState = macOSCompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var windows81ComplianceState = windows81CompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        var windows10ComplianceState = windows10CompliancePolicies.Count() > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var aospDeviceOwnerComplianceState = aospDeviceOwnerCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var androidComplianceState = androidCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var androidDeviceOwnerComplianceState = androidDeviceOwnerCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var androidWorkProfileComplianceState = androidWorkProfileCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var iosComplianceState = iosCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var macOSComplianceState = macOSCompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var windows10ComplianceState = windows10CompliancePolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
 
         //TODO: Future enhancement: Check transitive group count and if less than 10 (or maybe 10% of users) then set to In Progress.
         SetValue("CH00006_DeviceCompliance_Android_AOSP", aospDeviceOwnerComplianceState);
@@ -129,6 +129,18 @@ public class SheetAssessmentDevice : SheetBase
 
         CheckDeviceComplianceWindowsFirewall(windows10CompliancePolicies);
         CheckDeviceComplianceMacOSFirewall(macOSCompliancePolicies);
+    }
+
+   private void AppProtectionConfiguration()
+    {
+        var iosPolicies = _graphData.ManagedAppPoliciesIos ?? new List<IosManagedAppProtection>();
+        var androidPolicies = _graphData.ManagedAppPoliciesAndroid ?? new List<AndroidManagedAppProtection>();
+
+        var iosAssigned = iosPolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        var androidAssigned = androidPolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+        
+        SetValue("CH00017_AppProtect_Assigned_iOS", iosAssigned);
+        SetValue("CH00018_AppProtect_Assigned_Android", androidAssigned);
     }
 
     /// <summary>
@@ -298,4 +310,6 @@ public class SheetAssessmentDevice : SheetBase
                 atp != DeviceThreatProtectionLevel.Unavailable &&
                 atp != DeviceThreatProtectionLevel.NotSet;
     }
+
+    
 }
