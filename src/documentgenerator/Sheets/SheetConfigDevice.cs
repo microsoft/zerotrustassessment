@@ -155,7 +155,7 @@ public class SheetConfigDevice : SheetBase
                 table.AddColumn(item.PrintingOrgData, 1);
                 table.AddColumn(item.RestrictWebContentTransferWithOtherApps, 1);
                 table.AddColumn(item.OrgDataNotifications, 1);
-                table.AddColumn(item.MaxPinAttemptsAction, 1);
+                table.AddColumn(item.MaxPinAttemptsAction, 2);
                 table.AddColumn(item.OfflineGracePeriodBlockAccessMin, 1);
                 table.AddColumn(item.OfflineGracePeriodWipeDataDays, 1);
                 table.AddColumn(item.DisabedAccount, 1);

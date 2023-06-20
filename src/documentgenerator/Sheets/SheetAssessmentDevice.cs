@@ -131,16 +131,34 @@ public class SheetAssessmentDevice : SheetBase
         CheckDeviceComplianceMacOSFirewall(macOSCompliancePolicies);
     }
 
-   private void AppProtectionConfiguration()
+    private void AppProtectionConfiguration()
     {
-        var iosPolicies = _graphData.ManagedAppPoliciesIos ?? new List<IosManagedAppProtection>();
         var androidPolicies = _graphData.ManagedAppPoliciesAndroid ?? new List<AndroidManagedAppProtection>();
+        var iosPolicies = _graphData.ManagedAppPoliciesIos ?? new List<IosManagedAppProtection>();
 
-        var iosAssigned = iosPolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
         var androidAssigned = androidPolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
-        
+        var iosAssigned = iosPolicies.Count > 0 ? AssessmentValue.Completed : AssessmentValue.NotStarted;
+
         SetValue("CH00017_AppProtect_Assigned_iOS", iosAssigned);
         SetValue("CH00018_AppProtect_Assigned_Android", androidAssigned);
+
+        var androidRoot = AssessmentValue.NotStarted;
+        if (androidPolicies.Any(x => x.AppActionIfDeviceComplianceRequired != ManagedAppRemediationAction.Warn))
+        {
+            androidRoot = AssessmentValue.Completed;
+        }
+
+        var iosJailbreak = AssessmentValue.NotStarted;
+        if (iosPolicies.Any(x => x.AppActionIfDeviceComplianceRequired != ManagedAppRemediationAction.Warn))
+        {
+            iosJailbreak = AssessmentValue.Completed;
+        }
+        
+        SetValue("CH00019_AppProtect_Root_Android", androidRoot);
+        SetValue("CH00020_AppProtect_Root_iOS", iosJailbreak);
+
+
+
     }
 
     /// <summary>
@@ -174,11 +192,11 @@ public class SheetAssessmentDevice : SheetBase
         var result = AssessmentValue.NotStarted;
         if (aospDeviceOwnerCompliancePolicies.Count > 0)
         {
-            if(aospDeviceOwnerCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            if (aospDeviceOwnerCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.Completed;
             }
-            else if (aospDeviceOwnerCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            else if (aospDeviceOwnerCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.InProgress;
             }
@@ -186,11 +204,11 @@ public class SheetAssessmentDevice : SheetBase
 
         if (result != AssessmentValue.InProgress && androidCompliancePolicies.Count > 0)
         {
-            if(androidCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            if (androidCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.Completed;
             }
-            else if (androidCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            else if (androidCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.InProgress;
             }
@@ -198,11 +216,11 @@ public class SheetAssessmentDevice : SheetBase
 
         if (result != AssessmentValue.InProgress && androidWorkProfileCompliancePolicies.Count > 0)
         {
-            if(androidWorkProfileCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
+            if (androidWorkProfileCompliancePolicies.All(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.Completed;
             }
-            else if (androidWorkProfileCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true)) 
+            else if (androidWorkProfileCompliancePolicies.Any(x => x.SecurityBlockJailbrokenDevices == true))
             {
                 result = AssessmentValue.InProgress;
             }
@@ -311,5 +329,5 @@ public class SheetAssessmentDevice : SheetBase
                 atp != DeviceThreatProtectionLevel.NotSet;
     }
 
-    
+
 }

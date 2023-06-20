@@ -69,7 +69,7 @@ public class AppProtectionPolicyViews
             OfflineGracePeriodWipeDataDays = "",
             DisabedAccount = "",
             MinAppVersionAction = "",
-            RootedJailbrokenDevices = "",
+            RootedJailbrokenDevices = GetDeviceComplianceAction(policy.AppActionIfDeviceComplianceRequired),
             PrimaryMTDService = "",
             MaxAllowedDeviceThreatLevel = "",
             MinOSVersion = "",
@@ -115,7 +115,7 @@ public class AppProtectionPolicyViews
             OfflineGracePeriodWipeDataDays = "",
             DisabedAccount = "",
             MinAppVersionAction = "",
-            RootedJailbrokenDevices = "",
+            RootedJailbrokenDevices = GetDeviceComplianceAction(policy.AppActionIfDeviceComplianceRequired),
             PrimaryMTDService = "",
             MaxAllowedDeviceThreatLevel = "",
             MinOSVersion = "",
@@ -382,5 +382,16 @@ public class AppProtectionPolicyViews
             default:
                 return nameof(allowedInboundDataTransferSources);
         }
+    }
+
+    private string GetDeviceComplianceAction(ManagedAppRemediationAction? appActionIfDeviceComplianceRequired)
+    {
+        return appActionIfDeviceComplianceRequired switch
+        {
+            ManagedAppRemediationAction.Warn => "Warn",
+            ManagedAppRemediationAction.Block => "Block access",
+            ManagedAppRemediationAction.Wipe => "Wipe data",
+            _ => nameof(ManagedAppRemediationAction),
+        };
     }
 }
