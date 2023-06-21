@@ -29,6 +29,8 @@ public class GraphData
     public List<ConditionalAccessPolicy> ConditionalAccessPolicies { get; set; } = new List<ConditionalAccessPolicy>();
 
     public TenantAppManagementPolicy? TenantAppManagementPolicy { get; set; }
+    public List<UnifiedRoleAssignment> RoleAssignments { get; set; } = new List<UnifiedRoleAssignment>();
+
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -57,11 +59,12 @@ public class GraphData
         ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
         DeviceConfigurations = await _graphHelper.GetDeviceConfigurations();
         var conditionalAccessPolicies = await _graphHelper.GetConditionalAccessPolicies();
-        if(conditionalAccessPolicies != null)
-        {
-            ConditionalAccessPolicies = conditionalAccessPolicies;
-        }
+        if(conditionalAccessPolicies != null) ConditionalAccessPolicies = conditionalAccessPolicies;
+
         TenantAppManagementPolicy = await _graphHelper.GetTenantAppManagementPolicy();
+        var assignments = await _graphHelper.GetRoleAssignments();
+        if (assignments != null) RoleAssignments = assignments;
+
         LoadManagedAppStatuses();
     }
 

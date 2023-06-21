@@ -223,4 +223,18 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<UnifiedRoleAssignment>?> GetRoleAssignments()
+    {
+        try
+        {
+            var result = await _graph.RoleManagement.Directory.RoleAssignments.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Top = 999;
+                requestConfiguration.QueryParameters.Expand = new string[] { "principal" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
 }

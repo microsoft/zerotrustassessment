@@ -5,6 +5,7 @@ namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
 public class SheetAssessmentIdentity : SheetBase
 {
+    private const string RoleIdGlobalAdmin = "62e90394-69f5-4237-9190-012177145e10";
     public SheetAssessmentIdentity(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
     {
     }
@@ -16,6 +17,7 @@ public class SheetAssessmentIdentity : SheetBase
         GlobalAdminPhishingResistantAuthStrength();
         BasicMfaUsageInsteadOfAuthStrength();
         SecureRegistrationOfSecurityInfo();
+        CloudOnlyCloudPrivilege();
     }
 
     private void WorkloadChecks()
@@ -39,10 +41,9 @@ public class SheetAssessmentIdentity : SheetBase
     private void GlobalAdminPhishingResistantAuthStrength()
     {
         //TODO Check if auth strength is actually a phishing reistant auth strength
-        var globalAdminRoleId = "62e90394-69f5-4237-9190-012177145e10";
 
         var globalAdminPoliciesWithMfa = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.Conditions?.Users?.IncludeRoles?.Contains(globalAdminRoleId) == true &&
+            x => x?.Conditions?.Users?.IncludeRoles?.Contains(RoleIdGlobalAdmin) == true &&
                 x?.GrantControls?.AuthenticationStrength != null);
 
         var result = globalAdminPoliciesWithMfa ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
@@ -57,7 +58,7 @@ public class SheetAssessmentIdentity : SheetBase
         var resultNoAuthStrength = basicMfaInUse ? AssessmentValue.NotStartedP2 : AssessmentValue.Completed;
 
         var hasAuthStrength = _graphData.ConditionalAccessPolicies.Any(
-            x =>  x?.GrantControls?.AuthenticationStrength != null);
+            x => x?.GrantControls?.AuthenticationStrength != null);
 
         var resultBasicMfa = basicMfaInUse || hasAuthStrength ? AssessmentValue.Completed : AssessmentValue.Completed;
 
@@ -73,12 +74,37 @@ public class SheetAssessmentIdentity : SheetBase
         var hasSecurityInfoAndDevice = _graphData.ConditionalAccessPolicies.Any(
             x => x?.Conditions?.Applications?.IncludeUserActions?.Contains("urn:user:registersecurityinfo") == true &&
             (x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.CompliantDevice) == true ||
-            x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.DomainJoinedDevice) == true )
+            x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.DomainJoinedDevice) == true)
             );
 
-        var result = hasSecurityInfoAndDevice ? AssessmentValue.Completed : 
+        var result = hasSecurityInfoAndDevice ? AssessmentValue.Completed :
                        hasSecurityInfo ? AssessmentValue.NotStartedP1 : AssessmentValue.NotStartedP0;
 
         SetValue("I00006_SecureRegistrationOfSecurityInfo", result);
+    }
+
+    private void CloudOnlyCloudPrivilege()
+    {
+        //TODO check entitlements as well
+        var globalAdminRoles = _graphData.RoleAssignments.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
+        var hasGlobalAdminSyncedAccounts = HasSyncedAccounts(globalAdminRoles);
+        var hasPrivilegedRolesSyncedAccounts = false; //todo lookup other roles
+        var result = hasGlobalAdminSyncedAccounts ? AssessmentValue.NotStartedP0 :
+                       hasPrivilegedRolesSyncedAccounts ? AssessmentValue.NotStartedP1 : AssessmentValue.Completed;
+
+        SetValue("I00007_CloudOnlyCloudPrivilege", result);
+    }
+
+    private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)
+    {
+        //TODO Expand if group found
+        foreach (var roleAssign in roleAssignments)
+        {
+            if (roleAssign.Principal is User user)
+            {
+                if (user.OnPremisesSyncEnabled == true) return true;
+            }
+        }
+        return false;
     }
 }
