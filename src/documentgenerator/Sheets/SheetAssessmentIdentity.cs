@@ -13,6 +13,7 @@ public class SheetAssessmentIdentity : SheetBase
     {
         WorkloadChecks();
         TenantAppManagementPolicy();
+        GlobalAdminPhishingResistantAuthStrength();
     }
 
     private void WorkloadChecks()
@@ -31,5 +32,19 @@ public class SheetAssessmentIdentity : SheetBase
 
         var result = hasTenantPolicy ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
         SetValue("I00002_Workload_TenantAppMgmtPolicy", result);
+    }
+
+    private void GlobalAdminPhishingResistantAuthStrength()
+    {
+        //TODO Check if auth strength is actually a phishing reistant auth strength
+        var globalAdminRoleId = "62e90394-69f5-4237-9190-012177145e10";
+
+        var globalAdminPoliciesWithMfa = _graphData.ConditionalAccessPolicies.Any(
+            x => x?.Conditions?.Users?.IncludeRoles?.Contains(globalAdminRoleId) == true &&
+                x?.GrantControls?.AuthenticationStrength != null);
+
+
+        var result = globalAdminPoliciesWithMfa ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
+        SetValue("I00003_GlobalAdminPhishingResistantAuthStrength", result);
     }
 }
