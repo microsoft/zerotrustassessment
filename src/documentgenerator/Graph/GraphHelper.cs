@@ -203,4 +203,24 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<ConditionalAccessPolicy>?> GetConditionalAccessPolicies()
+    {
+        try
+        {
+            var result = await _graph.Identity.ConditionalAccess.Policies.GetAsync();
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<TenantAppManagementPolicy?> GetTenantAppManagementPolicy()
+    {
+        try
+        {
+            var result = await _graph.Policies.DefaultAppManagementPolicy.GetAsync();
+            return result;
+        }
+        catch { return null; }
+    }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Specialized;
-using System.Text.Json;
 using Microsoft.Kiota.Abstractions.Authentication;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
@@ -26,6 +25,10 @@ public class GraphData
     public Dictionary<string, AppList> ManagedAppStatusAndroid { get; set; } = new Dictionary<string, AppList>();
 
     public List<DeviceConfiguration>? DeviceConfigurations { get; set; } = new List<DeviceConfiguration>();
+
+    public List<ConditionalAccessPolicy> ConditionalAccessPolicies { get; set; } = new List<ConditionalAccessPolicy>();
+
+    public TenantAppManagementPolicy? TenantAppManagementPolicy { get; set; }
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -53,6 +56,12 @@ public class GraphData
         ManagedAppPoliciesIos = await _graphHelper.GetManagedAppPoliciesIos();
         ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
         DeviceConfigurations = await _graphHelper.GetDeviceConfigurations();
+        var conditionalAccessPolicies = await _graphHelper.GetConditionalAccessPolicies();
+        if(conditionalAccessPolicies != null)
+        {
+            ConditionalAccessPolicies = conditionalAccessPolicies;
+        }
+        TenantAppManagementPolicy = await _graphHelper.GetTenantAppManagementPolicy();
         LoadManagedAppStatuses();
     }
 

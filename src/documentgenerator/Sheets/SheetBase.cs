@@ -10,6 +10,9 @@ public class SheetBase
     protected enum AssessmentValue
     {
         NotStarted,
+        NotStartedP0,
+        NotStartedP1,
+        NotStartedP2,
         InProgress,
         Completed
     }
@@ -30,6 +33,15 @@ public class SheetBase
         switch(assessmentValue){
             case AssessmentValue.NotStarted:
                 value = "☉ Not started";
+                break;
+            case AssessmentValue.NotStartedP0:
+                value = "☉ Not started (P0)";
+                break;
+            case AssessmentValue.NotStartedP1:
+                value = "☉ Not started (P1)";
+                break;
+            case AssessmentValue.NotStartedP2:
+                value = "☉ Not started (P2)";
                 break;
             case AssessmentValue.InProgress:
                 value = "▷ In progress";

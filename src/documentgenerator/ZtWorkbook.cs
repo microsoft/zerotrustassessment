@@ -39,6 +39,9 @@ public class ZtWorkbook
         var sheetAssessmentDevice = new SheetAssessmentDevice(GetWorksheet(Sheets.AssessmentDevice), _graphData);
         sheetAssessmentDevice.Generate();
 
+        var sheetAssessmentIdentity = new SheetAssessmentIdentity(GetWorksheet(Sheets.AssessmentIdentity), _graphData);
+        sheetAssessmentIdentity.Generate();
+
         var sheetAssessmentConfig = new SheetConfigDevice(GetWorksheet(Sheets.ConfigDevice), _graphData);
         sheetAssessmentConfig.Generate();
 
