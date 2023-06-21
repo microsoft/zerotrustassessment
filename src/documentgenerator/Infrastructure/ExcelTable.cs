@@ -60,6 +60,7 @@ public class ExcelTable
     /// <param name="rowCount"></param>
     public void InitializeRows(int rowCount)
     {
+        if (rowCount == 0) return;
         _sheet.InsertRow(_startRow, rowCount, ExcelInsertOptions.FormatAsAfter);
     }
 
