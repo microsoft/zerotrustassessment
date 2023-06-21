@@ -86,7 +86,7 @@ public class SheetAssessmentIdentity : SheetBase
     private void CloudOnlyCloudPrivilege()
     {
         //TODO check entitlements as well
-        var globalAdminRoles = _graphData.RoleAssignments.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
+            var globalAdminRoles = _graphData.RoleAssignments.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
         var hasGlobalAdminSyncedAccounts = HasSyncedAccounts(globalAdminRoles);
         var hasPrivilegedRolesSyncedAccounts = false; //todo lookup other roles
         var result = hasGlobalAdminSyncedAccounts ? AssessmentValue.NotStartedP0 :
