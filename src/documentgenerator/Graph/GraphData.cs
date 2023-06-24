@@ -32,6 +32,9 @@ public class GraphData
     public List<UnifiedRoleAssignment> RoleAssignments { get; set; } = new List<UnifiedRoleAssignment>();
     public AuthenticationMethodsPolicy? AuthenticationMethodsPolicy { get; set; }
 
+    public List<DirectorySettingTemplate> DirectorySettingTemplate { get; set; } = new List<DirectorySettingTemplate>();
+    public List<DirectorySetting> DirectorySetting { get; set; } = new List<DirectorySetting>();
+
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -61,7 +64,7 @@ public class GraphData
         DeviceConfigurations = await _graphHelper.GetDeviceConfigurations();
 
         var conditionalAccessPolicies = await _graphHelper.GetConditionalAccessPolicies();
-        if(conditionalAccessPolicies != null) ConditionalAccessPolicies = conditionalAccessPolicies;
+        if (conditionalAccessPolicies != null) ConditionalAccessPolicies = conditionalAccessPolicies;
 
         TenantAppManagementPolicy = await _graphHelper.GetTenantAppManagementPolicy();
 
@@ -69,6 +72,12 @@ public class GraphData
         if (assignments != null) RoleAssignments = assignments;
 
         AuthenticationMethodsPolicy = await _graphHelper.GetAuthenticationMethodsPolicy();
+
+        var directorySettingTemplate = await _graphHelper.GetDirectorySettingTemplate();
+        if (directorySettingTemplate != null) DirectorySettingTemplate = directorySettingTemplate;
+
+        var directorySetting = await _graphHelper.GetDirectorySetting();
+        if (directorySetting != null) DirectorySetting = directorySetting;
 
         LoadManagedAppStatuses();
     }
@@ -278,6 +287,52 @@ public class GraphData
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Read default value then replace if there is a tenant specific value
+    /// </summary>
+    /// <returns></returns>
+    public string? GetDirectorySetting(DirectorySettingTemplateEnum template, string settingName)
+    {
+        string? value = null;
+        var templateItem = DirectorySettingTemplate.Where(x => x.Id == GetTemplateId(template)).FirstOrDefault();
+        if (templateItem != null)
+        {
+            value = templateItem.Values?.Where(x => x.Name == settingName).FirstOrDefault()?.DefaultValue;
+
+            var setting = DirectorySetting.Where(x => x.TemplateId == GetTemplateId(template)).FirstOrDefault();
+            if (setting != null)
+            {
+                var customValue = setting.Values?.Where(x => x.Name == settingName).FirstOrDefault()?.Value;
+                if (customValue != null)
+                {
+                    value = customValue;
+                }
+            }
+        }
+        return value;
+    }
+
+    public bool? GetDirectorySettingBool(DirectorySettingTemplateEnum template, string settingName)
+    {
+        var value = GetDirectorySetting(template, settingName);
+        return bool.TryParse(value, out bool result) ? result : null;
+    }
+    public static string GetTemplateId(DirectorySettingTemplateEnum template)
+    {
+        return template switch
+        {
+            DirectorySettingTemplateEnum.Application => "4bc7f740-180e-4586-adb6-38b2e9024e6b",
+            DirectorySettingTemplateEnum.ConsentPolicySettings => "dffd5d46-495d-40a9-8e21-954ff55e198a",
+            DirectorySettingTemplateEnum.CustomPolicySettings => "898f1161-d651-43d1-805c-3b0b388a9fc2",
+            DirectorySettingTemplateEnum.GroupUnified => "62375ab9-6b52-47ed-826b-58e47e0e304b",
+            DirectorySettingTemplateEnum.GroupUnifiedGuest => "08d542b9-071f-4e16-94b0-74abb372e3d9",
+            DirectorySettingTemplateEnum.PasswordRuleSettings => "5cf42378-d67d-4f36-ba46-e8b86229381d",
+            DirectorySettingTemplateEnum.ProhibitedNamesSettings => "80661d51-be2f-4d46-9713-98a2fcaec5bc",
+            DirectorySettingTemplateEnum.ProhibitedNamesRestrictedSettings => "aad3907d-1d1a-448b-b3ef-7bf7f63db63b",
+            _ => string.Empty,
+        };
     }
 }
 

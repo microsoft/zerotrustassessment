@@ -20,8 +20,8 @@ public class SheetAssessmentIdentity : SheetBase
         CloudOnlyCloudPrivilege();
         RegistrationCampaign();
         PhishingResistantAuthMethods();
+        PasswordProtection();
     }
-
     private void WorkloadChecks()
     {
         var hasWorkloadPolicies = _graphData.ConditionalAccessPolicies.Any(
@@ -171,7 +171,30 @@ public class SheetAssessmentIdentity : SheetBase
                 resultWeakAuth = AssessmentValue.Completed;
             }
         }
-        SetValue("I000010_WeakAuthMethods", resultWeakAuth);
+        SetValue("I00010_WeakAuthMethods", resultWeakAuth);
+    }
+
+    private void PasswordProtection()
+    {
+        var enableBannedPasswordCheckOnPremises = _graphData.GetDirectorySettingBool(
+            DirectorySettingTemplateEnum.PasswordRuleSettings, "EnableBannedPasswordCheckOnPremises");
+        var passwordProtectOnPrem = enableBannedPasswordCheckOnPremises == true ?
+            AssessmentValue.Completed : AssessmentValue.NotStartedP1;
+        SetValue("I00011_PasswordProtectOnPrem", passwordProtectOnPrem);
+
+
+        var enableBannedPasswordCheck = _graphData.GetDirectorySettingBool(DirectorySettingTemplateEnum.PasswordRuleSettings, "EnableBannedPasswordCheck");
+        var hasBannedPasswordList = AssessmentValue.NotStartedP1;
+        if (enableBannedPasswordCheck == true)
+        {
+            var bannedPasswordList = _graphData.GetDirectorySetting(DirectorySettingTemplateEnum.PasswordRuleSettings, "BannedPasswordList");
+            if (!string.IsNullOrEmpty(bannedPasswordList))
+            {
+                hasBannedPasswordList = AssessmentValue.Completed;
+            }
+        }
+        SetValue("I00012_BannedPasswordList", hasBannedPasswordList);
+
     }
 
     private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)

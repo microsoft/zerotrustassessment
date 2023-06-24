@@ -250,4 +250,24 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<DirectorySettingTemplate>?> GetDirectorySettingTemplate()
+    {
+        try
+        {
+            var result = await _graph.DirectorySettingTemplates.GetAsync();
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<DirectorySetting>?> GetDirectorySetting()
+    {
+        try
+        {
+            var result = await _graph.Settings.GetAsync();
+            return result?.Value;
+        }
+        catch { return null; }
+    }
 }
