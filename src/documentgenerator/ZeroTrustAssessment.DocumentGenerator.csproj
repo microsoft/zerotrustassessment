@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Graph.Beta" Version="5.22.0-preview" />
+    <PackageReference Include="Microsoft.Graph.Beta" Version="5.36.0-preview" />
     <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="21.2.8" />
   </ItemGroup>
 

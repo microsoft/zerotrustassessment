@@ -35,6 +35,9 @@ public class GraphData
     public List<DirectorySettingTemplate> DirectorySettingTemplate { get; set; } = new List<DirectorySettingTemplate>();
     public List<DirectorySetting> DirectorySetting { get; set; } = new List<DirectorySetting>();
 
+    public List<UnifiedRoleAssignmentSchedule> RoleAssignmentSchedule { get; set; } = new List<UnifiedRoleAssignmentSchedule>();
+    public List<UnifiedRoleEligibilitySchedule> RoleEligibilitySchedule { get; set; } = new List<UnifiedRoleEligibilitySchedule>();
+
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
         ConfigOptions = configOptions;
@@ -76,8 +79,11 @@ public class GraphData
         var directorySettingTemplate = await _graphHelper.GetDirectorySettingTemplate();
         if (directorySettingTemplate != null) DirectorySettingTemplate = directorySettingTemplate;
 
-        var directorySetting = await _graphHelper.GetDirectorySetting();
-        if (directorySetting != null) DirectorySetting = directorySetting;
+        var roleAssignmentSchedule = await _graphHelper.GetRoleAssignmentSchedules();
+        if (roleAssignmentSchedule != null) RoleAssignmentSchedule = roleAssignmentSchedule;
+
+        var roleEligibilitySchedule = await _graphHelper.GetRoleEligibilitySchedules();
+        if (roleEligibilitySchedule != null) RoleEligibilitySchedule = roleEligibilitySchedule;
 
         LoadManagedAppStatuses();
     }
@@ -334,6 +340,8 @@ public class GraphData
             _ => string.Empty,
         };
     }
+
+
 }
 
 

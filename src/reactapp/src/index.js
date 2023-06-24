@@ -13,7 +13,8 @@ Providers.globalProvider = new Msal2Provider({
     scopes: 
         [
             'Agreement.Read.All', 'CrossTenantInformation.ReadBasic.All', 'Directory.Read.All', 'Policy.Read.All', 'User.Read', 'DeviceManagementServiceConfig.Read.All',
-            'DeviceManagementConfiguration.Read.All', 'DeviceManagementRBAC.Read.All', 'DeviceManagementConfiguration.Read.All', 'DeviceManagementApps.Read.All'
+            'DeviceManagementConfiguration.Read.All', 'DeviceManagementRBAC.Read.All', 'DeviceManagementConfiguration.Read.All', 'DeviceManagementApps.Read.All',
+            'RoleAssignmentSchedule.Read.Directory','RoleEligibilitySchedule.Read.Directory'
         ],
     loginType: 'redirect',
 });

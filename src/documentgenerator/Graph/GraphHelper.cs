@@ -270,4 +270,32 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<List<UnifiedRoleAssignmentSchedule>?> GetRoleAssignmentSchedules()
+    {
+        try
+        {
+            var result = await _graph.RoleManagement.Directory.RoleAssignmentSchedules.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Top = 999;
+                requestConfiguration.QueryParameters.Expand = new string[] { "principal" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<UnifiedRoleEligibilitySchedule>?> GetRoleEligibilitySchedules()
+    {
+        try
+        {
+            var result = await _graph.RoleManagement.Directory.RoleEligibilitySchedules.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Top = 999;
+                requestConfiguration.QueryParameters.Expand = new string[] { "principal" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
 }

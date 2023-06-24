@@ -21,7 +21,9 @@ public class SheetAssessmentIdentity : SheetBase
         RegistrationCampaign();
         PhishingResistantAuthMethods();
         PasswordProtection();
+        PimJustInTime();
     }
+
     private void WorkloadChecks()
     {
         var hasWorkloadPolicies = _graphData.ConditionalAccessPolicies.Any(
@@ -107,7 +109,6 @@ public class SheetAssessmentIdentity : SheetBase
 
         SetValue("I00008_RegistrationCampaign", result);
     }
-
 
     private void PhishingResistantAuthMethods()
     {
@@ -195,6 +196,30 @@ public class SheetAssessmentIdentity : SheetBase
         }
         SetValue("I00012_BannedPasswordList", hasBannedPasswordList);
 
+    }
+
+    private void PimJustInTime()
+    {
+        var eligible = _graphData.RoleEligibilitySchedule;
+        var assigned = _graphData.RoleAssignmentSchedule;
+        
+        var pimEnabledCritical = AssessmentValue.NotStartedP1;
+
+        var globalAdminRoleId = "62e90394-69f5-4237-9190-012177145e10";
+
+        //Get all users eligible with JIT
+        var jitUsers = eligible.Where(x => x?.RoleDefinitionId == globalAdminRoleId);
+
+        //Get all the users that are in this role without JIT activation.
+        var nonJitUsers = assigned.Where(x => x?.RoleDefinitionId == globalAdminRoleId
+            && x?.AssignmentType != "Activated");
+
+        if(jitUsers?.Count() > 0 && nonJitUsers?.Count() == 0)
+        {
+            pimEnabledCritical = AssessmentValue.Completed;
+        }
+
+        SetValue("I00013_PIM_JIT_CriticalRoles", pimEnabledCritical);
     }
 
     private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)
