@@ -89,9 +89,19 @@ public class SheetAssessmentIdentity : SheetBase
 
     private void CloudOnlyCloudPrivilege()
     {
-        //TODO check entitlements as well
         var globalAdminRoles = _graphData.RoleAssignments.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
+        var jitUsers = _graphData.RoleEligibilitySchedule.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
+        var nonJitUsers = _graphData.RoleAssignmentSchedule.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
+
         var hasGlobalAdminSyncedAccounts = HasSyncedAccounts(globalAdminRoles);
+        if (!hasGlobalAdminSyncedAccounts)
+        {
+            hasGlobalAdminSyncedAccounts = HasSyncedAccounts(nonJitUsers);
+            if (!hasGlobalAdminSyncedAccounts)
+            {
+                hasGlobalAdminSyncedAccounts = HasSyncedAccounts(jitUsers);
+            }
+        }
         var hasPrivilegedRolesSyncedAccounts = false; //todo lookup other roles
         var result = hasGlobalAdminSyncedAccounts ? AssessmentValue.NotStartedP0 :
                        hasPrivilegedRolesSyncedAccounts ? AssessmentValue.NotStartedP1 : AssessmentValue.Completed;
@@ -202,19 +212,17 @@ public class SheetAssessmentIdentity : SheetBase
     {
         var eligible = _graphData.RoleEligibilitySchedule;
         var assigned = _graphData.RoleAssignmentSchedule;
-        
+
         var pimEnabledCritical = AssessmentValue.NotStartedP1;
 
-        var globalAdminRoleId = "62e90394-69f5-4237-9190-012177145e10";
-
         //Get all users eligible with JIT
-        var jitUsers = eligible.Where(x => x?.RoleDefinitionId == globalAdminRoleId);
+        var jitUsers = eligible.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin);
 
         //Get all the users that are in this role without JIT activation.
-        var nonJitUsers = assigned.Where(x => x?.RoleDefinitionId == globalAdminRoleId
+        var nonJitUsers = assigned.Where(x => x?.RoleDefinitionId == RoleIdGlobalAdmin
             && x?.AssignmentType != "Activated");
 
-        if(jitUsers?.Count() > 0 && nonJitUsers?.Count() == 0)
+        if (jitUsers?.Count() > 0 && nonJitUsers?.Count() == 0)
         {
             pimEnabledCritical = AssessmentValue.Completed;
         }
@@ -224,12 +232,52 @@ public class SheetAssessmentIdentity : SheetBase
 
     private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)
     {
-        //TODO Expand if group found
-        foreach (var roleAssign in roleAssignments)
+        foreach (var role in roleAssignments)
         {
-            if (roleAssign.Principal is User user)
+            if (IsSyncedUser(role.Principal)) return true;
+        }
+        return false;
+    }
+
+    private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignmentSchedule> roleAssignments)
+    {
+        foreach (var role in roleAssignments)
+        {
+            if (IsSyncedUser(role.Principal)) return true;
+        }
+        return false;
+    }
+    private bool HasSyncedAccounts(IEnumerable<UnifiedRoleEligibilitySchedule> roleAssignments)
+    {
+        foreach (var role in roleAssignments)
+        {
+            if (IsSyncedUser(role.Principal)) return true;
+        }
+        return false;
+    }
+    private bool IsSyncedUser(DirectoryObject? principal)
+    {
+        if (principal is User user)
+        {
+            if (user.OnPremisesSyncEnabled == true) return true;
+        }
+        else if (principal is Group group)
+        {
+            var graphGroup = _graphData.GetGroup(group.Id, true);
+            if (graphGroup?.Members != null)
             {
-                if (user.OnPremisesSyncEnabled == true) return true;
+                foreach (var member in graphGroup.Members)
+                {
+                    if (IsSyncedUser(member)) return true;
+                }
+            }
+            var eligibleGroup = _graphData.GetPrivilegedAccessGroupEligibilitySchedule(group.Id);
+            if (eligibleGroup != null)
+            {
+                foreach (var pag in eligibleGroup)
+                {
+                    if (IsSyncedUser(pag.Principal)) return true;
+                }
             }
         }
         return false;

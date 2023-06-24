@@ -82,11 +82,17 @@ public class GraphHelper
         catch { return null; }
     }
 
-    public async Task<Group?> GetGroup(string groupId)
+    public async Task<Group?> GetGroup(string groupId, bool expandMembers = false)
     {
         try
         {
-            var result = await _graph.Groups[groupId].GetAsync();
+            var result = await _graph.Groups[groupId].GetAsync((requestConfiguration) =>
+            {
+                if (expandMembers)
+                {
+                    requestConfiguration.QueryParameters.Expand = new string[] { "members" };
+                }
+            });
             return result;
         }
         catch { return null; }
@@ -291,6 +297,21 @@ public class GraphHelper
         {
             var result = await _graph.RoleManagement.Directory.RoleEligibilitySchedules.GetAsync((requestConfiguration) =>
             {
+                requestConfiguration.QueryParameters.Top = 999;
+                requestConfiguration.QueryParameters.Expand = new string[] { "principal" };
+            });
+            return result?.Value;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<PrivilegedAccessGroupEligibilitySchedule>?> GetPrivilegedAccessGroupEligibilitySchedule(string groupId)
+    {
+        try
+        {
+            var result = await _graph.IdentityGovernance.PrivilegedAccess.Group.EligibilitySchedules.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Filter = $"groupId eq '{groupId}'";
                 requestConfiguration.QueryParameters.Top = 999;
                 requestConfiguration.QueryParameters.Expand = new string[] { "principal" };
             });

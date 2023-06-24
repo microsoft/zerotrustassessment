@@ -109,10 +109,21 @@ public class GraphData
         return graphClient;
     }
 
-    internal string GetGroupName(string? groupId)
+    internal List<PrivilegedAccessGroupEligibilitySchedule>? GetPrivilegedAccessGroupEligibilitySchedule(string? groupId)
     { //TODO add caching
-        if (groupId == null) return string.Empty;
-        var group = _graphHelper.GetGroup(groupId).Result;
+        if (groupId == null) return null;
+        return _graphHelper.GetPrivilegedAccessGroupEligibilitySchedule(groupId).Result;
+    }
+
+    internal Group? GetGroup(string? groupId, bool expandMembers = false)
+    { //TODO add caching
+        if (groupId == null) return null;
+        return _graphHelper.GetGroup(groupId, expandMembers).Result;
+    }
+
+    internal string GetGroupName(string? groupId)
+    {
+        var group = GetGroup(groupId);
         if (group == null)
         {
             return "Deleted group";
