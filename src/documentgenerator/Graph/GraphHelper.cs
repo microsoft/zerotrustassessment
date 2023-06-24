@@ -237,4 +237,17 @@ public class GraphHelper
         }
         catch { return null; }
     }
+
+    public async Task<AuthenticationMethodsPolicy?> GetAuthenticationMethodsPolicy()
+    {
+        try
+        {
+            var result = await _graph.Policies.AuthenticationMethodsPolicy.GetAsync((requestConfiguration) =>
+            {
+                requestConfiguration.QueryParameters.Expand = new string[] { "authenticationMethodConfigurations" };
+            });
+            return result;
+        }
+        catch { return null; }
+    }
 }

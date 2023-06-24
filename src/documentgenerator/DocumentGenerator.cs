@@ -21,7 +21,6 @@ public class DocumentGenerator
 
     public void GenerateDocument(GraphData graphData, string templateFilePath, Stream outputStream, ConfigOptions configOptions)
     {
-        ExcelEngine excelEngine = ExcelHelper.GetExcelEngine();
         FileStream inputStream = new FileStream(templateFilePath, FileMode.Open);
         IWorkbook workbook = ExcelHelper.OpenWorkbook(inputStream);
         GenerateDocument(graphData, workbook, outputStream, configOptions);

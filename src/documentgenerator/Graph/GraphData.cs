@@ -30,6 +30,7 @@ public class GraphData
 
     public TenantAppManagementPolicy? TenantAppManagementPolicy { get; set; }
     public List<UnifiedRoleAssignment> RoleAssignments { get; set; } = new List<UnifiedRoleAssignment>();
+    public AuthenticationMethodsPolicy? AuthenticationMethodsPolicy { get; set; }
 
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
@@ -58,12 +59,16 @@ public class GraphData
         ManagedAppPoliciesIos = await _graphHelper.GetManagedAppPoliciesIos();
         ManagedAppPoliciesWindows = await _graphHelper.GetManagedAppPoliciesWindows();
         DeviceConfigurations = await _graphHelper.GetDeviceConfigurations();
+
         var conditionalAccessPolicies = await _graphHelper.GetConditionalAccessPolicies();
         if(conditionalAccessPolicies != null) ConditionalAccessPolicies = conditionalAccessPolicies;
 
         TenantAppManagementPolicy = await _graphHelper.GetTenantAppManagementPolicy();
+
         var assignments = await _graphHelper.GetRoleAssignments();
         if (assignments != null) RoleAssignments = assignments;
+
+        AuthenticationMethodsPolicy = await _graphHelper.GetAuthenticationMethodsPolicy();
 
         LoadManagedAppStatuses();
     }
