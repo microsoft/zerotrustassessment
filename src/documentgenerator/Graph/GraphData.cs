@@ -79,6 +79,9 @@ public class GraphData
         var directorySettingTemplate = await _graphHelper.GetDirectorySettingTemplate();
         if (directorySettingTemplate != null) DirectorySettingTemplate = directorySettingTemplate;
 
+        var directorySetting = await _graphHelper.GetDirectorySetting();
+        if (directorySetting != null) DirectorySetting = directorySetting;
+
         var roleAssignmentSchedule = await _graphHelper.GetRoleAssignmentSchedules();
         if (roleAssignmentSchedule != null) RoleAssignmentSchedule = roleAssignmentSchedule;
 
