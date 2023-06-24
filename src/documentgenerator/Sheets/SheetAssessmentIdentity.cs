@@ -115,6 +115,9 @@ public class SheetAssessmentIdentity : SheetBase
 
         bool hasFido2 = false;
         bool hasCba = false;
+        bool hasSms = false;
+        bool hasVoice = false;
+
         if (authPolicy?.AuthenticationMethodConfigurations != null)
         {
             foreach (var method in authPolicy.AuthenticationMethodConfigurations)
@@ -133,19 +136,42 @@ public class SheetAssessmentIdentity : SheetBase
                         hasCba = true;
                     }
                 }
+                else if (method is VoiceAuthenticationMethodConfiguration voice)
+                {
+                    if (method.State == AuthenticationMethodState.Enabled)
+                    {
+                        hasVoice = true;
+                    }
+                }
+                else if (method is SmsAuthenticationMethodConfiguration sms)
+                {
+                    if (method.State == AuthenticationMethodState.Enabled)
+                    {
+                        hasSms = true;
+                    }
+                }
             }
         }
-        var result = AssessmentValue.Completed;
+        var resultPhishingResistant = AssessmentValue.Completed;
         if (!hasFido2 && !hasCba)
         {
-            result = AssessmentValue.NotStartedP1;
+            resultPhishingResistant = AssessmentValue.NotStartedP1;
         }
         else if (!hasFido2)
         {
-            result = AssessmentValue.NotStartedP2;
+            resultPhishingResistant = AssessmentValue.NotStartedP2;
         }
+        SetValue("I00009_PhishingResistantAuthMethods", resultPhishingResistant);
 
-        SetValue("I00009_PhishingResistantAuthMethods", result);
+        AssessmentValue resultWeakAuth = AssessmentValue.NotStartedP2;
+        if (authPolicy?.PolicyMigrationState == AuthenticationMethodsPolicyMigrationState.MigrationComplete)
+        {
+            if (!hasSms && !hasVoice)
+            {
+                resultWeakAuth = AssessmentValue.Completed;
+            }
+        }
+        SetValue("I000010_WeakAuthMethods", resultWeakAuth);
     }
 
     private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)
