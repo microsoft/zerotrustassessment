@@ -43,6 +43,11 @@ public class ExcelTable
         SetValue("Not configured");
     }
 
+    public void ShowNoDataMessage(string message)
+    {
+        SetValue(message);
+    }
+
     private void SetValue(string value)
     {
         _sheet.Range[_rangeName].Text = value;

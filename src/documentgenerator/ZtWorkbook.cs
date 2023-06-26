@@ -46,6 +46,6 @@ public class ZtWorkbook
         sheetConfigDevice.Generate();
 
         var sheetConfigIdentity = new SheetConfigIdentity(GetWorksheet(Sheets.ConfigIdentity), _graphData);
-        await sheetConfigIdentity.GenerateAsync(pptxGraphData);
+        sheetConfigIdentity.Generate(pptxGraphData);
     }
 }
