@@ -22,12 +22,14 @@ public class SheetAssessmentIdentity : SheetBase
         PhishingResistantAuthMethods();
         PasswordProtection();
         PimJustInTime();
+        ConditionalAccess();
     }
 
     private void WorkloadChecks()
     {
         var hasWorkloadPolicies = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.Conditions?.ClientApplications != null && x?.Conditions?.ClientApplications?.IncludeServicePrincipals?.Count > 0);
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.Conditions?.ClientApplications != null && x?.Conditions?.ClientApplications?.IncludeServicePrincipals?.Count > 0);
 
         var result = hasWorkloadPolicies ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
         SetValue("I00001_Workload_Exists", result);
@@ -47,7 +49,8 @@ public class SheetAssessmentIdentity : SheetBase
         //TODO Check if auth strength is actually a phishing reistant auth strength
 
         var globalAdminPoliciesWithMfa = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.Conditions?.Users?.IncludeRoles?.Contains(RoleIdGlobalAdmin) == true &&
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+                x?.Conditions?.Users?.IncludeRoles?.Contains(RoleIdGlobalAdmin) == true &&
                 x?.GrantControls?.AuthenticationStrength != null);
 
         var result = globalAdminPoliciesWithMfa ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
@@ -57,12 +60,14 @@ public class SheetAssessmentIdentity : SheetBase
     private void BasicMfaUsageInsteadOfAuthStrength()
     {
         var basicMfaInUse = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.Mfa) == true);
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.Mfa) == true);
 
         var resultNoAuthStrength = basicMfaInUse ? AssessmentValue.NotStartedP2 : AssessmentValue.Completed;
 
         var hasAuthStrength = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.GrantControls?.AuthenticationStrength != null);
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.GrantControls?.AuthenticationStrength != null);
 
         var resultBasicMfa = basicMfaInUse || hasAuthStrength ? AssessmentValue.Completed : AssessmentValue.Completed;
 
@@ -73,10 +78,12 @@ public class SheetAssessmentIdentity : SheetBase
     private void SecureRegistrationOfSecurityInfo()
     {
         var hasSecurityInfo = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.Conditions?.Applications?.IncludeUserActions?.Contains("urn:user:registersecurityinfo") == true);
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.Conditions?.Applications?.IncludeUserActions?.Contains("urn:user:registersecurityinfo") == true);
 
         var hasSecurityInfoAndDevice = _graphData.ConditionalAccessPolicies.Any(
-            x => x?.Conditions?.Applications?.IncludeUserActions?.Contains("urn:user:registersecurityinfo") == true &&
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.Conditions?.Applications?.IncludeUserActions?.Contains("urn:user:registersecurityinfo") == true &&
             (x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.CompliantDevice) == true ||
             x?.GrantControls?.BuiltInControls?.Contains(ConditionalAccessGrantControl.DomainJoinedDevice) == true)
             );
@@ -228,6 +235,31 @@ public class SheetAssessmentIdentity : SheetBase
         }
 
         SetValue("I00013_PIM_JIT_CriticalRoles", pimEnabledCritical);
+    }
+
+    private void ConditionalAccess()
+    {
+        var hasAppProtection = _graphData.ConditionalAccessPolicies.Any(
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.GrantControls?.BuiltInControls?.Any(
+                y => y != null && y.Value == ConditionalAccessGrantControl.CompliantApplication) == true);
+
+        var hasAppProtectionResult = hasAppProtection ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
+
+        SetValue("I00014_CA_AppProtection", hasAppProtectionResult);
+
+
+        var hasCompliantDevice = _graphData.ConditionalAccessPolicies.Any(
+            x => x.State == ConditionalAccessPolicyState.Enabled &&
+            x?.GrantControls?.BuiltInControls?.Any(
+                y => y != null && (
+                    y.Value == ConditionalAccessGrantControl.CompliantDevice ||
+                    y.Value == ConditionalAccessGrantControl.DomainJoinedDevice
+                )) == true);
+
+        var hasCompliantDeviceResult = hasCompliantDevice ? AssessmentValue.Completed : AssessmentValue.NotStartedP1;
+
+        SetValue("I00015_CA_CompliantDevice", hasCompliantDeviceResult);
     }
 
     private bool HasSyncedAccounts(IEnumerable<UnifiedRoleAssignment> roleAssignments)
