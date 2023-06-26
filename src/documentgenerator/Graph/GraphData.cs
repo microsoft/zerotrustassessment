@@ -38,11 +38,15 @@ public class GraphData
     public List<UnifiedRoleAssignmentSchedule> RoleAssignmentSchedule { get; set; } = new List<UnifiedRoleAssignmentSchedule>();
     public List<UnifiedRoleEligibilitySchedule> RoleEligibilitySchedule { get; set; } = new List<UnifiedRoleEligibilitySchedule>();
 
+    public string Token { get; set; }
+
     public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
     {
+        Token = accessToken;
         ConfigOptions = configOptions;
         var graphClient = GetGraphClientUsingAccessToken(accessToken);
         _graphHelper = new GraphHelper(graphClient);
+        
     }
 
     public GraphData(ConfigOptions configOptions, GraphHelper graphHelper) //Desktop/CLI app

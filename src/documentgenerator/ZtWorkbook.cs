@@ -31,7 +31,7 @@ public class ZtWorkbook
         _graphData = graphData;
     }
 
-    public void GenerateDocument()
+    public async Task GenerateDocumentAsync(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
     {
         var sheetHome = new SheetHome(GetWorksheet(Sheets.Home), _graphData);
         sheetHome.Generate();
@@ -42,8 +42,10 @@ public class ZtWorkbook
         var sheetAssessmentIdentity = new SheetAssessmentIdentity(GetWorksheet(Sheets.AssessmentIdentity), _graphData);
         sheetAssessmentIdentity.Generate();
 
-        var sheetAssessmentConfig = new SheetConfigDevice(GetWorksheet(Sheets.ConfigDevice), _graphData);
-        sheetAssessmentConfig.Generate();
+        var sheetConfigDevice = new SheetConfigDevice(GetWorksheet(Sheets.ConfigDevice), _graphData);
+        sheetConfigDevice.Generate();
 
+        var sheetConfigIdentity = new SheetConfigIdentity(GetWorksheet(Sheets.ConfigIdentity), _graphData);
+        await sheetConfigIdentity.GenerateAsync(pptxGraphData);
     }
 }

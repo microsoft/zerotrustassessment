@@ -14,10 +14,13 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="21.2.8" />
     <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="21.2.8" />
+    <PackageReference Include="Syncfusion.PresentationRenderer.Net.Core" Version="21.2.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\documentgenerator\ZeroTrustAssessment.DocumentGenerator.csproj" />
+    <ProjectReference Include="..\documentgenerator\ZeroTrustAssessment.DocumentGenerator.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

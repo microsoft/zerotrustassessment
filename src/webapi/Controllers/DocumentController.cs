@@ -30,8 +30,13 @@ public class DocumentController : ControllerBase
                 throw new Exception("Token not found. Sign in and try again.");
             }
             var graphData = new GraphData(configOptions, token);
-
             await graphData.CollectData();
+
+            var pptxConfigOptions = new IdPowerToys.PowerPointGenerator.ConfigOptions();
+            pptxConfigOptions.GroupSlidesByState = true;
+            var pptxGraphData = new IdPowerToys.PowerPointGenerator.Graph.GraphData(pptxConfigOptions, token);
+            await pptxGraphData.CollectData();
+
 
             Response.Clear();
             //Generate and stream doc
@@ -41,7 +46,7 @@ public class DocumentController : ControllerBase
             var gen = new DocumentGenerator();
             var stream = new MemoryStream();
             _logger.LogInformation("GenerateDocument");
-            gen.GenerateDocument(graphData, stream, configOptions);
+            await gen.GenerateDocumentAsync(graphData, pptxGraphData, stream, configOptions);
 
             stream.Position = 0;
             _logger.LogInformation("ReturnFile");
