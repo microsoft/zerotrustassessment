@@ -7,7 +7,7 @@ namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
 public class SheetConfigDevice : SheetBase
 {
-    public SheetConfigDevice(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
+    public SheetConfigDevice(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
     {
     }
 

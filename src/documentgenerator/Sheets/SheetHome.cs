@@ -1,17 +1,25 @@
 ﻿using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
 public class SheetHome : SheetBase
 {
-    public SheetHome(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
+    public SheetHome(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
     {
     }
 
-    public void Generate()
+    public void Generate(AssessmentScore identityScore, AssessmentScore deviceScore)
     {
         SetDocHeaderInfo();
+        ShowDashboard(identityScore, deviceScore);
+    }
+
+    private void ShowDashboard(AssessmentScore identityScore, AssessmentScore deviceScore)
+    {
+        ShowScore("identityScore", identityScore);
+        ShowScore("deviceScore", deviceScore);
     }
 
     private void SetDocHeaderInfo()
@@ -25,7 +33,6 @@ public class SheetHome : SheetBase
             _sheet.Range["HeaderTenantId"].Text = $"Tenant ID: {org.Id}";
             _sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {org.DisplayName}";
             _sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
-            _sheet.TextBoxes["txtIdentityStatus"].Text = "❌";
 
             SetBannerImage();
         }

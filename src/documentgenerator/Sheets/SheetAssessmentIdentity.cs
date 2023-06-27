@@ -6,11 +6,11 @@ namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 public class SheetAssessmentIdentity : SheetBase
 {
     private const string RoleIdGlobalAdmin = "62e90394-69f5-4237-9190-012177145e10";
-    public SheetAssessmentIdentity(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
+    public SheetAssessmentIdentity(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
     {
     }
 
-    public void Generate()
+    public AssessmentScore Generate()
     {
         WorkloadChecks();
         TenantAppManagementPolicy();
@@ -23,6 +23,9 @@ public class SheetAssessmentIdentity : SheetBase
         PasswordProtection();
         PimJustInTime();
         ConditionalAccess();
+
+        ShowScore();
+        return GetAssessmentScore();
     }
 
     private void WorkloadChecks()

@@ -5,11 +5,11 @@ namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
 public class SheetAssessmentDevice : SheetBase
 {
-    public SheetAssessmentDevice(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
+    public SheetAssessmentDevice(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
     {
     }
 
-    public void Generate()
+    public AssessmentScore Generate()
     {
         MdmWindowsEnrollment();
         DeviceEnrollmentConfiguration();
@@ -17,6 +17,9 @@ public class SheetAssessmentDevice : SheetBase
         AppProtectionConfiguration();
         WindowsHelloForBusiness();
         WindowsUpdate();
+
+        ShowScore();
+        return GetAssessmentScore();
     }
 
     private void MdmWindowsEnrollment()

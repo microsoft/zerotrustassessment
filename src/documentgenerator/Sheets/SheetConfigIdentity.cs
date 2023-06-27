@@ -12,7 +12,7 @@ namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
 
 public class SheetConfigIdentity : SheetBase
 {
-    public SheetConfigIdentity(IWorksheet sheet, GraphData graphData) : base(sheet, graphData)
+    public SheetConfigIdentity(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
     {
     }
 
