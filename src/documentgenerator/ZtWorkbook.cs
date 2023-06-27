@@ -44,7 +44,6 @@ public class ZtWorkbook
         sheetHome.Generate(identityScore, deviceScore);
         var sheet = GetWorksheet(_workbook, ZtSheets.Home);
         sheet.Activate();
-        sheet.Range["A1"].Text = string.Empty;
     }
 
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)

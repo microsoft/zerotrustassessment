@@ -90,7 +90,7 @@ export const DocGenButton = ({ isManual, caPolicyJson, maskOptions, groupSlidesB
                     onClick={handleClick}
                 >
                     Run Zero Trust assessment
-                </Button> {showProgress && <Spinner label="Running assessment please wait..." size="small" />}
+                </Button> {showProgress && <Spinner label="Running assessment. Please wait, this can take a few minutes..." size="small" />}
             </div>
             {showErrorAlert &&
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>

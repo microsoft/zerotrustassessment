@@ -41,7 +41,7 @@ public class DocumentController : ControllerBase
             Response.Clear();
             //Generate and stream doc
             Response.ContentType = "application/octet-stream";
-            Response.Headers.Add("Content-Disposition", "attachment; filename=\"Zero Trust Assessment.xlsx\"");
+            Response.Headers.Add("Content-Disposition", "attachment; filename=\"ztassess.xlsx\"");
 
             var gen = new DocumentGenerator();
             var stream = new MemoryStream();

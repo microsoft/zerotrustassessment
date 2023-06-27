@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { FluentProvider, teamsLightTheme } from "@fluentui/react-components";
+import { FluentProvider, teamsDarkTheme, teamsLightTheme, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { Providers } from '@microsoft/mgt-element';
 import { Msal2Provider } from '@microsoft/mgt-msal2-provider';
 import { msalConfig } from "./authConfig"
@@ -21,7 +21,7 @@ Providers.globalProvider = new Msal2Provider({
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <FluentProvider theme={teamsLightTheme}>
+    <FluentProvider theme={webLightTheme}>
         <App />
     </FluentProvider>
 );
