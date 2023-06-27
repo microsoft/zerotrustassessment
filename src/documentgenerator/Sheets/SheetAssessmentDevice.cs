@@ -371,8 +371,8 @@ public class SheetAssessmentDevice : SheetBase
                         break;
                     }
                 }
-            }
-            SetValue("CH00022_AppProtect_WindowsUpdate", result);
+            }            
         }
+        SetValue("CH00022_AppProtect_WindowsUpdate", result);
     }
 }
