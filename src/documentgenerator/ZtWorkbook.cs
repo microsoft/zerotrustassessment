@@ -1,6 +1,8 @@
 ﻿using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
+using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 using ZeroTrustAssessment.DocumentGenerator.Sheets;
+using ZeroTrustAssessment.DocumentGenerator.ViewModels.Convert;
 
 namespace ZeroTrustAssessment.DocumentGenerator;
 
@@ -18,9 +20,11 @@ public enum ZtSheets
 public class ZtWorkbook
 {
     private readonly IWorkbook _workbook;
-    private readonly GraphData _graphData;
+    private readonly GraphData? _graphData;
 
-    public ZtWorkbook(IWorkbook workbook, GraphData graphData)
+    public ZtWorkbook(IWorkbook workbook): this(workbook, null) {}
+
+    public ZtWorkbook(IWorkbook workbook, GraphData? graphData)
     {
         _workbook = workbook;
         _graphData = graphData;
@@ -46,6 +50,14 @@ public class ZtWorkbook
         sheet.Activate();
     }
 
+    public async Task<Roadmap> ConvertToJsonAsync()
+    {
+        var homeSheet = GetWorksheet(_workbook, ZtSheets.Home);
+        var roadmap = new Roadmap();
+        roadmap.TenantId = homeSheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Value;
+        return roadmap;
+    }
+    
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
     {
         return workbook.Worksheets[(int)sheet];

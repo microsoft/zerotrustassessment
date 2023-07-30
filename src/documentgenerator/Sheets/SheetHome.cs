@@ -1,5 +1,6 @@
 ﻿using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
+using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
@@ -30,7 +31,7 @@ public class SheetHome : SheetBase
             var org = _graphData.Organization.First();
 
             var currentDate = DateTime.Now.ToString("dd MMM yyyy");
-            _sheet.Range["HeaderTenantId"].Text = $"Tenant ID: {org.Id}";
+            _sheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Text = $"Tenant ID: {org.Id}";
             _sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {org.DisplayName}";
             _sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
 
