@@ -30,11 +30,43 @@ public class ConvertController : ControllerBase
             else
             {
                 var converter = new DocumentConverter();
-                var roadmap = await converter.ConvertDocumentAsync(file.OpenReadStream());
+                var roadmap = await converter.GetRoadmapAsync(file.OpenReadStream());
 
-                // var roadmap = new Roadmap();
-                // roadmap.TenantId = "12345678-1234-1234-1234-123456789012";
                 return roadmap;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Conversion error");
+            throw;
+        }
+    }
+
+    [HttpPost("[action]")]
+    public async Task<ActionResult<Roadmap>> ToWorkbook(Roadmap roadmap)
+    {
+        try
+        {
+            _logger.LogInformation("ToWorkbook");
+
+            if (roadmap == null)
+            {
+                _logger.LogError("Roadmap not provided.");
+                return BadRequest("Roadmap not provided.");
+            }
+            else
+            {
+                var converter = new DocumentConverter();
+                var stream = new MemoryStream();
+                await converter.GenerateRoadmapWorkbookAsync(roadmap, stream);
+                _logger.LogInformation("GenerateRoadmapWorkbookAsync Complete");
+
+                stream.Position = 0;
+
+                Response.Clear();
+                Response.ContentType = "application/octet-stream";
+                Response.Headers.Add("Content-Disposition", "attachment; filename=\"ztassess.xlsx\"");
+                return File(stream, "application/octet-stream", "ztassess.xlsx");
             }
         }
         catch (Exception ex)

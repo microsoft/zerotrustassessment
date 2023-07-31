@@ -51,7 +51,11 @@ public class ZtWorkbook
         sheet.Activate();
     }
 
-    public async Task<Roadmap> ConvertToJsonAsync()
+    /// <summary>
+    /// Reads the roadmap info from the spreadsheet and returns a Roadmap object.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<Roadmap> GetRoadmapAsync()
     {
         var homeSheet = GetWorksheet(_workbook, ZtSheets.Home);
         var roadmap = new Roadmap();
@@ -63,7 +67,10 @@ public class ZtWorkbook
             foreach (var name in names)
             {
                 var key = name.Name;
-                if (key.StartsWith("RMI_") || key.StartsWith("RMD_"))
+                var roadmapList = key.StartsWith("RMI_") ? roadmap.Identity :
+                    key.StartsWith("RMD_") ? roadmap.Device : null;
+
+                if (roadmapList != null)
                 {
                     var range = name.RefersToRange;
                     var status = name.RefersToRange.Value;
@@ -87,12 +94,32 @@ public class ZtWorkbook
                             task.Description = comment;
                         }
                         catch { }
-                        roadmap.Identity.Add(task);
+                        roadmapList.Add(task);
                     };
                 }
             }
         }
         return roadmap;
+    }
+
+
+    public async Task ConvertToWorkbookAsync(Roadmap roadmap)
+    {
+        // roadmap.TenantId = homeSheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Value;
+        var roadmapList = roadmap.Identity;
+        roadmapList.AddRange(roadmap.Device);
+
+        foreach (var item in roadmapList)
+        {
+            var key = item.Id;
+            var status = Labels.ConvertStatusStringToLabel(item.Status);
+            try
+            {
+                var range = _workbook.Names[key].RefersToRange;
+                range.Value = status;
+            }
+            catch {}
+        }
     }
 
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)

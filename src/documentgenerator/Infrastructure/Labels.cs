@@ -51,14 +51,30 @@ public static class Labels
         return label switch
         {
             "☉ Not started" => "Not started",
-            "☉ Planned" => "Planned",
-            "☉ In progress" => "In progress",
-            "☉ Completed" => "Completed",
-            "☉ Blocked" => "Blocked",
-            "☉ Third Party" => "Third Party",
-            "☉ Will not pursue" => "Will not pursue",
-            "☉ MS Roadmap" => "MS Roadmap",
+            "✜ Planned" => "Planned",
+            "▷ In progress" => "In progress",
+            "✓ Completed" => "Completed",
+            "⦿ Blocked" => "Blocked",
+            "※ Third Party" => "Third Party",
+            "✕ Will not pursue" => "Will not pursue",
+            "⚐ MS Roadmap" => "MS Roadmap",
             _ => label,
+        };
+    }
+
+        public static string ConvertStatusStringToLabel(string value)
+    {
+        return value switch
+        {
+            "Not started" => "☉ Not started",
+            "Planned" => "✜ Planned",
+            "In progress" => "▷ In progress",
+            "Completed" => "✓ Completed",
+            "Blocked" => "⦿ Blocked",
+            "Third Party" => "※ Third Party",
+            "Will not pursue" => "✕ Will not pursue",
+            "MS Roadmap" => "⚐ MS Roadmap",
+            _ => value,
         };
     }
 }
