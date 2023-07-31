@@ -1,4 +1,5 @@
 ﻿using Syncfusion.XlsIO;
+using Syncfusion.XlsIO.Implementation.Collections;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 using ZeroTrustAssessment.DocumentGenerator.Sheets;
@@ -22,7 +23,7 @@ public class ZtWorkbook
     private readonly IWorkbook _workbook;
     private readonly GraphData? _graphData;
 
-    public ZtWorkbook(IWorkbook workbook): this(workbook, null) {}
+    public ZtWorkbook(IWorkbook workbook) : this(workbook, null) { }
 
     public ZtWorkbook(IWorkbook workbook, GraphData? graphData)
     {
@@ -55,9 +56,26 @@ public class ZtWorkbook
         var homeSheet = GetWorksheet(_workbook, ZtSheets.Home);
         var roadmap = new Roadmap();
         roadmap.TenantId = homeSheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Value;
+
+
+        if (_workbook.Names is WorkbookNamesCollection names)
+        {
+            foreach (var name in names)
+            {
+                var key = name.Name;
+                if (key.StartsWith("RMI_") || key.StartsWith("RMD_"))
+                {
+                    var value = name.RefersToRange.Value;
+                    if (value != null)
+                    {
+                        roadmap.ValuePairs.Add(key, value.ToString());
+                    }
+                }
+            }
+        }
         return roadmap;
     }
-    
+
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
     {
         return workbook.Worksheets[(int)sheet];

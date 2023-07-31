@@ -4,7 +4,7 @@ public class Roadmap
 {
     public Roadmap()
     {
-
+        ValuePairs = new Dictionary<string, string>();
     }
     
     public string TenantId { get; set; }
