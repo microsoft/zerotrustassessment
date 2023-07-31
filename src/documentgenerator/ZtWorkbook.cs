@@ -33,6 +33,8 @@ public class ZtWorkbook
 
     public async Task GenerateDocumentAsync(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
     {
+        SetRoadmapHeaders(_graphData.TenantId, _graphData.TenantName);
+
         var sheetAssessmentDevice = new SheetAssessmentDevice(_workbook, ZtSheets.AssessmentDevice, _graphData);
         var deviceScore = sheetAssessmentDevice.Generate();
 
@@ -51,16 +53,26 @@ public class ZtWorkbook
         sheet.Activate();
     }
 
+    private void SetRoadmapHeaders(string tenantId, string tenantName)
+    {
+        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
+        sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text = tenantName;
+        sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text = tenantId;
+        var sheetDevice = GetWorksheet(_workbook, ZtSheets.WorkshopDevice);
+        sheetDevice.TextBoxes["RoadmapDeviceTenantName"].Text = tenantName;
+        sheetDevice.TextBoxes["RoadmapDeviceTenantId"].Text = tenantId;
+    }
+
     /// <summary>
     /// Reads the roadmap info from the spreadsheet and returns a Roadmap object.
     /// </summary>
     /// <returns></returns>
     public async Task<Roadmap> GetRoadmapAsync()
     {
-        var homeSheet = GetWorksheet(_workbook, ZtSheets.Home);
         var roadmap = new Roadmap();
-        roadmap.TenantId = homeSheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Value;
-
+        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
+        roadmap.TenantName = sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text;
+        roadmap.TenantId = sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text;
 
         if (_workbook.Names is WorkbookNamesCollection names)
         {
@@ -105,10 +117,10 @@ public class ZtWorkbook
 
     public async Task ConvertToWorkbookAsync(Roadmap roadmap)
     {
-        // roadmap.TenantId = homeSheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Value;
         var roadmapList = roadmap.Identity;
         roadmapList.AddRange(roadmap.Device);
 
+        SetRoadmapHeaders(roadmap.TenantId, roadmap.TenantName);
         foreach (var item in roadmapList)
         {
             var key = item.Id;
@@ -118,7 +130,21 @@ public class ZtWorkbook
                 var range = _workbook.Names[key].RefersToRange;
                 range.Value = status;
             }
-            catch {}
+            catch { }
+        }
+
+        RemoveNonRoadmapSheets();
+    }
+
+    private void RemoveNonRoadmapSheets()
+    {
+        for (int i = _workbook.Worksheets.Count - 1; i >= 0; i--)
+        {
+            var sheet = _workbook.Worksheets[i];
+            if (sheet.Name != "Identity ✍️" && sheet.Name != "Device ✍️")
+            {
+                _workbook.Worksheets.Remove(i);
+            }
         }
     }
 

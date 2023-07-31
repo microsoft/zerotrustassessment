@@ -11,7 +11,7 @@ public class SheetAssessmentIdentity : SheetBase
     }
 
     public AssessmentScore Generate()
-    {
+    {        
         WorkloadChecks();
         TenantAppManagementPolicy();
         GlobalAdminPhishingResistantAuthStrength();

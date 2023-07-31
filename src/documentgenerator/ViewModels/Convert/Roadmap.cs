@@ -9,6 +9,7 @@ public class Roadmap
     }
     
     public string TenantId { get; set; }
+    public string TenantName { get; set; }
     public List<RoadmapTask> Identity { get; set; }
     public List<RoadmapTask> Device { get; set; }
 }

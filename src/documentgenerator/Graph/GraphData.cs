@@ -7,6 +7,8 @@ namespace ZeroTrustAssessment.DocumentGenerator.Graph;
 public class GraphData
 {
     private readonly GraphHelper _graphHelper;
+    public string TenantId { get; set; }
+    public string TenantName { get; set; }
     public StringDictionary? ObjectCache { get; set; }
     public User? Me { get; set; }
     public ConfigOptions? ConfigOptions { get; private set; }
@@ -93,6 +95,13 @@ public class GraphData
         if (roleEligibilitySchedule != null) RoleEligibilitySchedule = roleEligibilitySchedule;
 
         LoadManagedAppStatuses();
+
+        var org = Organization?.FirstOrDefault();
+        if (org != null)
+        {
+            TenantId = org.Id;
+            TenantName = org.DisplayName;
+        }
     }
 
     private async Task<Stream?> GetOrganizationLogo()

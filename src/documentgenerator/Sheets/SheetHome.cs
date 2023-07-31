@@ -25,18 +25,12 @@ public class SheetHome : SheetBase
 
     private void SetDocHeaderInfo()
     {
+        var currentDate = DateTime.Now.ToString("dd MMM yyyy");
+        _sheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Text = $"Tenant ID: {_graphData.TenantId}";
+        _sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {_graphData.TenantName}";
+        _sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
 
-        if (_graphData.Organization != null && _graphData.Organization.Count > 0)
-        {
-            var org = _graphData.Organization.First();
-
-            var currentDate = DateTime.Now.ToString("dd MMM yyyy");
-            _sheet.Range[ExcelConstant.HomeHeaderTenantIdLabel].Text = $"Tenant ID: {org.Id}";
-            _sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {org.DisplayName}";
-            _sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
-
-            SetBannerImage();
-        }
+        SetBannerImage();
     }
 
     private void SetBannerImage()
@@ -55,7 +49,8 @@ public class SheetHome : SheetBase
             logoBackgroundRectangle.Width = picture.Width + 40;
             logoBackgroundRectangle.Height = picture.Height + 20;
         }
-        else {
+        else
+        {
             logoBackgroundRectangle.Remove(); //No logo image, remove the background as well
         }
     }
