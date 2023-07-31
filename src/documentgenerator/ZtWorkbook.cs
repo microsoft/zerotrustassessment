@@ -65,11 +65,30 @@ public class ZtWorkbook
                 var key = name.Name;
                 if (key.StartsWith("RMI_") || key.StartsWith("RMD_"))
                 {
-                    var value = name.RefersToRange.Value;
-                    if (value != null)
+                    var range = name.RefersToRange;
+                    var status = name.RefersToRange.Value;
+                    if (status != null)
                     {
-                        roadmap.ValuePairs.Add(key, value.ToString());
-                    }
+                        var task = new RoadmapTask
+                        {
+                            Id = key,
+                            Status = Labels.ConvertStatusLabelToString(status)
+                        };
+
+                        var parentRow = range.Row - 1;
+                        var column = range.Column;
+
+                        try
+                        {
+                            var titleRange = name.RefersToRange.Worksheet.Range[parentRow, column, parentRow, column];
+                            var title = titleRange.Value;
+                            var comment = titleRange.Comment.Text;
+                            task.Title = title;
+                            task.Description = comment;
+                        }
+                        catch { }
+                        roadmap.Identity.Add(task);
+                    };
                 }
             }
         }

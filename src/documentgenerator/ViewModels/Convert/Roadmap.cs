@@ -4,9 +4,11 @@ public class Roadmap
 {
     public Roadmap()
     {
-        ValuePairs = new Dictionary<string, string>();
+        Identity = new List<RoadmapTask>();
+        Device = new List<RoadmapTask>();
     }
     
     public string TenantId { get; set; }
-    public Dictionary<string, string> ValuePairs { get; set; }
+    public List<RoadmapTask> Identity { get; set; }
+    public List<RoadmapTask> Device { get; set; }
 }

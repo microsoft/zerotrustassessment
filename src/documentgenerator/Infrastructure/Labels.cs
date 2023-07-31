@@ -30,7 +30,7 @@ public static class Labels
         }
     }
 
-        public static string GetLabelAllowBlockBlank(bool? isBlocked)
+    public static string GetLabelAllowBlockBlank(bool? isBlocked)
     {
         if (isBlocked == null)
         {
@@ -44,6 +44,22 @@ public static class Labels
         {
             return "Allow";
         }
+    }
+
+    public static string ConvertStatusLabelToString(string label)
+    {
+        return label switch
+        {
+            "☉ Not started" => "Not started",
+            "☉ Planned" => "Planned",
+            "☉ In progress" => "In progress",
+            "☉ Completed" => "Completed",
+            "☉ Blocked" => "Blocked",
+            "☉ Third Party" => "Third Party",
+            "☉ Will not pursue" => "Will not pursue",
+            "☉ MS Roadmap" => "MS Roadmap",
+            _ => label,
+        };
     }
 }
 
