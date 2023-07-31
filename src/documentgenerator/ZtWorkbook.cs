@@ -71,8 +71,8 @@ public class ZtWorkbook
     {
         var roadmap = new Roadmap();
         var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
-        roadmap.TenantName = sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text;
-        roadmap.TenantId = sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text;
+        roadmap.TenantName = sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text.ReplaceLineEndings(string.Empty);
+        roadmap.TenantId = sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text.ReplaceLineEndings(string.Empty);
 
         if (_workbook.Names is WorkbookNamesCollection names)
         {
@@ -100,10 +100,8 @@ public class ZtWorkbook
                         try
                         {
                             var titleRange = name.RefersToRange.Worksheet.Range[parentRow, column, parentRow, column];
-                            var title = titleRange.Value;
-                            var comment = titleRange.Comment.Text;
-                            task.Title = title;
-                            task.Description = comment;
+                            task.Title = titleRange.Value;
+                            if(titleRange.Comment != null) task.Description = titleRange.Comment.Text;
                         }
                         catch { }
                         roadmapList.Add(task);
