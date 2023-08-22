@@ -28,6 +28,22 @@
       }
     },
     {
+      "name": ".NET Core Launch (PowerShell)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "pwsh",
+      "args": [
+        "-NoExit",
+        "-NoProfile",
+        "-Command",
+        "Import-Module ${workspaceFolder}/src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.psd1",
+    ],
+    "cwd": "${workspaceFolder}",
+    "stopAtEntry": false,
+    "console": "integratedTerminal"
+    },
+    {
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach"

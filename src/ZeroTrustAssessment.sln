@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "webapi", "webapi\webapi.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZeroTrustAssessment.DocumentGenerator", "documentgenerator\ZeroTrustAssessment.DocumentGenerator.csproj", "{45E5C277-4731-45CB-8B28-D75677A455E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZeroTrustAssessment", "powershell\ZeroTrustAssessment\ZeroTrustAssessment.csproj", "{0CCA0B86-7AAC-436B-BE5D-3DD16E3D1C05}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{45E5C277-4731-45CB-8B28-D75677A455E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45E5C277-4731-45CB-8B28-D75677A455E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45E5C277-4731-45CB-8B28-D75677A455E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CCA0B86-7AAC-436B-BE5D-3DD16E3D1C05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CCA0B86-7AAC-436B-BE5D-3DD16E3D1C05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CCA0B86-7AAC-436B-BE5D-3DD16E3D1C05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CCA0B86-7AAC-436B-BE5D-3DD16E3D1C05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
