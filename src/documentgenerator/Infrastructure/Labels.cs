@@ -51,6 +51,7 @@ public static class Labels
         return label switch
         {
             "☉ Not started" => "Not started",
+            "✜ In planning" => "In planning",
             "✜ Planned" => "Planned",
             "▷ In progress" => "In progress",
             "✓ Completed" => "Completed",
@@ -67,6 +68,7 @@ public static class Labels
         return value switch
         {
             "Not started" => "☉ Not started",
+            "In planning" => "✜ In planning",
             "Planned" => "✜ Planned",
             "In progress" => "▷ In progress",
             "Completed" => "✓ Completed",
