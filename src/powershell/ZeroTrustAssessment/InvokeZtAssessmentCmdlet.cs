@@ -14,7 +14,7 @@ public class InvokeZtAssessmentCmdletCommand : PSCmdlet
         Position = 0,
         ValueFromPipeline = true,
         ValueFromPipelineByPropertyName = true)]
-    public string Path { get; set; }
+    public string OutputFolder { get; set; }
 
     [Parameter(
         Mandatory = true,
@@ -29,6 +29,7 @@ public class InvokeZtAssessmentCmdletCommand : PSCmdlet
         {
             throw new Exception("Token not found. Please provide a valid token.");
         }
+        Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Consts.SfKey);
     }
 
     // This method will be called for each input received from the pipeline to this cmdlet; if no input is received, this method is not called
@@ -47,12 +48,19 @@ public class InvokeZtAssessmentCmdletCommand : PSCmdlet
 
         var gen = new Gen.DocumentGenerator();
 
-        var saveFilePath = Path;
+        if(!Path.Exists(OutputFolder))
+        {
+            Directory.CreateDirectory(OutputFolder);
+        }
+
+        var timestamp = DateTime.Now.ToString("yyyy-MM-ddTHHmmss");
+        var saveFilePath = Path.Combine(OutputFolder, $@"ZeroTrustAssessment-{timestamp}.xlsx");
         using (var stream = new FileStream(saveFilePath, FileMode.Create))
         {
             gen.GenerateDocumentAsync(graphData, pptxGraphData, stream, configOptions).GetAwaiter().GetResult();
             stream.Position = 0;
         }
+        WriteInformation($"Assessment generated at {saveFilePath}", Consts.WriteInformationTagHost);
     }
 
     // This method will be called once at the end of pipeline execution; if no input is received, this method is not called
