@@ -2,36 +2,37 @@
 using ZeroTrustAssessment.DocumentGenerator.Graph;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
-namespace ZeroTrustAssessment.DocumentGenerator;
-
-public class DocumentGenerator
+namespace ZeroTrustAssessment.DocumentGenerator
 {
-    public async Task GenerateDocumentAsync(GraphData graphData, IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData, Stream outputStream, ConfigOptions configOptions)
+    public class DocumentGenerator
     {
-        IWorkbook workbook = ExcelHelper.OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
+        public async Task GenerateDocumentAsync(GraphData graphData, Stream outputStream, ConfigOptions configOptions)
+        {
+            IWorkbook workbook = ExcelHelper.OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
 
-        await GenerateDocumentAsync(graphData, pptxGraphData, workbook, outputStream, configOptions);
-    }
+            await GenerateDocumentAsync(graphData, workbook, outputStream, configOptions);
+        }
 
-    public async Task GenerateDocumentAsync(GraphData graphData, IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData, Stream templateFile, Stream outputStream, ConfigOptions configOptions)
-    {        
-        IWorkbook pptxDoc = ExcelHelper.OpenWorkbook(templateFile);
-        await GenerateDocumentAsync(graphData, pptxGraphData, pptxDoc, outputStream, configOptions);
-    }
+        public async Task GenerateDocumentAsync(GraphData graphData, Stream templateFile, Stream outputStream, ConfigOptions configOptions)
+        {
+            IWorkbook pptxDoc = ExcelHelper.OpenWorkbook(templateFile);
+            await GenerateDocumentAsync(graphData, pptxDoc, outputStream, configOptions);
+        }
 
-    public async Task GenerateDocumentAsync(GraphData graphData, IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData, string templateFilePath, Stream outputStream, ConfigOptions configOptions)
-    {
-        FileStream inputStream = new FileStream(templateFilePath, FileMode.Open);
-        IWorkbook workbook = ExcelHelper.OpenWorkbook(inputStream);
-        await GenerateDocumentAsync(graphData, pptxGraphData, workbook, outputStream, configOptions);
-    }
+        public async Task GenerateDocumentAsync(GraphData graphData, string templateFilePath, Stream outputStream, ConfigOptions configOptions)
+        {
+            FileStream inputStream = new FileStream(templateFilePath, FileMode.Open);
+            IWorkbook workbook = ExcelHelper.OpenWorkbook(inputStream);
+            await GenerateDocumentAsync(graphData, workbook, outputStream, configOptions);
+        }
 
-    public async Task GenerateDocumentAsync(GraphData graphData, IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData, IWorkbook workbook, Stream outputStream, ConfigOptions configOptions)
-    {
-        var ztWorkbook = new ZtWorkbook(workbook, graphData);
+        public async Task GenerateDocumentAsync(GraphData graphData, IWorkbook workbook, Stream outputStream, ConfigOptions configOptions)
+        {
+            var ztWorkbook = new ZtWorkbook(workbook, graphData);
 
-        await ztWorkbook.GenerateDocumentAsync(pptxGraphData);
-        workbook.SaveAs(outputStream);
-        workbook.Close();
+            await ztWorkbook.GenerateDocumentAsync();
+            workbook.SaveAs(outputStream);
+            workbook.Close();
+        }
     }
 }

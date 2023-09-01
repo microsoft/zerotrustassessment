@@ -1,11 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	  <LangVersion>8.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
-
+	<PropertyGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\PolicyTemplate.pptx" />
     <None Remove="Assets\ZeroTrustTemplate.xlsx" />
@@ -20,7 +25,6 @@
     <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="21.2.8" />
     <PackageReference Include="Syncfusion.PresentationRenderer.Net.Core" Version="21.2.8" />
     <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="21.2.8" />
-    <PackageReference Include="IdPowerToys.PowerPointGenerator" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

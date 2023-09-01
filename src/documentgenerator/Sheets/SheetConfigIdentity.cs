@@ -8,122 +8,127 @@ using Syncfusion.XlsIO;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
-namespace ZeroTrustAssessment.DocumentGenerator.Sheets;
-
-public class SheetConfigIdentity : SheetBase
+namespace ZeroTrustAssessment.DocumentGenerator.Sheets
 {
-    public SheetConfigIdentity(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
-    {
-    }
 
-    public void Generate(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
+    public class SheetConfigIdentity : SheetBase
     {
-        ConditionalAccessImages(pptxGraphData);
-        WorkloadIdentitiesConditionalAccess();
-    }
-
-    private void ConditionalAccessImages(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
-    {
-        var configOptions = new IdPowerToys.PowerPointGenerator.ConfigOptions
+        public SheetConfigIdentity(IWorkbook workbook, ZtSheets sheet, GraphData graphData) : base(workbook, sheet, graphData)
         {
-            GroupSlidesByState = true
-        };
+        }
 
-        var docGen = new IdPowerToys.PowerPointGenerator.DocumentGenerator();
-        var pptx = docGen.GetPresentation(pptxGraphData, configOptions);
-        pptx.PresentationRenderer = new PresentationRenderer();
-
-        var row = 16;
-        var col = 2;
-        foreach (var slide in pptx.Slides.Skip(1))
+        public void Generate()
         {
-            try
+            //ConditionalAccessImages();
+            WorkloadIdentitiesConditionalAccess();
+        }
+
+        //private void ConditionalAccessImages(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
+        //{
+        //    var configOptions = new IdPowerToys.PowerPointGenerator.ConfigOptions
+        //    {
+        //        GroupSlidesByState = true
+        //    };
+
+        //    var docGen = new IdPowerToys.PowerPointGenerator.DocumentGenerator();
+        //    var pptx = docGen.GetPresentation(pptxGraphData, configOptions);
+        //    pptx.PresentationRenderer = new PresentationRenderer();
+
+        //    var row = 16;
+        //    var col = 2;
+        //    foreach (var slide in pptx.Slides.Skip(1))
+        //    {
+        //        try
+        //        {
+        //            var image = slide.ConvertToImage(Syncfusion.Presentation.ExportImageFormat.Jpeg);
+
+        //            var pic = _sheet.Pictures.AddPicture(row, col, image);
+        //            pic.Line.ForeColorIndex = ExcelKnownColors.Dark_blue;
+        //            pic.Width = (int)(pic.Width * 0.8);
+        //            pic.Height = (int)(pic.Height * 0.8);
+
+        //            if (col == 2)
+        //            {
+        //                col = 18;
+        //            }
+        //            else
+        //            {
+        //                col = 2;
+        //                row += 30;
+        //            }
+        //        }
+        //        catch { }
+        //    }
+        //    pptx.Close();
+        //}
+
+        private void WorkloadIdentitiesConditionalAccess()
+        {
+            var table = new ExcelTable(_sheet, "IC_Table_WorkloadCA");
+
+            var workloadPolicies = _graphData.ConditionalAccessPolicies.Where(x =>
+                x?.Conditions?.ClientApplications != null &&
+                x?.Conditions?.ClientApplications?.IncludeServicePrincipals?.Count > 0);
+
+            if (workloadPolicies == null || workloadPolicies.Count() == 0)
             {
-                var image = slide.ConvertToImage(Syncfusion.Presentation.ExportImageFormat.Jpeg);
-
-                var pic = _sheet.Pictures.AddPicture(row, col, image);
-                pic.Line.ForeColorIndex = ExcelKnownColors.Dark_blue;
-                pic.Width = (int)(pic.Width * 0.8);
-                pic.Height = (int)(pic.Height * 0.8);
-
-                if (col == 2)
-                {
-                    col = 18;
-                }
-                else
-                {
-                    col = 2;
-                    row += 30;
-                }
+                table.ShowNoDataMessage("No workload identity conditional access policies found.");
+                return;
             }
-            catch { }
-        }
-        pptx.Close();
-    }
 
-    private void WorkloadIdentitiesConditionalAccess()
-    {
-        var table = new ExcelTable(_sheet, "IC_Table_WorkloadCA");
-
-        var workloadPolicies = _graphData.ConditionalAccessPolicies.Where(x =>
-            x?.Conditions?.ClientApplications != null &&
-            x?.Conditions?.ClientApplications?.IncludeServicePrincipals?.Count > 0);
-
-        if (workloadPolicies == null || workloadPolicies.Count() == 0)
-        {
-            table.ShowNoDataMessage("No workload identity conditional access policies found.");
-            return;
+            var rowCount = workloadPolicies.Count();
+            table.InitializeRows(rowCount);
+            foreach (var policy in workloadPolicies.OrderBy(x => x.DisplayName))
+            {
+                var policyJson = "Double-click cell to view ⬇" + Environment.NewLine + GetJsonFromPolicy(policy);
+                table.AddColumn(policy.DisplayName, 6);
+                table.AddColumn(GetPolicyState(policy.State), 1);
+                table.AddColumn(policyJson, 4);
+                table.NextRow();
+            }
         }
 
-        var rowCount = workloadPolicies.Count();
-        table.InitializeRows(rowCount);
-        foreach (var policy in workloadPolicies.OrderBy(x => x.DisplayName))
+        private static string GetPolicyState(ConditionalAccessPolicyState? state)
         {
-            var policyJson = "Double-click cell to view ⬇" + Environment.NewLine + GetJsonFromPolicy(policy);
-            table.AddColumn(policy.DisplayName, 6);
-            table.AddColumn(GetPolicyState(policy.State), 1);
-            table.AddColumn(policyJson, 4);
-            table.NextRow();
-        }
-    }
+            if (state == null) return string.Empty;
 
-    private static string? GetPolicyState(ConditionalAccessPolicyState? state)
-    {
-        if (state == null) return string.Empty;
-
-        return state switch
-        {
-            ConditionalAccessPolicyState.Disabled => "Disabled",
-            ConditionalAccessPolicyState.Enabled => "Enabled",
-            ConditionalAccessPolicyState.EnabledForReportingButNotEnforced => "Report",
-            _ => nameof(ConditionalAccessPolicyState),
-        };
+            switch (state)
+            {
+                case ConditionalAccessPolicyState.Enabled:
+                    return "Disabled";
+                case ConditionalAccessPolicyState.Disabled:
+                    return "Enabled";
+                case ConditionalAccessPolicyState.EnabledForReportingButNotEnforced:
+                    return "Report";
+                default:
+                    return nameof(ConditionalAccessPolicyState);
+            }
     }
 
     private string GetJsonFromPolicy(ConditionalAccessPolicy policy)
-    {
-        try
         {
-            var seralizer = new JsonSerializationWriter();
-            seralizer.WriteObjectValue(string.Empty, policy);
-            var serializedContent = seralizer.GetSerializedContent();
-
-            using (var sr = new StreamReader(serializedContent))
+            try
             {
-                var json = sr.ReadToEnd();
-                var jsonPretty = JsonPrettify(json);
-                return jsonPretty;
+                var seralizer = new JsonSerializationWriter();
+                seralizer.WriteObjectValue(string.Empty, policy);
+                var serializedContent = seralizer.GetSerializedContent();
+
+                using (var sr = new StreamReader(serializedContent))
+                {
+                    var json = sr.ReadToEnd();
+                    var jsonPretty = JsonPrettify(json);
+                    return jsonPretty;
+                }
+            }
+            catch
+            {
+                return String.Empty;
             }
         }
-        catch
+        private static string JsonPrettify(string json)
         {
-            return String.Empty;
+            var jDoc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(jDoc, new JsonSerializerOptions { WriteIndented = true });
         }
-    }
-    private static string JsonPrettify(string json)
-    {
-        using var jDoc = JsonDocument.Parse(json);
-        return JsonSerializer.Serialize(jDoc, new JsonSerializerOptions { WriteIndented = true });
-    }
 }
-
+}
