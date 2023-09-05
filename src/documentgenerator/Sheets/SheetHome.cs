@@ -30,24 +30,26 @@ public class SheetHome : SheetBase
         _sheet.Range["HeaderTitle"].Text = $"Zero Trust Assessment for {_graphData.TenantName}";
         _sheet.Range["HeaderAssessedOn"].Text = $"Assessment generated on {currentDate} by {_graphData?.Me?.DisplayName} ({_graphData?.Me?.UserPrincipalName})";
 
-        SetBannerImage();
-    }
+        SetBannerImage("bannerLogoBg", true);
+    } 
 
-    private void SetBannerImage()
+    private void SetBannerImage(string shapeName, bool hasBackground = false)
     {
         var logoBackgroundRectangle = _sheet.Shapes["bannerLogoBg"]; //Get the logo background
 
         if (_graphData.OrganizationLogo != null)
         {
             var picture = _sheet.Pictures.AddPicture(1, 1, _graphData.OrganizationLogo);
-            picture.Top = 70;
-            picture.Left = 1000;
+            picture.Top = 10;
+            picture.Left = 25;
+            picture.Width = picture.Width * 30 / 100;
+            picture.Height = picture.Height * 30 / 100;
             picture.AlternativeText = "Organization banner logo";
             //Position the background behind the logo
-            logoBackgroundRectangle.Top = picture.Top - 10;
-            logoBackgroundRectangle.Left = picture.Left - 20;
-            logoBackgroundRectangle.Width = picture.Width + 40;
-            logoBackgroundRectangle.Height = picture.Height + 20;
+            logoBackgroundRectangle.Top = picture.Top - 5;
+            logoBackgroundRectangle.Left = picture.Left - 5;
+            logoBackgroundRectangle.Width = picture.Width + 10;
+            logoBackgroundRectangle.Height = picture.Height + 10;
         }
         else
         {

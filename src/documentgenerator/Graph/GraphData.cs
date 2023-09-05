@@ -48,7 +48,7 @@ public class GraphData
         ConfigOptions = configOptions;
         var graphClient = GetGraphClientUsingAccessToken(accessToken);
         _graphHelper = new GraphHelper(graphClient);
-        
+
     }
 
     public GraphData(ConfigOptions configOptions, GraphHelper graphHelper) //Desktop/CLI app
@@ -368,7 +368,24 @@ public class GraphData
         };
     }
 
+    public string PrimaryDomain
+    {
+        get
+        {
+            var primaryDomain = string.Empty;
 
+            var org = Organization?.FirstOrDefault();
+            if (org != null)
+            {
+                var primary = (from p in org.VerifiedDomains where p.IsDefault == true select p).FirstOrDefault();
+                if (primary != null && !string.IsNullOrEmpty(primary.Name))
+                {
+                    primaryDomain = primary.Name;
+                }
+            }
+            return primaryDomain;
+        }
+    }
 }
 
 

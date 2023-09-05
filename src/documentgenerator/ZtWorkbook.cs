@@ -33,7 +33,7 @@ public class ZtWorkbook
 
     public async Task GenerateDocumentAsync(IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData)
     {
-        SetRoadmapHeaders(_graphData.TenantId, _graphData.TenantName);
+        SetHeaders();
 
         var sheetAssessmentDevice = new SheetAssessmentDevice(_workbook, ZtSheets.AssessmentDevice, _graphData);
         var deviceScore = sheetAssessmentDevice.Generate();
@@ -53,14 +53,62 @@ public class ZtWorkbook
         sheet.Activate();
     }
 
-    private void SetRoadmapHeaders(string tenantId, string tenantName)
+    private void SetHeaders()
     {
-        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
-        sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text = tenantName;
-        sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text = tenantId;
-        var sheetDevice = GetWorksheet(_workbook, ZtSheets.WorkshopDevice);
-        sheetDevice.TextBoxes["RoadmapDeviceTenantName"].Text = tenantName;
-        sheetDevice.TextBoxes["RoadmapDeviceTenantId"].Text = tenantId;
+        foreach (var sheet in _workbook.Worksheets)
+        {
+            SetBanner(sheet);
+        }
+    }
+
+    private void SetBanner(IWorksheet sheet)
+    {
+        var currentDate = DateTime.Now.ToString("dd MMM yyyy");
+        var headerInfo = $"{_graphData.TenantName} | {_graphData.PrimaryDomain} | {_graphData.TenantId} | {currentDate}";
+        
+        sheet.TextBoxes[ExcelConstant.BannerTenantNameHomeLabel].Text = headerInfo;
+
+        var logoBackgroundRectangle = sheet.Shapes["bannerLogoBg"]; //Get the logo background
+
+        if (_graphData.OrganizationLogo != null)
+        {
+            var picture = sheet.Pictures.AddPicture(1, 1, _graphData.OrganizationLogo);
+            picture.Top = 10;
+            picture.Left = 25;
+            picture.Width = picture.Width * 30 / 100;
+            picture.Height = picture.Height * 30 / 100;
+            picture.AlternativeText = "Organization banner logo";
+            //Position the background behind the logo
+            logoBackgroundRectangle.Top = picture.Top - 5;
+            logoBackgroundRectangle.Left = picture.Left - 5;
+            logoBackgroundRectangle.Width = picture.Width + 10;
+            logoBackgroundRectangle.Height = picture.Height + 10;
+        }
+        else
+        {
+            logoBackgroundRectangle.Remove(); //No logo image, remove the background as well
+        }
+    }
+
+    private void ClearHeaders()
+    {
+        foreach (var sheet in _workbook.Worksheets)
+        {
+            ClearBanner(sheet);
+        }
+    }
+
+    /// <summary>
+    /// Used when generating worksheet from ADO.
+    /// </summary>
+    /// <param name="sheet"></param>
+    private void ClearBanner(IWorksheet sheet)
+    {
+        sheet.TextBoxes[ExcelConstant.BannerTenantNameHomeLabel].Text = string.Empty;
+
+        var logoBackgroundRectangle = sheet.Shapes["bannerLogoBg"]; //Get the logo background
+
+        logoBackgroundRectangle.Remove(); //No logo image, remove the background as well
     }
 
     /// <summary>
@@ -101,7 +149,7 @@ public class ZtWorkbook
                         {
                             var titleRange = name.RefersToRange.Worksheet.Range[parentRow, column, parentRow, column];
                             task.Title = titleRange.Value;
-                            if(titleRange.Comment != null) task.Description = titleRange.Comment.Text;
+                            if (titleRange.Comment != null) task.Description = titleRange.Comment.Text;
                         }
                         catch { }
                         roadmapList.Add(task);
@@ -118,7 +166,7 @@ public class ZtWorkbook
         var roadmapList = roadmap.Identity;
         roadmapList.AddRange(roadmap.Device);
 
-        SetRoadmapHeaders(roadmap.TenantId, roadmap.TenantName);
+        ClearBanner();
         foreach (var item in roadmapList)
         {
             var key = item.Id;
@@ -132,6 +180,11 @@ public class ZtWorkbook
         }
 
         RemoveNonRoadmapSheets();
+    }
+
+    private void ClearBanner()
+    {
+        
     }
 
     private void RemoveNonRoadmapSheets()
