@@ -12,6 +12,7 @@ public enum ZtSheets
     Home,
     WorkshopIdentity,
     WorkshopDevice,
+    WorkshopDevSecOps,
     ConfigIdentity,
     ConfigDevice,
     AssessmentIdentity,
