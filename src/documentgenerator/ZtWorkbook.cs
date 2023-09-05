@@ -129,7 +129,8 @@ public class ZtWorkbook
             {
                 var key = name.Name;
                 var roadmapList = key.StartsWith("RMI_") ? roadmap.Identity :
-                    key.StartsWith("RMD_") ? roadmap.Device : null;
+                    key.StartsWith("RMD_") ? roadmap.Device :
+                    key.StartsWith("RMDS_") ? roadmap.DevSecOps : null;
 
                 if (roadmapList != null)
                 {
@@ -166,8 +167,10 @@ public class ZtWorkbook
     {
         var roadmapList = roadmap.Identity;
         roadmapList.AddRange(roadmap.Device);
+        roadmapList.AddRange(roadmap.DevSecOps);
 
-        ClearBanner();
+        ClearHeaders();
+
         foreach (var item in roadmapList)
         {
             var key = item.Id;
@@ -183,17 +186,12 @@ public class ZtWorkbook
         RemoveNonRoadmapSheets();
     }
 
-    private void ClearBanner()
-    {
-        
-    }
-
     private void RemoveNonRoadmapSheets()
     {
         for (int i = _workbook.Worksheets.Count - 1; i >= 0; i--)
         {
             var sheet = _workbook.Worksheets[i];
-            if (sheet.Name != "Identity ✍️" && sheet.Name != "Device ✍️")
+            if (sheet.Name != "Identity ✍️" && sheet.Name != "Device ✍️" && sheet.Name != "Dev SecOps ✍️")
             {
                 _workbook.Worksheets.Remove(i);
             }
