@@ -56,6 +56,10 @@ public class ZtWorkbook
 
     private void SetHeaders()
     {
+        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
+        sheetIdentity.TextBoxes["RoadmapIdTenantId"].Text = _graphData.TenantId;
+        sheetIdentity.TextBoxes["RoadmapIdTenantName"].Text = _graphData.TenantName;
+
         foreach (var sheet in _workbook.Worksheets)
         {
             SetBanner(sheet);
@@ -120,8 +124,8 @@ public class ZtWorkbook
     {
         var roadmap = new Roadmap();
         var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
-        roadmap.TenantName = sheetIdentity.TextBoxes["RoadmapIdentityTenantName"].Text.ReplaceLineEndings(string.Empty);
-        roadmap.TenantId = sheetIdentity.TextBoxes["RoadmapIdentityTenantId"].Text.ReplaceLineEndings(string.Empty);
+        roadmap.TenantId = sheetIdentity.TextBoxes["RoadmapIdTenantId"].Text.ReplaceLineEndings(string.Empty);
+        roadmap.TenantName = sheetIdentity.TextBoxes["RoadmapIdTenantName"].Text.ReplaceLineEndings(string.Empty);
 
         if (_workbook.Names is WorkbookNamesCollection names)
         {
@@ -168,6 +172,7 @@ public class ZtWorkbook
         var roadmapList = roadmap.Identity;
         roadmapList.AddRange(roadmap.Device);
         roadmapList.AddRange(roadmap.DevSecOps);
+
 
         ClearHeaders();
 
