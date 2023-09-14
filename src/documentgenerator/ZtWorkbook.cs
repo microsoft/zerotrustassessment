@@ -70,7 +70,7 @@ public class ZtWorkbook
     {
         var currentDate = DateTime.Now.ToString("dd MMM yyyy");
         var headerInfo = $"{_graphData.TenantName} | {_graphData.PrimaryDomain} | {_graphData.TenantId} | {currentDate}";
-        
+
         sheet.TextBoxes[ExcelConstant.BannerTenantNameHomeLabel].Text = headerInfo;
 
         var logoBackgroundRectangle = sheet.Shapes["bannerLogoBg"]; //Get the logo background
@@ -142,23 +142,24 @@ public class ZtWorkbook
                     var status = name.RefersToRange.Value;
                     if (status != null)
                     {
-                        var task = new RoadmapTask
+                        if (key.EndsWith("_WorkshopDate"))
                         {
-                            Id = key,
-                            Status = Labels.ConvertStatusLabelToString(status)
-                        };
-
-                        var parentRow = range.Row - 1;
-                        var column = range.Column;
-
-                        try
-                        {
-                            var titleRange = name.RefersToRange.Worksheet.Range[parentRow, column, parentRow, column];
-                            task.Title = titleRange.Value;
-                            if (titleRange.Comment != null) task.Description = titleRange.Comment.Text;
+                            if(DateTime.TryParse(status.ToString(), out DateTime date))
+                            {
+                                var workshopDate = date.ToString("MM/dd/yyyy");
+                                var task = new RoadmapTask
+                                {
+                                    Id = key,
+                                    Status = workshopDate
+                                };
+                                roadmapList.Add(task);
+                            }
                         }
-                        catch { }
-                        roadmapList.Add(task);
+                        else
+                        {
+                            RoadmapTask task = GetRoadmapTask(name, key, range, status);
+                            roadmapList.Add(task);
+                        }
                     };
                 }
             }
@@ -166,6 +167,27 @@ public class ZtWorkbook
         return roadmap;
     }
 
+    private static RoadmapTask GetRoadmapTask(IName? name, string key, IRange range, string status)
+    {
+        var task = new RoadmapTask
+        {
+            Id = key,
+            Status = Labels.ConvertStatusLabelToString(status)
+        };
+
+        var parentRow = range.Row - 1;
+        var column = range.Column;
+
+        try
+        {
+            var titleRange = name.RefersToRange.Worksheet.Range[parentRow, column, parentRow, column];
+            task.Title = titleRange.Value;
+            if (titleRange.Comment != null) task.Description = titleRange.Comment.Text;
+        }
+        catch { }
+
+        return task;
+    }
 
     public async Task ConvertToWorkbookAsync(Roadmap roadmap)
     {
