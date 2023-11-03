@@ -37,6 +37,8 @@ public class SheetHome : SheetBase
     {
         var logoBackgroundRectangle = _sheet.Shapes["bannerLogoBg"]; //Get the logo background
 
+        if(logoBackgroundRectangle == null) return;
+        
         if (_graphData.OrganizationLogo != null)
         {
             var picture = _sheet.Pictures.AddPicture(1, 1, _graphData.OrganizationLogo);

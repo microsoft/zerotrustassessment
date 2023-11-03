@@ -15,6 +15,7 @@
     <PackageReference Include="Syncfusion.Presentation.Net.Core" Version="21.2.8" />
     <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="21.2.8" />
     <PackageReference Include="Syncfusion.PresentationRenderer.Net.Core" Version="21.2.8" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
   </ItemGroup>
 
   <ItemGroup>
