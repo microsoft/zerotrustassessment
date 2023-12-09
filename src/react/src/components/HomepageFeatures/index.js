@@ -11,7 +11,7 @@ const FeatureList = [
         Run this assessment to check tenant config and 
         download the roadmap templates that will be used during the workshops.
         <br/>
-        <code><a href="">App Permissions</a></code>
+        <code><a href="docs/app-permissions">App Permissions</a></code>
       </>
     ),
   },

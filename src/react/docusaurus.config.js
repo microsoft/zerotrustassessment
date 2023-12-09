@@ -34,7 +34,7 @@ const config = {
     locales: ['en'],
   },
 
-  plugins: ['./src/plugins/proxy'],
+  plugins: ['./src/plugins/webpack'],
 
   presets: [
     [
@@ -128,7 +128,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Built for you by the Microsoft Security Customer Acceleration Team (CAT) 🐱`,
+        copyright: `Built for you by the Microsoft Security → Customer Acceleration Team (CAT) 🐱`,
       },
       prism: {
         theme: prismThemes.github,
