@@ -18,3 +18,10 @@ The site that you are on is the Zero Trust Assessment app. It will provide you w
 
 The app requires **read-only** permissions to read your tenant configuration. See the [App Consent](/docs/appconsent) page for more details.
 
+## Is this an official Microsoft product?
+
+No. It is a community project that is maintained by Microsoft employees. The app is provided as-is and is not supported through any Microsoft support program or service. Please do not contact Microsoft support with any issues or concerns.
+
+## How do I get support?
+
+Please raise an issue on the [Zero Trust Assessment GitHub repo](https://github.com/microsoft/zerotrustassessment/issues).

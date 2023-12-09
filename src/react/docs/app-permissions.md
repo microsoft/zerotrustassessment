@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Assessment App Consent
+# App Permissions
 
 ## How does this app work?
 

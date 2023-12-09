@@ -34,6 +34,8 @@ const config = {
     locales: ['en'],
   },
 
+  plugins: ['./src/plugins/proxy'],
+
   presets: [
     [
       'classic',
@@ -59,7 +61,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Assessment',
+        title: 'ZT Assessment',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
@@ -86,12 +88,12 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Asssessment Checks',
+                label: 'ZT Asssessment Checks',
                 to: '/docs/intro',
               },
               {
-                label: 'Application Permissions',
-                to: '/docs/appconsent',
+                label: 'ZT App Permissions',
+                to: '/docs/app-permissions',
               },
             ],
           },
