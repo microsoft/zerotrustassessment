@@ -8,20 +8,20 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Zero Trust Assessment',
+  tagline: 'Check your Microsoft tenant configuration for zero trust readiness.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://microsoft.github.io/',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/zerotrustassessment/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'microsoft', // Usually your GitHub org/user name.
+  projectName: 'zerotrustassessment', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -44,14 +44,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/microsoft/zerotrustassessment/tree/main/src/react/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -66,23 +59,23 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'My Site',
+        title: 'Assessment',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'Site Logo',
           src: 'img/logo.svg',
         },
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'docsSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Docs',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
-            position: 'right',
+            type: 'docSidebar',
+            sidebarId: 'docsSidebar',
+            position: 'left',
+            label: 'About',
           },
         ],
       },
@@ -93,25 +86,29 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Tutorial',
+                label: 'Asssessment Checks',
                 to: '/docs/intro',
+              },
+              {
+                label: 'Application Permissions',
+                to: '/docs/appconsent',
               },
             ],
           },
           {
-            title: 'Community',
+            title: 'Microsoft',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                label: 'Microsoft Zero Trust',
+                href: 'https://aka.ms/zerotrust',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
+                label: 'Zero Trust CISO Workshop',
+                href: 'https://learn.microsoft.com/security/ciso-workshop/ciso-workshop',
               },
               {
-                label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
+                label: 'Cybersecurity Reference Architectures',
+                href: 'https://aka.ms/mcra',
               },
             ],
           },
@@ -119,17 +116,17 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
+                label: 'GitHub',
+                href: 'https://github.com/microsoft/zerotrustassessment',
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: 'Twitter',
+                href: 'https://x.com/merill',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Built for you by the Microsoft Security Customer Acceleration Team (CAT) 🐱`,
       },
       prism: {
         theme: prismThemes.github,
