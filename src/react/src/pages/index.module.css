@@ -4,6 +4,8 @@
  */
 
 .heroBanner {
+  color: #fff;
+  background-color: rgb(79, 79, 198);
   padding: 4rem 0;
   text-align: center;
   position: relative;
