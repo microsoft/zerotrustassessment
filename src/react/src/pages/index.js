@@ -11,6 +11,25 @@ import styles from "./index.module.css";
 import { msalConfig, loginRequest, apiConfig } from "../authConfig";
 
 import {
+  FluentProvider,
+  teamsLightTheme,
+  teamsDarkTheme,
+} from "@fluentui/react-components";
+
+import {
+  Dialog,
+  DialogTrigger,
+  DialogSurface,
+  DialogTitle,
+  DialogBody,
+  DialogActions,
+  DialogContent,
+  Button,
+} from "@fluentui/react-components";
+
+import { Spinner } from "@fluentui/react-components";
+
+import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
   useMsal,
@@ -83,6 +102,9 @@ function HomepageHeader() {
       });
   };
 
+  const doDialogCancel = (state) => {
+    console.log(state);
+  }
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
@@ -90,15 +112,22 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
-
         <AuthenticatedTemplate>
           <div className={styles.buttons}>
-            <Link
-              className="button button--secondary button--lg"
-              onClick={runAssessment}
-            >
-              Start Zero Trust Assessment 🚀
-            </Link>
+            {!showProgress && (
+              <Link
+                className="button button--secondary button--lg"
+                onClick={runAssessment}
+              >
+                Start Zero Trust Assessment 🚀
+              </Link>
+            )}
+            {showProgress && (
+              <Link className="button button--secondary button--lg disabled">
+                Start Zero Trust Assessment 🚀
+              </Link>
+            )}
+
             <Link
               className="button button--secondary button--sm"
               onClick={() => {
@@ -113,12 +142,18 @@ function HomepageHeader() {
               Sorry something went wrong. Please try again.
             </div>
           )}
-          {showProgress && (
-          <div class="alert alert--info" role="alert">
-            <strong>Running assessment.</strong> Please wait, this can take a few minutes...
-          </div>
-          )}
 
+          {showProgress && (
+            <Dialog defaultOpen={true} modalType="alert" >
+              <DialogSurface>
+                <DialogBody>
+                  <DialogContent>
+                    <Spinner label="Running assessment. Please wait, this can take a few minutes..." />
+                  </DialogContent>
+                </DialogBody>
+              </DialogSurface>
+            </Dialog>
+          )}
         </AuthenticatedTemplate>
         <UnauthenticatedTemplate>
           <div className={styles.buttons}>
@@ -133,15 +168,6 @@ function HomepageHeader() {
           </div>
         </UnauthenticatedTemplate>
       </div>
-
-      <div
-        class="modal fade"
-        id="exampleModal"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      ></div>
     </header>
   );
 }
@@ -154,7 +180,9 @@ export default function Home() {
       description="Check your Microsoft tenant configuration for zero trust readiness"
     >
       <MsalProvider instance={pca}>
-        <HomepageHeader />
+        <FluentProvider theme={teamsDarkTheme}>
+          <HomepageHeader />
+        </FluentProvider>
       </MsalProvider>
       <main>
         <HomepageFeatures />
