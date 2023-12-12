@@ -1,0 +1,8 @@
+{
+  "label": "Devices",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Devices assessment checks."
+  }
+}

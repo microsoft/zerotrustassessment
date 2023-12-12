@@ -49,7 +49,7 @@
       "request": "attach"
     },
     {
-      "type": "edge",
+      "type": "chrome",
       "request": "launch",
       "name": "localhost (Edge)",
       "url": "https://localhost:3000",
