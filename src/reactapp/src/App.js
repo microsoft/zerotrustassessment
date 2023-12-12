@@ -12,7 +12,7 @@ function App() {
     // for dynamic title, put the dynamic values inside the array
     // see: https://reactjs.org/docs/hooks-effect.html#tip-optimizing-performance-by-skipping-effects
     useEffect(() => {
-        document.title = 'Zero Trust Assessment ' + envConfig.envName;
+        document.title = 'Zero Trust Assessment M' + envConfig.envName;
     }, []);
 
     return (
