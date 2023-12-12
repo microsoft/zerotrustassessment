@@ -36,7 +36,7 @@ jobs:
           $apiEndPoint = 'https://ztassess.azurewebsites.net'
           $clientId = 'df2798fc-2aed-4c3a-98ae-1776949480c4'
           $envName = ''
-          $configFilePath = './src/reactapp/src/authConfig.js'
+          $configFilePath = './src/react/src/authConfig.js'
           $config = Get-Content $configFilePath
           $config = $config -replace "^.*apiEndPoint.*$", "    apiEndPoint: '$apiEndPoint'"
           $config = $config -replace "^.*clientId.*$", "    clientId: '$clientId'"
@@ -44,12 +44,6 @@ jobs:
           Set-Content -Value $config -Path $configFilePath
           Write-Output "Updating $configFilePath to -->"
           Write-Output $config
-          $appjsPath = './src/reactapp/src/App.js'
-          $appjs = Get-Content $appjsPath
-          $appjs = $appjs -replace '<BrowserRouter>', '<BrowserRouter basename="/zerotrustassessment" >'
-          Set-Content -Value $appjs -Path $appjsPath
-          Write-Output "Updating $appjsPath to -->"
-          Write-Output $appjs
 
       - name: Setup Node 16.x
         uses: actions/setup-node@v3
@@ -58,7 +52,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        working-directory: ./src/reactapp/src
+        working-directory: ./src/react/src
         run: |
           npm install
           npm run build
@@ -67,7 +61,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./src/reactapp/build
+          publish_dir: ./src/react/build
       # - name: Setup Pages
       #   uses: actions/configure-pages@v3
       # - name: Upload artifact
