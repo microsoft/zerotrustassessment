@@ -16,7 +16,7 @@ The site that you are on is the Zero Trust Assessment app. It will provide you w
 
 ## What permissions do I need for this app?
 
-The app requires **read-only** permissions to read your tenant configuration. See the [App Consent](/docs/appconsent) page for more details.
+The app requires **read-only** permissions to read your tenant configuration. See the [App Permissions](/docs/app-permissions) page for more details.
 
 ## Is this an official Microsoft product?
 
