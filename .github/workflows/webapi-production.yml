@@ -5,6 +5,8 @@ name: Web API - Production
 
 on:
   push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
