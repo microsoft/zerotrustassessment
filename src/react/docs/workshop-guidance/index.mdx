@@ -1,0 +1,46 @@
+import DocCardList from '@theme/DocCardList';
+
+# Workshop Guidance
+
+## Overview
+
+This section provides guidance on how to run each workshop.
+
+The Zero Trust Strategy Planning Workshop is a joint effort with customers and the Microsoft team to build a Zero Trust Strategy and Deployment Plan for the next 12-24 months. Strategy and plan template, Recommended Deployment Path, is intended to be customized for specific customers during the workshop.
+
+## Project States
+
+|State|What does it mean?|
+|--|--|
+|<Highlight backgroundColor="#000000" color="#fff">☉ Not started</Highlight>| Customer has not started or considered the project yet.|
+|<Highlight backgroundColor="#bdd7ee" color="#000000">✜ In planning</Highlight>| Customer is considering implementing this capability.|
+|<Highlight backgroundColor="#76d6ff" color="#000000">✜ Planned</Highlight>| Customer has not started the project yet, but has discussed, considered, planned and/or prioritized it and has intent to execute in the near future.|
+|<Highlight backgroundColor="#d5fc79" color="#000000">▷ In progress</Highlight>| Customer is currently executing the project.|
+|<Highlight backgroundColor="#76fb79" color="#000000">✓ Completed</Highlight>| Customer has completed the project.|
+|<Highlight backgroundColor="#f6f3dc" color="#e80208">⦿ Blocked</Highlight>| Customer is blocked on completing the project (due to either technical or non-technical reasons).|
+|<Highlight backgroundColor="#4696ff" color="#fff">✢ First Party other</Highlight>| Customer is using another Microsoft service for this capability.|
+|<Highlight backgroundColor="#dad2e9" color="#000000">※ Third Party</Highlight>| Customer has a competitor product or alternative solution that achieves the goal of the project.|
+|<Highlight backgroundColor="#b5a7d7" color="#000000">✕ Will not pursue</Highlight>| Customer has explicitly stated they won't fund the project or that the project does not apply in their environment.|
+|<Highlight backgroundColor="#4696ff" color="#fff">⚐ MS Roadmap</Highlight>| Microsoft does not currently have the feature needed to complete the project, but it is in the roadmap. Usual disclaimers apply.|
+|<Highlight backgroundColor="#4ba0ff" color="#000000">⚐ Follow up</Highlight>| Customer needs time to review and follow up on this.|
+
+
+<DocCardList />
+
+export const Highlight = ({children, backgroundColor, color}) => (
+  <span
+    style={{
+      backgroundColor: backgroundColor,
+      borderRadius: '2px',
+      border: '1px solid #000000',
+      color: color,
+      padding: '0.3rem 0.6rem',
+      fontWeight: 'bold',
+      display: 'block',
+      margin: '0 auto',
+      textAlign: 'center',
+      whiteSpace: 'nowrap',
+    }}>
+    {children}
+  </span>
+);
