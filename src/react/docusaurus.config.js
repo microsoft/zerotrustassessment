@@ -62,7 +62,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'ZT Assessment',
+        title: 'Zero Trust Assessment',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
