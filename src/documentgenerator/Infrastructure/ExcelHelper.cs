@@ -5,6 +5,12 @@ namespace ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
 public class ExcelHelper
 {
+    public static IWorkbook OpenWorkbookFile(string filePath)
+    {
+        Stream templateStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        return OpenWorkbook(templateStream);
+    }
+
     public static IWorkbook OpenWorkbook(string resourceName)
     {
         Stream templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
@@ -15,7 +21,7 @@ public class ExcelHelper
     {
         ExcelEngine excelEngine = GetExcelEngine();
         IWorkbook workbook = excelEngine.Excel.Workbooks.Open(templateStream);
-        templateStream.Dispose();
+        //templateStream.Dispose();
         return workbook;
     }
 
@@ -26,4 +32,12 @@ public class ExcelHelper
         application.DefaultVersion = ExcelVersion.Xlsx;
         return excelEngine;
     }
+
+    public static void SaveWorkbookFile(IWorkbook workbook, string filePath)
+    {
+        //Save the workbook to stream
+        FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        workbook.SaveAs(fileStream);
+    }
+
 }

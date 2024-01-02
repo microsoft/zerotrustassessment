@@ -11,7 +11,7 @@ namespace ZeroTrustAssessment;
 
 [Cmdlet("Invoke", $"{Consts.ModulePrefix}Assessment")]
 [CmdletBinding(DefaultParameterSetName = "Default")]
-public class InvokeZtAssessmentCmdletCommand : PSCmdlet
+public class InvokeAssessment : PSCmdlet
 {
     const string GraphPowershellClientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e";
 

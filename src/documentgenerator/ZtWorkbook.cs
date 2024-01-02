@@ -1,5 +1,7 @@
-﻿using Syncfusion.XlsIO;
+﻿using Syncfusion.Presentation;
+using Syncfusion.XlsIO;
 using Syncfusion.XlsIO.Implementation.Collections;
+using Syncfusion.XlsIO.Implementation.Shapes;
 using ZeroTrustAssessment.DocumentGenerator.Graph;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 using ZeroTrustAssessment.DocumentGenerator.Sheets;
@@ -145,7 +147,7 @@ public class ZtWorkbook
                     {
                         if (key.EndsWith("_WorkshopDate"))
                         {
-                            if(DateTime.TryParse(status.ToString(), out DateTime date))
+                            if (DateTime.TryParse(status.ToString(), out DateTime date))
                             {
                                 var workshopDate = date.ToString("MM/dd/yyyy");
                                 var task = new RoadmapTask
@@ -229,5 +231,58 @@ public class ZtWorkbook
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
     {
         return workbook.Worksheets[(int)sheet];
+    }
+
+    /// Updates the images in the template and sets the link to point to the corresponding docs page.
+    public void SetTemplateDocLinks()
+    {
+
+        var sbPics = new StringBuilder();
+        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
+
+        //Assign a hyperlink to a picture in the worksheet
+
+
+        foreach (var xpic in sheetIdentity.Pictures)
+        {
+            if (xpic is IPictureShape pic)
+            {
+                if (pic.Hyperlink != null)
+                {
+                    pic.Hyperlink.Address = $"https://merill.net";
+                }
+
+                // var sp = xpic as ShapeImpl;
+                // if (sp != null)
+                // {
+
+                //     if (sp.Hyperlink != null)
+                //     {
+                //         sp.Hyperlink.Address = $"https://merill.net";
+                //     }
+                //     sbPics.AppendLine($"{sp.BottomRow},{sp.TopRow},{sp.LeftColumn},{sp.RightColumn},{pic.Name},{pic.AlternativeText}");
+
+                // }
+            }
+        }
+
+        var picsList = sbPics.ToString();
+
+        var sbRanges = new StringBuilder();
+        if (_workbook.Names is WorkbookNamesCollection names)
+        {
+            foreach (var name in names)
+            {
+                var key = name.Name;
+
+                if (key.StartsWith("R") && key.Contains("_")) //Look for image if it is a valid roadmap item
+                {
+                    var range = name.RefersToRange;
+                    sbRanges.AppendLine($"{range.AddressR1C1},{range.Row},{range.Column},{range.Value}");
+                    range.Value = "✜ In planning";
+                }
+            }
+        }
+        var rangesList = sbRanges.ToString();
     }
 }

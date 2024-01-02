@@ -41,7 +41,7 @@
     ],
     "cwd": "${workspaceFolder}",
     "stopAtEntry": false,
-    "console": "integratedTerminal"
+    "console": "externalTerminal"
     },
     {
       "name": ".NET Core Attach",
