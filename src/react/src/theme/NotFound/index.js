@@ -1,17 +1,26 @@
-import React, { useLayoutEffect, useState } from "react";
-import { useHistory } from 'react-router-dom';
-import NotFound from "@theme-original/NotFound";
+import React, { useEffect, useState } from "react";
+import { translate } from "@docusaurus/Translate";
+import { PageMetadata } from "@docusaurus/theme-common";
+import Layout from "@theme/Layout";
+import NotFoundContent from "@theme/NotFound/Content";
 
-export default function NotFoundWrapper(props) {
+import { useHistory } from "react-router-dom";
+
+export default function Index() {
+  const title = translate({
+    id: "theme.NotFound.title",
+    message: "Page Not Found",
+  });
+
   const [hasChecked, setHasChecked] = useState([]);
-
+  console.log("starting");
   const history = useHistory();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const currentUrl = window.location.href;
     if (window.location.pathname.endsWith("/w/")) {
       const qs = window.location.search;
-      let target = ""
+      let target = "";
       if (qs.startsWith("?RMI")) {
         target = "identity";
       } else if (qs.startsWith("?RMD")) {
@@ -21,11 +30,15 @@ export default function NotFoundWrapper(props) {
       } else if (qs.startsWith("?RMT")) {
         target = "data";
       }
-      if(target == ""){
+      if (target.length === 0) {
+        console.log("Setting target");
         setHasChecked(true);
-      }
-      else {
-        const newUrl = currentUrl.replace("/w/?", `/docs/workshop-guidance/${target}/`);
+      } else {
+        console.log("Redirecting");
+        const newUrl = currentUrl.replace(
+          "/w/?",
+          `/docs/workshop-guidance/${target}/`
+        );
         window.history.replaceState({}, "", newUrl);
         const relativePath = new URL(newUrl).pathname;
         history.push(relativePath);
@@ -33,9 +46,14 @@ export default function NotFoundWrapper(props) {
     }
   }, [history]);
 
-  return (
-    <>
-      {hasChecked && <NotFound {...props} />}
-    </>
-  );
+  if (hasChecked) {
+    return (
+      <>
+        <PageMetadata title={title} />
+        <Layout>
+          <NotFoundContent />
+        </Layout>
+      </>
+    );
+  }
 }
