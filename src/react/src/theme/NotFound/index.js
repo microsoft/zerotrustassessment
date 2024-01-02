@@ -3,6 +3,7 @@ import { translate } from "@docusaurus/Translate";
 import { PageMetadata } from "@docusaurus/theme-common";
 import Layout from "@theme/Layout";
 import NotFoundContent from "@theme/NotFound/Content";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 import { useHistory } from "react-router-dom";
 
@@ -12,11 +13,13 @@ export default function Index() {
     message: "Page Not Found",
   });
 
-  const [hasChecked, setHasChecked] = useState([]);
+  const [hasChecked, setHasChecked] = useState(false);
+  const [hasMounted, setHasMounted] = React.useState(false);
   console.log("starting");
   const history = useHistory();
 
   useEffect(() => {
+    setHasMounted(true);
     const currentUrl = window.location.href;
     if (window.location.pathname.endsWith("/w/")) {
       const qs = window.location.search;
@@ -46,13 +49,19 @@ export default function Index() {
     }
   }, [history]);
 
+  if (!hasMounted) {
+    return null;
+  }
+  
   if (hasChecked) {
     return (
       <>
-        <PageMetadata title={title} />
-        <Layout>
-          <NotFoundContent />
-        </Layout>
+        <BrowserOnly fallback={<div></div>}>
+          <PageMetadata title={title} />
+          <Layout>
+            <NotFoundContent />
+          </Layout>
+        </BrowserOnly>
       </>
     );
   }
