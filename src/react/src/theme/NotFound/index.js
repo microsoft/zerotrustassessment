@@ -14,7 +14,7 @@ export default function Index() {
   });
 
   const [hasChecked, setHasChecked] = useState(false);
-  const [hasMounted, setHasMounted] = React.useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   console.log("starting");
   const history = useHistory();
 
