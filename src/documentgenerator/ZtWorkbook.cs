@@ -137,7 +137,8 @@ public class ZtWorkbook
                 var key = name.Name;
                 var roadmapList = key.StartsWith("RMI_") ? roadmap.Identity :
                     key.StartsWith("RMD_") ? roadmap.Device :
-                    key.StartsWith("RMDS_") ? roadmap.DevSecOps : null;
+                    key.StartsWith("RMDS_") ? roadmap.DevSecOps :
+                    key.StartsWith("RMT_") ? roadmap.Data : null;
 
                 if (roadmapList != null)
                 {
@@ -197,6 +198,7 @@ public class ZtWorkbook
         var roadmapList = roadmap.Identity;
         roadmapList.AddRange(roadmap.Device);
         roadmapList.AddRange(roadmap.DevSecOps);
+        roadmapList.AddRange(roadmap.Data);
 
 
         ClearHeaders();

@@ -2,1827 +2,1985 @@
     "tenantId": "0817c655-a853-4d8f-9723-3a333b5b9235",
     "tenantName": "Pora",
     "identity": [
-        {
-            "id": "RMI_001_F_App",
-            "title": "Design Conditional Access posture",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_002_F_App",
-            "title": "Stop buying or building Active Directory dependent apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_003_F_App",
-            "title": "Disover and triage modern apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_004_F_App",
-            "title": "Disover and triage legacy apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_005_T_App",
-            "title": "Rollout CA with MFA controls",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_006_T_App",
-            "title": "Rollout CA with device controls",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_007_T_App",
-            "title": "Rollout CA with risk controls",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_008_T_App",
-            "title": "Rollout CA for External Identities",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_009_T_App",
-            "title": "Migrate VPN auth to Entra",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_010_T_App",
-            "title": "Enable on-prem remote access for web apps without VPN",
-            "description": "Deploy AppProxy and/or SHA",
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_011_T_App",
-            "title": "Rollout governance for app assignments",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_012_T_App",
-            "title": "Define app infra server mgmt strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_013_T_App",
-            "title": "Deploy Entra Domain Services",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_014_T_App",
-            "title": "Remove app infra servers from AD",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_015_T_App",
-            "title": "Define and rollout VDI strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_016_T_App",
-            "title": "Migrate print servers to cloud",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_017_T_App",
-            "title": "Migrate SSO for employee federated apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_018_T_App",
-            "title": "Migrate SSO for employee WAM apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_019_T_App",
-            "title": "Decommission WAM servers",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_020_T_App",
-            "title": "Migrate SSO for External Identities federated apps ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_021_T_App",
-            "title": "Migrate SSO for external ids (WAM & others)",
-            "description": "Migrate SSO configuration of applications for external identities (contractors, partners, vendors, etc.) from on-premises WAM Solutions like CA Siteminder to Azure AD",
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_022_F_Users",
-            "title": "Stop issuing on-prem accounts for new external users ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_023_F_Users",
-            "title": "Start provisioning cloud apps via Entra app provisioning",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_024_T_Users",
-            "title": "Migrate on-prem  external ids & workflows to Entra External ID",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_025_T_Users",
-            "title": "Decommission on-prem external user systems",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_026_T_Users",
-            "title": "Rollout governance for External IDs",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_027_T_Users",
-            "title": "Migrate existing SaaS app provisioning to Entra",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_028_T_Users",
-            "title": "Migrate HR provisioning flow to Entra",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_029_T_Users",
-            "title": "Migrate joiner/mover/leaver workflows to Entra",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_030_T_Users",
-            "title": "Migrate existing on-prem app provisioning to Entra",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_031_T_Users",
-            "title": "Rollout Authenticator App (MFA, SSPR, Passwordless) ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_032_T_Users",
-            "title": "Migrate on-prem MFA systems",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_033_T_Users",
-            "title": "Migrate self-service password reset",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_034_T_Users",
-            "title": "Develop credential (incl. Passwordless) strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_035_T_Users",
-            "title": "Deploy Password Protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_036_T_Users",
-            "title": "Turn on Password Hash Sync",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_037_T_Users",
-            "title": "Migrate to Password Hash Sync auth",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_038_T_App",
-            "title": "Decommission on-prem federation servers",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_039_T_Users",
-            "title": "Rollout Windows Hello for Business",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_040_T_Users",
-            "title": "Rollout FIDO2",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_041_T_Users",
-            "title": "Rollout Authenticator Passwordless",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_042_T_Users",
-            "title": "Drive passwordless  usage",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_043_T_Users",
-            "title": "Migrate to modern tools for collab (OneDrive, Teams, SharePoint)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_044_T_Users",
-            "title": "Migrate distributions lists to Microsoft 365 Teams & Groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_045_T_Users",
-            "title": "Use cloud groups for new cloud app authorization",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_046_T_Users",
-            "title": "Enable group writeback",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_047_T_Users",
-            "title": "Rollout governance for groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_048_T_Users",
-            "title": "Migrate group management workflows",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_049_N_Users",
-            "title": "Enable user writeback",
-            "description": null,
-            "status": "MS Roadmap"
-        },
-        {
-            "id": "RMI_050_N_Users",
-            "title": "Change provisioning flow of existing users  to AAD",
-            "description": null,
-            "status": "MS Roadmap"
-        },
-        {
-            "id": "RMI_051_N_Users",
-            "title": "Decommission on-prem IDM system",
-            "description": null,
-            "status": "MS Roadmap"
-        },
-        {
-            "id": "RMI_052_N_Users",
-            "title": "Remove password as credential",
-            "description": null,
-            "status": "MS Roadmap"
-        },
-        {
-            "id": "RMI_053_N_Users",
-            "title": "Change provisioning flow of existing groups to Entra",
-            "description": "Not supported currently. For the onprem groups, switch their source of authority to Azure AD",
-            "status": "MS Roadmap"
-        },
-        {
-            "id": "RMI_054_F_Devices",
-            "title": "Deploy Entra hybrid join ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_055_T_Devices",
-            "title": "Define Entra join strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_056_T_Devices",
-            "title": "Rollout Entra join for new workstations",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_057_T_Devices",
-            "title": "Rollout AutoPilot",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_058_T_Devices",
-            "title": "Remove DJ Windows clients from Active Directory",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_059_T_Devices",
-            "title": "Deploy macOS mgmt with Intune / JAMF",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_060_T_Devices",
-            "title": "Deploy macOS SSO Extension",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_061_F_Operations",
-            "title": "Define policy & use least privileged roles",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_062_F_Operations",
-            "title": "Use cloud-only privileged accounts",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_063_F_Operations",
-            "title": "Rollout PIM for Tier-Zero roles",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_064_F_Operations",
-            "title": "Discover & remediate existing overprivileged Workload Identities",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_065_F_Operations",
-            "title": "Lock down Entra tenant config",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_066_T_Operations",
-            "title": "Rollout Access Reviews for cloud privileged accounts & groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_067_T_Operations",
-            "title": "Plan privileged accounts lifecycle (JML)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_068_T_Operations",
-            "title": "Rollout PIM for remaining roles",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_069_T_Operations",
-            "title": "Discover & analyze privileged usage for Workfload Identities (eg scripts)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_070_T_Operations",
-            "title": "Rollout strong auth credentials for Workload Identities",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_071_T_Operations",
-            "title": "Rollout Conditional Access for Workload Identities",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_072_T_Operations",
-            "title": "Enforce authentication with strong creds for all privileged accounts",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_073_T_Operations",
-            "title": "Deploy Cloud Privileged Access Workstations",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_074_T_Operations",
-            "title": "Integrate all Entra logs into SIEM",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_075_T_Operations",
-            "title": "Develop security playbooks based on Entra logs",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_076_T_Operations",
-            "title": "Remediate risk signals from Identity Protection & MDI",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_077_T_Operations",
-            "title": "Implement monitoring for Entra Connect Sync",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_078_T_Operations",
-            "title": "Remediate Entra Connect Health alerts",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_079_T_Operations",
-            "title": "Implement monitoring for hybrid connectors",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_080_T_Operations",
-            "title": "Discover existing privileged roles",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMI_081_T_Operations",
-            "title": "Discover & remediate existing overprivileged accounts",
-            "description": null,
-            "status": "Not started"
-        }
+      {
+        "id": "RMI_001_F_App",
+        "title": "Design Conditional Access posture",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_002_F_App",
+        "title": "Stop buying or building Active Directory dependent apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_003_F_App",
+        "title": "Disover and triage modern apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_004_F_App",
+        "title": "Disover and triage legacy apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_005_T_App",
+        "title": "Rollout CA with MFA controls",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_006_T_App",
+        "title": "Rollout CA with device controls",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_007_T_App",
+        "title": "Rollout CA with risk controls",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_008_T_App",
+        "title": "Rollout CA for External Identities",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_009_T_App",
+        "title": "Migrate VPN auth to Entra",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_010_T_App",
+        "title": "Enable on-prem remote access for web apps without VPN",
+        "description": "Deploy AppProxy and/or SHA",
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_011_T_App",
+        "title": "Rollout governance for app assignments",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_012_T_App",
+        "title": "Define app infra server mgmt strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_013_T_App",
+        "title": "Deploy Entra Domain Services",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_014_T_App",
+        "title": "Remove app infra servers from AD",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_015_T_App",
+        "title": "Define and rollout VDI strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_016_T_App",
+        "title": "Migrate print servers to cloud",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_017_T_App",
+        "title": "Migrate SSO for employee federated apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_018_T_App",
+        "title": "Migrate SSO for employee WAM apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_019_T_App",
+        "title": "Decommission WAM servers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_020_T_App",
+        "title": "Migrate SSO for External Identities federated apps ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_021_T_App",
+        "title": "Migrate SSO for external ids (WAM & others)",
+        "description": "Migrate SSO configuration of applications for external identities (contractors, partners, vendors, etc.) from on-premises WAM Solutions like CA Siteminder to Azure AD",
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_022_F_Users",
+        "title": "Stop issuing on-prem accounts for new external users ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_023_F_Users",
+        "title": "Start provisioning cloud apps via Entra app provisioning",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_024_T_Users",
+        "title": "Migrate on-prem  external ids & workflows to Entra External ID",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_025_T_Users",
+        "title": "Decommission on-prem external user systems",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_026_T_Users",
+        "title": "Rollout governance for External IDs",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_027_T_Users",
+        "title": "Migrate existing SaaS app provisioning to Entra",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_028_T_Users",
+        "title": "Migrate HR provisioning flow to Entra",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_029_T_Users",
+        "title": "Migrate joiner/mover/leaver workflows to Entra",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_030_T_Users",
+        "title": "Migrate existing on-prem app provisioning to Entra",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_031_T_Users",
+        "title": "Rollout Authenticator App (MFA, SSPR, Passwordless) ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_032_T_Users",
+        "title": "Migrate on-prem MFA systems",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_033_T_Users",
+        "title": "Migrate self-service password reset",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_034_T_Users",
+        "title": "Develop credential (incl. Passwordless) strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_035_T_Users",
+        "title": "Deploy Password Protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_036_T_Users",
+        "title": "Turn on Password Hash Sync",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_037_T_Users",
+        "title": "Migrate to Password Hash Sync auth",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_038_T_App",
+        "title": "Decommission on-prem federation servers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_039_T_Users",
+        "title": "Rollout Windows Hello for Business",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_040_T_Users",
+        "title": "Rollout FIDO2",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_041_T_Users",
+        "title": "Rollout Authenticator Passwordless",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_042_T_Users",
+        "title": "Drive passwordless  usage",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_043_T_Users",
+        "title": "Migrate to modern tools for collab (OneDrive, Teams, SharePoint)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_044_T_Users",
+        "title": "Migrate distributions lists to Microsoft 365 Teams & Groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_045_T_Users",
+        "title": "Use cloud groups for new cloud app authorization",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_046_T_Users",
+        "title": "Enable group writeback",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_047_T_Users",
+        "title": "Rollout governance for groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_048_T_Users",
+        "title": "Migrate group management workflows",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_049_N_Users",
+        "title": "Enable user writeback",
+        "description": null,
+        "status": "MS Roadmap"
+      },
+      {
+        "id": "RMI_050_N_Users",
+        "title": "Change provisioning flow of existing users  to AAD",
+        "description": null,
+        "status": "MS Roadmap"
+      },
+      {
+        "id": "RMI_051_N_Users",
+        "title": "Decommission on-prem IDM system",
+        "description": null,
+        "status": "MS Roadmap"
+      },
+      {
+        "id": "RMI_052_N_Users",
+        "title": "Remove password as credential",
+        "description": null,
+        "status": "MS Roadmap"
+      },
+      {
+        "id": "RMI_053_N_Users",
+        "title": "Change provisioning flow of existing groups to Entra",
+        "description": "Not supported currently. For the onprem groups, switch their source of authority to Azure AD",
+        "status": "MS Roadmap"
+      },
+      {
+        "id": "RMI_054_F_Devices",
+        "title": "Deploy Entra hybrid join ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_055_T_Devices",
+        "title": "Define Entra join strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_056_T_Devices",
+        "title": "Rollout Entra join for new workstations",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_057_T_Devices",
+        "title": "Rollout AutoPilot",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_058_T_Devices",
+        "title": "Remove DJ Windows clients from Active Directory",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_059_T_Devices",
+        "title": "Deploy macOS mgmt with Intune / JAMF",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_060_T_Devices",
+        "title": "Deploy macOS SSO Extension",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_061_F_Operations",
+        "title": "Define policy & use least privileged roles",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_062_F_Operations",
+        "title": "Use cloud-only privileged accounts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_063_F_Operations",
+        "title": "Rollout PIM for Tier-Zero roles",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_064_F_Operations",
+        "title": "Discover & remediate existing overprivileged Workload Identities",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_065_F_Operations",
+        "title": "Lock down Entra tenant config",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_066_T_Operations",
+        "title": "Rollout Access Reviews for cloud privileged accounts & groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_067_T_Operations",
+        "title": "Plan privileged accounts lifecycle (JML)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_068_T_Operations",
+        "title": "Rollout PIM for remaining roles",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_069_T_Operations",
+        "title": "Discover & analyze privileged usage for Workfload Identities (eg scripts)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_070_T_Operations",
+        "title": "Rollout strong auth credentials for Workload Identities",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_071_T_Operations",
+        "title": "Rollout Conditional Access for Workload Identities",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_072_T_Operations",
+        "title": "Enforce authentication with strong creds for all privileged accounts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_073_T_Operations",
+        "title": "Deploy Cloud Privileged Access Workstations",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_074_T_Operations",
+        "title": "Integrate all Entra logs into SIEM",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_075_T_Operations",
+        "title": "Develop security playbooks based on Entra logs",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_076_T_Operations",
+        "title": "Remediate risk signals from Identity Protection & MDI",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_077_T_Operations",
+        "title": "Implement monitoring for Entra Connect Sync",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_078_T_Operations",
+        "title": "Remediate Entra Connect Health alerts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_079_T_Operations",
+        "title": "Implement monitoring for hybrid connectors",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_080_T_Operations",
+        "title": "Discover existing privileged roles",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMI_081_T_Operations",
+        "title": "Discover & remediate existing overprivileged accounts",
+        "description": null,
+        "status": "Not started"
+      }
     ],
     "device": [
-        {
-            "id": "RMD_001_T_TenantAdmin",
-            "title": "Filters",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_002_T_TenantAdmin",
-            "title": "Device groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_003_T_TenantAdmin",
-            "title": "User groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_004_T_TenantAdmin",
-            "title": "Scope Tags",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_005_T_TenantAdmin",
-            "title": "Scope Groups",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_006_T_TenantAdmin",
-            "title": "Organizational Messages",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_007_T_TenantAdmin",
-            "title": "Log Analytics",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_008_T_TenantAdmin",
-            "title": "Data Warehouse",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_009_T_TenantAdmin",
-            "title": "Graph API",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_010_T_TenantAdmin",
-            "title": "Multi-Admin Approval",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_011_N_TenantAdmin",
-            "title": "Offboarding Strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_012_N_TenantAdmin",
-            "title": "Connectors",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_013_N_TenantAdmin",
-            "title": "AI",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_014_N_TenantAdmin",
-            "title": "Quiet Time",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_015_N_TenantAdmin",
-            "title": "Automation / Orchestration",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_016_N_TenantAdmin",
-            "title": "DEX",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_017_F_MamIos",
-            "title": "Review enrolled vs unenrolled for BYOD/Corporate",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_018_F_MamIos",
-            "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_019_F_MamIos",
-            "title": "Review App config vs App protection policies",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_020_T_MamIos",
-            "title": "Data protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_021_T_MamIos",
-            "title": "Access requirements",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_022_T_MamIos",
-            "title": "Conditional launch",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_023_T_MamIos",
-            "title": "Backup to iCloud",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_024_T_MamIos",
-            "title": "3rd Party Keyboard",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_025_T_MamIos",
-            "title": "Data protection framework using App protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_026_T_MamIos",
-            "title": "MAM Compliance and Conditional Access",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_027_T_MamIos",
-            "title": "RBAC",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_028_T_MamIos",
-            "title": "Remote actions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_029_T_MamIos",
-            "title": "App config settings",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_030_T_MamIos",
-            "title": "Managed Edge Browser",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_031_T_MamIos",
-            "title": "Mobile Threat Defense",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_032_F_MamAndroid",
-            "title": "Review enrolled vs unenrolled for BYOD/Corporate",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_033_F_MamAndroid",
-            "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_034_F_MamAndroid",
-            "title": "Review App config vs App protection policies",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_035_T_MamAndroid",
-            "title": "Data protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_036_T_MamAndroid",
-            "title": "Access requirements",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_037_T_MamAndroid",
-            "title": "Conditional launch",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_038_T_MamAndroid",
-            "title": "Device Manufacturers",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_039_T_MamAndroid",
-            "title": "Screen capture and Google Assistant",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_040_T_MamAndroid",
-            "title": "Approved keyboards",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_041_T_MamAndroid",
-            "title": "Require device lock",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_042_T_MamAndroid",
-            "title": "Knox Attestation",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_043_T_MamAndroid",
-            "title": "Require SafetyNet",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_044_T_MamAndroid",
-            "title": "SafetyNet/ Hardware Back Key",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_045_T_MamAndroid",
-            "title": "Data protection framework using App protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_046_T_MamAndroid",
-            "title": "MAM Compliance and Conditional Access",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_047_T_MamAndroid",
-            "title": "RBAC",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_048_T_MamAndroid",
-            "title": "Remote actions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_049_T_MamAndroid",
-            "title": "App config settings",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_050_T_MamAndroid",
-            "title": "Managed Edge Browser",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_051_T_MamAndroid",
-            "title": "Mobile Threat Defense",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_052_N_MamAndroid",
-            "title": "Require Threat Scan on apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_053_F_MdmIos",
-            "title": "Review enrolled vs unenrolled for BYOD/Corporate",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_054_F_MdmIos",
-            "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_055_F_MdmIos",
-            "title": "Review provisioning strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_056_F_MdmIos",
-            "title": "APNS Certificate",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_057_F_MdmIos",
-            "title": "Apple Managed Accounts",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_058_F_MdmIos",
-            "title": "FLW / Shared Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_059_T_MdmIos",
-            "title": "Compliance policy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_060_T_MdmIos",
-            "title": "Conditional access policy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_061_T_MdmIos",
-            "title": "Enrollment Restrictions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_062_T_MdmIos",
-            "title": "Certificates",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_063_T_MdmIos",
-            "title": "VPN",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_064_T_MdmIos",
-            "title": "Wi-Fi",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_065_T_MdmIos",
-            "title": "iOS Updates",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_066_T_MdmIos",
-            "title": "Store app deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_067_T_MdmIos",
-            "title": "LoB app Deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_068_T_MdmIos",
-            "title": "VPP app deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_069_T_MdmIos",
-            "title": "Webapp Deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_070_T_MdmIos",
-            "title": "User enrollment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_071_T_MdmIos",
-            "title": "ABM Provisioning",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_072_T_MdmIos",
-            "title": "RBAC",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_073_T_MdmIos",
-            "title": "Remote actions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_074_T_MdmIos",
-            "title": "Entra Shared Device Mode",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_075_T_MdmIos",
-            "title": "Shared iPad",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_076_T_MdmIos",
-            "title": "App config settings",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_077_T_MdmIos",
-            "title": "VPN tunnel",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_078_T_MdmIos",
-            "title": "Tunnel based VPN access for enrolled devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_079_N_MdmIos",
-            "title": "Mobile Threat Defense",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_080_N_MdmIos",
-            "title": "Remote Assistance",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_081_F_MdmAndroid",
-            "title": "Review enrolled vs unenrolled for BYOD/Corporate",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_082_F_MdmAndroid",
-            "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_083_F_MdmAndroid",
-            "title": "Review app provisioning strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_084_F_MdmAndroid",
-            "title": "Android Device Administrator Retirement",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_085_F_MdmAndroid",
-            "title": "Offboarding Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_086_F_MdmAndroid",
-            "title": "FLW / Shared Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_087_T_MdmAndroid",
-            "title": "Compliance policy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_088_T_MdmAndroid",
-            "title": "Conditional access policy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_089_T_MdmAndroid",
-            "title": "Enrollment Restrictions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_090_T_MdmAndroid",
-            "title": "Certificates",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_091_T_MdmAndroid",
-            "title": "VPN",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_092_T_MdmAndroid",
-            "title": "Wi-Fi",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_093_T_MdmAndroid",
-            "title": "Store app deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_094_T_MdmAndroid",
-            "title": "LoB app Deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_095_T_MdmAndroid",
-            "title": "Web app deployment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_096_T_MdmAndroid",
-            "title": "User enrollment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_097_T_MdmAndroid",
-            "title": "Userless Enrollment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_098_T_MdmAndroid",
-            "title": "Android Enterprise",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_099_T_MdmAndroid",
-            "title": "Kiosk Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_100_T_MdmAndroid",
-            "title": "RBAC",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_101_T_MdmAndroid",
-            "title": "Remote actions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_102_T_MdmAndroid",
-            "title": "Remote Log Collection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_103_T_MdmAndroid",
-            "title": "Managed Home Screen",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_104_T_MdmAndroid",
-            "title": "Entra Shared Device Mode",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_105_T_MdmAndroid",
-            "title": "App config settings",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_106_T_MdmAndroid",
-            "title": "Zebra FOTA",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_107_T_MdmAndroid",
-            "title": "Samsung FOTA",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_108_T_MdmAndroid",
-            "title": "AR / VR Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_109_N_MdmAndroid",
-            "title": "Mobile Threat Defense",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_110_N_MdmAndroid",
-            "title": "Tunnel based VPN access for enrolled devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_111_N_MdmAndroid",
-            "title": "AOSP",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_112_N_MdmAndroid",
-            "title": "Teams Devices",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_113_N_MdmAndroid",
-            "title": "Remote Assist",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_114_F_MdmWin",
-            "title": "Review provisioning strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_115_F_MdmWin",
-            "title": "Co-management Strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_116_T_MdmWin",
-            "title": "Deploy Hybrid Entra Join",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_117_T_MdmWin",
-            "title": "Deploy Entra Join Only",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_118_T_MdmWin",
-            "title": "Stop AD DJ for new workstations",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_119_T_MdmWin",
-            "title": "Autopilot User Enrollment",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_120_T_MdmWin",
-            "title": "Autopilot Pre-provisioning",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_121_T_MdmWin",
-            "title": "Migrate GPO to MDM policies",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_122_T_MdmWin",
-            "title": "GP Preferences",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_123_T_MdmWin",
-            "title": "File Shares to Cloud",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_124_T_MdmWin",
-            "title": "Apps Delivery / App Compat",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_125_T_MdmWin",
-            "title": "WSUS to WUFB",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_126_T_MdmWin",
-            "title": "Compliance Policies",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_127_T_MdmWin",
-            "title": "Device Configuration",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_128_T_MdmWin",
-            "title": "Office Apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_129_T_MdmWin",
-            "title": "Client Apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_130_T_MdmWin",
-            "title": "Windows Update",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_131_T_MdmWin",
-            "title": "MDM based policies for certs",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_132_T_MdmWin",
-            "title": "MDM based policies for Wi-Fi",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_133_T_MdmWin",
-            "title": "MDM based policies for VPN",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_134_T_MdmWin",
-            "title": "Browser",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_135_T_MdmWin",
-            "title": "VDI Strategy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_136_T_MdmWin",
-            "title": "Enrollment Restrictions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_137_T_MdmWin",
-            "title": "Compliance Policy",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_138_T_MdmWin",
-            "title": "Disk Encryption (Bitlocker)",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_139_T_MdmWin",
-            "title": "Security Baselines",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_140_T_MdmWin",
-            "title": "Cloud LAPS",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_141_T_MdmWin",
-            "title": "Update Rings",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_142_T_MdmWin",
-            "title": "Security Updates",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_143_T_MdmWin",
-            "title": "Quality Updates",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_144_T_MdmWin",
-            "title": "Delivery Optimization",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_145_T_MdmWin",
-            "title": "Office Apps via Intune",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_146_T_MdmWin",
-            "title": "Store Apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_147_T_MdmWin",
-            "title": "LOB Apps via Intune",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_148_T_MdmWin",
-            "title": "WDAC / App Control",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_149_T_MdmWin",
-            "title": "WIP for Enrolled",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_150_T_MdmWin",
-            "title": "Endpoint Analytics",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_151_T_MdmWin",
-            "title": "Proactive Remediations",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_152_T_MdmWin",
-            "title": "Organizational messages",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_153_T_MdmWin",
-            "title": "Remote Assistance",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_154_T_MdmWin",
-            "title": "Unattended Remote Assistance",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_155_T_MdmWin",
-            "title": "Desktop Analytics",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_156_T_MdmWin",
-            "title": "WIP for Unenrolled",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_157_T_MdmWin",
-            "title": "Deploy MDM based policies for EDR/AV",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_158_T_MdmWin",
-            "title": "MDM based policies for security baselines",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_159_T_MdmWin",
-            "title": "MDM based policies for BitLocker",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_160_T_MdmWin",
-            "title": "MDM based policies for firewall",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_161_T_MdmWin",
-            "title": "Attack surface reduction",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_162_T_MdmWin",
-            "title": "Account protection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_163_N_MdmWin",
-            "title": "Cloud PKI",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_164_N_MdmWin",
-            "title": "MAM for Edge",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_165_N_MdmWin",
-            "title": "Custom Compliance Policies",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_166_N_MdmWin",
-            "title": "EPM",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_167_N_MdmWin",
-            "title": "Windows 11",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_168_N_MdmWin",
-            "title": "Policies for Office Apps",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_169_N_MdmWin",
-            "title": "Scripts",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_170_N_MdmWin",
-            "title": "Remote Log Collection",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_171_F_MdmMac",
-            "title": "Review current management needs",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_172_F_MdmMac",
-            "title": "Evaluate macOS management with Intune + JAMF",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_173_T_MdmMac",
-            "title": "AMB provisioning",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_174_T_MdmMac",
-            "title": "Device config policies through settings catalog",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_175_T_MdmMac",
-            "title": "Deploy macOS SSO extension",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_176_T_MdmMac",
-            "title": "AV/EDR",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_177_T_MdmMac",
-            "title": "Firewall",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_178_T_MdmMac",
-            "title": "Deploy MDM based policies for EDR/AV",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_179_T_MdmMac",
-            "title": "Certificates / \nWi-Fi / VPN",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_180_T_MdmMac",
-            "title": "App management",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_181_T_MdmMac",
-            "title": "Remote actions",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_182_T_MdmMac",
-            "title": "FileVault encryption",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_183_N_MdmMac",
-            "title": "Local account management",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_184_N_MdmMac",
-            "title": "Native update management",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMD_185_N_MdmMac",
-            "title": "Remote Assist",
-            "description": null,
-            "status": "Not started"
-        }
+      {
+        "id": "RMD_001_T_TenantAdmin",
+        "title": "Filters",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_002_T_TenantAdmin",
+        "title": "Device groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_003_T_TenantAdmin",
+        "title": "User groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_004_T_TenantAdmin",
+        "title": "Scope Tags",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_005_T_TenantAdmin",
+        "title": "Scope Groups",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_006_T_TenantAdmin",
+        "title": "Organizational Messages",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_007_T_TenantAdmin",
+        "title": "Log Analytics",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_008_T_TenantAdmin",
+        "title": "Data Warehouse",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_009_T_TenantAdmin",
+        "title": "Graph API",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_010_T_TenantAdmin",
+        "title": "Multi-Admin Approval",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_011_N_TenantAdmin",
+        "title": "Offboarding Strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_012_N_TenantAdmin",
+        "title": "Connectors",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_013_N_TenantAdmin",
+        "title": "AI",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_014_N_TenantAdmin",
+        "title": "Quiet Time",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_015_N_TenantAdmin",
+        "title": "Automation / Orchestration",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_016_N_TenantAdmin",
+        "title": "DEX",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_017_F_MamIos",
+        "title": "Review enrolled vs unenrolled for BYOD/Corporate",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_018_F_MamIos",
+        "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_019_F_MamIos",
+        "title": "Review App config vs App protection policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_020_T_MamIos",
+        "title": "Data protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_021_T_MamIos",
+        "title": "Access requirements",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_022_T_MamIos",
+        "title": "Conditional launch",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_023_T_MamIos",
+        "title": "Backup to iCloud",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_024_T_MamIos",
+        "title": "3rd Party Keyboard",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_025_T_MamIos",
+        "title": "Data protection framework using App protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_026_T_MamIos",
+        "title": "MAM Compliance and Conditional Access",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_027_T_MamIos",
+        "title": "RBAC",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_028_T_MamIos",
+        "title": "Remote actions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_029_T_MamIos",
+        "title": "App config settings",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_030_T_MamIos",
+        "title": "Managed Edge Browser",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_031_T_MamIos",
+        "title": "Mobile Threat Defense",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_032_F_MamAndroid",
+        "title": "Review enrolled vs unenrolled for BYOD/Corporate",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_033_F_MamAndroid",
+        "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_034_F_MamAndroid",
+        "title": "Review App config vs App protection policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_035_T_MamAndroid",
+        "title": "Data protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_036_T_MamAndroid",
+        "title": "Access requirements",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_037_T_MamAndroid",
+        "title": "Conditional launch",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_038_T_MamAndroid",
+        "title": "Device Manufacturers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_039_T_MamAndroid",
+        "title": "Screen capture and Google Assistant",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_040_T_MamAndroid",
+        "title": "Approved keyboards",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_041_T_MamAndroid",
+        "title": "Require device lock",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_042_T_MamAndroid",
+        "title": "Knox Attestation",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_043_T_MamAndroid",
+        "title": "Require SafetyNet",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_044_T_MamAndroid",
+        "title": "SafetyNet/ Hardware Back Key",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_045_T_MamAndroid",
+        "title": "Data protection framework using App protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_046_T_MamAndroid",
+        "title": "MAM Compliance and Conditional Access",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_047_T_MamAndroid",
+        "title": "RBAC",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_048_T_MamAndroid",
+        "title": "Remote actions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_049_T_MamAndroid",
+        "title": "App config settings",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_050_T_MamAndroid",
+        "title": "Managed Edge Browser",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_051_T_MamAndroid",
+        "title": "Mobile Threat Defense",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_052_N_MamAndroid",
+        "title": "Require Threat Scan on apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_053_F_MdmIos",
+        "title": "Review enrolled vs unenrolled for BYOD/Corporate",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_054_F_MdmIos",
+        "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_055_F_MdmIos",
+        "title": "Review provisioning strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_056_F_MdmIos",
+        "title": "APNS Certificate",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_057_F_MdmIos",
+        "title": "Apple Managed Accounts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_058_F_MdmIos",
+        "title": "FLW / Shared Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_059_T_MdmIos",
+        "title": "Compliance policy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_060_T_MdmIos",
+        "title": "Conditional access policy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_061_T_MdmIos",
+        "title": "Enrollment Restrictions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_062_T_MdmIos",
+        "title": "Certificates",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_063_T_MdmIos",
+        "title": "VPN",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_064_T_MdmIos",
+        "title": "Wi-Fi",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_065_T_MdmIos",
+        "title": "iOS Updates",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_066_T_MdmIos",
+        "title": "Store app deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_067_T_MdmIos",
+        "title": "LoB app Deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_068_T_MdmIos",
+        "title": "VPP app deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_069_T_MdmIos",
+        "title": "Webapp Deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_070_T_MdmIos",
+        "title": "User enrollment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_071_T_MdmIos",
+        "title": "ABM Provisioning",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_072_T_MdmIos",
+        "title": "RBAC",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_073_T_MdmIos",
+        "title": "Remote actions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_074_T_MdmIos",
+        "title": "Entra Shared Device Mode",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_075_T_MdmIos",
+        "title": "Shared iPad",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_076_T_MdmIos",
+        "title": "App config settings",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_077_T_MdmIos",
+        "title": "VPN tunnel",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_078_T_MdmIos",
+        "title": "Tunnel based VPN access for enrolled devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_079_N_MdmIos",
+        "title": "Mobile Threat Defense",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_080_N_MdmIos",
+        "title": "Remote Assistance",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_081_F_MdmAndroid",
+        "title": "Review enrolled vs unenrolled for BYOD/Corporate",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_082_F_MdmAndroid",
+        "title": "Review security, compliance, resource access requirements (Certs/Wi-Fi/VPN)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_083_F_MdmAndroid",
+        "title": "Review app provisioning strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_084_F_MdmAndroid",
+        "title": "Android Device Administrator Retirement",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_085_F_MdmAndroid",
+        "title": "Offboarding Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_086_F_MdmAndroid",
+        "title": "FLW / Shared Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_087_T_MdmAndroid",
+        "title": "Compliance policy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_088_T_MdmAndroid",
+        "title": "Conditional access policy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_089_T_MdmAndroid",
+        "title": "Enrollment Restrictions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_090_T_MdmAndroid",
+        "title": "Certificates",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_091_T_MdmAndroid",
+        "title": "VPN",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_092_T_MdmAndroid",
+        "title": "Wi-Fi",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_093_T_MdmAndroid",
+        "title": "Store app deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_094_T_MdmAndroid",
+        "title": "LoB app Deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_095_T_MdmAndroid",
+        "title": "Web app deployment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_096_T_MdmAndroid",
+        "title": "User enrollment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_097_T_MdmAndroid",
+        "title": "Userless Enrollment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_098_T_MdmAndroid",
+        "title": "Android Enterprise",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_099_T_MdmAndroid",
+        "title": "Kiosk Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_100_T_MdmAndroid",
+        "title": "RBAC",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_101_T_MdmAndroid",
+        "title": "Remote actions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_102_T_MdmAndroid",
+        "title": "Remote Log Collection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_103_T_MdmAndroid",
+        "title": "Managed Home Screen",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_104_T_MdmAndroid",
+        "title": "Entra Shared Device Mode",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_105_T_MdmAndroid",
+        "title": "App config settings",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_106_T_MdmAndroid",
+        "title": "Zebra FOTA",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_107_T_MdmAndroid",
+        "title": "Samsung FOTA",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_108_T_MdmAndroid",
+        "title": "AR / VR Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_109_N_MdmAndroid",
+        "title": "Mobile Threat Defense",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_110_N_MdmAndroid",
+        "title": "Tunnel based VPN access for enrolled devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_111_N_MdmAndroid",
+        "title": "AOSP",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_112_N_MdmAndroid",
+        "title": "Teams Devices",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_113_N_MdmAndroid",
+        "title": "Remote Assist",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_114_F_MdmWin",
+        "title": "Review provisioning strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_115_F_MdmWin",
+        "title": "Co-management Strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_116_T_MdmWin",
+        "title": "Deploy Hybrid Entra Join",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_117_T_MdmWin",
+        "title": "Deploy Entra Join Only",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_118_T_MdmWin",
+        "title": "Stop AD DJ for new workstations",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_119_T_MdmWin",
+        "title": "Autopilot User Enrollment",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_120_T_MdmWin",
+        "title": "Autopilot Pre-provisioning",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_121_T_MdmWin",
+        "title": "Migrate GPO to MDM policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_122_T_MdmWin",
+        "title": "GP Preferences",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_123_T_MdmWin",
+        "title": "File Shares to Cloud",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_124_T_MdmWin",
+        "title": "Apps Delivery / App Compat",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_125_T_MdmWin",
+        "title": "WSUS to WUFB",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_126_T_MdmWin",
+        "title": "Compliance Policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_127_T_MdmWin",
+        "title": "Device Configuration",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_128_T_MdmWin",
+        "title": "Office Apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_129_T_MdmWin",
+        "title": "Client Apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_130_T_MdmWin",
+        "title": "Windows Update",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_131_T_MdmWin",
+        "title": "MDM based policies for certs",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_132_T_MdmWin",
+        "title": "MDM based policies for Wi-Fi",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_133_T_MdmWin",
+        "title": "MDM based policies for VPN",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_134_T_MdmWin",
+        "title": "Browser",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_135_T_MdmWin",
+        "title": "VDI Strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_136_T_MdmWin",
+        "title": "Enrollment Restrictions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_137_T_MdmWin",
+        "title": "Compliance Policy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_138_T_MdmWin",
+        "title": "Disk Encryption (Bitlocker)",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_139_T_MdmWin",
+        "title": "Security Baselines",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_140_T_MdmWin",
+        "title": "Cloud LAPS",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_141_T_MdmWin",
+        "title": "Update Rings",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_142_T_MdmWin",
+        "title": "Security Updates",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_143_T_MdmWin",
+        "title": "Quality Updates",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_144_T_MdmWin",
+        "title": "Delivery Optimization",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_145_T_MdmWin",
+        "title": "Office Apps via Intune",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_146_T_MdmWin",
+        "title": "Store Apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_147_T_MdmWin",
+        "title": "LOB Apps via Intune",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_148_T_MdmWin",
+        "title": "WDAC / App Control",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_149_T_MdmWin",
+        "title": "WIP for Enrolled",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_150_T_MdmWin",
+        "title": "Endpoint Analytics",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_151_T_MdmWin",
+        "title": "Proactive Remediations",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_152_T_MdmWin",
+        "title": "Organizational messages",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_153_T_MdmWin",
+        "title": "Remote Assistance",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_154_T_MdmWin",
+        "title": "Unattended Remote Assistance",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_155_T_MdmWin",
+        "title": "Desktop Analytics",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_156_T_MdmWin",
+        "title": "WIP for Unenrolled",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_157_T_MdmWin",
+        "title": "Deploy MDM based policies for EDR/AV",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_158_T_MdmWin",
+        "title": "MDM based policies for security baselines",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_159_T_MdmWin",
+        "title": "MDM based policies for BitLocker",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_160_T_MdmWin",
+        "title": "MDM based policies for firewall",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_161_T_MdmWin",
+        "title": "Attack surface reduction",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_162_T_MdmWin",
+        "title": "Account protection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_163_N_MdmWin",
+        "title": "Cloud PKI",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_164_N_MdmWin",
+        "title": "MAM for Edge",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_165_N_MdmWin",
+        "title": "Custom Compliance Policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_166_N_MdmWin",
+        "title": "EPM",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_167_N_MdmWin",
+        "title": "Windows 11",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_168_N_MdmWin",
+        "title": "Policies for Office Apps",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_169_N_MdmWin",
+        "title": "Scripts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_170_N_MdmWin",
+        "title": "Remote Log Collection",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_171_F_MdmMac",
+        "title": "Review current management needs",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_172_F_MdmMac",
+        "title": "Evaluate macOS management with Intune + JAMF",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_173_T_MdmMac",
+        "title": "AMB provisioning",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_174_T_MdmMac",
+        "title": "Device config policies through settings catalog",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_175_T_MdmMac",
+        "title": "Deploy macOS SSO extension",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_176_T_MdmMac",
+        "title": "AV/EDR",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_177_T_MdmMac",
+        "title": "Firewall",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_178_T_MdmMac",
+        "title": "Deploy MDM based policies for EDR/AV",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_179_T_MdmMac",
+        "title": "Certificates / \nWi-Fi / VPN",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_180_T_MdmMac",
+        "title": "App management",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_181_T_MdmMac",
+        "title": "Remote actions",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_182_T_MdmMac",
+        "title": "FileVault encryption",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_183_N_MdmMac",
+        "title": "Local account management",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_184_N_MdmMac",
+        "title": "Native update management",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMD_185_N_MdmMac",
+        "title": "Remote Assist",
+        "description": null,
+        "status": "Not started"
+      }
     ],
     "devSecOps": [
-        {
-            "id": "RMDS_001_F_Foundation",
-            "title": "Design permissions and access",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_002_T_Foundation",
-            "title": "Discover servers/infra for\nbuild/deploy code",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_003_T_Foundation",
-            "title": "Harden servers/infra for\nbuild/deploy code ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_004_T_Foundation",
-            "title": "Define Developer\nWorkstation Policies ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_005_T_Foundation",
-            "title": "Implement Defender for Servers to continuously monitor",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_006_T_Foundation",
-            "title": "Harden target infra\n(Defender for Cloud)​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_007_T_Foundation",
-            "title": "Define developer access policies using Access Packages",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_008_T_Foundation",
-            "title": "Implement access and PIM (JIT/JEA) policies for developers",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_009_T_Foundation",
-            "title": "Define Governance\nApproach for Groups with DevSecOps priveleges​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_010_T_GitHub",
-            "title": "Discover existing\nGitHub Accounts and permissions ",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_011_T_GitHub",
-            "title": "Integrate GitHub with Entra ID​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_012_T_GitHub",
-            "title": "Remediate non-Entra ID accounts and assignments​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_013_T_GitHub",
-            "title": "Discover, review and adjust permissions\nbased on role​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_014_N_GitHub",
-            "title": "Create process to\nperiodically review\nunused/stale\ncredentials​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_015_T_GitHub",
-            "title": "Design code\npublishing\napproach",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_016_T_GitHub",
-            "title": "Configure publishing approach for\ndeploying to Azure​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_017_T_GitHub",
-            "title": "Define developer access to Azure as needed​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_018_T_GitHub",
-            "title": "Design organization security\nand analysis settings​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_019_T_GitHub",
-            "title": "Decide if default or\nadvanced custom setup\nfor CodeQL​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_020_T_GitHub",
-            "title": "Deploy Github Advanced\nSecurity - CodeQL​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_021_T_GitHub",
-            "title": "Deploy Github Secret\nScanning​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_022_T_GitHub",
-            "title": "Specify configuration settings for Dependabot​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_023_T_GitHub",
-            "title": "Integrate with Defender\nfor DevOps​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_024_T_GitHub",
-            "title": "Triage results and\nremediate​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_025_T_GitHub",
-            "title": "Deploy GitHub Advanced Security - Dependabot​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_026_T_GitHub",
-            "title": "Evaluate SAST and DAST tools (3P)​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_027_T_GitHub",
-            "title": "Discover existing\nADO accounts and\npermissions ​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_028_T_GitHub",
-            "title": "Remediate non-Entra ID accounts and assignments​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_029_T_GitHub",
-            "title": "Integrate Entra ID to\nADO​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_030_T_GitHub",
-            "title": "Discover, review and adjust permissions\nbased on role​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_031_T_GitHub",
-            "title": "Set up Service\nConnections to\ndeploy to Azure ​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_032_T_GitHub",
-            "title": "Design code\npublishing\napproach​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_033_T_GitHub",
-            "title": "Configure publishing\napproach for\ndeploying to Azure​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_034_T_GitHub",
-            "title": "Deploy GitHub Advanced\nSecurity for Azure DevOps​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_035_T_GitHub",
-            "title": "Integrate with Defender for DevOps​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_036_T_GitHub",
-            "title": "Triage results and\nremediate​",
-            "description": null,
-            "status": "Not started"
-        },
-        {
-            "id": "RMDS_037_T_GitHub",
-            "title": "Evaluate Dynamic Scanning (3P)​",
-            "description": null,
-            "status": "Not started"
-        }
+      {
+        "id": "RMDS_001_F_Foundation",
+        "title": "Design permissions and access",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_002_T_Foundation",
+        "title": "Discover servers/infra for\nbuild/deploy code",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_003_T_Foundation",
+        "title": "Harden servers/infra for\nbuild/deploy code ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_004_T_Foundation",
+        "title": "Define Developer\nWorkstation Policies ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_005_T_Foundation",
+        "title": "Implement Defender for Servers to continuously monitor",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_006_T_Foundation",
+        "title": "Harden target infra\n(Defender for Cloud)​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_007_T_Foundation",
+        "title": "Define developer access policies using Access Packages",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_008_T_Foundation",
+        "title": "Implement access and PIM (JIT/JEA) policies for developers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_009_T_Foundation",
+        "title": "Define Governance\nApproach for Groups with DevSecOps priveleges​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_010_T_GitHub",
+        "title": "Discover existing\nGitHub Accounts and permissions ",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_011_T_GitHub",
+        "title": "Integrate GitHub with Entra ID​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_012_T_GitHub",
+        "title": "Remediate non-Entra ID accounts and assignments​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_013_T_GitHub",
+        "title": "Discover, review and adjust permissions\nbased on role​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_014_N_GitHub",
+        "title": "Create process to\nperiodically review\nunused/stale\ncredentials​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_015_T_GitHub",
+        "title": "Design code\npublishing\napproach",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_016_T_GitHub",
+        "title": "Configure publishing approach for\ndeploying to Azure​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_017_T_GitHub",
+        "title": "Define developer access to Azure as needed​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_018_T_GitHub",
+        "title": "Design organization security\nand analysis settings​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_019_T_GitHub",
+        "title": "Decide if default or\nadvanced custom setup\nfor CodeQL​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_020_T_GitHub",
+        "title": "Deploy Github Advanced\nSecurity - CodeQL​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_021_T_GitHub",
+        "title": "Deploy Github Secret\nScanning​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_022_T_GitHub",
+        "title": "Specify configuration settings for Dependabot​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_023_T_GitHub",
+        "title": "Integrate with Defender\nfor DevOps​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_024_T_GitHub",
+        "title": "Triage results and\nremediate​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_025_T_GitHub",
+        "title": "Deploy GitHub Advanced Security - Dependabot​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_026_T_GitHub",
+        "title": "Evaluate SAST and DAST tools (3P)​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_027_T_GitHub",
+        "title": "Discover existing\nADO accounts and\npermissions ​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_028_T_GitHub",
+        "title": "Remediate non-Entra ID accounts and assignments​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_029_T_GitHub",
+        "title": "Integrate Entra ID to\nADO​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_030_T_GitHub",
+        "title": "Discover, review and adjust permissions\nbased on role​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_031_T_GitHub",
+        "title": "Set up Service\nConnections to\ndeploy to Azure ​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_032_T_GitHub",
+        "title": "Design code\npublishing\napproach​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_033_T_GitHub",
+        "title": "Configure publishing\napproach for\ndeploying to Azure​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_034_T_GitHub",
+        "title": "Deploy GitHub Advanced\nSecurity for Azure DevOps​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_035_T_GitHub",
+        "title": "Integrate with Defender for DevOps​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_036_T_GitHub",
+        "title": "Triage results and\nremediate​",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMDS_037_T_GitHub",
+        "title": "Evaluate Dynamic Scanning (3P)​",
+        "description": null,
+        "status": "Not started"
+      }
+    ],
+    "data": [
+      {
+        "id": "RMT_001_F_KnowProtect",
+        "title": "Sensitive data discovery",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_002_F_KnowProtect",
+        "title": "Document / Approve all data sharing means",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_003_F_KnowProtect",
+        "title": "Identify sharing with external partners",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_004_F_KnowProtect",
+        "title": "Identify sharing with customers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_005_T_KnowProtect",
+        "title": "Data governance regulatory needs",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_006_F_KnowProtect",
+        "title": "Use Business Importance to identify / classify",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_007_F_KnowProtect",
+        "title": "Identify Automatic Classification cases",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_008_T_KnowProtect",
+        "title": "Manually classify sensitive assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_009_T_KnowProtect",
+        "title": "Recommend labeling sensitive assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_010_T_KnowProtect",
+        "title": "Monitor external sharing",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_011_T_KnowProtect",
+        "title": "Monitor sharing with customers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_012_T_KnowProtect",
+        "title": "Set Data Loss Prevention policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_013_T_KnowProtect",
+        "title": "Manage DLP Alerts & Incidents",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_014_T_KnowProtect",
+        "title": "Monitor sharing by employees",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_015_N_KnowProtect",
+        "title": "Automatically label sensitive assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_016_N_KnowProtect",
+        "title": "Identify sensitive data using Trainable Classifiers",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_017_N_KnowProtect",
+        "title": "Implement SharePoint Permission Strategy",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_018_N_KnowProtect",
+        "title": "Set Insider Risk Management policies",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_019_F_ManageAccess",
+        "title": "Privileged Access Management for DLP/MIP/IRM Admins",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_020_F_ManageAccess",
+        "title": "Set RBAC for DLP/MIP/IRM Admins",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_021_T_ManageAccess",
+        "title": "Set minimum standards for trusted devices / accounts",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_022_N_ManageAccess",
+        "title": "Administrative units for RBAC",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_023_T_ProtectCriticalAssets",
+        "title": "Identify Critical Assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_024_N_ProtectCriticalAssets",
+        "title": "Plan for the protection of Critical Assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_025_N_ProtectCriticalAssets",
+        "title": "Protect Critical Assets",
+        "description": null,
+        "status": "Not started"
+      },
+      {
+        "id": "RMT_026_N_ProtectCriticalAssets",
+        "title": "Special cryptographic needs (BYOK, DKE)",
+        "description": null,
+        "status": "Not started"
+      }
     ]
-}
+  }

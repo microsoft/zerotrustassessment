@@ -1,5 +1,6 @@
 ﻿function CreateMarkdown($list, $folder)
 {
+    New-Item -ItemType Directory -Force -Path $folder
     foreach($item in $list)
     {
         $id = $item.id
@@ -24,6 +25,7 @@
 
 $template = Get-Content -Raw -Path ./template.json | ConvertFrom-Json
 
-CreateMarkdown $template.identity ../src/react/docs/workshop-guidance/identity
-CreateMarkdown $template.device ../src/react/docs/workshop-guidance/devices
-CreateMarkdown $template.devSecOps ../src/react/docs/workshop-guidance/devsecops
+#CreateMarkdown $template.identity ../src/react/docs/workshop-guidance/identity
+#CreateMarkdown $template.device ../src/react/docs/workshop-guidance/devices
+#CreateMarkdown $template.devSecOps ../src/react/docs/workshop-guidance/devsecops
+CreateMarkdown $template.data ../src/react/docs/workshop-guidance/data
