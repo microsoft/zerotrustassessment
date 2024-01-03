@@ -24,13 +24,13 @@ export default function Index() {
     if (window.location.pathname.endsWith("/w/")) {
       const qs = window.location.search;
       let target = "";
-      if (qs.startsWith("?RMI")) {
+      if (qs.startsWith("?RMI_")) {
         target = "identity";
-      } else if (qs.startsWith("?RMD")) {
+      } else if (qs.startsWith("?RMD_")) {
         target = "devices";
-      } else if (qs.startsWith("?RMDS")) {
+      } else if (qs.startsWith("?RMDS_")) {
         target = "devsecops";
-      } else if (qs.startsWith("?RMT")) {
+      } else if (qs.startsWith("?RMT_")) {
         target = "data";
       }
       if (target.length === 0) {
