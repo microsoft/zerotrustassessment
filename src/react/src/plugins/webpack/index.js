@@ -8,7 +8,7 @@ module.exports = function (context, options) {
           devServer: {
             proxy: {
               "/document": {
-                target: "https://localhost:7172",
+                target: "http://localhost:5269",
                 secure: false,
                 changeOrigin: true,
                 logLevel: "debug",

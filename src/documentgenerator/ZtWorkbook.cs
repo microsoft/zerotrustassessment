@@ -14,7 +14,7 @@ public enum ZtSheets
     Home,
     WorkshopIdentity,
     WorkshopDevice,
-    WorkshopDevSecOps,
+    WorkshopApps,
     WorkshopData,
     ConfigIdentity,
     ConfigDevice,
@@ -24,6 +24,9 @@ public enum ZtSheets
 
 public class ZtWorkbook
 {
+    //The name of the range that has the SheetName that maps to ZtSheets enum.
+    private const string SheetNameRangeName = "SheetName";
+
     private readonly IWorkbook _workbook;
     private readonly GraphData? _graphData;
 
@@ -218,21 +221,81 @@ public class ZtWorkbook
         RemoveNonRoadmapSheets();
     }
 
+    /// <summary>
+    /// We don't need other worksheets when generated from ADO data
+    /// </summary>
     private void RemoveNonRoadmapSheets()
     {
         for (int i = _workbook.Worksheets.Count - 1; i >= 0; i--)
         {
             var sheet = _workbook.Worksheets[i];
-            if (sheet.Name != "Identity ✍️" && sheet.Name != "Device ✍️" && sheet.Name != "Dev SecOps ✍️")
+            var range = GetRange(sheet, SheetNameRangeName);
+            if(range != null)
             {
-                _workbook.Worksheets.Remove(i);
+                if(range.Value.StartsWith("Workshop"))
+                {
+                    _workbook.Worksheets.Remove(i);
+                }
             }
         }
     }
 
+    /// <summary>
+    /// Workbook versions
+    /// There can be two versions of the workbook.
+    /// v1. Pre 2024-Mar-06: The sheet access was index based (0=Home, etc)
+    /// v2. Post 2024-Mar-06: The sheet access is based on the value of a range (SheetName -usually A1) in each sheet.
+    ///     The value of range SheetName will match the name of the enum ZtSheets
+    ///     Going forward if sheets are added, removed or moved around, it will not affect the sheet access mechanism.
+    /// </summary>
+    /// <param name="workbook"></param>
+    /// <param name="sheet"></param>
+    /// <returns></returns>
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
+    {        
+        if(IsV2(workbook))
+        {
+            var sheetNameToFind = Enum.GetName(sheet);
+            foreach(var worksheet in workbook.Worksheets)
+            {
+                var sheetName = worksheet.Range[SheetNameRangeName].Value;
+                // Get the string of the enum ZtSheet for sheet
+                if(sheetName == sheetNameToFind)
+                {
+                    return worksheet;
+                }
+            }
+            throw new Exception($"Worksheet with SheetName range set to '{sheetNameToFind}' was not found.");
+        }
+        else
+        { // Follow old style.
+            return workbook.Worksheets[(int)sheet];
+        }
+    }
+
+    private static bool IsV2(IWorkbook workbook)
     {
-        return workbook.Worksheets[(int)sheet];
+        bool hasVersionRange = false;
+        foreach(var sheet in workbook.Worksheets)
+        {
+            var range = GetRange(sheet, "WorkbookVersion");
+            if(range != null)
+            {
+                hasVersionRange = true;
+                break;
+            }
+        }
+        return hasVersionRange;
+    }
+
+    private static IRange? GetRange(IWorksheet sheet, string rangeName)
+    {
+        IRange? range = null;
+        try 
+        {
+            range = sheet.Range[rangeName];
+        } catch {}
+        return range;
     }
 
     /// Updates the images in the template and sets the link to point to the corresponding docs page.
@@ -241,32 +304,6 @@ public class ZtWorkbook
 
         var sbPics = new StringBuilder();
         var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
-
-        //Assign a hyperlink to a picture in the worksheet
-
-
-        foreach (var xpic in sheetIdentity.Pictures)
-        {
-            if (xpic is IPictureShape pic)
-            {
-                if (pic.Hyperlink != null)
-                {
-                    pic.Hyperlink.Address = $"https://merill.net";
-                }
-
-                // var sp = xpic as ShapeImpl;
-                // if (sp != null)
-                // {
-
-                //     if (sp.Hyperlink != null)
-                //     {
-                //         sp.Hyperlink.Address = $"https://merill.net";
-                //     }
-                //     sbPics.AppendLine($"{sp.BottomRow},{sp.TopRow},{sp.LeftColumn},{sp.RightColumn},{pic.Name},{pic.AlternativeText}");
-
-                // }
-            }
-        }
 
         var picsList = sbPics.ToString();
 

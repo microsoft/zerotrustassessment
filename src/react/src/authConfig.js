@@ -4,7 +4,7 @@ export const apiConfig = {
 
 export const msalConfig = {
   auth: {
-    clientId: "be58d912-b9d5-41a0-8b56-779409e017b8",
+    clientId: "df2798fc-2aed-4c3a-98ae-1776949480c4",
   },
 };
 
