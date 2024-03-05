@@ -55,6 +55,6 @@
   "devDependencies": {
     "eslint-config-react-app": "^7.0.1",
     "gh-pages": "^5.0.0",
-    "jest-editor-support": "^31.0.1"
+    "jest-editor-support": "^31.1.2"
   }
 }
