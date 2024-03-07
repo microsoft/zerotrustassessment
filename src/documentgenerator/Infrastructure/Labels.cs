@@ -59,6 +59,8 @@ public static class Labels
             "※ Third Party" => "Third Party",
             "✕ Will not pursue" => "Will not pursue",
             "⚐ MS Roadmap" => "MS Roadmap",
+            "⚐ Follow up" => "Follow up",
+            "✢ First Party other" => "First Party other",
             _ => label,
         };
     }
@@ -76,6 +78,8 @@ public static class Labels
             "Third Party" => "※ Third Party",
             "Will not pursue" => "✕ Will not pursue",
             "MS Roadmap" => "⚐ MS Roadmap",
+            "Follow up" => "⚐ Follow up",
+            "First Party other" => "✢ First Party other",
             _ => value,
         };
     }
