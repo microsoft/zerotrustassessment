@@ -159,12 +159,11 @@ function HomepageHeader() {
           <div className={styles.buttons}>
             <Link
               className="button button--secondary button--lg"
-              onClick={() => {
-                instance.loginRedirect(loginRequest);
-              }}
+              href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
             >
-              Sign in to run assessment →
+              Download strategy workshop workbook ↓
             </Link>
+
           </div>
         </UnauthenticatedTemplate>
       </div>
