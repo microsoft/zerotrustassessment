@@ -104,7 +104,7 @@ function HomepageHeader() {
 
   const doDialogCancel = (state) => {
     console.log(state);
-  }
+  };
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
@@ -144,7 +144,7 @@ function HomepageHeader() {
           )}
 
           {showProgress && (
-            <Dialog defaultOpen={true} modalType="alert" >
+            <Dialog defaultOpen={true} modalType="alert">
               <DialogSurface>
                 <DialogBody>
                   <DialogContent>
@@ -157,13 +157,27 @@ function HomepageHeader() {
         </AuthenticatedTemplate>
         <UnauthenticatedTemplate>
           <div className={styles.buttons}>
-            <Link
-              className="button button--secondary button--lg"
-              href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
-            >
-              Download strategy workshop workbook ↓
-            </Link>
+            {/* Check url for preview flag and show link */}
 
+            {window.location.href.includes("preview") && (
+              <Link
+                className="button button--secondary button--lg"
+                onClick={() => {
+                  instance.loginRedirect(loginRequest);
+                }}
+              >
+                Sign in to run assessment →
+              </Link>
+            )}
+
+            {!window.location.href.includes("preview") && (
+              <Link
+                className="button button--secondary button--lg"
+                href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
+              >
+                Download strategy workshop workbook ↓
+              </Link>
+            )}
           </div>
         </UnauthenticatedTemplate>
       </div>
