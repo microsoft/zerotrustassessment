@@ -9,6 +9,7 @@ import Heading from "@theme/Heading";
 import styles from "./index.module.css";
 
 import { msalConfig, loginRequest, apiConfig } from "../authConfig";
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
 import {
   FluentProvider,
