@@ -167,25 +167,31 @@ function HomepageHeader() {
           <div className={styles.buttons}>
             {/* Check url for preview flag and show link */}
             <BrowserOnly>
-              {window.location.href.includes("preview") && (
-                <Link
-                  className="button button--secondary button--lg"
-                  onClick={() => {
-                    instance.loginRedirect(loginRequest);
-                  }}
-                >
-                  Sign in to run assessment →
-                </Link>
-              )}
+              {() => {
+                {
+                  window.location.href.includes("preview") && (
+                    <Link
+                      className="button button--secondary button--lg"
+                      onClick={() => {
+                        instance.loginRedirect(loginRequest);
+                      }}
+                    >
+                      Sign in to run assessment →
+                    </Link>
+                  );
+                }
 
-              {!window.location.href.includes("preview") && (
-                <Link
-                  className="button button--secondary button--lg"
-                  href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
-                >
-                  Download strategy workshop workbook ↓
-                </Link>
-              )}
+                {
+                  !window.location.href.includes("preview") && (
+                    <Link
+                      className="button button--secondary button--lg"
+                      href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
+                    >
+                      Download strategy workshop workbook ↓
+                    </Link>
+                  );
+                }
+              }}
             </BrowserOnly>
           </div>
         </UnauthenticatedTemplate>
