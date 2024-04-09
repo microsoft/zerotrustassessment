@@ -9,15 +9,7 @@ import Heading from "@theme/Heading";
 import styles from "./index.module.css";
 
 import { msalConfig, loginRequest, apiConfig } from "../authConfig";
-import BrowserOnly from "@docusaurus/BrowserOnly";
 
-const MyComponent = () => {
-  return (
-    <BrowserOnly>
-      {() => <span>page url = {window.location.href}</span>}
-    </BrowserOnly>
-  );
-};
 import {
   FluentProvider,
   teamsLightTheme,
@@ -166,33 +158,22 @@ function HomepageHeader() {
         <UnauthenticatedTemplate>
           <div className={styles.buttons}>
             {/* Check url for preview flag and show link */}
-            <BrowserOnly>
-              {() => {
-                {
-                  window.location.href.includes("preview") && (
-                    <Link
-                      className="button button--secondary button--lg"
-                      onClick={() => {
-                        instance.loginRedirect(loginRequest);
-                      }}
-                    >
-                      Sign in to run assessment →
-                    </Link>
-                  );
-                }
-
-                {
-                  !window.location.href.includes("preview") && (
-                    <Link
-                      className="button button--secondary button--lg"
-                      href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
-                    >
-                      Download strategy workshop workbook ↓
-                    </Link>
-                  );
-                }
-              }}
-            </BrowserOnly>
+            {window.location.href.includes("preview") && (
+              <Link
+                className="button button--secondary button--lg"
+                onClick={() => {
+                  instance.loginRedirect(loginRequest);
+                }}
+              >
+                Sign in to run assessment →
+              </Link>
+            )}
+            <Link
+              className="button button--secondary button--lg"
+              href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
+            >
+              Download strategy workshop workbook ↓
+            </Link>
           </div>
         </UnauthenticatedTemplate>
       </div>
