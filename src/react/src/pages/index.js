@@ -158,16 +158,22 @@ function HomepageHeader() {
         <UnauthenticatedTemplate>
           <div className={styles.buttons}>
             {/* Check url for preview flag and show link */}
-            {window.location.href.includes("preview") && (
-              <Link
-                className="button button--secondary button--lg"
-                onClick={() => {
-                  instance.loginRedirect(loginRequest);
-                }}
-              >
-                Sign in to run assessment →
-              </Link>
-            )}
+            <BrowserOnly>
+              {() => {
+                {
+                  window.location.href.includes("preview") && (
+                    <Link
+                      className="button button--secondary button--lg"
+                      onClick={() => {
+                        instance.loginRedirect(loginRequest);
+                      }}
+                    >
+                      Sign in to run assessment →
+                    </Link>
+                  );
+                }
+              }}
+            </BrowserOnly>
             <Link
               className="button button--secondary button--lg"
               href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
