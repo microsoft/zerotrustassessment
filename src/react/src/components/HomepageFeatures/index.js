@@ -5,13 +5,16 @@ import styles from './styles.module.css';
 const FeatureList = [
   {
     title: 'Step 1: Run assessment',
-    Svg: require('@site/static/img/step1.svg').default,
+    
     description: (
       <>
         Run this assessment to check tenant config and 
         download the roadmap templates that will be used during the workshops.
         <br/>
-        <code><a href="docs/app-permissions">App Permissions</a></code>
+        <code>
+          Install-Module ZeroTrustAssessment
+          Invoke-ZTAssessment
+        </code>
       </>
     ),
   },
@@ -39,7 +42,9 @@ function Feature({Svg, title, description}) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+      { Svg &&  <Svg className={styles.featureSvg} role="img" /> }
+      { !Svg &&  <img src="img/step1.png" /> }
+        
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
