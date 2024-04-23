@@ -31,7 +31,7 @@
       "name": ".NET Core Launch (PowerShell)",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "build",
+      "preLaunchTask": "buildps",
       "program": "pwsh",
       "args": [
         "-NoExit",
@@ -41,7 +41,7 @@
     ],
     "cwd": "${workspaceFolder}",
     "stopAtEntry": false,
-    "console": "externalTerminal"
+    "console": "integratedTerminal"
     },
     {
       "name": ".NET Core Attach",
