@@ -13,18 +13,18 @@
             ],
             "problemMatcher": "$msCompile"
         },
-        // {
-        //     "label": "build",
-        //     "command": "dotnet",
-        //     "type": "process",
-        //     "args": [
-        //         "build",
-        //         "${workspaceFolder}/src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.csproj",
-        //         "/property:GenerateFullPaths=true",
-        //         "/consoleloggerparameters:NoSummary"
-        //     ],
-        //     "problemMatcher": "$msCompile"
-        // },
+        {
+            "label": "buildps",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
         {
             "label": "publish",
             "command": "dotnet",
