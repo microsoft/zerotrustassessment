@@ -125,7 +125,7 @@
       {
         "id": "RMI_021_T_App",
         "title": "Migrate SSO for external ids (WAM & others)",
-        "description": "Migrate SSO configuration of applications for external identities (contractors, partners, vendors, etc.) from on-premises WAM Solutions like CA Siteminder to Azure AD",
+        "description": "Migrate SSO configuration of applications for external identities (contractors, partners, vendors, etc.) from on-premises WAM Solutions like CA Siteminder to Entra ID",
         "status": "Not started"
       },
       {
@@ -317,7 +317,7 @@
       {
         "id": "RMI_053_N_Users",
         "title": "Change provisioning flow of existing groups to Entra",
-        "description": "Not supported currently. For the onprem groups, switch their source of authority to Azure AD",
+        "description": "Not supported currently. For the onprem groups, switch their source of authority to Entra ID",
         "status": "MS Roadmap"
       },
       {
