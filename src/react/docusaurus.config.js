@@ -122,14 +122,10 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/microsoft/zerotrustassessment',
               },
-              {
-                label: 'Twitter',
-                href: 'https://x.com/merill',
-              },
             ],
           },
         ],
-        copyright: `Built for you by the Microsoft Security → Customer Acceleration Team (CAT) 🐱`,
+        copyright: `Built by the Microsoft Security → Customer Acceleration Team (CAT)`,
       },
       prism: {
         theme: prismThemes.github,
