@@ -40,8 +40,8 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "&${cwd}/src/powershell/ZeroTrustAssessment/build.ps1",
-            "args": ["-Tasks", "build"],
+            "command": "&${cwd}/build.ps1",
+            "args": [],
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -83,7 +83,7 @@
         {
             "label": "test",
             "type": "shell",
-            "command": "&${cwd}/src/powershell/ZeroTrustAssessment/build.ps1",
+            "command": "&${cwd}/build.ps1",
             "args": ["-AutoRestore","-Tasks","test"],
             "presentation": {
                 "echo": true,

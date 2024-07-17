@@ -1,0 +1,24 @@
+TOPIC
+    about_ZeroTrustAssessment
+
+SHORT DESCRIPTION
+    Perform a Zero Trust Assessment of your Microsoft 365 environment.
+
+LONG DESCRIPTION
+    Perform a Zero Trust Assessment of your Microsoft 365 environment.
+
+EXAMPLES
+    PS C:\> {{ add examples here }}
+
+NOTE:
+    Thank you to all those who contributed to this module, by writing code, sharing opinions, and provided feedback.
+
+TROUBLESHOOTING NOTE:
+    Look out on the Github repository for issues and new releases.
+
+SEE ALSO
+    - {{ Please add Project URI such as github }}}
+
+KEYWORDS
+    {{ Add comma separated keywords here }}
+

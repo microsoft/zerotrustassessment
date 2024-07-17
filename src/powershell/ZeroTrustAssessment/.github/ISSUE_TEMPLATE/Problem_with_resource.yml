@@ -1,0 +1,87 @@
+name: Problem with a resource
+description: If you have a problem, bug, or enhancement with a resource in this resource module.
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please prefix the issue title (above) with the resource name, e.g. 'ResourceName: Short description of my issue'!
+
+        Your feedback and support is greatly appreciated, thanks for contributing!
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: Details of the scenario you tried and the problem that is occurring.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Verbose logs
+      description: |
+        Verbose logs showing the problem. **NOTE! Sensitive information should be obfuscated.** _Will be automatically formatted as plain text._
+      placeholder: |
+        Paste verbose logs here
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: configuration
+    attributes:
+      label: DSC configuration
+      description: |
+        The DSC configuration that is used to reproduce the issue (as detailed as possible). **NOTE! Sensitive information should be obfuscated.** _Will be automatically formatted as PowerShell code._
+      placeholder: |
+        Paste DSC configuration here
+      render: powershell
+    validations:
+      required: true
+  - type: textarea
+    id: suggestedSolution
+    attributes:
+      label: Suggested solution
+      description: Do you have any suggestions how to solve the issue?
+    validations:
+      required: true
+  - type: textarea
+    id: targetNodeOS
+    attributes:
+      label: Operating system the target node is running
+      description: |
+        Please provide as much as possible about the target node, for example edition, version, build, and language. _Will be automatically formatted as plain text._
+
+        On OS with WMF 5.1 the following command can help get this information: `Get-ComputerInfo -Property @('OsName','OsOperatingSystemSKU','OSArchitecture','WindowsVersion','WindowsBuildLabEx','OsLanguage','OsMuiLanguages')`
+      placeholder: |
+        Add operating system information here
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: targetNodePS
+    attributes:
+      label: PowerShell version and build the target node is running
+      description: |
+        Please provide the version and build of PowerShell the target node is running. _Will be automatically formatted as plain text._
+
+        To help with this information, please run this command: `$PSVersionTable`
+      placeholder: |
+        Add PowerShell information here
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: moduleVersion
+    attributes:
+      label: ZeroTrustAssessment version
+      description: |
+        Please provide the version of the ZeroTrustAssessment module that was used. _Will be automatically formatted as plain text._
+
+        To help with this information, please run this command: `Get-Module -Name 'ZeroTrustAssessment' -ListAvailable | ft Name,Version,Path`
+      placeholder: |
+        Add module information here
+      render: text
+    validations:
+      required: true
+

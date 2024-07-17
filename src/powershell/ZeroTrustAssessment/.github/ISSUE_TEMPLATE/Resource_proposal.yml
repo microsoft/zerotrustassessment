@@ -1,0 +1,39 @@
+name: New resource proposal
+description: If you have a new resource proposal that you think should be added to this resource module.
+title: "NewResourceName: New resource proposal"
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please replace `NewResourceName` in the issue title (above) with your proposed resource name.
+
+        Thank you for contributing and making this resource module better!
+  - type: textarea
+    id: description
+    attributes:
+      label: Resource proposal
+      description: Provide information how this resource will/should work and how it will help users.
+    validations:
+      required: true
+  - type: textarea
+    id: proposedProperties
+    attributes:
+      label: Proposed properties
+      description: |
+        List all the proposed properties that the resource should have (key, required, write, and/or read). For each property provide a detailed description, the data type, if a default value should be used, and if the property is limited to a set of values.
+      value: |
+        Property | Type qualifier | Data type | Description | Default value | Allowed values
+        --- | --- | --- | --- | --- | ---
+        PropertyName | Key | String | Detailed description | None | None
+    validations:
+      required: true
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Special considerations or limitations
+      description: |
+        Provide any considerations or limitations you can think of that a contributor should take in account when coding the proposed resource, and or what limitations a user will encounter or should consider when using the proposed resource.
+    validations:
+      required: true
