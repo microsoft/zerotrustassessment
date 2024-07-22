@@ -69,7 +69,7 @@ Function Invoke-ZtGraphRequest
         [string] $OutputType = 'PSObject',
         # If specified, writes the raw results to disk
         [Parameter(Mandatory = $false)]
-        [string] $OutputFolder
+        [string] $OutputFilePath
     )
 
     begin
@@ -120,12 +120,11 @@ Function Invoke-ZtGraphRequest
         {
             if (!$DisablePaging -and $results)
             {
-                $pageNumber = 2
+                $pageIndex = 1
                 while (Get-ObjectProperty $results '@odata.nextLink')
                 {
-                    $filePath = [IO.Path]::Combine($OutputFolder, "$pageNumber.json")
-                    $pageNumber++
-                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $results.'@odata.nextLink' -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache -OutputFilePath $filePath
+                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $results.'@odata.nextLink' -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache -OutputFilePath $OutputFilePath -PageIndex $pageIndex
+                    $pageIndex++
                     Format-Result $results $DisablePaging
                 }
             }
@@ -201,7 +200,7 @@ Function Invoke-ZtGraphRequest
                 else
                 {
 
-                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache
+                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache -OutputFilePath $OutputFilePath
 
                     Format-Result $results $DisablePaging
                     Complete-Result $results $DisablePaging

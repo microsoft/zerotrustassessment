@@ -34,5 +34,7 @@ Function Get-ZtGraphScope {
         'UserAuthenticationMethod.Read.All'
     )
 
-    return $scopes
+    $exporterScopes = Get-EERequiredScopes -PermissionType Delegated
+
+    return $scopes + $exporterScopes | Sort-Object -Unique
 }

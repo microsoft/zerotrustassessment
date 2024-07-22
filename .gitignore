@@ -402,3 +402,4 @@ FodyWeavers.xsd
 
 .DS_Store
 /output
+/src/powershell/export
