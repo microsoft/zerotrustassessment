@@ -1,28 +1,14 @@
 {
-  "version": "0.2.0",
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.1",
   "configurations": [
-    // {
-    //   "name": "PowerShell: Module Interactive Session",
-    //   "type": "PowerShell",
-    //   "request": "launch",
-    //   "preLaunchTask": "build",
-    //   "program": "pwsh",
-    //   "args": [
-    //     "-NoExit",
-    //     "-NoProfile",
-    //     "-Command",
-    //     "Import-Module ${workspaceFolder}/src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.psd1",
-    // ],
-    // "cwd": "${workspaceFolder}",
-    // "stopAtEntry": false,
-    // "console": "integratedTerminal"
-    // },
     {
       "name": "PowerShell: Module Interactive Session",
       "type": "PowerShell",
       "request": "launch",
-      "preLaunchTask": "build",
-      "script": "Import-Module -Force '${workspaceFolder}/src/powershell/ZeroTrustAssessment/output/module/ZeroTrustAssessment/0.0.1/ZeroTrustAssessment.psd1'"
+      "script": "Import-Module -Force '${workspaceFolder}/src/powershell/ZeroTrustAssessment.psd1'"
     }
   ]
 }

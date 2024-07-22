@@ -1,12 +1,12 @@
 BeforeAll {
-    $script:dscModuleName = 'ZeroTrustAssessment'
+    $script:moduleName = 'ZeroTrustAssessment'
 
-    Import-Module -Name $script:dscModuleName
+    Import-Module -Name $script:moduleName
 }
 
 AfterAll {
     # Unload the module being tested so that it doesn't impact any other tests.
-    Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
+    Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
 Describe Get-Something {
@@ -14,7 +14,7 @@ Describe Get-Something {
         Mock -CommandName Get-PrivateFunction -MockWith {
             # This return the value passed to the Get-PrivateFunction parameter $PrivateData.
             $PrivateData
-        } -ModuleName $dscModuleName
+        } -ModuleName $moduleName
     }
 
     Context 'When passing values using named parameters' {
@@ -88,4 +88,3 @@ Describe Get-Something {
         }
     }
 }
-

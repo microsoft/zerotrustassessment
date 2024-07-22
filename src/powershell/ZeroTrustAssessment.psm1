@@ -1,12 +1,13 @@
-﻿<#
-.DISCLAIMER
-	THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-	PARTICULAR PURPOSE.
+﻿Add-Type -Path "$PSScriptRoot\lib\DuckDB.NET.Data.dll"
 
-	Copyright (c) Microsoft Corporation. All rights reserved.
-#>
+## Initialize Module Variables
+## Update Clear-ModuleVariable function in private/Clear-ModuleVariable.ps1 if you add new variables here
+$__ZtSession = @{
+	GraphCache = @{}
+	GraphBaseUri = $null
+}
+New-Variable -Name __ZtSession -Value $__ZtSession -Scope Script -Force
+
 
 # Import private and public scripts and expose the public ones
 $privateScripts = @(Get-ChildItem -Path "$PSScriptRoot\private" -Recurse -Filter "*.ps1")
