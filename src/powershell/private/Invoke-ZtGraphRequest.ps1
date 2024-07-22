@@ -22,7 +22,8 @@
     Get all users with a display name of "John Doe" and return the first 10 results.
 
 #>
-Function Invoke-ZtGraphRequest {
+Function Invoke-ZtGraphRequest
+{
     [CmdletBinding()]
     param(
         # Graph endpoint such as "users".
@@ -71,9 +72,12 @@ Function Invoke-ZtGraphRequest {
         [string] $OutputFolder
     )
 
-    begin {
-        if ([string]::IsNullOrEmpty($GraphBaseUri)) {
-            if ([string]::IsNullOrEmpty($__ZtSession.GraphBaseUri)) {
+    begin
+    {
+        if ([string]::IsNullOrEmpty($GraphBaseUri))
+        {
+            if ([string]::IsNullOrEmpty($__ZtSession.GraphBaseUri))
+            {
                 Write-Verbose -Message "Setting GraphBaseUri to default value from MgContext."
                 $__ZtSession.GraphBaseUri = $((Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint)
             }
@@ -82,67 +86,109 @@ Function Invoke-ZtGraphRequest {
 
         $listRequests = New-Object 'System.Collections.Generic.List[psobject]'
 
-        function Format-Result ($results, $RawOutput) {
-            if (!$RawOutput -and $results -and (Get-ObjectProperty $results 'value')) {
+        function Format-Result ($results, $RawOutput)
+        {
+            if (!$RawOutput -and $results -and (Get-ObjectProperty $results 'value'))
+            {
                 $dataContextName = '@odata.context'
-                foreach ($result in $results.value) {
-                    if ($result -is [hashtable]) {
-                        if (!$result.ContainsKey($dataContextName)) {
+                foreach ($result in $results.value)
+                {
+                    if ($result -is [hashtable])
+                    {
+                        if (!$result.ContainsKey($dataContextName))
+                        {
                             $result.Add($dataContextName, ('{0}/$entity' -f $results.'@odata.context'))
                         }
-                    } else {
-                        if (![bool]$results.PSObject.Properties[$dataContextName]) {
+                    }
+                    else
+                    {
+                        if (![bool]$results.PSObject.Properties[$dataContextName])
+                        {
                             $result | Add-Member -MemberType NoteProperty -Name $dataContextName -Value ('{0}/$entity' -f $results.'@odata.context')
                         }
                     }
                     Write-Output $result
                 }
-            } else { Write-Output $results }
+            }
+            else
+            {
+                Write-Output $results
+            }
         }
 
-        function Complete-Result ($results, $DisablePaging) {
-            if (!$DisablePaging -and $results) {
-                while (Get-ObjectProperty $results '@odata.nextLink') {
-                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $results.'@odata.nextLink' -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache
+        function Complete-Result ($results, $DisablePaging)
+        {
+            if (!$DisablePaging -and $results)
+            {
+                $pageNumber = 2
+                while (Get-ObjectProperty $results '@odata.nextLink')
+                {
+                    $filePath = [IO.Path]::Combine($OutputFolder, "$pageNumber.json")
+                    $pageNumber++
+                    $results = Invoke-ZtGraphRequestCache -Method GET -Uri $results.'@odata.nextLink' -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache -OutputFilePath $filePath
                     Format-Result $results $DisablePaging
                 }
             }
         }
     }
 
-    process {
+    process
+    {
         ## Initialize
         $results = $null
 
-        if (!$UniqueId) { [string[]] $UniqueId = '' }
-        if ($DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1)) {
+        if (!$UniqueId)
+        {
+            [string[]] $UniqueId = ''
+        }
+        if ($DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1))
+        {
             Write-Warning ('This command is invoking {0} individual Graph requests. For better performance, remove the -DisableBatching parameter.' -f ($RelativeUri.Count * $UniqueId.Count))
         }
 
         ## Process Each RelativeUri
-        foreach ($uri in $RelativeUri) {
+        foreach ($uri in $RelativeUri)
+        {
             $uriQueryEndpoint = New-Object System.UriBuilder -ArgumentList ([IO.Path]::Combine($GraphBaseUri.AbsoluteUri, $ApiVersion, $uri))
 
             ## Combine query parameters from URI and cmdlet parameters
-            if ($uriQueryEndpoint.Query) {
+            if ($uriQueryEndpoint.Query)
+            {
                 [hashtable] $finalQueryParameters = ConvertFrom-QueryString $uriQueryEndpoint.Query -AsHashtable
-                if ($QueryParameters) {
-                    foreach ($ParameterName in $QueryParameters.Keys) {
+                if ($QueryParameters)
+                {
+                    foreach ($ParameterName in $QueryParameters.Keys)
+                    {
                         $finalQueryParameters[$ParameterName] = $QueryParameters[$ParameterName]
                     }
                 }
-            } elseif ($QueryParameters) { [hashtable] $finalQueryParameters = $QueryParameters }
-            else { [hashtable] $finalQueryParameters = @{ } }
-            if ($Select) { $finalQueryParameters['$select'] = $Select -join ',' }
-            if ($Filter) { $finalQueryParameters['$filter'] = $Filter }
+            }
+            elseif ($QueryParameters)
+            {
+                [hashtable] $finalQueryParameters = $QueryParameters
+            }
+            else
+            {
+                [hashtable] $finalQueryParameters = @{ }
+            }
+            if ($Select)
+            {
+                $finalQueryParameters['$select'] = $Select -join ','
+            }
+            if ($Filter)
+            {
+                $finalQueryParameters['$filter'] = $Filter
+            }
             $uriQueryEndpoint.Query = ConvertTo-QueryString $finalQueryParameters
 
             ## Invoke graph requests individually or save for single batch request
-            foreach ($id in $UniqueId) {
+            foreach ($id in $UniqueId)
+            {
                 $uriQueryEndpointFinal = New-Object System.UriBuilder -ArgumentList $uriQueryEndpoint.Uri
                 $uriQueryEndpointFinal.Path = ([IO.Path]::Combine($uriQueryEndpointFinal.Path, $id))
 
-                if (!$DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1)) {
+                if (!$DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1))
+                {
                     ## Create batch request entry
                     $request = New-Object PSObject -Property @{
                         id      = $listRequests.Count #(New-Guid).ToString()
@@ -151,7 +197,9 @@ Function Invoke-ZtGraphRequest {
                         headers = @{ ConsistencyLevel = $ConsistencyLevel }
                     }
                     $listRequests.Add($request)
-                } else {
+                }
+                else
+                {
 
                     $results = Invoke-ZtGraphRequestCache -Method GET -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri -Headers @{ ConsistencyLevel = $ConsistencyLevel } -OutputType $OutputType -DisableCache:$DisableCache
 
@@ -162,10 +210,13 @@ Function Invoke-ZtGraphRequest {
         }
     }
 
-    end {
-        if ($listRequests.Count -gt 0) {
+    end
+    {
+        if ($listRequests.Count -gt 0)
+        {
             $uriQueryEndpoint = New-Object System.UriBuilder -ArgumentList ([IO.Path]::Combine($GraphBaseUri.AbsoluteUri, $ApiVersion, '$batch'))
-            for ($iRequest = 0; $iRequest -lt $listRequests.Count; $iRequest += $BatchSize) {
+            for ($iRequest = 0; $iRequest -lt $listRequests.Count; $iRequest += $BatchSize)
+            {
                 $indexEnd = [System.Math]::Min($iRequest + $BatchSize - 1, $listRequests.Count - 1)
                 $jsonRequests = New-Object psobject -Property @{ requests = $listRequests[$iRequest..$indexEnd] } | ConvertTo-Json -Depth 5
                 Write-Debug $jsonRequests
@@ -173,7 +224,8 @@ Function Invoke-ZtGraphRequest {
                 $resultsBatch = Invoke-ZtGraphRequestCache -Method POST -Uri $uriQueryEndpoint.Uri.AbsoluteUri -Body $jsonRequests -OutputType $OutputType -DisableCache:$DisableCache
                 $resultsBatch = $resultsBatch.responses | Sort-Object -Property id
 
-                foreach ($results in ($resultsBatch.body)) {
+                foreach ($results in ($resultsBatch.body))
+                {
                     Format-Result $results $DisablePaging
                     Complete-Result $results $DisablePaging
                 }
