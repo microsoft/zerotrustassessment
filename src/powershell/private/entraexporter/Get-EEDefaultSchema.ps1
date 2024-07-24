@@ -973,6 +973,24 @@ function Get-EEDefaultSchema  {
             ApiVersion = 'beta'
             Tag = @('All', 'Reports', 'UsersRegisteredByFeatureReport')
             DelegatedPermission = 'AuditLog.Read.All'
+        },
+
+        # SignIns
+        @{
+            GraphUri = 'auditLogs/signIns'
+            Path = 'AuditLogs/SignIns'
+            ApiVersion = 'beta'
+            Tag = @('All', 'AuditLogs')
+            DelegatedPermission = 'AuditLog.Read.All'
+        },
+        # DirectoryAudits
+        @{
+            GraphUri = 'auditLogs/directoryaudits'
+            Path = 'AuditLogs/DirectoryAudits'
+            ApiVersion = 'beta'
+            Tag = @('All', 'AuditLogs')
+            DelegatedPermission = 'AuditLog.Read.All', 'Directory.ReadWrite.All'
         }
+
     )
 }

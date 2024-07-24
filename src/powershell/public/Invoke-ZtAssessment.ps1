@@ -29,8 +29,8 @@ function Invoke-ZtAssessment
     Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
 
     Write-Verbose 'Creating report folder $OutputFolder'
-    Remove-Item $OutputFolder -Recurse -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Path $OutputFolder -ErrorAction Stop
+    Remove-Item $OutputFolder -Recurse -ErrorAction SilentlyContinue | Out-Null
+    New-Item -ItemType Directory -Path $OutputFolder -ErrorAction Stop | Out-Null
 
     Export-TenantData -OutputFolder $OutputFolder
 

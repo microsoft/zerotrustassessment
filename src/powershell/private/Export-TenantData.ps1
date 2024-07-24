@@ -18,6 +18,6 @@ function Export-TenantData {
         $OutputFolder
     )
 
-    Export-Entra -Path $OutputFolder
+    Export-Entra -Path $OutputFolder -Type AuditLogs
 
 }
