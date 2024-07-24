@@ -18,6 +18,10 @@ function Export-TenantData {
         $OutputFolder
     )
 
-    Export-Entra -Path $OutputFolder -Type AuditLogs
+    Export-Entra -Path $OutputFolder -Type Config
+
+    $entraDbPath = Join-Path $OutputFolder "Entra.db"
+    Write-Verbose "Database path: $entraDbPath"
+    New-EntraDatabase -Path $entraDbPath -ExportedFolder $OutputFolder
 
 }

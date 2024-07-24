@@ -15,6 +15,7 @@ function Get-EEDefaultSchema  {
         # Organization
         @{
             GraphUri = 'organization'
+            Table = 'organization'
             Path = 'Organization/Organization.json'
             Tag = @('All', 'Config', 'Organization')
             DelegatedPermission = 'Directory.Read.All'
