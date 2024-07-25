@@ -32,11 +32,21 @@ function Invoke-ZtAssessment
     Remove-Item $OutputFolder -Recurse -ErrorAction SilentlyContinue | Out-Null
     New-Item -ItemType Directory -Path $OutputFolder -ErrorAction Stop | Out-Null
 
-    Export-TenantData -OutputFolder $OutputFolder
+    # Export-TenantData -OutputFolder $OutputFolder
 
-    # Create database
-    $dbPath = Join-Path $OutputFolder "ZeroTrustAssessment.db"
-    $db = New-ZtDbConnection -Path $dbPath
+    # # Create database
+    # $dbPath = Join-Path $OutputFolder "ZeroTrustAssessment.db"
+    # $db = New-ZtDbConnection -Path $dbPath
 
+    # $assessmentResults = Get-ZtAssessmentResults $ TODO:
 
+    #Write-ZtProgress -Activity "Creating html report"
+    $assessmentResults = @("Test1", "Test2", "Test3")
+    $htmlReportPath = Join-Path $OutputFolder "ZeroTrustAssessmentReport.html"
+    $output = Get-HtmlReport -AssessmentResults $assessmentResults
+    $output | Out-File -FilePath $htmlReportPath -Encoding UTF8
+
+    Write-Host "🛡️ Zero Trust Assessmet report generated at $htmlReportPath" -ForegroundColor Green
+
+    Invoke-Item $htmlReportPath | Out-Null
 }
