@@ -15,13 +15,9 @@ function Export-TenantData {
         # The folder to output the report to.
         [string]
         [Parameter(Mandatory = $true)]
-        $OutputFolder
+        $Path
     )
 
-    Export-Entra -Path $OutputFolder -Type Config
-
-    $entraDbPath = Join-Path $OutputFolder "Entra.db"
-    Write-Verbose "Database path: $entraDbPath"
-    New-EntraDatabase -Path $entraDbPath -ExportedFolder $OutputFolder
-
+    Export-ServicePrincipals -Path $Path
+    #Export-Entra -Path $OutputFolder -Type Config
 }

@@ -38,7 +38,9 @@ Function Invoke-ZtGraphRequest
         # Filters results (rows). https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter
         [Parameter(Mandatory = $false)]
         [string] $Filter,
-        # Parameters such as "$top".
+        [Parameter(Mandatory = $false)]
+        [string] $Top,
+        # Parameters
         [Parameter(Mandatory = $false)]
         [hashtable] $QueryParameters,
         # API Version.
@@ -177,6 +179,10 @@ Function Invoke-ZtGraphRequest
             if ($Filter)
             {
                 $finalQueryParameters['$filter'] = $Filter
+            }
+            if($Top)
+            {
+                $finalQueryParameters['$top'] = $Top
             }
             $uriQueryEndpoint.Query = ConvertTo-QueryString $finalQueryParameters
 
