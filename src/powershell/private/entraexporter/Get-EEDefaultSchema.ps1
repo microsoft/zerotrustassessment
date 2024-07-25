@@ -23,12 +23,14 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'organization/{0}/branding/localizations' -f $TenantID
+            Table = 'organizationalBrandingLocalization'
             Path = 'Organization/Branding/Localizations.json'
             Tag = @('All', 'Config', 'Organization')
             DelegatedPermission = 'User.Read.All'
         },
         @{
             GraphUri = 'organization/{0}/certificateBasedAuthConfiguration' -f $TenantID
+            Table = 'certificateBasedAuthConfiguration'
             Path = 'Organization/CertificateBasedAuthConfiguration.json'
             Tag = @('All', 'Config', 'Organization')
             DelegatedPermission = 'Organization.Read.All'
@@ -36,12 +38,14 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'directory/onPremisesSynchronization/{0}' -f $TenantID
+            Table = 'onPremisesSynchronization'
             Path = 'Directory/OnPremisesSynchronization.json'
             Tag = @('All', 'Config', 'Directory')
             DelegatedPermission = 'OnPremDirectorySynchronization.Read.All'
         },
         @{
             GraphUri = 'domains'
+            Table = 'domains'
             Path = 'Domains'
             Tag = @('All', 'Config','Domains')
             DelegatedPermission = 'Directory.Read.All'
@@ -49,6 +53,7 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'identity/apiConnectors'
+            Table = 'apiConnectors'
             Path = 'Identity/APIConnectors'
             ApiVersion = 'beta'
             IgnoreError = 'The feature self service sign up is not enabled for the tenant'
@@ -58,12 +63,14 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'identityProviders'
+            Table = 'identityProviders'
             Path = 'IdentityProviders'
             Tag = @('All', 'Config', 'Identity')
             DelegatedPermission = 'IdentityProvider.Read.All'
         },
         @{
             GraphUri = 'subscribedSkus'
+            Table = 'subscribedSkus'
             Path = 'SubscribedSkus'
             Tag = @('All', 'Config', 'SKUs')
             DelegatedPermission = 'Directory.Read.All'
@@ -71,6 +78,7 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'directoryRoles'
+            Table = 'directoryRoles'
             Path = 'DirectoryRoles'
             Tag = @('All', 'Config', 'Roles')
             DelegatedPermission = 'Directory.Read.All'
@@ -78,6 +86,7 @@ function Get-EEDefaultSchema  {
             Children = @(
                 @{
                     GraphUri = 'directoryRoles/{id}/members'
+                    Table = 'directoryRoleMembers'
                     Select = 'id, userPrincipalName, displayName'
                     Path = 'Members'
                     Tag = @('All', 'Config', 'Roles')
@@ -85,7 +94,8 @@ function Get-EEDefaultSchema  {
                     ApplicationPermission = 'Directory.Read.All'
                 }
                 @{
-                    GraphUri = 'directoryroles/{id}/scopedMembers'
+                    GraphUri = 'directoryRoles/{id}/scopedMembers'
+                    Table = 'directoryRoleScopedMembers'
                     Path = 'ScopedMembers'
                     Tag = @('All', 'Config', 'Roles')
                     DelegatedPermission = 'Directory.Read.All'
@@ -97,6 +107,7 @@ function Get-EEDefaultSchema  {
         # B2C
         @{
             GraphUri = 'identity/userFlows'
+            Table = 'userFlows'
             Path = 'Identity/UserFlows'
             Tag = @('B2C')
             DelegatedPermission = 'IdentityUserFlow.Read.All'
@@ -145,6 +156,7 @@ function Get-EEDefaultSchema  {
         # B2B
         @{
             GraphUri = 'identity/userFlowAttributes'
+            Table = 'userFlowAttributes'
             Path = 'Identity/UserFlowAttributes'
             ApiVersion = 'beta'
             Tag = @('Config', 'B2B', 'B2C')
@@ -154,6 +166,7 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'identity/b2xUserFlows'
+            Table = 'b2xUserFlows'
             Path = 'Identity/B2XUserFlows'
             ApiVersion = 'beta'
             Tag = @('All', 'Config', 'B2B')
@@ -162,6 +175,7 @@ function Get-EEDefaultSchema  {
             Children = @(
                 @{
                     GraphUri = 'identity/b2xUserFlows/{id}/identityProviders'
+                    Table = 'identityProviders'
                     Path = 'IdentityProviders'
                     ApiVersion = 'beta'
                     Tag = @('All', 'Config', 'B2B')
@@ -200,6 +214,7 @@ function Get-EEDefaultSchema  {
         # Policies
         @{
             GraphUri = 'policies/identitySecurityDefaultsEnforcementPolicy'
+            Table = 'identitySecurityDefaultsEnforcementPolicy'
             Path =  'Policies/IdentitySecurityDefaultsEnforcementPolicy'
             Tag = @('All', 'Config', 'Policies')
             DelegatedPermission = 'Policy.Read.All'
@@ -207,6 +222,7 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'policies/authorizationPolicy'
+            Table = 'authorizationPolicy'
             Path = 'Policies/AuthorizationPolicy'
             Tag = @('All', 'Config', 'Policies')
             DelegatedPermission = 'Policy.Read.All'
@@ -214,12 +230,14 @@ function Get-EEDefaultSchema  {
         },
         @{
             GraphUri = 'policies/featureRolloutPolicies'
+            Table = 'featureRolloutPolicies'
             Path = 'Policies/FeatureRolloutPolicies'
             Tag = @('All', 'Config', 'Policies')
             DelegatedPermission = 'Directory.ReadWrite.All'
         },
         @{
             GraphUri = 'policies/activityBasedTimeoutPolicies'
+            Table = 'activityBasedTimeoutPolicies'
             Path = 'Policies/ActivityBasedTimeoutPolicy'
             Tag = @('All', 'Config', 'Policies')
             DelegatedPermission = 'Policy.Read.All'
