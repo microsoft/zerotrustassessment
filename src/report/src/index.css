@@ -8,3 +8,7 @@
   font-style: normal;
   font-weight: 100 900;
 }
+
+.text-tremor-content-strong {
+  --tw-text-opacity: null;
+}
