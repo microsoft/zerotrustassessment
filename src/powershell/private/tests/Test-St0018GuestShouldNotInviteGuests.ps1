@@ -5,7 +5,6 @@
 
 function Test-St0018GuestShouldNotInviteGuests{
     [CmdletBinding()]
-    [OutputType([bool])]
     param()
 
     $result = Invoke-ZtGraphRequest -RelativeUri "policies/authorizationPolicy" -ApiVersion v1.0
@@ -18,5 +17,4 @@ function Test-St0018GuestShouldNotInviteGuests{
         $testResultMarkdown = "Tenant allows any user (including other guests) to invite guests."
     }
     Add-ZtTestResultDetail -TestId 'ST0018' -Title 'Guests should not invite other guests' -Result $testResultMarkdown
-    return $testResult
 }

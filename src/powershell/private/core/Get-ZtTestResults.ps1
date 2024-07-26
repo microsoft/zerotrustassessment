@@ -23,7 +23,7 @@ function Get-ZtTestResults {
         Account        = $account
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
-        Tests          = $__MtSession.TestResultDetail
+        Tests          = $__ZtSession.TestResultDetail.values
     }
 
     return $ztTestResults

@@ -23,7 +23,7 @@ function Invoke-ZtAssessment
 
     $banner = @"
 +-------------------------------------------------------------+
-| Microsoft Zero Trust Assessment v1.0                        |
+| Microsoft Zero Trust Assessment v2.0                        |
 +-------------------------------------------------------------+
 "@
     Write-Host $banner -ForegroundColor Cyan
