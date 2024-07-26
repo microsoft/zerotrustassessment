@@ -20,4 +20,8 @@ function Export-TenantData {
 
     Export-ServicePrincipals -Path $Path
     #Export-Entra -Path $OutputFolder -Type Config
+
+    # Create database
+    # $dbPath = Join-Path $Path "ZeroTrustAssessment.db"
+    # $db = New-ZtDbConnection -Path $dbPath
 }

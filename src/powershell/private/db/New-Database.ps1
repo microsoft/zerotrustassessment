@@ -1,4 +1,8 @@
-﻿Function New-ZtDbConnection {
+﻿<#
+.SYNOPSIS
+    Creates a new database connection at the specified path.
+#>
+function New-Database {
     [CmdletBinding()]
     param (
         [string]$Path = ":memory:"
