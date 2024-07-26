@@ -16,5 +16,5 @@ function Test-St0018GuestShouldNotInviteGuests{
     } else {
         $testResultMarkdown = "Tenant allows any user (including other guests) to invite guests."
     }
-    Add-ZtTestResultDetail -TestId 'ST0018' -Title 'Guests should not invite other guests' -Result $testResultMarkdown
+    Add-ZtTestResultDetail -TestId 'ST0018' -Title 'Guests should not invite other guests' -Impact High -Likelihood HighlyLikely -AppliesTo Entra -Tag ExternalCollaboration -Result $testResultMarkdown
 }

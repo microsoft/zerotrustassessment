@@ -64,7 +64,19 @@ Function Add-ZtTestResultDetail {
         [ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
             'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', "LicensedEntraIDPremium", 'NotSupported'
         )]
-        [string] $SkippedBecause
+        [string] $SkippedBecause,
+
+        [ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
+        [string] $Impact,
+
+        [ValidateSet('Unlikely', 'Possible', 'Likely', 'HighlyLikely')]
+        [string] $Likelihood,
+
+        [ValidateSet('Entra', 'Intune', 'Purview')]
+        [string[]] $AppliesTo,
+
+        [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application', 'User', 'PrivilegedIdentity', 'ConditionalAccess')]
+        [string[]] $Tag
     )
 
     $hasGraphResults = $GraphObjects -and $GraphObjectType
@@ -111,6 +123,10 @@ Function Add-ZtTestResultDetail {
     $testInfo = @{
         TestId          = $TestId
         TestTitle       = $Title
+        TestTags        = $Tag
+        TestAppliesTo   = $AppliesTo
+        TestImpact      = $Impact
+        TestLikelihood  = $Likelihood
         TestDescription = $Description
         TestResult      = $Result
         TestSkipped     = $SkippedBecause
