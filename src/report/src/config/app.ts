@@ -6,7 +6,7 @@ interface AppConfig {
     },
 }
 
-export const appConfig: AppConfig = {
+export const ztAppConfig: AppConfig = {
     name: "Zero Trust Assessment",
     github: {
         title: "GitHub",

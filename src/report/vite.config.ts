@@ -13,6 +13,10 @@ export default defineConfig(({ command }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    esbuild: {
+      minifyIdentifiers: false,
+      keepNames: true,
+    },
     define: {
       global: {
         basename: '',

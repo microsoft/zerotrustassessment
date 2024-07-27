@@ -63,7 +63,7 @@ function Invoke-ZtAssessment
 
     Write-ZtProgress -Activity "Creating html report"
     $htmlReportPath = Join-Path $Path "ZeroTrustAssessmentReport.html"
-    $output = Get-HtmlReport -AssessmentResults $assessmentResultsJson
+    $output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
     $output | Out-File -FilePath $htmlReportPath -Encoding UTF8
 
     Write-Host

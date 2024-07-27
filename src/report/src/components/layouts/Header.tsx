@@ -3,7 +3,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Icons } from "@/components/icons";
-import { appConfig } from "@/config/app";
+import { ztAppConfig } from "@/config/app";
+import { reportData } from "@/config/report-data";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -13,7 +14,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { mainMenu } from "@/config/menu";
 import { ChevronDownIcon, ViewVerticalIcon } from "@radix-ui/react-icons";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
@@ -23,7 +23,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export function Header() {
     const [open, setOpen] = useState(false)
     const location = useLocation();
-
+    console.log(reportData);
     return (
         <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur">
             <div className="container px-4 md:px-8 flex h-14 items-center">
@@ -157,7 +157,7 @@ export function Header() {
                 </Sheet>
                 <a href="/" className="mr-6 flex items-center space-x-2 md:hidden">
                     <Icons.logo className="h-6 w-6" />
-                    <span className="font-bold inline-block">{appConfig.name}</span>
+                    <span className="font-bold inline-block">{ztAppConfig.name}</span>
                 </a>
                 {/* right */}
                 <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -166,8 +166,8 @@ export function Header() {
                     </div>
                     <nav className="flex items-center space-x-2">
                         <a
-                            href={appConfig.github.url}
-                            title={appConfig.github.title}
+                            href={ztAppConfig.github.url}
+                            title={ztAppConfig.github.title}
                             target="_blank"
                             rel="noreferrer">
                             <div
@@ -181,27 +181,61 @@ export function Header() {
                                 <span className="sr-only">GitHub</span>
                             </div>
                         </a>
+                    </nav>
+                    <nav className="flex items-center space-x-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant='ghost'
-                                    className='relative h-8 w-8 rounded-full'>
-                                    <Avatar className='h-8 w-8'>
-                                        <AvatarFallback>SC</AvatarFallback>
-                                    </Avatar>
+                                    className='relative h-8'>
+                                    {reportData.TenantName}
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className='w-56' align='end' forceMount>
+                            <DropdownMenuContent className='w-100' align='end' forceMount>
                                 <DropdownMenuLabel className='font-normal'>
                                     <div className='flex flex-col space-y-1'>
-                                        <p className='text-sm font-medium leading-none'>shadcn</p>
+                                        <p className='text-sm font-medium leading-none'>Tenant</p>
                                         <p className='text-xs leading-none text-muted-foreground'>
-                                            m@example.com
+                                            {reportData.Domain}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuLabel className='font-normal'>
+                                    <div className='flex flex-col space-y-1'>
+                                        <p className='text-sm font-medium leading-none'>Tenant ID</p>
+                                        <p className='text-xs leading-none text-muted-foreground'>
+                                            {reportData.TenantId}
                                         </p>
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>Log out</DropdownMenuItem>
+                                <DropdownMenuLabel className='font-normal'>
+                                    <div className='flex flex-col space-y-1'>
+                                        <p className='text-sm font-medium leading-none'>Assessment generated by</p>
+                                        <p className='text-xs leading-none text-muted-foreground'>
+                                            {reportData.Account}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className='font-normal'>
+                                    <div className='flex flex-col space-y-1'>
+                                        <p className='text-sm font-medium leading-none'>Assessment run on</p>
+                                        <p className='text-xs leading-none text-muted-foreground'>
+                                            {new Date(reportData.ExecutedAt).toLocaleDateString("en", { day: 'numeric', month: 'long', year: 'numeric', hour12: true, hour: 'numeric', minute: 'numeric' })}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className='font-normal'>
+                                    <div className='flex flex-col space-y-1'>
+                                        <p className='text-sm font-medium leading-none'>Version</p>
+                                        <p className='text-xs leading-none text-muted-foreground'>
+                                            {reportData.CurrentVersion}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </nav>

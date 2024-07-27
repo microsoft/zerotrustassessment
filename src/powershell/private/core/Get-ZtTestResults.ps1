@@ -10,7 +10,7 @@ function Get-ZtTestResults {
     $mgContext = Get-MgContext
 
     $tenantId = $mgContext.TenantId
-    $tenantName = GetTenantName
+    $org = GetOrganization
     $account = $mgContext.Account
 
     $currentVersion = ((Get-Module -Name ZeroTrustAssessment).Version | Select-Object -Last 1).ToString()
@@ -19,7 +19,8 @@ function Get-ZtTestResults {
     $ztTestResults = [PSCustomObject]@{
         ExecutedAt     = GetFormattedDate(Get-Date)
         TenantId       = $tenantId
-        TenantName     = $tenantName
+        TenantName     = $org.TenantName
+        Domain         = $org.Domain
         Account        = $account
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
@@ -46,7 +47,11 @@ function GetFormattedDate($date) {
     }
 }
 
-function GetTenantName() {
+function GetOrganization() {
     $org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-    return $org.DisplayName
+    $defaultDomain = $org.verifiedDomains | Where-Object { $_.isDefault } | Select-Object -First 1
+    return [PSCustomObject]@{
+        TenantName = $org.displayName
+        Domain     = $defaultDomain.name
+    }
 }
