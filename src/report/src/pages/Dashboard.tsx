@@ -607,29 +607,29 @@ export default function Dashboard() {
                         <CardContent className="flex gap-4 p-4">
                             <div className="grid items-center gap-2">
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Move</div>
+                                    <div className="text-sm text-muted-foreground">Identity</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        562/600
+                                        20/32
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            kcal
+                                            checks
                                         </span>
                                     </div>
                                 </div>
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Exercise</div>
+                                    <div className="text-sm text-muted-foreground">Devices</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        73/120
+                                        15/20
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            min
+                                            checks
                                         </span>
                                     </div>
                                 </div>
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Stand</div>
+                                    <div className="text-sm text-muted-foreground">Data</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
                                         8/12
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            hr
+                                            checks
                                         </span>
                                     </div>
                                 </div>
@@ -661,17 +661,17 @@ export default function Dashboard() {
                                     data={[
                                         {
                                             activity: "stand",
-                                            value: (8 / 12) * 100,
+                                            value: (20 / 32) * 100,
                                             fill: "var(--color-stand)",
                                         },
                                         {
                                             activity: "exercise",
-                                            value: (46 / 60) * 100,
+                                            value: (15 / 20) * 100,
                                             fill: "var(--color-exercise)",
                                         },
                                         {
                                             activity: "move",
-                                            value: (245 / 360) * 100,
+                                            value: (8 / 12) * 100,
                                             fill: "var(--color-move)",
                                         },
                                     ]}
