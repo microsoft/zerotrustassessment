@@ -4,8 +4,12 @@ import { Applayout } from "./components/layouts/AppLayout";
 
 import NoMatch from "./pages/NoMatch";
 import Dashboard from "./pages/Dashboard";
-import Empty from "./pages/Empty";
-import Sample from "./pages/Sample";
+import Identity from "./pages/Identity";
+import Devices from "./pages/Devices";
+import Apps from "./pages/Apps";
+import Network from "./pages/Network";
+import Infrastructure from "./pages/Infrastructure";
+import Data from "./pages/Data";
 
 export const router = createHashRouter([
     {
@@ -17,12 +21,28 @@ export const router = createHashRouter([
                 element: <Dashboard />,
             },
             {
-                path: "sample",
-                element: <Sample />,
+                path: "identity",
+                element: <Identity />,
             },
             {
-                path: "empty",
-                element: <Empty />,
+                path: "devices",
+                element: <Devices />,
+            },
+            {
+                path: "apps",
+                element: <Apps />,
+            },
+            {
+                path: "network",
+                element: <Network />,
+            },
+            {
+                path: "infrastructure",
+                element: <Infrastructure />,
+            },
+            {
+                path: "data",
+                element: <Data />,
             },
         ],
     },
