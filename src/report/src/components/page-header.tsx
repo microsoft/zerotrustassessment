@@ -40,6 +40,7 @@ function PageHeaderDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
+
     <Balance
       className={cn(
         "max-w-[750px] text-lg text-muted-foreground sm:text-xl",
