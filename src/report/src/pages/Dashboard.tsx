@@ -1,5 +1,5 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-
+import { ZtResponsiveSankey } from "@/components/nivo/sankey";
 import {
     Area,
     AreaChart,
@@ -17,6 +17,7 @@ import {
     ReferenceLine,
     XAxis,
     YAxis,
+    Sankey
 } from "recharts"
 
 import {
@@ -33,8 +34,14 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
+import { useContext } from 'react';
+import { ThemeProviderContext } from '@/contexts/ThemeContext'
 
 export default function Dashboard() {
+    const theme = useContext(ThemeProviderContext);
+
+    const checkIsDarkSchemePreferred = () => window?.matchMedia?.('(prefers-color-scheme:dark)')?.matches ?? false;
+
     return (
         <>
             <PageHeader>
@@ -43,6 +50,77 @@ export default function Dashboard() {
             <div className="chart-wrapper mx-auto flex max-w-6xl flex-col flex-wrap items-start justify-center gap-6 sm:flex-row">
 
                 <div className="grid w-full gap-6 sm:grid-cols-2 lg:max-w-[22rem] lg:grid-cols-1 xl:max-w-[25rem]">
+                    <Card
+                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2">
+                            <CardTitle className="text-2xl tabular-nums">
+                                Conditional access
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                <ZtResponsiveSankey isDark = {(theme.theme === 'dark' || theme.theme === 'system' && window.matchMedia("(prefers-color-scheme: dark)").matches) ? true : false} data={{
+                                    "nodes": [
+                                        {
+                                            "id": "User sign in",
+                                            "nodeColor": "hsl(28, 100%, 53%)"
+                                        },
+                                        {
+                                            "id": "No CA applied",
+                                            "nodeColor": "hsl(0, 69%, 50%)"
+                                        },
+                                        {
+                                            "id": "CA applied",
+                                            "nodeColor": "hsl(120, 58%, 40%)"
+                                        },
+                                        {
+                                            "id": "No MFA",
+                                            "nodeColor": "hsl(205, 71%, 41%)"
+                                        },
+                                        {
+                                            "id": "MFA",
+                                            "nodeColor": "hsl(99, 70%, 50%)"
+                                        },
+                                    ],
+                                    "links": [
+                                        {
+                                            "source": "User sign in",
+                                            "target": "No CA applied",
+                                            "value": 40
+                                        },
+                                        {
+                                            "source": "User sign in",
+                                            "target": "CA applied",
+                                            "value": 60
+                                        },
+                                        {
+                                            "source": "CA applied",
+                                            "target": "No MFA",
+                                            "value": 20
+                                        },
+                                        {
+                                            "source": "CA applied",
+                                            "target": "MFA",
+                                            "value": 80
+                                        },
+                                    ]
+                                }} />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                                Over the past 7 days, <span className="font-medium text-foreground">40%</span> of sign-ins were not protected by any conditional access policies.
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
                     <Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
@@ -884,4 +962,22 @@ export default function Dashboard() {
             </div>
         </>
     )
+}
+
+const MyCustomComponent = (props: any) => {
+    return <path fill={props.payload.color} fill-opacity="0.1" stroke={props.payload.stroke} stroke-width="2" x={props.x} y={props.y} width="10"
+        height={props.height} radius="0" className="recharts-rectangle recharts-sankey-node"
+        d={`M ${props.x},${props.y} h ${props.width} v ${props.height} h -${props.width} Z`} />
+}
+const MyCustomLinkComponent = (props: any) => {
+    console.log('props', props)
+    return <path
+        d={`
+        M${props.sourceX},${props.sourceY}
+        C${props.sourceControlX},${props.sourceY} ${props.targetControlX},${props.targetY} ${props.targetX},${props.targetY}
+      `}
+        stroke={props.payload.color}
+        strokeWidth={props.linkWidth}
+        {...props}
+    />
 }
