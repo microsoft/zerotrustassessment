@@ -21,6 +21,8 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
+
+
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -34,6 +36,16 @@ interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
 }
+
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import { Test } from "@/config/report-data"
 
 export function DataTable<TData, TValue>({
     columns,
@@ -67,7 +79,11 @@ export function DataTable<TData, TValue>({
         },
     })
 
+    const [sheetOpen, setSheetOpen] = React.useState(false);
+    const [selectedRow, setSelectedRow] = React.useState<Test | null>(null);
+
     return (
+
         <div>
             <div className="flex items-center py-4">
                 <Input
@@ -134,7 +150,10 @@ export function DataTable<TData, TValue>({
                                     className="cursor-pointer"
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
-                                    onClick={() => row.toggleSelected()}
+                                    onClick={() => {
+                                        setSelectedRow(row.original);
+                                        setSheetOpen(true)
+                                    }}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
@@ -153,6 +172,18 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent side="right">
+                    <SheetHeader>
+                        <SheetTitle>{selectedRow?.TestTitle}</SheetTitle>
+                        <SheetDescription>
+                            This action cannot be undone. This will permanently delete your account
+                            and remove your data from our servers.
+                        </SheetDescription>
+                    </SheetHeader>
+                </SheetContent>
+            </Sheet>
+
         </div>
     )
 }

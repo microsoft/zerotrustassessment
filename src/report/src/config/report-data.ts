@@ -51,8 +51,8 @@ export const reportData: ReportData = {
       },
       {
         "TestStatus": "Skipped",
-        "TestTitle": "Guests should not invite other guests",
-        "TestId": "ST0018",
+        "TestTitle": "Directory Sync account credentials has not been rotated recently",
+        "TestId": "ST0019",
         "TestLikelihood": "Likely",
         "TestSkipped": "",
         "TestAppliesTo": [
@@ -68,8 +68,8 @@ export const reportData: ReportData = {
       },
       {
         "TestStatus": "Passed",
-        "TestTitle": "Guests should not invite other guests",
-        "TestId": "ST0018",
+        "TestTitle": "Smart lockout threshold is not greater than 10",
+        "TestId": "ST0020",
         "TestLikelihood": "HighlyLikely",
         "TestSkipped": "",
         "TestAppliesTo": [
@@ -85,8 +85,8 @@ export const reportData: ReportData = {
       },
       {
         "TestStatus": "Failed",
-        "TestTitle": "Guests should not invite other guests",
-        "TestId": "ST0018",
+        "TestTitle": "Privileged roles are not assigned to stale/dormant identities",
+        "TestId": "ST0021",
         "TestLikelihood": "HighlyLikely",
         "TestSkipped": "",
         "TestAppliesTo": [
