@@ -21,6 +21,8 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 
 import { Button } from "@/components/ui/button"
@@ -46,6 +48,7 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Test } from "@/config/report-data"
+import { Card, CardContent } from "../ui/card"
 
 export function DataTable<TData, TValue>({
     columns,
@@ -173,14 +176,17 @@ export function DataTable<TData, TValue>({
                 </Table>
             </div>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="right">
+                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px]">
                     <SheetHeader>
                         <SheetTitle>{selectedRow?.TestTitle}</SheetTitle>
-                        <SheetDescription>
-                            This action cannot be undone. This will permanently delete your account
-                            and remove your data from our servers.
-                        </SheetDescription>
+                        <SheetDescription>{selectedRow?.TestResult}</SheetDescription>
                     </SheetHeader>
+                    <Card className="gap-4 p-4">
+                        <CardContent className="gap-4 p-4">
+                        <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
+                        </CardContent>
+                    </Card>
+
                 </SheetContent>
             </Sheet>
 
