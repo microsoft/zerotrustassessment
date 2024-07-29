@@ -75,15 +75,15 @@ export default function Dashboard() {
                                         },
                                         {
                                             "id": "No CA applied",
-                                            "nodeColor": "hsl(0, 69%, 50%)"
+                                            "nodeColor": "hsl(0, 100%, 50%)"
                                         },
                                         {
                                             "id": "CA applied",
-                                            "nodeColor": "hsl(120, 58%, 40%)"
+                                            "nodeColor": "hsl(12, 76%, 61%)"
                                         },
                                         {
                                             "id": "No MFA",
-                                            "nodeColor": "hsl(205, 71%, 41%)"
+                                            "nodeColor": "hsl(0, 69%, 50%)"
                                         },
                                         {
                                             "id": "MFA",

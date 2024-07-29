@@ -48,7 +48,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: any
         sort='input'
         legends={[]}
         valueFormat={value =>
-            `${value} %`
+            `${value}`
         }
         // legends={[
         //     {
