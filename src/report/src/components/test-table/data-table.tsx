@@ -181,9 +181,10 @@ export function DataTable<TData, TValue>({
                         <SheetTitle>{selectedRow?.TestTitle}</SheetTitle>
                         <SheetDescription>{selectedRow?.TestResult}</SheetDescription>
                     </SheetHeader>
+
                     <Card className="gap-4 p-4">
                         <CardContent className="gap-4 p-4">
-                        <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
+                            <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
                         </CardContent>
                     </Card>
 
