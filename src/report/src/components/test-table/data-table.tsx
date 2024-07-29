@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/sheet"
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { StatusIcon } from "../status-icon"
 
 export function DataTable<TData, TValue>({
     columns,
@@ -183,7 +184,12 @@ export function DataTable<TData, TValue>({
                     </SheetHeader>
                     <div className="grid pt-10 gap-6">
                         <Card>
-                            <CardHeader><CardTitle>Test results</CardTitle></CardHeader>
+                            <CardHeader><CardTitle>
+                                <div className="flex">
+                                    <span className="pr-3"> Test result → </span><StatusIcon Item={selectedRow} />
+                                </div></CardTitle>
+
+                            </CardHeader>
                             <CardContent>
                                 {selectedRow?.TestResult}
                             </CardContent>

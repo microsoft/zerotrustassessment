@@ -4,6 +4,7 @@ import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
 import { impacts, statuses } from "./data-icons"
+import { StatusIcon } from "../status-icon"
 
 export const columns: ColumnDef<Test>[] = [
     {
@@ -57,20 +58,8 @@ export const columns: ColumnDef<Test>[] = [
             )
         },
         cell: ({ row }) => {
-            const status = statuses.find(
-                (status) => status.value === row.getValue("TestStatus")
-            )
-
-            if (!status) {
-                return null
-            }
-
             return (
-                <div className="flex items-center">
-                    <Badge variant={status.variant}>
-                        <span>{status.label}</span>
-                    </Badge>
-                </div>
+                <StatusIcon Item={row.original} />
             )
         },
     },
