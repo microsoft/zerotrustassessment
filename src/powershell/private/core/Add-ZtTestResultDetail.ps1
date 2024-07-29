@@ -36,6 +36,9 @@ Function Add-ZtTestResultDetail {
         [Parameter(Mandatory = $false)]
         [string] $Description,
 
+        # The status of the test. True for passed, False for failed.
+        [bool] $Status,
+
         # Detailed information of the test result to provide additional context to the user.
         # This can be a summary of the items that caused the test to fail (e.g. list of user names, conditional access policies, etc.).
         # Markdown is supported.
@@ -123,6 +126,7 @@ Function Add-ZtTestResultDetail {
     $testInfo = @{
         TestId          = $TestId
         TestTitle       = $Title
+        TestStatus      = Get-ZtTestStatus -Status $Status -Skipped (![string]::IsNullOrEmpty($SkippedBecause))
         TestTags        = $Tag
         TestAppliesTo   = $AppliesTo
         TestImpact      = $Impact

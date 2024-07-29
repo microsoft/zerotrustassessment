@@ -1,5 +1,8 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/test-table/data-table";
+import { reportData } from "@/config/report-data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { columns } from "@/components/test-table/columns";
 
 export default function Identity() {
     return (
@@ -9,9 +12,12 @@ export default function Identity() {
             </PageHeader>
             <Card>
                 <CardHeader>
-                    <CardTitle>Coming soon</CardTitle>
+                    <CardTitle>Assessment results</CardTitle>
                     <CardDescription></CardDescription>
                 </CardHeader>
+                <CardContent className="flex gap-4 p-4">
+                <DataTable columns={columns} data={reportData.Tests} />
+                </CardContent>
             </Card>
         </>
     )
