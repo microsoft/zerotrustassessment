@@ -15,7 +15,7 @@ export default function Identity() {
                     <CardTitle>Assessment results</CardTitle>
                     <CardDescription></CardDescription>
                 </CardHeader>
-                <CardContent className="flex gap-4 p-4">
+                <CardContent className="gap-4 p-4">
                 <DataTable columns={columns} data={reportData.Tests} />
                 </CardContent>
             </Card>
