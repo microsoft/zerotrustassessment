@@ -17,6 +17,7 @@ function Invoke-ZtTests {
     # For now, just run all tests sequentially
 
     Test-St0018GuestShouldNotInviteGuests
+    Test-St0009PhishingResistantAuthForAdmins
 
     return Get-ZtTestResults
 }

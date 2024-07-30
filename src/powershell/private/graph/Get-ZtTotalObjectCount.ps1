@@ -5,7 +5,7 @@ function Get-ZtTotalObjectCount {
 
         # The type of object to count.
         [ValidateSet('Users', 'Groups', 'Devices', 'Applications',
-        'ServicePrincipals', 'AccessReviews', 'AccessPackages', 'ConnectedOrganizations',
+        'ServicePrincipals', 'AccessReviews', 'AccessPackages', 'ConnectedOrganizations'
         )]
         [Parameter(Mandatory = $true)]
         [string] $ObjectType

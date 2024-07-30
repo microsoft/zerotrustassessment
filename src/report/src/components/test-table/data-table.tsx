@@ -175,10 +175,9 @@ export function DataTable<TData extends Test, TValue>({
                 </Table>
             </div>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px]">
+                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px] overflow-y-auto">
                     <SheetHeader>
                         <SheetTitle className="text-2xl text-left">{selectedRow?.TestTitle}</SheetTitle>
-
                     </SheetHeader>
                     <div className="grid pt-10 gap-6">
                         <Card>
@@ -186,10 +185,9 @@ export function DataTable<TData extends Test, TValue>({
                                 <div className="flex">
                                     <span className="pr-3"> Test result → </span><StatusIcon Item={selectedRow!} />
                                 </div></CardTitle>
-
                             </CardHeader>
                             <CardContent>
-                                {selectedRow?.TestResult}
+                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestResult}</Markdown>
                             </CardContent>
                         </Card>
 
