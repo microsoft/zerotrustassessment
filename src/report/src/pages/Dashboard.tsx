@@ -17,7 +17,6 @@ import {
     ReferenceLine,
     XAxis,
     YAxis,
-    Sankey
 } from "recharts"
 
 import {
@@ -39,8 +38,6 @@ import { ThemeProviderContext } from '@/contexts/ThemeContext'
 
 export default function Dashboard() {
     const theme = useContext(ThemeProviderContext);
-
-    const checkIsDarkSchemePreferred = () => window?.matchMedia?.('(prefers-color-scheme:dark)')?.matches ?? false;
 
     return (
         <>
@@ -964,20 +961,20 @@ export default function Dashboard() {
     )
 }
 
-const MyCustomComponent = (props: any) => {
-    return <path fill={props.payload.color} fill-opacity="0.1" stroke={props.payload.stroke} stroke-width="2" x={props.x} y={props.y} width="10"
-        height={props.height} radius="0" className="recharts-rectangle recharts-sankey-node"
-        d={`M ${props.x},${props.y} h ${props.width} v ${props.height} h -${props.width} Z`} />
-}
-const MyCustomLinkComponent = (props: any) => {
-    console.log('props', props)
-    return <path
-        d={`
-        M${props.sourceX},${props.sourceY}
-        C${props.sourceControlX},${props.sourceY} ${props.targetControlX},${props.targetY} ${props.targetX},${props.targetY}
-      `}
-        stroke={props.payload.color}
-        strokeWidth={props.linkWidth}
-        {...props}
-    />
-}
+// const MyCustomComponent = (props: any) => {
+//     return <path fill={props.payload.color} fill-opacity="0.1" stroke={props.payload.stroke} stroke-width="2" x={props.x} y={props.y} width="10"
+//         height={props.height} radius="0" className="recharts-rectangle recharts-sankey-node"
+//         d={`M ${props.x},${props.y} h ${props.width} v ${props.height} h -${props.width} Z`} />
+// }
+// const MyCustomLinkComponent = (props: any) => {
+//     console.log('props', props)
+//     return <path
+//         d={`
+//         M${props.sourceX},${props.sourceY}
+//         C${props.sourceControlX},${props.sourceY} ${props.targetControlX},${props.targetY} ${props.targetX},${props.targetY}
+//       `}
+//         stroke={props.payload.color}
+//         strokeWidth={props.linkWidth}
+//         {...props}
+//     />
+// }

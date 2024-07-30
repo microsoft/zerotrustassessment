@@ -16,7 +16,7 @@ export function StatusIcon({ Item }: StatusIconProps) {
 
     return (
         <div className="flex items-center">
-            <Badge variant={status.variant}>
+            <Badge variant={status.variant as "default" | "destructive" | "secondary" | "outline" | null | undefined}>
                 <span>{status.label}</span>
             </Badge>
         </div>

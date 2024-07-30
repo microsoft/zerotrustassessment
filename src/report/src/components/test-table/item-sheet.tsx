@@ -6,9 +6,8 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Test } from "@/config/report-data"
 
-export function ItemSheet(test: Test) {
+export function ItemSheet() {
 
     return (
         <Sheet>

@@ -1,9 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Test } from "@/config/report-data"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import { Button } from "../ui/button"
-import { Badge } from "../ui/badge"
-import { impacts, statuses } from "./data-icons"
+import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
 
 export const columns: ColumnDef<Test>[] = [

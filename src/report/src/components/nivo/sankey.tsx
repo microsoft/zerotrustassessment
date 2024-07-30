@@ -5,7 +5,18 @@ import { ResponsiveSankey } from "@nivo/sankey";
 // no chart will be rendered.
 // website examples showcase many properties,
 // you'll often use just a few of them.
-export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: any /* see data tab */ }) => (
+type SankeyNode = {
+    id: string;
+    nodeColor: string;
+    // other properties...
+};
+
+type SankeyData = {
+    nodes: SankeyNode[];
+    links: any[]; // replace with the actual type of links
+};
+
+export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyData }) => (
 
     <ResponsiveSankey
         data={data}

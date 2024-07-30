@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends Test, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
 }
@@ -42,16 +42,14 @@ interface DataTableProps<TData, TValue> {
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
 } from "@/components/ui/sheet"
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StatusIcon } from "../status-icon"
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends Test, TValue>({
     columns,
     data,
 }: DataTableProps<TData, TValue>) {
@@ -186,7 +184,7 @@ export function DataTable<TData, TValue>({
                         <Card>
                             <CardHeader><CardTitle>
                                 <div className="flex">
-                                    <span className="pr-3"> Test result → </span><StatusIcon Item={selectedRow} />
+                                    <span className="pr-3"> Test result → </span><StatusIcon Item={selectedRow!} />
                                 </div></CardTitle>
 
                             </CardHeader>

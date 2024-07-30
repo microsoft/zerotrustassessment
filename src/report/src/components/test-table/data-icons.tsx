@@ -3,9 +3,7 @@ import {
     ArrowRightIcon,
     ArrowUpIcon,
     CheckCircledIcon,
-    CircleIcon,
     CrossCircledIcon,
-    QuestionMarkCircledIcon,
     StopwatchIcon,
   } from "@radix-ui/react-icons"
 
