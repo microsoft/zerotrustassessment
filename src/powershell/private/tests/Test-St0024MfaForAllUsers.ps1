@@ -34,7 +34,7 @@ function Test-St0024MfaForAllUsers {
         $testResultMarkdown = "Tenant does not have any conditional access policies that require multi-factor authentication."
     }
 
-    Add-ZtTestResultDetail -TestId 'ST0020' -Title 'Block legacy authentication' -Impact High `
+    Add-ZtTestResultDetail -TestId 'ST0024' -Title 'Block legacy authentication' -Impact High `
         -Likelihood HighlyLikely -AppliesTo Entra -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $mfaPolicies
 }
