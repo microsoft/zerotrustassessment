@@ -40,44 +40,48 @@ function Test-St0009PhishingResistantAuthForAdmins {
         }
     }
     $passed = $unprotectedRoles.Length -eq 0
-    if($passed) {
+    if ($passed) {
         $testResultMarkdown += "Tenant is configured to require phishing resistant authentication for all privileged roles.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown += "Tenant is not configured to require phishing resistant authentication for all privileged roles.`n`n%TestResult%"
     }
 
-    $mdInfo = "## Authentication Strength Policies`n`n"
-    if($phishResAsp.Length -eq 0) {
-        $mdInfo += "No phishing resistant authentication strength policies found.`n`n"
-    }
-    else {
-        $mdInfo += "Phishing resistant authentication strength policies found:`n`n"
-        foreach($asp in $phishResAsp) {
-            $mdInfo += " - $($asp.displayName)`n"
-        }
-    }
-
     $mdInfo += "`n`n## Conditional Access Policies with phishing resistant authentication policies `n`n"
 
-    if($capsUsingPhishResAuth.Length -eq 0) {
+    if ($capsUsingPhishResAuth.Length -eq 0) {
         $mdInfo += "No conditional access policies found with phishing resistant authentication strength policies.`n`n"
     }
     else {
-        $mdInfo += "Conditional access policies with phishing resistant authentication strength policies:`n`n"
-        foreach($cap in $capsUsingPhishResAuth) {
-            $mdInfo += " - $($cap.displayName)`n"
-        }
+        $mdInfo += "Found $($capsUsingPhishResAuth.Length) phishing resistant conditional access policies.`n`n"
+        $mdInfo += Get-GraphObjectMarkdown -GraphObjects $capsUsingPhishResAuth -GraphObjectType ConditionalAccess
     }
 
     $mdInfo += "`n`n## Privileged Roles`n`n"
+    if ($protectedRoles.Length -eq 0) {
+        $mdInfo += "Privileged roles are not being protected by phishing resistant authentication.`n`n"
+    }
+    elseif ($protectedRoles.Length -eq $privilegedRoles.Length) {
+        $mdInfo += "All $($protectedRoles.Length) privileged roles are protected by phishing resistant authentication.`n`n"
+    }
+    else {
+        $mdInfo += "Found $($protectedRoles.Length) of $($privilegedRoles.Length) privileged roles protected by phishing resistant authentication.`n`n"
+    }
     $mdInfo += "| Role Name | Phishing resistance enforced |`n"
     $mdInfo += "| :--- | :---: |`n"
-    foreach($role in $unprotectedRoles) {
+    foreach ($role in $protectedRoles | Sort-Object displayName) {
+        $mdInfo += "| $($role.displayName) | ✅ |`n"
+    }
+
+    foreach ($role in $unprotectedRoles | Sort-Object displayName) {
         $mdInfo += "| $($role.displayName) | ❌ |`n"
     }
-    foreach($role in $protectedRoles) {
-        $mdInfo += "| $($role.displayName) | ✅ |`n"
+
+
+    if ($phishResAsp.Length -ne 0) {
+        $mdInfo += "## Authentication Strength Policies`n`n"
+        $mdInfo += "Found $($phishResAsp.Length) custom phishing resistant authentication strength policies.`n`n"
+        $mdInfo += Get-GraphObjectMarkdown -GraphObjects $phishResAsp -GraphObjectType AuthenticationStrength
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
