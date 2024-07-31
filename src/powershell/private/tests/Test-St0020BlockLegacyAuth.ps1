@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Checks that a guest user does not invite other guests.
+    Checks that legacy auth is blocked.
 #>
 
 function Test-St0020BlockLegacyAuth {
@@ -24,7 +24,7 @@ function Test-St0020BlockLegacyAuth {
         $testResultMarkdown = "Tenant has a policy to block legacy authentication but does not target all users or is not enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "Tenant does not have any conditional access policies that block legacy authentication.`n`n%TestResult%"
+        $testResultMarkdown = "Tenant does not have any conditional access policies that block legacy authentication."
     }
 
 
