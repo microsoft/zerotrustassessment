@@ -18,6 +18,7 @@ function Invoke-ZtTests {
 
     Test-St0018GuestShouldNotInviteGuests
     Test-St0009PhishingResistantAuthForAdmins
+    Test-St0020BlockLegacyAuth
 
     return Get-ZtTestResults
 }

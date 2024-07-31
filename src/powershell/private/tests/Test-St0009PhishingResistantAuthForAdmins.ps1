@@ -7,6 +7,9 @@ function Test-St0009PhishingResistantAuthForAdmins {
     [CmdletBinding()]
     param()
 
+    # TODO: Check for report-only and exclude from pass state. Include CA state in the CA outpu
+    # -Include a pass / partial / fail next to each CA policy to show which ones have phish resistant for roles.
+
     $roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
     $asp = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -ApiVersion beta
@@ -17,7 +20,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
     $phishResAuthMs = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor') # Phishing resistant authentication methods (passkey included in fido2)
 
     # Get all the authentication strength policies that only allow phishing resistant authentication methods
-    $phishResAsp = $asp | Where-Object { ($_.allowedCombinations + $phishResAuthMs | Select-Object -Unique).Length -eq $phishResAuthMs.Length }
+    $phishResAsp = $asp | Where-Object { (($_.allowedCombinations + $phishResAuthMs | Select-Object -Unique) | Measure-Object).Count -eq ($phishResAuthMs | Measure-Object).Count }
 
     # Get the IDs of CA policies using phishing resistant auth strength policies
     $capsIdsUsingPhishResAuth = $phishResAsp | ForEach-Object { Invoke-ZtGraphRequest -RelativeUri "policies/authenticationStrengthPolicies/$($_.id)/usage" }
@@ -39,7 +42,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
             $unprotectedRoles += $role
         }
     }
-    $passed = $unprotectedRoles.Length -eq 0
+    $passed = ($unprotectedRoles | Measure-Object).Count -eq 0
     if ($passed) {
         $testResultMarkdown += "Tenant is configured to require phishing resistant authentication for all privileged roles.`n`n%TestResult%"
     }
@@ -49,7 +52,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
 
     $mdInfo += "`n`n## Conditional Access Policies with phishing resistant authentication policies `n`n"
 
-    if ($capsUsingPhishResAuth.Length -eq 0) {
+    if (($capsUsingPhishResAuth | Measure-Object).Count -eq 0) {
         $mdInfo += "No conditional access policies found with phishing resistant authentication strength policies.`n`n"
     }
     else {
@@ -58,7 +61,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
     }
 
     $mdInfo += "`n`n## Privileged Roles`n`n"
-    if ($protectedRoles.Length -eq 0) {
+    if (($protectedRoles | Measure-Object).Coiunt -eq 0) {
         $mdInfo += "Privileged roles are not being protected by phishing resistant authentication.`n`n"
     }
     elseif ($protectedRoles.Length -eq $privilegedRoles.Length) {
@@ -78,7 +81,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
     }
 
 
-    if ($phishResAsp.Length -ne 0) {
+    if (($phishResAsp | Measure-Object).Count -ne 0) {
         $mdInfo += "## Authentication Strength Policies`n`n"
         $mdInfo += "Found $($phishResAsp.Length) custom phishing resistant authentication strength policies.`n`n"
         $mdInfo += Get-GraphObjectMarkdown -GraphObjects $phishResAsp -GraphObjectType AuthenticationStrength

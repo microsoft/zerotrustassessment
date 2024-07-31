@@ -24,30 +24,43 @@ Function Get-GraphObjectMarkdown {
         [Parameter(Mandatory = $true)]
         [ValidateSet('AuthenticationMethod', 'AuthenticationStrength', 'AuthorizationPolicy', 'ConditionalAccess', 'ConsentPolicy',
             'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole'
-            )]
+        )]
         [string] $GraphObjectType
     )
 
     $markdownLinkTemplate = @{
-        AuthenticationMethod = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AdminAuthMethods"
+        AuthenticationMethod   = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AdminAuthMethods"
         AuthenticationStrength = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/AuthStrengths/fromNav/"
-        AuthorizationPolicy  = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/UserSettings/menuId/UserSettings"
-        ConditionalAccess    = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}"
-        ConsentPolicy        = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ConsentPoliciesMenuBlade/~/UserSettings"
-        Devices               = "https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DeviceDetailsMenuBlade/~/Properties/objectId/{0}"
-        DiagnosticSettings   = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/DiagnosticSettingsMenuBlade/~/General"
-        Domains              = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/DomainsManagementMenuBlade/~/CustomDomainNames"
-        Groups               = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/Overview/groupId/{0}"
-        IdentityProtection   = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/IdentityProtectionMenuBlade/~/UsersAtRiskAlerts/fromNav/Identity"
-        Users                = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}"
-        UserRole             = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}"
+        AuthorizationPolicy    = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/UserSettings/menuId/UserSettings"
+        ConditionalAccess      = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}"
+        ConsentPolicy          = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ConsentPoliciesMenuBlade/~/UserSettings"
+        Devices                = "https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DeviceDetailsMenuBlade/~/Properties/objectId/{0}"
+        DiagnosticSettings     = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/DiagnosticSettingsMenuBlade/~/General"
+        Domains                = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/DomainsManagementMenuBlade/~/CustomDomainNames"
+        Groups                 = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/Overview/groupId/{0}"
+        IdentityProtection     = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/IdentityProtectionMenuBlade/~/UsersAtRiskAlerts/fromNav/Identity"
+        Users                  = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}"
+        UserRole               = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}"
     }
 
     # This will work for now, will need to add switch as we add support for complex urls like Applications blade, etc..
     $result = ""
     foreach ($item in $GraphObjects) {
         $link = $markdownLinkTemplate[$GraphObjectType] -f $item.id
-        $result += "  - [$($item.displayName)]($link)`n"
+        $displayName = $item.displayName
+        $suffix = ''
+
+        if ($GraphObjectType -eq 'ConditionalAccess') {
+            switch -Exact ($item.state) {
+                "disabled" {
+                    $suffix = ' (Disabled)'
+                }
+                "enabledForReportingButNotEnforced" {
+                    $suffix = ' (Report-only)'
+                }
+            }
+        }
+        $result += "  - [$($displayName)]($link)$suffix`n"
     }
 
     return $result
