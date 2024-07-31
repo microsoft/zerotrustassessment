@@ -16,11 +16,11 @@ function Invoke-ZtTests {
     # We could also run all the cmdlets in this folder that start with Test-
     # For now, just run all tests sequentially
 
-    # Test-St0018GuestShouldNotInviteGuests
-    # Test-St0009PhishingResistantAuthForAdmins
-    # Test-St0020BlockLegacyAuth
-    # Test-St0024MfaForAllUsers
-    # Test-St0030UserCannotRegisterApps
+    Test-St0018GuestShouldNotInviteGuests
+    Test-St0009PhishingResistantAuthForAdmins
+    Test-St0020BlockLegacyAuth
+    Test-St0024MfaForAllUsers
+    Test-St0030UserCannotRegisterApps
     Test-St0037PrivilegedRolesAreCloudOnly
 
     return Get-ZtTestResults

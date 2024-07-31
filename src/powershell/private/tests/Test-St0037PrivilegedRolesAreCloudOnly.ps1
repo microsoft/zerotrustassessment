@@ -63,7 +63,7 @@ function Test-St0037PrivilegedRolesAreCloudOnly {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId 'ST0037' -Title 'Priviliged users are not synced from on-premise' -Impact  Catastrophic `
+    Add-ZtTestResultDetail -TestId 'ST0037' -Title 'Priviliged users are not synced from on-premise' -Impact  High `
         -Likelihood Possible -AppliesTo Entra -Tag PrivilegedIdentity `
         -Status $passed -Result $testResultMarkdown
 }

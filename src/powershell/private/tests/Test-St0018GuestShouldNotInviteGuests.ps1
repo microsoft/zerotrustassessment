@@ -7,6 +7,9 @@ function Test-St0018GuestShouldNotInviteGuests{
     [CmdletBinding()]
     param()
 
+    $activity = "Checking guest authorization policy"
+    Write-ZtProgress -Activity $activity -Status "Getting policy"
+
     $result = Invoke-ZtGraphRequest -RelativeUri "policies/authorizationPolicy" -ApiVersion v1.0
 
     $passed = $result.allowInvitesFrom -eq "adminsAndGuestInviters"

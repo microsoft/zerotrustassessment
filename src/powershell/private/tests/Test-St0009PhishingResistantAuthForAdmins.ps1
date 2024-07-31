@@ -7,6 +7,9 @@ function Test-St0009PhishingResistantAuthForAdmins {
     [CmdletBinding()]
     param()
 
+    $activity = "Checking phishing resistant authentication for privileged roles"
+    Write-ZtProgress -Activity $activity -Status "Getting policy"
+
     # TODO: Check for report-only and exclude from pass state. Include CA state in the CA outpu
     # -Include a pass / partial / fail next to each CA policy to show which ones have phish resistant for roles.
 

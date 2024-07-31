@@ -7,6 +7,9 @@ function Test-St0020BlockLegacyAuth {
     [CmdletBinding()]
     param()
 
+    $activity = "Checking blocking of legacy authentication"
+    Write-ZtProgress -Activity $activity -Status "Getting CA policies"
+
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
 
     $blockPolicies = $caps | Where-Object {`

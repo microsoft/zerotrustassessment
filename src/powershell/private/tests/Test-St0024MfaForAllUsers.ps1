@@ -7,6 +7,9 @@ function Test-St0024MfaForAllUsers {
     [CmdletBinding()]
     param()
 
+    $activity = "Checking MFA for all users"
+    Write-ZtProgress -Activity $activity
+
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
 
     $mfaPolicies = $caps | Where-Object {`
