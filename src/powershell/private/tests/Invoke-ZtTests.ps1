@@ -20,7 +20,8 @@ function Invoke-ZtTests {
     # Test-St0009PhishingResistantAuthForAdmins
     # Test-St0020BlockLegacyAuth
     # Test-St0024MfaForAllUsers
-    Test-St0030UserCannotRegisterApps
+    # Test-St0030UserCannotRegisterApps
+    Test-St0037PrivilegedRolesAreCloudOnly
 
     return Get-ZtTestResults
 }

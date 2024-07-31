@@ -28,7 +28,7 @@ Function Write-ZtProgress {
     )
 
     try {
-        $Activity = "🔥 $Activity"
+        $Activity = "⏳ $Activity"
 
         if ($Status) {
             $statusString = Out-String -InputObject $Status
