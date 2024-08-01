@@ -29,7 +29,11 @@
         # The folder to output the report to.
         [string]
         [Parameter(Mandatory = $true)]
-        $ExportPath
+        $ExportPath,
+
+        # Get's count of items to show progress, skip if entity does not support $count
+        [switch]
+        $ShowCount
     )
     if ((Get-ZtConfig -ExportPath $ExportPath -Property $EntityName)) {
         Write-Verbose "Skipping $EntityName since it was downloaded previously"
@@ -38,7 +42,8 @@
 
     $activity = "Exporting $ProgressActivity"
     Write-ZtProgress $activity
-    $totalCount = Get-ZtGraphObjectCount $EntityUri
+
+    $totalCount = if($ShowCount.IsPresent) { Get-ZtGraphObjectCount $EntityUri } else { 0 }
     $pageIndex = 0
     $currentCount = 0
 
