@@ -15,10 +15,16 @@ function Export-TenantData {
         # The folder to output the report to.
         [string]
         [Parameter(Mandatory = $true)]
-        $Path
+        $ExportPath
     )
 
-    Export-ServicePrincipals -Path $Path
+    if (!(Get-ZtConfig -ExportPath $ExportPath -Step ServicePrincipal)) {
+        Export-ServicePrincipals -ExportPath $ExportPath
+        Set-ZtConfig -ExportPath $ExportPath -Step ServicePrincipal
+    }
+
+
+
     #Export-Entra -Path $OutputFolder -Type Config
 
     # Create database

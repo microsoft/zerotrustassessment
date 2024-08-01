@@ -18,7 +18,11 @@ function Invoke-ZtAssessment
     param (
         # The path to the folder folder to output the report to. If not specified, the report will be output to the current directory.
         [string]
-        $Path = "./ZeroTrustReport"
+        $Path = "./ZeroTrustReport",
+
+        # If specified, the previously exported data will be used to generate the report.
+        [switch]
+        $Resume
     )
 
     $banner = @"
@@ -28,8 +32,10 @@ function Invoke-ZtAssessment
 "@
     Write-Host $banner -ForegroundColor Cyan
 
+    $exportPath = Join-Path $Path "zt-export"
+
     # Stop if folder has items inside it
-    if (Test-Path $Path) {
+    if (!$Resume.IsPresent -and (Test-Path $Path)) {
         if ((Get-ChildItem $Path).Count -gt 0) {
             # Prompt user if it's okay to delete the folder and get confirmation
             Write-Host "`nFolder $Path is not empty. Do you want to delete the contents and continue (y/n)?" -ForegroundColor Yellow -NoNewline
@@ -49,10 +55,10 @@ function Invoke-ZtAssessment
     Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
 
     Write-Verbose 'Creating report folder $Path'
-    New-Item -ItemType Directory -Path $Path -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
 
     # Collect data
-    # Export-TenantData -Path $Path
+    Export-TenantData -ExportPath $exportPath
 
 
     # Run the tests
