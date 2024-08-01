@@ -122,11 +122,11 @@ export default function Dashboard() {
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2">
-                            <CardDescription>Today</CardDescription>
+                            <CardDescription>Defender for Office 365</CardDescription>
                             <CardTitle className="text-4xl tabular-nums">
-                                12,584{" "}
+                                1,284{" "}
                                 <span className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
-                                    steps
+                                    phishing blocks
                                 </span>
                             </CardTitle>
                         </CardHeader>
@@ -134,7 +134,7 @@ export default function Dashboard() {
                             <ChartContainer
                                 config={{
                                     steps: {
-                                        label: "Steps",
+                                        label: "Blocks",
                                         color: "hsl(var(--chart-1))",
                                     },
                                 }}
@@ -218,13 +218,13 @@ export default function Dashboard() {
                                     >
                                         <Label
                                             position="insideBottomLeft"
-                                            value="Average Steps"
+                                            value="Average Blocks"
                                             offset={10}
                                             fill="hsl(var(--foreground))"
                                         />
                                         <Label
                                             position="insideTopLeft"
-                                            value="12,343"
+                                            value="1,284"
                                             className="text-lg"
                                             fill="hsl(var(--foreground))"
                                             offset={10}
@@ -236,13 +236,8 @@ export default function Dashboard() {
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                                Over the past 7 days, you have walked{" "}
-                                <span className="font-medium text-foreground">53,305</span> steps.
-                            </CardDescription>
-                            <CardDescription>
-                                You need{" "}
-                                <span className="font-medium text-foreground">12,584</span> more
-                                steps to reach your goal.
+                                Over the past 7 days, Defender has blocked {" "}
+                                <span className="font-medium text-foreground">13,305</span> phishing attempts.
                             </CardDescription>
                         </CardFooter>
                     </Card>
@@ -251,20 +246,20 @@ export default function Dashboard() {
                     >
                         <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2 [&>div]:flex-1">
                             <div>
-                                <CardDescription>Resting HR</CardDescription>
+                                <CardDescription>Purview</CardDescription>
                                 <CardTitle className="flex items-baseline gap-1 text-4xl tabular-nums">
                                     62
                                     <span className="text-sm font-normal tracking-normal text-muted-foreground">
-                                        bpm
+                                        labels
                                     </span>
                                 </CardTitle>
                             </div>
                             <div>
-                                <CardDescription>Variability</CardDescription>
+                                <CardDescription>Defender IoT</CardDescription>
                                 <CardTitle className="flex items-baseline gap-1 text-4xl tabular-nums">
                                     35
                                     <span className="text-sm font-normal tracking-normal text-muted-foreground">
-                                        ms
+                                        blocks
                                     </span>
                                 </CardTitle>
                             </div>
@@ -373,17 +368,17 @@ export default function Dashboard() {
                         className="max-w-xs" x-chunk="charts-01-chunk-2"
                     >
                         <CardHeader>
-                            <CardTitle>Progress</CardTitle>
+                            <CardTitle>Passwordless Progress</CardTitle>
                             <CardDescription>
-                                You're average more steps a day this year than last year.
+                                You average more passwordless sign-ins this month compared to the last.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4">
                             <div className="grid auto-rows-min gap-2">
                                 <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                    12,453
+                                    453
                                     <span className="text-sm font-normal text-muted-foreground">
-                                        steps/day
+                                        sign-ins/day
                                     </span>
                                 </div>
                                 <ChartContainer
@@ -406,7 +401,7 @@ export default function Dashboard() {
                                         }}
                                         data={[
                                             {
-                                                date: "2024",
+                                                date: "Jul 2024",
                                                 steps: 12435,
                                             },
                                         ]}
@@ -432,9 +427,9 @@ export default function Dashboard() {
                             </div>
                             <div className="grid auto-rows-min gap-2">
                                 <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                    10,103
+                                    314
                                     <span className="text-sm font-normal text-muted-foreground">
-                                        steps/day
+                                    sign-ins/day
                                     </span>
                                 </div>
                                 <ChartContainer
@@ -457,7 +452,7 @@ export default function Dashboard() {
                                         }}
                                         data={[
                                             {
-                                                date: "2023",
+                                                date: "Jun 2024",
                                                 steps: 10103,
                                             },
                                         ]}
@@ -487,17 +482,17 @@ export default function Dashboard() {
                         className="max-w-xs" x-chunk="charts-01-chunk-3"
                     >
                         <CardHeader className="p-4 pb-0">
-                            <CardTitle>Walking Distance</CardTitle>
+                            <CardTitle>Defender Actions</CardTitle>
                             <CardDescription>
-                                Over the last 7 days, your distance walked and run was 12.5 miles
+                                Over the last 7 days, your workbook actions have been triggered over 130 times
                                 per day.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-0">
                             <div className="flex items-baseline gap-1 text-3xl font-bold tabular-nums leading-none">
-                                12.5
+                                130
                                 <span className="text-sm font-normal text-muted-foreground">
-                                    miles/day
+                                    triggers/day
                                 </span>
                             </div>
                             <ChartContainer
@@ -574,15 +569,15 @@ export default function Dashboard() {
                             <ChartContainer
                                 config={{
                                     move: {
-                                        label: "Move",
+                                        label: "MFA",
                                         color: "hsl(var(--chart-1))",
                                     },
                                     stand: {
-                                        label: "Stand",
+                                        label: "MDM",
                                         color: "hsl(var(--chart-2))",
                                     },
                                     exercise: {
-                                        label: "Exercise",
+                                        label: "MAM",
                                         color: "hsl(var(--chart-3))",
                                     },
                                 }}
@@ -597,21 +592,21 @@ export default function Dashboard() {
                                     }}
                                     data={[
                                         {
-                                            activity: "stand",
-                                            value: (8 / 12) * 100,
-                                            label: "8/12 hr",
+                                            activity: "MFA",
+                                            value: (2500 / 3500) * 100,
+                                            label: "2.5k/3.5k sign-ins",
                                             fill: "var(--color-stand)",
                                         },
                                         {
-                                            activity: "exercise",
-                                            value: (46 / 60) * 100,
-                                            label: "46/60 min",
+                                            activity: "MDM",
+                                            value: (1200 / 3500) * 100,
+                                            label: "1.2k/3.5k",
                                             fill: "var(--color-exercise)",
                                         },
                                         {
-                                            activity: "move",
-                                            value: (245 / 360) * 100,
-                                            label: "245/360 kcal",
+                                            activity: "Defend",
+                                            value: (2000 / 3500) * 100,
+                                            label: "2k/3.5k",
                                             fill: "var(--color-move)",
                                         },
                                     ]}
@@ -643,31 +638,31 @@ export default function Dashboard() {
                         <CardFooter className="flex flex-row border-t p-4">
                             <div className="flex w-full items-center gap-2">
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">Move</div>
+                                    <div className="text-xs text-muted-foreground">MFA</div>
                                     <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        562
+                                        71
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            kcal
+                                            %
                                         </span>
                                     </div>
                                 </div>
                                 <Separator orientation="vertical" className="mx-2 h-10 w-px" />
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">Exercise</div>
+                                    <div className="text-xs text-muted-foreground">MDM</div>
                                     <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        73
+                                        34
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            min
+                                            %
                                         </span>
                                     </div>
                                 </div>
                                 <Separator orientation="vertical" className="mx-2 h-10 w-px" />
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">Stand</div>
+                                    <div className="text-xs text-muted-foreground">Defender</div>
                                     <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        14
+                                        57%
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            hr
+                                            %
                                         </span>
                                     </div>
                                 </div>
@@ -770,16 +765,16 @@ export default function Dashboard() {
                         className="max-w-xs" x-chunk="charts-01-chunk-6"
                     >
                         <CardHeader className="p-4 pb-0">
-                            <CardTitle>Active Energy</CardTitle>
+                            <CardTitle>Risk Signals</CardTitle>
                             <CardDescription>
-                                You're burning an average of 754 calories per day. Good job!
+                                You're SOC team is reviewing and resolving an average of 14 risk signals per day. Good job!
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-2">
                             <div className="flex items-baseline gap-2 text-3xl font-bold tabular-nums leading-none">
-                                1,254
+                                14
                                 <span className="text-sm font-normal text-muted-foreground">
-                                    kcal/day
+                                    risks/day
                                 </span>
                             </div>
                             <ChartContainer
@@ -853,15 +848,15 @@ export default function Dashboard() {
                         className="max-w-xs" x-chunk="charts-01-chunk-7"
                     >
                         <CardHeader className="space-y-0 pb-0">
-                            <CardDescription>Time in Bed</CardDescription>
+                            <CardDescription>Untrusted devices signing in</CardDescription>
                             <CardTitle className="flex items-baseline gap-1 text-4xl tabular-nums">
-                                8
+                                120
                                 <span className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
-                                    hr
+                                    daily avg
                                 </span>
-                                35
+
                                 <span className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
-                                    min
+
                                 </span>
                             </CardTitle>
                         </CardHeader>
