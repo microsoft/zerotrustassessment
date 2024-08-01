@@ -8,7 +8,7 @@
 
         # Parameters to include. e.g. $expand=appRoleAssignments&$top=999
         [string]
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         $QueryString,
 
         # The folder for the entity. e.g. ServicePrincipals

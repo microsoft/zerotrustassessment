@@ -18,14 +18,19 @@ function Export-TenantData {
         $ExportPath
     )
 
-    Export-GraphEntity -ExportPath $ExportPath `
-        -EntityUri 'beta/applications' -ProgressActivity 'Applications' `
-        -QueryString '$top=999' -EntityName 'Applications'
+    # TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
 
-    Export-GraphEntity -ExportPath $ExportPath `
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
+        -EntityUri 'beta/applications' -ProgressActivity 'Applications' `
+        -QueryString '$top=999'
+
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
         -EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
-        -QueryString '$expand=appRoleAssignments&$top=999' -EntityName 'ServicePrincipals' `
-        -RelatedPropertyNames @('oauth2PermissionGrants')
+        -QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants')
+
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
+        -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+
 
 
     #Export-Entra -Path $OutputFolder -Type Config
