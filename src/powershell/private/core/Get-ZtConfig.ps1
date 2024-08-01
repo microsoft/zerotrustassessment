@@ -5,7 +5,6 @@
         [string]
         $ExportPath,
 
-        [ValidateSet('ServicePrincipal', 'ServicePrincipalSignIn')]
         $Step
     )
 

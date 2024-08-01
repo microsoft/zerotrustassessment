@@ -7,7 +7,6 @@
         $ExportPath,
 
         # Optional. The specific step to set
-        [ValidateSet('ServicePrincipal', 'ServicePrincipalSignIn')]
         [Parameter(Mandatory = $false)]
         $Step,
 

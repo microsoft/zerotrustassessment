@@ -18,11 +18,14 @@ function Export-TenantData {
         $ExportPath
     )
 
-    if (!(Get-ZtConfig -ExportPath $ExportPath -Step ServicePrincipal)) {
-        Export-ServicePrincipals -ExportPath $ExportPath
-        Set-ZtConfig -ExportPath $ExportPath -Step ServicePrincipal
-    }
+    Export-GraphEntity -ExportPath $ExportPath `
+        -EntityUri 'beta/applications' -ProgressActivity 'Applications' `
+        -QueryString '$top=999' -EntityName 'Applications'
 
+    Export-GraphEntity -ExportPath $ExportPath `
+        -EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
+        -QueryString '$expand=appRoleAssignments&$top=999' -EntityName 'ServicePrincipals' `
+        -RelatedPropertyNames @('oauth2PermissionGrants')
 
 
     #Export-Entra -Path $OutputFolder -Type Config
