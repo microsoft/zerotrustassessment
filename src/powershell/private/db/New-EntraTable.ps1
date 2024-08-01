@@ -19,10 +19,11 @@ function New-EntraTable {
         [string]$FilePath
     )
 
-    Write-Verbose "Creating table $TableName from $FilePath"
+    $sql = "CREATE TABLE $TableName AS SELECT unnest(value, recursive:=true) FROM '$FilePath';"
+    Write-Verbose $sql
 
     $command = $Connection.CreateCommand()
-    $command.CommandText = "CREATE TABLE $TableName AS SELECT unnest(value, recursive:=true) FROM '$FilePath';"
-    $command.ExecuteNonQuery()
+    $command.CommandText = $sql
+    $command.ExecuteNonQuery() | Out-Null
     $command.Dispose()
 }

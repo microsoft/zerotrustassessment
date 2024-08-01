@@ -59,10 +59,14 @@ function Invoke-ZtAssessment
 
     # Collect data
     Export-TenantData -ExportPath $exportPath
-
+    $db = Export-Database -ExportPath $exportPath
 
     # Run the tests
-    $assessmentResults = Invoke-ZtTests -Path $Path
+    $assessmentResults = Invoke-ZtTests -Database $db
+
+    $db.Close()
+    $db.Dispose()
+
     $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
     $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
     $assessmentResultsJson | Out-File -FilePath $resultsJsonPath

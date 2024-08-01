@@ -2,7 +2,7 @@
 .SYNOPSIS
     Creates a new database connection at the specified path.
 #>
-function New-Database {
+function Connect-Database {
     [CmdletBinding()]
     param (
         [string]$Path = ":memory:"

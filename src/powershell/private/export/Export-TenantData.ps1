@@ -33,10 +33,5 @@ function Export-TenantData {
         -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
 
 
-
     #Export-Entra -Path $OutputFolder -Type Config
-
-    # Create database
-    # $dbPath = Join-Path $Path "ZeroTrustAssessment.db"
-    # $db = New-ZtDbConnection -Path $dbPath
 }
