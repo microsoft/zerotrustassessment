@@ -22,7 +22,7 @@
     }
 
     if ($Step) {
-        return $Config[$Step]
+        return $Config.$Step
     }
     else {
         return $Config

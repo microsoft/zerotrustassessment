@@ -22,7 +22,7 @@
     }
     else {
         $config = Get-ZtConfig -ExportPath $ExportPath
-        $config[$Step] = $true
+        $config.$Step = $true
         $config | ConvertTo-Json | Set-Content $configPath -Force
     }
 }
