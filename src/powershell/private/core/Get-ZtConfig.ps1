@@ -10,7 +10,7 @@
     )
 
     # Read config from folder
-    $configPath = Join-Path $ExportPath "ztConfig.json"
+    $configPath = Get-ZtConfigPath -ExportPath $ExportPath
     if (Test-Path $configPath) {
         $Config = Get-Content $configPath | ConvertFrom-Json
     }

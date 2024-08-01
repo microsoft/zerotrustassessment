@@ -15,12 +15,14 @@
         $Config
     )
 
+    $configPath = Get-ZtConfigPath -ExportPath $ExportPath
+    Write-Verbose "Setting config at $configPath"
     if ($Config) {
         $Config | ConvertTo-Json | Set-Content $configPath
     }
     else {
         $config = Get-ZtConfig -ExportPath $ExportPath
         $config[$Step] = $true
-        $config | ConvertTo-Json | Set-Content $configPath
+        $config | ConvertTo-Json | Set-Content $configPath -Force
     }
 }
