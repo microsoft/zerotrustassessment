@@ -31,7 +31,7 @@
         [Parameter(Mandatory = $true)]
         $ExportPath
     )
-    if ((Get-ZtConfig -ExportPath $ExportPath -Step $EntityName)) {
+    if ((Get-ZtConfig -ExportPath $ExportPath -Property $EntityName)) {
         Write-Verbose "Skipping $EntityName since it was downloaded previously"
         return
     }
@@ -55,7 +55,7 @@
         $pageIndex++
     }while ($uri)
 
-    Set-ZtConfig -ExportPath $ExportPath -Step $EntityName
+    Set-ZtConfig -ExportPath $ExportPath -Property $EntityName -Value $true
 }
 
 function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityName, $entityUri, $currentCount, $totalCount, $progressActivity) {

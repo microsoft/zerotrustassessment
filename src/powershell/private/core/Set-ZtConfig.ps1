@@ -8,7 +8,9 @@
 
         # Optional. The specific step to set
         [Parameter(Mandatory = $false)]
-        $Step,
+        $Property,
+
+        $Value,
 
         # Optional. Provide the complete config to set
         $Config
@@ -21,7 +23,7 @@
     }
     else {
         $config = Get-ZtConfig -ExportPath $ExportPath
-        $config.$Step = $true
+        $config[$Property] = $Value
         $config | ConvertTo-Json | Set-Content $configPath -Force
     }
 }
