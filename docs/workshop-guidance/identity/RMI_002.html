@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.1">
 <title data-rh="true">002: Stop buying or building Active Directory dependent apps | Zero Trust Assessment</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://microsoft.github.io/zerotrustassessment/img/docusaurus-social-card.jpg"><meta data-rh="true" name="twitter:image" content="https://microsoft.github.io/zerotrustassessment/img/docusaurus-social-card.jpg"><meta data-rh="true" property="og:url" content="https://microsoft.github.io/zerotrustassessment/docs/workshop-guidance/identity/RMI_002"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="002: Stop buying or building Active Directory dependent apps | Zero Trust Assessment"><meta data-rh="true" name="description" content="Overview"><meta data-rh="true" property="og:description" content="Overview"><link data-rh="true" rel="icon" href="/zerotrustassessment/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://microsoft.github.io/zerotrustassessment/docs/workshop-guidance/identity/RMI_002"><link data-rh="true" rel="alternate" href="https://microsoft.github.io/zerotrustassessment/docs/workshop-guidance/identity/RMI_002" hreflang="en"><link data-rh="true" rel="alternate" href="https://microsoft.github.io/zerotrustassessment/docs/workshop-guidance/identity/RMI_002" hreflang="x-default"><link rel="stylesheet" href="/zerotrustassessment/assets/css/styles.a83ff765.css">
-<script src="/zerotrustassessment/assets/js/runtime~main.229cf16c.js" defer="defer"></script>
+<script src="/zerotrustassessment/assets/js/runtime~main.5b4946bf.js" defer="defer"></script>
 <script src="/zerotrustassessment/assets/js/main.0815024f.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -12,6 +12,15 @@
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="overview">Overview<a href="#overview" class="hash-link" aria-label="Direct link to Overview" title="Direct link to Overview">​</a></h2>
 <p>New applications procured or built by the organization should use modern authentication protocols and use Entra ID as the identity provider.</p>
 <p>This is important for zero trust because this will natively enable security controls for new applications moving forward. This includes natively integrating with conditional access policies, consistent visiblity through sign-in, and audit logs, ability to grant/remove access, etc.</p>
+<p>Centralizing applications authentication in Entra ID will also give you some additional benefits that are well received by IT, SecOps and/or end users, like but not only:</p>
+<ul>
+<li>Centralized sign-in logs;</li>
+<li>Login consistency and Single Sign-On (SSO);</li>
+<li>Centralized access engine policy (Conditional Access) for every app/service (on-prem, cloud or multi-cloud);</li>
+<li>Identity Governance functionalities, like Access Reviews, Entitlement Management, Lifecycle workflows (automated workflows for onboarding, offboarding and attributes changes), others;</li>
+<li>Native Entra ID features like Self-Service Password Reset (SSPR), Role Based Access Control (RBAC), regulatory compliance, global availability, others;</li>
+<li>Entra Security Service Edge (SSE) features, like Zero Trust Network Access (ZTNA), Secure Web Gateway, others.</li>
+</ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="reference">Reference<a href="#reference" class="hash-link" aria-label="Direct link to Reference" title="Direct link to Reference">​</a></h2>
 <ul>
 <li><a href="https://learn.microsoft.com/en-us/entra/architecture/road-to-the-cloud-implement#applications" target="_blank" rel="noopener noreferrer">Road to the cloud - Implement a cloud-first approach when moving identity and access management from Active Directory to Microsoft Entra ID - Microsoft Entra | Microsoft Learn</a></li>
