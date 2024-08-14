@@ -2,13 +2,13 @@
 (
     # Directory used to base all relative paths
     [Parameter(Mandatory = $false)]
-    [string] $BaseDirectory = "..\",
+    [string] $BaseDirectory = ".\",
     #
     [Parameter(Mandatory = $false)]
     [string] $OutputDirectory = ".\build\release\",
     #
     [Parameter(Mandatory = $false)]
-    [string] $SourceDirectory = ".\powershell\",
+    [string] $SourceDirectory = ".\src\powershell\",
     #
     [Parameter(Mandatory = $false)]
     [string] $ModuleManifestPath,
@@ -45,6 +45,7 @@ $ModuleManifest = Import-PowerShellDataFile $ModuleManifestFileInfo.FullName
 ## Copy Source Module Code to Module Output Directory
 Assert-DirectoryExists $ModuleOutputDirectoryInfo -ErrorAction Stop | Out-Null
 Copy-Item ("{0}\*" -f $SourceDirectoryInfo.FullName) -Destination $ModuleOutputDirectoryInfo.FullName -Recurse -Force
+
 if (!$SkipMergingNestedModuleScripts) {
     [System.IO.FileInfo] $OutputRootModuleFileInfo = (Join-Path $ModuleOutputDirectoryInfo.FullName $ModuleManifest['RootModule'])
     &$PSScriptRoot\Merge-PSModuleNestedModuleScripts.ps1 -ModuleManifestPath $OutputModuleManifestFileInfo.FullName -OutputModulePath $OutputRootModuleFileInfo.FullName -MergeWithRootModule -RemoveNestedModuleScriptFiles
@@ -86,4 +87,4 @@ if (!$SkipMergingNestedModuleScripts) {
 }
 
 ## Sign Module
-&$PSScriptRoot\Sign-PSModule.ps1 -ModuleManifestPath $OutputModuleManifestFileInfo.FullName | Format-Table Path, Status, StatusMessage
+#&$PSScriptRoot\Sign-PSModule.ps1 -ModuleManifestPath $OutputModuleManifestFileInfo.FullName | Format-Table Path, Status, StatusMessage
