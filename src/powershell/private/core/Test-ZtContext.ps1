@@ -10,7 +10,7 @@ function Test-ZtContext {
 
     $validContext = $true
     if (!(Get-MgContext)) {
-        $message = "Not connected to Microsoft Graph. Please use 'Connect-ZeroTrustAssessment'. For more information, use 'Get-Help Connect-ZeroTrustAssessment'."
+        $message = "Not connected to Microsoft Graph. Please use 'Connect-ZTAssessment'. For more information, use 'Get-Help Connect-ZTAssessment'."
         $validContext = $false
     } else {
         $requiredScopes = Get-ZtGraphScope
@@ -21,7 +21,7 @@ function Test-ZtContext {
             $message = "These Graph permissions are missing in the current connection => ($($missingScopes))."
             $authType = (Get-MgContext).AuthType
             if ($authType -eq  'Delegated') {
-                $message += " Please use 'Connect-ZeroTrustAssessment'. For more information, use 'Get-Help Connect-ZeroTrustAssessment'."
+                $message += " Please use 'Connect-ZTAssessment'. For more information, use 'Get-Help Connect-ZTAssessment'."
             } else {
                 $clientId = (Get-MgContext).ClientId
                 $urlTemplate = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/CallAnAPI/appId/$clientId/isMSAApp~/false"

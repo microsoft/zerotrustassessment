@@ -8,22 +8,23 @@ function New-EntraTable {
     param (
         # The connection to the database.
         [Parameter(Mandatory = $true)]
-        [DuckDB.NET.Data.DuckDBConnection]$Connection,
+        [DuckDB.NET.Data.DuckDBConnection]
+        $Connection,
 
         # The name of the table to create.
         [Parameter(Mandatory = $true)]
-        [string]$TableName,
+        [string]
+        $TableName,
 
         # The file path to import from
         [Parameter(Mandatory = $true)]
-        [string]$FilePath
+        [string]
+        $FilePath
     )
 
-    $sql = "CREATE TABLE $TableName AS SELECT unnest(value, recursive:=true) FROM '$FilePath';"
-    Write-Verbose $sql
+    $sqlTemp = "CREATE TABLE temp$TableName AS SELECT unnest(value) as d FROM read_json('$FilePath');"
+    $sqlTable = "CREATE TABLE $TableName AS SELECT d.* FROM temp$TableName;"
 
-    $command = $Connection.CreateCommand()
-    $command.CommandText = $sql
-    $command.ExecuteNonQuery() | Out-Null
-    $command.Dispose()
+    Invoke-DatabaseQuery -Database $Connection -Sql $sqlTemp -NonQuery
+    Invoke-DatabaseQuery -Database $Connection -Sql $sqlTable -NonQuery
 }

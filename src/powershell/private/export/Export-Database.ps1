@@ -17,14 +17,14 @@ function Export-Database {
     $dbFolderName = 'db'
     $dbFolder = Join-Path $ExportPath $dbFolderName
     if (Test-Path $dbFolder) {
-        Write-Verbose "Creating db folder $dbFolder"
+        Write-Host "Creating db folder $dbFolder"
         Remove-Item $dbFolder -Recurse -Force | Out-Null # Remove the existing database
     }
     New-Item -ItemType Directory -Path $dbFolder -Force -ErrorAction Stop | Out-Null
 
     $absExportPath = $ExportPath | Resolve-Path
     $dbPath = Join-Path $absExportPath $dbFolderName "zt.db"
-    Write-Verbose "Creating database at $dbPath"
+    Write-Host "Creating database at $dbPath"
     $db = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$dbPath")
     $db.Open()
 

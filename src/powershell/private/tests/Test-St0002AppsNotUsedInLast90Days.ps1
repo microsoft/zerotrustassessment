@@ -14,12 +14,12 @@ function Test-St0002AppsNotUsedInLast90Days {
     Write-ZtProgress -Activity $activity -Status "Starting"
 
     $sql = @"
-select app.id, app."displayName", spSignIns."lastSignInDateTime_1" as lastSignInDateTime, app."createdDateTime"
+select app.id, app."displayName", spSignIns."lastSignInActivity"."lastSignInDateTime" as lastSignInDateTime, app."createdDateTime"
 from main."Application" as app
-left join main."ServicePrincipalSignIn" as spSignIns
-on app.appid = spSignIns."appId"
-where datediff('day', try_cast(spSignIns."lastSignInDateTime_1" as date), today()) > 90
-order by spSignIns."lastSignInDateTime_1" desc
+    left join main."ServicePrincipalSignIn" as spSignIns
+    on app.appid = spSignIns."appId"
+where datediff('day', try_cast(spSignIns."lastSignInActivity"."lastSignInDateTime" as date), today()) > 90
+order by spSignIns."lastSignInActivity"."lastSignInDateTime" desc
 "@
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
