@@ -11,14 +11,21 @@ Invoke-ZeroTrustAssessment
 Run the Zero Trust Assessment against the signed in tenant and generates a report of the findings.
 #>
 
-function Invoke-ZtAssessment
-{
+function Invoke-ZtAssessment {
     [Alias('Invoke-ZeroTrustAssessment')]
     [CmdletBinding()]
     param (
         # The path to the folder folder to output the report to. If not specified, the report will be output to the current directory.
         [string]
         $Path = "./ZeroTrustReport",
+
+        # Optional. Number of days (between 1 and 30) to query sign-in logs. Defaults to last two days.
+        [ValidateScript({
+                $_ -ge 1 -and $_ -le 30
+            },
+            ErrorMessage = "Logs are only available for 30 days. Please enter a number between 1 and 30.")]
+        [int]
+        $Days = 2,
 
         # If specified, the previously exported data will be used to generate the report.
         [switch]
@@ -50,7 +57,9 @@ function Invoke-ZtAssessment
         }
     }
 
-    if (!(Test-ZtContext)){ return }
+    if (!(Test-ZtContext)) {
+        return
+    }
 
     Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
 
@@ -58,7 +67,7 @@ function Invoke-ZtAssessment
     New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
 
     # Collect data
-    Export-TenantData -ExportPath $exportPath
+    Export-TenantData -ExportPath $exportPath -Days $Days
     $db = Export-Database -ExportPath $exportPath
 
     # Run the tests

@@ -54,7 +54,7 @@
 
     do {
         $results = Invoke-MgGraphRequest -Method GET -Uri $uri -OutputType HashTable
-        $currentCount = ExportPage $pageIndex $folderPath $results $RelatedPropertyNames $EntityName $EntityUri $currentCount $totalCount $ProgressActivity
+        $currentCount = ExportPage $pageIndex $folderPath $results $RelatedPropertyNames $EntityName $EntityUri $currentCount $totalCount $ProgressActivity $ShowCount
 
         $uri = Get-ObjectProperty $results '@odata.nextLink'
         $pageIndex++
@@ -63,14 +63,14 @@
     Set-ZtConfig -ExportPath $ExportPath -Property $EntityName -Value $true
 }
 
-function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityName, $entityUri, $currentCount, $totalCount, $progressActivity) {
+function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityName, $entityUri, $currentCount, $totalCount, $progressActivity, $showCount) {
     Write-Verbose "Exporting $entityName page $pageIndex"
 
     if ($relatedPropertyNames) {
         foreach ($result in $results.value) {
             $currentCount++
-            $name = Get-ObjectProperty $result 'displayName'
-            Write-ZtProgress "Exporting $progressActivity" -Status "$currentCount of $totalCount : $name"
+            $status = Get-Status $currentCount $totalCount $showCount $entityName $result
+            Write-ZtProgress "Exporting $progressActivity" -Status $status
             foreach ($propertyName in $relatedPropertyNames) {
                 Add-GraphProperty $result $propertyName $entityName $entityUri
             }
@@ -78,12 +78,24 @@ function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityN
     }
     else {
         $currentCount += $results.value.Count
-        Write-ZtProgress "Exporting $progressActivity" -Status "$currentCount of $totalCount"
+        $status = Get-Status $currentCount $totalCount $showCount $entityName $null
+        Write-ZtProgress "Exporting $progressActivity" -Status $status
     }
 
     $filePath = Join-Path $path "$entityName-$pageIndex.json"
     $results | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Force
     return $currentCount
+}
+
+function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
+    if($showCount) {
+        $name = Get-ObjectProperty $result 'displayName'
+        $status = "$currentCount of $totalCount : $name"
+    }
+    else {
+        $status = "Retrieved $currentCount items..."
+    }
+    return $status
 }
 
 function Add-GraphProperty($result, $propertyName, $entityName, $entityUri) {
