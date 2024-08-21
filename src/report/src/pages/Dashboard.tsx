@@ -1,5 +1,5 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-import { ZtResponsiveSankey } from "@/components/nivo/sankey";
+
 import {
     Area,
     AreaChart,
@@ -33,11 +33,11 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Separator } from "@/components/ui/separator"
-import { useContext } from 'react';
-import { ThemeProviderContext } from '@/contexts/ThemeContext'
+import { reportData } from "@/config/report-data";
+import { CaSankey } from "@/components/overview/ca-sankey";
 
 export default function Dashboard() {
-    const theme = useContext(ThemeProviderContext);
+
 
     return (
         <>
@@ -64,56 +64,12 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <ZtResponsiveSankey isDark = {(theme.theme === 'dark' || theme.theme === 'system' && window.matchMedia("(prefers-color-scheme: dark)").matches) ? true : false} data={{
-                                    "nodes": [
-                                        {
-                                            "id": "User sign in",
-                                            "nodeColor": "hsl(28, 100%, 53%)"
-                                        },
-                                        {
-                                            "id": "No CA applied",
-                                            "nodeColor": "hsl(0, 100%, 50%)"
-                                        },
-                                        {
-                                            "id": "CA applied",
-                                            "nodeColor": "hsl(12, 76%, 61%)"
-                                        },
-                                        {
-                                            "id": "No MFA",
-                                            "nodeColor": "hsl(0, 69%, 50%)"
-                                        },
-                                        {
-                                            "id": "MFA",
-                                            "nodeColor": "hsl(99, 70%, 50%)"
-                                        },
-                                    ],
-                                    "links": [
-                                        {
-                                            "source": "User sign in",
-                                            "target": "No CA applied",
-                                            "value": 40
-                                        },
-                                        {
-                                            "source": "User sign in",
-                                            "target": "CA applied",
-                                            "value": 60
-                                        },
-                                        {
-                                            "source": "CA applied",
-                                            "target": "No MFA",
-                                            "value": 20
-                                        },
-                                        {
-                                            "source": "CA applied",
-                                            "target": "MFA",
-                                            "value": 80
-                                        },
-                                    ]
-                                }} />
+                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers} />
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
+
                                 Over the past 7 days, <span className="font-medium text-foreground">40%</span> of sign-ins were not protected by any conditional access policies.
                             </CardDescription>
                         </CardFooter>
@@ -429,7 +385,7 @@ export default function Dashboard() {
                                 <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                     314
                                     <span className="text-sm font-normal text-muted-foreground">
-                                    sign-ins/day
+                                        sign-ins/day
                                     </span>
                                 </div>
                                 <ChartContainer

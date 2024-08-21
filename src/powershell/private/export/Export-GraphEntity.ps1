@@ -88,7 +88,7 @@ function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityN
 }
 
 function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
-    if($showCount) {
+    if($showCount -and $null -ne $result) {
         $name = Get-ObjectProperty $result 'displayName'
         $status = "$currentCount of $totalCount : $name"
     }

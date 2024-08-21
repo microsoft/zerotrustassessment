@@ -46,6 +46,7 @@ function Get-AuditQueryString($pastDays) {
 
     # Get the date range to query by subtracting the number of days from today set to midnight
     $dateFilter = $null
+    $statusFilter = "status/errorcode eq 0"
 
     $dateStart = (Get-Date -Hour 0 -Minute 0 -Second 0).AddDays(-$pastDays)
 
@@ -55,5 +56,5 @@ function Get-AuditQueryString($pastDays) {
 
     $dateFilter = "createdDateTime ge $dateStartString"
 
-    return $dateFilter
+    return "$dateFilter and $statusFilter"
 }

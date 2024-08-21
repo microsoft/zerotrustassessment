@@ -147,9 +147,4 @@ Function Add-ZtTestResultDetail {
             $__ZtSession.TestResultDetail[$TestId] = $testInfo
         }
     }
-
-    if ($SkippedBecause) {
-        #This needs to be set at the end.
-        Set-ItResult -Skipped -Because $SkippedReason
-    }
 }

@@ -22,6 +22,4 @@ function Invoke-ZtTests {
     Test-St0024MfaForAllUsers
     Test-St0030UserCannotRegisterApps
     Test-St0037PrivilegedRolesAreCloudOnly
-
-    return Get-ZtTestResults
 }

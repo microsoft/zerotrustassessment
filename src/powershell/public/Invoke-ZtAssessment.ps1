@@ -71,7 +71,10 @@ function Invoke-ZtAssessment {
     $db = Export-Database -ExportPath $exportPath
 
     # Run the tests
-    $assessmentResults = Invoke-ZtTests -Database $db
+    Invoke-ZtTests -Database $db
+    Invoke-ZtTenantInfo -Database $db
+
+    $assessmentResults = Get-ZtAssessmentResults
 
     $db.Close()
     $db.Dispose()

@@ -3,7 +3,7 @@
     Gets the results of all the Zero Trust Assessment tests
 #>
 
-function Get-ZtTestResults {
+function Get-ZtAssessmentResults {
     [CmdletBinding()]
     param ()
 
@@ -25,6 +25,8 @@ function Get-ZtTestResults {
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
         Tests          = $__ZtSession.TestResultDetail.values
+        TenantInfo     = $__ZtSession.TenantInfo
+        EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
     }
 
     return $ztTestResults

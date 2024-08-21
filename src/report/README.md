@@ -1,30 +1,22 @@
-# React + TypeScript + Vite
+# Report building
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Run all the following commands inside the `src/report` directory.
 
-Currently, two official plugins are available:
+## Initial setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Run `npm install` to install all dependencies.
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Run `npm run dev` to start the development server.
 
-- Configure the top-level `parserOptions` property like this:
+## Copying a new ZeroTrustReport/ZeroTrustAssessmentReport.json
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json', './tsconfig.app.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+- Use quicktype (Paste JSON as Code) VSCode extension to generate this typescript interface from ZeroTrustAssessmentReport.json created by PowerShell
+- Copy the ts and data to src/report/src/config/report-data.ts
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Building & updating PowerShell
+
+- Run `npm run build` to build the report.
+- Run `Copy-Item ./dist/index.html ../powershell/assets/ReportTemplate.html -Force`
+- Then do the usual Import-Module .\ZeroTrustAssessment.psm1 to update the PowerShell module
