@@ -31,7 +31,7 @@ function Test-St0020BlockLegacyAuth {
     }
 
 
-    Add-ZtTestResultDetail -TestId 'ST0020' -Title 'Block legacy authentication' -Impact High `
+    Add-ZtTestResultDetail -TestId 'ST0020' -Title 'Block legacy authentication policies are configured' -Impact High `
         -Likelihood HighlyLikely -AppliesTo Entra -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $blockPolicies
 }

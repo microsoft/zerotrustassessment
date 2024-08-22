@@ -46,7 +46,7 @@ order by spSignIns."lastSignInActivity"."lastSignInDateTime" desc
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId 'ST0002' -Title 'Stale apps not signed in over 90 days' -Impact  High `
+    Add-ZtTestResultDetail -TestId 'ST0002' -Title 'Inactive apps not signed in over 90 days' -Impact  High `
         -Likelihood HighlyLikely -AppliesTo Entra -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

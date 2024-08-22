@@ -92,7 +92,7 @@ function Test-St0009PhishingResistantAuthForAdmins {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId 'ST0009' -Title 'Phishing resistant authentication required for privileged roles' -Impact High `
+    Add-ZtTestResultDetail -TestId 'ST0009' -Title 'Privileged roles are targeted with Conditional Access policies to enforce phishing resistant methods' -Impact High `
         -Likelihood Possible -AppliesTo Entra -Tag Credential, TenantPolicy `
         -Status $passed -Result $testResultMarkdown
 }
