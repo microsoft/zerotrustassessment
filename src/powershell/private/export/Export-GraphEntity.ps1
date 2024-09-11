@@ -43,7 +43,12 @@
     $activity = "Exporting $ProgressActivity"
     Write-ZtProgress $activity
 
-    $totalCount = if($ShowCount.IsPresent) { Get-ZtGraphObjectCount $EntityUri } else { 0 }
+    $totalCount = if ($ShowCount.IsPresent) {
+        Get-ZtGraphObjectCount $EntityUri
+    }
+    else {
+        0
+    }
     $pageIndex = 0
     $currentCount = 0
 
@@ -56,7 +61,12 @@
         $results = Invoke-MgGraphRequest -Method GET -Uri $uri -OutputType HashTable
         $currentCount = ExportPage $pageIndex $folderPath $results $RelatedPropertyNames $EntityName $EntityUri $currentCount $totalCount $ProgressActivity $ShowCount
 
-        $uri = Get-ObjectProperty $results '@odata.nextLink'
+        if (!$results) {
+            $uri = $null
+        }
+        else {
+            $uri = Get-ObjectProperty $results '@odata.nextLink'
+        }
         $pageIndex++
     }while ($uri)
 
@@ -88,7 +98,7 @@ function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityN
 }
 
 function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
-    if($showCount -and $null -ne $result) {
+    if ($showCount -and $null -ne $result) {
         $name = Get-ObjectProperty $result 'displayName'
         $status = "$currentCount of $totalCount : $name"
     }

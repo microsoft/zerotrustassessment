@@ -19,8 +19,9 @@ Function Get-ZtGraphScope {
     # Any changes made to these permission scopes should be reflected in the documentation.
     # /zerotrustassessment/website/docs/sections/permissions.md
 
-    # Default read-only scopes required for Maester.
+    # Default read-only scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
+        'AuditLog.Read.All'
         'Directory.Read.All'
         'Policy.Read.All'
         'Reports.Read.All'
@@ -34,7 +35,7 @@ Function Get-ZtGraphScope {
         'UserAuthenticationMethod.Read.All'
     )
 
-    $exporterScopes = Get-EERequiredScopes -PermissionType Delegated
+    $scopes += Get-EERequiredScopes -PermissionType Delegated
 
-    return $scopes + $exporterScopes | Sort-Object -Unique
+    return $scopes | Sort-Object -Unique
 }

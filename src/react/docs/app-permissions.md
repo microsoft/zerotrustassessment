@@ -11,11 +11,11 @@ This app uses Microsoft Graph to read the tenant configuration and provide recom
 ## What are the permissions required for this app?
 
 * The app requires Global Admin to consent to the following **read-only** permissions.
+  * AuditLog.Read.All
   * Agreement.Read.All
   * CrossTenantInformation.ReadBasic.All
   * Directory.Read.All
   * Policy.Read.All
-  * User.Read
   * DeviceManagementServiceConfig.Read.All
   * DeviceManagementConfiguration.Read.All
   * DeviceManagementRBAC.Read.All
