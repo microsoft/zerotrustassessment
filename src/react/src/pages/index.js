@@ -4,6 +4,7 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
+import WhatIsZeroTrust from "../components/WhatIsZeroTrust";
 
 import Heading from "@theme/Heading";
 import styles from "./index.module.css";
@@ -112,7 +113,7 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <AuthenticatedTemplate>
+        {/* <AuthenticatedTemplate>
           <div className={styles.buttons}>
             {!showProgress && (
               <Link
@@ -154,15 +155,18 @@ function HomepageHeader() {
               </DialogSurface>
             </Dialog>
           )}
-        </AuthenticatedTemplate>
+        </AuthenticatedTemplate> */}
         <UnauthenticatedTemplate>
-          <div className={styles.buttons}>
+          <h4>
+            Enhance your expertise and identify growth opportunities by scheduling a Zero Trust Workshop along with running a Zero Trust Assessment on your Microsoft Entra ID Tenant.
+          </h4>
+          {/* <div className={styles.buttons}>
           <Link
               className="button button--secondary button--lg"
               href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx">
               Download strategy workshop workbook ↓
             </Link>
-          </div>
+          </div> */}
         </UnauthenticatedTemplate>
       </div>
     </header>
@@ -182,7 +186,27 @@ export default function Home() {
         </FluentProvider>
       </MsalProvider>
       <main>
+        <br />
+        <h3 className="text--center padding-horiz--md">
+          What Does Our Zero Trust Workshop Provide?
+        </h3>
+        <div className="container">
+          <p>
+            Lorem ipsum odor amet, consectetuer adipiscing elit. Euismod vestibulum adipiscing sociosqu; proin lobortis molestie cras interdum at. Posuere aptent at hendrerit gravida, convallis euismod ullamcorper. Habitasse ultricies sem eleifend facilisis duis curae placerat. Euismod metus auctor rhoncus potenti pellentesque volutpat nascetur. Mollis class potenti aptent et, potenti rhoncus. Primis eu taciti blandit, at ad lectus. Torquent praesent phasellus malesuada posuere id nostra. Nunc torquent condimentum morbi dui elementum vel arcu aenean. Duis efficitur vestibulum ligula duis ex non felis.
+          </p>
+        </div>
+
         <HomepageFeatures />
+        <WhatIsZeroTrust />
+
+        <div className={styles.buttons}>
+          <Link
+            className="button button--secondary button--lg"
+            href="https://aka.ms/zerotrust">
+            Learn more about Microsoft Zero Trust
+          </Link>
+        </div>
+
       </main>
     </Layout>
   );

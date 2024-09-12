@@ -28,3 +28,26 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+
+.text-image-pair {
+  display: flex;
+  align-items: center;
+  background-color: rgb(244, 241, 241);
+}
+
+.text-image-pair p {
+  align-self: self-start;
+  width: 55;
+  padding-right: 5px;
+}
+
+.text-image-pair img {
+  width: 40vw;
+  padding-right: 5px;
+}
+
+.testimonial-image {
+  width: 80vw;
+  text-align: center;
+}

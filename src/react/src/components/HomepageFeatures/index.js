@@ -1,55 +1,64 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
+import Link from "@docusaurus/Link";
 
 const FeatureList = [
   {
-    title: 'Step 1: Run assessment',
-    
+    title: 'Current Baseline',
+    Svg: require('@site/static/img/learn-handson.png').default,
     description: (
       <>
-        Run this assessment to check tenant config and 
-        download the roadmap templates that will be used during the workshops.
-        <br/>
-        <code>
-          Install-Module ZeroTrustAssessment
-          Invoke-ZTAssessment
-        </code>
+        Establish your current zero trust baseline with a Microsoft SME or Partner across the Identity, Devices, and Data pillars.
       </>
     ),
+    buttonText: 'Learn About Workshops',
+    buttonDest: 'workshop',
   },
   {
-    title: 'Step 2: Strategy workshops',
-    Svg: require('@site/static/img/step2.svg').default,
+    title: 'Run Assessment',
+    Svg: require('@site/static/img/learn-assess.png').default,
     description: (
       <>
-        Schedule workshops with your Microsoft consultants for each of the Identity, Devices, Data and Network pillars.
+        Check your Microsoft Entra ID tenant's configuration to determine your zero trust readiness.
       </>
     ),
+    buttonText: 'Learn About Assessments',
+    buttonDest: 'assessment',
   },
   {
-    title: 'Step 3: Implement roadmap',
-    Svg: require('@site/static/img/step3.svg').default,
+    title: 'Build Your Roadmap',
+    Svg: require('@site/static/img/learn-roadmap.png').default,
     description: (
       <>
         Review the results of the workshops and implement the zero trust roadmap across your entire digital estate for end to end security.
       </>
     ),
+    buttonText: '',
+    buttonDest: '',
   },
 ];
 
-function Feature({Svg, title, description}) {
+function Feature({ Svg, title, description, buttonText, buttonDest }) {
+  let theButton;
+  if (buttonDest !== '') {
+    theButton = <div className="text--center featureBtn">
+      <Link className="text--center button button--secondary button--lg" href={buttonDest}>{buttonText}</Link>
+    </div>;
+  }
+
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-      { Svg &&  <Svg className={styles.featureSvg} role="img" /> }
-      { !Svg &&  <img src="img/step1.png" /> }
-        
+        <img src={Svg} className={styles.featureSvg} role="img" />
+
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
         <p>{description}</p>
       </div>
+
+      {theButton}
     </div>
   );
 }

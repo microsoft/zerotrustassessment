@@ -4,11 +4,11 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Zero Trust Assessment',
+  title: 'Microsoft Zero Trust Workshop',
   tagline: 'Check your Microsoft tenant configuration for zero trust readiness.',
   favicon: 'img/favicon.ico',
 
@@ -62,23 +62,47 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Zero Trust Assessment',
+        title: 'Zero Trust Readiness',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'docsSidebar',
+            to: 'workshop',
             position: 'left',
-            label: 'Docs',
+            label: 'Workshop',
           },
           {
-            type: 'docSidebar',
-            sidebarId: 'docsSidebar',
+            to: 'assessment',
             position: 'left',
-            label: 'About',
+            label: 'Assessment',
+          },
+          {
+            type: 'dropdown',
+            position: 'left',
+            label: 'Guides',
+            items: [
+              {
+                label: "Workshop Docs",
+                type: 'docSidebar',
+                sidebarId: 'docsSidebar'
+              },
+              {
+                label: 'Workshop Videos',
+                to: 'videos',
+              }
+            ]
+          },
+          {
+            to: 'testimonials',
+            position: 'right',
+            label: 'Testimonials',
+          },
+          {
+            to: 'https://aka.ms/zerotrust',
+            position: 'right',
+            label: 'Microsoft Zero Trust',
           },
         ],
       },
