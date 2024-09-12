@@ -37,7 +37,8 @@ function Test-St0024MfaForAllUsers {
         $testResultMarkdown = "Tenant does not have any conditional access policies that require multi-factor authentication."
     }
 
-    Add-ZtTestResultDetail -TestId 'ST0024' -Title 'Users have strong authentication methods configured' -Impact High `
-        -Likelihood HighlyLikely -AppliesTo Entra -Tag User, Credential `
+    Add-ZtTestResultDetail -TestId 'ST0024' -Title 'Users have strong authentication methods configured'`
+        -UserImpact Medium -Risk Medium -ImplementationCost Low `
+        -AppliesTo Entra -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $mfaPolicies
 }

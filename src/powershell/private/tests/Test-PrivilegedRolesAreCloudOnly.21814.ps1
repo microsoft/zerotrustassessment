@@ -4,7 +4,7 @@
     Checks that admins are not synced from on-prem
 #>
 
-function Test-St0037PrivilegedRolesAreCloudOnly {
+function Test-PrivilegedRolesAreCloudOnly {
     [CmdletBinding()]
     param()
 
@@ -25,7 +25,7 @@ function Test-St0037PrivilegedRolesAreCloudOnly {
 
         $ztUsers = @()
         foreach ($user in $roleUsers) {
-            $ztUsers += Invoke-ZtGraphRequest -RelativeUri "users" -UniqueId $user.id -Select id,displayName,onPremisesSyncEnabled
+            $ztUsers += Invoke-ZtGraphRequest -RelativeUri "users" -UniqueId $user.id -Select id, displayName, onPremisesSyncEnabled
         }
         # Add a new property to the role object to store the users
         $role | Add-Member -MemberType NoteProperty -Name "ZtUsers" -Value $ztUsers
@@ -34,7 +34,7 @@ function Test-St0037PrivilegedRolesAreCloudOnly {
     $passed = $privilegedRoles.ZtUsers.onPremisesSyncEnabled -notcontains $true
 
     if ($passed) {
-        $testResultMarkdown += "All privileged roles in this tenant are cloud only accounts.`n`n%TestResult%"
+        $testResultMarkdown += "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
     }
     else {
         $onpremUserCount = ($privilegedRoles.ZtUsers | Where-Object { $_.onPremisesSyncEnabled }).Count
@@ -46,8 +46,8 @@ function Test-St0037PrivilegedRolesAreCloudOnly {
     $mdInfo += "| Role Name | User | Source | Status |`n"
     $mdInfo += "| :--- | :--- | :--- | :---: |`n"
     foreach ($role in $privilegedRoles | Sort-Object displayName) {
-        foreach($user in $role.ZtUsers) {
-            if($user.onPremisesSyncEnabled){
+        foreach ($user in $role.ZtUsers) {
+            if ($user.onPremisesSyncEnabled) {
                 $type = "Synced from on-premise"
                 $status = "❌"
             }
@@ -63,7 +63,8 @@ function Test-St0037PrivilegedRolesAreCloudOnly {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId 'ST0037' -Title 'Privileged accounts are cloud native identities' -Impact  High `
-        -Likelihood Possible -AppliesTo Entra -Tag PrivilegedIdentity `
+    Add-ZtTestResultDetail -TestId '21814' -Title 'Privileged accounts are cloud native identities' `
+        -UserImpact Medium -Risk Medium -ImplementationCost Low `
+        -AppliesTo Entra -Tag PrivilegedIdentity `
         -Status $passed -Result $testResultMarkdown
 }
