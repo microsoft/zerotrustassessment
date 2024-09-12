@@ -23,7 +23,6 @@
 
         # The additional properties/relations to be queried for each object. e.g. oauth2PermissionGrants
         [string[]]
-        [Parameter(Mandatory = $false)]
         $RelatedPropertyNames,
 
         # The folder to output the report to.
@@ -33,7 +32,11 @@
 
         # Get's count of items to show progress, skip if entity does not support $count
         [switch]
-        $ShowCount
+        $ShowCount,
+
+        # The maximum time (in minutes) the assessment should spend on querying this entity.
+        [int]
+        $MaximumQueryTime
     )
     if ((Get-ZtConfig -ExportPath $ExportPath -Property $EntityName)) {
         Write-Verbose "Skipping $EntityName since it was downloaded previously"
@@ -56,7 +59,11 @@
     Clear-ZtFolder $folderPath
 
     $uri = $EntityUri + '?' + $QueryString
+    $startTime = Get-Date
+    $stopTime = $startTime.AddMinutes($MaximumQueryTime)
+    $hasTimeLimit = $MaximumQueryTime -gt 0
 
+    $hasCompleted = $false
     do {
         $results = Invoke-MgGraphRequest -Method GET -Uri $uri -OutputType HashTable
         $currentCount = ExportPage $pageIndex $folderPath $results $RelatedPropertyNames $EntityName $EntityUri $currentCount $totalCount $ProgressActivity $ShowCount
@@ -68,7 +75,15 @@
             $uri = Get-ObjectProperty $results '@odata.nextLink'
         }
         $pageIndex++
-    }while ($uri)
+
+        if (!$uri) {
+            $hasCompleted = $true
+        }
+        elseif (!$hasCompleted -and $hasTimeLimit -and (Get-Date) -gt $stopTime) {
+            Write-Verbose "Maximum time limit reached for $EntityName"
+            $hasCompleted = $true
+        }
+    }while (!$hasCompleted)
 
     Set-ZtConfig -ExportPath $ExportPath -Property $EntityName -Value $true
 }

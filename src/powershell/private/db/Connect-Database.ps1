@@ -8,5 +8,7 @@ function Connect-Database {
         [string]$Path = ":memory:"
     )
 
-    return [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$dbPath")
+    $db = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$dbPath")
+    $db.Open()
+    return $db
 }

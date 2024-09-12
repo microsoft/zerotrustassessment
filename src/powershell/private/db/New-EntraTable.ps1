@@ -23,7 +23,7 @@ function New-EntraTable {
     )
 
     # Set maximum_object_size to be able to handle large sign in json files
-    $sqlTemp = "CREATE TABLE temp$TableName AS SELECT unnest(value) as d FROM read_json('$FilePath', maximum_object_size=4967295);"
+    $sqlTemp = "CREATE TABLE temp$TableName AS SELECT unnest(value) as d FROM read_json('$FilePath', maximum_object_size=40000000);"
     $sqlTable = "CREATE TABLE $TableName AS SELECT d.* FROM temp$TableName;"
 
     Invoke-DatabaseQuery -Database $Connection -Sql $sqlTemp -NonQuery

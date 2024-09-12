@@ -17,8 +17,13 @@ function Export-TenantData {
         [Parameter(Mandatory = $true)]
         $ExportPath,
 
-        # The number of days to export the data for
-        $Days
+        # The number of days to export the log data for.
+        [int]
+        $Days,
+
+        # The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to collecting sign logs for 60 minutes. Set to 0 for no limit.
+        [int]
+        $MaximumSignInLogQueryTime
     )
 
     # TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
@@ -37,7 +42,7 @@ function Export-TenantData {
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
         -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
-        -QueryString (Get-AuditQueryString $Days)
+        -QueryString (Get-AuditQueryString $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
 
     #Export-Entra -Path $OutputFolder -Type Config
 }
@@ -56,5 +61,5 @@ function Get-AuditQueryString($pastDays) {
 
     $dateFilter = "createdDateTime ge $dateStartString"
 
-    return "$dateFilter and $statusFilter"
+    return "$dateFilter and $statusFilter and appid eq '89bee1f7-5e6e-4d8a-9f3d-ecd601259da7'"
 }

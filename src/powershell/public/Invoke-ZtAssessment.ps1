@@ -25,7 +25,11 @@ function Invoke-ZtAssessment {
             },
             ErrorMessage = "Logs are only available for 30 days. Please enter a number between 1 and 30.")]
         [int]
-        $Days = 2,
+        $Days = 30,
+
+        # Optional. The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to collecting sign logs for 60 minutes. Set to 0 for no limit.
+        [int]
+        $MaximumSignInLogQueryTime = 60,
 
         # If specified, the previously exported data will be used to generate the report.
         [switch]
@@ -67,7 +71,7 @@ function Invoke-ZtAssessment {
     New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
 
     # Collect data
-    Export-TenantData -ExportPath $exportPath -Days $Days
+    Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime
     $db = Export-Database -ExportPath $exportPath
 
     # Run the tests
@@ -76,8 +80,7 @@ function Invoke-ZtAssessment {
 
     $assessmentResults = Get-ZtAssessmentResults
 
-    $db.Close()
-    $db.Dispose()
+    Disconnect-Database -Db $db
 
     $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
     $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
