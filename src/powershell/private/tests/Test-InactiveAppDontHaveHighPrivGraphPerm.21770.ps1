@@ -10,7 +10,7 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
         $Database
     )
 
-    $passed = $true
+    $passed = $false
 
     if ($passed) {
         $testResultMarkdown += "No inactive applications with high privileges"

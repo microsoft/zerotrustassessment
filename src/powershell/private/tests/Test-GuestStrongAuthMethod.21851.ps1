@@ -4,25 +4,25 @@
 
 #>
 
-function Test-GuestHaveRestrictedAccess {
+function Test-GuestStrongAuthMethod {
     [CmdletBinding()]
     param(
         $Database
     )
 
-    $passed = $false
+    $passed = $true
 
     if ($passed) {
-        $testResultMarkdown += "Validated guest user access is restricted"
+        $testResultMarkdown += "All guests protected with strong authentication methods."
     }
     else {
-        $testResultMarkdown += "Guest users can invite other guests`n`n%TestResult%"
+        $testResultMarkdown += "Guests are not using strong authentication methods`n`n%TestResult%"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21792' -Title 'Guests have restricted access to directory objects' `
-        -UserImpact Medium -Risk Medium -ImplementationCost Low `
+    Add-ZtTestResultDetail -TestId '21851' -Title 'All guests user strong authentication methods' `
+        -UserImpact Medium -Risk Medium -ImplementationCost Medium `
         -AppliesTo Entra -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

@@ -10,7 +10,7 @@ function Test-PrivilegedUsersPhishResistantMethodRegistered {
         $Database
     )
 
-    $passed = $true
+    $passed = $false
 
     if ($passed) {
         $testResultMarkdown += "Validated that following accounts have phishing resistant methods registered"
