@@ -20,7 +20,8 @@ function Test-GuestCantInviteGuests{
         $testResultMarkdown = "Tenant allows any user (including other guests) to invite guests."
     }
 
-    Add-ZtTestResultDetail -TestId '21791' -Title "Guest can’t invite other guests" -Impact High `
-        -Likelihood HighlyLikely -AppliesTo Entra -Tag ExternalCollaboration `
+    Add-ZtTestResultDetail -TestId '21791' -Title "Guest can’t invite other guests" `
+        -UserImpact Medium -Risk Medium -ImplementationCost Low `
+        -AppliesTo Entra -Tag ExternalCollaboration `
         -Status $passed -Result $testResultMarkdown
 }

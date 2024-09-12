@@ -3,7 +3,7 @@
     Checks that legacy auth is blocked.
 #>
 
-function Test-St0020BlockLegacyAuth {
+function Test-BlockLegacyAuthCaPolicy {
     [CmdletBinding()]
     param()
 
@@ -21,17 +21,17 @@ function Test-St0020BlockLegacyAuth {
     $passed = $blockPolicies.conditions.users.includeUsers -contains "All" -and $blockPolicies.state -eq "enabled"
 
     if ($passed) {
-        $testResultMarkdown = "Tenant is configured to block legacy authentication for all users.`n`n%TestResult%"
+        $testResultMarkdown = "Conditional Access to block legacy Authentication are configured and enabled.`n`n%TestResult%"
     }
     elseif (($blockPolicies | Measure-Object).Count -ge 1) {
-        $testResultMarkdown = "Tenant has a policy to block legacy authentication but does not target all users or is not enabled.`n`n%TestResult%"
+        $testResultMarkdown = "Policies to block legacy authentication were found but are not properly configured.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "Tenant does not have any conditional access policies that block legacy authentication."
+        $testResultMarkdown = "No conditional access to block legacy authentication were found."
     }
 
-
-    Add-ZtTestResultDetail -TestId 'ST0020' -Title 'Block legacy authentication policies are configured' -Impact High `
-        -Likelihood HighlyLikely -AppliesTo Entra -Tag User, Credential `
+    Add-ZtTestResultDetail -TestId '21796' -Title 'Block legacy authentication policies are configured' `
+        -UserImpact Medium -Risk Medium -ImplementationCost Low `
+        -AppliesTo Entra -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $blockPolicies
 }
