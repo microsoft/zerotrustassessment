@@ -20,8 +20,10 @@ function Invoke-ZtTests {
     Test-PrivilegedUsersSignInPhishResistant
     Test-PrivilegedUsersCaAuthStrengthPhishResistant
     Test-PrivilegedUsersPhishResistantMethodRegistered
+    Test-GuestCantInviteGuests
+
     # Test-St0002AppsNotUsedInLast90Days -Database $Database
-    # Test-St0018GuestShouldNotInviteGuests
+
     # Test-St0020BlockLegacyAuth
     # Test-St0024MfaForAllUsers
     # Test-St0030UserCannotRegisterApps

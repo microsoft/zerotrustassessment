@@ -3,7 +3,7 @@
     Checks that a guest user does not invite other guests.
 #>
 
-function Test-St0018GuestShouldNotInviteGuests{
+function Test-GuestCantInviteGuests{
     [CmdletBinding()]
     param()
 
@@ -20,7 +20,7 @@ function Test-St0018GuestShouldNotInviteGuests{
         $testResultMarkdown = "Tenant allows any user (including other guests) to invite guests."
     }
 
-    Add-ZtTestResultDetail -TestId 'ST0018' -Title "Guest can't invite other guests" -Impact High `
+    Add-ZtTestResultDetail -TestId '21791' -Title "Guest can’t invite other guests" -Impact High `
         -Likelihood HighlyLikely -AppliesTo Entra -Tag ExternalCollaboration `
         -Status $passed -Result $testResultMarkdown
 }

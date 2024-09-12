@@ -52,7 +52,8 @@ Function Add-ZtTestResultDetail {
 
         # The type of graph object, this will be used to show the right deeplink to the test results report.
         [ValidateSet('AuthenticationMethod', 'AuthorizationPolicy', 'ConditionalAccess', 'ConsentPolicy',
-            'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole'
+            'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole',
+            'External collaboration'
         )]
         [string] $GraphObjectType,
 
