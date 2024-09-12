@@ -3,7 +3,7 @@
     Checks that admins are enforced for phishing resistant authentication.
 #>
 
-function Test-St0009PhishingResistantAuthForAdmins {
+function Test-PrivilegedUsersSignInPhishResistant {
     [CmdletBinding()]
     param()
 
@@ -47,10 +47,10 @@ function Test-St0009PhishingResistantAuthForAdmins {
     }
     $passed = ($unprotectedRoles | Measure-Object).Count -eq 0
     if ($passed) {
-        $testResultMarkdown += "Tenant is configured to require phishing resistant authentication for all privileged roles.`n`n%TestResult%"
+        $testResultMarkdown += "Validated that following accounts use phishing resistant credentials.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Tenant is not configured to require phishing resistant authentication for all privileged roles.`n`n%TestResult%"
+        $testResultMarkdown += "Found Accounts are using phishable credentials`n`n%TestResult%"
     }
 
     $mdInfo += "`n`n## Conditional Access Policies with phishing resistant authentication policies `n`n"
@@ -92,7 +92,8 @@ function Test-St0009PhishingResistantAuthForAdmins {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId 'ST0009' -Title 'Privileged roles are targeted with Conditional Access policies to enforce phishing resistant methods' -Impact High `
-        -Likelihood Possible -AppliesTo Entra -Tag Credential, TenantPolicy `
+    Add-ZtTestResultDetail -TestId '21781' -Title 'Privileged users sign in with phishing resistant methods  '
+        -UserImpact Low -Risk High -ImplementationCost Medium `
+        -AppliesTo Entra -Tag Credential, TenantPolicy `
         -Status $passed -Result $testResultMarkdown
 }

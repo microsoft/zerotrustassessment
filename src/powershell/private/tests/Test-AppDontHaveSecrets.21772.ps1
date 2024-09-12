@@ -4,7 +4,7 @@
 
 #>
 
-function Test-InactiveAppDontHaveHighPrivilege {
+function Test-AppDontHaveSecrets {
     [CmdletBinding()]
     param(
         $Database
@@ -13,16 +13,16 @@ function Test-InactiveAppDontHaveHighPrivilege {
     $passed = $true
 
     if ($passed) {
-        $testResultMarkdown += "No inactive applications with high privileges"
+        $testResultMarkdown += "Applications in your tenants do not use client secrets."
     }
     else {
-        $testResultMarkdown += "Inactive Application(s) with high privileges were found`n`n%TestResult%"
+        $testResultMarkdown += "The following applications and service principals have client secrets configured`n`n%TestResult%"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21770' -Title 'Inactive applications don''t have highly privileged permissions' `
-        -UserImpact Low -Risk High -ImplementationCost Low `
+    Add-ZtTestResultDetail -TestId '21772' -Title 'Applications don''t have secrets configured' `
+        -UserImpact Medium -Risk High -ImplementationCost Medium `
         -AppliesTo Entra -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }
