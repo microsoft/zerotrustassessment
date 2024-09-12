@@ -70,10 +70,13 @@ Function Add-ZtTestResultDetail {
         [string] $SkippedBecause,
 
         [ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
-        [string] $Impact,
+        [string] $UserImpact,
 
-        [ValidateSet('Unlikely', 'Possible', 'Likely', 'HighlyLikely')]
-        [string] $Likelihood,
+        [ValidateSet('High', 'Medium', 'Low')]
+        [string] $Risk,
+
+        [ValidateSet('High', 'Medium', 'Low')]
+        [string] $ImplementationCost,
 
         [ValidateSet('Entra', 'Intune', 'Purview')]
         [string[]] $AppliesTo,
@@ -124,17 +127,18 @@ Function Add-ZtTestResultDetail {
     }
 
     $testInfo = @{
-        TestId          = $TestId
-        TestTitle       = $Title
-        TestStatus      = Get-ZtTestStatus -Status $Status -Skipped (![string]::IsNullOrEmpty($SkippedBecause))
-        TestTags        = $Tag
-        TestAppliesTo   = $AppliesTo
-        TestImpact      = $Impact
-        TestLikelihood  = $Likelihood
-        TestDescription = $Description
-        TestResult      = $Result
-        TestSkipped     = $SkippedBecause
-        SkippedReason   = $SkippedReason
+        TestId                 = $TestId
+        TestTitle              = $Title
+        TestStatus             = Get-ZtTestStatus -Status $Status -Skipped (![string]::IsNullOrEmpty($SkippedBecause))
+        TestTags               = $Tag
+        TestAppliesTo          = $AppliesTo
+        TestImpact             = $Impact
+        TestRisk               = $Risk
+        TestImplementationCost = $ImplementationCost
+        TestDescription        = $Description
+        TestResult             = $Result
+        TestSkipped            = $SkippedBecause
+        SkippedReason          = $SkippedReason
     }
 
     Write-ZtProgress -Activity "Running tests" -Status $Title

@@ -8,6 +8,8 @@ function Disconnect-Database {
         # The database connection to close.
         $Database
     )
-    $Database.Close()
-    $Database.Dispose()
+    if ($Database) {
+        $Database.Close()
+        $Database.Dispose()
+    }
 }
