@@ -92,7 +92,7 @@ function Test-PrivilegedUsersSignInPhishResistant {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21781' -Title 'Privileged users sign in with phishing resistant methods  '
+    Add-ZtTestResultDetail -TestId '21781' -Title 'Privileged users sign in with phishing resistant methods' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
         -AppliesTo Entra -Tag Credential, TenantPolicy `
         -Status $passed -Result $testResultMarkdown

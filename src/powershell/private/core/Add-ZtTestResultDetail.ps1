@@ -52,8 +52,7 @@ Function Add-ZtTestResultDetail {
 
         # The type of graph object, this will be used to show the right deeplink to the test results report.
         [ValidateSet('AuthenticationMethod', 'AuthorizationPolicy', 'ConditionalAccess', 'ConsentPolicy',
-            'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole',
-            'Authentication', 'AccessControl'
+            'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole'
         )]
         [string] $GraphObjectType,
 
@@ -82,7 +81,9 @@ Function Add-ZtTestResultDetail {
         [ValidateSet('Entra', 'Intune', 'Purview')]
         [string[]] $AppliesTo,
 
-        [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application', 'User', 'PrivilegedIdentity', 'ConditionalAccess')]
+        [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
+            'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl'
+            )]
         [string[]] $Tag
     )
 
