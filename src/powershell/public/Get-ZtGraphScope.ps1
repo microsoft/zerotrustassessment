@@ -33,6 +33,7 @@ Function Get-ZtGraphScope {
         'RoleEligibilitySchedule.ReadWrite.Directory'
         'Policy.Read.ConditionalAccess'
         'UserAuthenticationMethod.Read.All'
+        'CrossTenantInformation.ReadBasic.All'
     )
 
     $scopes += Get-EERequiredScopes -PermissionType Delegated

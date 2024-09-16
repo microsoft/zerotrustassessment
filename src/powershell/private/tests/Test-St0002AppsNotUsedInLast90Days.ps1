@@ -1,7 +1,7 @@
 ﻿
 <#
 .SYNOPSIS
-    Checks that admins are not synced from on-prem
+    Checks if there are inactive apps not signed in over 90 days
 #>
 
 function Test-St0002AppsNotUsedInLast90Days {
