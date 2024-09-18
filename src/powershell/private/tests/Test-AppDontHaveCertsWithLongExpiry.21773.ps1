@@ -30,6 +30,7 @@ function Test-AppDontHaveCertsWithLongExpiry {
     where keyEndDateTime > maxExpiryDate
     order by displayName, keyEndDateTime DESC
 "@
+
     $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
     $resultsSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
 
@@ -53,8 +54,8 @@ function Test-AppDontHaveCertsWithLongExpiry {
     }
 
     if ($resultsSP.Count -gt 0) {
-        $mdInfo += "`n`n## Service Principals with long-lived credentials`n`n"
-        $mdInfo += "| Service Principal | App owner tenant | Certificate expiry |`n"
+        $mdInfo += "`n`n## Service principals with long-lived credentials`n`n"
+        $mdInfo += "| Service principal | App owner tenant | Certificate expiry |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($item in $resultsSP) {
             $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId

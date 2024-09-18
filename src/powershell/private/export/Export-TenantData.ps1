@@ -27,6 +27,8 @@ function Export-TenantData {
     )
 
     # TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
         -EntityUri 'beta/applications' -ProgressActivity 'Applications' `
@@ -39,6 +41,21 @@ function Export-TenantData {
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
         -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
+        -EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
+
+    # Active role assignments
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
+        -EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
+        -QueryString "`$expand=principal"
+
+    if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") { # API requires PIM license
+        # Filter for currently valid, eligible role assignments
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequests' `
+            -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
+            -QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
+    }
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
         -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `

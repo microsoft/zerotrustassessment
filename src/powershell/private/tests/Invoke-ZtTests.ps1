@@ -13,19 +13,19 @@ function Invoke-ZtTests {
     # We could also run all the cmdlets in this folder that start with Test-
     # For now, just run all tests sequentially
 
-    # Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
-    # Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
+    Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
+    Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
     Test-AppDontHaveSecrets -Database $Database
     Test-AppDontHaveCertsWithLongExpiry -Database $Database
-    # Test-PrivilegedUsersSignInPhishResistant
-    # Test-PrivilegedUsersCaAuthStrengthPhishResistant
-    # Test-PrivilegedUsersPhishResistantMethodRegistered
-    # Test-GuestCantInviteGuests
-    # Test-GuestHaveRestrictedAccess
-    # Test-BlockLegacyAuthCaPolicy
-    # Test-CreatingNewAppsRestrictedToPrivilegedUsers
-    # Test-GuestStrongAuthMethod
-    # Test-DiagnosticSettingsConfiguredEntraLogs
-    # Test-St0002AppsNotUsedInLast90Days -Database $Database
-    # Test-St0024MfaForAllUsers
+    Test-PrivilegedUsersSignInPhishResistant
+    Test-PrivilegedUsersCaAuthStrengthPhishResistant
+    Test-PrivilegedUsersPhishResistantMethodRegistered
+    Test-GuestCantInviteGuests
+    Test-GuestHaveRestrictedAccess
+    Test-BlockLegacyAuthCaPolicy
+    Test-CreatingNewAppsRestrictedToPrivilegedUsers
+    Test-GuestStrongAuthMethod
+    Test-DiagnosticSettingsConfiguredEntraLogs
+    Test-St0002AppsNotUsedInLast90Days -Database $Database
+    Test-St0024MfaForAllUsers
 }

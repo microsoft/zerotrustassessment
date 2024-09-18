@@ -35,7 +35,11 @@ function Export-Database {
     Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipal'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipalSignIn'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'SignIn'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleDefinition'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignment'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequests'
 
+    New-ViewRole -db $db
     return $db
 }
 
@@ -55,4 +59,27 @@ function Get-DbConnection ($DbPath) {
 function Close-DbConnection ($db) {
     $db.Close()
     $db.Dispose()
+}
+
+function New-ViewRole($db){
+
+    $sql = @"
+create view vwRole
+as
+select ra."roleDefinitionId", ra.principal.displayName as principalDisplayName, rd.displayName as roleDisplayName, ra.principal.userPrincipalName, rd.isPrivileged,
+    ra.principal."@odata.type",
+    ra.principalId, ra.principalOrganizationId, ra.principal.servicePrincipalType,
+    'Permanent' as privilegeType
+from main."RoleAssignment" ra
+    left join main."RoleDefinition" rd on ra."roleDefinitionId" = rd.id
+UNION
+select re."roleDefinitionId", re.principal.displayName as principalDisplayName, rd.displayName as roleDisplayName, re.principal.userPrincipalName, rd.isPrivileged,
+     re.principal."@odata.type",
+     re.principalId, null as principalOrganizationId, null as servicePrincipalType,
+     'Eligible' as privilegeType
+from main."RoleEligibilityScheduleRequests" re
+    left join  main."RoleDefinition" rd on re."roleDefinitionId" = rd.id
+order by roleDisplayName, principalDisplayName
+"@
+    Invoke-DatabaseQuery -Database $db -Sql $sql -NonQuery
 }
