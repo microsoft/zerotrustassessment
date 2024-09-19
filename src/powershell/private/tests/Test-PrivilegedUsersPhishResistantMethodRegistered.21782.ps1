@@ -26,9 +26,3 @@ function Test-PrivilegedUsersPhishResistantMethodRegistered {
         -AppliesTo Entra -Tag Authentication `
         -Status $passed -Result $testResultMarkdown
 }
-
-function Get-SafeMarkdown($text) {
-    $text = $text -replace "\[", "\["
-    $text = $text -replace "\]", "\]"
-    return $text
-}

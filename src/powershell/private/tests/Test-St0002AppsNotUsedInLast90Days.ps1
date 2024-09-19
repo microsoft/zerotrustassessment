@@ -51,9 +51,3 @@ order by spSignIns."lastSignInActivity"."lastSignInDateTime" desc
         -AppliesTo Entra -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }
-
-function Get-SafeMarkdown($text) {
-    $text = $text -replace "\[", "\["
-    $text = $text -replace "\]", "\]"
-    return $text
-}
