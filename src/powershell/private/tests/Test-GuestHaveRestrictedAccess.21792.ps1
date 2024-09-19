@@ -9,14 +9,17 @@ function Test-GuestHaveRestrictedAccess {
     param(
         $Database
     )
+    $guestRestrictedRoleId = "2af84b1e-32c8-42b7-82bc-daa82404023b"
 
-    $passed = $false
+    $result = Invoke-ZtGraphRequest -RelativeUri "policies/authorizationPolicy"
+
+    $passed = $result.guestUserRoleId -eq $guestRestrictedRoleId
 
     if ($passed) {
-        $testResultMarkdown += "Validated guest user access is restricted"
+        $testResultMarkdown += "✅ Validated guest user access is restricted."
     }
     else {
-        $testResultMarkdown += "Guest users can invite other guests`n`n%TestResult%"
+        $testResultMarkdown += "❌ Guest users can invite other guests`n`n%TestResult%"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
@@ -25,10 +28,4 @@ function Test-GuestHaveRestrictedAccess {
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
         -AppliesTo Entra -Tag Application `
         -Status $passed -Result $testResultMarkdown
-}
-
-function Get-SafeMarkdown($text) {
-    $text = $text -replace "\[", "\["
-    $text = $text -replace "\]", "\]"
-    return $text
 }
