@@ -42,8 +42,8 @@ function Test-InactiveAppDontHaveHighPrivEntraRole {
         $mdInfo = "`n## Apps with privileged Entra built-in roles`n`n"
         $mdInfo += "| | Name | Role | Assignment | App owner tenant | Last sign in|`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
-        $mdInfo += Get-AppList -Apps $inactiveApps -Icon "❌"
-        $mdInfo += Get-AppList -Apps $activeApps -Icon "✅"
+        $mdInfo += Get-AppListRole -Apps $inactiveApps -Icon "❌"
+        $mdInfo += Get-AppListRole -Apps $activeApps -Icon "✅"
     }
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
@@ -53,7 +53,7 @@ function Test-InactiveAppDontHaveHighPrivEntraRole {
         -Status $passed -Result $testResultMarkdown
 }
 
-function Get-AppList($Apps, $Icon) {
+function Get-AppListRole($Apps, $Icon) {
     $mdInfo = ""
     $sqlRole = @"
     select r.roleDisplayName
