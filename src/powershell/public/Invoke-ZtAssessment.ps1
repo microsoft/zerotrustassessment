@@ -72,24 +72,24 @@ function Invoke-ZtAssessment {
 
     # Collect data
     Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime
-    $db = Export-Database -ExportPath $exportPath
+    # $db = Export-Database -ExportPath $exportPath
 
-    # Run the tests
-    Invoke-ZtTests -Database $db
-    Invoke-ZtTenantInfo -Database $db
+    # # Run the tests
+    # Invoke-ZtTests -Database $db
+    # Invoke-ZtTenantInfo -Database $db
 
-    $assessmentResults = Get-ZtAssessmentResults
+    # $assessmentResults = Get-ZtAssessmentResults
 
-    Disconnect-Database -Db $db
+    # Disconnect-Database -Db $db
 
-    $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
-    $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
-    $assessmentResultsJson | Out-File -FilePath $resultsJsonPath
+    # $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
+    # $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
+    # $assessmentResultsJson | Out-File -FilePath $resultsJsonPath
 
-    Write-ZtProgress -Activity "Creating html report"
-    $htmlReportPath = Join-Path $Path "ZeroTrustAssessmentReport.html"
-    $output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
-    $output | Out-File -FilePath $htmlReportPath -Encoding UTF8
+    # Write-ZtProgress -Activity "Creating html report"
+    # $htmlReportPath = Join-Path $Path "ZeroTrustAssessmentReport.html"
+    # $output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
+    # $output | Out-File -FilePath $htmlReportPath -Encoding UTF8
 
     Write-Host
     Write-Host "🛡️ Zero Trust Assessmet report generated at $htmlReportPath" -ForegroundColor Green

@@ -17,7 +17,7 @@ function Invoke-ZtTests {
     # Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
     # Test-AppDontHaveSecrets -Database $Database
     # Test-AppDontHaveCertsWithLongExpiry -Database $Database
-    # Test-PrivilegedUsersSignInPhishResistant
+    ### Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
     # Test-PrivilegedUsersCaAuthStrengthPhishResistant
     # Test-PrivilegedUsersPhishResistantMethodRegistered
     # Test-GuestCantInviteGuests

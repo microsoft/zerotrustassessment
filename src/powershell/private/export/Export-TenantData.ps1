@@ -50,12 +50,22 @@ function Export-TenantData {
         -EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
         -QueryString "`$expand=principal"
 
-    if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") { # API requires PIM license
+    if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+        # API requires PIM license
         # Filter for currently valid, eligible role assignments
         Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequests' `
             -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
             -QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
     }
+
+    Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
+        -EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
+
+    ## Download all privileged user details based on roles and role assignments
+    Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
+        -InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
+    Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
+        -InputEntityName 'RoleEligibilityScheduleRequests' -EntityName 'RoleEligibilityScheduleRequestsGroup'
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
         -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
