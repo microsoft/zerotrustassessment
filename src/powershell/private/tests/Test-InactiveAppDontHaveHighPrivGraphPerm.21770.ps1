@@ -27,6 +27,7 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
             from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
                 from main.ServicePrincipal sp) sp
                 left join
+                    (select unnest(main.ServicePrincipal.appRoles).id as id, unnest(main.ServicePrincipal.appRoles)."value" permissionName
                     from main.ServicePrincipal) spAppRole
                     on sp.appRoleId = spAppRole.id
             where permissionName is not null
@@ -41,8 +42,8 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
     foreach($item in $results) {
         $item = Add-DelegatePermissions $item
         $item = Add-AppPermissions $item
-        $isRisky = Get-IsRisky $item
-        if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $isRisky) {
+        $item = Add-GraphRisk $item
+        if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $item.IsRisky) {
             $inactiveRiskyApps += $item
         }
         else {
@@ -108,8 +109,10 @@ function Add-AppPermissions($item) {
     return $item
 }
 
-function Get-IsRisky($item) {
-    return true
+function Add-GraphRisk($item) {
+    $item.Risk = Get-GraphRisk -delegatePermissions $item.DelegatePermissions -applicationPermissions $item.AppPermissions
+    $item.IsRisky = $item.Risk -eq "High"
+    return $item
 }
 
 function Get-AppList($Apps, $Icon) {
@@ -117,10 +120,29 @@ function Get-AppList($Apps, $Icon) {
     foreach ($item in $apps) {
         $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId
         $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.id)/appId/$($item.appId)"
-        $risk = "TODO"
+        $risk = $item.Risk
         $delPerm = $item.DelegatePermissions -join ", "
         $appPerm = $item.AppPermissions -join ", "
         $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $risk | $delPerm | $appPerm | $(Get-SafeMarkdown($tenant.displayName)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
     }
     return $mdInfo
+}
+
+function Get-GraphRisk($delegatePermissions, $applicationPermissions) {
+    $finalRisk = "Unranked"
+    foreach($permission in $applicationPermissions){
+        $risk = Get-GraphPermissionRisk -Permission $permission -PermissionType "Application"
+        switch($risk){
+            "High" { return $risk }
+            "Medium" { $finalRisk = $risk }
+        }
+    }
+    foreach($permission in $delegatePermissions){
+        $risk = Get-GraphPermissionRisk -Permission $permission -PermissionType "Delegated"
+        switch($risk){
+            "High" { return $risk }
+            "Medium" { $finalRisk = $risk }
+        }
+    }
+    return $finalRisk
 }
