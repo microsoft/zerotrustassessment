@@ -26,21 +26,26 @@
         $roleAssignments = Get-Content -Path $file.FullName | ConvertFrom-Json
         # Get all the groups
         $groups = $roleAssignments.value | Where-Object { $_.principal.'@odata.type' -eq '#microsoft.graph.group' }
-        $results = @()
+        # Create an object with a 'value' property that contains the array of items
+        $results = @{ value = @() }
+
         $groups | ForEach-Object {`
-            Write-ZtProgress $activity -Status $_.principal.displayName
+                Write-ZtProgress $activity -Status $_.principal.displayName
             #5/10/2024 - Entra ID Role Enabled Security Groups do not currently support nesting so we don't need to get transitive members
             $groupId = $_.principal.id
             $member = Get-ZtGroupMember -groupId $groupId
-            # Add the group id property to the member object
-            $member | Add-Member -MemberType NoteProperty -Name privilegedGroupId -Value $groupId -Force # Need to force to overwrite if it was cached user.
-            $results += $member
+            if ($member -and $member.Count -gt 0) {
+                # Add the group id property to the member object
+                $member | Add-Member -MemberType NoteProperty -Name privilegedGroupId -Value $groupId -Force # Need to force to overwrite if it was cached user.
+                $results.value += $member
+            }
         }
 
-        $filePath = Join-Path $folderPath "$EntityName-$pageIndex.json"
-        $results | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Force
-
-        $pageIndex++
+        if ($results.value.Count -gt 0) {
+            $filePath = Join-Path $folderPath "$EntityName-$pageIndex.json"
+            $results | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Force
+            $pageIndex++
+        }
     }
 
     Set-ZtConfig -ExportPath $ExportPath -Property $EntityName -Value $true

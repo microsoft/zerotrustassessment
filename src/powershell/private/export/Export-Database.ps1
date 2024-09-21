@@ -37,7 +37,9 @@ function Export-Database {
     Import-Table -db $db -absExportPath $absExportPath -tableName 'SignIn'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleDefinition'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignment'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequests'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentGroup'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequest'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequestGroup'
 
     New-ViewRole -db $db
     return $db
@@ -45,7 +47,15 @@ function Export-Database {
 
 function Import-Table($db, $absExportPath, $tableName) {
 
-    $filePath = Join-Path $absExportPath $tableName "$tableName*.json"
+    $folderPath = Join-Path $absExportPath $tableName
+
+    # Copy the model file if it exists (needed to create table schema to avoid sql errors when there is no data)
+    $modelFilePath = Join-Path -Path $PSScriptRoot -ChildPath "model/$tableName-model.json"
+    if(Test-Path $modelFilePath) {
+        Copy-Item -Path $modelFilePath -Destination $folderPath -Force
+    }
+
+    $filePath = Join-Path $folderPath "$tableName*.json"
 
     New-EntraTable -Connection $db -TableName $tableName -FilePath $filePath
 }
@@ -77,7 +87,7 @@ select re."roleDefinitionId", re.principal.displayName as principalDisplayName, 
      re.principal."@odata.type",
      re.principalId, null as principalOrganizationId, null as servicePrincipalType,
      'Eligible' as privilegeType
-from main."RoleEligibilityScheduleRequests" re
+from main."RoleEligibilityScheduleRequest" re
     left join  main."RoleDefinition" rd on re."roleDefinitionId" = rd.id
 order by roleDisplayName, principalDisplayName
 "@

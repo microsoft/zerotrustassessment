@@ -53,7 +53,7 @@ function Export-TenantData {
     if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
         # API requires PIM license
         # Filter for currently valid, eligible role assignments
-        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequests' `
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
             -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
             -QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
     }
@@ -65,7 +65,7 @@ function Export-TenantData {
     Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
         -InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
     Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
-        -InputEntityName 'RoleEligibilityScheduleRequests' -EntityName 'RoleEligibilityScheduleRequestsGroup'
+        -InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
         -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
