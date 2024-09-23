@@ -62,7 +62,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Zero Trust Readiness',
+        title: 'Zero Trust Workshop',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
@@ -74,14 +74,14 @@ const config = {
             label: 'Workshop',
           },
           {
-            to: 'assessment',
+            to: 'guide',
             position: 'left',
-            label: 'Assessment',
+            label: 'Guide',
           },
           {
             type: 'dropdown',
             position: 'left',
-            label: 'Guides',
+            label: 'Learn',
             items: [
               {
                 label: "Workshop Docs",

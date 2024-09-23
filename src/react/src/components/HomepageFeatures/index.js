@@ -38,8 +38,8 @@ const FeatureList = [
         For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.
       </>
     ),
-    buttonText: '',
-    buttonDest: '',
+    buttonText: 'Read the Guide',
+    buttonDest: 'guide',
   },
 ];
 

@@ -44,7 +44,7 @@ const FeatureList = [
       </>
     ),
     learnMoreText: 'Access Our Step-by-Step Guide',
-    learnMoreUrl: 'videos'
+    learnMoreUrl: 'guide'
   },
 ];
 

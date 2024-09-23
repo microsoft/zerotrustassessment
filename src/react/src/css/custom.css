@@ -67,6 +67,9 @@
   box-shadow: 0px 0px 2px 0px rgba(23, 26, 31, 0.12), 0px 0px 1px 0px rgba(23, 26, 31, 0.07);
 }
 
+.hero-banner-guide {
+  background: #993E15;
+}
 
 /* Content inside the hero banner */
 .hero-content {
@@ -81,7 +84,7 @@
 
 /* Text section */
 .hero-text {
-  padding: 0 0 0 1rem;
+  padding: 0 0 0 2rem;
   text-align: left;
   flex: 1;
 }
@@ -104,8 +107,101 @@
   justify-content: flex-end;
 }
 
+.hero-image-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+
 .hero-image img {
   max-height: 100%;
-  max-width: 100%;
+  max-width: 75%;
   object-fit: contain;
+}
+
+
+
+
+/* General layout container */
+.content-rows {
+  width: 90%;
+  margin: 0 auto;
+}
+
+/* Section padding */
+.row-section {
+  padding: 20px 0;
+}
+
+/* Styling for even rows */
+.even-row {
+  background-color: #f0f0f0;
+  /* Light gray shading for even rows */
+}
+
+/* Row content layout */
+.row-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Image and text layout for even-numbered rows (image on the left) */
+.image-first .image-container,
+.text-first .image-container {
+  width: 50%;
+  /* Image takes 40% */
+}
+
+/* Text container takes 60% */
+.image-first .text-container,
+.text-first .text-container {
+  width: 50%;
+  /* Text takes 60% */
+}
+
+/* Ensures images are responsive and maintain their aspect ratio */
+.image-container img {
+  width: 100%;
+  /* Ensures the image scales to the container width */
+  height: auto;
+  /* Maintains the aspect ratio */
+  display: block;
+  /* Removes bottom space for inline images */
+  padding: 4rem;
+}
+
+.text-container {
+  padding: 2rem;
+}
+
+/* Text container styling */
+.text-container h2 {
+  margin-bottom: 2rem;
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 768px) {
+
+  /* Image and text containers take 100% of the width on mobile */
+  .image-first .image-container,
+  .text-first .image-container,
+  .image-first .text-container,
+  .text-first .text-container {
+    width: 100%;
+  }
+
+  /* Stack image and text vertically */
+  .row-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Adds spacing between the image and text on mobile */
+  .image-first .image-container,
+  .text-first .text-container {
+    margin-bottom: 20px;
+  }
 }
