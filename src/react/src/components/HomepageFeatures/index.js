@@ -5,33 +5,37 @@ import Link from "@docusaurus/Link";
 
 const FeatureList = [
   {
-    title: 'Current Baseline',
+    title: 'What is Zero Trust?',
     Svg: require('@site/static/img/learn-handson.png').default,
     description: (
       <>
-        Establish your current zero trust baseline with a Microsoft SME or Partner across the Identity, Devices, and Data pillars.
+        Navigating the complexities of modern security is challenging, but a Zero Trust strategy can provide clarity and direction. By adopting Zero Trust, your organization can enhance its security posture, reducing risk and complexity while improving compliance and governance.
+        <br /><br />
+        This approach leverages AI to provide robust protection and adaptability. In today's dynamic environment, a new security model is essential—one that embraces the hybrid workplace and safeguards people, devices, apps, and data, regardless of location.
       </>
     ),
-    buttonText: 'Learn About Workshops',
-    buttonDest: 'workshop',
+    buttonText: 'Learn More',
+    buttonDest: 'https://aka.ms/zerotrust',
   },
   {
-    title: 'Run Assessment',
+    title: 'What does the workshop cover?',
     Svg: require('@site/static/img/learn-assess.png').default,
     description: (
       <>
-        Check your Microsoft Entra ID tenant's configuration to determine your zero trust readiness.
+        The Zero Trust Workshop is a guided framework from Microsoft to help you translate Zero Trust Strategy into a deployment reality.
+        <br /><br />
+        Using our learnings from thousands of customer deployments, we help you evaluate your current environment and provide concrete steps in a first-then-next structure to help you arrive at an improved end-to-end security posture.
       </>
     ),
-    buttonText: 'Learn About Assessments',
-    buttonDest: 'assessment',
+    buttonText: 'Learn About Our Workshop',
+    buttonDest: 'workshop',
   },
   {
-    title: 'Build Your Roadmap',
+    title: 'How do I run the workshop?',
     Svg: require('@site/static/img/learn-roadmap.png').default,
     description: (
       <>
-        Review the results of the workshops and implement the zero trust roadmap across your entire digital estate for end to end security.
+        For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.
       </>
     ),
     buttonText: '',

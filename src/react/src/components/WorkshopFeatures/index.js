@@ -5,11 +5,16 @@ import Link from '@docusaurus/Link';
 
 const FeatureList = [
   {
-    title: 'What is a Zero Trust Workshop?',
-    Svg: require('@site/static/img/workshop-buildroadmap.png').default,
+    title: 'Workshop Goals and Outcomes',
     description: (
       <>
-        The Zero Trust Workshop is a guided journey by a Microsoft SME or Partner to help you understand the adoption journey, learn best practices, and develop an action plan to secure your future.
+        <ul>
+          <li>Provide a detailed, customized zero trust roadmap that is relevant to your organization​</li>
+          <li>Provide a way to measure progress and impact of your ZT journey​</li>
+          <li>Highlight cross-product integrations that are both valuable and may not always be considered by siloed teams.​​</li>
+          <li>Help you fully utilize the Microsoft Security features/products you own​​</li>
+          <li>Ultimately, Improve your end-to-end security posture​​</li>
+        </ul>
       </>
     ),
     learnMoreText: '',
@@ -19,45 +24,52 @@ const FeatureList = [
   },
   {
     title: 'Who Should Attend?',
-    Svg: require('@site/static/img/step2.png').default,
     description: (
       <>
-        Anyone in your organization that is responsible for your security strategy and implementation. Each Zero Trust pillar is a separate workshop, so your SMEs for each pillar should attend the appropriate workshop.
+        <ul>
+          <li>Security Architects</li>
+          <li>Identity Architects</li>
+          <li>ITDM of the primary pillars (Identity, Devices, Network, Infra and Data)</li>
+        </ul>
       </>
     ),
     learnMoreText: '',
     learnMoreUrl: ''
   },
   {
-    title: 'What Should I Expect?',
-    Svg: require('@site/static/img/step3.png').default,
+    title: 'Workshop Structure',
     description: (
       <>
-        An interactive experience with Microsoft SMEs or partners, with a focus on your current security implementation with an eye focused on best practices and guidance to help you on your Zero Trust journey.
+        We provide training materials for a self-service workshop, but you can also collaborate with your Microsoft Account team or a partner if you use Microsoft Security products.
       </>
     ),
-    learnMoreText: '',
-    learnMoreUrl: ''
+    learnMoreText: 'Access Our Step-by-Step Guide',
+    learnMoreUrl: 'videos'
   },
 ];
 
-function Feature({ Svg, title, description, learnMoreText, learnMoreUrl }) {
+function Feature({ title, description, learnMoreText, learnMoreUrl }) {
+  let theButton;
+  if (learnMoreUrl !== '') {
+    theButton = <div className="text--center featureBtn">
+      <Link className="text--center button button--secondary button--lg" href={learnMoreUrl}>{learnMoreText}</Link>
+    </div>;
+  }
+
   return (
     <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <img src={Svg} className={styles.featureSvg} role="img" />
-      </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-        <Link to={learnMoreUrl}>{learnMoreText}</Link>
+        <p className="text--left">{description}</p>
       </div>
+      {theButton}
     </div>
   );
 }
 
 export default function WorkshopFeatures() {
   return (
+
     <section className={styles.features}>
       <div className="container">
         <div className="row">

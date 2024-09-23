@@ -23,7 +23,23 @@ export default function Workshop() {
             description="Check your Microsoft tenant configuration for zero trust readiness"
         >
 
-            <header className={clsx("hero hero--primary", styles.heroBanner)}>
+            <header className="hero-banner">
+                <div className="hero-content">
+                    <div className="hero-image">
+                        <img src={require('@site/static/img/workshop-hero.jpg').default} alt="Zero Trust Workshops" />
+                    </div>
+                    <div className="hero-text">
+                        <Heading as="h1" className="hero__title">
+                            What is the Microsoft Zero Trust Workshop and Why Use It?
+                        </Heading>
+                        <p>
+                            The Microsoft Zero Trust Workshop simplifies the complexity of today's Security landscape by embracing Zero Trust concepts and architecture into a tailored, actionable roadmap. This roadmap provides precise, step-by-step guidance for implementing a secure Zero Trust posture, along with measurable milestones to track progress.
+                        </p>
+                    </div>
+                </div>
+            </header>
+
+            {/* <header className={clsx("hero hero--primary", styles.heroBanner)}>
                 <div className="container">
                     <Heading as="h1" className="hero__title">
                         Zero Trust Workshops
@@ -33,10 +49,12 @@ export default function Workshop() {
 
                     <p>Aliquet curabitur eget torquent vestibulum eu pulvinar. Netus rhoncus semper metus sagittis praesent ac sodales tellus id. Eget porttitor lacus hendrerit morbi fames. Vitae purus tristique magna hac; bibendum felis non. Vulputate arcu vivamus; eleifend suscipit nulla fermentum? Anetus tristique fames; hac mollis est egestas. Hac eget dignissim eleifend quam nisl mi. Scelerisque blandit ad a varius nunc faucibus.</p>
                 </div>
-            </header>
+            </header> */}
 
 
             <main>
+                <br />
+                <h2 className="text--center hero__subtitle">About our Zero Trust Workshops</h2>
                 <WorkshopFeatures />
             </main>
 
