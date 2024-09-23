@@ -102,14 +102,14 @@ export default function GuideSteps() {
                                     </div>
                                     <div className="text-container">
                                         <h2>{step.title}</h2>
-                                        <p>{step.description}</p>
+                                        <p className="text--justify">{step.description}</p>
                                     </div>
                                 </>
                             ) : (
                                 <>
                                     <div className="text-container">
                                         <h2>{step.title}</h2>
-                                        <p>{step.description}</p>
+                                        <p className="text--justify">{step.description}</p>
                                     </div>
                                     <div className="image-container">
                                         <img src={step.imageUrl} alt={`Row ${step.id}`} />

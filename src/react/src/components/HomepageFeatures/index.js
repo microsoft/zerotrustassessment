@@ -59,7 +59,7 @@ function Feature({ Svg, title, description, buttonText, buttonDest }) {
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
+        <p className="text--justify">{description}</p>
       </div>
 
       {theButton}
