@@ -84,7 +84,7 @@
 
 /* Text section */
 .hero-text {
-  padding: 0 0 0 2rem;
+  padding: 0 0 0 6rem;
   text-align: left;
   flex: 1;
 }
@@ -182,6 +182,10 @@
   margin-bottom: 2rem;
 }
 
+.text-container p {
+  font-size: large;
+}
+
 /* Responsive layout for small screens */
 @media (max-width: 768px) {
 
@@ -204,4 +208,58 @@
   .text-first .text-container {
     margin-bottom: 20px;
   }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sub-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 30%;
+  padding: 20px;
+}
+
+.sub-section img {
+  align-content: center;
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.content h2 {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.content h3 {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.content p {
+  text-align: justify;
+  margin-bottom: 10px;
+  font-size: large;
+}
+
+.action-button {
+  align-self: center;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: auto;
+  /* Ensures the button is pushed to the bottom */
 }

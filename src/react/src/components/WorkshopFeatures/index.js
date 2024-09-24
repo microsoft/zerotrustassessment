@@ -29,7 +29,7 @@ const FeatureList = [
         <ul>
           <li>Security Architects</li>
           <li>Identity Architects</li>
-          <li>ITDM of the primary pillars (Identity, Devices, Network, Infra and Data)</li>
+          <li>IT Decision Makers of the primary pillars (Identity, Devices, Network, Infra and Data)</li>
         </ul>
       </>
     ),
@@ -41,6 +41,9 @@ const FeatureList = [
     description: (
       <>
         We provide training materials for a self-service workshop, but you can also collaborate with your Microsoft Account team or a partner if you use Microsoft Security products.
+
+        <br />
+
       </>
     ),
     learnMoreText: 'Access Our Step-by-Step Guide',
@@ -51,18 +54,18 @@ const FeatureList = [
 function Feature({ title, description, learnMoreText, learnMoreUrl }) {
   let theButton;
   if (learnMoreUrl !== '') {
-    theButton = <div className="text--center featureBtn">
-      <Link className="text--center button button--secondary button--lg" href={learnMoreUrl}>{learnMoreText}</Link>
+    theButton = <div className="text--center featureBtn action-button">
+      <Link className="text--center button button--primary button--lg" href={learnMoreUrl}>{learnMoreText}</Link>
     </div>;
   }
 
   return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
+    <div className="sub-section">
+      <div className="content">
+        <Heading as="h2">{title}</Heading>
         <p className="text--justify">{description}</p>
+        {theButton}
       </div>
-      {theButton}
     </div>
   );
 }
@@ -72,7 +75,7 @@ export default function WorkshopFeatures() {
 
     <section className={styles.features}>
       <div className="container">
-        <div className="row">
+        <div className="section">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
           ))}

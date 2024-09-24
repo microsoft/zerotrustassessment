@@ -14,7 +14,17 @@ const Steps = [
                 <br />
                 This assessment provides essential checks to confirm a strong security baseline, preparing you for advanced features and a more resilient security posture.
                 <br />
-                Click the video to learn more about the assessment or use this link for in-depth documentation.
+                Click the video on the left to learn more about the assessment or click the button below for in-depth documentation.
+
+                <br /><br />
+                <div className={styles.buttons}>
+                    <Link
+                        className="button button--primary button--lg"
+                        href="docs/app-permissions">
+                        Learn About The Zero Trust Assessment
+                    </Link>
+                </div>
+
             </>
         ),
         imageUrl: require('@site/static/img/guide-step1.png').default
@@ -25,11 +35,21 @@ const Steps = [
         description: (
             <>
                 <ol>
-                    <li>Identify which teams to involve.</li>
-                    <li>Access the Zero Trust architecture resources here.</li>
-                    <li>Schedule with your Microsoft partner or account team.</li>
-                    <li>Download the Zero Trust Workshop tool.</li>
+                    <li>Review the our Introduction to the Zero Trust Workshop video on the right</li>
+                    <li>Identify which teams in your organization to involve.</li>
+                    <li>Access the Zero Trust architecture resources <a href='https://aka.ms/zerotrust' target='_blank' title='Microsoft Zero Trust'>here</a>.</li>
+                    <li>Reach out to your Microsoft partner or account team, if applicable, about including them in your workshop.</li>
+                    <li>Download the Zero Trust Workshop tool by clicking the button below.</li>
                 </ol>
+
+                <div className={styles.buttons}>
+                    <Link
+                        className="button button--primary button--lg"
+                        href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx">
+                        Download strategy workshop tool ↓
+                    </Link>
+                </div>
+
             </>
         ),
         imageUrl: require('@site/static/img/guide-step1.png').default
@@ -39,12 +59,12 @@ const Steps = [
         title: 'Step 3: Run the Pillar-Specific Workshops',
         description: (
             <>
-                <p>Use discussion guides and materials for:</p>
-                <ol>
-                    <li>Identity pillar</li>
-                    <li>Devices pillar</li>
-                    <li>Data pillar</li>
-                </ol>
+                <p>In addition to reviewing the Workshop tool, review the below videos for the pillar workshops you will be running:</p>
+                <ul>
+                    <li><a href='docs/videos/IdentityPillar' title='Identity Pillar Info'>Identity Pillar</a></li>
+                    <li><a href='docs/videos/DevicesPillar' title='Devices Pillar Info'>Devices Pillar</a></li>
+                    <li><a href='docs/videos/DataPillar' title='Data Pillar Info'>Data Pillar</a></li>
+                </ul>
             </>
         ),
         imageUrl: require('@site/static/img/guide-step3.png').default
@@ -54,7 +74,6 @@ const Steps = [
         title: 'Step 4: Document Results & Create a Plan',
         description: (
             <>
-                <p>Use discussion guides and materials for:</p>
                 <ol>
                     <li>Upload assessment and workshop results to your project management tool (e.g., ADO, JIRA).</li>
                     <li>Establish a baseline and track your progress with regular assessments every 6 months.</li>
@@ -69,10 +88,9 @@ const Steps = [
         title: 'Step 5: Share Your Feedback',
         description: (
             <>
-                <p>Use discussion guides and materials for:</p>
                 <ol>
-                    <li>Have feedback from running the workshop? Share it with us here.</li>
-                    <li>Found any bugs or have enhancement suggestions? Contribute to the GitHub repository here. ​</li>
+                    <li>Have feedback from running the workshop? Share it with us <a href='https://aka.ms/ztfeedback' target='_blank' title='Zero Trust Workshop Feedback'>here</a>.</li>
+                    <li>Found any bugs or have enhancement suggestions? Contribute to the GitHub repository <a href='https://github.com/microsoft/zerotrustassessment' target='_blank' title='Zero Trust Workshop and Assessment Repo'>here</a>. ​</li>
                 </ol>
             </>
         ),

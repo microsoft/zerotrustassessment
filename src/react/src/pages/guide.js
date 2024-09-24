@@ -22,7 +22,7 @@ export default function Guide() {
             description="Check your Microsoft tenant configuration for zero trust readiness"
         >
 
-            <header className="hero-banner hero-banner-guide">
+            <header className="hero-banner">
                 <div className="hero-content">
                     <div className="hero-text">
                         <Heading as="h1" className="hero__title">
@@ -31,6 +31,10 @@ export default function Guide() {
                         <p>
                             Learn how to run the Microsoft Zero Trust workshop, including step-by-step instructions and best practices. Unsure what Zero Trust is? Click below to find out
                         </p>
+                        <br />
+                        <div className="text--left featureBtn action-button">
+                            <Link className="text--center button button--secondary button--lg" href="workshop">Learn More About The Workshop</Link>
+                        </div>
                     </div>
                     <div className="hero-image">
                         <img src={require('@site/static/img/guide-hero.png').default} alt="Zero Trust Workshop Guide" />

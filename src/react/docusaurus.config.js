@@ -35,7 +35,13 @@ const config = {
     locales: ['en'],
   },
 
-  plugins: ['./src/plugins/webpack'],
+  plugins: [
+    './src/plugins/webpack',
+    [
+      "@gracefullight/docusaurus-plugin-microsoft-clarity",
+      { projectId: "o7upt47mzp" },
+    ],
+  ],
 
   presets: [
     [
@@ -71,7 +77,7 @@ const config = {
           {
             to: 'workshop',
             position: 'left',
-            label: 'Workshop',
+            label: 'About the Workshop',
           },
           {
             to: 'guide',
@@ -90,15 +96,16 @@ const config = {
               },
               {
                 label: 'Workshop Videos',
-                to: 'videos',
+                type: 'doc',
+                docId: 'videos/index'
               }
             ]
           },
-          {
-            to: 'testimonials',
-            position: 'right',
-            label: 'Testimonials',
-          },
+          // {
+          //   to: 'testimonials',
+          //   position: 'right',
+          //   label: 'Testimonials',
+          // },
           {
             to: 'https://aka.ms/zerotrust',
             position: 'right',

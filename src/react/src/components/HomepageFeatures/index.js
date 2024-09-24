@@ -36,6 +36,15 @@ const FeatureList = [
     description: (
       <>
         For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.
+
+        <br /><br />
+        Check out <a href='docs/videos/IntroductionToZT' title='Intro to ZT Workshop'>this video</a> if you want to get a quick overview of the Zero Trust Workshop.
+
+        <br /> <br />
+
+        Click the <strong>Read the Guide</strong> button below if you're ready to start holding your own workshops!
+
+        <br />
       </>
     ),
     buttonText: 'Read the Guide',
@@ -46,19 +55,16 @@ const FeatureList = [
 function Feature({ Svg, title, description, buttonText, buttonDest }) {
   let theButton;
   if (buttonDest !== '') {
-    theButton = <div className="text--center featureBtn">
-      <Link className="text--center button button--secondary button--lg" href={buttonDest}>{buttonText}</Link>
+    theButton = <div className="text--center featureBtn action-button">
+      <Link className="text--center button button--primary button--lg" href={buttonDest}>{buttonText}</Link>
     </div>;
   }
 
   return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <img src={Svg} className={styles.featureSvg} role="img" />
-
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
+    <div className="sub-section">
+      <img src={Svg} className={styles.featureSvg} role="img" title={title} />
+      <div className="content">
+        <Heading as="h2">{title}</Heading>
         <p className="text--justify">{description}</p>
       </div>
 
@@ -71,7 +77,7 @@ export default function HomepageFeatures() {
   return (
     <section className={styles.features}>
       <div className="container">
-        <div className="row">
+        <div className="section">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
           ))}
