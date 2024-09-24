@@ -35,7 +35,13 @@ const config = {
     locales: ['en'],
   },
 
-  plugins: ['./src/plugins/webpack'],
+  plugins: [
+    './src/plugins/webpack',
+    [
+      "@gracefullight/docusaurus-plugin-microsoft-clarity",
+      { projectId: "o85tf0o62v" },
+    ],
+  ],
 
   presets: [
     [

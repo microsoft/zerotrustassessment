@@ -402,3 +402,5 @@ FodyWeavers.xsd
 
 .DS_Store
 /output
+/ZeroTrustReport
+/src/report/dist
