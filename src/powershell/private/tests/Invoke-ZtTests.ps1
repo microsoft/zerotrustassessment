@@ -14,18 +14,18 @@ function Invoke-ZtTests {
     # For now, just run all tests sequentially
 
     Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
-    # Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
-    # Test-AppDontHaveSecrets -Database $Database
-    # Test-AppDontHaveCertsWithLongExpiry -Database $Database
-    ### Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
-    # Test-PrivilegedUsersCaAuthStrengthPhishResistant
-    # Test-PrivilegedUsersPhishResistantMethodRegistered
-    # Test-GuestCantInviteGuests
-    # Test-GuestHaveRestrictedAccess
-    # Test-BlockLegacyAuthCaPolicy
-    # Test-CreatingNewAppsRestrictedToPrivilegedUsers
-    # Test-GuestStrongAuthMethod
-    # Test-DiagnosticSettingsConfiguredEntraLogs
-    # Test-St0002AppsNotUsedInLast90Days -Database $Database
-    # Test-St0024MfaForAllUsers
+    Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
+    Test-AppDontHaveSecrets -Database $Database
+    Test-AppDontHaveCertsWithLongExpiry -Database $Database
+    ## Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
+    Test-PrivilegedUsersCaAuthStrengthPhishResistant
+    ## Test-PrivilegedUsersPhishResistantMethodRegistered # Not implemented
+    Test-GuestCantInviteGuests
+    Test-GuestHaveRestrictedAccess
+    Test-BlockLegacyAuthCaPolicy
+    Test-CreatingNewAppsRestrictedToPrivilegedUsers
+    ## Test-GuestStrongAuthMethod # Not implemented
+    ## Test-DiagnosticSettingsConfiguredEntraLogs # Not implemented
+    Test-St0002AppsNotUsedInLast90Days -Database $Database
+    Test-St0024MfaForAllUsers
 }
