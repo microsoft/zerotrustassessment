@@ -39,7 +39,7 @@ order by displayName, keyEndDateTime DESC
     }
 
     if ($resultsApp.Count -gt 0) {
-        $mdInfo = "`n## Applications with long-lived credentials`n`n"
+        $mdInfo = "`n## Applications with client secrets`n`n"
         $mdInfo += "| Application | Secret expiry |`n"
         $mdInfo += "| :--- | :--- |`n"
         foreach ($item in $resultsApp) {
@@ -49,7 +49,7 @@ order by displayName, keyEndDateTime DESC
     }
 
     if ($resultsSP.Count -gt 0) {
-        $mdInfo += "`n`n## Service Principals with long-lived credentials`n`n"
+        $mdInfo += "`n`n## Service Principals with client secrets`n`n"
         $mdInfo += "| Service principal | App owner tenant | Secret expiry |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($item in $resultsSP) {
