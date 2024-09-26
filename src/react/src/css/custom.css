@@ -98,6 +98,7 @@
 .hero-text p {
   font-size: 1.2rem;
   color: #f7f7f7;
+  padding: 0 2rem 0 0;
 }
 
 /* Image section */
@@ -111,6 +112,7 @@
   flex: 1;
   display: flex;
   justify-content: flex-start;
+  max-width: 35vw;
 }
 
 

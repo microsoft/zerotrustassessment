@@ -20,8 +20,9 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'microsoft', // Usually your GitHub org/user name.
+  organizationName: 'DavidHoerster', // Usually your GitHub org/user name.
   projectName: 'zerotrustassessment', // Usually your repo name.
+  deploymentBranch: 'newsite',
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
