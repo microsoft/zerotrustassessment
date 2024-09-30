@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import WorkshopFeatures from "@site/src/components/WorkshopFeatures";
+import WorkshopFeatures from "@site/src/components/WorkshopFeatures2";
 
 import Heading from "@theme/Heading";
 import styles from "./index.module.css";
