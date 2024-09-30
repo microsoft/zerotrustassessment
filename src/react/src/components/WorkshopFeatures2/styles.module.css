@@ -1,0 +1,83 @@
+.container {
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f0f0;
+    /* Light background for contrast */
+}
+
+.title {
+    color: #1a73e8;
+    /* Professional blue tone */
+    text-align: center;
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem;
+}
+
+.benefitsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+
+}
+
+.benefitCard {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefitCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.icon {
+    font-size: 2rem;
+    color: #1a73e8;
+    margin-bottom: 1rem;
+}
+
+.benefitTitle {
+    font-size: 1.2rem;
+    color: #333333;
+}
+
+.benefitTitle strong {
+    color: #1a73e8;
+}
+
+
+.attendeesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.attendeeCard {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.attendeeCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+.attendeeTitle {
+    font-size: 1.2rem;
+    color: #333333;
+}
+
+.attendeeTitle strong {
+    color: #1a73e8;
+}

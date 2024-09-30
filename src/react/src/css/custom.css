@@ -265,3 +265,10 @@
   margin-top: auto;
   /* Ensures the button is pushed to the bottom */
 }
+
+
+
+.buttonPad {
+  margin-left: 2rem;
+  margin-right: 2rems;
+}
