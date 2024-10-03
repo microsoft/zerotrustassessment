@@ -14,7 +14,7 @@ const FeatureList = [
         This approach leverages AI to provide robust protection and adaptability. In today's dynamic environment, a new security model is essential—one that embraces the hybrid workplace and safeguards people, devices, apps, and data, regardless of location.
       </>
     ),
-    buttonText: 'Learn More',
+    buttonText: 'Learn more',
     buttonDest: 'https://aka.ms/zerotrust',
   },
   {
@@ -27,7 +27,7 @@ const FeatureList = [
         Using our learnings from thousands of customer deployments, we help you evaluate your current environment and provide concrete steps in a first-then-next structure to help you arrive at an improved end-to-end security posture.
       </>
     ),
-    buttonText: 'Learn About Our Workshop',
+    buttonText: 'Learn about our workshop',
     buttonDest: 'workshop',
   },
   {
@@ -42,12 +42,12 @@ const FeatureList = [
 
         <br /> <br />
 
-        Click the <strong>Read the Guide</strong> button below if you're ready to start holding your own workshops!
+        Click the <strong>Read the guide</strong> button below if you're ready to start holding your own workshops!
 
         <br />
       </>
     ),
-    buttonText: 'Read the Guide',
+    buttonText: 'Read the guide',
     buttonDest: 'guide',
   },
 ];
@@ -65,7 +65,7 @@ function Feature({ Svg, title, description, buttonText, buttonDest }) {
       <img src={Svg} className={styles.featureSvg} role="img" title={title} />
       <div className="content">
         <Heading as="h2">{title}</Heading>
-        <p className="text--justify">{description}</p>
+        <p className="text--left">{description}</p>
       </div>
 
       {theButton}

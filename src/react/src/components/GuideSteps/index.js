@@ -21,26 +21,27 @@ const Steps = [
                     <Link
                         className="button button--primary button--lg"
                         href="docs/app-permissions">
-                        Learn About The Zero Trust Assessment
+                        Learn about the Zero Trust Assessment
                     </Link>
                 </div>
 
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step1.png').default
+        imageUrl: require('@site/static/img/guide-step1.png').default,
+        imageAltText: 'Learn about the Zero Trust Assessment video'
     },
     {
         id: 2,
-        title: 'Step 2: Prepare for the Workshop ',
+        title: 'Step 2: Prepare for the workshop ',
         description: (
             <>
-                <ol>
+                <ul>
                     <li>Review the our Introduction to the Zero Trust Workshop video on the right</li>
                     <li>Identify which teams in your organization to involve.</li>
                     <li>Access the Zero Trust architecture resources <a href='https://aka.ms/zerotrust' target='_blank' title='Microsoft Zero Trust'>here</a>.</li>
                     <li>Reach out to your Microsoft partner or account team, if applicable, about including them in your workshop.</li>
                     <li>Download the Zero Trust Workshop tool by clicking the button below.</li>
-                </ol>
+                </ul>
 
                 <div className={styles.buttons}>
                     <Link
@@ -52,11 +53,12 @@ const Steps = [
 
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step1.png').default
+        imageUrl: require('@site/static/img/guide-step1.png').default,
+        imageAltText: 'Learn about the Zero Trust workshop video'
     },
     {
         id: 3,
-        title: 'Step 3: Run the Pillar-Specific Workshops',
+        title: 'Step 3: Run the pillar specific workshops',
         description: (
             <>
                 <p>In addition to reviewing the Workshop tool, review the below videos for the pillar workshops you will be running:</p>
@@ -67,34 +69,37 @@ const Steps = [
                 </ul>
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step3.png').default
+        imageUrl: require('@site/static/img/guide-step3.png').default,
+        imageAltText: 'Specific pillar workshop videos'
     },
     {
         id: 4,
-        title: 'Step 4: Document Results & Create a Plan',
+        title: 'Step 4: Document results & create a plan',
         description: (
             <>
-                <ol>
+                <ul>
                     <li>Upload assessment and workshop results to your project management tool (e.g., ADO, JIRA).</li>
                     <li>Establish a baseline and track your progress with regular assessments every 6 months.</li>
                     <li>Identify areas that need improvement and adjust your security plan accordingly.. ​</li>
-                </ol>
+                </ul>
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step4.png').default
+        imageUrl: require('@site/static/img/guide-step4.png').default,
+        imageAltText: 'Document results and create a plan'
     },
     {
         id: 5,
-        title: 'Step 5: Share Your Feedback',
+        title: 'Step 5: Share your feedback',
         description: (
             <>
                 <ol>
-                    <li>Have feedback from running the workshop? Share it with us <a href='https://aka.ms/ztfeedback' target='_blank' title='Zero Trust Workshop Feedback'>here</a>.</li>
+                    <li>Have feedback from running the workshop? Share it with us <a href='https://aka.ms/ztworkshop/feedback' target='_blank' title='Zero Trust Workshop Feedback'>here</a>.</li>
                     <li>Found any bugs or have enhancement suggestions? Contribute to the GitHub repository <a href='https://github.com/microsoft/zerotrustassessment' target='_blank' title='Zero Trust Workshop and Assessment Repo'>here</a>. ​</li>
                 </ol>
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step5.png').default
+        imageUrl: require('@site/static/img/guide-step5.png').default,
+        imageAltText: 'Provide feedback on the workshop'
     },
 ];
 
@@ -116,21 +121,21 @@ export default function GuideSteps() {
                             {isEven ? (
                                 <>
                                     <div className="image-container">
-                                        <img src={step.imageUrl} alt={`Row ${step.id}`} />
+                                        <img src={step.imageUrl} title={step.imageAltText} />
                                     </div>
                                     <div className="text-container">
                                         <h2>{step.title}</h2>
-                                        <p className="text--justify">{step.description}</p>
+                                        <p className="text--left">{step.description}</p>
                                     </div>
                                 </>
                             ) : (
                                 <>
                                     <div className="text-container">
                                         <h2>{step.title}</h2>
-                                        <p className="text--justify">{step.description}</p>
+                                        <p className="text--left">{step.description}</p>
                                     </div>
                                     <div className="image-container">
-                                        <img src={step.imageUrl} alt={`Row ${step.id}`} />
+                                        <img src={step.imageUrl} title={step.imageAltText} />
                                     </div>
                                 </>
                             )}

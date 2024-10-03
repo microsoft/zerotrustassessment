@@ -90,7 +90,7 @@
 }
 
 .hero-text h1 {
-  font-size: 2.5rem;
+  font-size: 34px;
   color: #ffffff;
   margin-bottom: 10px;
 }
@@ -99,6 +99,7 @@
   font-size: 1.2rem;
   color: #f7f7f7;
   padding: 0 2rem 0 0;
+  line-height: 32px;
 }
 
 /* Image section */
@@ -251,7 +252,7 @@
 }
 
 .content p {
-  text-align: justify;
+  /* text-align: justify; */
   margin-bottom: 10px;
   font-size: large;
 }
