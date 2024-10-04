@@ -29,6 +29,13 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+.button {
+  background-color: #0078d4;
+}
+
+.button--secondary {
+  background-color: #ffb900;
+}
 
 .text-image-pair {
   display: flex;
@@ -62,8 +69,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 3px;
-  border: 1px solid #195A8A;
-  background: #195A8A;
+  border: 1px solid #0078d4;
+  background: #0078d4;
   box-shadow: 0px 0px 2px 0px rgba(23, 26, 31, 0.12), 0px 0px 1px 0px rgba(23, 26, 31, 0.07);
 }
 
