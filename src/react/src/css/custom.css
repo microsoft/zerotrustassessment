@@ -240,6 +240,17 @@
   padding: 20px;
 }
 
+@media (max-width: 968px) {
+  .section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sub-section {
+    width: 95%;
+  }
+}
+
 .sub-section img {
   align-content: center;
 }
