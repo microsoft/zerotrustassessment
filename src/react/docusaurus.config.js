@@ -151,6 +151,14 @@ const config = {
             title: 'More',
             items: [
               {
+                label: 'Privacy',
+                href: 'https://go.microsoft.com/fwlink/?LinkId=521839'
+              },
+              {
+                label: 'Terms of Use',
+                href: 'https://go.microsoft.com/fwlink/?LinkID=206977'
+              },
+              {
                 label: 'GitHub',
                 href: 'https://github.com/microsoft/zerotrustassessment',
               },
