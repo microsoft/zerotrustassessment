@@ -69,7 +69,7 @@ const Steps = [
                 </ul>
             </>
         ),
-        imageUrl: require('@site/static/img/guide-step3.png').default,
+        imageUrl: require('@site/static/img/learn-pillars.png').default,
         imageAltText: 'Specific pillar workshop videos'
     },
     {

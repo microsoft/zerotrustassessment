@@ -6,7 +6,7 @@ import Link from "@docusaurus/Link";
 const FeatureList = [
   {
     title: 'What is Zero Trust?',
-    Svg: require('@site/static/img/learn-handson.png').default,
+    Svg: require('@site/static/img/what-is-zero-trust.png').default,
     description: (
       <>
         Navigating the complexities of modern security is challenging, but a Zero Trust strategy can provide clarity and direction. By adopting Zero Trust, your organization can enhance its security posture, reducing risk and complexity while improving compliance and governance.
@@ -19,7 +19,7 @@ const FeatureList = [
   },
   {
     title: 'What does the workshop cover?',
-    Svg: require('@site/static/img/learn-assess.png').default,
+    Svg: require('@site/static/img/workshop-cover.png').default,
     description: (
       <>
         The Zero Trust Workshop is a guided framework from Microsoft to help you translate Zero Trust Strategy into a deployment reality.
@@ -32,7 +32,7 @@ const FeatureList = [
   },
   {
     title: 'How do I run the workshop?',
-    Svg: require('@site/static/img/learn-roadmap.png').default,
+    Svg: require('@site/static/img/workshop-run.png').default,
     description: (
       <>
         For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.

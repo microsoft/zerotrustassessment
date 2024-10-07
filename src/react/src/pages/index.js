@@ -119,7 +119,7 @@ function HomepageHeader() {
           </p>
         </div>
         <div className="hero-image">
-          <img src={require('@site/static/img/home-hero.png').default} alt="Zero Trust Concept" />
+          <img src={require('@site/static/img/hero-datacenter.png').default} alt="Zero Trust Concept" />
         </div>
       </div>
     </header>
