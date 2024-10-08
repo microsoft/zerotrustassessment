@@ -26,7 +26,7 @@ export default function Workshop() {
             <header className="hero-banner">
                 <div className="hero-content">
                     <div className="hero-image-left">
-                        <img src={require('@site/static/img/workshop-hero.png').default} alt="Zero Trust Workshops" />
+                        <img src={require('@site/static/img/hero-what-is-zt.png').default} alt="Zero Trust Workshops" />
                     </div>
                     <div className="hero-text">
                         <Heading as="h1" className="hero__title">

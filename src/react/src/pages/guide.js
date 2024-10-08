@@ -37,7 +37,7 @@ export default function Guide() {
                         </div>
                     </div>
                     <div className="hero-image">
-                        <img src={require('@site/static/img/hero-mountain-peaks.png').default} alt="Zero Trust Workshop Guide" />
+                        <img src={require('@site/static/img/workshop-cover.png').default} alt="Zero Trust Workshop Guide" />
                     </div>
                 </div>
             </header>

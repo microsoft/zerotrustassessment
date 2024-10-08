@@ -19,7 +19,7 @@ const FeatureList = [
   },
   {
     title: 'What does the workshop cover?',
-    Svg: require('@site/static/img/workshop-cover.png').default,
+    Svg: require('@site/static/img/what-does-workshop-cover.png').default,
     description: (
       <>
         The Zero Trust Workshop is a guided framework from Microsoft to help you translate Zero Trust Strategy into a deployment reality.
