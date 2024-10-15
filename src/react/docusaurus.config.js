@@ -121,11 +121,15 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'ZT Asssessment Checks',
+                label: 'Zero Trust Guidance Center',
+                to: 'https://learn.microsoft.com/en-us/security/zero-trust/',
+              },
+              {
+                label: 'Zero Trust Asssessment Checks',
                 to: '/docs/intro',
               },
               {
-                label: 'ZT App Permissions',
+                label: 'Zero Trust App Permissions',
                 to: '/docs/app-permissions',
               },
             ],
@@ -170,6 +174,10 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+      },
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: true,
       },
     }),
 };
