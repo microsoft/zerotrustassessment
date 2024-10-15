@@ -35,6 +35,10 @@ export default function Guide() {
                         <div className="text--left featureBtn action-button">
                             <Link className="text--center button button--secondary button--lg" href="workshop">Learn more about the workshop</Link>
                         </div>
+                        <br />
+                        <div className="text--left featureBtn action-button">
+                            <Link className="text--center button button--secondary button--lg" href="docs/workshop-guidance/delivery-guide">Plan your own workshop</Link>
+                        </div>
                     </div>
                     <div className="hero-image">
                         <img src={require('@site/static/img/workshop-cover.png').default} alt="Zero Trust Workshop Guide" />

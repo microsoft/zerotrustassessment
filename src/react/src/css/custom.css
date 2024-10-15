@@ -249,6 +249,11 @@
   .sub-section {
     width: 95%;
   }
+
+  .hero-image,
+  .hero-image-left {
+    display: none;
+  }
 }
 
 .sub-section img {

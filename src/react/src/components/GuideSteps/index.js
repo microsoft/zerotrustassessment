@@ -38,7 +38,7 @@ const Steps = [
                 <ul>
                     <li>Review the our Introduction to the Zero Trust Workshop video on the right</li>
                     <li>Identify which teams in your organization to involve.</li>
-                    <li>Access the Zero Trust architecture resources <a href='https://aka.ms/zerotrust' target='_blank' title='Microsoft Zero Trust'>here</a>.</li>
+                    <li>Access the <a href='https://aka.ms/zerotrust' target='_blank' title='Microsoft Zero Trust'>Zero Trust architecture resources</a>.</li>
                     <li>Reach out to your Microsoft partner or account team, if applicable, about including them in your workshop.</li>
                     <li>Download the Zero Trust Workshop tool by clicking the button below.</li>
                 </ul>

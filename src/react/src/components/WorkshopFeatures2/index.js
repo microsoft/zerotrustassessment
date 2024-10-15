@@ -35,30 +35,23 @@ const benefits = [
 const attendees = [
     {
         icon: <FaUserTie />,
-        title: 'Zero Trust Lead:',
+        title: 'Zero Trust Lead',
         description: 'Leads the zero trust strategy and implementation across the organization',
     },
     {
         icon: <FaCogs />,
-        title: 'Enterprise Architects:',
+        title: 'Enterprise Architects',
         description: 'Drive the design and architecture of end-to-end solutions, ensuring security integration',
     },
     {
         icon: <FaProjectDiagram />,
-        title: 'Pillar Architects, Leads, and SMEs:',
+        title: 'Pillar Architects, Leads, and SMEs',
         description: 'Ensure specific business or technical pillars are aligned with the zero trust strategy',
     },
     {
         icon: <FaShieldAlt />,
-        title: 'Cybersecurity Team:',
-        description: 'Critical members responsible for implementing and managing security measures',
-    },
-    {
-        icon: <FaBook />,
-        title: 'Delivery Guide:',
-        description: <>
-            Consult our workshop delivery doc <a href='docs/workshop-guidance/delivery-guide'>here</a> for details on planning your workshop.
-        </>,
+        title: 'Cybersecurity Team Members',
+        description: 'Responsible for implementing and managing security measures',
     },
 ];
 

@@ -38,7 +38,7 @@ const FeatureList = [
         For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.
 
         <br /><br />
-        Check out <a href='docs/videos/IntroductionToZT' title='Intro to ZT Workshop'>this video</a> if you want to get a quick overview of the Zero Trust Workshop.
+        Check out our <a href='docs/videos/IntroductionToZT' title='Intro to ZT Workshop'>Zero Trust Workshop overview video</a> for a quick overview.
 
         <br /> <br />
 

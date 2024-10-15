@@ -30,7 +30,7 @@ export default function Workshop() {
                     </div>
                     <div className="hero-text">
                         <Heading as="h1" className="hero__title">
-                            What is the Microsoft Zero Trust Workshop and Why Use It?
+                            What is the Microsoft Zero Trust Workshop and why use it?
                         </Heading>
                         <p>
                             The Microsoft Zero Trust Workshop simplifies the complexity of today's Security landscape by embracing Zero Trust concepts and architecture into a tailored, actionable roadmap. This roadmap provides precise, step-by-step guidance for implementing a secure Zero Trust posture, along with measurable milestones to track progress.
