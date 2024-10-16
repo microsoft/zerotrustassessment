@@ -296,3 +296,8 @@
   margin-left: 2rem;
   margin-right: 2rems;
 }
+
+.video-container {
+  /* Removes bottom space for inline images */
+  padding: 1rem;
+}
