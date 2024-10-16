@@ -28,3 +28,271 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+.button {
+  background-color: #0078d4;
+}
+
+.button--secondary {
+  background-color: #ffb900;
+}
+
+.text-image-pair {
+  display: flex;
+  align-items: center;
+  background-color: rgb(244, 241, 241);
+}
+
+.text-image-pair p {
+  align-self: self-start;
+  width: 55;
+  padding-right: 5px;
+}
+
+.text-image-pair img {
+  width: 40vw;
+  padding-right: 5px;
+}
+
+.testimonial-image {
+  width: 80vw;
+  text-align: center;
+}
+
+
+
+.hero-banner {
+  display: flex;
+  color: #fff;
+  padding: 0 0 0 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+  border: 1px solid #0078d4;
+  background: #0078d4;
+  box-shadow: 0px 0px 2px 0px rgba(23, 26, 31, 0.12), 0px 0px 1px 0px rgba(23, 26, 31, 0.07);
+}
+
+.hero-banner-guide {
+  background: #993E15;
+}
+
+/* Content inside the hero banner */
+.hero-content {
+  display: flex;
+  flex-flow: row nowrap;
+  /* Explicitly set to rows */
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  /* Optional: to limit the maximum width */
+}
+
+/* Text section */
+.hero-text {
+  padding: 0 0 0 6rem;
+  text-align: left;
+  flex: 1;
+}
+
+.hero-text h1 {
+  font-size: 34px;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.hero-text p {
+  font-size: 1.2rem;
+  color: #f7f7f7;
+  padding: 0 2rem 0 0;
+  line-height: 32px;
+}
+
+/* Image section */
+.hero-image {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-image-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  max-width: 35vw;
+}
+
+
+.hero-image img {
+  max-height: 100%;
+  max-width: 75%;
+  object-fit: contain;
+}
+
+
+
+
+/* General layout container */
+.content-rows {
+  width: 90%;
+  margin: 0 auto;
+}
+
+/* Section padding */
+.row-section {
+  padding: 20px 0;
+}
+
+/* Styling for even rows */
+.even-row {
+  background-color: #f0f0f0;
+  /* Light gray shading for even rows */
+}
+
+/* Row content layout */
+.row-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Image and text layout for even-numbered rows (image on the left) */
+.image-first .image-container,
+.text-first .image-container {
+  width: 50%;
+  /* Image takes 40% */
+}
+
+/* Text container takes 60% */
+.image-first .text-container,
+.text-first .text-container {
+  width: 50%;
+  /* Text takes 60% */
+}
+
+/* Ensures images are responsive and maintain their aspect ratio */
+.image-container img {
+  width: 100%;
+  /* Ensures the image scales to the container width */
+  height: auto;
+  /* Maintains the aspect ratio */
+  display: block;
+  /* Removes bottom space for inline images */
+  padding: 4rem;
+}
+
+.text-container {
+  padding: 2rem;
+}
+
+/* Text container styling */
+.text-container h2 {
+  margin-bottom: 2rem;
+}
+
+.text-container p {
+  font-size: large;
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 768px) {
+
+  /* Image and text containers take 100% of the width on mobile */
+  .image-first .image-container,
+  .text-first .image-container,
+  .image-first .text-container,
+  .text-first .text-container {
+    width: 100%;
+  }
+
+  /* Stack image and text vertically */
+  .row-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Adds spacing between the image and text on mobile */
+  .image-first .image-container,
+  .text-first .text-container {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sub-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 30%;
+  padding: 20px;
+}
+
+@media (max-width: 968px) {
+  .section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sub-section {
+    width: 95%;
+  }
+
+  .hero-image,
+  .hero-image-left {
+    display: none;
+  }
+}
+
+.sub-section img {
+  align-content: center;
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.content h2 {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.content h3 {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.content p {
+  /* text-align: justify; */
+  margin-bottom: 10px;
+  font-size: large;
+}
+
+.action-button {
+  align-self: center;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: auto;
+  /* Ensures the button is pushed to the bottom */
+}
+
+
+
+.buttonPad {
+  margin-left: 2rem;
+  margin-right: 2rems;
+}
