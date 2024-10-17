@@ -106,66 +106,36 @@ function HomepageHeader() {
     console.log(state);
   };
   return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <AuthenticatedTemplate>
-          <div className={styles.buttons}>
-            {!showProgress && (
-              <Link
-                className="button button--secondary button--lg"
-                onClick={runAssessment}
-              >
-                Start Zero Trust Assessment 🚀
-              </Link>
-            )}
-            {showProgress && (
-              <Link className="button button--secondary button--lg disabled">
-                Start Zero Trust Assessment 🚀
-              </Link>
-            )}
 
-            <Link
-              className="button button--secondary button--sm"
-              onClick={() => {
-                instance.logoutRedirect();
-              }}
-            >
-              Sign out →
-            </Link>
-          </div>
-          {showErrorAlert && (
-            <div class="alert alert--danger" role="alert">
-              Sorry something went wrong. Please try again.
-            </div>
-          )}
-
-          {showProgress && (
-            <Dialog defaultOpen={true} modalType="alert">
-              <DialogSurface>
-                <DialogBody>
-                  <DialogContent>
-                    <Spinner label="Running assessment. Please wait, this can take a few minutes..." />
-                  </DialogContent>
-                </DialogBody>
-              </DialogSurface>
-            </Dialog>
-          )}
-        </AuthenticatedTemplate>
-        <UnauthenticatedTemplate>
-          <div className={styles.buttons}>
-          <Link
-              className="button button--secondary button--lg"
-              href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx">
-              Download strategy workshop workbook ↓
-            </Link>
-          </div>
-        </UnauthenticatedTemplate>
+    <header className="hero-banner">
+      <div className="hero-content">
+        <div className="hero-text">
+          <Heading as="h1" className="hero__title">
+            {siteConfig.title}
+          </Heading>
+          <p>
+            A comprehensive technical guide to help customers and partners adopt a Zero Trust strategy and deploy security solutions end to end to secure their organizations.
+          </p>
+        </div>
+        <div className="hero-image">
+          <img src={require('@site/static/img/hero-datacenter.png').default} alt="Zero Trust Concept" />
+        </div>
       </div>
     </header>
+
+    // <header className={clsx("hero hero--primary", styles.heroBanner)}>
+    //   <div className="container">
+    //     <Heading as="h1" className="hero__title">
+    //       {siteConfig.title}
+    //     </Heading>
+    //     <p className="hero__subtitle">{siteConfig.tagline}</p>
+    //     <UnauthenticatedTemplate>
+    //       <h4>
+    //         Enhance your expertise and identify growth opportunities by scheduling a Zero Trust Workshop along with running a Zero Trust Assessment on your Microsoft Entra ID Tenant.
+    //       </h4>
+    //     </UnauthenticatedTemplate>
+    //   </div>
+    // </header>
   );
 }
 
@@ -182,7 +152,27 @@ export default function Home() {
         </FluentProvider>
       </MsalProvider>
       <main>
+        <br />
+        {/* <h3 className="text--center padding-horiz--md">
+          What Does Our Zero Trust Workshop Provide?
+        </h3>
+        <div className="container">
+          <p>
+            Lorem ipsum odor amet, consectetuer adipiscing elit. Euismod vestibulum adipiscing sociosqu; proin lobortis molestie cras interdum at. Posuere aptent at hendrerit gravida, convallis euismod ullamcorper. Habitasse ultricies sem eleifend facilisis duis curae placerat. Euismod metus auctor rhoncus potenti pellentesque volutpat nascetur. Mollis class potenti aptent et, potenti rhoncus. Primis eu taciti blandit, at ad lectus. Torquent praesent phasellus malesuada posuere id nostra. Nunc torquent condimentum morbi dui elementum vel arcu aenean. Duis efficitur vestibulum ligula duis ex non felis.
+          </p>
+        </div> */}
+
         <HomepageFeatures />
+        {/* <WhatIsZeroTrust />
+
+        <div className={styles.buttons}>
+          <Link
+            className="button button--secondary button--lg"
+            href="https://aka.ms/zerotrust">
+            Learn more about Microsoft Zero Trust
+          </Link>
+        </div> */}
+
       </main>
     </Layout>
   );

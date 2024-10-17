@@ -4,7 +4,7 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import {themes as prismThemes} from 'prism-react-renderer';
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -68,23 +68,48 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Zero Trust Assessment',
+        title: 'Zero Trust Workshop',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'docsSidebar',
+            to: 'workshop',
             position: 'left',
-            label: 'Docs',
+            label: 'About the Workshop',
           },
           {
-            type: 'docSidebar',
-            sidebarId: 'docsSidebar',
+            to: 'guide',
             position: 'left',
-            label: 'About',
+            label: 'Guide',
+          },
+          {
+            type: 'dropdown',
+            position: 'left',
+            label: 'Learn',
+            items: [
+              {
+                label: "Workshop Docs",
+                type: 'docSidebar',
+                sidebarId: 'docsSidebar'
+              },
+              {
+                label: 'Workshop Videos',
+                type: 'doc',
+                docId: 'videos/index'
+              }
+            ]
+          },
+          // {
+          //   to: 'testimonials',
+          //   position: 'right',
+          //   label: 'Testimonials',
+          // },
+          {
+            to: 'https://aka.ms/zerotrust',
+            position: 'right',
+            label: 'Microsoft Zero Trust',
           },
         ],
       },
@@ -95,11 +120,15 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'ZT Asssessment Checks',
+                label: 'Zero Trust Guidance Center',
+                to: 'https://learn.microsoft.com/en-us/security/zero-trust/',
+              },
+              {
+                label: 'Zero Trust Asssessment Checks',
                 to: '/docs/intro',
               },
               {
-                label: 'ZT App Permissions',
+                label: 'Zero Trust App Permissions',
                 to: '/docs/app-permissions',
               },
             ],
@@ -125,6 +154,14 @@ const config = {
             title: 'More',
             items: [
               {
+                label: 'Privacy',
+                href: 'https://go.microsoft.com/fwlink/?LinkId=521839'
+              },
+              {
+                label: 'Terms of Use',
+                href: 'https://go.microsoft.com/fwlink/?LinkID=206977'
+              },
+              {
                 label: 'GitHub',
                 href: 'https://github.com/microsoft/zerotrustassessment',
               },
@@ -136,6 +173,10 @@ const config = {
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+      },
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: true,
       },
     }),
 };
