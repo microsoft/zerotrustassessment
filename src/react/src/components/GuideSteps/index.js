@@ -134,6 +134,7 @@ const Steps = [
         ),
         imageUrl: require("@site/static/img/guide-step4.png").default,
         imageAltText: "Document results and create a plan",
+        videoUrl: "",
     },
     {
         id: 5,
