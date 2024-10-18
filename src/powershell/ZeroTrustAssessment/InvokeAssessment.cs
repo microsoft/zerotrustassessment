@@ -6,6 +6,8 @@ using ZeroTrustAssessment.DocumentGenerator.Graph;
 using Microsoft.Identity.Client;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace ZeroTrustAssessment;
 
@@ -13,6 +15,7 @@ namespace ZeroTrustAssessment;
 public class InvokeAssessment : PSCmdlet
 {
     const string GraphPowershellClientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e";
+    private TelemetryClient _telemetryClient;
 
     [Parameter(
         HelpMessage = "Output folder for the generated assessment. If not provided, the current directory will be used.",
@@ -45,16 +48,41 @@ public class InvokeAssessment : PSCmdlet
         ValueFromPipelineByPropertyName = true)]
     public string TenantId { get; set; }
 
+    [Parameter(
+        HelpMessage = "Enable telemetry to be collected (tenant id collected). Defaults to true.",
+        ParameterSetName = "Default",
+        Mandatory = false,
+        ValueFromPipelineByPropertyName = true)]
+    [Parameter(
+        HelpMessage = "Enable telemetry to be collected (tenant id collected). Defaults to true.",
+        ParameterSetName = "AccessToken",
+        Mandatory = false,
+        ValueFromPipelineByPropertyName = true)]
+    [Parameter(
+        HelpMessage = "Enable telemetry to be collected (tenant id collected). Defaults to true.",
+        ParameterSetName = "CustomApp",
+        Mandatory = false,
+        ValueFromPipelineByPropertyName = true)]
+    public bool EnableTelemetry { get; set; } = true;
+
     // This method gets called once for each cmdlet in the pipeline when the pipeline starts executing
     protected override void BeginProcessing()
     {
         Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(Consts.SfKey);
+
+        if (EnableTelemetry)
+        {
+            var telemetryConfig = TelemetryConfiguration.CreateDefault();
+            telemetryConfig.InstrumentationKey = Consts.InstrumentationKey;
+            _telemetryClient = new TelemetryClient(telemetryConfig);
+        }
     }
 
     // This method will be called for each input received from the pipeline to this cmdlet; if no input is received, this method is not called
     protected override void ProcessRecord()
     {
-        if(string.IsNullOrEmpty(OutputFolder)) {
+        if (string.IsNullOrEmpty(OutputFolder))
+        {
             OutputFolder = SessionState.Path.CurrentLocation.Path;
         }
         if (string.IsNullOrEmpty(AccessToken))
@@ -82,7 +110,7 @@ public class InvokeAssessment : PSCmdlet
 
         WriteInformation($"Running Zero Trust assessment. Please wait...", Consts.WriteInformationTagHost);
         var configOptions = new Gen.ConfigOptions();
-        var graphData = new GraphData(configOptions, AccessToken);
+        var graphData = new GraphData(configOptions, AccessToken, _telemetryClient);
         graphData.CollectData().GetAwaiter().GetResult();
 
         var pptxConfigOptions = new IdPowerToys.PowerPointGenerator.ConfigOptions
