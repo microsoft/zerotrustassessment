@@ -5,7 +5,13 @@
   width: 100%;
 }
 
+.featureBtn {
+  vertical-align: bottom;
+}
+
 .featureSvg {
-  height: 200px;
-  width: 200px;
+  height: 225px;
+  width: 350px;
+  padding-bottom: 10px;
+  align-self: center;
 }
