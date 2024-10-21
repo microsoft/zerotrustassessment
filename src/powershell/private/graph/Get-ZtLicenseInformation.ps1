@@ -23,7 +23,7 @@ function Get-ZtLicenseInformation {
     process {
         switch ($Product) {
             "EntraID" {
-                Write-Verbose "Retrieving license information for Entra ID"
+                Write-PSFMessage "Retrieving license information for Entra ID" -Level Debug -Tag License
                 $AvailablePlans = Invoke-ZtGraphRequest -ApiVersion beta -RelativeUri 'organization' | Select-Object -ExpandProperty assignedPlans | Where-Object service -EQ "AADPremiumService" | Select-Object -ExpandProperty servicePlanId
                 if ( "eec0eb4f-6444-4f95-aba0-50c24d67f998" -in $AvailablePlans ) {
                     $LicenseType = "P2"
@@ -39,7 +39,7 @@ function Get-ZtLicenseInformation {
                 Break
             }
             "EntraWorkloadID" {
-                Write-Verbose "Retrieving license SKU"
+                Write-PSFMessage "Retrieving license SKU" -Level Debug -Tag License
                 $skus = Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" | Select-Object -ExpandProperty servicePlans | Select-Object -ExpandProperty servicePlanId
                 if ("84c289f0-efcb-486f-8581-07f44fc9efad" -in $skus) {
                     $LicenseType = "P1"

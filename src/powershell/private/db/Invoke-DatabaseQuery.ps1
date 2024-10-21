@@ -13,7 +13,7 @@
         $NonQuery
     )
 
-    Write-Verbose "Running query: $Sql"
+    Write-PSFMessage "Running query: $Sql" -Level Debug -Tag DB
     $cmd = $Database.CreateCommand()
     $cmd.CommandText = $Sql
 
@@ -21,14 +21,19 @@
         $cmd.ExecuteNonQuery() | Out-Null
     }
     else {
-        $reader = $cmd.ExecuteReader()
+        try {
+            $reader = $cmd.ExecuteReader()
+        }
+        catch {
+            Write-PSFMessage "Error running query: $Sql" -Level Warning -ErrorRecord $_ -Tag DB
+        }
 
-        while ($reader.read()) {
+        while ($reader -and $reader.read()) {
             $rowObject = @{}
             for ($columnIndex = 0; $columnIndex -lt $reader.FieldCount; $columnIndex++ ) {
                 $rowObject[$reader.GetName($columnIndex)] = $reader.GetValue($columnIndex)
             }
-            Write-Verbose $rowObject
+            Write-PSFMessage $rowObject -Level Debug -Tag DB
             $rowObject
         }
     }

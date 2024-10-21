@@ -57,6 +57,7 @@ Function Write-ZtProgress {
             }
         }
     } catch {
-        Write-Verbose $_
+        Write-PSFMessage "Error writing progress activity" -Level Warning -ErrorRecord $_
+        # Don't throw error as this is a non-critical function
     }
 }

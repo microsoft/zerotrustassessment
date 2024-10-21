@@ -80,7 +80,7 @@ Function Invoke-ZtGraphRequest
         {
             if ([string]::IsNullOrEmpty($__ZtSession.GraphBaseUri))
             {
-                Write-Verbose -Message "Setting GraphBaseUri to default value from MgContext."
+                Write-PSFMessage -Message 'Setting GraphBaseUri to default value from MgContext.'
                 $__ZtSession.GraphBaseUri = $((Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint)
             }
         }

@@ -30,7 +30,7 @@ Function Get-ZtRole {
     "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2"
   )
 
-  Write-Verbose -Message "Getting directory role definitions."
+  Write-PSFMessage -Message "Getting directory role definitions."
 
   $roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion v1.0
 

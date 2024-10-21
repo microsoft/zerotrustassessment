@@ -67,7 +67,7 @@ function Invoke-ZtAssessment {
 
     Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
 
-    Write-Verbose 'Creating report folder $Path'
+    Write-PSFMessage 'Creating report folder $Path'
     New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
 
     # Collect data

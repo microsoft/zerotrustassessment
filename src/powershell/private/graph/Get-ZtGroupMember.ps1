@@ -16,7 +16,7 @@ Function Get-ZtGroupMember {
     [switch]$Recursive
   )
 
-  Write-Verbose -Message "Getting group members."
+  Write-PSFMessage -Message "Getting group members."
 
   $members = @()
   $members += Invoke-ZtGraphRequest -RelativeUri "groups/$groupId/members" -ApiVersion v1.0

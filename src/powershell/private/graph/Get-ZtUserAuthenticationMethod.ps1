@@ -36,10 +36,10 @@ Function Get-ZtUserAuthenticationMethod {
       $userAuthMethod | Add-Member -MemberType NoteProperty -Name "isMfa" -Value $authMethodInfo.IsMfa -ErrorAction SilentlyContinue
     }
 
-    Write-Verbose "Querying graph for user authentication methods for $UserId"
+    Write-PSFMessage "Querying graph for user authentication methods for $UserId" -Level Debug
     $userAuthMethods = Invoke-ZtGraphRequest -RelativeUri "users/$UserId/authentication/methods"
 
-    Write-Verbose "Appending auth method displayname and isMfa properties to each auth method."
+    Write-PSFMessage "Appending auth method displayname and isMfa properties to each auth method." -Level Debug
     $IsMfa = $false
     foreach ($method in $userAuthMethods) {
       AddAuthMethodInfo $method

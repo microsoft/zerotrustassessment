@@ -20,7 +20,7 @@ function Import-EntraDatabaseNode {
         [object]$Schema
     )
 
-    Write-Verbose "Importing data from $Path"
+    Write-PSFMessage "Importing data from $Path" -Tag Import
 
     foreach ($item in $Schema) {
         $table = Get-ObjectProperty $item 'Table'
@@ -29,7 +29,7 @@ function Import-EntraDatabaseNode {
         }
 
         $fileName = Join-Path -Path $Path -ChildPath $item.Path
-        Write-Verbose "Importing $fileName"
+        Write-PSFMessage "Importing $fileName" -Level Debug -Tag Import
 
         if ($fileName -match "\.json$") {
             $hasFile = Test-Path $fileName

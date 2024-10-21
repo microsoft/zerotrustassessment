@@ -12,7 +12,7 @@ Function Get-ZtConditionalAccessPolicy {
   [CmdletBinding()]
   param()
 
-  Write-Verbose -Message "Getting conditional access policies."
+  Write-PSFMessage -Message "Getting conditional access policies."
 
   return Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
 

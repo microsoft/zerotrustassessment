@@ -86,7 +86,7 @@ Function Get-ZtRoleMember {
 
     foreach ($type in $types) {
       if (-not $pim -and $type.Keys -eq "eligible") {
-        Write-Verbose "Tenant not licensed for Entra ID PIM eligible assignments"
+        Write-PSFMessage "Tenant not licensed for Entra ID PIM eligible assignments"
         continue
       }
 
@@ -109,7 +109,7 @@ Function Get-ZtRoleMember {
       $dirAssignments = Invoke-ZtGraphRequest @dirAssignmentsSplat
 
       if ($dirAssignments.id.Count -eq 0) {
-        Write-Verbose "No role assignments found"
+        Write-PSFMessage "No role assignments found" -Level Debug
         continue
       }
       $assignments += $dirAssignments.principal

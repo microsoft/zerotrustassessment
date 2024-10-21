@@ -118,10 +118,10 @@ Function Get-ZtUserAuthenticationMethodInfoByType {
         }
 
         if ($AuthenticationMethod -is [array]) {
-            Write-Verbose "Processing multiple authentication methods"
+            Write-PSFMessage "Processing multiple authentication methods" -Level Debug
             $AuthenticationMethod | ForEach-Object { GetMethodInfo $_ }
         } else {
-            Write-Verbose "Processing single authentication method"
+            Write-PSFMessage "Processing single authentication method" -Level Debug
             GetMethodInfo $AuthenticationMethod
         }
     }

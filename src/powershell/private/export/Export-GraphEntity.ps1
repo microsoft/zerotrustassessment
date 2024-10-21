@@ -39,7 +39,7 @@
         $MaximumQueryTime
     )
     if ((Get-ZtConfig -ExportPath $ExportPath -Property $EntityName)) {
-        Write-Verbose "Skipping $EntityName since it was downloaded previously"
+        Write-PSFMessage "Skipping $EntityName since it was downloaded previously" -Tag Import
         return
     }
 
@@ -80,7 +80,7 @@
             $hasCompleted = $true
         }
         elseif (!$hasCompleted -and $hasTimeLimit -and (Get-Date) -gt $stopTime) {
-            Write-Verbose "Maximum time limit reached for $EntityName"
+            Write-PSFMessage "Maximum time limit reached for $EntityName"
             $hasCompleted = $true
         }
     }while (!$hasCompleted)
@@ -89,7 +89,7 @@
 }
 
 function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityName, $entityUri, $currentCount, $totalCount, $progressActivity, $showCount) {
-    Write-Verbose "Exporting $entityName page $pageIndex"
+    Write-PSFMessage "Exporting $entityName page $pageIndex"
 
     if ($relatedPropertyNames) {
         foreach ($result in $results.value) {
@@ -125,7 +125,7 @@ function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
 
 function Add-GraphProperty($result, $propertyName, $entityName, $entityUri) {
     $id = Get-ObjectProperty $result 'id'
-    Write-Verbose "Adding $propertyName to $entityName $id"
+    Write-PSFMessage "Adding $propertyName to $entityName $id" -Debug -Tag Graph
     $propertyResults = Invoke-MgGraphRequest -Uri "$entityUri/$id/$propertyName" -OutputType HashTable
     $result[$propertyName] = Get-ObjectProperty $propertyResults 'value'
 }

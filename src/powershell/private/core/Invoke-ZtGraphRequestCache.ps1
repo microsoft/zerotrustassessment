@@ -39,13 +39,13 @@ Function Invoke-ZtGraphRequestCache {
 
     if (!$DisableCache -and !$isBatch -and $isInCache -and $isMethodGet) {
         # Don't read from cache for batch requests.
-        Write-Verbose ("Using graph cache: $($cacheKey)")
+        Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
         $results = $__ZtSession.GraphCache[$cacheKey]
     }
 
     if (!$results) {
-        Write-Verbose ("Invoking Graph: $($Uri.AbsoluteUri)")
-        Write-Verbose ([string]::IsNullOrEmpty($Body))
+        Write-PSFMessage "Invoking Graph: $($Uri.AbsoluteUri)" -Level Debug -Tag Graph
+        Write-PSFMessage ([string]::IsNullOrEmpty($Body)) -Level Debug -Tag Graph
 
 
         if ($Method -eq 'GET') {

@@ -145,8 +145,8 @@ Function Add-ZtTestResultDetail {
     }
 
     Write-ZtProgress -Activity "Running tests" -Status $Title
-    Write-Verbose "Adding test result detail for $Title"
-    Write-Verbose "Result: $Result"
+    Write-PSFMessage "Adding test result detail for $Title" -Tag Test
+    Write-PSFMessage "Result: $Result" -Level Debug -Tag Test
 
     if ($__ZtSession -and $__ZtSession.TestResultDetail) {
         if (![string]::IsNullOrEmpty($TestId)) {

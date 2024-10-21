@@ -25,7 +25,7 @@ order by spSignIns."lastSignInActivity"."lastSignInDateTime" desc
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
     $appCount =  $results.Count
-    Write-Verbose "AppCount: $appCount"
+    Write-PSFMessage "AppCount: $appCount" -Level Debug -Tag Test
     $passed = ($appCount -eq 0)
 
     if ($passed) {

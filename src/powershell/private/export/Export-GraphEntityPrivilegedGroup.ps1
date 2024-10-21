@@ -3,7 +3,7 @@
     param ($ExportPath, $InputEntityName, $EntityName, $ProgressActivity)
 
     if ((Get-ZtConfig -ExportPath $ExportPath -Property $EntityName)) {
-        Write-Verbose "Skipping $EntityName since it was downloaded previously"
+        Write-PSFMessage "Skipping $EntityName since it was downloaded previously"
         return
     }
 

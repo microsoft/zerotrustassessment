@@ -17,7 +17,7 @@
     )
 
     $configPath = Get-ZtConfigPath -ExportPath $ExportPath
-    Write-Verbose "Setting config at $configPath"
+    Write-PSFMessage "Setting config at $configPath"
     if ($Config) {
         $Config | ConvertTo-Json | Set-Content $configPath
     }

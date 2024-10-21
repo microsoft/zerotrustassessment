@@ -13,14 +13,14 @@ function Export-Database {
     $activity = "Creating database"
     Write-ZtProgress -Activity $activity -Status "Starting"
 
-    Write-Verbose "Importing data from $ExportPath"
+    Write-PSFMessage "Importing data from $ExportPath" -Tag Import
     $dbFolderName = 'db'
     $dbFolder = Join-Path $ExportPath $dbFolderName
     $absExportPath = $ExportPath | Resolve-Path
     $dbPath = Join-Path $absExportPath $dbFolderName "zt.db"
 
     if (Test-Path $dbFolder) {
-        Write-Verbose "Clearing previous db $dbFolder"
+        Write-PSFMessage "Clearing previous db $dbFolder" -Tag Import
         $db = Connect-Database -Path $dbPath
         $sqlTemp = "FORCE CHECKPOINT;"
         Invoke-DatabaseQuery -Database $db -Sql $sqlTemp -NonQuery
@@ -47,6 +47,7 @@ function Export-Database {
 
 function Import-Table($db, $absExportPath, $tableName) {
 
+    Write-PSFMessage "Importing table $tableName" -Tag Import
     $folderPath = Join-Path $absExportPath $tableName
 
     # Copy the model file if it exists (needed to create table schema to avoid sql errors when there is no data)

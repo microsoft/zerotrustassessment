@@ -38,7 +38,7 @@ function Connect-ZtAssessment
     )
 
 
-    Write-Verbose 'Connecting to Microsoft Graph'
+    Write-PSFMessage 'Connecting to Microsoft Graph'
     try
     {
         Connect-MgGraph -Scopes (Get-ZtGraphScope) -NoWelcome -UseDeviceCode:$UseDeviceCode -Environment $Environment
