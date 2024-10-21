@@ -32,7 +32,7 @@ const Steps = [
         ),
         imageUrl: require("@site/static/img/guide-step1.png").default,
         imageAltText: "Learn about the Zero Trust Assessment video",
-        videoUrl: "https://www.youtube.com/embed/JxRLX4VGuYg",
+        videoUrl: "https://www.youtube.com/embed/oyG3EcFd-_E",
     },
     {
         id: 2,
@@ -77,7 +77,7 @@ const Steps = [
         ),
         imageUrl: require("@site/static/img/guide-step1.png").default,
         imageAltText: "Learn about the Zero Trust workshop video",
-        videoUrl: "",
+        videoUrl: "https://www.youtube.com/embed/0-IYLWMHxGg?si=JyV0MuwIUBDKoFpN",
     },
     {
         id: 3,
@@ -198,8 +198,8 @@ export default function GuideSteps() {
                                                 allow="autoplay; encrypted-media"
                                                 allowfullscreen
                                                 title="video"
-                                                height={400}
-                                                width={700}
+                                                height={315}
+                                                width={560}
                                             />
                                         </div>
                                     ) : (
@@ -226,8 +226,8 @@ export default function GuideSteps() {
                                                 allow="autoplay; encrypted-media"
                                                 allowfullscreen
                                                 title="video"
-                                                height={400}
-                                                width={700}
+                                                height={315}
+                                                width={560}
                                             />
                                         </div>
                                     ) : (
