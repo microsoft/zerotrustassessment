@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using Microsoft.ApplicationInsights;
 using Microsoft.Kiota.Abstractions.Authentication;
 using ZeroTrustAssessment.DocumentGenerator.Infrastructure;
 
@@ -41,14 +42,15 @@ public class GraphData
     public List<UnifiedRoleEligibilitySchedule> RoleEligibilitySchedule { get; set; } = new List<UnifiedRoleEligibilitySchedule>();
 
     public string Token { get; set; }
+    private TelemetryClient _telemetryClient;
 
-    public GraphData(ConfigOptions configOptions, string accessToken) //Web API call
+    public GraphData(ConfigOptions configOptions, string accessToken, TelemetryClient client) //Web API call
     {
         Token = accessToken;
         ConfigOptions = configOptions;
         var graphClient = GetGraphClientUsingAccessToken(accessToken);
         _graphHelper = new GraphHelper(graphClient);
-
+        _telemetryClient = client;
     }
 
     public GraphData(ConfigOptions configOptions, GraphHelper graphHelper) //Desktop/CLI app
@@ -101,6 +103,17 @@ public class GraphData
         {
             TenantId = org.Id;
             TenantName = org.DisplayName;
+
+            if (_telemetryClient != null)
+            {
+                //client isn't null, so it has been initialized
+                var properties = new System.Collections.Generic.Dictionary<string, string>
+                                        {
+                                            { "TenantId", TenantId },
+                                        };
+                _telemetryClient.TrackEvent("ZTWTenantId", properties);
+                _telemetryClient.Flush();
+            }
         }
     }
 

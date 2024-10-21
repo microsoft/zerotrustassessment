@@ -14,7 +14,7 @@ public enum ZtSheets
     Home,
     WorkshopIdentity,
     WorkshopDevice,
-    WorkshopApps,
+    // WorkshopApps,
     WorkshopData,
     ConfigIdentity,
     ConfigDevice,
@@ -230,9 +230,9 @@ public class ZtWorkbook
         {
             var sheet = _workbook.Worksheets[i];
             var range = GetRange(sheet, SheetNameRangeName);
-            if(range != null)
+            if (range != null)
             {
-                if(range.Value.StartsWith("Workshop"))
+                if (range.Value.StartsWith("Workshop"))
                 {
                     _workbook.Worksheets.Remove(i);
                 }
@@ -252,15 +252,15 @@ public class ZtWorkbook
     /// <param name="sheet"></param>
     /// <returns></returns>
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
-    {        
-        if(IsV2(workbook))
+    {
+        if (IsV2(workbook))
         {
             var sheetNameToFind = Enum.GetName(sheet);
-            foreach(var worksheet in workbook.Worksheets)
+            foreach (var worksheet in workbook.Worksheets)
             {
                 var sheetName = worksheet.Range[SheetNameRangeName].Value;
                 // Get the string of the enum ZtSheet for sheet
-                if(sheetName == sheetNameToFind)
+                if (sheetName == sheetNameToFind)
                 {
                     return worksheet;
                 }
@@ -276,10 +276,10 @@ public class ZtWorkbook
     private static bool IsV2(IWorkbook workbook)
     {
         bool hasVersionRange = false;
-        foreach(var sheet in workbook.Worksheets)
+        foreach (var sheet in workbook.Worksheets)
         {
             var range = GetRange(sheet, "WorkbookVersion");
-            if(range != null)
+            if (range != null)
             {
                 hasVersionRange = true;
                 break;
@@ -291,10 +291,11 @@ public class ZtWorkbook
     private static IRange? GetRange(IWorksheet sheet, string rangeName)
     {
         IRange? range = null;
-        try 
+        try
         {
             range = sheet.Range[rangeName];
-        } catch {}
+        }
+        catch { }
         return range;
     }
 
