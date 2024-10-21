@@ -9,16 +9,15 @@ const Steps = [
         title: "Step 1: (Optional) Zero Trust Assessment",
         description: (
             <>
-                Begin with the Zero Trust Assessment to ensure your organization is
-                securely positioned before advancing your Zero Trust journey.
-                <br />
-                This assessment provides essential checks to confirm a strong security
-                baseline, preparing you for advanced features and a more resilient
-                security posture.
-                <br />
-                Click the video on the left to learn more about the assessment or click
-                the button below for in-depth documentation.
-                <br />
+                <ul>
+                    <li>Begin with the Zero Trust Assessment to ensure your organization is
+                        securely positioned before advancing your Zero Trust journey.</li>
+                    <li>This assessment provides essential checks to confirm a strong security
+                        baseline, preparing you for advanced features and a more resilient
+                        security posture.</li>
+                    <li>Click the video on the left to learn more about the assessment or click
+                        the button below for in-depth documentation.</li>
+                </ul>
                 <br />
                 <div className={styles.buttons}>
                     <Link
@@ -32,7 +31,7 @@ const Steps = [
         ),
         imageUrl: require("@site/static/img/guide-step1.png").default,
         imageAltText: "Learn about the Zero Trust Assessment video",
-        videoUrl: "https://www.youtube.com/embed/oyG3EcFd-_E",
+        videoUrl: "https://www.youtube.com/embed/oyG3EcFd-_E?start=0:03",
     },
     {
         id: 2,
@@ -70,7 +69,7 @@ const Steps = [
                         className="button button--primary button--lg"
                         href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
                     >
-                        Download strategy workshop tool ↓
+                        Download strategy workshop tool
                     </Link>
                 </div>
             </>
@@ -141,7 +140,7 @@ const Steps = [
         title: "Step 5: Share your feedback",
         description: (
             <>
-                <ol>
+                <ul>
                     <li>
                         Have feedback from running the workshop? Share it with us{" "}
                         <a
@@ -165,7 +164,7 @@ const Steps = [
                         </a>
                         .
                     </li>
-                </ol>
+                </ul>
             </>
         ),
         imageUrl: require("@site/static/img/guide-step5.png").default,
