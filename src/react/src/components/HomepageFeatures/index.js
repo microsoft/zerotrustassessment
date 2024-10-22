@@ -11,14 +11,20 @@ const FeatureList = [
       <>
         Navigating the complexities of modern security is challenging, but a Zero Trust strategy can provide clarity and direction. By adopting Zero Trust, your organization can enhance its security posture, reducing risk and complexity while improving compliance and governance.
         <br /><br />
-        This approach leverages AI to provide robust protection and adaptability. In today's dynamic environment, a new security model is essential—one that embraces the hybrid workplace and safeguards people, devices, apps, and data, regardless of location.
+        This workshop helps you navigate the Zero Trust principles across the Microsoft Security landscape:
+        <ul>
+          <li>Verify Explicitly</li>
+          <li>Use Least Privilege Access</li>
+          <li>Assume Compromise</li>
+        </ul>
+        <br />
       </>
     ),
     buttonText: 'Learn more',
     buttonDest: 'https://aka.ms/zerotrust',
   },
   {
-    title: 'What does the workshop cover?',
+    title: 'Why you should run the Zero Trust Workshop',
     Svg: require('@site/static/img/what-does-workshop-cover.png').default,
     description: (
       <>

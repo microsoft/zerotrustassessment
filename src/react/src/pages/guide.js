@@ -29,16 +29,8 @@ export default function Guide() {
                             Zero Trust Workshop Plan
                         </Heading>
                         <p>
-                            Learn how to run the Microsoft Zero Trust workshop, including step-by-step instructions and best practices. Unsure what Zero Trust is? Click below to find out
+                            Learn how to run the Microsoft Zero Trust workshop, including step-by-step instructions and best practices.
                         </p>
-                        <br />
-                        <div className="text--left featureBtn action-button">
-                            <Link className="text--center button button--secondary button--lg" href="workshop">Learn more about the workshop</Link>
-                        </div>
-                        <br />
-                        <div className="text--left featureBtn action-button">
-                            <Link className="text--center button button--secondary button--lg" href="docs/workshop-guidance/delivery-guide">Workshop delivery guide</Link>
-                        </div>
                     </div>
                     <div className="hero-image">
                         <img src={require('@site/static/img/workshop-cover.png').default} alt="Zero Trust Workshop Guide" />
