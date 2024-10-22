@@ -37,7 +37,7 @@ export default function Guide() {
                         </div>
                         <br />
                         <div className="text--left featureBtn action-button">
-                            <Link className="text--center button button--secondary button--lg" href="docs/workshop-guidance/delivery-guide">Plan your own workshop</Link>
+                            <Link className="text--center button button--secondary button--lg" href="docs/workshop-guidance/delivery-guide">Workshop delivery guide</Link>
                         </div>
                     </div>
                     <div className="hero-image">
