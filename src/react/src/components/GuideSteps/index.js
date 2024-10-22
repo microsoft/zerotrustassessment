@@ -40,27 +40,13 @@ const Steps = [
             <>
                 <ul>
                     <li>
-                        Review the our Introduction to the Zero Trust Workshop video on the
-                        right
-                    </li>
-                    <li>Identify which teams in your organization to involve.</li>
-                    <li>
-                        Access the{" "}
-                        <a
-                            href="https://aka.ms/zerotrust"
-                            target="_blank"
-                            title="Microsoft Zero Trust"
-                        >
-                            Zero Trust architecture resources
-                        </a>
-                        .
+                        Review our <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">workshop delivery guide</a> to learn about thw workshop format, who should participate, and its structure.
                     </li>
                     <li>
-                        Reach out to your Microsoft partner or account team, if applicable,
-                        about including them in your workshop.
+                        If you need help getting started, refer to our <a href="docs/videos/IntroductionToZT" title="Introduction to Zero Trust Workshop">introductory video</a>.
                     </li>
                     <li>
-                        Download the Zero Trust Workshop tool by clicking the button below.
+                        Download the Zero Trust Workshop tool.
                     </li>
                 </ul>
 
@@ -80,12 +66,11 @@ const Steps = [
     },
     {
         id: 3,
-        title: "Step 3: Run the pillar specific workshops",
+        title: "Step 3: Complete a pillar workshop",
         description: (
             <>
                 <p>
-                    In addition to reviewing the Workshop tool, review the below videos
-                    for the pillar workshops you will be running:
+                    As you are preparing and reviewing the Workshop tool, if you need additional information or help getting started, please refer to one of the videos below that explain our specific pillar workshops:
                 </p>
                 <ul>
                     <li>
@@ -117,16 +102,16 @@ const Steps = [
             <>
                 <ul>
                     <li>
-                        Upload assessment and workshop results to your project management
-                        tool (e.g., ADO, JIRA).
+                        Identify areas that need improvement and adjust your security plan
+                        accordingly..
                     </li>
                     <li>
                         Establish a baseline and track your progress with regular
                         assessments every 6 months.
                     </li>
                     <li>
-                        Identify areas that need improvement and adjust your security plan
-                        accordingly..
+                        Upload assessment and workshop results to your project management
+                        tool (e.g., ADO, JIRA).
                     </li>
                 </ul>
             </>

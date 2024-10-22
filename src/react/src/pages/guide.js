@@ -26,7 +26,7 @@ export default function Guide() {
                 <div className="hero-content">
                     <div className="hero-text">
                         <Heading as="h1" className="hero__title">
-                            Zero Trust Workshop Guide
+                            Zero Trust Workshop Plan
                         </Heading>
                         <p>
                             Learn how to run the Microsoft Zero Trust workshop, including step-by-step instructions and best practices. Unsure what Zero Trust is? Click below to find out
