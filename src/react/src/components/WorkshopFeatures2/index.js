@@ -45,7 +45,7 @@ const attendees = [
     },
     {
         icon: <FaProjectDiagram />,
-        title: 'Pillar Architects, Leads, and SMEs',
+        title: 'Pillar Architects, Leads, and Experts',
         description: 'Ensure specific business or technical pillars are aligned with the zero trust strategy',
     },
     {

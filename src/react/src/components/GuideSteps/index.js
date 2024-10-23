@@ -6,27 +6,14 @@ import Link from "@docusaurus/Link";
 const Steps = [
     {
         id: 1,
-        title: "Step 1: (Optional) Zero Trust Assessment",
+        title: "Step 1: Prepare for the Zero Trust workshop",
         description: (
             <>
                 <ul>
-                    <li>Begin with the Zero Trust Assessment to ensure your organization is
-                        securely positioned before advancing your Zero Trust journey.</li>
-                    <li>This assessment provides essential checks to confirm a strong security
-                        baseline, preparing you for advanced features and a more resilient
-                        security posture.</li>
-                    <li>Click the video on the left to learn more about the assessment or click
-                        the button below for in-depth documentation.</li>
+                    <li>Identity and notify the right stakeholders from your organization and your deployment partners for each zero trust pillar</li>
+                    <li>Review the <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">delivery guide</a></li>
+                    <li>(Optional) Run the <a href="docs/app-permissions" title="Lear about the Zero Trust Assessment">Zero Trust Assessment</a> to make sure you are starting with a healthy configuration</li>
                 </ul>
-                <br />
-                <div className={styles.buttons}>
-                    <Link
-                        className="button button--primary button--lg"
-                        href="docs/app-permissions"
-                    >
-                        Learn about the Zero Trust Assessment
-                    </Link>
-                </div>
             </>
         ),
         imageUrl: require("@site/static/img/guide-step1.png").default,
@@ -35,75 +22,49 @@ const Steps = [
     },
     {
         id: 2,
-        title: "Step 2: Prepare for the workshop ",
+        title: "Step 2: Run the Zero Trust strategy workshop",
         description: (
             <>
                 <ul>
                     <li>
-                        Review our <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">workshop delivery guide</a> to learn about thw workshop format, who should participate, and its structure.
+                        Download the <a href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx" title="Zero Trust Workshop Tool">workshop tool</a>.
                     </li>
                     <li>
-                        If you need help getting started, refer to our <a href="docs/videos/IntroductionToZT" title="Introduction to Zero Trust Workshop">introductory video</a>.
-                    </li>
-                    <li>
-                        Download the Zero Trust Workshop tool.
-                    </li>
-                </ul>
-
-                <div className={styles.buttons}>
-                    <Link
-                        className="button button--primary button--lg"
-                        href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx"
-                    >
-                        Download strategy workshop tool
-                    </Link>
-                </div>
-            </>
-        ),
-        imageUrl: require("@site/static/img/guide-step1.png").default,
-        imageAltText: "Learn about the Zero Trust workshop video",
-        videoUrl: "https://www.youtube.com/embed/0-IYLWMHxGg?si=JyV0MuwIUBDKoFpN",
-    },
-    {
-        id: 3,
-        title: "Step 3: Complete a pillar workshop",
-        description: (
-            <>
-                <p>
-                    As you are preparing and reviewing the Workshop tool, if you need additional information or help getting started, please refer to one of the videos below that explain our specific pillar workshops:
-                </p>
-                <ul>
-                    <li>
-                        <a href="docs/videos/IdentityPillar" title="Identity Pillar Info">
-                            Identity Pillar
-                        </a>
-                    </li>
-                    <li>
-                        <a href="docs/videos/DevicesPillar" title="Devices Pillar Info">
-                            Devices Pillar
-                        </a>
-                    </li>
-                    <li>
-                        <a href="docs/videos/DataPillar" title="Data Pillar Info">
-                            Data Pillar
-                        </a>
+                        Delivery the workshop for each Zero Trust pillar with the right stakeholders. You can run them in the proposed order or choose the right pillar for the area you are focused on:
+                        <ul>
+                            <li>
+                                <a href="docs/videos/IdentityPillar" title="Identity Pillar Info">
+                                    Identity
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/DevicesPillar" title="Devices Pillar Info">
+                                    Devices
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/DataPillar" title="Data Pillar Info">
+                                    Data
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </>
         ),
-        imageUrl: require("@site/static/img/learn-pillars.png").default,
-        imageAltText: "Specific pillar workshop videos",
+        imageUrl: require("@site/static/img/guide-step4.png").default,
+        imageAltText: "Run a strategy workshop",
         videoUrl: "",
     },
     {
-        id: 4,
-        title: "Step 4: Document results & create a plan",
+        id: 3,
+        title: "Step 3: Document results and create a plan",
         description: (
             <>
                 <ul>
                     <li>
                         Identify areas that need improvement and adjust your security plan
-                        accordingly..
+                        accordingly.
                     </li>
                     <li>
                         Establish a baseline and track your progress with regular
@@ -116,13 +77,13 @@ const Steps = [
                 </ul>
             </>
         ),
-        imageUrl: require("@site/static/img/guide-step4.png").default,
-        imageAltText: "Document results and create a plan",
+        imageUrl: require("@site/static/img/learn-pillars.png").default,
+        imageAltText: "Specific pillar workshop videos",
         videoUrl: "",
     },
     {
-        id: 5,
-        title: "Step 5: Share your feedback",
+        id: 4,
+        title: "Share your feedback",
         description: (
             <>
                 <ul>

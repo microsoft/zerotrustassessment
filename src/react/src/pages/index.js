@@ -114,7 +114,7 @@ function HomepageHeader() {
             {siteConfig.title}
           </Heading>
           <p>
-            A comprehensive technical guide to help customers and partners adopt a Zero Trust strategy and deploy security solutions end to end to secure their organizations.
+            A comprehensive technical guide to help customers and partners adopt a Zero Trust strategy and deploy security solutions end-to-end to secure their organizations.
           </p>
         </div>
         <div className="hero-image">

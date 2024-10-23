@@ -11,7 +11,7 @@ const FeatureList = [
       <>
         Navigating the complexities of modern security is challenging, but a Zero Trust strategy can provide clarity and direction. By adopting Zero Trust, your organization can enhance its security posture, reducing risk and complexity while improving compliance and governance.
         <br /><br />
-        This workshop helps you navigate the Zero Trust principles across the Microsoft Security landscape:
+        This workshop helps you apply the Zero Trust principles across the Microsoft Security landscape:
         <ul>
           <li>Verify Explicitly</li>
           <li>Use Least Privilege Access</li>
@@ -24,7 +24,7 @@ const FeatureList = [
     buttonDest: 'https://aka.ms/zerotrust',
   },
   {
-    title: 'Why you should run the Zero Trust Workshop',
+    title: 'Why run the workshop',
     Svg: require('@site/static/img/what-does-workshop-cover.png').default,
     description: (
       <>
@@ -41,12 +41,17 @@ const FeatureList = [
     Svg: require('@site/static/img/workshop-run.png').default,
     description: (
       <>
-        For step-by-step guidance on delivering the strategy session and running the assessment, refer to our guide.
-
+        For step-by-step guidance on delivering the strategy session and running the assessment, refer to our <a href="guide" title="Zero Trust Workshop Plan">step-by-step plan</a>.
+        If you are unsure how to get started, watch our Zero Trust Workshop Introductory video.
+        <br /><br />
+        <iframe width="100%" height="315" src="
+          https://www.youtube.com/embed/0-IYLWMHxGg?si=JyV0MuwIUBDKoFpN
+          " title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+        </iframe>
       </>
     ),
-    buttonText: 'Read the guide',
-    buttonDest: 'guide',
+    buttonText: '',
+    buttonDest: '',
   },
 ];
 

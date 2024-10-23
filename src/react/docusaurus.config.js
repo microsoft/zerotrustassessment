@@ -124,6 +124,10 @@ const config = {
                 to: 'https://learn.microsoft.com/en-us/security/zero-trust/',
               },
               {
+                label: 'Zero Trust Partner Kit',
+                to: 'https://aka.ms/zero-trust-partner-kit',
+              },
+              {
                 label: 'Zero Trust Asssessment Checks',
                 to: '/docs/intro',
               },
@@ -168,7 +172,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Built by the Microsoft Security → Customer Acceleration Team (CAT)`,
+        copyright: `Built by the Microsoft Security → CxE Team`,
       },
       prism: {
         theme: prismThemes.github,
