@@ -77,20 +77,23 @@ function New-ViewRole($db){
     $sql = @"
 create view vwRole
 as
-select ra."roleDefinitionId", ra.principal.displayName as principalDisplayName, rd.displayName as roleDisplayName, ra.principal.userPrincipalName, rd.isPrivileged,
-    ra.principal."@odata.type",
-    ra.principalId, ra.principalOrganizationId, ra.principal.servicePrincipalType,
+select cast(ra."roleDefinitionId" as varchar) roleDefinitionId, ra.principal.displayName as principalDisplayName,
+    rd.displayName as roleDisplayName, cast(ra.principal.userPrincipalName as varchar) userPrincipalName, rd.isPrivileged,
+    cast(ra.principal."@odata.type" as varchar) "@odata.type",
+    cast(ra.principalId as varchar) principalId, ra.principalOrganizationId, ra.principal.servicePrincipalType,
     'Permanent' as privilegeType
 from main."RoleAssignment" ra
     left join main."RoleDefinition" rd on ra."roleDefinitionId" = rd.id
-UNION
-select re."roleDefinitionId", re.principal.displayName as principalDisplayName, rd.displayName as roleDisplayName, re.principal.userPrincipalName, rd.isPrivileged,
-     re.principal."@odata.type",
-     re.principalId, null as principalOrganizationId, null as servicePrincipalType,
-     'Eligible' as privilegeType
+UNION ALL
+select cast(re."roleDefinitionId" as varchar), cast(re.principal.displayName as varchar) as principalDisplayName,
+    rd.displayName as roleDisplayName, cast(re.principal.userPrincipalName as varchar), rd.isPrivileged,
+    cast(re.principal."@odata.type" as varchar),
+    cast(re.principalId as varchar) principalId, null as principalOrganizationId, null as servicePrincipalType,
+    'Eligible' as privilegeType
 from main."RoleEligibilityScheduleRequest" re
     left join  main."RoleDefinition" rd on re."roleDefinitionId" = rd.id
-order by roleDisplayName, principalDisplayName
+where re."roleDefinitionId" is not null
+
 "@
     Invoke-DatabaseQuery -Database $db -Sql $sql -NonQuery
 }
