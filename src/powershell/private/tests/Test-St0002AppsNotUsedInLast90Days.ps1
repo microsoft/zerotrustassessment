@@ -10,6 +10,8 @@ function Test-St0002AppsNotUsedInLast90Days {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $activity = "Checking inactive apps"
     Write-ZtProgress -Activity $activity -Status "Starting"
 

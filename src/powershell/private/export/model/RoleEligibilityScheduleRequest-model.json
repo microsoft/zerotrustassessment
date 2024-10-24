@@ -1,0 +1,43 @@
+{
+  "value": [
+    {
+      "customData": null,
+      "roleDefinitionId": null,
+      "ticketInfo": {
+        "ticketNumber": null,
+        "ticketSystem": null
+      },
+      "principalId": null,
+      "scheduleInfo": {
+        "expiration": {
+          "duration": null,
+          "type": null,
+          "endDateTime": null
+        },
+        "startDateTime": null,
+        "recurrence": null
+      },
+      "action": null,
+      "principal": null,
+      "targetScheduleId": null,
+      "justification": null,
+      "isValidationOnly": false,
+      "completedDateTime": null,
+      "appScopeId": null,
+      "id": null,
+      "createdDateTime": null,
+      "status": null,
+      "directoryScopeId": null,
+      "createdBy": {
+        "device": null,
+        "application": null,
+        "user": {
+          "displayName": null,
+          "id": null
+        }
+      },
+      "approvalId": null
+    }
+  ],
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleEligibilityScheduleRequests(principal())"
+}

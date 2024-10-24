@@ -44,6 +44,7 @@ Function Write-ZtProgress {
             }
 
             Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
+            Write-PSFMessage -Message "$Activity - $statusString" -Level Debug -Tag Progress
             if ($Force -and !$IsWindows) {
                 Start-Sleep -Milliseconds 200
                 Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
@@ -51,6 +52,7 @@ Function Write-ZtProgress {
 
         } else {
             Write-Progress -Activity $Activity -Completed:$Completed
+            Write-PSFMessage -Message $Activity -Level Debug -Tag Progress
             if ($Force -and !$IsWindows) {
                 Start-Sleep -Milliseconds 200
                 Write-Progress -Activity $Activity -Completed:$Completed

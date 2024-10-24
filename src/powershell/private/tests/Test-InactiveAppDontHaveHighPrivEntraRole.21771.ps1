@@ -10,6 +10,8 @@ function Test-InactiveAppDontHaveHighPrivEntraRole {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $sql = @"
     select distinct r.principalId, r.principalDisplayName, r.principalOrganizationId,
         spsi.lastSignInActivity.lastSignInDateTime, r.privilegeType, sp.appId

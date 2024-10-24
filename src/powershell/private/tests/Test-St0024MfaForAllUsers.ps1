@@ -7,6 +7,8 @@ function Test-St0024MfaForAllUsers {
     [CmdletBinding()]
     param()
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $activity = "Checking MFA for all users"
     Write-ZtProgress -Activity $activity
 

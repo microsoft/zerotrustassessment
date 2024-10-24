@@ -10,6 +10,7 @@ function Test-AppDontHaveCertsWithLongExpiry {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
 
     $sqlApp = @"
     select distinct ON (id) * from

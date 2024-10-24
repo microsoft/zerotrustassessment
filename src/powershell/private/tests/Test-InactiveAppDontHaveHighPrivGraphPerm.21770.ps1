@@ -10,6 +10,8 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $sql = @"
     select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId,
     spsi.lastSignInActivity.lastSignInDateTime

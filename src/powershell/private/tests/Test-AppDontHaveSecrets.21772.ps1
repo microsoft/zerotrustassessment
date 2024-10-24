@@ -10,6 +10,8 @@ function Test-AppDontHaveSecrets {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $sqlApp = @"
 select distinct ON (id) appId, displayName, signInAudience,
     try_cast(unnest(passwordCredentials).endDateTime as date) as keyEndDateTime

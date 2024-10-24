@@ -9,6 +9,9 @@ function Test-GuestHaveRestrictedAccess {
     param(
         $Database
     )
+
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $guestRestrictedRoleId = "2af84b1e-32c8-42b7-82bc-daa82404023b"
 
     $result = Invoke-ZtGraphRequest -RelativeUri "policies/authorizationPolicy"

@@ -10,6 +10,8 @@ function Test-DiagnosticSettingsConfiguredEntraLogs {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $passed = $true
 
     if ($passed) {

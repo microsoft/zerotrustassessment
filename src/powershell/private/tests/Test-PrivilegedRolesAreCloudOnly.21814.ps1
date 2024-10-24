@@ -8,6 +8,8 @@ function Test-PrivilegedRolesAreCloudOnly {
     [CmdletBinding()]
     param()
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $activity = "Checking cloud only roles"
     Write-ZtProgress -Activity $activity -Status "Getting roles"
 

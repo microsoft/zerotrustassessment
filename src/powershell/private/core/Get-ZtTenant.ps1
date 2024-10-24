@@ -5,7 +5,7 @@
     )
 
     try {
-        $tenant = Invoke-GraphRequest -Uri "beta/tenantRelationships/findTenantInformationByTenantId(tenantId='{$($tenantId)}')"
+        $tenant = Invoke-ZtGraphRequest -Uri "beta/tenantRelationships/findTenantInformationByTenantId(tenantId='{$($tenantId)}')"
     }
     catch {
         $tenantId = ""

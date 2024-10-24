@@ -7,6 +7,8 @@ function Test-PrivilegedUsersCaAuthStrengthPhishResistant {
     [CmdletBinding()]
     param()
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $activity = "Checking phishing resistant authentication for privileged roles"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

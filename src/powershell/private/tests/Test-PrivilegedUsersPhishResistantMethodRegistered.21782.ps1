@@ -10,6 +10,8 @@ function Test-PrivilegedUsersPhishResistantMethodRegistered {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $passed = $false
 
     if ($passed) {

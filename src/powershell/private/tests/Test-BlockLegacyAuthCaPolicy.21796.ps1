@@ -7,6 +7,8 @@ function Test-BlockLegacyAuthCaPolicy {
     [CmdletBinding()]
     param()
 
+    Write-PSFMessage '🟦 Start' -Tag Test
+
     $activity = "Checking blocking of legacy authentication"
     Write-ZtProgress -Activity $activity -Status "Getting CA policies"
 
