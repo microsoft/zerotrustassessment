@@ -10,7 +10,7 @@ function Test-GuestHaveRestrictedAccess {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $guestRestrictedRoleId = "2af84b1e-32c8-42b7-82bc-daa82404023b"
 

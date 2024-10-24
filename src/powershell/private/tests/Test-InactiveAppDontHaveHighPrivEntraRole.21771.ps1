@@ -10,7 +10,7 @@ function Test-InactiveAppDontHaveHighPrivEntraRole {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
     select distinct r.principalId, r.principalDisplayName, r.principalOrganizationId,

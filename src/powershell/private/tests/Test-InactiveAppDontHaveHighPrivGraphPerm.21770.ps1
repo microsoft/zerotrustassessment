@@ -10,7 +10,7 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
     select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId,

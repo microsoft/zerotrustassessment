@@ -10,7 +10,7 @@ function Test-DiagnosticSettingsConfiguredEntraLogs {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $passed = $true
 

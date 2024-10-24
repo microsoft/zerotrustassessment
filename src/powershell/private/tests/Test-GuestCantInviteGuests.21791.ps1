@@ -7,7 +7,7 @@ function Test-GuestCantInviteGuests{
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking guest authorization policy"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

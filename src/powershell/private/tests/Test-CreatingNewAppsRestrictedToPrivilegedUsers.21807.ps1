@@ -7,7 +7,7 @@ function Test-CreatingNewAppsRestrictedToPrivilegedUsers {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking user app registration policy"
     Write-ZtProgress -Activity $activity

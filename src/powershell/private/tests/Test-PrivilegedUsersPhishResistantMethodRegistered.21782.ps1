@@ -10,7 +10,7 @@ function Test-PrivilegedUsersPhishResistantMethodRegistered {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $passed = $false
 
