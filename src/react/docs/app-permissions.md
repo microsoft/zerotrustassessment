@@ -2,11 +2,42 @@
 sidebar_position: 2
 ---
 
-# App Permissions
+# Zero Trust Assessment Tool
+
+## What is the Zero Trust Assessment Tool?
+
+This PowerShaell cmdlet tool provides essential checks to confirm a strong security baseline, preparing you for advanced features and a more resilient security posture.
+
+## How do I access it?
+
+It is a PowerShell cmdlet. You can access it from your PowerShell command line by invoking:
+
+```PowerShell
+Install-Module ZeroTrustAssessment 
+Invoke-ZTAssessment
+```
+
 
 ## How does this app work?
 
 This app uses Microsoft Graph to read the tenant configuration and provide recommendations on improving the end to end security configuration.  
+When you run the cmdlet, you will be prompted to log in to your Entra ID tenant.
+It is recommended to use a non-guest account for logging in. For example, if your tenant domain name is contoso.onmicrosoft.com, you should log in with an account similar to `<signin-name>@contoso.onmicrosoft.com`.
+
+## What options are available with this tool?
+
+You can specify an option whether to collect telemetry on the usage of this cmdlet. The only telemetry that is collected is the Entra ID tenant id (GUID) that the cmdlet is being run against. No other personal or tenant information is collected.
+
+The switch available is `-EnableTelemetry` and it defaults to `$true`. The two values for this switch are:
+
+- `$true`, which is the default value, indicates that the Entra ID tenant ID (GUID) will be collected
+- `$false`, indicates that the Entra ID tenant ID (GUID) will NOT be collected
+
+An example of running the cmdlet with telemetry enabled is:
+
+```PowerShell
+Invoke-ZTAssessment -EnableTelemetry $true
+```
 
 ## What are the permissions required for this app?
 
