@@ -35,9 +35,14 @@ function Invoke-ZtAssessment {
         [switch]
         $Resume,
 
-        # If specified, the script will output VeryVerbose messages.
+        # If specified, the script will output a high level summary of log messages. Useful for debugging. Use -Verbose and -Debug for more detailed logs.
         [switch]
-        $Log
+        $ShowLog,
+
+        # If specified, writes the log to a file.
+        [switch]
+        $ExportLog
+
     )
 
     $banner = @"
@@ -46,11 +51,13 @@ function Invoke-ZtAssessment {
 +-------------------------------------------------------------+
 "@
 
-    if ($Log) {
+    #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
+
+    if ($ShowLog) {
         $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessment
     }
     else {
-        $null = Remove-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose
+        Get-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose | Remove-PSFMessageLevelModifier
     }
 
     Write-Host $banner -ForegroundColor Cyan
@@ -107,4 +114,13 @@ function Invoke-ZtAssessment {
     Write-Host "🛡️ Zero Trust Assessmet report generated at $htmlReportPath" -ForegroundColor Green
     Write-Host
     Invoke-Item $htmlReportPath | Out-Null
+
+    if ($ExportLog) {
+        Write-ZtProgress -Activity "Creating support package"
+        $logPath = Join-Path $Path "log"
+        if(!(Test-Path $logPath)) {
+            New-Item -ItemType Directory -Path $logPath -Force -ErrorAction Stop | Out-Null
+        }
+        New-PSFSupportPackage -Path $logPath
+    }
 }
