@@ -33,7 +33,11 @@ function Invoke-ZtAssessment {
 
         # If specified, the previously exported data will be used to generate the report.
         [switch]
-        $Resume
+        $Resume,
+
+        # If specified, the script will output VeryVerbose messages.
+        [switch]
+        $Log
     )
 
     $banner = @"
@@ -41,6 +45,14 @@ function Invoke-ZtAssessment {
 | Microsoft Zero Trust Assessment v2.0                        |
 +-------------------------------------------------------------+
 "@
+
+    if ($Log) {
+        $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessment
+    }
+    else {
+        $null = Remove-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose
+    }
+
     Write-Host $banner -ForegroundColor Cyan
 
     $exportPath = Join-Path $Path "zt-export"
