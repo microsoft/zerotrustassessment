@@ -125,7 +125,7 @@ function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
 
 function Add-GraphProperty($result, $propertyName, $entityName, $entityUri) {
     $id = Get-ObjectProperty $result 'id'
-    Write-PSFMessage "Adding $propertyName to $entityName $id" -Debug -Tag Graph
+    Write-PSFMessage "Adding $propertyName to $entityName $id" -Tag Graph
     $propertyResults = Invoke-MgGraphRequest -Uri "$entityUri/$id/$propertyName" -OutputType HashTable
     $result[$propertyName] = Get-ObjectProperty $propertyResults 'value'
 }
