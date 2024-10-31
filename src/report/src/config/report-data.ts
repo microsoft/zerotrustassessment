@@ -15,6 +15,7 @@ export interface ZeroTrustAssessmentReport {
 
 export interface TenantInfo {
   OverviewCaMfaAllUsers: SankeyData;
+  OverviewCaDevicesAllUsers: SankeyData;
   OverviewAuthMethodsPrivilegedUsers: SankeyData;
   OverviewAuthMethodsAllUsers: SankeyData;
 }
@@ -95,6 +96,31 @@ export const reportData: ZeroTrustAssessmentReport = {
           "value": 1244,
           "target": "MFA",
           "source": "CA applied"
+        }
+      ]
+    },
+    "OverviewCaDevicesAllUsers": {
+      description: "Over the past 7 days, 20% of sign-ins were from non-compliant.",
+      nodes: [
+        {
+          "value": 70,
+          "target": "Unmanaged",
+          "source": "User sign in"
+        },
+        {
+          "value": 30,
+          "target": "Managed",
+          "source": "User sign in"
+        },
+        {
+          "value": 10,
+          "target": "Non-compliant",
+          "source": "Managed"
+        },
+        {
+          "value": 20,
+          "target": "Compliant",
+          "source": "Managed"
         }
       ]
     },

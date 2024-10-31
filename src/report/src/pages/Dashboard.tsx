@@ -35,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
+import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 
 export default function Dashboard() {
@@ -45,9 +46,9 @@ export default function Dashboard() {
             <PageHeader>
                 <PageHeaderHeading>Overview</PageHeaderHeading>
             </PageHeader>
-            <div className="chart-wrapper mx-auto flex max-w-6xl flex-col flex-wrap items-start justify-center gap-6 sm:flex-row">
+            <div className="chart-wrapper mx-auto flex max-w-7xl flex-col flex-wrap items-start justify-center gap-6 sm:flex-row">
 
-                <div className="grid w-full gap-6 sm:grid-cols-2 lg:max-w-[22rem] lg:grid-cols-1 xl:max-w-[25rem]">
+                <div className="grid w-full gap-6 sm:grid-cols-2 lg:max-w-[20rem] lg:grid-cols-1 xl:max-w-[25rem]">
                     <Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
@@ -223,7 +224,7 @@ export default function Dashboard() {
                             </CardDescription>
                         </CardFooter>
                     </Card> */}
-                    <Card
+                    {/* <Card
                         className="flex flex-col lg:max-w-md" x-chunk="charts-01-chunk-1"
                     >
                         <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2 [&>div]:flex-1">
@@ -343,7 +344,7 @@ export default function Dashboard() {
                                 </LineChart>
                             </ChartContainer>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
                 <div className="grid w-full flex-1 gap-6 lg:max-w-[20rem]">
                 <Card
@@ -373,6 +374,32 @@ export default function Dashboard() {
                         </CardFooter>
                     </Card>
                     <Card
+                        className="lmax-w-xs" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2">
+                            <CardTitle className="text-2xl tabular-nums">
+                                Conditional Access - Devices
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                <CaDeviceSankey data={reportData.TenantInfo.OverviewCaDevicesAllUsers.nodes} />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                            {reportData.TenantInfo.OverviewCaDevicesAllUsers.description}
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
+                    {/* <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-2"
                     >
                         <CardHeader>
@@ -485,8 +512,8 @@ export default function Dashboard() {
                                 </ChartContainer>
                             </div>
                         </CardContent>
-                    </Card>
-                    <Card
+                    </Card> */}
+                    {/* <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-3"
                     >
                         <CardHeader className="p-4 pb-0">
@@ -569,8 +596,8 @@ export default function Dashboard() {
                                 </BarChart>
                             </ChartContainer>
                         </CardContent>
-                    </Card>
-                    <Card
+                    </Card> */}
+                    {/* <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-4"
                     >
                         <CardContent className="flex gap-4 p-4 pb-2">
@@ -676,7 +703,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </CardFooter>
-                    </Card>
+                    </Card> */}
                 </div>
                 <div className="grid w-full flex-1 gap-6">
                     <Card
@@ -769,20 +796,26 @@ export default function Dashboard() {
                             </ChartContainer>
                         </CardContent>
                     </Card>
-                    <Card
+                    {/* <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-6"
                     >
                         <CardHeader className="p-4 pb-0">
-                            <CardTitle>Risk Signals</CardTitle>
+                            <CardTitle>Devices</CardTitle>
                             <CardDescription>
-                                You're SOC team is reviewing and resolving an average of 14 risk signals per day. Good job!
+                                Snapshot of devices in the tenant.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-2">
                             <div className="flex items-baseline gap-2 text-3xl font-bold tabular-nums leading-none">
                                 14
                                 <span className="text-sm font-normal text-muted-foreground">
-                                    risks/day
+                                    Windows
+                                </span>
+                            </div>
+                            <div className="flex items-baseline gap-2 text-3xl font-bold tabular-nums leading-none">
+                                14
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    Windows
                                 </span>
                             </div>
                             <ChartContainer
@@ -851,8 +884,8 @@ export default function Dashboard() {
                                 </BarChart>
                             </ChartContainer>
                         </CardContent>
-                    </Card>
-                    <Card
+                    </Card> */}
+                    {/* <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-7"
                     >
                         <CardHeader className="space-y-0 pb-0">
@@ -957,7 +990,7 @@ export default function Dashboard() {
                                 </AreaChart>
                             </ChartContainer>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
             </div>
         </>
