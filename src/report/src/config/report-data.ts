@@ -1,40 +1,46 @@
 // Use quicktype (Paste JSON as Code) VSCode extension to generate this typescript interface from ZeroTrustAssessmentReport.json created by PowerShell
 
 export interface ZeroTrustAssessmentReport {
-  ExecutedAt:     string;
-  TenantId:       string;
-  TenantName:     string;
-  Domain:         string;
-  Account:        string;
+  ExecutedAt: string;
+  TenantId: string;
+  TenantName: string;
+  Domain: string;
+  Account: string;
   CurrentVersion: string;
-  LatestVersion:  string;
-  Tests:          Test[];
-  TenantInfo:     TenantInfo;
-  EndOfJson:      string;
+  LatestVersion: string;
+  Tests: Test[];
+  TenantInfo: TenantInfo;
+  EndOfJson: string;
 }
 
 export interface TenantInfo {
-  OverviewCaMfaAllUsers: OverviewCAMfaAllUser[];
+  OverviewCaMfaAllUsers: SankeyData;
+  OverviewAuthMethodsPrivilegedUsers: SankeyData;
+  OverviewAuthMethodsAllUsers: SankeyData;
 }
 
-export interface OverviewCAMfaAllUser {
-  value:  number;
+export interface SankeyData {
+  nodes: SankeyDataNode[];
+  description: string;
+}
+export interface SankeyDataNode {
+  value: number;
   source: string;
   target: string;
 }
 
 export interface Test {
-  TestTitle:       string;
-  TestRisk:  string;
-  TestAppliesTo:   string[];
-  TestImpact:      string;
+  TestTitle: string;
+  TestRisk: string;
+  TestAppliesTo: string[];
+  TestImpact: string;
   TestImplementationCost: string;
-  SkippedReason:   null;
-  TestResult:      string;
-  TestSkipped:     string;
-  TestStatus:      string;
-  TestTags:        string[];
-  TestId:          string;
+  SkippedReason: null;
+  TestResult: string;
+  TestSkipped: string;
+  TestStatus: string;
+  TestTags: string[];
+  TestId: string;
   TestDescription: string;
 }
 
@@ -67,28 +73,115 @@ export const reportData: ZeroTrustAssessmentReport = {
     }
   ],
   "TenantInfo": {
-    "OverviewCaMfaAllUsers": [
-      {
-        "value": 1,
-        "target": "No CA applied",
-        "source": "User sign in"
-      },
-      {
-        "value": 1244,
-        "target": "CA applied",
-        "source": "User sign in"
-      },
-      {
-        "value": 0,
-        "target": "No MFA",
-        "source": "CA applied"
-      },
-      {
-        "value": 1244,
-        "target": "MFA",
-        "source": "CA applied"
-      }
-    ]
+    "OverviewCaMfaAllUsers": {
+      description: "Over the past 7 days, 20% of sign-ins were not protected by any conditional access policies.",
+      nodes: [
+        {
+          "value": 1,
+          "target": "No CA applied",
+          "source": "User sign in"
+        },
+        {
+          "value": 1244,
+          "target": "CA applied",
+          "source": "User sign in"
+        },
+        {
+          "value": 0,
+          "target": "No MFA",
+          "source": "CA applied"
+        },
+        {
+          "value": 1244,
+          "target": "MFA",
+          "source": "CA applied"
+        }
+      ]
+    },
+    "OverviewAuthMethodsPrivilegedUsers": {
+      description: "Strongest authentication method registered by privileged users.",
+      nodes: [
+        {
+          "value": 20,
+          "target": "No auth registered",
+          "source": "Users"
+        },
+        {
+          "value": 40,
+          "target": "Phishable",
+          "source": "Users"
+        },
+        {
+          "value": 20,
+          "target": "Phone",
+          "source": "Phishable"
+        },
+        {
+          "value": 20,
+          "target": "Authenticator",
+          "source": "Phishable"
+        },
+        {
+          "value": 40,
+          "target": "Phish resistant",
+          "source": "Users"
+        },
+
+        {
+          "value": 20,
+          "target": "Passkey",
+          "source": "Phish resistant"
+        },
+        {
+          "value": 20,
+          "target": "WHfB",
+          "source": "Phish resistant"
+        },
+
+      ]
+    },
+    "OverviewAuthMethodsAllUsers": {
+      description: "Strongest authentication method registered by all users.",
+      nodes: [
+        {
+          "value": 10,
+          "target": "No auth registered",
+          "source": "Users"
+        },
+        {
+          "value": 70,
+          "target": "Phishable",
+          "source": "Users"
+        },
+        {
+          "value": 40,
+          "target": "Phone",
+          "source": "Phishable"
+        },
+        {
+          "value": 30,
+          "target": "Authenticator",
+          "source": "Phishable"
+        },
+        {
+          "value": 20,
+          "target": "Phish resistant",
+          "source": "Users"
+        },
+
+        {
+          "value": 5,
+          "target": "Passkey",
+          "source": "Phish resistant"
+        },
+        {
+          "value": 15,
+          "target": "WHfB",
+          "source": "Phish resistant"
+        },
+
+      ]
+    }
   },
   "EndOfJson": "EndOfJson"
 }

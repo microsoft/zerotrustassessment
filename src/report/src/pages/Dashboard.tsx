@@ -35,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
+import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 
 export default function Dashboard() {
 
@@ -52,7 +53,7 @@ export default function Dashboard() {
                     >
                         <CardHeader className="space-y-0 pb-2">
                             <CardTitle className="text-2xl tabular-nums">
-                                Conditional access
+                                Conditional Access - MFA
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -64,17 +65,68 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers} />
+                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-
-                                Over the past 7 days, <span className="font-medium text-foreground">40%</span> of sign-ins were not protected by any conditional access policies.
+                            {reportData.TenantInfo.OverviewCaMfaAllUsers.description}
                             </CardDescription>
                         </CardFooter>
                     </Card>
                     <Card
+                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2">
+                            <CardTitle className="text-2xl tabular-nums">
+                                Auth methods → Privileged users
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.nodes} />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                                {reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.description}
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
+                    <Card
+                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2">
+                            <CardTitle className="text-2xl tabular-nums">
+                                Auth methods → All users
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsAllUsers.nodes} />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                                {reportData.TenantInfo.OverviewAuthMethodsAllUsers.description}
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
+                    {/* <Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2">
@@ -196,7 +248,7 @@ export default function Dashboard() {
                                 <span className="font-medium text-foreground">13,305</span> phishing attempts.
                             </CardDescription>
                         </CardFooter>
-                    </Card>
+                    </Card> */}
                     <Card
                         className="flex flex-col lg:max-w-md" x-chunk="charts-01-chunk-1"
                     >
