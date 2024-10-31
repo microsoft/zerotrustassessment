@@ -51,7 +51,7 @@ function Invoke-ZtAssessment {
 +-------------------------------------------------------------+
 "@
 
-    #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
+    $ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
     if ($ShowLog) {
         $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessment

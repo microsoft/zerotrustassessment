@@ -14,7 +14,7 @@ export const AuthMethodSankey = ({ data }: { data: SankeyDataNode[] }) => {
                     "nodeColor": "hsl(28, 100%, 53%)"
                 },
                 {
-                    "id": "No auth registered",
+                    "id": "Single factor",
                     "nodeColor": "hsl(0, 100%, 50%)"
                 },
                 {

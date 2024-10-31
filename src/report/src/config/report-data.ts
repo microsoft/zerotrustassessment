@@ -103,7 +103,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       nodes: [
         {
           "value": 20,
-          "target": "No auth registered",
+          "target": "Single factor",
           "source": "Users"
         },
         {
@@ -145,7 +145,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       nodes: [
         {
           "value": 10,
-          "target": "No auth registered",
+          "target": "Single factor",
           "source": "Users"
         },
         {

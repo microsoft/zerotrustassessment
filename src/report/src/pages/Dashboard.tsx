@@ -53,33 +53,7 @@ export default function Dashboard() {
                     >
                         <CardHeader className="space-y-0 pb-2">
                             <CardTitle className="text-2xl tabular-nums">
-                                Conditional Access - MFA
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ChartContainer
-                                config={{
-                                    steps: {
-                                        label: "Steps",
-                                        color: "hsl(var(--chart-1))",
-                                    },
-                                }}
-                            >
-                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
-                            </ChartContainer>
-                        </CardContent>
-                        <CardFooter className="flex-col items-start gap-1">
-                            <CardDescription>
-                            {reportData.TenantInfo.OverviewCaMfaAllUsers.description}
-                            </CardDescription>
-                        </CardFooter>
-                    </Card>
-                    <Card
-                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
-                    >
-                        <CardHeader className="space-y-0 pb-2">
-                            <CardTitle className="text-2xl tabular-nums">
-                                Auth methods → Privileged users
+                                Privileged users → Auth methods
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -105,7 +79,7 @@ export default function Dashboard() {
                     >
                         <CardHeader className="space-y-0 pb-2">
                             <CardTitle className="text-2xl tabular-nums">
-                                Auth methods → All users
+                                All users → Auth methods
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -372,6 +346,32 @@ export default function Dashboard() {
                     </Card>
                 </div>
                 <div className="grid w-full flex-1 gap-6 lg:max-w-[20rem]">
+                <Card
+                        className="lmax-w-xs" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2">
+                            <CardTitle className="text-2xl tabular-nums">
+                                Conditional Access - MFA
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                            {reportData.TenantInfo.OverviewCaMfaAllUsers.description}
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
                     <Card
                         className="max-w-xs" x-chunk="charts-01-chunk-2"
                     >
