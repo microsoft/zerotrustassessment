@@ -6,7 +6,7 @@ sidebar_position: 2
 
 ## What is the Zero Trust Assessment Tool?
 
-This PowerShaell cmdlet tool provides essential checks to confirm a strong security baseline, preparing you for advanced features and a more resilient security posture.
+This PowerShell cmdlet tool provides essential checks to confirm a strong security baseline, preparing you for advanced features and a more resilient security posture.
 
 ## How do I access it?
 
