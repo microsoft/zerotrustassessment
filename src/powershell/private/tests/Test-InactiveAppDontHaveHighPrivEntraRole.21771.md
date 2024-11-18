@@ -1,12 +1,10 @@
-Attackers might exploit valid but dormant applications that still have high privileges. These applications can be used to gain initial access without raising alarm because they're legitimate applications. From there, attackers can use the application privileges to plan or execute other attacks. Attackers might also maintain access by manipulating the dormant application, such as by adding credentials. This persistence ensures that even if their primary access method is detected, they can regain access later.
+Attackers might exploit valid but inactive applications that still have high privileges. These applications can be used to gain initial access without raising alarm because they're legitimate applications. From there, attackers can use the application privileges to plan or execute other attacks. Attackers might also maintain access by manipulating the inactive application, such as by adding credentials. This persistence ensures that even if their primary access method is detected, they can regain access later.
 
-#### Remediation
+**Remediation action**
 
-- Disable privileged Service Principals  
-  - [Update serviceprincipal - Microsoft Graph v1.0](https://learn.microsoft.com/graph/api/serviceprincipal-update?view=graph-rest-1.0&tabs=http)
-- Investigate if the application has legitimate use cases. If so, analyze if a OAuth2 permission is a better fit.
-- If service principal does not have legitimate usage, delete it
-  - [Delete servicePrincipal - Microsoft Graph v1.0](https://learn.microsoft.com/graph/api/serviceprincipal-delete?view=graph-rest-1.0&tabs=http)
-
+- [Disable inactive privileged service principals](https://learn.microsoft.com/graph/api/serviceprincipal-update)
+- Investigate if the application has legitimate use cases. If so, [analyze if a OAuth2 permission is a better fit](https://learn.microsoft.com/entra/identity-platform/v2-app-types)
+- [If service principal doesn't have legitimate use cases, delete it](https://learn.microsoft.com/graph/api/serviceprincipal-delete)
 <!--- Results --->
 %TestResult%
+

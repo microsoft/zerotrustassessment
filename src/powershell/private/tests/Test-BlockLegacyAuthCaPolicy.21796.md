@@ -1,14 +1,16 @@
-Legacy mechanisms such as basic authentication for SMTP and IMAP do not support modern security features like multifactor authentication (MFA), which is crucial for protecting against unauthorized access. This makes accounts using these protocols vulnerable to brute force, password spraying and similar password attacks, providing attackers with a means to gain initial access using stolen or guessed credentials.
+Legacy authentication methods such as basic authentication for SMTP and IMAP don't support modern security features like multifactor authentication (MFA). This makes accounts using them vulnerable to brute force, password spraying, and similar password attacks. 
 
-Once an attacker successfully brute forces a password, they can use the compromised credentials to access the mailbox and other linked services, leveraging the weak authentication method as an entry point. Attackers who gain access through legacy authentication might establish persistence by configuring mail forwarding rules or other settings within Microsoft Exchange that allow them to maintain access to sensitive communications. Legacy authentication also provides a consistent method for attackers to reenter a system using the same credentials without triggering modern security alerts or requiring reauthentication.
+When an attacker successfully gains unauthorized access to credentials, they can use them to access linked services, using the weak authentication method as an entry point. Attackers who gain access through legacy authentication might make changes to Microsoft Exchange, such as configuring mail forwarding rules or changing other settings, allowing them to maintain continued access to sensitive communications. 
 
-From there, attackers can leverage legacy protocols to access other systems that are accessible via the compromised account, facilitating lateral movement.  Attackers using legacy protocols can blend in with legitimate user activities, making it difficult for security teams to distinguish between normal usage and malicious behavior.
+Legacy authentication also provides attackers with a consistent method to reenter a system using compromised credentials without triggering security alerts or requiring reauthentication. 
 
-#### Remediation action
+From there, attackers can use legacy protocols to access other systems that are accessible via the compromised account, facilitating lateral movement. Attackers using legacy protocols can blend in with legitimate user activities, making it difficult for security teams to distinguish between normal usage and malicious behavior. 
 
-Create a block legacy authentication conditional access policy and assign it to all users.
+**Remediation action**
 
-- [Block legacy authentication - Microsoft Learn](https://learn.microsoft.com/entra/identity/conditional-access/howto-conditional-access-policy-block-legacy#create-a-conditional-access-policy)
+Deploy the following Conditional Access policy:
 
+- [Block legacy authentication](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-legacy-authentication)
 <!--- Results --->
 %TestResult%
+

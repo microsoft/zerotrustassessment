@@ -1,14 +1,12 @@
-Logging and archiving Microsoft Entra logs helps detect unauthorized access attempts. These logs enable security teams to implement monitoring and detection security controls, proactively hunt for threats, respond to incidents, provide evidence for compliance and audits, assess system health, and other functions. This archival process is usually managed using a Security Information and Event Management (SIEM) system.
+The Microsoft Entra activity logs and reports can be used to detect unauthorized access attempts or identify when a tenant configuration changed. When logs are archived - or even better - integrated with Security Information and Event Management (SIEM) tools, security teams can implement powerful monitoring and detection security controls, proactive threat hunting, and incident response processes. The logs and monitoring features can be used to assess tenant health and provide evidence for compliance and audits. 
 
-Without archived logs, it's challenging to identify and investigate how an attacker gained initial access. The absence of historical logs means that security teams might miss patterns of failed sign-in attempts, unusual activity, indicators of compromise, and other risks. This lack of visibility can prevent the timely detection of breaches, which can allow attackers to maintain undetected access for extended periods.
+If logs aren't regularly archived or sent to a SIEM tool for querying, it's challenging to investigate sign-in issues. The absence of historical logs means that security teams might miss patterns of failed sign-in attempts, unusual activity, other indicators of compromise, and other risks. This lack of visibility can prevent the timely detection of breaches, allowing attackers to maintain undetected access for extended periods. 
 
-#### Remediation
+**Remediation action**
 
-- Deploy conditional access policies to enforce authentication strength for guests  
-- [Overview of Microsoft Entra authentication strength](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths)
-- [Conditional Access - Authentication strength for external users](https://learn.microsoft.com/entra/identity/conditional-access/howto-conditional-access-policy-authentication-strength-external)
-- For organizations with a closer business relationship and vetting on their MFA practices, consider deploying cross-tenant access settings to accept the MFA claim  
-- [Configure B2B collaboration cross-tenant access](https://learn.microsoft.com/entra/external-id/cross-tenant-access-settings-b2b-collaboration)
-
+- [Configure Microsoft Entra diagnostic settings](https://learn.microsoft.com/entra/identity/monitoring-health/howto-configure-diagnostic-settings)
+- [Integrate Microsoft Entra logs with Azure Monitor logs](https://learn.microsoft.com/entra/identity/monitoring-health/howto-integrate-activity-logs-with-azure-monitor-logs)
+- [Stream Microsoft Entra logs to an event hub](https://learn.microsoft.com/entra/identity/monitoring-health/howto-stream-logs-to-event-hub)
 <!--- Results --->
 %TestResult%
+
