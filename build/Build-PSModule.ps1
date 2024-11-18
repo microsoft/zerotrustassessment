@@ -13,8 +13,9 @@ dotnet publish ./src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.csproj -
 
 # Get the current version in the gallery and increment the build number
 $ver = [version](Find-Module -Name ZeroTrustAssessment).Version
-$newBuild = $ver.Build + 1
-$newVer = '{0}.{1}.{2}' -f $ver.Major, $ver.Minor, $newBuild
+$newMinor = $ver.Minor + 1 # Increment the minor version
+$newBuild = 0
+$newVer = '{0}.{1}.{2}' -f $ver.Major, $newMinor, $newBuild
 
 # Update the version in the module manifest
 $manifestPath = 'src/powershell/ZeroTrustAssessment/ZeroTrustAssessment.psd1'
