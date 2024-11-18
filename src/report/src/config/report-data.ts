@@ -68,7 +68,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       "TestTags": [
         "Application"
       ],
-      "TestImpact": null,
+      "TestImpact": "",
       "TestImplementationCost": "Medium",
       "SkippedReason": null
     }

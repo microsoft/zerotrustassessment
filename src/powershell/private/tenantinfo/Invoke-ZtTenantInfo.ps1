@@ -12,4 +12,7 @@ function Invoke-ZtTenantInfo {
     )
 
     Add-ZtOverviewCaMfa -Database $Database
+    Add-ZtOverviewCaDevicesAllUsers -Database $Database
+    Add-ZtOverviewAuthMethodsAllUsers -Database $Database
+    Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $Database
 }

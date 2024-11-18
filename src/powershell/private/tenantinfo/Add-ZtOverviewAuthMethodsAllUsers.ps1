@@ -1,10 +1,10 @@
 
 <#
 .SYNOPSIS
-    Calculates the CA summary data from sign in logs for the overiew report and adds it to the tenant info.
+    Calculates the CA summary data from sign in logs for managed devices in the overiew report and adds it to the tenant info.
 #>
 
-function Add-ZtOverviewCaMfa {
+function Add-ZtOverviewAuthMethodsAllUsers {
     [CmdletBinding()]
     param(
         $Database
@@ -28,12 +28,12 @@ group by conditionalAccessStatus, authenticationRequirement
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
-    $caSummary = Get-ZtOverviewCaMfa $results
+    $caSummary = Get-ZtOverviewAuthMethodsAllUsers $results
 
-    Add-ZtTenantInfo -Name "OverviewCaMfaAllUsers" -Value $caSummary
+    Add-ZtTenantInfo -Name "OverviewAuthMethodsAllUsers" -Value $caSummary
 }
 
-function Get-ZtOverviewCaMfa($results) {
+function Get-ZtOverviewAuthMethodsAllUsers($results) {
 
     $caMfa = GetCount $results "success" "multiFactorAuthentication"
     $caNoMfa = GetCount $results "success" "singleFactorAuthentication"
@@ -42,29 +42,44 @@ function Get-ZtOverviewCaMfa($results) {
 
     $nodes = @(
         @{
-            "source" = "User sign in"
-            "target" = "No CA applied"
-            "value"  = $noCaMfa + $noCaNoMfa
+            "source" = "Users"
+            "target" = "Single factor"
+            "value"  = 20
         },
         @{
-            "source" = "User sign in"
-            "target" = "CA applied"
-            "value"  = $caMfa + $caNoMfa
+            "source" = "Users"
+            "target" = "Phishable"
+            "value"  = 40
         },
         @{
-            "source" = "CA applied"
-            "target" = "No MFA"
-            "value"  = $caNoMfa
+            "source" = "Phishable"
+            "target" = "Phone"
+            "value"  = 20
         },
         @{
-            "source" = "CA applied"
-            "target" = "MFA"
-            "value"  = $caMfa
+            "source" = "Phishable"
+            "target" = "Authenticator"
+            "value"  = 20
+        },
+        @{
+            "source" = "Users"
+            "target" = "Phish resistant"
+            "value"  = 40
+        },
+        @{
+            "source" = "Phish resistant"
+            "target" = "Passkey"
+            "value"  = 20
+        },
+        @{
+            "source" = "Phish resistant"
+            "target" = "WHfB"
+            "value"  = 20
         }
     )
 
     $caSummaryArray = @{
-        "description" = "Over the past 7 days, 20% of sign-ins were not protected by any conditional access policies."
+        "description" = "Strongest authentication method registered by all users."
         "nodes"       = $nodes
     }
 

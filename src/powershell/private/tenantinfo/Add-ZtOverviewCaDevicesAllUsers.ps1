@@ -1,10 +1,10 @@
 
 <#
 .SYNOPSIS
-    Calculates the CA summary data from sign in logs for the overiew report and adds it to the tenant info.
+    Calculates the CA summary data from sign in logs for managed devices inthe overiew report and adds it to the tenant info.
 #>
 
-function Add-ZtOverviewCaMfa {
+function Add-ZtOverviewCaDevicesAllUsers {
     [CmdletBinding()]
     param(
         $Database
@@ -28,12 +28,12 @@ group by conditionalAccessStatus, authenticationRequirement
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
-    $caSummary = Get-ZtOverviewCaMfa $results
+    $caSummary = Get-ZtOverviewCaDevicesAllUsers $results
 
-    Add-ZtTenantInfo -Name "OverviewCaMfaAllUsers" -Value $caSummary
+    Add-ZtTenantInfo -Name "OverviewCaDevicesAllUsers" -Value $caSummary
 }
 
-function Get-ZtOverviewCaMfa($results) {
+function Get-ZtOverviewCaDevicesAllUsers($results) {
 
     $caMfa = GetCount $results "success" "multiFactorAuthentication"
     $caNoMfa = GetCount $results "success" "singleFactorAuthentication"
@@ -43,29 +43,29 @@ function Get-ZtOverviewCaMfa($results) {
     $nodes = @(
         @{
             "source" = "User sign in"
-            "target" = "No CA applied"
-            "value"  = $noCaMfa + $noCaNoMfa
+            "target" = "Unmanaged"
+            "value"  = 70
         },
         @{
             "source" = "User sign in"
-            "target" = "CA applied"
-            "value"  = $caMfa + $caNoMfa
+            "target" = "Managed"
+            "value"  = 30
         },
         @{
-            "source" = "CA applied"
-            "target" = "No MFA"
-            "value"  = $caNoMfa
+            "source" = "Managed"
+            "target" = "Non-compliant"
+            "value"  = 10
         },
         @{
-            "source" = "CA applied"
-            "target" = "MFA"
-            "value"  = $caMfa
+            "source" = "Managed"
+            "target" = "Compliant"
+            "value"  = 20
         }
     )
 
     $caSummaryArray = @{
-        "description" = "Over the past 7 days, 20% of sign-ins were not protected by any conditional access policies."
-        "nodes"       = $nodes
+        "description" = "Over the past 7 days, 20% of sign-ins were from non-compliant devices."
+        "nodes" = $nodes
     }
 
     return $caSummaryArray
@@ -73,6 +73,6 @@ function Get-ZtOverviewCaMfa($results) {
 
 function GetCount($results, $caStatus, $authReq) {
     return ($results
-        | Where-Object { $_.conditionalAccessStatus -eq $caStatus -and $_.authenticationRequirement -eq $authReq }
-        | Select-Object -ExpandProperty cnt) -as [int]
+    | Where-Object { $_.conditionalAccessStatus -eq $caStatus -and $_.authenticationRequirement -eq $authReq}
+    | Select-Object -ExpandProperty cnt) -as [int]
 }
