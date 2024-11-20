@@ -10,13 +10,23 @@ This PowerShell cmdlet tool provides essential checks to confirm a strong securi
 
 ## How do I access it?
 
-It is a PowerShell cmdlet. You can access it from your PowerShell command line by invoking:
+It is a PowerShell cmdlet. If this is the first time you are running the assessment, you can access it from your PowerShell command line by invoking:
 
 ```PowerShell
 Install-Module ZeroTrustAssessment 
 Invoke-ZTAssessment
 ```
 
+For subsequent runs of the assessment, use `Import-Module` instead:
+
+```PowerShell
+Import-Module ZeroTrustAssessment
+Invoke-ZTAssessment
+```
+
+## What version of PowerShell do I need?
+
+This app uses PowerShell 7.0 or higher. It will not run if you have a version of PowerShell below 7.0. You can download PowerShell 7.0 [here](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4)
 
 ## How does this app work?
 
