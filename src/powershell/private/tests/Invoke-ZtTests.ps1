@@ -20,12 +20,13 @@ function Invoke-ZtTests {
     ## Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
     Test-PrivilegedUsersCaAuthStrengthPhishResistant
     Test-PrivilegedUsersPhishResistantMethodRegistered -Database $Database
+    ## Test-UsersPhishResistantMethodRegistered -Database $Database #TODO 21801
     Test-GuestCantInviteGuests
     Test-GuestHaveRestrictedAccess
     Test-BlockLegacyAuthCaPolicy
     Test-CreatingNewAppsRestrictedToPrivilegedUsers
     ## Test-GuestStrongAuthMethod # Not implemented
-    ## Test-DiagnosticSettingsConfiguredEntraLogs # Not implemented
+    ## Test-DiagnosticSettingsConfiguredEntraLogs # TODO 21860
     Test-St0002AppsNotUsedInLast90Days -Database $Database
     Test-St0024MfaForAllUsers
 }
