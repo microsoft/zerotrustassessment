@@ -13,19 +13,19 @@ function Invoke-ZtTests {
     # We could also run all the cmdlets in this folder that start with Test-
     # For now, just run all tests sequentially
 
-    Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
-    Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
-    Test-AppDontHaveSecrets -Database $Database
-    Test-AppDontHaveCertsWithLongExpiry -Database $Database
-    ## Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
-    Test-PrivilegedUsersCaAuthStrengthPhishResistant
-    ## Test-PrivilegedUsersPhishResistantMethodRegistered # Not implemented
-    Test-GuestCantInviteGuests
-    Test-GuestHaveRestrictedAccess
-    Test-BlockLegacyAuthCaPolicy
-    Test-CreatingNewAppsRestrictedToPrivilegedUsers
-    ## Test-GuestStrongAuthMethod # Not implemented
-    ## Test-DiagnosticSettingsConfiguredEntraLogs # Not implemented
-    Test-St0002AppsNotUsedInLast90Days -Database $Database
+    # Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
+    # Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
+    # Test-AppDontHaveSecrets -Database $Database
+    # Test-AppDontHaveCertsWithLongExpiry -Database $Database
+    # ## Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
+    # Test-PrivilegedUsersCaAuthStrengthPhishResistant
+    # ## Test-PrivilegedUsersPhishResistantMethodRegistered # Not implemented
+    # Test-GuestCantInviteGuests
+    # Test-GuestHaveRestrictedAccess
+    # Test-BlockLegacyAuthCaPolicy
+    # Test-CreatingNewAppsRestrictedToPrivilegedUsers
+    # ## Test-GuestStrongAuthMethod # Not implemented
+    # ## Test-DiagnosticSettingsConfiguredEntraLogs # Not implemented
+    # Test-St0002AppsNotUsedInLast90Days -Database $Database
     Test-St0024MfaForAllUsers
 }

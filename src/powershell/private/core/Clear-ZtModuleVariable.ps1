@@ -17,4 +17,5 @@ function Clear-ZtModuleVariable {
     $__ZtSession.GraphBaseUri = $null
     $__ZtSession.TestResultDetail = @{}
     $__ZtSession.TenantInfo = @{}
+    $__ZtSession.SignInLogDuration = $null
 }

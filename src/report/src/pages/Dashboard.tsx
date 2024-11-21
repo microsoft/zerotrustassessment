@@ -1,5 +1,7 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
 
+import {MonitorSmartphone, Users, User, UserCog} from "lucide-react";
+
 import {
     // Area,
     // AreaChart,
@@ -52,9 +54,10 @@ export default function Dashboard() {
                     <Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
-                        <CardHeader className="space-y-0 pb-2">
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                            <UserCog className="pr-2 size-8" />
                             <CardTitle className="text-2xl tabular-nums">
-                                Privileged users → Auth methods
+                                Privileged users auth methods
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -78,9 +81,10 @@ export default function Dashboard() {
                     <Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
-                        <CardHeader className="space-y-0 pb-2">
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                        <Users className="pr-2 size-8" />
                             <CardTitle className="text-2xl tabular-nums">
-                                All users → Auth methods
+                                All users auth methods
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -350,9 +354,10 @@ export default function Dashboard() {
                 <Card
                         className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                     >
-                        <CardHeader className="space-y-0 pb-2">
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                            <User className="pr-2 size-8" />
                             <CardTitle className="text-2xl tabular-nums">
-                                Conditional Access - MFA
+                                User authentication
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -376,9 +381,10 @@ export default function Dashboard() {
                     <Card
                         className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                     >
-                        <CardHeader className="space-y-0 pb-2">
-                            <CardTitle className="text-2xl tabular-nums">
-                                Conditional Access - Devices
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                            <MonitorSmartphone className="pr-2 size-8" />
+                            <CardTitle className="text-2xl tabular-nums ">
+                                Device compliance
                             </CardTitle>
                         </CardHeader>
                         <CardContent>

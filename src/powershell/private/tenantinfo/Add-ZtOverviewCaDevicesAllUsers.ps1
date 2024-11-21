@@ -13,20 +13,20 @@ function Add-ZtOverviewCaDevicesAllUsers {
     Write-ZtProgress -Activity $activity -Status "Processing"
 
     $sql = @"
-select conditionalAccessStatus, authenticationRequirement, count(*) as cnt from SignIn
+select deviceDetail.isManaged as isManaged, deviceDetail.isCompliant as isCompliant, count(*) as cnt from SignIn
 where isInteractive == true and status.errorCode == 0
-group by conditionalAccessStatus, authenticationRequirement
+group by isManaged, isCompliant
 "@
 
     # Example output:
-    # conditionalAccessStatus   authenticationRequirement   cnt
-    # success                   singleFactorAuthentication  5
-    # success                   multiFactorAuthentication   2121
-    # notApplied                singleFactorAuthentication  6
-    # notApplied                multiFactorAuthentication   6
+    # isManaged   isCompliant   cnt
+    # true       false          19
+    # true       true           83
+    # false      false          455
 
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    $results = @($results) # Convert to array in case of single result
 
     $caSummary = Get-ZtOverviewCaDevicesAllUsers $results
 
@@ -35,44 +35,53 @@ group by conditionalAccessStatus, authenticationRequirement
 
 function Get-ZtOverviewCaDevicesAllUsers($results) {
 
-    $caMfa = GetCount $results "success" "multiFactorAuthentication"
-    $caNoMfa = GetCount $results "success" "singleFactorAuthentication"
-    $noCaMfa = GetCount $results "notApplied" "multiFactorAuthentication"
-    $noCaNoMfa = GetCount $results "notApplied" "singleFactorAuthentication"
+    $managed = GetManagedCount $results -isManaged $true
+    $unmanaged = GetManagedCount $results -isManaged $false
+    $compliant = GetCompliant $results -isManaged $true -isCompliant $true
+    $nonCompliant = GetCompliant $results -isManaged $true -isCompliant $false
 
     $nodes = @(
         @{
             "source" = "User sign in"
             "target" = "Unmanaged"
-            "value"  = 70
+            "value"  = $unmanaged
         },
         @{
             "source" = "User sign in"
             "target" = "Managed"
-            "value"  = 30
+            "value"  = $managed
         },
         @{
             "source" = "Managed"
             "target" = "Non-compliant"
-            "value"  = 10
+            "value"  = $nonCompliant
         },
         @{
             "source" = "Managed"
             "target" = "Compliant"
-            "value"  = 20
+            "value"  = $compliant
         }
     )
 
+    $duration = Get-ZtSignInDuration -Database $Database
+    $total = $managed + $unmanaged
+    $percent = Get-ZtPercentLabel -value $compliant -total $total
     $caSummaryArray = @{
-        "description" = "Over the past 7 days, 20% of sign-ins were from non-compliant devices."
+        "description" = "Over the past $duration, $percent of sign-ins were from compliant devices."
         "nodes" = $nodes
     }
 
     return $caSummaryArray
 }
 
-function GetCount($results, $caStatus, $authReq) {
+function GetManagedCount($results, $isManaged) {
     return ($results
-    | Where-Object { $_.conditionalAccessStatus -eq $caStatus -and $_.authenticationRequirement -eq $authReq}
+    | Where-Object { $_.isManaged -eq $isManaged}
+    | Select-Object -ExpandProperty cnt) -as [int]
+}
+
+function GetCompliant($results, $isManaged, $isCompliant) {
+    return ($results
+    | Where-Object { $_.isManaged -eq $isManaged -and $_.isCompliant -eq $isCompliant }
     | Select-Object -ExpandProperty cnt) -as [int]
 }

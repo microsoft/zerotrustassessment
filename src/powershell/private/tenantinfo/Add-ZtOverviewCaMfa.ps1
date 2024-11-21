@@ -63,8 +63,12 @@ function Get-ZtOverviewCaMfa($results) {
         }
     )
 
+    $duration = Get-ZtSignInDuration -Database $Database
+    $total = $noCaMfa + $noCaNoMfa + $caMfa + $caNoMfa
+    $percent = Get-ZtPercentLabel -value $caMfa -total $total
+
     $caSummaryArray = @{
-        "description" = "Over the past 7 days, 20% of sign-ins were not protected by any conditional access policies."
+        "description" = "Over the past $duration, $percent of sign-ins were protected by conditional access policies enforcing multifactor."
         "nodes"       = $nodes
     }
 
