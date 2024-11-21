@@ -26,7 +26,6 @@ group by isManaged, isCompliant
 
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
-    $results = @($results) # Convert to array in case of single result
 
     $caSummary = Get-ZtOverviewCaDevicesAllUsers $results
 

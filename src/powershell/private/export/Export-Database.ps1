@@ -40,6 +40,7 @@ function Export-Database {
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentGroup'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequest'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequestGroup'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'UserRegistrationDetails'
 
     New-ViewRole -db $db
     return $db

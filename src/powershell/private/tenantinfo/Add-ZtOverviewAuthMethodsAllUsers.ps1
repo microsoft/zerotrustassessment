@@ -9,72 +9,57 @@ function Add-ZtOverviewAuthMethodsAllUsers {
     param(
         $Database
     )
-    $activity = "Getting Conditional Access summary"
+    $activity = "Getting authentication methods summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
-    $sql = @"
-select conditionalAccessStatus, authenticationRequirement, count(*) as cnt from SignIn
-where isInteractive == true and status.errorCode == 0
-group by conditionalAccessStatus, authenticationRequirement
-"@
-
-    # Example output:
-    # conditionalAccessStatus   authenticationRequirement   cnt
-    # success                   singleFactorAuthentication  5
-    # success                   multiFactorAuthentication   2121
-    # notApplied                singleFactorAuthentication  6
-    # notApplied                multiFactorAuthentication   6
-
-
-    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
-
-    $caSummary = Get-ZtOverviewAuthMethodsAllUsers $results
+    $caSummary = Get-ZtOverviewAuthMethodsAllUsers
 
     Add-ZtTenantInfo -Name "OverviewAuthMethodsAllUsers" -Value $caSummary
 }
 
-function Get-ZtOverviewAuthMethodsAllUsers($results) {
+function Get-ZtOverviewAuthMethodsAllUsers() {
 
-    $caMfa = GetCount $results "success" "multiFactorAuthentication"
-    $caNoMfa = GetCount $results "success" "singleFactorAuthentication"
-    $noCaMfa = GetCount $results "notApplied" "multiFactorAuthentication"
-    $noCaNoMfa = GetCount $results "notApplied" "singleFactorAuthentication"
+    $singleFactor = GetAuthMethodCountSingleFactor
+    $phone = GetAuthMethodCount "'mobilePhone'"
+    $authenticator = GetAuthMethodCount "'microsoftAuthenticatorPush', 'softwareOneTimePasscode', 'microsoftAuthenticatorPasswordless'"
+    $passkey = GetAuthMethodCount "'passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator'"
+    $whfb = GetAuthMethodCount "'windowsHelloForBusiness'"
 
     $nodes = @(
         @{
             "source" = "Users"
             "target" = "Single factor"
-            "value"  = 20
+            "value"  = $singleFactor
         },
         @{
             "source" = "Users"
             "target" = "Phishable"
-            "value"  = 40
+            "value"  = $phone + $authenticator
         },
         @{
             "source" = "Phishable"
             "target" = "Phone"
-            "value"  = 20
+            "value"  = $phone
         },
         @{
             "source" = "Phishable"
             "target" = "Authenticator"
-            "value"  = 20
+            "value"  = $authenticator
         },
         @{
             "source" = "Users"
             "target" = "Phish resistant"
-            "value"  = 40
+            "value"  = $passkey + $whfb
         },
         @{
             "source" = "Phish resistant"
             "target" = "Passkey"
-            "value"  = 20
+            "value"  = $passkey
         },
         @{
             "source" = "Phish resistant"
             "target" = "WHfB"
-            "value"  = 20
+            "value"  = $whfb
         }
     )
 
@@ -86,8 +71,22 @@ function Get-ZtOverviewAuthMethodsAllUsers($results) {
     return $caSummaryArray
 }
 
-function GetCount($results, $caStatus, $authReq) {
-    return ($results
-        | Where-Object { $_.conditionalAccessStatus -eq $caStatus -and $_.authenticationRequirement -eq $authReq }
-        | Select-Object -ExpandProperty cnt) -as [int]
+function GetAuthMethodCountSingleFactor() {
+    $sql = @"
+select count(*) as 'count'
+from UserRegistrationDetails
+where len(methodsRegistered) = 0
+"@
+    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    return $results.count
+}
+
+function GetAuthMethodCount($methodTypes) {
+    $sql = @"
+select count(*) as 'count'
+from UserRegistrationDetails
+where list_has_any([$methodTypes], methodsRegistered)
+"@
+    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    return $results.count
 }
