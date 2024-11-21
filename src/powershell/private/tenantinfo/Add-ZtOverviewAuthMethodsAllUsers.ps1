@@ -1,7 +1,7 @@
 
 <#
 .SYNOPSIS
-    Calculates the CA summary data from sign in logs for managed devices in the overiew report and adds it to the tenant info.
+    Calculates auth methods registered by all users.
 #>
 
 function Add-ZtOverviewAuthMethodsAllUsers {
@@ -19,11 +19,11 @@ function Add-ZtOverviewAuthMethodsAllUsers {
 
 function Get-ZtOverviewAuthMethodsAllUsers() {
 
-    $singleFactor = GetAuthMethodCountSingleFactor
-    $phone = GetAuthMethodCount "'mobilePhone'"
-    $authenticator = GetAuthMethodCount "'microsoftAuthenticatorPush', 'softwareOneTimePasscode', 'microsoftAuthenticatorPasswordless'"
-    $passkey = GetAuthMethodCount "'passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator'"
-    $whfb = GetAuthMethodCount "'windowsHelloForBusiness'"
+    $singleFactor = GetAllUsersAuthMethodCountSingleFactor
+    $phone = GetAllUsersAuthMethodCount "'mobilePhone'"
+    $authenticator = GetAllUsersAuthMethodCount "'microsoftAuthenticatorPush', 'softwareOneTimePasscode', 'microsoftAuthenticatorPasswordless'"
+    $passkey = GetAllUsersAuthMethodCount "'passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator'"
+    $whfb = GetAllUsersAuthMethodCount "'windowsHelloForBusiness'"
 
     $nodes = @(
         @{
@@ -71,7 +71,7 @@ function Get-ZtOverviewAuthMethodsAllUsers() {
     return $caSummaryArray
 }
 
-function GetAuthMethodCountSingleFactor() {
+function GetAllUsersAuthMethodCountSingleFactor() {
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails
@@ -81,7 +81,7 @@ where len(methodsRegistered) = 0
     return $results.count
 }
 
-function GetAuthMethodCount($methodTypes) {
+function GetAllUsersAuthMethodCount($methodTypes) {
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails
