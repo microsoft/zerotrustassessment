@@ -1,6 +1,4 @@
 {
-    "dotnet.defaultSolution": "src/ZeroTrustAssessment.sln",
-
     "powershell.codeFormatting.openBraceOnSameLine": true,
     "powershell.codeFormatting.newLineAfterOpenBrace": true,
     "powershell.codeFormatting.newLineAfterCloseBrace": true,
@@ -22,19 +20,25 @@
         "*.ps1xml": "xml"
     },
     "cSpell.words": [
-        "COMPANYNAME",
-        "ICONURI",
-        "LICENSEURI",
-        "PROJECTURI",
-        "RELEASENOTES",
         "buildhelpers",
+        "COMPANYNAME",
         "endregion",
+        "fluentui",
         "gitversion",
         "icontains",
+        "ICONURI",
         "keepachangelog",
+        "LICENSEURI",
+        "msal",
+        "nivo",
         "notin",
+        "PROJECTURI",
         "pscmdlet",
-        "steppable"
+        "RELEASENOTES",
+        "sankey",
+        "singlefile",
+        "steppable",
+        "ztassess"
     ],
     "[markdown]": {
         "files.trimTrailingWhitespace": false,
