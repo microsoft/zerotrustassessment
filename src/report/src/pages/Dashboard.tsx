@@ -714,7 +714,7 @@ export default function Dashboard() {
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Identity</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        20/32
+                                        {reportData.TestResultSummary.IdentityPassed}/{reportData.TestResultSummary.IdentityTotal}
                                         <span className="text-sm font-normal text-muted-foreground">
                                             checks
                                         </span>
@@ -723,7 +723,7 @@ export default function Dashboard() {
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Devices</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        15/20
+                                        {reportData.TestResultSummary.DevicesPassed}/{reportData.TestResultSummary.DevicesTotal}
                                         <span className="text-sm font-normal text-muted-foreground">
                                             checks
                                         </span>
@@ -732,7 +732,7 @@ export default function Dashboard() {
                                 <div className="grid flex-1 auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Data</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        8/12
+                                        {reportData.TestResultSummary.DataPassed}/{reportData.TestResultSummary.DataTotal}
                                         <span className="text-sm font-normal text-muted-foreground">
                                             checks
                                         </span>
@@ -742,15 +742,15 @@ export default function Dashboard() {
                             <ChartContainer
                                 config={{
                                     move: {
-                                        label: "Move",
+                                        label: "Identity",
                                         color: "hsl(var(--chart-1))",
                                     },
                                     exercise: {
-                                        label: "Exercise",
+                                        label: "Devices",
                                         color: "hsl(var(--chart-2))",
                                     },
                                     stand: {
-                                        label: "Stand",
+                                        label: "Data",
                                         color: "hsl(var(--chart-3))",
                                     },
                                 }}
@@ -765,18 +765,18 @@ export default function Dashboard() {
                                     }}
                                     data={[
                                         {
-                                            activity: "stand",
-                                            value: (20 / 32) * 100,
+                                            activity: "data",
+                                            value: (reportData.TestResultSummary.DataPassed / reportData.TestResultSummary.DataTotal) * 100,
                                             fill: "var(--color-stand)",
                                         },
                                         {
-                                            activity: "exercise",
-                                            value: (15 / 20) * 100,
+                                            activity: "devices",
+                                            value: (reportData.TestResultSummary.DevicesPassed / reportData.TestResultSummary.DevicesTotal) * 100,
                                             fill: "var(--color-exercise)",
                                         },
                                         {
-                                            activity: "move",
-                                            value: (8 / 12) * 100,
+                                            activity: "identity",
+                                            value: (reportData.TestResultSummary.IdentityPassed / reportData.TestResultSummary.IdentityTotal) * 100,
                                             fill: "var(--color-move)",
                                         },
                                     ]}

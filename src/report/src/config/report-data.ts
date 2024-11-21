@@ -10,6 +10,7 @@ export interface ZeroTrustAssessmentReport {
   LatestVersion: string;
   Tests: Test[];
   TenantInfo: TenantInfo;
+  TestResultSummary: TestResultSummaryData;
   EndOfJson: string;
 }
 
@@ -20,6 +21,14 @@ export interface TenantInfo {
   OverviewAuthMethodsAllUsers: SankeyData;
 }
 
+export interface TestResultSummaryData {
+  IdentityPassed: number;
+  IdentityTotal: number;
+  DevicesPassed: number;
+  DevicesTotal: number;
+  DataPassed: number;
+  DataTotal: number;
+}
 export interface SankeyData {
   nodes: SankeyDataNode[];
   description: string;
@@ -53,6 +62,14 @@ export const reportData: ZeroTrustAssessmentReport = {
   "Account": "merill@elapora.com",
   "CurrentVersion": "1.0.6",
   "LatestVersion": "1.0.2",
+  "TestResultSummary": {
+    "IdentityPassed": 4,
+    "IdentityTotal": 12,
+    "DevicesPassed": 0,
+    "DevicesTotal": 0,
+    "DataPassed": 0,
+    "DataTotal": 0
+  },
   "Tests": [
     {
       "TestStatus": "Failed",
