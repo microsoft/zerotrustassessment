@@ -57,15 +57,22 @@ foreach ($file in $testFiles) {
 
     if ($testId) {
         if ($recommendations.ContainsKey($testId)) {
-            Write-Host "Updating $($file.BaseName)"
+            Write-Host "Checking $($file.BaseName)"
 
             $content = Get-Content -Path $file.FullName -Raw
 
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
             $seperator = $content.IndexOf('<!--- Results --->')
-
-            if($seperator -gt 0) {
-                $content = $recommendations[$testId] + $content.Substring($seperator)
+            $prevContent = $content.Substring(0, $seperator)
+            if ($seperator -gt 0) {
+                if ($recommendations[$testId] -eq $prevContent) {
+                    Write-Host " → No change."
+                    continue
+                }
+                else {
+                    Write-Host " → Updated with new content from docs."
+                    $content = $recommendations[$testId] + $content.Substring($seperator)
+                }
             }
             else {
                 $content = $recommendations[$testId]
