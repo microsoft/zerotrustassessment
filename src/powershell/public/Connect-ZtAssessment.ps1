@@ -42,6 +42,14 @@ function Connect-ZtAssessment
     try
     {
         Connect-MgGraph -Scopes (Get-ZtGraphScope) -NoWelcome -UseDeviceCode:$UseDeviceCode -Environment $Environment
+        $azEnvironment = 'AzureCloud'
+        if($Environment -eq 'China') {
+            $azEnvironment = Get-AzEnvironment -Name AzureChinaCloud
+        }
+        elseif($Environment -eq 'USGov' -or $Environment -eq 'USGovDoD') {
+            $azEnvironment = 'AzureUSGovernment'
+        }
+        Connect-AzAccount -UseDeviceAuthentication:$UseDeviceCode -Environment $azEnvironment
     }
     catch [Management.Automation.CommandNotFoundException]
     {

@@ -18,18 +18,18 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
-        accessorKey: "TestImpact",
+        accessorKey: "TestRisk",
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                    Impact
+                    Risk
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
         cell: ({ row }) => {
             const impact = impacts.find(
-                (impact) => impact.value === row.getValue("TestImpact")
+                (impact) => impact.value === row.getValue("TestRisk")
             )
 
             if (!impact) {
