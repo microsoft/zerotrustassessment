@@ -1,12 +1,12 @@
-Without phishing-resistant authentication methods, privileged users are more vulnerable to phishing attacks, where attackers might trick users into revealing their credentials and gain unauthorized access. If non-phishing-resistant authentication methods are used, attackers might intercept MFA tokens or codes, especially through methods like adversary-in-the-middle attacks, undermining the security of the privileged account.
+Attackers might still gain access if MFA isn't universally enforced or if there are exceptions in place. Attackers might also gain access by exploiting vulnerabilities of weaker MFA methods like SMS and phone calls by using social engineering techniques. These techniques might include SIM swapping or phishing, to intercept authentication codes.  
 
-Once a privileged account or session is compromised due to weak authentication methods, attackers might manipulate the account to maintain long-term access, by creating other backdoors or modifying user permissions. Attackers can also use the compromised privileged account to escalate their access even further, potentially gaining control over more sensitive systems.
+Attackers might target accounts where MFA isn't enforced or use weaker MFA methods, using these accounts as entry points into the tenant. By using intercepted user sessions, attackers can disguise their activities as legitimate user actions, evading detection and continuing their attack without raising immediate suspicion. From there, they might attempt to manipulate MFA settings (for example, registering attacker-controlled methods) to establish persistence, plan, and execute further attacks based on the privileges of the compromised accounts. 
 
 **Remediation action**
 
+- [Deploy multifactor authentication](https://learn.microsoft.com/entra/identity/authentication/howto-mfa-getstarted)
 - [Get started with a phishing-resistant passwordless authentication deployment](https://learn.microsoft.com/entra/identity/authentication/how-to-plan-prerequisites-phishing-resistant-passwordless-authentication)
-- [Ensure that privileged accounts register and use phishing resistant methods](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths#authentication-strengths)
-- [Deploy Conditional Access policy to target privileged accounts to require phishing resistant credentials using authentication strengths](https://learn.microsoft.com/entra/identity/conditional-access/policy-admin-phish-resistant-mfa)
-- [Monitor authentication method activity](https://learn.microsoft.com/entra/identity/monitoring-health/concept-usage-insights-report#authentication-methods-activity)
-<!--- Results --->
+- [Deploy Conditional Access policies to enforce authentication strength](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-mfa-strength)
+- [Review authentication methods activity](https://learn.microsoft.com/entra/identity/monitoring-health/concept-usage-insights-report?tabs=microsoft-entra-admin-center#authentication-methods-activity)<!--- Results --->
 %TestResult%
+
