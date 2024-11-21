@@ -50,6 +50,6 @@ order by spSignIns."lastSignInActivity"."lastSignInDateTime" desc
 
     Add-ZtTestResultDetail -TestId 'ST0002' -Title 'Inactive apps not signed in over 90 days' `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

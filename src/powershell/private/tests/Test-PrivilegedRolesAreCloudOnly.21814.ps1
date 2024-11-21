@@ -67,6 +67,6 @@ function Test-PrivilegedRolesAreCloudOnly {
 
     Add-ZtTestResultDetail -TestId '21814' -Title 'Privileged accounts are cloud native identities' `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag PrivilegedIdentity `
+        -AppliesTo Identity -Tag PrivilegedIdentity `
         -Status $passed -Result $testResultMarkdown
 }

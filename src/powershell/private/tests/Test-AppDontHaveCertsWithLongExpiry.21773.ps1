@@ -69,6 +69,6 @@ function Test-AppDontHaveCertsWithLongExpiry {
 
     Add-ZtTestResultDetail -TestId '21773' -Title 'Applications don''t have certificates with expiration longer than 180 days' `
         -UserImpact Medium -Risk High -ImplementationCost Medium `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

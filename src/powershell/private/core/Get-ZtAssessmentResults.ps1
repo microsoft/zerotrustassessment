@@ -24,6 +24,7 @@ function Get-ZtAssessmentResults {
         Account        = $account
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
+        TestResultSummary = GetTestResultSummary $__ZtSession.TestResultDetail.values
         Tests          = $__ZtSession.TestResultDetail.values
         TenantInfo     = $__ZtSession.TenantInfo
         EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
@@ -56,4 +57,25 @@ function GetOrganization() {
         TenantName = $org.displayName
         Domain     = $defaultDomain.name
     }
+}
+
+function GetTestPassedCount($testResults, $appliesTo) {
+    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -eq 'Passed' } | Measure-Object | Select-Object -ExpandProperty Count
+}
+
+function GetTestTotalCount($testResults, $appliesTo) {
+    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -ne 'Skipped' } | Measure-Object | Select-Object -ExpandProperty Count
+}
+
+function GetTestResultSummary($testResults) {
+    $summary = [PSCustomObject]@{
+        IdentityPassed = GetTestPassedCount $testResults 'Identity'
+        IdentityTotal = GetTestTotalCount $testResults 'Identity'
+        DevicesPassed = GetTestPassedCount $testResults 'Devices'
+        DevicesTotal = GetTestTotalCount $testResults 'Devices'
+        DataPassed = GetTestPassedCount $testResults 'Data'
+        DataTotal = GetTestTotalCount $testResults 'Data'
+    }
+
+    return $summary
 }

@@ -25,6 +25,6 @@ function Test-GuestStrongAuthMethod {
 
     Add-ZtTestResultDetail -TestId '21851' -Title 'All guests user strong authentication methods' `
         -UserImpact Medium -Risk Medium -ImplementationCost Medium `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

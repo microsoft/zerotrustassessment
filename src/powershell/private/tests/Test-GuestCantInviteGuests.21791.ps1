@@ -24,6 +24,6 @@ function Test-GuestCantInviteGuests{
 
     Add-ZtTestResultDetail -TestId '21791' -Title "Guest can’t invite other guests" `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag ExternalCollaboration `
+        -AppliesTo Identity -Tag ExternalCollaboration `
         -Status $passed -Result $testResultMarkdown
 }

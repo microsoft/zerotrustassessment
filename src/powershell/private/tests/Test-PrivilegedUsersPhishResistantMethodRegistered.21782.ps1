@@ -100,6 +100,6 @@ function Test-PrivilegedUsersPhishResistantMethodRegistered {
 
     Add-ZtTestResultDetail -TestId '21781' -Title 'Privileged users sign in with phishing resistant methods' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
-        -AppliesTo Entra -Tag Credential, TenantPolicy `
+        -AppliesTo Identity -Tag Credential, TenantPolicy `
         -Status $passed -Result $testResultMarkdown
 }

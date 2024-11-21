@@ -41,6 +41,6 @@ function Test-St0024MfaForAllUsers {
 
     Add-ZtTestResultDetail -TestId 'ST0024' -Title 'Users have strong authentication methods configured'`
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag User, Credential `
+        -AppliesTo Identity -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $mfaPolicies
 }

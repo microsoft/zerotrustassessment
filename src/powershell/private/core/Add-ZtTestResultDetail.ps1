@@ -79,7 +79,7 @@ Function Add-ZtTestResultDetail {
         [ValidateSet('High', 'Medium', 'Low')]
         [string] $ImplementationCost,
 
-        [ValidateSet('Entra', 'Intune', 'Purview')]
+        [ValidateSet('Identity', 'Devices', 'Data')]
         [string[]] $AppliesTo,
 
         [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',

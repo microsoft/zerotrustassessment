@@ -73,7 +73,7 @@ function Test-InactiveAppDontHaveHighPrivGraphPerm {
 
     Add-ZtTestResultDetail -TestId '21770' -Title 'Inactive applications don''t have highly privileged permissions' `
         -UserImpact Low -Risk High -ImplementationCost Low `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }
 

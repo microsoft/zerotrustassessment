@@ -65,6 +65,6 @@ order by displayName, keyEndDateTime DESC
 
     Add-ZtTestResultDetail -TestId '21772' -Title 'Applications don''t have secrets configured' `
         -UserImpact Medium -Risk High -ImplementationCost Medium `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

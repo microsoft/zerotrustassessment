@@ -25,6 +25,6 @@ function Test-DiagnosticSettingsConfiguredEntraLogs {
 
     Add-ZtTestResultDetail -TestId '21860' -Title 'Diagnostic settings are configured for all Microsoft Entra logs' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

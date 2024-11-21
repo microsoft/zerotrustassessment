@@ -25,6 +25,6 @@ function Test-CreatingNewAppsRestrictedToPrivilegedUsers {
 
     Add-ZtTestResultDetail -TestId '21807' -Title 'Creating new applications and service principles is restricted to privileged users' `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

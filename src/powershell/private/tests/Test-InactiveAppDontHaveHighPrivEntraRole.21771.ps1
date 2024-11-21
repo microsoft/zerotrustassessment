@@ -51,7 +51,7 @@ function Test-InactiveAppDontHaveHighPrivEntraRole {
 
     Add-ZtTestResultDetail -TestId '21771' -Title 'Inactive applications don'’t have highly privileged Microsoft Entra built-in roles' `
         -UserImpact Low -Risk High -ImplementationCost Low `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }
 

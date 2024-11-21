@@ -29,6 +29,6 @@ function Test-GuestHaveRestrictedAccess {
 
     Add-ZtTestResultDetail -TestId '21792' -Title 'Guests have restricted access to directory objects' `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag Application `
+        -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
 }

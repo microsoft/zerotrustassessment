@@ -96,6 +96,6 @@ function Test-PrivilegedUsersCaAuthStrengthPhishResistant {
 
     Add-ZtTestResultDetail -TestId '21783' -Title 'Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing resistant methods' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
-        -AppliesTo Entra -Tag AccessControl, Authentication `
+        -AppliesTo Identity -Tag AccessControl, Authentication `
         -Status $passed -Result $testResultMarkdown
 }

@@ -34,6 +34,6 @@ function Test-BlockLegacyAuthCaPolicy {
 
     Add-ZtTestResultDetail -TestId '21796' -Title 'Block legacy authentication policies are configured' `
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Entra -Tag User, Credential `
+        -AppliesTo Identity -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $blockPolicies
 }
