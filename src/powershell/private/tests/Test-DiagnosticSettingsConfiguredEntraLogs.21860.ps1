@@ -40,10 +40,23 @@ function Test-DiagnosticSettingsConfiguredEntraLogs {
     $passed = $null -eq $missingLogs
 
     if ($passed) {
-        $testResultMarkdown += "All Entra Logs are configured with Diagnostic Settings."
+        $testResultMarkdown += "All Entra Logs are configured with Diagnostic Settings.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Some Entra Logs are not configured with Diagnostic settings`n`n%TestResult%"
+        $testResultMarkdown += "Some Entra Logs are not configured with Diagnostic settings.`n`n%TestResult%"
+    }
+
+    $mdInfo = "## Log archiving`n`n"
+
+    $mdInfo += "Log | Archiving enabled |`n"
+    $mdInfo += "| :--- | :---: |`n"
+
+    foreach ($item in $missingLogs | Sort-Object) {
+        $mdInfo += "|$item | ❌ |`n"
+    }
+
+    foreach ($item in $enabledLogs | Sort-Object) {
+        $mdInfo += "|$item | ✅ |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
