@@ -31,6 +31,7 @@ function Export-Database {
 
     $db = Connect-Database -Path $dbPath
 
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'User'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'Application'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipal'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipalSignIn'

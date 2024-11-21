@@ -41,7 +41,7 @@ from UserRegistrationDetails u
     $mdInfo = "## Privileged users`n`n"
 
     if ($passed) {
-        $mdInfo += "All privileged registered phishing resistant authentication methods.`n`n"
+        $mdInfo += "All privileged users have registered phishing resistant authentication methods.`n`n"
     }
     else{
         $mdInfo += "Found privileged users that have not registered phishing resistant authentication methods.`n`n"
