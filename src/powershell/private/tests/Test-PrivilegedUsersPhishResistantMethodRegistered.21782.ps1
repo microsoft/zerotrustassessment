@@ -27,7 +27,6 @@ from UserRegistrationDetails u
     $phishResistantPrivUsers = $results | Where-Object { $_.phishResistantAuthMethod }
     $phishablePrivUsers = $results | Where-Object { !$_.phishResistantAuthMethod }
 
-    $phishablePrivUserCount = $phishablePrivUsers.Length
     $phishResistantPrivUserCount = $phishResistantPrivUsers.Length
 
     $passed = $totalUserCount -eq $phishResistantPrivUserCount
@@ -45,8 +44,9 @@ from UserRegistrationDetails u
         $mdInfo += "All privileged registered phishing resistant authentication methods.`n`n"
     }
     else{
-        $mdInfo += "Found $phishablePrivUserCount privileged users that have not registered phishing resistant authentication methods.`n`n"
+        $mdInfo += "Found privileged users that have not registered phishing resistant authentication methods.`n`n"
     }
+
 
     $mdInfo += "User | Role Name | Phishing resistant method registered |`n"
     $mdInfo += "| :--- | :--- | :---: |`n"
@@ -54,12 +54,12 @@ from UserRegistrationDetails u
     $userLinkFormat = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/UserAuthMethods/userId/{0}/hidePreviewBanner~/true"
 
 
-    foreach ($user in $phishablePrivUsers | Sort-Object displayName) {
+    foreach ($user in $phishablePrivUsers | Sort-Object userDisplayName) {
         $userLink = $userLinkFormat -f $user.id
         $mdInfo += "|[$($user.userDisplayName)]($userLink)| $($user.roleDisplayName) | ❌ |`n"
     }
 
-    foreach ($user in $phishResistantPrivUsers | Sort-Object displayName) {
+    foreach ($user in $phishResistantPrivUsers | Sort-Object userDisplayName) {
         $userLink = $userLinkFormat -f $user.id
         $mdInfo += "|[$($user.userDisplayName)]($userLink)| $($user.roleDisplayName) | ✅ |`n"
     }
