@@ -69,7 +69,7 @@ where u.accountEnabled
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21780' -Title 'Users have strong authentication methods configured ' `
+    Add-ZtTestResultDetail -TestId '21801' -Title 'Users have strong authentication methods configured ' `
         -UserImpact Medium -Risk Medium -ImplementationCost Medium `
         -AppliesTo Identity -Tag Credential `
         -Status $passed -Result $testResultMarkdown
