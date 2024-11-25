@@ -9,7 +9,7 @@ param
     [string] $RepositorySourceLocation = 'https://www.powershellgallery.com/api/v2',
     # API Key for PowerShell Gallery
     [Parameter(Mandatory = $true)]
-    [securestring] $NuGetApiKey,
+    [SecureString] $NuGetApiKey,
     # Unlist from PowerShell Gallery
     [Parameter(Mandatory = $false)]
     [switch] $Unlist

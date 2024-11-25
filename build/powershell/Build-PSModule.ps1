@@ -23,11 +23,18 @@
     [string] $LicensePath = ".\LICENSE",
     #
     [Parameter(Mandatory = $false)]
-    [switch] $SkipMergingNestedModuleScripts
+    [switch] $SkipMergingNestedModuleScripts,
+
+    # If true, builds the module for production, otherwise builds a preview module that is installed with -AllowPrerelease
+    [Parameter()]
+    [switch]$ProductionBuild
 )
 
 ## Initialize
 Import-Module "$PSScriptRoot\CommonFunctions.psm1" -Force -WarningAction SilentlyContinue -ErrorAction Stop
+
+## Increment the build number
+&$PSScriptRoot\Set-Version.ps1 -preview:(!$ProductionBuild)
 
 [System.IO.DirectoryInfo] $BaseDirectoryInfo = Get-PathInfo $BaseDirectory -InputPathType Directory -ErrorAction Stop
 [System.IO.DirectoryInfo] $OutputDirectoryInfo = Get-PathInfo $OutputDirectory -InputPathType Directory -DefaultDirectory $BaseDirectoryInfo.FullName -ErrorAction SilentlyContinue

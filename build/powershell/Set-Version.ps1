@@ -4,15 +4,18 @@ Param(
     [switch]$preview = $false
 )
 
+## Initialize
+Import-Module "$PSScriptRoot\CommonFunctions.psm1" -Force -WarningAction SilentlyContinue -ErrorAction Stop
+
 $ModuleRoot = "./src/powershell"
 $ModuleManifestPath = "./src/powershell/*.psd1"
 
 
-$ManfifestPath = Get-PathInfo $ModuleManifestPath -DefaultFilename "*.psd1" -ErrorAction Stop | Select-Object -Last 1
-$moduleName = Split-Path $ManfifestPath -LeafBase
+$ManifestPath = Get-PathInfo $ModuleManifestPath -DefaultFilename "*.psd1" -ErrorAction Stop | Select-Object -Last 1
+$moduleName = Split-Path $ManifestPath -LeafBase
 
-if ( -not (Test-Path $ManfifestPath )) {
-    Write-Error "Could not find PowerShell module manifest ($ManfifestPath)"
+if ( -not (Test-Path $ManifestPath )) {
+    Write-Error "Could not find PowerShell module manifest ($ManifestPath)"
     throw
 } else {
     # Get the current version of the module from the PowerShell gallery
@@ -22,7 +25,7 @@ if ( -not (Test-Path $ManfifestPath )) {
     $ver = [version]($previousVersion -replace '-preview')
 
     # Set new version number. If it is pre-release, increment the build number otherwise increment the minor version.
-    $major = $ver.Major # Update this to change the major version number of Maester.
+    $major = $ver.Major # Update this to change the major version number.
     $minor = $ver.Minor
 
     if ($preview) {
@@ -39,7 +42,7 @@ if ( -not (Test-Path $ManfifestPath )) {
 
     $previewLabel = if ($preview) { '-preview' } else { '' }
 
-    Update-ModuleManifest -Path $ManfifestPath -ModuleVersion $NewVersion -FunctionsToExport $FunctionNames -Prerelease $previewLabel
+    Update-ModuleManifest -Path $ManifestPath -ModuleVersion $NewVersion -FunctionsToExport $FunctionNames -Prerelease $previewLabel
 }
 
 $NewVersion += $previewLabel
