@@ -37,11 +37,22 @@ function Connect-ZtAssessment
         [string]$Environment = 'Global'
     )
 
-
+    Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
     Write-PSFMessage 'Connecting to Microsoft Graph'
     try
     {
         Connect-MgGraph -Scopes (Get-ZtGraphScope) -NoWelcome -UseDeviceCode:$UseDeviceCode -Environment $Environment
+    }
+    catch [Management.Automation.CommandNotFoundException]
+    {
+        Write-Host "`nThe Graph PowerShell module is not installed. Please install the module using the following command. For more information see https://learn.microsoft.com/powershell/microsoftgraph/installation" -ForegroundColor Red
+        Write-Host "`Install-Module Microsoft.Graph -Scope CurrentUser`n" -ForegroundColor Yellow
+    }
+
+    Write-Host "`nConnecting to Azure" -ForegroundColor Yellow
+    Write-PSFMessage 'Connecting to Azure'
+    try
+    {
         $azEnvironment = 'AzureCloud'
         if($Environment -eq 'China') {
             $azEnvironment = Get-AzEnvironment -Name AzureChinaCloud
@@ -53,7 +64,7 @@ function Connect-ZtAssessment
     }
     catch [Management.Automation.CommandNotFoundException]
     {
-        Write-Host "`nThe Graph PowerShell module is not installed. Please install the module using the following command. For more information see https://learn.microsoft.com/powershell/microsoftgraph/installation" -ForegroundColor Red
-        Write-Host "`Install-Module Microsoft.Graph -Scope CurrentUser`n" -ForegroundColor Yellow
+        Write-Host "`nThe Azure PowerShell module is not installed. Please install the module using the following command." -ForegroundColor Red
+        Write-Host "`Install-Module Az.Accounts -Scope CurrentUser`n" -ForegroundColor Yellow
     }
 }

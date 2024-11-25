@@ -36,7 +36,7 @@ Function Get-ZtGraphScope {
         'CrossTenantInformation.ReadBasic.All'
     )
 
-    $scopes += Get-EERequiredScopes -PermissionType Delegated
+    #$scopes += Get-EERequiredScopes -PermissionType Delegated
 
     return $scopes | Sort-Object -Unique
 }
