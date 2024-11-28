@@ -22,7 +22,7 @@ function Test-GuestHaveRestrictedAccess {
         $testResultMarkdown += "✅ Validated guest user access is restricted."
     }
     else {
-        $testResultMarkdown += "❌ Guest users can invite other guests`n`n%TestResult%"
+        $testResultMarkdown += "❌ Guest user access is not restricted.`n`n%TestResult%"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
