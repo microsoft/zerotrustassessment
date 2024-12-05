@@ -13,7 +13,7 @@ function Get-ZtAssessmentResults {
     $org = GetOrganization
     $account = $mgContext.Account
 
-    $currentVersion = ((Get-Module -Name ZeroTrustAssessment).Version | Select-Object -Last 1).ToString()
+    $currentVersion = ((Get-Module -Name ZeroTrustAssessmentV2).Version | Select-Object -Last 1).ToString()
     $latestVersion = GetModuleLatestVersion
 
     $ztTestResults = [PSCustomObject]@{
@@ -35,7 +35,7 @@ function Get-ZtAssessmentResults {
 
 function GetModuleLatestVersion() {
     if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
-        return (Find-Module -Name ZeroTrustAssessment).Version
+        return (Find-Module -Name ZeroTrustAssessmentV2).Version
     }
 
     return 'Unknown'

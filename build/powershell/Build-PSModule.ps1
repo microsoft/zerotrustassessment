@@ -93,5 +93,6 @@ if (!$SkipMergingNestedModuleScripts) {
     &$PSScriptRoot\Add-PSModuleHeader.ps1 -ModuleManifestPath $OutputModuleManifestFileInfo.FullName
 }
 
+Write-Host "Module built successfully: $($OutputModuleManifestFileInfo.FullName)" -ForegroundColor Green
 ## Sign Module
 #&$PSScriptRoot\Sign-PSModule.ps1 -ModuleManifestPath $OutputModuleManifestFileInfo.FullName | Format-Table Path, Status, StatusMessage

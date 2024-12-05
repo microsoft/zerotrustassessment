@@ -54,10 +54,10 @@ function Invoke-ZtAssessment {
     #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
     if ($ShowLog) {
-        $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessment
+        $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessmentV2
     }
     else {
-        Get-PSFMessageLevelModifier -Name ZeroTrustAssessment.VeryVerbose | Remove-PSFMessageLevelModifier
+        Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
     }
 
     Write-Host $banner -ForegroundColor Cyan

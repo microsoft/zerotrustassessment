@@ -47,7 +47,7 @@ if (!$PSRepository) {
     }
 }
 else {
-    Write-Verbose ('Publishing Module Path [{0}]' -f $ModuleManifestFileInfo.DirectoryName)
+    Write-Host ('Publishing Module Path [{0}]' -f $ModuleManifestFileInfo.DirectoryName) -ForegroundColor Green
     Publish-Module -Path $ModuleManifestFileInfo.DirectoryName -NuGetApiKey (ConvertFrom-SecureString $NuGetApiKey -AsPlainText) -Repository $PSRepository.Name
 }
 
