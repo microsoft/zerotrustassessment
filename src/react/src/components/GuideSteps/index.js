@@ -99,7 +99,7 @@ const Steps = [
                         .
                     </li>
                     <li>
-                        Are you a Microsoft Partner? Self-Report your workshop deliveries{" "}
+                        Are you a Microsoft Partner? Report your workshop deliveries{" "}
                         <a
                             href="https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7t6ckxTCw9OiSbwsJxSnMlUMDEzTUtLQ0dXSUMyTjJPVVI5M1JYNUNRNC4u"
                             target="_blank"
