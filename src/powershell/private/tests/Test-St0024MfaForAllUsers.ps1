@@ -28,12 +28,12 @@ function Test-St0024MfaForAllUsers {
     $totalMfaPolicies = ($mfaPolicies | Measure-Object).Count
 
     if ($passed) {
-        $testResultMarkdown = "Tenant is configured to require multi-factor authentication for all users.`n`n%TestResult%"
+        $testResultMarkdown = "Tenant is configured to require multi-factor authentication for all users through the following Conditional Access policies.`n`n%TestResult%"
         $mfaPolicies = $mfaAllUsersPolicies # Only show the policies that target all users
     }
     elseif ($totalMfaPolicies -ge 1) {
         $testResultMarkdown = "Tenant is configured to require multi-factor authentication but does not target all users and apps or is not enabled.`n`n"
-        $testResultMarkdown += "Found $totalMfaPolicies policies requiring multi-factor authentication.`n`n%TestResult%"
+        $testResultMarkdown += "Found $totalMfaPolicies policies requiring multi-factor authentication through the following Conditional Access policies.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Tenant does not have any conditional access policies that require multi-factor authentication."
