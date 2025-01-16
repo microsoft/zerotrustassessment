@@ -99,6 +99,17 @@ const Steps = [
                         .
                     </li>
                     <li>
+                        Are you a Microsoft Partner? Self-Report your workshop deliveries{" "}
+                        <a
+                            href="https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7t6ckxTCw9OiSbwsJxSnMlUMDEzTUtLQ0dXSUMyTjJPVVI5M1JYNUNRNC4u"
+                            target="_blank"
+                            title="Zero Trust Workshop Partner Delivery Reporting Form"
+                        >
+                            here
+                        </a>
+                        .
+                    </li>
+                    <li>
                         Found any bugs or have enhancement suggestions? Contribute to the
                         GitHub repository{" "}
                         <a
