@@ -1,4 +1,6 @@
-# Microsoft Zero Trust Assessment - Alpha Release
+# Microsoft Zero Trust Assessment V2 - Alpha Release
+
+> The shortlink to this page is: [aka.ms/ztworkshop/v2/privatepreview](https://aka.ms/ztworkshop/v2/privatepreview)
 
 This assessment is an early incubation project that analyzes your
 Microsoft Entra tenant configuration and provides guidance for how to
@@ -22,7 +24,9 @@ This initial release is limited to Microsoft Entra.
 
 Follow these steps to install the assessment and connect to Microsoft Graph and your tenant.
 
-- Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open PowerShell 7 directly via the path: `C:\Program Files\PowerShell\7\pwsh.exe`
+### Open PowerShell 7
+
+Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open PowerShell 7 directly via the path: `C:\Program Files\PowerShell\7\pwsh.exe`
 
 *When prompted to install modules from an untrusted repository, choose `Yes to All`.*
 
