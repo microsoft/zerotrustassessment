@@ -1,4 +1,4 @@
-# Microsoft Zero Trust Assessment -- Alpha Release
+# Microsoft Zero Trust Assessment - Alpha Release
 
 This assessment is an early incubation project that analyzes your
 Microsoft Entra tenant configuration and provides guidance for how to
