@@ -19,12 +19,11 @@ function Get-DocsRecommendations($entraDocsFolder) {
 
     # Loop through each file and extract the recommendations
     foreach ($file in $recommendationsFiles) {
-        $content = Get-Content -Path $file.FullName -Raw
 
         # Get the file name without the extension
         $id = $file.Name -replace '\.md$'
 
-        $recommendations[$id] = Get-MarkDownContent $content
+        $recommendations[$id] = Get-Content -Path $file.FullName -Raw
     }
 
     return $recommendations
@@ -39,6 +38,16 @@ function Get-MarkDownContent($fileContent) {
 
     # If no frontmatter found, return original content
     return $fileContent
+}
+
+function Get-ContentFromFrontMatter($fileContent, $key) {
+    if ($fileContent -match '---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)$') {
+        $frontMatter = $Matches[1]
+        if ($frontMatter -match "$($key):\s*(.*)") {
+            return $Matches[1]
+        }
+    }
+    return $null
 }
 
 $entraDocsFolder = "$($PSScriptRoot)../../../entra-docs-pr"
@@ -61,21 +70,25 @@ foreach ($file in $testFiles) {
 
             $content = Get-Content -Path $file.FullName -Raw
 
+            $docsTitle = Get-ContentFromFrontMatter -fileContent $recommendations[$testId] -key 'title'
+            $docsContent = Get-MarkDownContent $recommendations[$testId]
+
+            Write-Host "$testId Title: $docsTitle"
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
             $seperator = $content.IndexOf('<!--- Results --->')
             $prevContent = $content.Substring(0, $seperator)
             if ($seperator -gt 0) {
-                if ($recommendations[$testId] -eq $prevContent) {
+                if ($docsContent -eq $prevContent) {
                     Write-Host " → No change."
                     continue
                 }
                 else {
                     Write-Host " → Updated with new content from docs."
-                    $content = $recommendations[$testId] + $content.Substring($seperator)
+                    $content = $docsContent + $content.Substring($seperator)
                 }
             }
             else {
-                $content = $recommendations[$testId]
+                $content = $docsContent
             }
 
             Set-Content -Path $file.FullName -Value $content
