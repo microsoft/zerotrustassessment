@@ -56,7 +56,7 @@ $recommendations = Get-DocsRecommendations -entraDocsFolder $entraDocsFolder
 
 # Update the recommendations in the tests
 $testFiles = Get-ChildItem -Path "$($PSScriptRoot)../../src/powershell/private/tests" -Filter *.md
-$testInfo = @{} # We will store the TestId and Title so it can be used to display the test results
+$testMeta = @{} # We will store the TestId and Title so it can be used to display the test results
 
 foreach ($file in $testFiles) {
     # Split the name with . and get the second part
@@ -74,7 +74,7 @@ foreach ($file in $testFiles) {
             $docsContent = Get-MarkDownContent $recommendations[$testId]
 
             # Add the docsTitle to the hashtable
-            $testInfo[$testId] = @{
+            $testMeta[$testId] = @{
                 TestId = $testId
                 Title = $docsTitle
             }
@@ -108,4 +108,4 @@ foreach ($file in $testFiles) {
 }
 
 # Save the hashtable to a json file
-$testInfo | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestInfo.json"
+$testMeta | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"

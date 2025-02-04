@@ -130,10 +130,12 @@ Function Add-ZtTestResultDetail {
     }
 
     # Check if the docs team have provided a title for the test and use it if available
-    $testInfo = $__ZtSession.TestInfo[$TestId]
+    $testMeta = $__ZtSession.TestMeta[$TestId]
     $docsTitle = $Title # Default to the title provided in the parameter
-    if ($testInfo -and ![string]::IsNullOrEmpty($testInfo.Title)) {
-        $docsTitle = $__ZtSession.TestInfo[$TestId].Title
+
+    if ($null -ne $testMeta -and ![string]::IsNullOrEmpty($testMeta.Title)) {
+        Write-PSFMessage "Using title from docs" -Level Debug -Tag Test
+        $docsTitle = $testMeta.Title
     }
 
     $testInfo = @{

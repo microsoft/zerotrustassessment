@@ -21,7 +21,8 @@ foreach ($script in ($privateScripts + $publicScripts)) {
 	}
 }
 
-$testInfoPath = "$PSScriptRoot\private\tests\TestInfo.json"
-if (Test-Path $testInfoPath) {
-	$__ZtSession.TestInfo = Get-Content -Path $testInfoPath | ConvertFrom-Json
+$testMetaPath = "$PSScriptRoot\private\tests\TestMeta.json"
+if (Test-Path $testMetaPath) {
+	# Read json and store in hashtable
+	$__ZtSession.TestMeta = Get-Content -Path $testMetaPath | ConvertFrom-Json -AsHashtable
 }
