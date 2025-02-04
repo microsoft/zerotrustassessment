@@ -27,6 +27,4 @@ function Invoke-ZtTests {
     Test-CreatingNewAppsRestrictedToPrivilegedUsers
     ## Test-GuestStrongAuthMethod # Not implemented - Blocked by lack of sign in log filter
     Test-DiagnosticSettingsConfiguredEntraLogs
-    Test-St0002AppsNotUsedInLast90Days -Database $Database
-    #Test-St0024MfaForAllUsers
 }
