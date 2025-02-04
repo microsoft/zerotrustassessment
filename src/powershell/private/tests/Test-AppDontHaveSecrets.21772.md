@@ -2,7 +2,7 @@ Applications that use client secrets might store them in configuration files, ha
 
 **Remediation action**
 
-- [Move applications away from shared secrets to managed identities and adopt more secure practices](https://learn.microsoft.com/entra/identity/enterprise-apps/migrate-applications-from-secrets).
+- [Move applications away from shared secrets to managed identities and adopt more secure practices](https://learn.microsoft.com/entra/identity/enterprise-apps/migrate-applications-from-secrets?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
    - Use managed identities for Azure resources
    - Deploy Conditional Access policies for workload identities
    - Implement secret scanning
@@ -11,6 +11,8 @@ Applications that use client secrets might store them in configuration files, ha
    - Ensure you have a process to triage and monitor applications
 <!--- Results --->
 %TestResult%
+
+
 
 
 

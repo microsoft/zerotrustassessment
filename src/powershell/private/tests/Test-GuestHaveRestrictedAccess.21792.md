@@ -4,9 +4,11 @@ External accounts with permissions to read directory object permissions provide 
 
 **Remediation action**
 
-- [Restrict guest access to their own directory objects](https://learn.microsoft.com/entra/external-id/external-collaboration-settings-configure#to-configure-guest-user-access)
+- [Restrict guest access to their own directory objects](https://learn.microsoft.com/entra/external-id/external-collaboration-settings-configure#to-configure-guest-user-access?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
+
 
 
 

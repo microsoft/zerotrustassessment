@@ -41,7 +41,192 @@ function Get-MarkDownContent($fileContent) {
     # Fix relative links to include the full path
     $markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
 
+    $markdownContent = Update-MarkdownLinks -Content $markdownContent
+
     return $markdownContent
+}
+
+function Update-MarkdownLinks {
+    param(
+        [string]$Content
+    )
+
+    # Regular expression to match markdown links starting with https://learn.microsoft.com
+    $pattern = '\[(.*?)\]\((https://learn\.microsoft\.com[^\)]+)\)'
+
+    # Replace matching links
+    $updatedContent = [regex]::Replace($Content, $pattern, {
+        param($match)
+        Update-SingleLink -match $match
+    })
+
+    return $updatedContent
+}
+
+function Update-SingleLink {
+    param(
+        [System.Text.RegularExpressions.Match]$match
+    )
+
+    $linkText = $match.Groups[1].Value
+    $url = $match.Groups[2].Value
+
+    # Check if URL already has parameters
+    if ($url -match "\?") {
+        $appendChar = "&"
+    } else {
+        $appendChar = "?"
+    }
+
+    # Remove tracking parameter if it already exists (to avoid duplication)
+    $url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
+
+    # Create the new link with tracking parameter
+    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)"
+}
+
+function Test-FolderMarkdownLinks {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$FolderPath,
+        [int]$TimeoutSeconds = 30,
+        [switch]$IncludeRelativeLinks
+    )
+
+    # Function to test a single URL
+    function Test-Url {
+        param (
+            [string]$Url,
+            [int]$Timeout
+        )
+
+        try {
+            $request = [System.Net.WebRequest]::Create($Url)
+            $request.Method = "HEAD"
+            $request.Timeout = $Timeout * 1000
+            $request.AllowAutoRedirect = $true
+
+            try {
+                $response = $request.GetResponse()
+                $status = [int]$response.StatusCode
+                $response.Close()
+                return @{
+                    IsValid = $true
+                    StatusCode = $status
+                    Error = $null
+                }
+            }
+            catch [System.Net.WebException] {
+                $status = [int]$_.Exception.Response.StatusCode
+                return @{
+                    IsValid = $false
+                    StatusCode = $status
+                    Error = $_.Exception.Message
+                }
+            }
+        }
+        catch {
+            return @{
+                IsValid = $false
+                StatusCode = 0
+                Error = $_.Exception.Message
+            }
+        }
+    }
+
+    # Function to print a separator line
+    function Write-Separator {
+        Write-Host ("-" * 80)
+    }
+
+    # Check if folder exists
+    if (-not (Test-Path $FolderPath)) {
+        throw "Folder not found: $FolderPath"
+    }
+
+    $allResults = @()
+    $fileStats = @{
+        TotalFiles = 0
+        FilesWithErrors = 0
+        TotalLinks = 0
+        InvalidLinks = 0
+    }
+
+    # Get all markdown files recursively
+    $mdFiles = Get-ChildItem -Path $FolderPath -Filter "*.md" -Recurse
+
+    $fileStats.TotalFiles = $mdFiles.Count
+    Write-Host "Found $($mdFiles.Count) markdown files to process..."
+    Write-Separator
+
+    foreach ($file in $mdFiles) {
+        $content = Get-Content -Path $file.FullName -Raw
+
+        # Regular expression to match markdown links
+        $pattern = '\[([^\]]*)\]\(([^\)]+)\)'
+        $matches = [regex]::Matches($content, $pattern)
+
+        $fileResults = @()
+        $hasInvalidLinks = $false
+        $fileLinksCount = 0
+        $fileInvalidCount = 0
+
+        if ($matches.Count -gt 0) {
+            Write-Host "Processing: $($file.Name)" -ForegroundColor Cyan
+
+            foreach ($match in $matches) {
+                $linkText = $match.Groups[1].Value
+                $url = $match.Groups[2].Value.Trim()
+
+                # Skip anchor links
+                if ($url.StartsWith("#")) {
+                    continue
+                }
+
+                # Skip relative links unless specifically included
+                if (-not $url.StartsWith("http") -and -not $IncludeRelativeLinks) {
+                    continue
+                }
+
+                $fileLinksCount++
+                $fileStats.TotalLinks++
+
+                $result = Test-Url -Url $url -Timeout $TimeoutSeconds
+
+                if (-not $result.IsValid) {
+                    $hasInvalidLinks = $true
+                    $fileInvalidCount++
+                    $fileStats.InvalidLinks++
+
+                    # Calculate line number
+                    $lineNumber = ($content.Substring(0, $match.Index).Split("`n")).Count
+
+                    Write-Host "  Line $lineNumber - INVALID LINK" -ForegroundColor Red
+                    Write-Host "    Text: $linkText"
+                    Write-Host "    URL:  $url"
+                    Write-Host "    Error: $($result.Error) (Status: $($result.StatusCode))"
+                }
+            }
+
+            if ($fileLinksCount -gt 0) {
+                Write-Host "  Links checked: $fileLinksCount, Invalid: $fileInvalidCount" -ForegroundColor $(if ($fileInvalidCount -gt 0) { "Red" } else { "Green" })
+                Write-Separator
+            }
+        }
+
+        if ($hasInvalidLinks) {
+            $fileStats.FilesWithErrors++
+        }
+    }
+
+    # Print final summary
+    Write-Host "`nVALIDATION SUMMARY" -ForegroundColor Cyan
+    Write-Separator
+    Write-Host "Total Files Processed: $($fileStats.TotalFiles)"
+    Write-Host "Files With Invalid Links: $($fileStats.FilesWithErrors)" -ForegroundColor $(if ($fileStats.FilesWithErrors -gt 0) { "Red" } else { "Green" })
+    Write-Host "Total Links Checked: $($fileStats.TotalLinks)"
+    Write-Host "Invalid Links Found: $($fileStats.InvalidLinks)" -ForegroundColor $(if ($fileStats.InvalidLinks -gt 0) { "Red" } else { "Green" })
+    Write-Separator
 }
 
 function Get-ContentFromFrontMatter($fileContent, $key) {
@@ -113,3 +298,5 @@ foreach ($file in $testFiles) {
 
 # Save the hashtable to a json file
 $testMeta | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
+
+Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/private/tests" -IncludeRelativeLinks

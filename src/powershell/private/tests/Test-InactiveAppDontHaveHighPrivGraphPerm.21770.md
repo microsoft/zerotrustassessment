@@ -2,11 +2,13 @@ Attackers might exploit valid but inactive applications that still have elevated
 
 **Remediation action**
 
-- [Disable privileged service principals](https://learn.microsoft.com/graph/api/serviceprincipal-update)
+- [Disable privileged service principals](https://learn.microsoft.com/graph/api/serviceprincipal-update?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - Investigate if the application has legitimate use cases
-- [If service principal doesn't have legitimate use cases, delete it](https://learn.microsoft.com/graph/api/serviceprincipal-delete)
+- [If service principal doesn't have legitimate use cases, delete it](https://learn.microsoft.com/graph/api/serviceprincipal-delete?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
+
 
 
 
