@@ -41,10 +41,10 @@ function Get-MarkDownContent($fileContent) {
 }
 
 function Get-ContentFromFrontMatter($fileContent, $key) {
-    if ($fileContent -match '---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)$') {
+    if ($fileContent -match '^---\s*\n([\s\S]*?)\n---') {
         $frontMatter = $Matches[1]
         if ($frontMatter -match "$($key):\s*(.*)") {
-            return $Matches[1]
+            return $Matches[1].Trim()
         }
     }
     return $null
@@ -56,14 +56,14 @@ $recommendations = Get-DocsRecommendations -entraDocsFolder $entraDocsFolder
 
 # Update the recommendations in the tests
 $testFiles = Get-ChildItem -Path "$($PSScriptRoot)../../src/powershell/private/tests" -Filter *.md
+$testInfo = @{} # We will store the TestId and Title so it can be used to display the test results
 
 foreach ($file in $testFiles) {
-
-
     # Split the name with . and get the second part
     $testId = $file.BaseName.Split('.')[1]
     $testId
 
+    # Create a hashtable to store the testid and docsTitle
     if ($testId) {
         if ($recommendations.ContainsKey($testId)) {
             Write-Host "Checking $($file.BaseName)"
@@ -72,6 +72,12 @@ foreach ($file in $testFiles) {
 
             $docsTitle = Get-ContentFromFrontMatter -fileContent $recommendations[$testId] -key 'title'
             $docsContent = Get-MarkDownContent $recommendations[$testId]
+
+            # Add the docsTitle to the hashtable
+            $testInfo[$testId] = @{
+                TestId = $testId
+                Title = $docsTitle
+            }
 
             Write-Host "$testId Title: $docsTitle"
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
@@ -83,7 +89,6 @@ foreach ($file in $testFiles) {
                     continue
                 }
                 else {
-                    Write-Host " → Updated with new content from docs."
                     $content = $docsContent + $content.Substring($seperator)
                 }
             }
@@ -101,3 +106,6 @@ foreach ($file in $testFiles) {
         Write-Warning "Test ID not found for $($file.BaseName)"
     }
 }
+
+# Save the hashtable to a json file
+$testInfo | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestInfo.json"

@@ -20,3 +20,8 @@ foreach ($script in ($privateScripts + $publicScripts)) {
 		Write-Error -Message ("Failed to import function {0}: {1}" -f $script, $_)
 	}
 }
+
+$testInfoPath = "$PSScriptRoot\private\tests\TestInfo.json"
+if (Test-Path $testInfoPath) {
+	$__ZtSession.TestInfo = Get-Content -Path $testInfoPath | ConvertFrom-Json
+}

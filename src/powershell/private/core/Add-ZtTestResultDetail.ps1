@@ -129,9 +129,16 @@ Function Add-ZtTestResultDetail {
         $Result = $Result -replace "%TestResult%", $graphResultMarkdown
     }
 
+    # Check if the docs team have provided a title for the test and use it if available
+    $testInfo = $__ZtSession.TestInfo[$TestId]
+    $docsTitle = $Title # Default to the title provided in the parameter
+    if ($testInfo -and ![string]::IsNullOrEmpty($testInfo.Title)) {
+        $docsTitle = $__ZtSession.TestInfo[$TestId].Title
+    }
+
     $testInfo = @{
         TestId                 = $TestId
-        TestTitle              = $Title
+        TestTitle              = $docsTitle
         TestStatus             = Get-ZtTestStatus -Status $Status -Skipped (![string]::IsNullOrEmpty($SkippedBecause))
         TestTags               = $Tag
         TestAppliesTo          = $AppliesTo
