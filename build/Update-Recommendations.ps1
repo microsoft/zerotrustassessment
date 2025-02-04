@@ -30,14 +30,18 @@ function Get-DocsRecommendations($entraDocsFolder) {
 }
 function Get-MarkDownContent($fileContent) {
 
+    $markdownContent = $fileContent # Default to the original content
+
     # Check if the content starts with ---
     if ($fileContent -match '(?ms)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)$') {
         # Return everything after the second ---
-        return $Matches[2]
+        $markdownContent = $Matches[2]
     }
 
-    # If no frontmatter found, return original content
-    return $fileContent
+    # Fix relative links to include the full path
+    $markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
+
+    return $markdownContent
 }
 
 function Get-ContentFromFrontMatter($fileContent, $key) {
