@@ -1,0 +1,51 @@
+{
+    "homepage.title": {
+        "message": "マイクロソフト ゼロ トラスト ワークショップ"
+    },
+    "homepage.description": {
+        "message": "お客様やパートナーがゼロ トラスト戦略に基づいて組織にセキュリティ ソリューションを展開、保護するための包括的な技術ガイドです。"
+    },
+    "homepage.whatIsZt.title": {
+        "message": "ゼロ トラストとは？"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "ゼロ トラストは、現代のセキュリティの複雑さの対処するための、明確さと方向性を適用します。ゼロ トラストを採用することで、組織はセキュリティ体制の強化、リスクと複雑さの軽減しながらコンプライアンスとガバナンスを向上させることができます。"
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "本ワークショップは、Microsoft セキュリティ状況にゼロ トラストの原則を適用することに支援します。"
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "常に検証"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "必要最低限のアクセス権限"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "漏洩が発生していると仮定"
+    },
+    "learnMore": {
+        "message": "詳細を見る"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "なぜこのワークショップ"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "本ワークショップは、ゼロ トラスト戦略を実際の展開に変換してくれるMicrosoftのガイド付きフレームワークです。"
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "千件の顧客導入から得た知見を基に、現在の環境を評価し、エンドツーエンドのセキュリティ体制を改善するための具体的なステップを、最初にこれを行い、次にこれを行うという構造で提供します。"
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "ワークショップについて学ぶ"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "ワークショップをどう進める？"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "ワークショップの進め方については、戦略セッションの実施と環境評価の進行に関するステップバイステップのガイダンスを参照してください。開始方法がわからない場合は、ゼロ トラスト ワークショップの紹介動画をご覧ください。"
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "千件の顧客導入から得た知見を基に、現在の環境を評価し、エンドツーエンドのセキュリティ体制を改善するための具体的なステップを、最初にこれを行い、次にこれを行うという構造で提供します。"
+    }
+
+}

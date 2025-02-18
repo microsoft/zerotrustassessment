@@ -1,0 +1,58 @@
+{
+  "link.title.Docs": {
+    "message": "Docs",
+    "description": "The title of the footer links column with title=Docs in the footer"
+  },
+  "link.title.Microsoft": {
+    "message": "Microsoft",
+    "description": "The title of the footer links column with title=Microsoft in the footer"
+  },
+  "link.title.More": {
+    "message": "More",
+    "description": "The title of the footer links column with title=More in the footer"
+  },
+  "link.item.label.Zero Trust Guidance Center": {
+    "message": "Zero Trust Guidance Center",
+    "description": "The label of footer link with label=Zero Trust Guidance Center linking to https://learn.microsoft.com/en-us/security/zero-trust/"
+  },
+  "link.item.label.Zero Trust Partner Kit": {
+    "message": "Zero Trust Partner Kit",
+    "description": "The label of footer link with label=Zero Trust Partner Kit linking to https://aka.ms/zero-trust-partner-kit"
+  },
+  "link.item.label.Zero Trust Asssessment Checks": {
+    "message": "Zero Trust Asssessment Checks",
+    "description": "The label of footer link with label=Zero Trust Asssessment Checks linking to /docs/intro"
+  },
+  "link.item.label.Zero Trust App Permissions": {
+    "message": "Zero Trust App Permissions",
+    "description": "The label of footer link with label=Zero Trust App Permissions linking to /docs/app-permissions"
+  },
+  "link.item.label.Microsoft Zero Trust": {
+    "message": "Microsoft Zero Trust",
+    "description": "The label of footer link with label=Microsoft Zero Trust linking to https://aka.ms/zerotrust"
+  },
+  "link.item.label.Zero Trust CISO Workshop": {
+    "message": "Zero Trust CISO Workshop",
+    "description": "The label of footer link with label=Zero Trust CISO Workshop linking to https://learn.microsoft.com/security/ciso-workshop/ciso-workshop"
+  },
+  "link.item.label.Cybersecurity Reference Architectures": {
+    "message": "Cybersecurity Reference Architectures",
+    "description": "The label of footer link with label=Cybersecurity Reference Architectures linking to https://aka.ms/mcra"
+  },
+  "link.item.label.Privacy": {
+    "message": "Privacy",
+    "description": "The label of footer link with label=Privacy linking to https://go.microsoft.com/fwlink/?LinkId=521839"
+  },
+  "link.item.label.Terms of Use": {
+    "message": "Terms of Use",
+    "description": "The label of footer link with label=Terms of Use linking to https://go.microsoft.com/fwlink/?LinkID=206977"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "The label of footer link with label=GitHub linking to https://github.com/microsoft/zerotrustassessment"
+  },
+  "copyright": {
+    "message": "Built by the Microsoft Security → CxE Team",
+    "description": "The footer copyright"
+  }
+}

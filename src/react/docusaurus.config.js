@@ -32,7 +32,11 @@ const config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'ja'],
+    localeConfigs: {
+      en: { label: 'English' },
+      ja: { label: '日本語' },
+    },
   },
 
   plugins: [
@@ -107,10 +111,14 @@ const config = {
           //   label: 'Testimonials',
           // },
           {
-            to: 'https://aka.ms/zerotrust',
+            type: 'localeDropdown',
             position: 'right',
-            label: 'Microsoft Zero Trust',
           },
+          // {
+          //   to: 'https://aka.ms/zerotrust',
+          //   position: 'right',
+          //   label: 'Microsoft Zero Trust',
+          // },
         ],
       },
       footer: {
