@@ -27,4 +27,5 @@ function Invoke-ZtTests {
     Test-CreatingNewAppsRestrictedToPrivilegedUsers
     ## Test-GuestStrongAuthMethod # Not implemented - Blocked by lack of sign in log filter
     Test-DiagnosticSettingsConfiguredEntraLogs
+    Test-HighPriorityEntraRecommendationsAddressed
 }
