@@ -28,36 +28,37 @@ Function Write-ZtProgress {
     )
 
     try {
-        $Activity = "⏳ $Activity"
+        Write-Host "$Activity → $Status"
+        # $Activity = "⏳ $Activity"
 
-        if ($Status) {
-            $statusString = Out-String -InputObject $Status
-            # Reduce the length of the status string to fit within host
-            $hostWidth = $Host.UI.RawUI.WindowSize.Width
-            $buffer = 20
-            $totalWidth = $Activity.Length + $statusString.Length + $buffer # 10 for buffer
-            if ($totalWidth -gt $hostWidth) {
-                $length = $hostWidth - $Activity.Length - $buffer
-                if ($length -lt $statusString.Length -and $length -gt 0) {
-                    $statusString = $statusString.Substring(0, $length) + "..."
-                }
-            }
+        # if ($Status) {
+        #     $statusString = Out-String -InputObject $Status
+        #     # Reduce the length of the status string to fit within host
+        #     $hostWidth = $Host.UI.RawUI.WindowSize.Width
+        #     $buffer = 20
+        #     $totalWidth = $Activity.Length + $statusString.Length + $buffer # 10 for buffer
+        #     if ($totalWidth -gt $hostWidth) {
+        #         $length = $hostWidth - $Activity.Length - $buffer
+        #         if ($length -lt $statusString.Length -and $length -gt 0) {
+        #             $statusString = $statusString.Substring(0, $length) + "..."
+        #         }
+        #     }
 
-            Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
-            Write-PSFMessage -Message "$Activity - $statusString" -Level Debug -Tag Progress
-            if ($Force -and !$IsWindows) {
-                Start-Sleep -Milliseconds 200
-                Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
-            }
+        #     Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
+        #     Write-PSFMessage -Message "$Activity - $statusString" -Level Debug -Tag Progress
+        #     if ($Force -and !$IsWindows) {
+        #         Start-Sleep -Milliseconds 200
+        #         Write-Progress -Activity $Activity -Status $statusString -Completed:$Completed
+        #     }
 
-        } else {
-            Write-Progress -Activity $Activity -Completed:$Completed
-            Write-PSFMessage -Message $Activity -Level Debug -Tag Progress
-            if ($Force -and !$IsWindows) {
-                Start-Sleep -Milliseconds 200
-                Write-Progress -Activity $Activity -Completed:$Completed
-            }
-        }
+        # } else {
+        #     Write-Progress -Activity $Activity -Completed:$Completed
+        #     Write-PSFMessage -Message $Activity -Level Debug -Tag Progress
+        #     if ($Force -and !$IsWindows) {
+        #         Start-Sleep -Milliseconds 200
+        #         Write-Progress -Activity $Activity -Completed:$Completed
+        #     }
+        # }
     } catch {
         Write-PSFMessage "Error writing progress activity" -Level Warning -ErrorRecord $_
         # Don't throw error as this is a non-critical function
