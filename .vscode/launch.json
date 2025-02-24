@@ -8,7 +8,7 @@
       "name": "PowerShell: Module Interactive Session",
       "type": "PowerShell",
       "request": "launch",
-      "script": "Import-Module -Force '${workspaceFolder}/src/powershell/ZeroTrustAssessment.psd1'"
+      "script": "Import-Module -Force '${workspaceFolder}/src/powershell/ZeroTrustAssessmentV2.psd1'"
     }
   ]
 }
