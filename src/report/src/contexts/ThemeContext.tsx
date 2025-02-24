@@ -20,7 +20,7 @@ export const ThemeProviderContext = createContext<ThemeProviderState>(initialSta
 
 export function ThemeProvider({
     children,
-    defaultTheme = "system",
+    defaultTheme = "light",
     storageKey = "shadcn-ui-theme",
     ...props
 }: ThemeProviderProps) {
