@@ -8,6 +8,7 @@ import { StatusIcon } from "../status-icon"
 export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestTitle",
+        meta: { label: "Name" },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -18,7 +19,62 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
+        accessorKey: "TestImpact",
+        meta: { label: "User Impact" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    User Impact
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const impact = impacts.find(
+                (impact) => impact.value === row.getValue("TestImpact")
+            )
+
+            if (!impact) {
+                return null
+            }
+
+            return (
+                <div className="flex items-center">
+                    <span>{impact.label}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "TestImplementationCost",
+        meta: { label: "Implementation Cost" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Imp. Cost
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const impact = impacts.find(
+                (impact) => impact.value === row.getValue("TestImplementationCost")
+            )
+
+            if (!impact) {
+                return null
+            }
+
+            return (
+                <div className="flex items-center">
+                    <span>{impact.label}</span>
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "TestRisk",
+        meta: { label: "Risk" },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -48,6 +104,7 @@ export const columns: ColumnDef<Test>[] = [
     },
     {
         accessorKey: "TestStatus",
+        meta: { label: "Status" },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>

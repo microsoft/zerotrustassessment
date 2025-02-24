@@ -1,5 +1,5 @@
 import { ztAppConfig } from "@/config/app";
-import { ModeToggle } from "../mode-toggle";
+// import { ModeToggle } from "../mode-toggle";
 
 export function Footer() {
     return (

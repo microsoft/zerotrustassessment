@@ -144,7 +144,7 @@ Function Add-ZtTestResultDetail {
         TestStatus             = Get-ZtTestStatus -Status $Status -Skipped (![string]::IsNullOrEmpty($SkippedBecause))
         TestTags               = $Tag
         TestAppliesTo          = $AppliesTo
-        TestImpact             = $Impact
+        TestImpact             = $UserImpact
         TestRisk               = $Risk
         TestImplementationCost = $ImplementationCost
         TestDescription        = $Description

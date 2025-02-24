@@ -111,7 +111,7 @@ function Invoke-ZtAssessment {
     $output | Out-File -FilePath $htmlReportPath -Encoding UTF8
 
     Write-Host
-    Write-Host "🛡️ Zero Trust Assessmet report generated at $htmlReportPath" -ForegroundColor Green
+    Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
     Write-Host
     Invoke-Item $htmlReportPath | Out-Null
 

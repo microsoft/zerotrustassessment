@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-
+import { AlertTriangle, DollarSign, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -55,7 +55,14 @@ export function DataTable<TData extends Test, TValue>({
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+        // Hide TestImpact by default
+        TestImpact: false,
+        TestImplementationCost: false,
+        // Optionally specify other columns here (true => visible, false => hidden)
+        // TestRisk: true,
+        // TestStatus: true,
+    })
     const [rowSelection, setRowSelection] = React.useState({})
 
     const table = useReactTable({
@@ -118,7 +125,7 @@ export function DataTable<TData extends Test, TValue>({
                                             column.toggleVisibility(!!value)
                                         }
                                     >
-                                        {column.id}
+                                        {column.columnDef.meta?.label ?? column.id}
                                     </DropdownMenuCheckboxItem>
                                 )
                             })}
@@ -179,6 +186,33 @@ export function DataTable<TData extends Test, TValue>({
                     <SheetHeader>
                         <SheetTitle className="text-2xl text-left">{selectedRow?.TestTitle}</SheetTitle>
                     </SheetHeader>
+                    <div className="grid pt-10 gap-6">
+                        <Card>
+                            <CardHeader>
+                                {/* Row of icons + labels below the title, spread out across the row */}
+                                <div className="mt-2 flex w-full justify-between text-sm">
+                                    {/* Risk */}
+                                    <div className="flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-foreground" />
+                                        <span className="font-semibold">Risk:</span>
+                                        <span>{selectedRow?.TestRisk ?? "N/A"}</span>
+                                    </div>
+                                    {/* Impact */}
+                                    <div className="flex items-center gap-2">
+                                        <Users className="h-4 w-4 text-foreground" />
+                                        <span className="font-semibold">User Impact:</span>
+                                        <span>{selectedRow?.TestImpact ?? "N/A"}</span>
+                                    </div>
+                                    {/* Implementation Cost */}
+                                    <div className="flex items-center gap-2">
+                                        <DollarSign className="h-4 w-4 text-foreground" />
+                                        <span className="font-semibold">Implementation Cost:</span>
+                                        <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </div>
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader><CardTitle>
