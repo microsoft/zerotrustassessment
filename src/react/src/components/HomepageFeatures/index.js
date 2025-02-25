@@ -106,11 +106,12 @@ export default function HomepageFeatures() {
               <Heading as="h2"><Translate id='homepage.howRunWorkshop.title'>How do I run the workshop?</Translate></Heading>
               <p className="text--left">
                 <Translate id='homepage.howRunWorkshop.sentence1'>
-                  The Zero Trust Workshop is a guided framework from Microsoft to help you translate Zero Trust Strategy into a deployment reality.
+                  For step-by-step guidance on delivering the strategy session and running the assessment, refer to our 
                 </Translate>
+                <a href="guide" title="Zero Trust Workshop Plan"> step-by-step plan.</a>
                 <br /><br />
                 <Translate id='homepage.howRunWorkshop.sentence2'>
-                  Using our learnings from thousands of customer deployments, we help you evaluate your current environment and provide concrete steps in a first-then-next structure to help you arrive at an improved end-to-end security posture.
+                If you are unsure how to get started, watch our Zero Trust Workshop Introductory video.
                 </Translate>
                 <br /><br />
                 <iframe width="100%" height="315" src="https://www.youtube.com/embed/0-IYLWMHxGg?si=JyV0MuwIUBDKoFpN" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
