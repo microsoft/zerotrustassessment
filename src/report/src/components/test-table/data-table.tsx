@@ -48,6 +48,8 @@ import {
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StatusIcon } from "../status-icon"
+import { Switch } from "../ui/switch"
+import { Label } from "../ui/label"
 
 export function DataTable<TData extends Test, TValue>({
     columns,
@@ -67,9 +69,16 @@ export function DataTable<TData extends Test, TValue>({
         // TestStatus: true,
     })
     const [rowSelection, setRowSelection] = React.useState({})
+    const [showSkipped, setShowSkipped] = React.useState(false);
+
+    // Filter the data to exclude skipped tests unless showSkipped is true
+    const filteredData = React.useMemo(() => {
+        if (showSkipped) return data;
+        return data.filter(item => item.TestStatus !== "Skipped");
+    }, [data, showSkipped]);
 
     const table = useReactTable({
-        data,
+        data: filteredData,
         columns,
         enableRowSelection: true,
         getCoreRowModel: getCoreRowModel(),
@@ -99,41 +108,53 @@ export function DataTable<TData extends Test, TValue>({
     return (
 
         <div>
-            <div className="flex items-center py-4">
+            <div className="flex items-center py-4 justify-between">
                 <Input
                     placeholder="Search by name..."
                     value={globalFilter ?? ''}
                     onChange={(e) => table.setGlobalFilter(String(e.target.value))}
                     className="max-w-sm"
                 />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columns
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter(
-                                (column) => column.getCanHide()
-                            )
-                            .map((column) => {
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.columnDef.meta?.label ?? column.id}
-                                    </DropdownMenuCheckboxItem>
+
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="show-skipped"
+                            checked={showSkipped}
+                            onCheckedChange={setShowSkipped}
+                        />
+                        <Label htmlFor="show-skipped" className="text-sm whitespace-nowrap">Show all</Label>
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                Columns
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                                .getAllColumns()
+                                .filter(
+                                    (column) => column.getCanHide()
                                 )
-                            })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                                .map((column) => {
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) =>
+                                                column.toggleVisibility(!!value)
+                                            }
+                                        >
+                                            {column.columnDef.meta?.label ?? column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    )
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
             <div className="rounded-md border">
                 <Table>
