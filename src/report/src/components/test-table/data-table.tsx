@@ -55,10 +55,13 @@ export function DataTable<TData extends Test, TValue>({
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = React.useState("");
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         // Hide TestImpact by default
         TestImpact: false,
         TestImplementationCost: false,
+        // Hide TestId by default
+        TestId: false,
         // Optionally specify other columns here (true => visible, false => hidden)
         // TestRisk: true,
         // TestStatus: true,
@@ -72,6 +75,7 @@ export function DataTable<TData extends Test, TValue>({
         getCoreRowModel: getCoreRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
+        onGlobalFilterChange: setGlobalFilter,
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
@@ -83,6 +87,7 @@ export function DataTable<TData extends Test, TValue>({
         state: {
             sorting,
             columnFilters,
+            globalFilter,
             columnVisibility,
             rowSelection,
         },
@@ -97,10 +102,8 @@ export function DataTable<TData extends Test, TValue>({
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Search by name..."
-                    value={(table.getColumn("TestTitle")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("TestTitle")?.setFilterValue(event.target.value)
-                    }
+                    value={globalFilter ?? ''}
+                    onChange={(e) => table.setGlobalFilter(String(e.target.value))}
                     className="max-w-sm"
                 />
                 <DropdownMenu>

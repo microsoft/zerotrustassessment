@@ -7,6 +7,20 @@ import { StatusIcon } from "../status-icon"
 
 export const columns: ColumnDef<Test>[] = [
     {
+        accessorKey: "TestId",
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    ID
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        meta: {
+            label: "ID"
+        }
+    },
+    {
         accessorKey: "TestTitle",
         meta: { label: "Name" },
         header: ({ column }) => {
