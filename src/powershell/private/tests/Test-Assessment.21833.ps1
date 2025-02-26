@@ -1,15 +1,15 @@
-﻿<#
+<#
 .SYNOPSIS
 
 #>
 
-function Test-Assessment-%testId%{
+function Test-Assessment-21833{
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking %testTitle%"
+    $activity = "Checking Directory Sync account credentials haven't been rotated recently"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     $result = $false
@@ -17,8 +17,8 @@ function Test-Assessment-%testId%{
     $passed = $result
 
 
-    Add-ZtTestResultDetail -TestId '%testId%' -Title "%testTitle%" `
-        -UserImpact %userImpact% -Risk %risk% -ImplementationCost %implementationCost% `
+    Add-ZtTestResultDetail -TestId '21833' -Title "Directory Sync account credentials haven't been rotated recently" `
+        -UserImpact Low -Risk Low -ImplementationCost High `
         -AppliesTo Identity -Tag Identity `
         -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
 }

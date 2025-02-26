@@ -54,6 +54,3 @@ foreach ($row in $csv) {
 Write-Host "Add tests to Invoke-ZtTests"
 # Write each item to a new line in the console
 $createdTests | ForEach-Object { Write-Host $_ }
-
-Write-Host "Print a comma seperated list of names"
-$createdTests -join ", "
