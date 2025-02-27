@@ -19,11 +19,22 @@ function Test-HighPriorityEntraRecommendationsAddressed {
     $passed = $result.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "High Priority Entra Recommendations are addressed.`n`n ✅"
+        $testResultMarkdown = "High Priority Entra Recommendations are addressed.`n`n"
     }
     else {
-        $testResultMarkdown = "Unaddressed high priority entra recommendations are found.`n`n  ❌"
+        $testResultMarkdown = "Found $($result.Count) unaddressed high priority Entra recommendations.`n`n%TestResult%"
     }
+
+    if ($result.Count -gt 0) {
+        $mdInfo = "`n## Unaddressed high priority Entra recommendations`n`n"
+        $mdInfo += "| Display Name | Status | Insights |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
+        foreach ($item in $result) {
+            $mdInfo += "| $($item.displayName) | $($item.status) | $($item.Insights) |`n"
+        }
+    }
+
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
     Add-ZtTestResultDetail -TestId '22124' -Title 'High priority Entra recommendations are addressed' `
         -UserImpact Medium -Risk High -ImplementationCost Medium `
