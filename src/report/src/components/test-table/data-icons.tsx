@@ -41,6 +41,12 @@ import {
       icon: StopwatchIcon,
       variant: "secondary"
     },
+    {
+      value: "Planned",
+      label: "Planned",
+      icon: StopwatchIcon,
+      variant: "secondary"
+    },
   ]
 
   export const impacts = [
