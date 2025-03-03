@@ -21,3 +21,5 @@ Applications and service principals that have permissions for Microsoft Graph AP
 
 
 
+
+

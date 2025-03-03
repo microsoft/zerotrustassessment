@@ -16,6 +16,7 @@ function Get-ZtAssessmentResults {
     $currentVersion = ((Get-Module -Name ZeroTrustAssessmentV2).Version | Select-Object -Last 1).ToString()
     $latestVersion = GetModuleLatestVersion
 
+    # Sort by risk then by status
     $ztTestResults = [PSCustomObject]@{
         ExecutedAt     = GetFormattedDate(Get-Date)
         TenantId       = $tenantId
@@ -25,7 +26,7 @@ function Get-ZtAssessmentResults {
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
         TestResultSummary = GetTestResultSummary $__ZtSession.TestResultDetail.values
-        Tests          = $__ZtSession.TestResultDetail.values
+        Tests          = $__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk }}, @{Expression = { $_.TestStatus } }
         TenantInfo     = $__ZtSession.TenantInfo
         EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
     }
@@ -64,7 +65,7 @@ function GetTestPassedCount($testResults, $appliesTo) {
 }
 
 function GetTestTotalCount($testResults, $appliesTo) {
-    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -ne 'Skipped' } | Measure-Object | Select-Object -ExpandProperty Count
+    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -ne 'Skipped' -and $_.TestStatus -ne 'Planned'  } | Measure-Object | Select-Object -ExpandProperty Count
 }
 
 function GetTestResultSummary($testResults) {

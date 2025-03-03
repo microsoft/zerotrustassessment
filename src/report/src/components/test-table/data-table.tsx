@@ -74,7 +74,7 @@ export function DataTable<TData extends Test, TValue>({
     // Filter the data to exclude skipped tests unless showSkipped is true
     const filteredData = React.useMemo(() => {
         if (showSkipped) return data;
-        return data.filter(item => item.TestStatus !== "Skipped");
+        return data.filter(item => item.TestStatus !== "Skipped" && item.TestStatus !== "Planned");
     }, [data, showSkipped]);
 
     const table = useReactTable({

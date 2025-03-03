@@ -162,10 +162,15 @@ function Test-FolderMarkdownLinks {
     foreach ($file in $mdFiles) {
         $content = Get-Content -Path $file.FullName -Raw
 
+        # Add null check before attempting regex match
+        if ($null -eq $content) {
+            Write-Warning "File content is null for $($file.FullName)"
+            continue
+        }
+
         # Regular expression to match markdown links
         $pattern = '\[([^\]]*)\]\(([^\)]+)\)'
         $matches = [regex]::Matches($content, $pattern)
-
         $fileResults = @()
         $hasInvalidLinks = $false
         $fileLinksCount = 0

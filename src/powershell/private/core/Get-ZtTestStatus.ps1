@@ -9,18 +9,21 @@ function Get-ZtTestStatus{
         [bool] $Status,
 
         # Whether the test was skipped.
-        [bool] $Skipped
+        [string] $SkippedBecause
     )
 
     if ($Status) {
         return "Passed"
     }
     else {
-        if ($Skipped) {
-            return "Skipped"
+        if ([string]::IsNullOrEmpty($SkippedBecause)) {
+            return "Failed"
         }
         else {
-            return "Failed"
+            if ($SkippedBecause -eq "UnderConstruction") {
+                return "Planned"
+            }
+            return "Skipped"
         }
     }
 
