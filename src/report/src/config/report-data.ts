@@ -45,7 +45,7 @@ export interface Test {
   TestAppliesTo: string[];
   TestImpact: string;
   TestImplementationCost: string;
-  SkippedReason: null;
+  SkippedReason: string | null;
   TestResult: string;
   TestSkipped: string;
   TestStatus: string;
