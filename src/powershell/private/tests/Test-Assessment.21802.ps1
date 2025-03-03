@@ -13,7 +13,7 @@ function Test-Assessment-21802{
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     $result = $false
-    $testResultMarkdown = "Under construction."
+    $testResultMarkdown = "Planned for future release."
     $passed = $result
 
 

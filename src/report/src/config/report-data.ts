@@ -74,7 +74,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -92,7 +92,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -128,7 +128,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -164,7 +164,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -182,7 +182,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -200,7 +200,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -218,7 +218,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -236,7 +236,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -254,7 +254,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -272,7 +272,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -290,7 +290,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -308,7 +308,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -326,7 +326,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -344,7 +344,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -362,7 +362,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -380,7 +380,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -398,7 +398,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -416,7 +416,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -453,7 +453,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -471,7 +471,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -489,7 +489,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -507,7 +507,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -525,7 +525,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -543,7 +543,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -561,7 +561,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -579,7 +579,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -597,7 +597,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -615,7 +615,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -633,7 +633,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -651,7 +651,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -669,7 +669,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -687,7 +687,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -705,7 +705,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -723,7 +723,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -741,7 +741,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -759,7 +759,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -777,7 +777,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -813,7 +813,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -831,7 +831,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -849,7 +849,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -867,7 +867,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -885,7 +885,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -903,7 +903,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -921,7 +921,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -939,7 +939,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -957,7 +957,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -975,7 +975,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1011,7 +1011,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1047,7 +1047,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1065,7 +1065,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1102,7 +1102,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1120,7 +1120,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1138,7 +1138,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1156,7 +1156,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1174,7 +1174,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1192,7 +1192,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1210,7 +1210,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1228,7 +1228,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1246,7 +1246,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1264,7 +1264,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1282,7 +1282,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1300,7 +1300,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1318,7 +1318,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1336,7 +1336,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1354,7 +1354,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1372,7 +1372,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1408,7 +1408,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1426,7 +1426,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1444,7 +1444,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1498,7 +1498,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1534,7 +1534,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1552,7 +1552,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1570,7 +1570,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1588,7 +1588,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1606,7 +1606,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1624,7 +1624,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1642,7 +1642,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1660,7 +1660,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1678,7 +1678,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1696,7 +1696,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1714,7 +1714,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1732,7 +1732,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1768,7 +1768,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1786,7 +1786,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1804,7 +1804,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1822,7 +1822,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1840,7 +1840,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1858,7 +1858,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1876,7 +1876,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1894,7 +1894,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1912,7 +1912,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1930,7 +1930,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1948,7 +1948,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -1984,7 +1984,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2002,7 +2002,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2020,7 +2020,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2038,7 +2038,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2056,7 +2056,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2092,7 +2092,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2110,7 +2110,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2128,7 +2128,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2146,7 +2146,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2182,7 +2182,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2200,7 +2200,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2218,7 +2218,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2236,7 +2236,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2254,7 +2254,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2272,7 +2272,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2290,7 +2290,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2308,7 +2308,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2326,7 +2326,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2344,7 +2344,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2362,7 +2362,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2380,7 +2380,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2398,7 +2398,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2416,7 +2416,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Low",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2434,7 +2434,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2452,7 +2452,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2470,7 +2470,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2488,7 +2488,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "High",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
@@ -2506,7 +2506,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     {
       "TestRisk": "Medium",
       "TestResult": "\nUnder construction.\n",
-      "TestDescription": "This test is under construction.\n\n**Remediation action**\n\n",
+      "TestDescription": "...\n\n**Remediation action**\n\n",
       "TestTags": [
         "Identity"
       ],
