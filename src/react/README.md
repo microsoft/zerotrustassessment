@@ -2,24 +2,21 @@
 
 This is the website code for the ZT Assessment.
 
-## Installation
+# Installation
 
-```bash
-$ yarn
-```
+## Codespaces (recommended for language translations)
 
-## Local Development
+- In GitHub select **Code** > **Codespaces** > Create a new one for the first time (or connect if you already created by clicking on the name).
 
-```bash
-$ yarn start
-```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+## Local Dev
+- Install [node.js](https://nodejs.org/en/download/)
 
-## Build
+# Running ZT website
 
-```bash
-$ yarn build
-```
+- In VS Code (Codespaces or local dev) open a new Terminal (Menu > Terminal > New Terminal)
+- Type this command and hit enter → `cd ./src/react'
+- Type this command and hit enter to launch site in English → `npm run start`
+   - If you want to run the site in a different language (e.g. Japanese) → `npm run start -- --locale ja`
+   - Use the right code for the language that you are testing
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
