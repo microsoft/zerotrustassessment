@@ -10,15 +10,33 @@ function Test-Assessment-21829{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Use cloud authentication"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    Write-ZtProgress -Activity $activity
+    $domains = Invoke-ZtGraphRequest -RelativeUri "domains" -ApiVersion v1.0
+    $result = $domains | Where-Object { $_.authenticationType -eq 'Federated' }
+    Write-PSFMessage 'Federated domains:'
+    Write-Output $result.Count
+    $manageddomains = $domains | Where-Object { $_.authenticationType -eq 'Managed' }
+    Write-PSFMessage 'Managed domains:'
+    Write-Output $manageddomains.Count
+    $passed = $result.Count -eq 0
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
-
-
+    if ($passed) {
+        $testResultMarkdown = "All domains are using cloud authentication.`n`n"
+    }
+    else {
+        $testResultMarkdown = "Federated authentication is in use.`n`n%TestResult%"
+    }
+    if ($result.Count -gt 0) {
+        $mdInfo = "`n## List of federated domains`n`n"
+        $mdInfo += "| Domain Name |`n"
+        $mdInfo += "| :--- |`n"
+        foreach ($item in $result) {
+            $mdInfo += "| $($item.id) |`n"
+        }
+    }
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
     Add-ZtTestResultDetail -TestId '21829' -Title "Use cloud authentication" `
         -UserImpact High -Risk High -ImplementationCost High `
         -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+        -Status $passed -Result $testResultMarkdown
 }
