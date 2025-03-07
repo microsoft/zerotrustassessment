@@ -33,20 +33,14 @@ function Test-Assessment-21861 {
 
     if (!$result) {
         $mdInfo += "`n## Untriaged High-Risk Users`n`n"
-        $mdInfo += "| User | Risk Level | Risk Last Updated Time | Risk Detail |`n"
+        $mdInfo += "| User | Risk level | Last updated | Risk detail |`n"
         $mdInfo += "| :----------------- | :--------- | :-------------------- | :---------- |`n"
 
         foreach ($user in $riskyUsers) {
             $userPrincipalName = $user.userPrincipalName ?? $user.id
-            $userPrincipalName = "[$userPrincipalName](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/IdentityProtectionMenuBlade/~/RiskyUsers/fromNav/)"
             $riskLevel = Get-FormattedRiskLevel -RiskLevel $user.riskLevel
-            $riskLastUpdatedTime = if ($user.riskLastUpdatedDateTime) {
-                [DateTime]::Parse($user.riskLastUpdatedDateTime).ToString("yyyy-MM-dd HH:mm:ss")
-            }
-            else {
-                "Unknown"
-            }
-            $mdInfo += "| $userPrincipalName |  $riskLevel | $riskLastUpdatedTime | $($user.riskDetail) |`n"
+            $riskDate = $user.riskLastUpdatedDateTime # ID protection returns us format by default
+            $mdInfo += "| $userPrincipalName |  $riskLevel | $riskDate | $($user.riskDetail) |`n"
         }
     }
 
