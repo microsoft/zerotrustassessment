@@ -255,6 +255,25 @@ function Get-ContentFromFrontMatter($fileContent, $key) {
     return $null
 }
 
+function Remove-TrailingEmptyLines {
+    param (
+        [string]$Content
+    )
+
+    # Split content into lines, remove trailing empty lines, then join back
+    $lines = $Content -split '\r?\n'
+    for ($i = $lines.Length - 1; $i -ge 0; $i--) {
+        if ([string]::IsNullOrWhiteSpace($lines[$i])) {
+            $lines = $lines[0..($i - 1)]
+        }
+        else {
+            break
+        }
+    }
+
+    return ($lines -join "`n") + "`n"
+}
+
 $entraDocsFolder = "$($PSScriptRoot)../../../entra-docs-pr"
 
 $recommendations = Get-DocsRecommendations -entraDocsFolder $entraDocsFolder
@@ -301,7 +320,11 @@ foreach ($file in $testFiles) {
                 $content = $docsContent
             }
 
-            Set-Content -Path $file.FullName -Value $content
+            # Split the content into lines, start from the last line and remove
+
+            $cleanContent = Remove-TrailingEmptyLines -Content $content
+
+            Set-Content -Path $file.FullName -Value $cleanContent
         }
         else {
             Write-Warning "Recommendations not found for $($file.BaseName)"
