@@ -155,7 +155,6 @@ function Test-FolderMarkdownLinks {
         throw "Folder not found: $FolderPath"
     }
 
-    $allResults = @()
     $fileStats = @{
         TotalFiles = 0
         FilesWithErrors = 0
@@ -181,18 +180,17 @@ function Test-FolderMarkdownLinks {
 
         # Regular expression to match markdown links
         $pattern = '\[([^\]]*)\]\(([^\)]+)\)'
-        $matches = [regex]::Matches($content, $pattern)
-        $fileResults = @()
+        $markdownLinks = [regex]::Matches($content, $pattern)
         $hasInvalidLinks = $false
         $fileLinksCount = 0
         $fileInvalidCount = 0
 
-        if ($matches.Count -gt 0) {
+        if ($markdownLinks.Count -gt 0) {
             Write-Host "Processing: $($file.Name)" -ForegroundColor Cyan
 
-            foreach ($match in $matches) {
-                $linkText = $match.Groups[1].Value
-                $url = $match.Groups[2].Value.Trim()
+            foreach ($link in $markdownLinks) {
+                $linkText = $link.Groups[1].Value
+                $url = $link.Groups[2].Value.Trim()
 
                 # Skip anchor links
                 if ($url.StartsWith("#")) {
@@ -215,7 +213,7 @@ function Test-FolderMarkdownLinks {
                     $fileStats.InvalidLinks++
 
                     # Calculate line number
-                    $lineNumber = ($content.Substring(0, $match.Index).Split("`n")).Count
+                    $lineNumber = ($content.Substring(0, $link.Index).Split("`n")).Count
 
                     Write-Host "  Line $lineNumber - INVALID LINK" -ForegroundColor Red
                     Write-Host "    Text: $linkText"
@@ -245,14 +243,21 @@ function Test-FolderMarkdownLinks {
     Write-Separator
 }
 
-function Get-ContentFromFrontMatter($fileContent, $key) {
-    if ($fileContent -match '^---\s*\n([\s\S]*?)\n---') {
+function Get-FrontMatterList($content) {
+    $results = @{}
+    if ($content -match '^---\s*\n([\s\S]*?)\n---') {
         $frontMatter = $Matches[1]
-        if ($frontMatter -match "$($key):\s*(.*)") {
-            return $Matches[1].Trim()
+        # Split the front matter into lines
+        $lines = $frontMatter -split '\r?\n'
+        foreach ($line in $lines) {
+            if ($line -match '^(.*?)\s*:\s*(.*)$') {
+                $key = $Matches[1].Trim()
+                $value = $Matches[2].Trim()
+                $results[$key] = $value
+            }
         }
     }
-    return $null
+    return $results
 }
 
 function Remove-TrailingEmptyLines {
@@ -294,13 +299,20 @@ foreach ($file in $testFiles) {
 
             $content = Get-Content -Path $file.FullName -Raw
 
-            $docsTitle = Get-ContentFromFrontMatter -fileContent $recommendations[$testId] -key 'title'
-            $docsContent = Get-MarkDownContent $recommendations[$testId]
+            $docRawContent = $recommendations[$testId] # Includes front matter and markdown content
+            $frontMatter = Get-FrontMatterList -content $docRawContent
+            $docsTitle = $frontMatter['title']
+
+            $docsContent = Get-MarkDownContent $docRawContent
 
             # Add the docsTitle to the hashtable
             $testMeta[$testId] = @{
                 TestId = $testId
                 Title = $docsTitle
+                Category = $frontMatter['# category']
+                RiskLevel = $frontMatter['# risklevel']
+                UserImpact = $frontMatter['# userimpact']
+                ImplementationCost = $frontMatter['# implementationcost']
             }
 
             Write-Host "$testId Title: $docsTitle"

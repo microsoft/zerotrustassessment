@@ -1,8 +1,9 @@
-The OAuth device code flow is used when signing into devices that might lack local input devices like shared devices. This flow introduces a risk where threat actors can intercept or manipulate the authentication process to gain unauthorized access from unmanaged devices. Once authenticated, attackers inherit the permissions of the compromised account, allowing them to exfiltrate data, or move laterally.
+Device code flow is a cross-device authentication flow designed for input-constrained devices. It can be exploited in phishing attacks, where an attacker initiates the flow and tricks a user into completing it on their device, thereby sending the user's tokens to the attacker. Given the security risks and the infrequent legitimate use of device code flow, organizations should enable a Conditional Access policy to block this flow by default.
 
 **Remediation action**
 
-- Implement the recommended conditional access policy per [Block authentication flows with Conditional Access policy - Microsoft Entra ID | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-block-authentication-flows)
-
+- [Block device code flow](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#device-code-flow-policies)
+- [Learn more about device code flow](https://learn.microsoft.com/entra/identity/conditional-access/concept-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#device-code-flow)
 <!--- Results --->
 %TestResult%
+

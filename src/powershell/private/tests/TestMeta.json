@@ -1,70 +1,226 @@
 {
-  "21782": {
-    "TestId": "21782",
-    "Title": "Privileged accounts have phishing-resistant methods registered"
-  },
-  "21796": {
-    "TestId": "21796",
-    "Title": "Block legacy authentication policy is configured"
-  },
-  "21851": {
-    "TestId": "21851",
-    "Title": "Guest access is protected by strong authentication methods"
-  },
   "21792": {
     "TestId": "21792",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
     "Title": "Guests have restricted access to directory objects"
-  },
-  "21814": {
-    "TestId": "21814",
-    "Title": "Privileged accounts are cloud native identities"
-  },
-  "21773": {
-    "TestId": "21773",
-    "Title": "Applications don't have certificates with expiration longer than 180 days"
-  },
-  "21860": {
-    "TestId": "21860",
-    "Title": "Diagnostic settings are configured for all Microsoft Entra logs"
-  },
-  "21795": {
-    "TestId": "21795",
-    "Title": "No legacy authentication sign-in activity"
-  },
-  "21770": {
-    "TestId": "21770",
-    "Title": "Inactive applications don’t have highly privileged Microsoft Graph API permissions"
-  },
-  "21807": {
-    "TestId": "21807",
-    "Title": "Creating new applications and service principles is restricted to privileged users"
-  },
-  "21771": {
-    "TestId": "21771",
-    "Title": "Inactive applications don’t have highly privileged built-in roles"
   },
   "21791": {
     "TestId": "21791",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
     "Title": "Guests can’t invite other guests"
-  },
-  "21800": {
-    "TestId": "21800",
-    "Title": "All user sign-in activity uses strong authentication methods"
-  },
-  "21781": {
-    "TestId": "21781",
-    "Title": "Privileged users sign in with phishing-resistant methods"
   },
   "21772": {
     "TestId": "21772",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
     "Title": "Applications don't have secrets configured"
   },
-  "21801": {
-    "TestId": "21801",
-    "Title": "Users have strong authentication methods configured"
+  "21992": {
+    "TestId": "21992",
+    "ImplementationCost": "High",
+    "UserImpact": "Low",
+    "RiskLevel": "High",
+    "Category": "Application management",
+    "Title": "Application Certificates need to be rotated on a regular basis"
+  },
+  "21800": {
+    "TestId": "21800",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "All user sign-in activity uses strong authentication methods"
+  },
+  "21829": {
+    "TestId": "21829",
+    "ImplementationCost": "High",
+    "UserImpact": "High",
+    "RiskLevel": "High",
+    "Category": "Access control",
+    "Title": "Use cloud authentication"
   },
   "21783": {
     "TestId": "21783",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
     "Title": "Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods"
+  },
+  "21773": {
+    "TestId": "21773",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Applications don't have certificates with expiration longer than 180 days"
+  },
+  "21863": {
+    "TestId": "21863",
+    "ImplementationCost": "High",
+    "UserImpact": "Low",
+    "RiskLevel": "High",
+    "Category": "Monitoring",
+    "Title": "All high-risk sign-ins are triaged"
+  },
+  "21795": {
+    "TestId": "21795",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "No legacy authentication sign-in activity"
+  },
+  "21851": {
+    "TestId": "21851",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Guest access is protected by strong authentication methods"
+  },
+  "21782": {
+    "TestId": "21782",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Privileged accounts have phishing-resistant methods registered"
+  },
+  "21781": {
+    "TestId": "21781",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Privileged users sign in with phishing-resistant methods"
+  },
+  "21808": {
+    "TestId": "21808",
+    "ImplementationCost": "Low",
+    "UserImpact": "Medium",
+    "RiskLevel": "High",
+    "Category": "Access control",
+    "Title": "Restrict device code flow"
+  },
+  "21866": {
+    "TestId": "21866",
+    "ImplementationCost": "Medium",
+    "UserImpact": "Low",
+    "RiskLevel": "Medium",
+    "Category": "Monitoring",
+    "Title": "All Microsoft Entra recommendations are addressed"
+  },
+  "21770": {
+    "TestId": "21770",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Inactive applications don’t have highly privileged Microsoft Graph API permissions"
+  },
+  "21796": {
+    "TestId": "21796",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Block legacy authentication policy is configured"
+  },
+  "21815": {
+    "TestId": "21815",
+    "ImplementationCost": "High",
+    "UserImpact": "Low",
+    "RiskLevel": "High",
+    "Category": "Privileged access",
+    "Title": "All privileged role assignments are activated just in time and not permanently active"
+  },
+  "21807": {
+    "TestId": "21807",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Creating new applications and service principles is restricted to privileged users"
+  },
+  "21872": {
+    "TestId": "21872",
+    "ImplementationCost": "Low",
+    "UserImpact": "Medium",
+    "RiskLevel": "High",
+    "Category": "Access control",
+    "Title": "Require multifactor authentication for device join and device registration using user action"
+  },
+  "22124": {
+    "TestId": "22124",
+    "ImplementationCost": "Medium",
+    "UserImpact": "Medium",
+    "RiskLevel": "High",
+    "Category": "Monitoring",
+    "Title": "High priority Entra recommendations are addressed"
+  },
+  "21860": {
+    "TestId": "21860",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Diagnostic settings are configured for all Microsoft Entra logs"
+  },
+  "21771": {
+    "TestId": "21771",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Inactive applications don’t have highly privileged built-in roles"
+  },
+  "21797": {
+    "TestId": "21797",
+    "ImplementationCost": "Medium",
+    "UserImpact": "High",
+    "RiskLevel": "High",
+    "Category": "Access control",
+    "Title": "Restrict access to high risk users"
+  },
+  "21801": {
+    "TestId": "21801",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Users have strong authentication methods configured"
+  },
+  "21814": {
+    "TestId": "21814",
+    "ImplementationCost": null,
+    "UserImpact": null,
+    "RiskLevel": null,
+    "Category": null,
+    "Title": "Privileged accounts are cloud native identities"
+  },
+  "21861": {
+    "TestId": "21861",
+    "ImplementationCost": "High",
+    "UserImpact": "Low",
+    "RiskLevel": "High",
+    "Category": "Monitoring",
+    "Title": "All high-risk users are triaged"
+  },
+  "21885": {
+    "TestId": "21885",
+    "ImplementationCost": "High",
+    "UserImpact": "Low",
+    "RiskLevel": "High",
+    "Category": "Application management",
+    "Title": "App registrations must not have reply URLs containing *.azurewebsites.net, URL shorteners, or localhost, wildcard domains"
   }
 }
