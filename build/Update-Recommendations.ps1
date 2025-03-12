@@ -71,6 +71,17 @@ function Update-SingleLink {
     $linkText = $match.Groups[1].Value
     $url = $match.Groups[2].Value
 
+    # Handle URLs with hash anchors
+    $hashIndex = $url.IndexOf('#')
+    $hashPart = ""
+
+    if ($hashIndex -ge 0) {
+        # Extract the hash part
+        $hashPart = $url.Substring($hashIndex)
+        # Remove the hash part from the URL for processing
+        $url = $url.Substring(0, $hashIndex)
+    }
+
     # Check if URL already has parameters
     if ($url -match "\?") {
         $appendChar = "&"
@@ -81,8 +92,8 @@ function Update-SingleLink {
     # Remove tracking parameter if it already exists (to avoid duplication)
     $url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
 
-    # Create the new link with tracking parameter
-    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)"
+    # Create the new link with tracking parameter and add back the hash part if it existed
+    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
 }
 
 function Test-FolderMarkdownLinks {
