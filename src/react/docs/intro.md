@@ -4,24 +4,17 @@ sidebar_position: 1
 
 # Introduction
 
-This Zero Trust Assessment will help your organisation understand the current state of your Zero Trust maturity and provide a roadmap to help you improve your security posture.
+Implementing a Zero Trust strategy can pose many challenges, such as knowing where to start, what order to implement things in, and how to accurately measure success towards achieving a secure Zero Trust posture. The Microsoft Zero Trust Workshop aims to tackle these problems and simplify the Zero Trust journey via two tools: the Zero Trust Workshop and the Zero Trust Assessment.
 
-## What is Zero Trust?
+## Microsoft Zero Trust Workshop
+The Zero Trust Workshop Tool is a manual tool (in the form of an Excel file) that enables customers to log their current Zero Trust progress and develop an actionable roadmap for moving forward. The Zero Trust Workshop Tool currently supports the following pillars:
+- Identity
+- Devices
+- Data
 
-Zero Trust is a security model that assumes breach and explicitly verifies every request as though it originates from an uncontrolled network. The Zero Trust model is based on the principle of “never trust, always verify” and assumes breach. The Zero Trust model is a holistic approach to securing all access across your networks, applications, and environment. The Zero Trust model can be applied to identity, devices, applications, data, infrastructure, and networks.
+For more information, check out the [Introduction to the Zero Trust Workshop](./videos/IntroductionToZT.md) page.
 
-## What is the Zero Trust Assessment?
+## Microsoft Zero Trust Assessment
+The Zero Trust Assessment is a PowerShell module that can be run on your environment to confirm a strong security baseline. This is an automated tool, where running the PowerShell module on your tenant will provide you with a set of recommendations that are auto generated based on your tenant's current configuration and activty data.
 
-The site that you are on is the Zero Trust Assessment app. It will provide you with a detailed report that will help you understand the current state of your Zero Trust maturity and provide a roadmap to help you improve your security posture.
-
-## What permissions do I need for this app?
-
-The app requires **read-only** permissions to read your tenant configuration. See the [App Permissions](/docs/app-permissions) page for more details.
-
-## Is this an official Microsoft product?
-
-No. It is a community project that is maintained by Microsoft employees. The app is provided as-is and is not supported through any Microsoft support program or service. Please do not contact Microsoft support with any issues or concerns.
-
-## How do I get support?
-
-Please raise an issue on the [Zero Trust Assessment GitHub repo](https://github.com/microsoft/zerotrustassessment/issues).
+For more information, check out the [Zero Trust Assessment Tool](./app-permissions) page and the [Zero Trust Assessment Video](./videos/Assessment.md) page.

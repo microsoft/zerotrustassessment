@@ -105,6 +105,23 @@ const config = {
               }
             ]
           },
+          {
+            type: 'dropdown',
+            position: 'left',
+            label: 'FAQs',
+            items: [
+              {
+                label: "General FAQs",
+                type: 'doc',
+                docId: 'zFAQs/generalFAQs'
+              },
+              {
+                label: 'Partner FAQs',
+                type: 'doc',
+                docId: 'zFAQs/partnerFAQs'
+              }
+            ]
+          },
           // {
           //   to: 'testimonials',
           //   position: 'right',
