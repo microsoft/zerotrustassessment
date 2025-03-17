@@ -18,4 +18,4 @@ For training materials, check out the [Zero Trust Workshop Plan](https://microso
 
 By sharing feedback and reporting on workshop deliveries, partners will be helping Microsoft to better tailor the Microsoft Zero Trust Workshop to meet partner demand and needs. Partners can self-report Microsoft Zero Trust Workshop deliveries via the following form: [Microsoft Zero Trust Workshop Partner Delivery Survey](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7t6ckxTCw9OiSbwsJxSnMlUMDEzTUtLQ0dXSUMyTjJPVVI5M1JYNUNRNC4u)
 
-Partners who regularly report deliveries will be considered for early previews of upcoming versions of the tool.
+Microsoft Partners who regularly report deliveries will be considered for early previews of upcoming versions of the tool.
