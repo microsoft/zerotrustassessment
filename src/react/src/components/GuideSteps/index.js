@@ -10,7 +10,7 @@ const Steps = [
         description: (
             <>
                 <ul>
-                    <li>Identity and notify the right stakeholders from your organization and your deployment partners for each zero trust pillar</li>
+                    <li>Identify and notify the right stakeholders from your organization and your deployment partners for each zero trust pillar</li>
                     <li>Review the <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">delivery guide</a></li>
                     <li>(Optional) Run the <a href="docs/app-permissions" title="Learn about the Zero Trust Assessment">Zero Trust Assessment</a> to make sure you are starting with a healthy configuration</li>
                 </ul>
