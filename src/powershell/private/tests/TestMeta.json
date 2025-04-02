@@ -221,6 +221,6 @@
     "UserImpact": "Low",
     "RiskLevel": "High",
     "Category": "Application management",
-    "Title": "App registrations must not have reply URLs containing *.azurewebsites.net, URL shorteners, or localhost, wildcard domains"
+    "Title": "App registrations use safe redirect URIs"
   }
 }
