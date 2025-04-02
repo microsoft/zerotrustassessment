@@ -16,12 +16,8 @@ function Test-Assessment-21885 {
 
     $results = Get-ZtAppWithUnsafeRedirectUris -Database $Database -Type 'Application'
 
-    Write-Host "Results"
-    Write-Host ($results | ConvertTo-Json -Depth 10)
-
     $passed = $results.Passed
     $testResultMarkdown = $results.TestResultMarkdown
-
 
     Add-ZtTestResultDetail -TestId '21885' -Title "App registrations use safe redirect URIs" `
         -UserImpact Low -Risk High -ImplementationCost High `

@@ -32,7 +32,6 @@ function Get-ZtAppWithUnsafeRedirectUris {
         $riskyUrls = @()
 
         foreach ($url in $item.replyUrls) {
-            Write-Host "Checking $url"
             # skip localhost and non http(s) urls
             if ($url -like "*localhost*") {
                 $riskyUrls += "1️⃣ $url"
@@ -65,11 +64,11 @@ function Get-ZtAppWithUnsafeRedirectUris {
             # Get domain from $uri
             $domain = $uri.Host
 
+            Write-ZtProgress -Activity 'Checking redirect uri' -Status $url
             if ($resolvedDomainsCache.ContainsKey($domain)) {
                 $isDnsResolved = $resolvedDomainsCache[$domain]
             }
             else {
-                Write-ZtProgress -Activity 'Checking domain' -Status $url
                 # Cache domain resolution results to avoid multiple DNS queries
                 $isDnsResolved = Test-DomainResolves -Domain $domain
                 $resolvedDomainsCache[$domain] = $isDnsResolved
@@ -77,8 +76,14 @@ function Get-ZtAppWithUnsafeRedirectUris {
 
             if (!$isDnsResolved) {
                 $riskyUrls += "5️⃣ $url"
-                continue
             }
+
+            # Check if the url redirects to a different domain
+            $safeRedirect = Test-UriRedirectsToSameDomain -Url $url
+            if (!$safeRedirect) {
+                $riskyUrls += "6️⃣ $url"
+            }
+
         }
 
         if ($riskyUrls.Count -gt 0) {
@@ -96,7 +101,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
     }
     else {
         $testResultMarkdown += "Unsafe redirect URIs found`n`n"
-        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved`n`n"
+        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved, 6️⃣ → Redirects to a different domain`n`n"
         $testResultMarkdown += Get-RiskyAppList -Apps $riskyApps -Type $Type
     }
 
