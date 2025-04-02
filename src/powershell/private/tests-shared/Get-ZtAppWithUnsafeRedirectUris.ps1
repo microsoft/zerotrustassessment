@@ -22,7 +22,6 @@ function Get-ZtAppWithUnsafeRedirectUris {
  select id, appid, displayName, replyUrls, accountEnabled, appOwnerOrganizationId from main."ServicePrincipal"
  WHERE $filter
  order by displayName
- limit 10
 "@
 
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
@@ -36,15 +35,15 @@ function Get-ZtAppWithUnsafeRedirectUris {
             Write-Host "Checking $url"
             # skip localhost and non http(s) urls
             if ($url -like "*localhost*") {
-                $riskyUrls += $url
+                $riskyUrls += "1️⃣ $url"
                 continue
             }
             if ($url -like "http:*") { #Should use https
-                $riskyUrls += $url
+                $riskyUrls += "2️⃣ $url"
                 continue
             }
             if ($url -like "*azurewebsites.net*") {
-                $riskyUrls += $url
+                $riskyUrls += "3️⃣ $url"
                 continue
             }
 
@@ -54,7 +53,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
                 $uri = [System.Uri]::new($url)
             }
             catch {
-                $riskyUrls += $url
+                $riskyUrls += "4️⃣ $url"
                 continue
             }
 
@@ -77,7 +76,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
             }
 
             if (!$isDnsResolved) {
-                $riskyUrls += $url
+                $riskyUrls += "5️⃣ $url"
                 continue
             }
         }
@@ -97,6 +96,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
     }
     else {
         $testResultMarkdown += "Unsafe redirect URIs found`n`n"
+        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved`n`n"
         $testResultMarkdown += Get-RiskyAppList -Apps $riskyApps -Type $Type
     }
 
