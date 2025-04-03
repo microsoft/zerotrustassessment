@@ -28,8 +28,17 @@ function Get-ZtAppWithUnsafeRedirectUris {
     $riskyApps = @()
     $resolvedDomainsCache = @{}
 
+    $tenantsToIgnore = @(
+        'f8cdef31-a31e-4b4a-93e4-5f571e91255a', # Microsoft Services
+        '33e01921-4d64-4f8c-a055-5bdaffd5e33d' # AME
+    )
+
     foreach ($item in $results) {
         $riskyUrls = @()
+
+        if($tenantsToIgnore -contains $item.appOwnerOrganizationId) {
+            continue
+        }
 
         foreach ($url in $item.replyUrls) {
             # skip localhost and non http(s) urls
