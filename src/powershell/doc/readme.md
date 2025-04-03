@@ -178,12 +178,12 @@ To remove the assessment, follow these steps.
 - Remove App Reg + consent.
 - Delete the folder that was created by the assessment.
 
-## Feedback
+## Feedback / Issues
 
 The **Identity** tab shows the results of the assessment on your tenant.
 
 The other tabs are in progress. Feel free to share feedback on the
-report. If you have any feedback, reach out to your account contact that suggested you run the assessment.
+report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
 
 ## FAQs
 
