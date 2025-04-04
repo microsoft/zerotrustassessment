@@ -5,97 +5,57 @@
 
 function Test-Assessment-21992{
     [CmdletBinding()]
-    param()
-
+    param(
+        $Database
+    )
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
-    $activity = "Checking Application Certificates need to be rotated on a regular basis"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
-
-    # Calculate date 180 days ago
-    $thresholdDate = (Get-Date).AddDays(-180)
-
-    # Initialize the sp result variable
-    $spresult = @()
-
-    # Query enabled service principals
-    $serviceprincipals = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals" -ApiVersion beta
-    $enabledServicePrincipals = $serviceprincipals | Where-Object { $_.accountEnabled -eq $true }
-
-    foreach($sp in $enabledServicePrincipals) {
-        if ($sp.keyCredentials) {
-            foreach ($keyCredential in $sp.keyCredentials) {
-                $startDate = [datetime]::Parse($keyCredential.startDateTime)
-                if ($startDate -lt $thresholdDate) {
-                    $spresult += $sp
-                    break
-                }
-            }
-        }
-    }
-
-    # Initialize the app result variable
-    $appresult = @()
-
-     # Query all app registrations
-     $appregistrations = Invoke-ZtGraphRequest -RelativeUri "applications" -ApiVersion beta
-
-     foreach($app in $appregistrations) {
-        if ($app.keyCredentials) {
-            foreach ($keyCredential in $app.keyCredentials) {
-                $startDate = [datetime]::Parse($keyCredential.startDateTime)
-                if ($startDate -lt $thresholdDate) {
-                    $appresult += $app
-                    break
-                }
-            }
-        }
-    }
-
-    $totalcount = $spresult.Count + $appresult.Count
-    $passed = $totalcount -eq 0
-
+    $sqlApp = @"
+    select distinct ON (id) * from
+        (select id, appId, displayName, signInAudience,
+        try_cast(unnest(keyCredentials).startDateTime as date) as keyStartDateTime,
+        current_date - interval 180 day minStartDate
+        from Application)
+    where keyStartDateTime < minStartDate
+    order by displayName, keyStartDateTime DESC
+"@
+    $sqlSP = @"
+    select distinct ON (id) * from
+        (select id, appId, displayName, appOwnerOrganizationId, signInAudience,
+        try_cast(unnest(keyCredentials).startDateTime as date) as keyStartDateTime,
+        current_date - interval 180 day minStartDate
+        from ServicePrincipal)
+    where keyStartDateTime < minStartDate
+    order by displayName, keyStartDateTime DESC
+"@
+    $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+    $resultsSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
+    Write-Output $resultsApp.Count
+    Write-Output $resultsSP.Count
+    $passed = ($resultsApp.Count -eq 0) -and ($resultsSP.Count -eq 0)
     if ($passed) {
-        $testResultMarkdown = "Applications in your tenant that have certificates have been issued within 180 days.`n`n"
+        $testResultMarkdown += "Certificates for applications in your tenant have been issued within 180 days."
     }
     else {
-        $testResultMarkdown = "Found $($totalcount) applications in your tenant with certificates that have not been rotated within 180 days.`n`n%TestResult%"
+        $testResultMarkdown += "Found $($resultsApp.Count) applications and $($resultsSP.Count) service principals in your tenant with certificates that have not been rotated within 180 days.`n`n%TestResult%"
     }
-
-
-    if($totalcount -gt 0) {
+    if ($resultsApp.Count -gt 0) {
         $mdInfo = "`n## Applications with certificates that have not been rotated within 180 days`n`n"
-        $mdInfo += "| App ID | Display Name | Certificate Thumbprint | Certificate Start Date | Certificate Expiration Date | Multi-tenant | Owner Tenant ID |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
-
-        if($spresult.Count -gt 0) {
-            foreach ($sp in $spresult) {
-                if ($sp.signInAudience -eq "AzureADMultipleOrgs") {
-                    $ismultitenant = "Yes"
-                } else {
-                    $ismultitenant = "No"
-                }
-
-                foreach ($keyCredential in $sp.keyCredentials) {
-                    $mdInfo += "| $($sp.appId) | $($sp.displayName) | $($keyCredential.customKeyIdentifier) | $($keyCredential.startDateTime) | $($keyCredential.endDateTime) | $($ismultitenant) | $($sp.appOwnerOrganizationId) |`n"
-                }
-            }
+        $mdInfo += "| Application | Certificate Start Date |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        foreach ($item in $resultsApp) {
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/{0}" -f $item.appId
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $($item.keyStartDateTime) |`n"
         }
-
-        if($appresult.Count -gt 0) {
-            foreach ($app in $appresult) {
-                if ($app.signInAudience -eq "AzureADMultipleOrgs") {
-                    $ismultitenant = "Yes"
-                } else {
-                    $ismultitenant = "No"
-                }
-
-                foreach ($keyCredential in $app.keyCredentials) {
-                    $mdInfo += "| $($app.appId) | $($app.displayName) | $($keyCredential.customKeyIdentifier) | $($keyCredential.startDateTime) | $($keyCredential.endDateTime) | $($ismultitenant) | $($app.publisherDomain) |`n"
-                }
-            }
+    }
+    if ($resultsSP.Count -gt 0) {
+        $mdInfo += "`n`n## Service principals with certificates that have not been rotated within 180 days`n`n"
+        $mdInfo += "| Service principal | App owner tenant | Certificate Start Date |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
+        foreach ($item in $resultsSP) {
+            $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($item.id)/appId/$($item.appId)/preferredSingleSignOnMode/saml/servicePrincipalType/Application/fromNav/"
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-SafeMarkdown($tenant.displayName)) | $($item.keyStartDateTime) |`n"
         }
-
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
