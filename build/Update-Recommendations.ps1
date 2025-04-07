@@ -71,6 +71,17 @@ function Update-SingleLink {
     $linkText = $match.Groups[1].Value
     $url = $match.Groups[2].Value
 
+    # Handle URLs with hash anchors
+    $hashIndex = $url.IndexOf('#')
+    $hashPart = ""
+
+    if ($hashIndex -ge 0) {
+        # Extract the hash part
+        $hashPart = $url.Substring($hashIndex)
+        # Remove the hash part from the URL for processing
+        $url = $url.Substring(0, $hashIndex)
+    }
+
     # Check if URL already has parameters
     if ($url -match "\?") {
         $appendChar = "&"
@@ -81,8 +92,8 @@ function Update-SingleLink {
     # Remove tracking parameter if it already exists (to avoid duplication)
     $url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
 
-    # Create the new link with tracking parameter
-    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)"
+    # Create the new link with tracking parameter and add back the hash part if it existed
+    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
 }
 
 function Test-FolderMarkdownLinks {
@@ -144,7 +155,6 @@ function Test-FolderMarkdownLinks {
         throw "Folder not found: $FolderPath"
     }
 
-    $allResults = @()
     $fileStats = @{
         TotalFiles = 0
         FilesWithErrors = 0
@@ -170,18 +180,17 @@ function Test-FolderMarkdownLinks {
 
         # Regular expression to match markdown links
         $pattern = '\[([^\]]*)\]\(([^\)]+)\)'
-        $matches = [regex]::Matches($content, $pattern)
-        $fileResults = @()
+        $markdownLinks = [regex]::Matches($content, $pattern)
         $hasInvalidLinks = $false
         $fileLinksCount = 0
         $fileInvalidCount = 0
 
-        if ($matches.Count -gt 0) {
+        if ($markdownLinks.Count -gt 0) {
             Write-Host "Processing: $($file.Name)" -ForegroundColor Cyan
 
-            foreach ($match in $matches) {
-                $linkText = $match.Groups[1].Value
-                $url = $match.Groups[2].Value.Trim()
+            foreach ($link in $markdownLinks) {
+                $linkText = $link.Groups[1].Value
+                $url = $link.Groups[2].Value.Trim()
 
                 # Skip anchor links
                 if ($url.StartsWith("#")) {
@@ -204,7 +213,7 @@ function Test-FolderMarkdownLinks {
                     $fileStats.InvalidLinks++
 
                     # Calculate line number
-                    $lineNumber = ($content.Substring(0, $match.Index).Split("`n")).Count
+                    $lineNumber = ($content.Substring(0, $link.Index).Split("`n")).Count
 
                     Write-Host "  Line $lineNumber - INVALID LINK" -ForegroundColor Red
                     Write-Host "    Text: $linkText"
@@ -234,14 +243,40 @@ function Test-FolderMarkdownLinks {
     Write-Separator
 }
 
-function Get-ContentFromFrontMatter($fileContent, $key) {
-    if ($fileContent -match '^---\s*\n([\s\S]*?)\n---') {
+function Get-FrontMatterList($content) {
+    $results = @{}
+    if ($content -match '^---\s*\n([\s\S]*?)\n---') {
         $frontMatter = $Matches[1]
-        if ($frontMatter -match "$($key):\s*(.*)") {
-            return $Matches[1].Trim()
+        # Split the front matter into lines
+        $lines = $frontMatter -split '\r?\n'
+        foreach ($line in $lines) {
+            if ($line -match '^(.*?)\s*:\s*(.*)$') {
+                $key = $Matches[1].Trim()
+                $value = $Matches[2].Trim()
+                $results[$key] = $value
+            }
         }
     }
-    return $null
+    return $results
+}
+
+function Remove-TrailingEmptyLines {
+    param (
+        [string]$Content
+    )
+
+    # Split content into lines, remove trailing empty lines, then join back
+    $lines = $Content -split '\r?\n'
+    for ($i = $lines.Length - 1; $i -ge 0; $i--) {
+        if ([string]::IsNullOrWhiteSpace($lines[$i])) {
+            $lines = $lines[0..($i - 1)]
+        }
+        else {
+            break
+        }
+    }
+
+    return ($lines -join "`n") + "`n"
 }
 
 $entraDocsFolder = "$($PSScriptRoot)../../../entra-docs-pr"
@@ -264,13 +299,20 @@ foreach ($file in $testFiles) {
 
             $content = Get-Content -Path $file.FullName -Raw
 
-            $docsTitle = Get-ContentFromFrontMatter -fileContent $recommendations[$testId] -key 'title'
-            $docsContent = Get-MarkDownContent $recommendations[$testId]
+            $docRawContent = $recommendations[$testId] # Includes front matter and markdown content
+            $frontMatter = Get-FrontMatterList -content $docRawContent
+            $docsTitle = $frontMatter['title']
+
+            $docsContent = Get-MarkDownContent $docRawContent
 
             # Add the docsTitle to the hashtable
             $testMeta[$testId] = @{
                 TestId = $testId
                 Title = $docsTitle
+                Category = $frontMatter['# category']
+                RiskLevel = $frontMatter['# risklevel']
+                UserImpact = $frontMatter['# userimpact']
+                ImplementationCost = $frontMatter['# implementationcost']
             }
 
             Write-Host "$testId Title: $docsTitle"
@@ -290,7 +332,11 @@ foreach ($file in $testFiles) {
                 $content = $docsContent
             }
 
-            Set-Content -Path $file.FullName -Value $content
+            # Split the content into lines, start from the last line and remove
+
+            $cleanContent = Remove-TrailingEmptyLines -Content $content
+
+            Set-Content -Path $file.FullName -Value $cleanContent
         }
         else {
             Write-Warning "Recommendations not found for $($file.BaseName)"

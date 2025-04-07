@@ -4,7 +4,7 @@ If privileged cloud accounts are synchronized with on-premises accounts, an atta
 
 **Remediation action**
 
-- [Protecting Microsoft 365 from on-premises attacks](https://learn.microsoft.com/entra/architecture/protect-m365-from-on-premises-attacks#specific-security-recommendations?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Protecting Microsoft 365 from on-premises attacks](https://learn.microsoft.com/entra/architecture/protect-m365-from-on-premises-attacks?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#specific-security-recommendations)
 
 For each role with high privileges (assigned permanently or eligible through Microsoft Entra Privileged Identity Management), you should do the following actions:
 
@@ -12,11 +12,4 @@ For each role with high privileges (assigned permanently or eligible through Mic
 - Create cloud-only user accounts for those individuals and remove their hybrid identity from privileged roles.
 <!--- Results --->
 %TestResult%
-
-
-
-
-
-
-
 

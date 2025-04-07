@@ -1,14 +1,32 @@
-﻿function Get-FormattedDate {
+﻿<#
+.SYNOPSIS
+    Parses a date string and returns it in a formatted manner.
+.DESCRIPTION
+    Attempts to parse a date string using TryParse. If successful, returns the date in "yyyy-MM-dd HH:mm:ss" format.
+    If parsing fails, returns the original string. If null or empty, returns "Unknown".
+.PARAMETER DateString
+    The date string to parse and format.
+.EXAMPLE
+    Get-FormattedDate -DateString "2023-05-15T13:45:30Z"
+    Returns: "2023-05-15 13:45:30"
+#>
+function Get-FormattedDate {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        $Date
+        [Parameter(Mandatory = $false)]
+        [string]$DateString
     )
-    $dateValue = [DateTime]::MinValue
-    if([DateTime]::TryParse($Date, [ref]$dateValue)){
-        return $dateValue.ToString("yyyy-MM-dd")
+
+    if ([string]::IsNullOrEmpty($DateString)) {
+        return "Unknown"
+    }
+
+    $parsedDate = [datetime]::MinValue
+    if ([datetime]::TryParse($DateString, [ref]$parsedDate)) {
+        return $parsedDate.ToString("yyyy-MM-dd HH:mm:ss")
     }
     else {
-        return $Date
+        # If parsing fails, return the original string
+        return $DateString
     }
 }

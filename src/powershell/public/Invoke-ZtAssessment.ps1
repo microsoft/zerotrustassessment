@@ -46,10 +46,12 @@ function Invoke-ZtAssessment {
     )
 
     $banner = @"
-+-------------------------------------------------------------+
-| Microsoft Zero Trust Assessment v2.0                        |
-+-------------------------------------------------------------+
+╔═══════════════════════════════════════════════════════════════╗
+║ Microsoft Zero Trust Assessment v2                            ║
+╚═══════════════════════════════════════════════════════════════╝
 "@
+
+Write-Host $banner -ForegroundColor Cyan
 
     #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
@@ -59,8 +61,6 @@ function Invoke-ZtAssessment {
     else {
         Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
     }
-
-    Write-Host $banner -ForegroundColor Cyan
 
     $exportPath = Join-Path $Path "zt-export"
 
@@ -112,6 +112,9 @@ function Invoke-ZtAssessment {
 
     Write-Host
     Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
+    Write-Host
+    Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztworkshop/v2/feedback ◀◀◀" -ForegroundColor Yellow
+    Write-Host
     Write-Host
     Invoke-Item $htmlReportPath | Out-Null
 

@@ -28,6 +28,7 @@ Function Get-ZtGraphScope {
         'DirectoryRecommendations.Read.All'
         'PrivilegedAccess.Read.AzureAD'
         'IdentityRiskEvent.Read.All'
+        'IdentityRiskyUser.Read.All'
         'RoleEligibilitySchedule.Read.Directory'
         'RoleManagement.Read.All'
         'RoleEligibilitySchedule.ReadWrite.Directory'

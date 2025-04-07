@@ -10,10 +10,3 @@ Attackers can use service principals to blend in with legitimate system processe
 <!--- Results --->
 %TestResult%
 
-
-
-
-
-
-
-

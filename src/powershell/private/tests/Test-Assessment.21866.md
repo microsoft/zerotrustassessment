@@ -1,9 +1,8 @@
-Microsoft Entra recommendations provide opportunities to implement best practices and optimize your organization’s security posture. Not acting might result in increased surface area of risk or suboptimal operations or user experience.
+Microsoft Entra recommendations give organizations opportunities to implement best practices and optimize their security posture. Not acting on these items might result in an increased attack surface area, suboptimal operations, or poor user experience.
 
 **Remediation action**
 
-Address each of the high impact recommendations. Each recommendation will have its own set of remediation steps: 
-
-- [What are Microsoft Entra recommendations?](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/overview-recommendations#recommendations-overview-table)
+- [Address recommendations in the Microsoft Entra admin center](https://learn.microsoft.com/entra/identity/monitoring-health/overview-recommendations?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-does-it-work)
 <!--- Results --->
 %TestResult%
+

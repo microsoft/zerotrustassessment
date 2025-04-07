@@ -136,12 +136,25 @@ Function Add-ZtTestResultDetail {
     if ($null -ne $testMeta -and ![string]::IsNullOrEmpty($testMeta.Title)) {
         Write-PSFMessage "Using title from docs" -Level Debug -Tag Test
         $docsTitle = $testMeta.Title
+        if(![string]::IsNullOrEmpty($testMeta.Category)) {
+            $category = $testMeta.Category
+        }
+        if(![string]::IsNullOrEmpty($testMeta.RiskLevel)) {
+            $Risk = $testMeta.RiskLevel
+        }
+        if(![string]::IsNullOrEmpty($testMeta.ImplementationCost)) {
+            $ImplementationCost = $testMeta.ImplementationCost
+        }
+        if(![string]::IsNullOrEmpty($testMeta.UserImpact)) {
+            $UserImpact = $testMeta.UserImpact
+        }
     }
 
     $testInfo = @{
         TestId                 = $TestId
         TestTitle              = $docsTitle
         TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause
+        TestCategory           = $category
         TestTags               = $Tag
         TestAppliesTo          = $AppliesTo
         TestImpact             = $UserImpact

@@ -7,4 +7,3 @@ Without strict validation of redirect URIs, attackers can bypass security contro
 - [Redirect URI configuration](https://learn.microsoft.com/entra/identity-platform/reply-url?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
-

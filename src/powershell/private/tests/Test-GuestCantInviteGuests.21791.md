@@ -4,14 +4,7 @@ Allowing external users to onboard other external users increases the risk of un
 
 **Remediation action**
 
-- [Restrict who can invite guests to only users assigned to specific admin roles](https://learn.microsoft.com/entra/external-id/external-collaboration-settings-configure#to-configure-guest-invite-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Restrict who can invite guests to only users assigned to specific admin roles](https://learn.microsoft.com/entra/external-id/external-collaboration-settings-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#to-configure-guest-invite-settings)
 <!--- Results --->
 %TestResult%
-
-
-
-
-
-
-
 
