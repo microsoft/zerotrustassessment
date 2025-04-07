@@ -87,11 +87,12 @@ function Get-ZtAppWithUnsafeRedirectUris {
                 $riskyUrls += "5️⃣ $url"
             }
 
-            # Check if the url redirects to a different domain
-            $safeRedirect = Test-UriRedirectsToSameDomain -Url $url
-            if (!$safeRedirect) {
-                $riskyUrls += "6️⃣ $url"
-            }
+            # # Check if the url redirects to a different domain :
+            # NOTE: This has been taken out of the spec for now.
+            # $safeRedirect = Test-UriRedirectsToSameDomain -Url $url
+            # if (!$safeRedirect) {
+            #     $riskyUrls += "6️⃣ $url"
+            # }
 
         }
 
@@ -110,7 +111,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
     }
     else {
         $testResultMarkdown += "Unsafe redirect URIs found`n`n"
-        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved, 6️⃣ → Redirects to a different domain`n`n"
+        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved`n`n"
         $testResultMarkdown += Get-RiskyAppList -Apps $riskyApps -Type $Type
     }
 
@@ -140,8 +141,7 @@ function Get-RiskyAppList($Apps, $Type) {
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.id)/appId/$($item.appId)"
         }
         else {
-            # TODO : Put Service Principal link
-            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/$($item.appId)"
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($item.id)/appId/$($item.appId)/preferredSingleSignOnMode/saml/servicePrincipalType/Application/fromNav/"
         }
 
         $riskyReplyUrls = $item.riskyUrls | ForEach-Object { '`' + $_ + '`' }

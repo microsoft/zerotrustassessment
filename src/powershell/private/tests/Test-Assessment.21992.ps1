@@ -29,8 +29,7 @@ function Test-Assessment-21992{
 "@
     $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
     $resultsSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
-    Write-Output $resultsApp.Count
-    Write-Output $resultsSP.Count
+
     $passed = ($resultsApp.Count -eq 0) -and ($resultsSP.Count -eq 0)
     if ($passed) {
         $testResultMarkdown += "Certificates for applications in your tenant have been issued within 180 days."
