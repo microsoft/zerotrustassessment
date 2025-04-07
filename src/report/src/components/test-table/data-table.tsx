@@ -206,7 +206,7 @@ export function DataTable<TData extends Test, TValue>({
                 </Table>
             </div>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px] overflow-y-auto">
+                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px] overflow-y-auto" allowMaximize>
                     <SheetHeader>
                         <SheetTitle className="text-2xl text-left">{selectedRow?.TestTitle}</SheetTitle>
                     </SheetHeader>
