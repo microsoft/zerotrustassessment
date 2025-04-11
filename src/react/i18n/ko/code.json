@@ -1,312 +1,360 @@
 {
+  "homepage.title": {
+      "message": "마이크로소프트 제로 트러스트 워크샵"
+  },
+  "homepage.description": {
+      "message": "제로 트러스트 보안 전략에 기반하여 고객 및 파트너가 조직에서 보안 솔루션을 배포하고 보호하기 위한 포괄적인 기술 가이드입니다."
+  },
+  "homepage.whatIsZt.title": {
+      "message": "제로 트러스트란 무엇인가"
+  },
+  "homepage.whatIsZt.sentence1": {
+      "message": "현대의 복잡한 보안 과제를 해결하는 것은 어렵지만, 제로 트러스트 보안 전략은 명확한 방향을 제시합니다. 제로 트러스트 보안 전략을 채택함으로써 조직은 보안 태세를 강화하고, 위험과 복잡성을 줄이는 동시에 규정 준수 및 거버넌스를 개선할 수 있습니다."
+  },
+  "homepage.whatIsZt.sentence2": {
+      "message": "제로 트러스트 워크샵은 마이크로소프트 보안에 제로 트러스트 보안 원칙을 적용하는 데 도움을 줍니다."
+  },
+  "homepage.whatIsZt.verify": {
+      "message": "항상 확인"
+  },
+  "homepage.whatIsZt.leastPriv": {
+      "message": "최소 권한 접근"
+  },
+  "homepage.whatIsZt.assumeComp": {
+      "message": "침해 가정"
+  },
+  "learnMore": {
+      "message": "더 알아보기"
+  },
+  "homepage.whyRunWorkshop.title": {
+      "message": "워크샵 진행 목적"
+  },
+  "homepage.whyRunWorkshop.sentence1": {
+      "message": "제로 트러스트 워크샵은 실제 환경에서 제로 트러스트 보안 전략을 배포하기 위해 마이크로소프트가 제공하는 배포 가이드입니다."
+  },
+  "homepage.whyRunWorkshop.sentence2": {
+      "message": "수천 건의 고객 구현 사례에서 얻은 지식을 바탕으로 현재 환경을 평가하고 단계별로 엔드투엔드 보안 태세를 개선하기 위한 구체적인 단계를 확인할 수 있습니다."
+  },
+  "homepage.whyRunWorkshop.learnAboutWorkshop": {
+      "message": "워크샵에 대해 알아보기"
+  },
+  "homepage.howRunWorkshop.title": {
+      "message": "워크샵 진행 방법"
+  },
+  "homepage.howRunWorkshop.sentence1": {
+      "message": "전략을 논의하고 현재 환경을 평가하는 세션을 진행하는 방법에 대한 자세한 내용은 단계별 가이드를 참조하세요. 어떻게 시작해야 할지 모르겠다면, 제로 트러스트 워크샵의 소개 비디오를 확인하세요."
+  },
+  "homepage.howRunWorkshop.sentence2": {
+      "message": "수천 건의 고객 구현 사례에서 얻은 지식을 바탕으로 현재 환경을 평가하고 단계별로 엔드투엔드 보안 태세를 개선하기 위한 구체적인 단계를 확인할 수 있습니다."
+  },
   "SiteHeading": {
-    "message": "Microsoft Zero Trust Workshop"
+      "message": "마이크로소프트 제로 트러스트 워크샵"
   },
   "theme.NotFound.title": {
-    "message": "Page Not Found",
-    "description": "The title of the 404 page"
+      "message": "페이지를 찾을 수 없습니다",
+      "description": "404 페이지의 제목"
   },
   "theme.NotFound.p1": {
-    "message": "We could not find what you were looking for.",
-    "description": "The first paragraph of the 404 page"
+      "message": "찾으시는 페이지를 찾을 수 없습니다.",
+      "description": "404 페이지의 첫 번째 문단"
   },
   "theme.NotFound.p2": {
-    "message": "Please contact the owner of the site that linked you to the original URL and let them know their link is broken.",
-    "description": "The 2nd paragraph of the 404 page"
+      "message": "원래 URL로 연결해 준 사이트 소유자에게 연락하여 링크가 깨졌음을 알려주세요.",
+      "description": "404 페이지의 두 번째 문단"
   },
   "theme.ErrorPageContent.title": {
-    "message": "This page crashed.",
-    "description": "The title of the fallback page when the page crashed"
+      "message": "이 페이지가 충돌했습니다.",
+      "description": "페이지 충돌 시 대체 페이지의 제목"
   },
   "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "Scroll back to top",
-    "description": "The ARIA label for the back to top button"
+      "message": "맨 위로 스크롤",
+      "description": "맨 위로 버튼의 ARIA 레이블"
   },
   "theme.blog.archive.title": {
-    "message": "Archive",
-    "description": "The page & hero title of the blog archive page"
+      "message": "보관소",
+      "description": "블로그 보관소 페이지의 페이지 및 영웅 제목"
   },
   "theme.blog.archive.description": {
-    "message": "Archive",
-    "description": "The page & hero description of the blog archive page"
+      "message": "보관소",
+      "description": "블로그 보관소 페이지의 페이지 및 영웅 설명"
   },
   "theme.blog.paginator.navAriaLabel": {
-    "message": "Blog list page navigation",
-    "description": "The ARIA label for the blog pagination"
+      "message": "블로그 목록 페이지 탐색",
+      "description": "블로그 페이지네이션의 ARIA 레이블"
   },
   "theme.blog.paginator.newerEntries": {
-    "message": "Newer entries",
-    "description": "The label used to navigate to the newer blog posts page (previous page)"
+      "message": "최신 항목",
+      "description": "더 새로운 블로그 게시물 페이지(이전 페이지)로 이동하는 데 사용되는 레이블"
   },
   "theme.blog.paginator.olderEntries": {
-    "message": "Older entries",
-    "description": "The label used to navigate to the older blog posts page (next page)"
+      "message": "이전 항목",
+      "description": "더 오래된 블로그 게시물 페이지(다음 페이지)로 이동하는 데 사용되는 레이블"
   },
   "theme.blog.post.paginator.navAriaLabel": {
-    "message": "Blog post page navigation",
-    "description": "The ARIA label for the blog posts pagination"
+      "message": "블로그 게시물 페이지 탐색",
+      "description": "블로그 게시물 페이지네이션의 ARIA 레이블"
   },
   "theme.blog.post.paginator.newerPost": {
-    "message": "Newer post",
-    "description": "The blog post button label to navigate to the newer/previous post"
+      "message": "최신 게시물",
+      "description": "더 새로운/이전 게시물로 이동하는 블로그 게시물 버튼 레이블"
   },
   "theme.blog.post.paginator.olderPost": {
-    "message": "Older post",
-    "description": "The blog post button label to navigate to the older/next post"
+      "message": "이전 게시물",
+      "description": "더 오래된/다음 게시물로 이동하는 블로그 게시물 버튼 레이블"
   },
   "theme.tags.tagsPageLink": {
-    "message": "View all tags",
-    "description": "The label of the link targeting the tag list page"
+      "message": "모든 태그 보기",
+      "description": "태그 목록 페이지를 대상으로 하는 링크의 레이블"
   },
   "theme.colorToggle.ariaLabel": {
-    "message": "Switch between dark and light mode (currently {mode})",
-    "description": "The ARIA label for the navbar color mode toggle"
+      "message": "다크 모드와 라이트 모드 간 전환(현재 {mode})",
+      "description": "네비게이션 바의 색상 모드 토글에 대한 ARIA 레이블"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "dark mode",
-    "description": "The name for the dark color mode"
+      "message": "다크 모드",
+      "description": "다크 색상 모드의 이름"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "light mode",
-    "description": "The name for the light color mode"
+      "message": "라이트 모드",
+      "description": "라이트 색상 모드의 이름"
   },
   "theme.docs.breadcrumbs.navAriaLabel": {
-    "message": "Breadcrumbs",
-    "description": "The ARIA label for the breadcrumbs"
+      "message": "이동 경로",
+      "description": "이동 경로에 대한 ARIA 레이블"
   },
   "theme.docs.DocCard.categoryDescription.plurals": {
-    "message": "1 item|{count} items",
-    "description": "The default description for a category card in the generated index about how many items this category includes"
+      "message": "1개 항목|{count}개 항목",
+      "description": "이 카테고리에 포함된 항목 수에 대한 생성된 인덱스의 카테고리 카드의 기본 설명"
   },
   "theme.docs.paginator.navAriaLabel": {
-    "message": "Docs pages",
-    "description": "The ARIA label for the docs pagination"
+      "message": "문서 페이지",
+      "description": "문서 페이지네이션의 ARIA 레이블"
   },
   "theme.docs.paginator.previous": {
-    "message": "Previous",
-    "description": "The label used to navigate to the previous doc"
+      "message": "이전",
+      "description": "이전 문서로 이동하는 데 사용되는 레이블"
   },
   "theme.docs.paginator.next": {
-    "message": "Next",
-    "description": "The label used to navigate to the next doc"
+      "message": "다음",
+      "description": "다음 문서로 이동하는 데 사용되는 레이블"
   },
   "theme.docs.versionBadge.label": {
-    "message": "Version: {versionLabel}"
+      "message": "버전: {versionLabel}"
   },
   "theme.docs.versions.unreleasedVersionLabel": {
-    "message": "This is unreleased documentation for {siteTitle} {versionLabel} version.",
-    "description": "The label used to tell the user that he's browsing an unreleased doc version"
+      "message": "이것은 {siteTitle} {versionLabel} 버전의 미공개 문서입니다.",
+      "description": "사용자가 미공개 문서 버전을 탐색하고 있음을 알리는 데 사용되는 레이블"
   },
   "theme.docs.versions.unmaintainedVersionLabel": {
-    "message": "This is documentation for {siteTitle} {versionLabel}, which is no longer actively maintained.",
-    "description": "The label used to tell the user that he's browsing an unmaintained doc version"
+      "message": "이것은 더 이상 활발하게 유지되지 않는 {siteTitle} {versionLabel}의 문서입니다.",
+      "description": "사용자가 유지되지 않는 문서 버전을 탐색하고 있음을 알리는 데 사용되는 레이블"
   },
   "theme.docs.versions.latestVersionSuggestionLabel": {
-    "message": "For up-to-date documentation, see the {latestVersionLink} ({versionLabel}).",
-    "description": "The label used to tell the user to check the latest version"
+      "message": "최신 문서는 {latestVersionLink}({versionLabel})를 참조하세요.",
+      "description": "사용자에게 최신 버전을 확인하라고 알리는 데 사용되는 레이블"
   },
   "theme.docs.versions.latestVersionLinkLabel": {
-    "message": "latest version",
-    "description": "The label used for the latest version suggestion link label"
+      "message": "최신 버전",
+      "description": "최신 버전 제안 링크 레이블에 사용되는 레이블"
   },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
-    "message": "One doc tagged|{count} docs tagged",
-    "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+      "message": "태그된 문서 1개|태그된 문서 {count}개",
+      "description": "\"{count}개의 태그된 문서\"에 대한 복수형 레이블입니다. 귀하의 언어가 지원하는 만큼의 복수형(\"|\")으로 구분)을 사용하세요(https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html 참조)"
   },
   "theme.docs.tagDocListPageTitle": {
-    "message": "{nDocsTagged} with \"{tagName}\"",
-    "description": "The title of the page for a docs tag"
+      "message": "\"{tagName}\"로 태그된 {nDocsTagged}",
+      "description": "문서 태그 페이지의 제목"
   },
   "theme.common.editThisPage": {
-    "message": "Edit this page",
-    "description": "The link label to edit the current page"
+      "message": "이 페이지 편집",
+      "description": "현재 페이지를 편집하는 링크 레이블"
   },
   "theme.lastUpdated.atDate": {
-    "message": " on {date}",
-    "description": "The words used to describe on which date a page has been last updated"
+      "message": " {date}에",
+      "description": "페이지가 마지막으로 업데이트된 날짜를 설명하는 단어"
   },
   "theme.lastUpdated.byUser": {
-    "message": " by {user}",
-    "description": "The words used to describe by who the page has been last updated"
+      "message": " {user}에 의해",
+      "description": "페이지가 마지막으로 누구에 의해 업데이트되었는지 설명하는 단어"
   },
   "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "Last updated{atDate}{byUser}",
-    "description": "The sentence used to display when a page has been last updated, and by who"
+      "message": "최종 업데이트{atDate}{byUser}",
+      "description": "페이지가 마지막으로 업데이트된 시기와 누구에 의해 업데이트되었는지 표시하는 데 사용되는 문장"
   },
   "theme.common.headingLinkTitle": {
-    "message": "Direct link to {heading}",
-    "description": "Title for link to heading"
+      "message": "{heading}로 직접 링크",
+      "description": "제목 링크의 제목"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
-    "message": "Versions",
-    "description": "The label for the navbar versions dropdown on mobile view"
+      "message": "버전",
+      "description": "모바일 뷰의 네비게이션 바 버전 드롭다운 레이블"
   },
   "theme.tags.tagsListLabel": {
-    "message": "Tags:",
-    "description": "The label alongside a tag list"
+      "message": "태그:",
+      "description": "태그 목록 옆에 있는 레이블"
   },
   "theme.admonition.caution": {
-    "message": "caution",
-    "description": "The default label used for the Caution admonition (:::caution)"
+      "message": "주의",
+      "description": "주의 경고(:::caution)에 사용되는 기본 레이블"
   },
   "theme.admonition.danger": {
-    "message": "danger",
-    "description": "The default label used for the Danger admonition (:::danger)"
+      "message": "위험",
+      "description": "위험 경고(:::danger)에 사용되는 기본 레이블"
   },
   "theme.admonition.info": {
-    "message": "info",
-    "description": "The default label used for the Info admonition (:::info)"
+      "message": "정보",
+      "description": "정보 경고(:::info)에 사용되는 기본 레이블"
   },
   "theme.admonition.note": {
-    "message": "note",
-    "description": "The default label used for the Note admonition (:::note)"
+      "message": "참고",
+      "description": "참고 경고(:::note)에 사용되는 기본 레이블"
   },
   "theme.admonition.tip": {
-    "message": "tip",
-    "description": "The default label used for the Tip admonition (:::tip)"
+      "message": "팁",
+      "description": "팁 경고(:::tip)에 사용되는 기본 레이블"
   },
   "theme.admonition.warning": {
-    "message": "warning",
-    "description": "The default label used for the Warning admonition (:::warning)"
+      "message": "경고",
+      "description": "경고 경고(:::warning)에 사용되는 기본 레이블"
   },
   "theme.AnnouncementBar.closeButtonAriaLabel": {
-    "message": "Close",
-    "description": "The ARIA label for close button of announcement bar"
+      "message": "닫기",
+      "description": "공지 사항 표시줄의 닫기 버튼에 대한 ARIA 레이블"
   },
   "theme.blog.sidebar.navAriaLabel": {
-    "message": "Blog recent posts navigation",
-    "description": "The ARIA label for recent posts in the blog sidebar"
+      "message": "블로그 최근 게시물 탐색",
+      "description": "블로그 사이드바의 최근 게시물에 대한 ARIA 레이블"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "Toggle word wrap",
-    "description": "The title attribute for toggle word wrapping button of code block lines"
+      "message": "자동 줄 바꿈 토글",
+      "description": "코드 블록 줄의 자동 줄 바꿈 버튼 토글에 대한 제목 속성"
   },
   "theme.CodeBlock.copied": {
-    "message": "Copied",
-    "description": "The copied button label on code blocks"
+      "message": "복사됨",
+      "description": "코드 블록에서 복사된 버튼 레이블"
   },
   "theme.CodeBlock.copyButtonAriaLabel": {
-    "message": "Copy code to clipboard",
-    "description": "The ARIA label for copy code blocks button"
+      "message": "코드를 클립보드에 복사",
+      "description": "코드 블록 버튼 복사를 위한 ARIA 레이블"
   },
   "theme.CodeBlock.copy": {
-    "message": "Copy",
-    "description": "The copy button label on code blocks"
+      "message": "복사",
+      "description": "코드 블록의 복사 버튼 레이블"
   },
   "theme.DocSidebarItem.expandCategoryAriaLabel": {
-    "message": "Expand sidebar category '{label}'",
-    "description": "The ARIA label to expand the sidebar category"
+      "message": "사이드바 카테고리 '{label}' 확장",
+      "description": "사이드바 카테고리를 확장하기 위한 ARIA 레이블"
   },
   "theme.DocSidebarItem.collapseCategoryAriaLabel": {
-    "message": "Collapse sidebar category '{label}'",
-    "description": "The ARIA label to collapse the sidebar category"
+      "message": "사이드바 카테고리 '{label}' 축소",
+      "description": "사이드바 카테고리를 축소하기 위한 ARIA 레이블"
   },
   "theme.navbar.mobileLanguageDropdown.label": {
-    "message": "Languages",
-    "description": "The label for the mobile language switcher dropdown"
+      "message": "언어",
+      "description": "모바일 언어 전환기 드롭다운의 레이블"
   },
   "theme.NavBar.navAriaLabel": {
-    "message": "Main",
-    "description": "The ARIA label for the main navigation"
+      "message": "메인",
+      "description": "메인 탐색의 ARIA 레이블"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "On this page",
-    "description": "The label used by the button on the collapsible TOC component"
+      "message": "이 페이지에서",
+      "description": "접을 수 있는 TOC 구성 요소의 버튼에 사용되는 레이블"
   },
   "theme.blog.post.readMore": {
-    "message": "Read more",
-    "description": "The label used in blog post item excerpts to link to full blog posts"
+      "message": "더 읽기",
+      "description": "전체 블로그 게시물로 연결하기 위해 블로그 게시물 항목 발췌에 사용되는 레이블"
   },
   "theme.blog.post.readMoreLabel": {
-    "message": "Read more about {title}",
-    "description": "The ARIA label for the link to full blog posts from excerpts"
+      "message": "{title}에 대해 더 읽기",
+      "description": "발췌에서 전체 블로그 게시물로 연결하는 링크에 대한 ARIA 레이블"
   },
   "theme.docs.breadcrumbs.home": {
-    "message": "Home page",
-    "description": "The ARIA label for the home page in the breadcrumbs"
+      "message": "홈페이지",
+      "description": "이동 경로의 홈 페이지에 대한 ARIA 레이블"
   },
   "theme.docs.sidebar.collapseButtonTitle": {
-    "message": "Collapse sidebar",
-    "description": "The title attribute for collapse button of doc sidebar"
+      "message": "사이드바 축소",
+      "description": "문서 사이드바의 축소 버튼에 대한 제목 속성"
   },
   "theme.docs.sidebar.collapseButtonAriaLabel": {
-    "message": "Collapse sidebar",
-    "description": "The title attribute for collapse button of doc sidebar"
+      "message": "사이드바 축소",
+      "description": "문서 사이드바의 축소 버튼에 대한 제목 속성"
   },
   "theme.docs.sidebar.navAriaLabel": {
-    "message": "Docs sidebar",
-    "description": "The ARIA label for the sidebar navigation"
+      "message": "문서 사이드바",
+      "description": "사이드바 탐색에 대한 ARIA 레이블"
   },
   "theme.blog.post.readingTime.plurals": {
-    "message": "One min read|{readingTime} min read",
-    "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+      "message": "1분 소요|{readingTime}분 소요",
+      "description": "\"{readingTime}분 소요\"에 대한 복수형 레이블입니다. 귀하의 언어가 지원하는 만큼의 복수형(\"|\")으로 구분)을 사용하세요(https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html 참조)"
   },
   "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
-    "message": "Close navigation bar",
-    "description": "The ARIA label for close button of mobile sidebar"
+      "message": "탐색 바 닫기",
+      "description": "모바일 사이드바의 닫기 버튼에 대한 ARIA 레이블"
   },
   "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-    "message": "← Back to main menu",
-    "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
+      "message": "← 메인 메뉴로 돌아가기",
+      "description": "메인 메뉴로 돌아가는 뒤로 버튼의 레이블, 모바일 네비게이션 바 사이드바 보조 메뉴 내부에 있습니다(특히 문서 사이드바를 표시하는 데 사용됨)"
   },
   "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "Toggle navigation bar",
-    "description": "The ARIA label for hamburger menu button of mobile navigation"
+      "message": "탐색 바 토글",
+      "description": "모바일 탐색의 햄버거 메뉴 버튼에 대한 ARIA 레이블"
   },
   "theme.docs.sidebar.expandButtonTitle": {
-    "message": "Expand sidebar",
-    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+      "message": "사이드바 확장",
+      "description": "문서 사이드바의 확장 버튼에 대한 ARIA 레이블 및 제목 속성"
   },
   "theme.docs.sidebar.expandButtonAriaLabel": {
-    "message": "Expand sidebar",
-    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+      "message": "사이드바 확장",
+      "description": "문서 사이드바의 확장 버튼에 대한 ARIA 레이블 및 제목 속성"
   },
   "theme.blog.post.plurals": {
-    "message": "One post|{count} posts",
-    "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+      "message": "게시물 1개|게시물 {count}개",
+      "description": "\"{count}개의 게시물\"에 대한 복수형 레이블입니다. 귀하의 언어가 지원하는 만큼의 복수형(\"|\")으로 구분)을 사용하세요(https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html 참조)"
   },
   "theme.blog.tagTitle": {
-    "message": "{nPosts} tagged with \"{tagName}\"",
-    "description": "The title of the page for a blog tag"
+      "message": "\"{tagName}\"로 태그된 {nPosts}",
+      "description": "블로그 태그 페이지의 제목"
   },
   "theme.blog.author.pageTitle": {
-    "message": "{authorName} - {nPosts}",
-    "description": "The title of the page for a blog author"
+      "message": "{authorName} - {nPosts}",
+      "description": "블로그 저자의 페이지 제목"
   },
   "theme.blog.authorsList.pageTitle": {
-    "message": "Authors",
-    "description": "The title of the authors page"
+      "message": "저자",
+      "description": "저자 페이지의 제목"
   },
   "theme.blog.authorsList.viewAll": {
-    "message": "View all authors",
-    "description": "The label of the link targeting the blog authors page"
+      "message": "모든 저자 보기",
+      "description": "블로그 저자 페이지를 대상으로 하는 링크의 레이블"
   },
   "theme.contentVisibility.unlistedBanner.title": {
-    "message": "Unlisted page",
-    "description": "The unlisted content banner title"
+      "message": "목록에 없는 페이지",
+      "description": "목록에 없는 콘텐츠 배너 제목"
   },
   "theme.contentVisibility.unlistedBanner.message": {
-    "message": "This page is unlisted. Search engines will not index it, and only users having a direct link can access it.",
-    "description": "The unlisted content banner message"
+      "message": "이 페이지는 목록에 없습니다. 검색 엔진이 색인하지 않으며, 직접 링크가 있는 사용자만 접근할 수 있습니다.",
+      "description": "목록에 없는 콘텐츠 배너 메시지"
   },
   "theme.contentVisibility.draftBanner.title": {
-    "message": "Draft page",
-    "description": "The draft content banner title"
+      "message": "초안 페이지",
+      "description": "초안 콘텐츠 배너 제목"
   },
   "theme.contentVisibility.draftBanner.message": {
-    "message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
-    "description": "The draft content banner message"
+      "message": "이 페이지는 초안입니다. 개발 환경에서만 볼 수 있으며 프로덕션 빌드에서는 제외됩니다.",
+      "description": "초안 콘텐츠 배너 메시지"
   },
   "theme.ErrorPageContent.tryAgain": {
-    "message": "Try again",
-    "description": "The label of the button to try again rendering when the React error boundary captures an error"
+      "message": "다시 시도",
+      "description": "React 오류 경계가 오류를 캡처할 때 다시 렌더링을 시도하는 버튼의 레이블"
   },
   "theme.common.skipToMainContent": {
-    "message": "Skip to main content",
-    "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
+      "message": "주요 콘텐츠로 건너뛰기",
+      "description": "콘텐츠 건너뛰기 레이블은 접근성을 위해 사용되며, 키보드 탭/엔터 탐색으로 주요 콘텐츠로 빠르게 이동할 수 있습니다"
   },
   "theme.tags.tagsPageTitle": {
-    "message": "Tags",
-    "description": "The title of the tag list page"
+      "message": "태그",
+      "description": "태그 목록 페이지의a 제목"
   }
 }
