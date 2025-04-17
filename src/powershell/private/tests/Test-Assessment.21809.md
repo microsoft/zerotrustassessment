@@ -1,6 +1,6 @@
-...
+Enabling the "Admin consent workflow" in an Entra ID tenant is a vital security measure that mitigates risks associated with unauthorized application access and privilege escalation. This check is important because it ensures that any application requesting elevated permission undergoes a review process by designated administrators before consent is granted. The admin consent workflow in Entra ID involves notifying reviewers who evaluate and approve or deny consent requests based on the application's legitimacy and necessity. If this check does not pass, meaning the workflow is disabled, any application can request and potentially receive elevated permissions without administrative review. This poses a substantial security risk, as malicious actors could exploit this lack of oversight to gain unauthorized access to sensitive data, perform privilege escalation, or execute other malicious activities. Such vulnerabilities can lead to data breaches, loss of sensitive information, and overall compromise of the tenant's security posture. Therefore, enabling the admin consent workflow is a critical security measure to protect against these threats. 
 
 **Remediation action**
-
+- [Configure the admin consent workflow](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-admin-consent-workflow)
 <!--- Results --->
 %TestResult%

@@ -12,13 +12,22 @@ function Test-Assessment-21809{
     $activity = "Checking Admin consent workflow is enabled"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    $result = Invoke-ZtGraphRequest -RelativeUri "policies/adminConsentRequestPolicy" -ApiVersion v1.0
+    $passed = $result.isEnabled
+    Write-Output $passed
+
+    if ($passed) {
+        $testResultMarkdown = "Admin consent workflow is enabled.`n`n"
+    }
+    else {
+        $testResultMarkdown = "Admin consent workflow is disabled.`n`n%TestResult%"
+    }
+
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", "The adminConsentRequestPolicy.isEnabled property is set to false."
 
 
     Add-ZtTestResultDetail -TestId '21809' -Title "Admin consent workflow is enabled" `
         -UserImpact Low -Risk High -ImplementationCost Low `
         -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+        -Status $passed -Result $testResultMarkdown
 }
