@@ -41,8 +41,11 @@ function Invoke-ZtAssessment {
 
         # If specified, writes the log to a file.
         [switch]
-        $ExportLog
+        $ExportLog,
 
+        # If specified, disables the collection of telemetry. The only telemetry collected is the tenant id. Defaults to true.
+        [switch]
+        $DisableTelemetry = $false
     )
 
     $banner = @"
@@ -82,6 +85,20 @@ Write-Host $banner -ForegroundColor Cyan
 
     if (!(Test-ZtContext)) {
         return
+    }
+
+    # Send telemetry if not disabled
+    if (!$DisableTelemetry) {
+        try {
+            $tenantId = (Get-MgContext).TenantId
+            if ($tenantId) {
+                Send-ZtAppInsightsTelemetry -EventName "ZTv2TenantId" -Properties @{ TenantId = $tenantId }
+            }
+        }
+        catch {
+            # Silently continue if sending telemetry fails
+            Write-PSFMessage -Level Debug -Message "Failed to send telemetry: $_"
+        }
     }
 
     Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
