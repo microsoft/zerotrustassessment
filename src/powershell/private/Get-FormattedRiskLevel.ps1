@@ -4,7 +4,6 @@ function Get-FormattedRiskLevel {
     [OutputType([string])]
     param (
         # Risk level to format
-        [Parameter(Mandatory = $true, Position = 0)]
         [string] $RiskLevel
     )
 
