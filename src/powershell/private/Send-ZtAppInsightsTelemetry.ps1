@@ -38,9 +38,6 @@
         # Convert to JSON
         $jsonBody = $body | ConvertTo-Json -Depth 10 -Compress
 
-        Write-Host "Sending telemetry event: $EventName" -ForegroundColor Green
-        Write-Host "Payload: $jsonBody" -ForegroundColor Yellow
-
         # Create a memory stream for GZIP compression
         $ms = New-Object System.IO.MemoryStream
         $gzip = New-Object System.IO.Compression.GZipStream $ms, ([System.IO.Compression.CompressionMode]::Compress)
@@ -67,7 +64,6 @@
         Write-PSFMessage -Level Debug -Message "Telemetry event '$EventName' sent successfully."
     }
     catch {
-        Write-Host "Failed to send telemetry event: $_" -ForegroundColor Red
         # Silently handle any errors to ensure the main functionality isn't affected
         Write-PSFMessage -Level Debug -Message "Telemetry event failed to send: $_"
     }
