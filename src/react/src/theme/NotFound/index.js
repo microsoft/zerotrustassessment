@@ -32,6 +32,10 @@ export default function Index() {
         target = "devsecops";
       } else if (qs.startsWith("?RMT_")) {
         target = "data";
+      } else if (qs.startsWith("?INF_")) {
+        target = "infrastructure";
+      } else if (qs.startsWith("?NET_")) {
+        target = "network";
       }
       if (target.length === 0) {
         console.log("Setting target");
