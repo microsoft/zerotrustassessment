@@ -27,24 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Update API endpoint for environment
-        shell: pwsh
-        run: |
-          $apiEndPoint = 'https://ztassess.azurewebsites.net'
-          $clientId = 'e7dfcbb6-fe86-44a2-b512-8d361dcc3d30'
-          $envName = ''
-          $configFilePath = './src/react/src/authConfig.js'
-          $config = Get-Content $configFilePath
-          $config = $config -replace "^.*apiEndPoint.*$", "    apiEndPoint: '$apiEndPoint'"
-          $config = $config -replace "^.*clientId.*$", "    clientId: '$clientId'"
-          $config = $config -replace "^.*envName.*$", "    envName: '$envName'"
-          Set-Content -Value $config -Path $configFilePath
-          Write-Output "Updating $configFilePath to -->"
-          Write-Output $config
-
       - name: Setup Node 16.x
         uses: actions/setup-node@v3
         with:
