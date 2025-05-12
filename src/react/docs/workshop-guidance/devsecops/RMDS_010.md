@@ -1,4 +1,4 @@
-# 010: Discover existingGitHub Accounts and permissions 
+# 010: Discover existing GitHub Accounts and permissions 
 
 ## Overview
 
