@@ -134,7 +134,7 @@
     "description": "The sentence used to display when a page has been last updated, and by who"
   },
   "theme.common.headingLinkTitle": {
-    "message": "DEnalce directo a {heading}",
+    "message": "Enalce directo a {heading}",
     "description": "Title for link to heading"
   },
   "theme.navbar.mobileVersionsDropdown.label": {
