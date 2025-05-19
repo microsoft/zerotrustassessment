@@ -36,6 +36,8 @@ export default function Index() {
         target = "infrastructure";
       } else if (qs.startsWith("?NET_")) {
         target = "network";
+      } else if (qs.startsWith("?SVA_")) {
+        target = "securityVisibilityAutomation";
       }
       if (target.length === 0) {
         console.log("Setting target");
