@@ -12,13 +12,16 @@ function Test-Assessment-21828 {
     $activity = "Checking Authentication transfer is blocked"
     Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
 
-    $enabledCAPolicies = Invoke-ZtGraphRequest -RelativeUri "policies/conditionalAccessPolicies?`$filter=state eq 'enabled'" -ApiVersion beta
+    # Query for all CA policies
+    $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri 'policies/conditionalAccessPolicies' -ApiVersion beta
 
-    $matchedPolicies = $enabledCAPolicies | Where-Object {
+    # Local filtering for blocked authentication transfer policies - only consider enabled policies
+    $matchedPolicies = $allCAPolicies | Where-Object {
         $_.conditions.authenticationFlows.transferMethods -match "authenticationTransfer" -and
         $_.grantControls.builtInControls -contains "block" -and
         $_.conditions.users.includeUsers -eq "all" -and
-        $_.conditions.applications.includeApplications -eq "all"
+        $_.conditions.applications.includeApplications -eq "all" -and
+        $_.state -eq "enabled"
     }
 
     $testResultMarkdown = ""
