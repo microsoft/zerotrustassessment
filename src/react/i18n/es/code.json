@@ -1,0 +1,237 @@
+{
+  "SiteHeading": {
+    "message": "Microsoft Zero Trust Workshop"
+  },
+  "theme.NotFound.title": {
+    "message": "Página no encontrada "  
+  },
+  "theme.NotFound.p1": {
+    "message": "No pudimos encontrar lo que buscabas  "  
+     },
+  "theme.NotFound.p2": {
+    "message": "Contacta al dueño del sitio, el URL no esta disponible  "
+  },
+  "theme.ErrorPageContent.title": {
+    "message": "Error en la pagina   "
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+    "message": "Ir de atras hacia delante    " 
+  }, 
+  "theme.blog.archive.title": {
+    "message": "Archivado    "
+  },
+  "theme.blog.archive.description": {
+    "message": "Archivado    "
+  },
+  "theme.blog.paginator.navAriaLabel": {
+    "message": "Navegacion de pagina "
+  },
+  "theme.blog.paginator.newerEntries": {
+    "message": "Nuevas entradas "
+  },
+  "theme.blog.paginator.olderEntries": {
+    "message": "Entradas anteriores "
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+    "message": "Blog post page navigation "
+  },
+  "theme.blog.post.paginator.newerPost": {
+    "message": "Nuevo post "
+  },
+  "theme.blog.post.paginator.olderPost": {
+    "message": "Post anterior "
+  },
+  "theme.tags.tagsPageLink": {
+    "message": "Ver todas las paginas"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "Cambiar entra modo obscuro y claro (actualmente {mode})"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "modo obscuro"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "modo claro"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "Breadcrumbs"
+  },
+  "theme.docs.DocCard.categoryDescription.plurals": {
+    "message": "1 item|{count} items"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "Paginas de documentos"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "Previo"
+  },
+  "theme.docs.paginator.next": {
+    "message": "Siguiente"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "Version: {versionLabel}"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+    "message": "Esta documentacion esta sin liberarse {siteTitle} {versionLabel} version"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+    "message": "La documentacion para {siteTitle} {versionLabel}, ya no se mantiene vigente"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+    "message": "Para documentacion actualizada revisar la {latestVersionLink} ({versionLabel})"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+    "message": "Ultima version  "
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "Un documento etiquetado|{count} docs etiquetados"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged} con \"{tagName}\""
+  },
+  "theme.common.editThisPage": {
+    "message": "Editar esta pagina"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": " en {date}"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": " por {user}"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "Ultima actualizacion {atDate}{byUser}"
+  },
+  "theme.common.headingLinkTitle": {
+    "message": "Enalce directo a {heading}"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+    "message": "Versions"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "Etiquetas:"
+  },
+  "theme.admonition.caution": {
+    "message": "precaucion"
+  },
+  "theme.admonition.danger": {
+    "message": "peligro"
+  },
+  "theme.admonition.info": {
+    "message": "informacion"
+  },
+  "theme.admonition.note": {
+    "message": "nota"
+  },
+  "theme.admonition.tip": {
+    "message": "tip"
+  },
+  "theme.admonition.warning": {
+    "message": "advertencia"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+    "message": "Cerrar       "
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+    "message": "Navegación de entradas recientes del blog"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "Activar o desactivar el ajuste de línea"
+  },
+  "theme.CodeBlock.copied": {
+    "message": "Copiado"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+    "message": "Copiado al  clipboard"
+  },
+  "theme.CodeBlock.copy": {
+    "message": "Copiar",
+    "description": "The copy button label on code blocks"
+  },
+  "theme.DocSidebarItem.expandCategoryAriaLabel": {
+    "message": "Expandir la barra de categoria '{label}'"
+  },
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+    "message": "Colapsar la barra de categoria '{label}'"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+    "message": "Idiomas"
+  },
+  "theme.NavBar.navAriaLabel": {
+    "message": "Principal"
+   },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "En esta pagina"
+  },
+  "theme.blog.post.readMore": {
+    "message": "Leer mas"
+  },
+  "theme.blog.post.readMoreLabel": {
+    "message": "Leer mas acerca de  {title}"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "Pagina Principal"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "Colapsar barra"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+    "message": "Colapsar barra"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "Barra de documentos"
+  },
+  "theme.blog.post.readingTime.plurals": {
+    "message": "Un minuto de lectura|{readingTime} min read"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "Cerrar navegacion"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← Regresar al menu principal"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "Alternar barra de navegación"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "Expandir barra"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+    "message": "Expandir barra"
+  },
+  "theme.blog.post.plurals": {
+    "message": "un post|{count} posts"
+  },
+  "theme.blog.tagTitle": {
+    "message": "{nPosts} etiquetada con \"{tagName}\""
+  },
+  "theme.blog.author.pageTitle": {
+    "message": "{authorName} - {nPosts}"
+  },
+  "theme.blog.authorsList.pageTitle": {
+    "message": "Autores"
+  },
+  "theme.blog.authorsList.viewAll": {
+    "message": "Ver todos los autores"
+  },
+  "theme.contentVisibility.unlistedBanner.title": {
+    "message": "Pagina no listada"
+  },
+  "theme.contentVisibility.unlistedBanner.message": {
+    "message": "Esta página no está listada. Los motores de búsqueda no la indexarán y solo los usuarios con un enlace directo podrán acceder a ella"
+  },
+  "theme.contentVisibility.draftBanner.title": {
+    "message": "Version preliminar"
+  },
+  "theme.contentVisibility.draftBanner.message": {
+    "message": "Esta página es un borrador. Solo será visible en desarrollo y se excluirá de la versión de producción."
+  },
+  "theme.ErrorPageContent.tryAgain": {
+    "message": "Intenta otra vez"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "Saltar al contenido principal"
+  },
+  "theme.tags.tagsPageTitle": {
+    "message": "Tags"
+    }
+}

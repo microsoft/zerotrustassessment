@@ -15,6 +15,6 @@ The Zero Trust Workshop Tool is a manual tool (in the form of an Excel file) tha
 For more information, check out the [Introduction to the Zero Trust Workshop](./videos/IntroductionToZT.md) page.
 
 ## Microsoft Zero Trust Assessment
-The Zero Trust Assessment is a PowerShell module that can be run on your environment to confirm a strong security baseline. This is an automated tool, where running the PowerShell module on your tenant will provide you with a set of recommendations that are auto generated based on your tenant's current configuration and activty data.
+The Zero Trust Assessment is a PowerShell module that can be run on your environment to confirm a strong security baseline. This is an automated tool, where running the PowerShell module on your tenant will provide you with a set of recommendations that are auto generated based on your tenant's current configuration and activity data.
 
 For more information, check out the [Zero Trust Assessment Tool](./app-permissions) page and the [Zero Trust Assessment Video](./videos/Assessment.md) page.
