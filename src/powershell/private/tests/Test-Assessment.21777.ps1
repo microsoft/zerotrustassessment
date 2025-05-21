@@ -1,24 +1,107 @@
 <#
 .SYNOPSIS
-
+    Test to check if App Instance Property Lock is configured for all multitenant applications.
 #>
 
-function Test-Assessment-21777{
+function Test-Assessment-21777 {
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking App Instance Property Lock is configured for all multitenant applications"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    Write-ZtProgress -Activity $activity -Status "Getting applications"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    # SQL query to find multitenant applications and check their servicePrincipalLockConfiguration
+    $sqlApp = @"
+    SELECT
+        appId,
+        displayName,
+        signInAudience,
+        servicePrincipalLockConfiguration,
+        CASE
+            WHEN servicePrincipalLockConfiguration IS NULL THEN false
+            WHEN servicePrincipalLockConfiguration->>'isEnabled' = 'false' THEN false
+            ELSE true
+        END AS isLockConfigured
+    FROM Application
+    WHERE signInAudience = 'AzureADMultipleOrgs' OR signInAudience = 'AzureADandPersonalMicrosoftAccount'
+    ORDER BY displayName
+"@
+
+    $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+
+    # Initialize variables
+    $passed = $true
+    $testResultMarkdown = ""
+
+    # Check if any application in the results has isLockConfigured set to false
+    if ($resultsApp.Count -gt 0) {
+        foreach ($app in $resultsApp) {
+            if ($app.isLockConfigured -eq $false) {
+                $passed = $false
+                break
+            }
+        }
+    }
+
+    if ($resultsApp.Count -eq 0) {
+        $passed = $false
+        $testResultMarkdown = "No multitenant apps found to verify app instance property lock configuration."
+    }
+    elseif ($passed) {
+        $testResultMarkdown = "All multitenant apps have app instance property lock configured."
+    }
+    else {
+        $testResultMarkdown = "Found multitenant apps without app instance property lock configured.`n`n%TestResult%"
+    }
+
+    # Build the detailed sections of the markdown
+
+    # Define variables to insert into the format string
+    $reportTitle = "Multitenant applications and their App Instance Property Lock setting"
+    $tableRows = ""
+
+    if ($resultsApp.Count -gt 0) {
+        # Create a here-string with format placeholders {0}, {1}, etc.
+        $formatTemplate = @'
+
+## {0}
 
 
-    Add-ZtTestResultDetail -TestId '21777' -Title "App Instance Property Lock is configured for all multitenant applications" `
-        -UserImpact Low -Risk High -ImplementationCost Low `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+| Application | Application ID | App Instance Property Lock configured |
+| :---------- | :------------- | :------------------------------------ |
+{1}
+
+'@
+
+        foreach ($app in $resultsApp) {
+            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Authentication/appId/{0}/isMSAApp~/false' -f $app.appId
+            $tableRows += @"
+| [$(Get-SafeMarkdown($app.displayName))]($portalLink) | $($app.appId) | $($app.isLockConfigured) |`n
+"@
+        }
+
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
+    }
+
+    # Replace the placeholder with the detailed information
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+
+    $params = @{
+        TestId             = '21777'
+        Title              = "App Instance Property Lock is configured for all multitenant applications"
+        UserImpact         = 'Low'
+        Risk               = 'High'
+        ImplementationCost = 'Low'
+        AppliesTo          = 'Identity'
+        Tag                = 'Identity'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
 }
