@@ -74,14 +74,14 @@ else {
         foreach ($sp in $resultsPassCreds) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}' -f $sp.id, $sp.appId
             $tableRows += @"
-| [$(Get-SafeMarkdown($sp.displayName))]($portalLink) | Password Credentials | $($sp.keyEndDateTime) |`n
+| [$(Get-SafeMarkdown($sp.displayName))]($portalLink) | Password Credentials | $(Get-FormattedDate($sp.keyEndDateTime)) |`n
 "@
         }
 
         foreach ($sp in $resultsKeyCreds) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}' -f $sp.id, $sp.appId
             $tableRows += @"
-| [$(Get-SafeMarkdown($sp.displayName))]($portalLink) | Key Credentials | $($sp.keyEndDateTime) |`n
+| [$(Get-SafeMarkdown($sp.displayName))]($portalLink) | Key Credentials | $(Get-FormattedDate($sp.keyEndDateTime)) |`n
 "@
         }
 
