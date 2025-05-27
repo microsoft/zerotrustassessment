@@ -12,3 +12,5 @@
 
 ## Reference
 [Sample Log Analytics workspace designs for Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/sample-workspace-designs)
+
+[Enhance resilience by replicating your Log Analytics workspace across regions – Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-replication)
