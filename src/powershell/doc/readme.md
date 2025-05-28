@@ -187,12 +187,26 @@ report. If you have any feedback or issues, reach out to your account contact th
 
 ## FAQs
 
-Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
+### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
 
 - The [List roleAssignmentScheduleRequests](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignmentschedulerequests?view=graph-rest-1.0&tabs=http) Graph API call requires this permission RoleEligibilitySchedule.ReadWrite.Directory.
 
 - You can run this report as a Global Reader to ensure that no changes are made.
 
-How can I know what the script is doing?
+### How can I know what the script is doing?
 
 - The code for this assessment is open source and can be reviewed at `https://github.com/microsoft/zerotrustassessment/tree/psnext/src/powershell`
+
+### Error: The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception
+
+On a new installation of Windows you may run into the following error.
+
+```text
+The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception.
+Inner exception: Unable to load DLL 'duckdb' or one of its dependencies: The specified module could not be found. (0x8007007E)
+Inner exception type: DllNotFoundException
+```
+
+This error occurs because you are running on a system that does not include Microsoft Visual C++ 2015-2022 Redistributable (x64) - Microsoft.VCRedist.2015+.x64
+
+You can download and install VCRedist from [download.visualstudio.microsoft.com](https://download.visualstudio.microsoft.com/download/pr/2c6b06c4-dc6a-4496-b769-b0d311cf515d/463F736D5925566EDC0E8F7D8E70C0A1FC95ADF44AFA5D5390B979F5A35934CC/VC_redist.x64.exe)
