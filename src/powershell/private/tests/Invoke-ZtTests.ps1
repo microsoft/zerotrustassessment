@@ -17,7 +17,7 @@ function Invoke-ZtTests {
     $config = $configContent | ConvertFrom-Json
 
     # Filter tests by tenant type and execute them
-    $config.tests | Where-Object { $_.tenantTypes -contains $TenantType } | ForEach-Object {
+    $config.tests | Where-Object { $_.tenantType -contains $TenantType } | ForEach-Object {
         if ($_.requiresDatabase) {
             & $_.name -Database $Database
         } else {
