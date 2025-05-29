@@ -1,0 +1,689 @@
+{
+  "tests": [
+    {
+      "name": "Test-InactiveAppDontHaveHighPrivGraphPerm",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-InactiveAppDontHaveHighPrivEntraRole",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-AppDontHaveSecrets",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-AppDontHaveCertsWithLongExpiry",
+      "tenantType": ["AAD", "CIAM"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-PrivilegedUsersCaAuthStrengthPhishResistant",
+      "tenantType": ["AAD", "CIAM"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-PrivilegedUsersPhishResistantMethodRegistered",
+      "tenantType": ["AAD", "CIAM"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-UsersPhishResistantMethodRegistered",
+      "tenantType": ["AAD", "CIAM"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-GuestCantInviteGuests",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-GuestHaveRestrictedAccess",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-BlockLegacyAuthCaPolicy",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-CreatingNewAppsRestrictedToPrivilegedUsers",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-DiagnosticSettingsConfiguredEntraLogs",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-HighPriorityEntraRecommendationsAddressed",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21795",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21797",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21800",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21808",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21815",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21829",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21861",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21863",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21864",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21866",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21872",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21774",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21775",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21776",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21777",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21778",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21779",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21780",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21784",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21786",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21787",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21788",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21789",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21790",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21793",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21798",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21799",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21802",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21803",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21804",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21806",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21809",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21810",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21811",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21812",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21813",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21816",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21817",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21818",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21819",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21820",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21821",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21822",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21823",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21824",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21825",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21828",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21830",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21831",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21832",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21833",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21834",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21835",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21836",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21837",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21838",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21839",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21840",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21841",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21842",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21843",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21844",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21845",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21846",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21847",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21848",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21849",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21850",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21854",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21855",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21857",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21858",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21859",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21862",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21865",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21867",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21868",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21869",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21870",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21874",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21875",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21876",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21877",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21878",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21879",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21881",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21882",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21883",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21884",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21885",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-Assessment-21886",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21887",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21888",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21889",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21890",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21891",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21892",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21893",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21894",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21895",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21896",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21897",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21898",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21899",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21912",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21929",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21941",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21953",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21954",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21955",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21964",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21983",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21984",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21985",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-21992",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    },
+    {
+      "name": "Test-Assessment-22072",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22098",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22099",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22100",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22101",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22102",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22128",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-22659",
+      "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-Assessment-23183",
+      "tenantType": ["AAD"],
+      "requiresDatabase": true
+    }
+  ]
+}
