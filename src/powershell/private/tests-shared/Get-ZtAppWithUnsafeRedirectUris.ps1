@@ -7,7 +7,11 @@ function Get-ZtAppWithUnsafeRedirectUris {
     [CmdletBinding()]
     param($Database,
         # 'ServicePrincipal' or 'Application'
-        $Type)
+        $Type,
+
+        # Switch to run DNS resolution checks only
+        [switch]$DnsCheckOnly = $false
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     # Get current tenantid
@@ -36,63 +40,72 @@ function Get-ZtAppWithUnsafeRedirectUris {
     foreach ($item in $results) {
         $riskyUrls = @()
 
-        if($tenantsToIgnore -contains $item.appOwnerOrganizationId) {
+        if ($tenantsToIgnore -contains $item.appOwnerOrganizationId) {
             continue
         }
 
         foreach ($url in $item.replyUrls) {
-            # skip localhost and non http(s) urls
-            if ($url -like "*localhost*") {
-                $riskyUrls += "1️⃣ $url"
-                continue
-            }
-            if ($url -like "http:*") { #Should use https
-                $riskyUrls += "2️⃣ $url"
-                continue
-            }
-            if ($url -like "*azurewebsites.net*") {
-                $riskyUrls += "3️⃣ $url"
-                continue
-            }
 
+            if ($DnsCheckOnly) {
 
-            try {
-                # skip invalid urls
-                $uri = [System.Uri]::new($url)
-            }
-            catch {
-                $riskyUrls += "4️⃣ $url"
-                continue
-            }
+                if ($url -like "*localhost*") {
+                    continue
+                }
 
-            # Skip non http(s) urls
-            if ($uri.Scheme -ne 'http' -and $uri.Scheme -ne 'https') {
-                continue
-            }
+                try {
+                    # skip invalid urls
+                    $uri = [System.Uri]::new($url)
+                }
+                catch {
+                    continue
+                }
 
-            # Get domain from $uri
-            $domain = $uri.Host
+                # Skip non http(s) urls
+                if ($uri.Scheme -ne 'http' -and $uri.Scheme -ne 'https') {
+                    continue
+                }
 
-            Write-ZtProgress -Activity 'Checking redirect uri' -Status $url
-            if ($resolvedDomainsCache.ContainsKey($domain)) {
-                $isDnsResolved = $resolvedDomainsCache[$domain]
+                # Get domain from $uri
+                $domain = $uri.Host
+
+                Write-ZtProgress -Activity 'Checking redirect uri' -Status $url
+                if ($resolvedDomainsCache.ContainsKey($domain)) {
+                    $isDnsResolved = $resolvedDomainsCache[$domain]
+                }
+                else {
+                    # Cache domain resolution results to avoid multiple DNS queries
+                    $isDnsResolved = Test-DomainResolves -Domain $domain
+                    $resolvedDomainsCache[$domain] = $isDnsResolved
+                }
+
+                if (!$isDnsResolved) {
+                    $riskyUrls += "$url"
+                }
             }
             else {
-                # Cache domain resolution results to avoid multiple DNS queries
-                $isDnsResolved = Test-DomainResolves -Domain $domain
-                $resolvedDomainsCache[$domain] = $isDnsResolved
-            }
 
-            if (!$isDnsResolved) {
-                $riskyUrls += "5️⃣ $url"
-            }
+                # skip localhost and non http(s) urls
+                if ($url -like "*localhost*") {
+                    $riskyUrls += "1️⃣ $url"
+                    continue
+                }
+                if ($url -like "http:*") {
+                    #Should use https
+                    $riskyUrls += "2️⃣ $url"
+                    continue
+                }
+                if ($url -like "*azurewebsites.net*") {
+                    $riskyUrls += "3️⃣ $url"
+                    continue
+                }
 
-            # # Check if the url redirects to a different domain :
-            # NOTE: This has been taken out of the spec for now.
-            # $safeRedirect = Test-UriRedirectsToSameDomain -Url $url
-            # if (!$safeRedirect) {
-            #     $riskyUrls += "6️⃣ $url"
-            # }
+                # # Check if the url redirects to a different domain :
+                # NOTE: This has been taken out of the spec for now.
+                # $safeRedirect = Test-UriRedirectsToSameDomain -Url $url
+                # if (!$safeRedirect) {
+                #     $riskyUrls += "6️⃣ $url"
+                # }
+            }
 
         }
 
@@ -118,7 +131,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
     # create and return a pscustomobject with testResultMarkdown and passed
     $result = [PSCustomObject]@{
         TestResultMarkdown = $testResultMarkdown
-        Passed = $passed
+        Passed             = $passed
     }
     return $result
 }
@@ -127,15 +140,23 @@ function Get-RiskyAppList($Apps, $Type) {
     $mdInfo = ""
     $mdInfo += "| | Name | Unsafe Redirect URIs |"
     # Only add the app owner tenant column for ServicePrincipal
-    if($Type -eq 'ServicePrincipal') { $mdInfo += "App owner tenant |`n" }
-    else { $mdInfo += "`n" }
+    if ($Type -eq 'ServicePrincipal') {
+        $mdInfo += "App owner tenant |`n"
+    }
+    else {
+        $mdInfo += "`n"
+    }
 
     $mdInfo += "| :--- | :--- | :--- |"
-    if($Type -eq 'ServicePrincipal') { $mdInfo += " :--- |`n" }
-    else { $mdInfo += "`n" }
+    if ($Type -eq 'ServicePrincipal') {
+        $mdInfo += " :--- |`n"
+    }
+    else {
+        $mdInfo += "`n"
+    }
 
     foreach ($item in $Apps) {
-        if($Type -eq 'ServicePrincipal') {
+        if ($Type -eq 'ServicePrincipal') {
             $tenantName = Get-ZtTenantName -tenantId $item.appOwnerOrganizationId
             $tenantName = Get-SafeMarkdown $tenantName
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.id)/appId/$($item.appId)"
