@@ -21,6 +21,11 @@
       "requiresDatabase": true
     },
     {
+      "name": "Test-PrivilegedUsersSignInPhishResistant",
+      "tenantType": [],
+      "requiresDatabase": true
+    },
+    {
       "name": "Test-PrivilegedUsersCaAuthStrengthPhishResistant",
       "tenantType": ["AAD", "CIAM"],
       "requiresDatabase": false
@@ -53,6 +58,11 @@
     {
       "name": "Test-CreatingNewAppsRestrictedToPrivilegedUsers",
       "tenantType": ["AAD"],
+      "requiresDatabase": false
+    },
+    {
+      "name": "Test-GuestStrongAuthMethod",
+      "tenantType": [],
       "requiresDatabase": false
     },
     {
