@@ -121,7 +121,7 @@ function Invoke-ZtTests {
     Test-Assessment-21885 -Database $Database
     Test-Assessment-21886
     Test-Assessment-21887
-    Test-Assessment-21888
+    Test-Assessment-21888 -Database $Database
     Test-Assessment-21889
     Test-Assessment-21890
     Test-Assessment-21891
