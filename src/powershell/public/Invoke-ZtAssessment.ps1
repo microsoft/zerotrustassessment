@@ -21,15 +21,15 @@ function Invoke-ZtAssessment {
 
         # Optional. Number of days (between 1 and 30) to query sign-in logs. Defaults to last two days.
         [ValidateScript({
-                $_ -ge 1 -and $_ -le 30
+       v         $_ -ge 1 -and $_ -le 30
             },
             ErrorMessage = "Logs are only available for 30 days. Please enter a number between 1 and 30.")]
         [int]
-        $Days = 30,
+        $Days = 2,
 
         # Optional. The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to collecting sign logs for 60 minutes. Set to 0 for no limit.
         [int]
-        $MaximumSignInLogQueryTime = 60,
+        $MaximumSignInLogQueryTime = 4,
 
         # If specified, the previously exported data will be used to generate the report.
         [switch]

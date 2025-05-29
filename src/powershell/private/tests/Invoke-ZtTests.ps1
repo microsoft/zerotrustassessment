@@ -13,21 +13,21 @@ function Invoke-ZtTests {
     # We could also run all the cmdlets in this folder that start with Test-
     # For now, just run all tests sequentially
 
-    #Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
-    #Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
-    #Test-AppDontHaveSecrets -Database $Database
-    #Test-AppDontHaveCertsWithLongExpiry -Database $Database
+    Test-InactiveAppDontHaveHighPrivGraphPerm -Database $Database
+    Test-InactiveAppDontHaveHighPrivEntraRole -Database $Database
+    Test-AppDontHaveSecrets -Database $Database
+    Test-AppDontHaveCertsWithLongExpiry -Database $Database
     ## Test-PrivilegedUsersSignInPhishResistant (Blocked by lack of sign in log filter)
-    #Test-PrivilegedUsersCaAuthStrengthPhishResistant
-    #Test-PrivilegedUsersPhishResistantMethodRegistered -Database $Database
-    #Test-UsersPhishResistantMethodRegistered -Database $Database
-    #Test-GuestCantInviteGuests
-    #Test-GuestHaveRestrictedAccess
-    #Test-BlockLegacyAuthCaPolicy
-    #Test-CreatingNewAppsRestrictedToPrivilegedUsers
+    Test-PrivilegedUsersCaAuthStrengthPhishResistant
+    Test-PrivilegedUsersPhishResistantMethodRegistered -Database $Database
+    Test-UsersPhishResistantMethodRegistered -Database $Database
+    Test-GuestCantInviteGuests
+    Test-GuestHaveRestrictedAccess
+    Test-BlockLegacyAuthCaPolicy
+    Test-CreatingNewAppsRestrictedToPrivilegedUsers
     ## Test-GuestStrongAuthMethod # Not implemented - Blocked by lack of sign in log filter
-    #Test-DiagnosticSettingsConfiguredEntraLogs
+    Test-DiagnosticSettingsConfiguredEntraLogs
     Test-St0002AppsNotUsedInLast90Days -Database $Database
-    #Test-St0024MfaForAllUsers
+    Test-St0024MfaForAllUsers
     Test-UnprotectedEEIDApps -Database $Database
 }

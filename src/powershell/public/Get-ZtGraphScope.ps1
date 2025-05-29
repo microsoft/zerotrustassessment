@@ -34,6 +34,7 @@ Function Get-ZtGraphScope {
         'Policy.Read.ConditionalAccess'
         'UserAuthenticationMethod.Read.All'
         'CrossTenantInformation.ReadBasic.All'
+        'Policy.ReadWrite.AuthenticationFlows'
     )
 
     #$scopes += Get-EERequiredScopes -PermissionType Delegated
