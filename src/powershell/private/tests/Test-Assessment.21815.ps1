@@ -57,7 +57,7 @@ from UserRegistrationDetails u
         foreach ($result in $results) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $result.id
             $tableRows += @"
-| [$(Get-SafeMarkdown($result.userDisplayName))]($portalLink) | $($result.userPrincipalName) | $($result.roleDisplayName) | $($result.privilegeType)) |`n
+| [$(Get-SafeMarkdown($result.userDisplayName))]($portalLink) | $($result.userPrincipalName) | $($result.roleDisplayName) | $($result.privilegeType) |`n
 "@
         }
 
