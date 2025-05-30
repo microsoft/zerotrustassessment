@@ -7,7 +7,7 @@
     "Category": "Access control",
     "Title": "Admin consent workflow is enabled",
     "TenantType": [
-      "Workforce-excl",
+      "Workforce",
       "External"
     ],
     "RequiresDatabase": false
@@ -20,8 +20,8 @@
     "Category": "Access control",
     "Title": "All app assignment and group membership is governed",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -33,8 +33,8 @@
     "Category": "Access control",
     "Title": "All certificates Microsoft Entra Application Registrations and Service Principals must be issued by an approved certification authority",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -46,8 +46,8 @@
     "Category": "Access control",
     "Title": "All enterprise applications have owners",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -59,7 +59,7 @@
     "Category": "Access control",
     "Title": "All entitlement management packages that apply to guests have expirations or access reviews configured in their assignment policies",
     "TenantType": [
-      "Workforce-excl",
+      "Workforce",
       "External"
     ],
     "RequiresDatabase": false
@@ -72,8 +72,8 @@
     "Category": "Access control",
     "Title": "All entitlement management policies have an expiration date",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -83,10 +83,10 @@
     "UserImpact": "Medium",
     "RiskLevel": "Medium",
     "Category": "Access control",
-    "Title": "All entitlement management policies that apply to External-excl users require approval",
+    "Title": "All entitlement management policies that apply to External users require approval",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -98,7 +98,7 @@
     "Category": "Access control",
     "Title": "All groups in Conditional Access policies belong to a restricted management administrative unit",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -110,8 +110,8 @@
     "Category": "Access control",
     "Title": "All guests have a sponsor",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -123,8 +123,8 @@
     "Category": "Access control",
     "Title": "All privileged role assignments have a recipient that can receive notifications",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -136,8 +136,8 @@
     "Category": "Access control",
     "Title": "All registered redirect URIs must have proper DNS records and ownerships",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -149,8 +149,8 @@
     "Category": "Access control",
     "Title": "All risk detections are triaged",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -162,8 +162,8 @@
     "Category": "Access control",
     "Title": "All risky workload identities are triaged",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -175,8 +175,8 @@
     "Category": "Access control",
     "Title": "All risky workload identity sign ins are triaged",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -188,8 +188,8 @@
     "Category": "Access control",
     "Title": "All sign-in activity comes from managed devices",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -201,8 +201,8 @@
     "Category": "Access control",
     "Title": "All supported access lifecycle resources are managed with entitlement management packages",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -214,8 +214,8 @@
     "Category": "Access control",
     "Title": "All user sign in activity uses phishing-resistant authentication methods",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -227,8 +227,8 @@
     "Category": "Access control",
     "Title": "App registrations must not have dangling or abandoned domain redirect URIs",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -240,8 +240,8 @@
     "Category": "Access control",
     "Title": "Application Certificate Credentials are managed using HSM",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -253,8 +253,8 @@
     "Category": "Access control",
     "Title": "Applications that use Microsoft Entra for authentication and support provisioning are configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -266,8 +266,8 @@
     "Category": "Access control",
     "Title": "Authenticator app report suspicious activity is enabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -279,8 +279,8 @@
     "Category": "Access control",
     "Title": "Authenticator app shows sign-in context",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -292,8 +292,8 @@
     "Category": "Access control",
     "Title": "Azure resources used by Microsoft Entra only allow access from privileged roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -305,8 +305,8 @@
     "Category": "Access control",
     "Title": "Azure subscriptions used by Identity Governance are secured consistently with Identity Governance roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -318,7 +318,7 @@
     "Category": "Access control",
     "Title": "Block administrators from using SSPR",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -331,7 +331,7 @@
     "Title": "Block high risk sign-ins",
     "TenantType": [
       "Workforce",
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -343,7 +343,7 @@
     "Category": "Access control",
     "Title": "Block legacy Azure AD PowerShell module",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -355,7 +355,7 @@
     "Category": "Access control",
     "Title": "Block legacy Microsoft Online PowerShell module",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -367,7 +367,7 @@
     "Category": "Access control",
     "Title": "Conditional Access protected actions are enabled",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -379,7 +379,7 @@
     "Category": "Access control",
     "Title": "Directory sync account is locked down to specific named location",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -391,7 +391,7 @@
     "Category": "Access control",
     "Title": "Disable ciamlogin endpoints when custom domain enabled",
     "TenantType": [
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -403,8 +403,8 @@
     "Category": "Access control",
     "Title": "Enable custom banned passwords",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -416,7 +416,7 @@
     "Category": "Access control",
     "Title": "Enable custom domain",
     "TenantType": [
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -428,8 +428,8 @@
     "Category": "Access control",
     "Title": "Enable Microsoft Entra ID Protection policy to enforce multifactor authentication registration",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -441,8 +441,8 @@
     "Category": "Access control",
     "Title": "Enable protected actions to secure Conditional Access policy creation and changes",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -454,8 +454,8 @@
     "Category": "Access control",
     "Title": "Enable SSPR",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -467,7 +467,7 @@
     "Category": "Access control",
     "Title": "Enable WAF for ciamlogin endpoints",
     "TenantType": [
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -479,8 +479,8 @@
     "Category": "Access control",
     "Title": "Enterprise applications must require explicit assignment or scoped provisioning",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -492,8 +492,8 @@
     "Category": "Access control",
     "Title": "GDAP admin least privilege",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -505,7 +505,7 @@
     "Category": "Access control",
     "Title": "Guest access is limited to approved tenants",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -517,7 +517,7 @@
     "Category": "Access control",
     "Title": "Guest access is restricted",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -529,8 +529,8 @@
     "Category": "Access control",
     "Title": "Guest identities are lifecycle managed with access reviews",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -542,7 +542,7 @@
     "Category": "Access control",
     "Title": "Guest self-service sign up via user flow is disabled",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -554,8 +554,8 @@
     "Category": "Access control",
     "Title": "Guests are not assigned high privileged directory roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -567,7 +567,7 @@
     "Category": "Access control",
     "Title": "Guests don't have long lived sign-in sessions",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -579,8 +579,8 @@
     "Category": "Access control",
     "Title": "Guests don't own apps in the tenant",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -592,8 +592,8 @@
     "Category": "Access control",
     "Title": "Inactive guest identities are removed from the tenant",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -605,7 +605,7 @@
     "Category": "Access control",
     "Title": "Integrate Entra Audit logs with Azure Monitor",
     "TenantType": [
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -617,7 +617,7 @@
     "Category": "Access control",
     "Title": "Integrate Entra Sign-In logs with Azure Monitor",
     "TenantType": [
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -629,8 +629,8 @@
     "Category": "Access control",
     "Title": "Local Admin Password Solution is deployed",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -642,8 +642,8 @@
     "Category": "Access control",
     "Title": "Manage the local administrators on Microsoft Entra joined devices",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -655,8 +655,8 @@
     "Category": "Access control",
     "Title": "Migrate from legacy MFA and SSPR policies",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -668,8 +668,8 @@
     "Category": "Access control",
     "Title": "No Active low priority Entra recommendations found",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -681,8 +681,8 @@
     "Category": "Access control",
     "Title": "No Active Medium priority Entra recommendations found",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -694,8 +694,8 @@
     "Category": "Access control",
     "Title": "No nested groups in PIM for groups",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -707,8 +707,8 @@
     "Category": "Access control",
     "Title": "Passkey authentication method enabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -720,8 +720,8 @@
     "Category": "Access control",
     "Title": "Password expiration is disabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -733,7 +733,7 @@
     "Category": "Access control",
     "Title": "Password protection for on-premises is enabled",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -745,8 +745,8 @@
     "Category": "Access control",
     "Title": "Privileged roles aren't assigned to stale identities",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -758,8 +758,8 @@
     "Category": "Access control",
     "Title": "Privileged roles have access reviews",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -771,7 +771,7 @@
     "Category": "Access control",
     "Title": "Privileged user sessions don't have long lived sign-in sessions",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -783,8 +783,8 @@
     "Category": "Access control",
     "Title": "Reduce the user-visible password surface area",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -796,7 +796,7 @@
     "Category": "Access control",
     "Title": "Require multifactor authentication for device join and device registration using user action",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -808,8 +808,8 @@
     "Category": "Access control",
     "Title": "Require password reset notifications for administrator roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -821,8 +821,8 @@
     "Category": "Access control",
     "Title": "Require password reset notifications for user roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -834,8 +834,8 @@
     "Category": "Access control",
     "Title": "Restrict access to high risk users",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -847,8 +847,8 @@
     "Category": "Access control",
     "Title": "Restrict device code flow",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -860,8 +860,8 @@
     "Category": "Access control",
     "Title": "Restrict nonadministrator users from recovering the BitLocker keys for their owned devices",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -873,8 +873,8 @@
     "Category": "Access control",
     "Title": "Secure the MFA registration (My Security Info) page",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -886,8 +886,8 @@
     "Category": "Access control",
     "Title": "Security key attestation is enforced",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -899,8 +899,8 @@
     "Category": "Access control",
     "Title": "Security key authentication method enabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -912,8 +912,8 @@
     "Category": "Access control",
     "Title": "Self-Service Password Reset does not use Q & A",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -925,8 +925,8 @@
     "Category": "Access control",
     "Title": "Service principals don't have certificates or credentials associated with them",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -938,8 +938,8 @@
     "Category": "Access control",
     "Title": "Service principals use safe redirect URIs",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": true
   },
@@ -951,8 +951,8 @@
     "Category": "Access control",
     "Title": "Smart lockout duration is set to a minimum of 60",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -964,8 +964,8 @@
     "Category": "Access control",
     "Title": "Smart lockout threshold isn't greater than 10",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -977,8 +977,8 @@
     "Category": "Access control",
     "Title": "Temporary access pass is enabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -990,8 +990,8 @@
     "Category": "Access control",
     "Title": "Temporary access pass restricted to one-time use",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1003,8 +1003,8 @@
     "Category": "Access control",
     "Title": "Tenant app management policy is configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1014,10 +1014,10 @@
     "UserImpact": "Medium",
     "RiskLevel": "Medium",
     "Category": "Access control",
-    "Title": "Tenant does have controls to selectively onboard External-excl organizations (cross-tenant access polices and domain-based allow/deny lists)",
+    "Title": "Tenant does have controls to selectively onboard External organizations (cross-tenant access polices and domain-based allow/deny lists)",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1027,10 +1027,10 @@
     "UserImpact": "Medium",
     "RiskLevel": "Medium",
     "Category": "Access control",
-    "Title": "Tenant has all External-excl organizations allowed to collaborate as Connected Organization",
+    "Title": "Tenant has all External organizations allowed to collaborate as Connected Organization",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1042,8 +1042,8 @@
     "Category": "Access control",
     "Title": "Tenant restrictions v2 are configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1055,8 +1055,8 @@
     "Category": "Access control",
     "Title": "Token protection policies are configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1068,8 +1068,8 @@
     "Category": "Access control",
     "Title": "Trusted network locations are configured to increase quality of risk detections",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1081,8 +1081,8 @@
     "Category": "Access control",
     "Title": "Turn off Seamless SSO if there are is no usage",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1094,7 +1094,7 @@
     "Category": "Access control",
     "Title": "Use cloud authentication",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1106,8 +1106,8 @@
     "Category": "Access control",
     "Title": "Use PIM for Microsoft Entra privileged roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1119,8 +1119,8 @@
     "Category": "Access control",
     "Title": "User consent settings are restricted",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1132,8 +1132,8 @@
     "Category": "Access control",
     "Title": "Weak authentication methods are disabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1145,8 +1145,8 @@
     "Category": "Access control",
     "Title": "Workload identities are configured with risk-based policies",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1158,8 +1158,8 @@
     "Category": "Access control",
     "Title": "Workload identities based on known networks are configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1171,8 +1171,8 @@
     "Category": "Application management",
     "Title": "App registrations use safe redirect URIs",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": true
   },
@@ -1197,8 +1197,8 @@
     "Category": "Application management",
     "Title": "Line-of-business and partner apps use MSAL",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1210,8 +1210,8 @@
     "Category": "Application management",
     "Title": "No usage of ADAL in the tenant",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1223,8 +1223,8 @@
     "Category": "Application management",
     "Title": "Use recent versions of Microsoft Applications",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1236,8 +1236,8 @@
     "Category": "Application management",
     "Title": "Workload identities assigned privileged roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1249,7 +1249,7 @@
     "Category": "Device management",
     "Title": "Limit the maximum number of devices per user to 10",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1261,8 +1261,8 @@
     "Category": "Monitoring",
     "Title": "All high-risk sign-ins are triaged",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1274,8 +1274,8 @@
     "Category": "Monitoring",
     "Title": "All high-risk users are triaged",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1287,8 +1287,8 @@
     "Category": "Monitoring",
     "Title": "All Microsoft Entra recommendations are addressed",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1300,8 +1300,8 @@
     "Category": "Monitoring",
     "Title": "High priority Entra recommendations are addressed",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1313,8 +1313,8 @@
     "Category": "Monitoring",
     "Title": "ID Protection notifications enabled",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1326,7 +1326,7 @@
     "Category": "Monitoring",
     "Title": "Tenant creation events are triaged",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1338,7 +1338,7 @@
     "Category": "Privileged access",
     "Title": "Activation alert for all privileged role assignments",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1350,7 +1350,7 @@
     "Category": "Privileged access",
     "Title": "Activation alert for Global Administrator role assignments",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1362,7 +1362,7 @@
     "Category": "Privileged access",
     "Title": "Activation alert for highly privileged role assignments",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1374,7 +1374,7 @@
     "Category": "Privileged access",
     "Title": "All privileged role assignments are activated just in time and not permanently active",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1386,7 +1386,7 @@
     "Category": "Privileged access",
     "Title": "All privileged role assignments are managed with PIM",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1398,7 +1398,7 @@
     "Category": "Privileged access",
     "Title": "Directory Sync account credentials haven't been rotated recently",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1410,7 +1410,7 @@
     "Category": "Privileged access",
     "Title": "Emergency account exists",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1422,7 +1422,7 @@
     "Category": "Privileged access",
     "Title": "Global Administrator role activation triggers an approval workflow",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1434,7 +1434,7 @@
     "Category": "Privileged access",
     "Title": "Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1446,7 +1446,7 @@
     "Category": "Privileged access",
     "Title": "High Global Administrator to privileged user ratio",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1458,7 +1458,7 @@
     "Category": "Privileged access",
     "Title": "Highly privileged roles are only activated in a PAW/SAW device",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1470,7 +1470,7 @@
     "Category": "Privileged access",
     "Title": "Maximum number of Global Administrators doesn't exceed eight users",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1482,8 +1482,8 @@
     "Category": null,
     "Title": "All user sign-in activity uses strong authentication methods",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1495,8 +1495,8 @@
     "Category": null,
     "Title": "Applications don't have certificates with expiration longer than 180 days",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1508,8 +1508,8 @@
     "Category": null,
     "Title": "Applications don't have secrets configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1521,8 +1521,8 @@
     "Category": null,
     "Title": "Authentication transfer is blocked",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1534,7 +1534,7 @@
     "Category": null,
     "Title": "Block legacy authentication policy is configured",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1546,8 +1546,8 @@
     "Category": null,
     "Title": "Checking Resource-Specific Consent is restricted",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1559,7 +1559,7 @@
     "Category": null,
     "Title": "Creating new applications and service principles is restricted to privileged users",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1571,8 +1571,8 @@
     "Category": null,
     "Title": "Diagnostic settings are configured for all Microsoft Entra logs",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1584,7 +1584,7 @@
     "Category": null,
     "Title": "Guest access is protected by strong authentication methods",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1608,7 +1608,7 @@
     "Category": null,
     "Title": "Guests have restricted access to directory objects",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1620,8 +1620,8 @@
     "Category": null,
     "Title": "Inactive applications don't have highly privileged built-in roles",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1633,8 +1633,8 @@
     "Category": null,
     "Title": "Inactive applications don't have highly privileged Microsoft Graph API permissions",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1647,7 +1647,7 @@
     "Title": "Microsoft services applications don't have credentials configured",
     "TenantType": [
       "Workforce",
-      "External-excl"
+      "External"
     ],
     "RequiresDatabase": true
   },
@@ -1659,7 +1659,7 @@
     "Category": null,
     "Title": "No legacy authentication sign-in activity",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1671,8 +1671,8 @@
     "Category": null,
     "Title": "Outbound cross-tenant access settings are configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1684,7 +1684,7 @@
     "Category": null,
     "Title": "Permissions to create new tenants is limited to the Tenant Creator role",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1696,7 +1696,7 @@
     "Category": null,
     "Title": "Privileged accounts are cloud native identities",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1708,7 +1708,7 @@
     "Category": null,
     "Title": "Privileged accounts have phishing-resistant methods registered",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1720,7 +1720,7 @@
     "Category": null,
     "Title": "Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1732,7 +1732,7 @@
     "Category": null,
     "Title": "Privileged users sign in with phishing-resistant methods",
     "TenantType": [
-      "Workforce-excl"
+      "Workforce"
     ],
     "RequiresDatabase": false
   },
@@ -1744,8 +1744,8 @@
     "Category": null,
     "Title": "Unknown Title",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": true
   },
@@ -1757,8 +1757,8 @@
     "Category": null,
     "Title": "User sign-in activity uses token protection",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   },
@@ -1770,8 +1770,8 @@
     "Category": null,
     "Title": "Users have strong authentication methods configured",
     "TenantType": [
-      "Workforce-excl",
-      "External-excl"
+      "Workforce",
+      "External"
     ],
     "RequiresDatabase": false
   }
