@@ -3,7 +3,7 @@
     Checks that a guest user does not invite other guests.
 #>
 
-function Test-GuestCantInviteGuests{
+function Test-Assessment-21791{
     [CmdletBinding()]
     param()
 

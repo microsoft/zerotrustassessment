@@ -3,7 +3,7 @@
     Checks that admins are enforced for phishing resistant authentication.
 #>
 
-function Test-PrivilegedUsersSignInPhishResistant {
+function Test-Assessment-21781 {
     [CmdletBinding()]
     param()
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose

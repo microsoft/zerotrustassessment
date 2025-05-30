@@ -4,7 +4,7 @@
     Gets the authentication methods registered by all users.
 #>
 
-function Test-UsersPhishResistantMethodRegistered {
+function Test-Assessment-21801 {
     [CmdletBinding()]
     param(
         $Database

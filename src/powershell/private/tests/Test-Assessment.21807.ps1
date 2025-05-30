@@ -3,7 +3,7 @@
     Checks that user is not able to register apps.
 #>
 
-function Test-CreatingNewAppsRestrictedToPrivilegedUsers {
+function Test-Assessment-21807 {
     [CmdletBinding()]
     param()
 

@@ -4,7 +4,7 @@
     Checks that admins are not synced from on-prem
 #>
 
-function Test-PrivilegedRolesAreCloudOnly {
+function Test-Assessment-21814 {
     [CmdletBinding()]
     param()
 

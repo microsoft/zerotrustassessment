@@ -4,7 +4,7 @@
 
 #>
 
-function Test-InactiveAppDontHaveHighPrivGraphPerm {
+function Test-Assessment-21770 {
     [CmdletBinding()]
     param(
         $Database

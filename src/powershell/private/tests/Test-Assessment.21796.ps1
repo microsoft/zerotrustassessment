@@ -3,7 +3,7 @@
     Checks that legacy auth is blocked.
 #>
 
-function Test-BlockLegacyAuthCaPolicy {
+function Test-Assessment-21796 {
     [CmdletBinding()]
     param()
 

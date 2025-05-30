@@ -4,7 +4,7 @@
 
 #>
 
-function Test-GuestHaveRestrictedAccess {
+function Test-Assessment-21792 {
     [CmdletBinding()]
     param(
         $Database

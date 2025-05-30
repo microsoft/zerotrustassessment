@@ -4,7 +4,7 @@
 
 #>
 
-function Test-AppDontHaveCertsWithLongExpiry {
+function Test-Assessment-21773 {
     [CmdletBinding()]
     param(
         $Database

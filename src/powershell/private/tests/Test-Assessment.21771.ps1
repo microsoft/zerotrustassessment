@@ -4,7 +4,7 @@
 
 #>
 
-function Test-InactiveAppDontHaveHighPrivEntraRole {
+function Test-Assessment-21771 {
     [CmdletBinding()]
     param(
         $Database

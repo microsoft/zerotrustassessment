@@ -4,7 +4,7 @@
 
 #>
 
-function Test-AppDontHaveSecrets {
+function Test-Assessment-21772 {
     [CmdletBinding()]
     param(
         $Database

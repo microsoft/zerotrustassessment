@@ -3,7 +3,7 @@
     Checks that admins are enforced for phishing resistant authentication.
 #>
 
-function Test-PrivilegedUsersCaAuthStrengthPhishResistant {
+function Test-Assessment-21783 {
     [CmdletBinding()]
     param()
 

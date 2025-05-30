@@ -4,7 +4,7 @@
     Tests if all Entra Logs are configured with Diagnostic Settings.
 #>
 
-function Test-DiagnosticSettingsConfiguredEntraLogs {
+function Test-Assessment-21860 {
     [CmdletBinding()]
     param()
 

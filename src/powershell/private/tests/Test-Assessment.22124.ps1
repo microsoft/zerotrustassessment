@@ -3,7 +3,7 @@
     Checks that high priority Entra recommendations are addressed
 #>
 
-function Test-HighPriorityEntraRecommendationsAddressed {
+function Test-Assessment-22124 {
     [CmdletBinding()]
     param()
 

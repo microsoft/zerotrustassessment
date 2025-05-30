@@ -4,7 +4,7 @@
 
 #>
 
-function Test-GuestStrongAuthMethod {
+function Test-Assessment-21851 {
     [CmdletBinding()]
     param(
         $Database

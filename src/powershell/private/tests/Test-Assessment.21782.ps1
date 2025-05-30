@@ -4,7 +4,7 @@
 
 #>
 
-function Test-PrivilegedUsersPhishResistantMethodRegistered {
+function Test-Assessment-21782 {
     [CmdletBinding()]
     param(
         $Database
