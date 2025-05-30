@@ -25,15 +25,23 @@ function Invoke-ZtTests {
     $config = $configContent | ConvertFrom-Json
 
     # Filter tests by tenant type and execute them
-    # Note: Your config structure uses test IDs as keys, so we need to iterate through values
     $config.PSObject.Properties | ForEach-Object {
         $test = $_.Value
         if ($test.TenantType -contains $mappedTenantType) {
             $testName = "Test-Assessment-$($test.TestId)"
-            if ($test.RequiresDatabase) {
-                & $testName -Database $Database
+
+            # Check if the function exists and what parameters it has
+            $command = Get-Command $testName -ErrorAction SilentlyContinue
+            if ($command) {
+                $hasDbParam = $command.Parameters.ContainsKey("Database")
+
+                if ($hasDbParam) {
+                    & $testName -Database $Database
+                } else {
+                    & $testName
+                }
             } else {
-                & $testName
+                Write-Warning "Test function '$testName' not found"
             }
         }
     }

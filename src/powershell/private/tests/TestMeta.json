@@ -9,8 +9,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21897": {
     "TestId": "21897",
@@ -22,8 +21,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21894": {
     "TestId": "21894",
@@ -35,8 +33,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21867": {
     "TestId": "21867",
@@ -48,8 +45,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21929": {
     "TestId": "21929",
@@ -61,8 +57,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21878": {
     "TestId": "21878",
@@ -74,8 +69,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21879": {
     "TestId": "21879",
@@ -87,8 +81,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21832": {
     "TestId": "21832",
@@ -99,8 +92,7 @@
     "Title": "All groups in Conditional Access policies belong to a restricted management administrative unit",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21877": {
     "TestId": "21877",
@@ -112,8 +104,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21899": {
     "TestId": "21899",
@@ -125,8 +116,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21887": {
     "TestId": "21887",
@@ -138,8 +128,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21864": {
     "TestId": "21864",
@@ -151,8 +140,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21862": {
     "TestId": "21862",
@@ -164,8 +152,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22659": {
     "TestId": "22659",
@@ -177,8 +164,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21892": {
     "TestId": "21892",
@@ -190,8 +176,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21898": {
     "TestId": "21898",
@@ -203,8 +188,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21784": {
     "TestId": "21784",
@@ -216,8 +200,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21888": {
     "TestId": "21888",
@@ -229,8 +212,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21895": {
     "TestId": "21895",
@@ -242,8 +224,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21886": {
     "TestId": "21886",
@@ -255,8 +236,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21841": {
     "TestId": "21841",
@@ -268,8 +248,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21802": {
     "TestId": "21802",
@@ -281,8 +260,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21912": {
     "TestId": "21912",
@@ -294,8 +272,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21881": {
     "TestId": "21881",
@@ -307,8 +284,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21842": {
     "TestId": "21842",
@@ -319,8 +295,7 @@
     "Title": "Block administrators from using SSPR",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21799": {
     "TestId": "21799",
@@ -332,8 +307,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21844": {
     "TestId": "21844",
@@ -344,8 +318,7 @@
     "Title": "Block legacy Azure AD PowerShell module",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21843": {
     "TestId": "21843",
@@ -356,8 +329,7 @@
     "Title": "Block legacy Microsoft Online PowerShell module",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21831": {
     "TestId": "21831",
@@ -368,8 +340,7 @@
     "Title": "Conditional Access protected actions are enabled",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21834": {
     "TestId": "21834",
@@ -380,8 +351,7 @@
     "Title": "Directory sync account is locked down to specific named location",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22101": {
     "TestId": "22101",
@@ -392,8 +362,7 @@
     "Title": "Disable ciamlogin endpoints when custom domain enabled",
     "TenantType": [
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21848": {
     "TestId": "21848",
@@ -405,8 +374,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22102": {
     "TestId": "22102",
@@ -417,8 +385,7 @@
     "Title": "Enable custom domain",
     "TenantType": [
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21893": {
     "TestId": "21893",
@@ -430,8 +397,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21964": {
     "TestId": "21964",
@@ -443,8 +409,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21870": {
     "TestId": "21870",
@@ -456,8 +421,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22100": {
     "TestId": "22100",
@@ -468,8 +432,7 @@
     "Title": "Enable WAF for ciamlogin endpoints",
     "TenantType": [
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21869": {
     "TestId": "21869",
@@ -481,8 +444,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21859": {
     "TestId": "21859",
@@ -494,8 +456,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21822": {
     "TestId": "21822",
@@ -506,8 +467,7 @@
     "Title": "Guest access is limited to approved tenants",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21821": {
     "TestId": "21821",
@@ -518,8 +478,7 @@
     "Title": "Guest access is restricted",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21857": {
     "TestId": "21857",
@@ -531,8 +490,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21823": {
     "TestId": "21823",
@@ -543,8 +501,7 @@
     "Title": "Guest self-service sign up via user flow is disabled",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22128": {
     "TestId": "22128",
@@ -556,8 +513,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21824": {
     "TestId": "21824",
@@ -568,8 +524,7 @@
     "Title": "Guests don't have long lived sign-in sessions",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21868": {
     "TestId": "21868",
@@ -581,8 +536,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21858": {
     "TestId": "21858",
@@ -594,8 +548,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22098": {
     "TestId": "22098",
@@ -606,8 +559,7 @@
     "Title": "Integrate Entra Audit logs with Azure Monitor",
     "TenantType": [
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22099": {
     "TestId": "22099",
@@ -618,8 +570,7 @@
     "Title": "Integrate Entra Sign-In logs with Azure Monitor",
     "TenantType": [
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21953": {
     "TestId": "21953",
@@ -631,8 +582,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21955": {
     "TestId": "21955",
@@ -644,8 +594,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21803": {
     "TestId": "21803",
@@ -657,8 +606,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21984": {
     "TestId": "21984",
@@ -670,8 +618,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21983": {
     "TestId": "21983",
@@ -683,8 +630,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21882": {
     "TestId": "21882",
@@ -696,8 +642,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21839": {
     "TestId": "21839",
@@ -709,8 +654,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21811": {
     "TestId": "21811",
@@ -722,8 +666,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21847": {
     "TestId": "21847",
@@ -734,8 +677,7 @@
     "Title": "Password protection for on-premises is enabled",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21854": {
     "TestId": "21854",
@@ -747,8 +689,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21855": {
     "TestId": "21855",
@@ -760,8 +701,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21825": {
     "TestId": "21825",
@@ -772,8 +712,7 @@
     "Title": "Privileged user sessions don't have long lived sign-in sessions",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21889": {
     "TestId": "21889",
@@ -785,8 +724,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21872": {
     "TestId": "21872",
@@ -797,8 +735,7 @@
     "Title": "Require multifactor authentication for device join and device registration using user action",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21891": {
     "TestId": "21891",
@@ -810,8 +747,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21890": {
     "TestId": "21890",
@@ -823,8 +759,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21797": {
     "TestId": "21797",
@@ -836,8 +771,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21808": {
     "TestId": "21808",
@@ -849,8 +783,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21954": {
     "TestId": "21954",
@@ -862,8 +795,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21806": {
     "TestId": "21806",
@@ -875,8 +807,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21840": {
     "TestId": "21840",
@@ -888,8 +819,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21838": {
     "TestId": "21838",
@@ -901,8 +831,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22072": {
     "TestId": "22072",
@@ -914,8 +843,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21896": {
     "TestId": "21896",
@@ -927,8 +855,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "23183": {
     "TestId": "23183",
@@ -940,8 +867,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": true
+    ]
   },
   "21849": {
     "TestId": "21849",
@@ -953,8 +879,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21850": {
     "TestId": "21850",
@@ -966,8 +891,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21845": {
     "TestId": "21845",
@@ -979,8 +903,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21846": {
     "TestId": "21846",
@@ -992,8 +915,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21775": {
     "TestId": "21775",
@@ -1005,8 +927,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21874": {
     "TestId": "21874",
@@ -1018,8 +939,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21875": {
     "TestId": "21875",
@@ -1031,8 +951,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21793": {
     "TestId": "21793",
@@ -1044,8 +963,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21941": {
     "TestId": "21941",
@@ -1057,8 +975,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21865": {
     "TestId": "21865",
@@ -1070,8 +987,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21985": {
     "TestId": "21985",
@@ -1083,8 +999,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21829": {
     "TestId": "21829",
@@ -1095,8 +1010,7 @@
     "Title": "Use cloud authentication",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21876": {
     "TestId": "21876",
@@ -1108,8 +1022,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21776": {
     "TestId": "21776",
@@ -1121,8 +1034,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21804": {
     "TestId": "21804",
@@ -1134,8 +1046,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21883": {
     "TestId": "21883",
@@ -1147,8 +1058,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21884": {
     "TestId": "21884",
@@ -1160,8 +1070,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21885": {
     "TestId": "21885",
@@ -1173,8 +1082,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": true
+    ]
   },
   "21992": {
     "TestId": "21992",
@@ -1186,8 +1094,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": true
+    ]
   },
   "21778": {
     "TestId": "21778",
@@ -1199,8 +1106,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21780": {
     "TestId": "21780",
@@ -1212,8 +1118,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21779": {
     "TestId": "21779",
@@ -1225,8 +1130,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21836": {
     "TestId": "21836",
@@ -1238,8 +1142,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21837": {
     "TestId": "21837",
@@ -1250,8 +1153,7 @@
     "Title": "Limit the maximum number of devices per user to 10",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21863": {
     "TestId": "21863",
@@ -1263,8 +1165,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21861": {
     "TestId": "21861",
@@ -1276,8 +1177,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21866": {
     "TestId": "21866",
@@ -1289,8 +1189,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "22124": {
     "TestId": "22124",
@@ -1302,8 +1201,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21798": {
     "TestId": "21798",
@@ -1315,8 +1213,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21789": {
     "TestId": "21789",
@@ -1327,8 +1224,7 @@
     "Title": "Tenant creation events are triaged",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21820": {
     "TestId": "21820",
@@ -1339,8 +1235,7 @@
     "Title": "Activation alert for all privileged role assignments",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21819": {
     "TestId": "21819",
@@ -1351,8 +1246,7 @@
     "Title": "Activation alert for Global Administrator role assignments",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21818": {
     "TestId": "21818",
@@ -1363,8 +1257,7 @@
     "Title": "Activation alert for highly privileged role assignments",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21815": {
     "TestId": "21815",
@@ -1375,8 +1268,7 @@
     "Title": "All privileged role assignments are activated just in time and not permanently active",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21816": {
     "TestId": "21816",
@@ -1387,8 +1279,7 @@
     "Title": "All privileged role assignments are managed with PIM",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21833": {
     "TestId": "21833",
@@ -1399,8 +1290,7 @@
     "Title": "Directory Sync account credentials haven't been rotated recently",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21835": {
     "TestId": "21835",
@@ -1411,8 +1301,7 @@
     "Title": "Emergency account exists",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21817": {
     "TestId": "21817",
@@ -1423,8 +1312,7 @@
     "Title": "Global Administrator role activation triggers an approval workflow",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21788": {
     "TestId": "21788",
@@ -1435,8 +1323,7 @@
     "Title": "Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21813": {
     "TestId": "21813",
@@ -1447,8 +1334,7 @@
     "Title": "High Global Administrator to privileged user ratio",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21830": {
     "TestId": "21830",
@@ -1459,8 +1345,7 @@
     "Title": "Highly privileged roles are only activated in a PAW/SAW device",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21812": {
     "TestId": "21812",
@@ -1471,8 +1356,7 @@
     "Title": "Maximum number of Global Administrators doesn't exceed eight users",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21800": {
     "TestId": "21800",
@@ -1484,8 +1368,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21773": {
     "TestId": "21773",
@@ -1497,8 +1380,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21772": {
     "TestId": "21772",
@@ -1510,8 +1392,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21828": {
     "TestId": "21828",
@@ -1523,8 +1404,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21796": {
     "TestId": "21796",
@@ -1535,8 +1415,7 @@
     "Title": "Block legacy authentication policy is configured",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21810": {
     "TestId": "21810",
@@ -1548,8 +1427,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21807": {
     "TestId": "21807",
@@ -1560,8 +1438,7 @@
     "Title": "Creating new applications and service principles is restricted to privileged users",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21860": {
     "TestId": "21860",
@@ -1573,8 +1450,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21851": {
     "TestId": "21851",
@@ -1585,8 +1461,7 @@
     "Title": "Guest access is protected by strong authentication methods",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21791": {
     "TestId": "21791",
@@ -1597,8 +1472,7 @@
     "Title": "Guests can't invite other guests",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21792": {
     "TestId": "21792",
@@ -1609,8 +1483,7 @@
     "Title": "Guests have restricted access to directory objects",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21771": {
     "TestId": "21771",
@@ -1622,8 +1495,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21770": {
     "TestId": "21770",
@@ -1635,8 +1507,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21774": {
     "TestId": "21774",
@@ -1648,8 +1519,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": true
+    ]
   },
   "21795": {
     "TestId": "21795",
@@ -1660,8 +1530,7 @@
     "Title": "No legacy authentication sign-in activity",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21790": {
     "TestId": "21790",
@@ -1673,8 +1542,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21787": {
     "TestId": "21787",
@@ -1685,8 +1553,7 @@
     "Title": "Permissions to create new tenants is limited to the Tenant Creator role",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21814": {
     "TestId": "21814",
@@ -1697,8 +1564,7 @@
     "Title": "Privileged accounts are cloud native identities",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21782": {
     "TestId": "21782",
@@ -1709,8 +1575,7 @@
     "Title": "Privileged accounts have phishing-resistant methods registered",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21783": {
     "TestId": "21783",
@@ -1721,8 +1586,7 @@
     "Title": "Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21781": {
     "TestId": "21781",
@@ -1733,8 +1597,7 @@
     "Title": "Privileged users sign in with phishing-resistant methods",
     "TenantType": [
       "Workforce"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21777": {
     "TestId": "21777",
@@ -1746,8 +1609,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": true
+    ]
   },
   "21786": {
     "TestId": "21786",
@@ -1759,8 +1621,7 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   },
   "21801": {
     "TestId": "21801",
@@ -1772,7 +1633,6 @@
     "TenantType": [
       "Workforce",
       "External"
-    ],
-    "RequiresDatabase": false
+    ]
   }
 }
