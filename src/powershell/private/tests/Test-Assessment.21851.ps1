@@ -26,5 +26,5 @@ function Test-Assessment-21851 {
     Add-ZtTestResultDetail -TestId '21851' -Title 'All guests user strong authentication methods' `
         -UserImpact Medium -Risk Medium -ImplementationCost Medium `
         -AppliesTo Identity -Tag Application `
-        -Status $passed -Result $testResultMarkdown
+        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
 }

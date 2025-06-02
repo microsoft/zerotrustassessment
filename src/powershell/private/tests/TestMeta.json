@@ -1605,7 +1605,7 @@
     "UserImpact": null,
     "RiskLevel": null,
     "Category": null,
-    "Title": "Unknown Title",
+    "Title": "App Instance Property Lock is configured for all multitenant applications",
     "TenantType": [
       "Workforce",
       "External"
