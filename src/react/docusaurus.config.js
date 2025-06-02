@@ -32,7 +32,15 @@ const config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'ja', 'ko', 'zh-CN', 'zh-TW','es'],
+    localeConfigs: {
+      en: { label: 'English' },
+      ja: { label: '日本語' },
+      ko: { label: '한국어' },
+      'zh-CN': { label: '简体中文' },
+      'zh-TW': { label: '繁體中文' },
+      'es':{label: 'Español'}
+    },
   },
 
   plugins: [
@@ -101,16 +109,37 @@ const config = {
               }
             ]
           },
+          {
+            type: 'dropdown',
+            position: 'left',
+            label: 'FAQs',
+            items: [
+              {
+                label: "General FAQs",
+                type: 'doc',
+                docId: 'zFAQs/generalFAQs'
+              },
+              {
+                label: 'Partner FAQs',
+                type: 'doc',
+                docId: 'zFAQs/partnerFAQs'
+              }
+            ]
+          },
           // {
           //   to: 'testimonials',
           //   position: 'right',
           //   label: 'Testimonials',
           // },
           {
-            to: 'https://aka.ms/zerotrust',
+            type: 'localeDropdown',
             position: 'right',
-            label: 'Microsoft Zero Trust',
           },
+          // {
+          //   to: 'https://aka.ms/zerotrust',
+          //   position: 'right',
+          //   label: 'Microsoft Zero Trust',
+          // },
         ],
       },
       footer: {

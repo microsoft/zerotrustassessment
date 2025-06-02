@@ -1,0 +1,46 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docsSidebar.category.Workshop Guided Videos": {
+    "message": "Workshop Guided Videos",
+    "description": "The label for category Workshop Guided Videos in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Workshop Guidance": {
+    "message": "Workshop Guidance",
+    "description": "The label for category Workshop Guidance in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Identity": {
+    "message": "Identity",
+    "description": "The label for category Identity in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Identity.link.generated-index.description": {
+    "message": "Identity workshop guidance.",
+    "description": "The generated-index page description for category Identity in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Devices": {
+    "message": "Devices",
+    "description": "The label for category Devices in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Devices.link.generated-index.description": {
+    "message": "Devices workshop guidance.",
+    "description": "The generated-index page description for category Devices in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.DevSecOps": {
+    "message": "DevSecOps",
+    "description": "The label for category DevSecOps in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.DevSecOps.link.generated-index.description": {
+    "message": "DevSecOps workshop guidance.",
+    "description": "The generated-index page description for category DevSecOps in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Data": {
+    "message": "Data",
+    "description": "The label for category Data in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Data.link.generated-index.description": {
+    "message": "Data workshop guidance.",
+    "description": "The generated-index page description for category Data in sidebar docsSidebar"
+  }
+}

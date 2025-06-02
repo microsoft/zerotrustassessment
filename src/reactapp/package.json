@@ -1,0 +1,60 @@
+{
+  "name": "zerotrustassessment",
+  "version": "0.1.0",
+  "homepage": "https://microsoft.github.io/zerotrustassessment/",
+  "private": true,
+  "dependencies": {
+    "@azure/msal-browser": "^2.33.0",
+    "@azure/msal-common": "^10.0.0",
+    "@azure/msal-react": "^1.5.3",
+    "@fluentui/react-components": "^9.15.6",
+    "@icongo/vsc": "^1.1.2",
+    "@microsoft/mgt": "^2.9.0",
+    "@microsoft/mgt-element": "^2.9.0",
+    "@microsoft/mgt-msal2-provider": "^2.9.0",
+    "@microsoft/mgt-react": "^2.9.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "http-proxy-middleware": "^2.0.9",
+    "nth-check": "^2.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.2",
+    "react-scripts": "5.0.1",
+    "react-social-icons": "^5.15.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "set HTTPS=true&&react-scripts start",
+    "build": "CI=false && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "prestart": "node aspnetcore-https && node aspnetcore-react",
+    "predeploy" : "npm run build",
+    "deploy" : "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "eslint-config-react-app": "^7.0.1",
+    "gh-pages": "^5.0.0",
+    "jest-editor-support": "^31.1.2"
+  }
+}

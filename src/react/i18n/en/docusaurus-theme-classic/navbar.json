@@ -1,0 +1,30 @@
+{
+  "title": {
+    "message": "Zero Trust Workshop",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Site Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.About the Workshop": {
+    "message": "About the Workshop",
+    "description": "Navbar item with label About the Workshop"
+  },
+  "item.label.Plan": {
+    "message": "Plan",
+    "description": "Navbar item with label Plan"
+  },
+  "item.label.Learn": {
+    "message": "Learn",
+    "description": "Navbar item with label Learn"
+  },
+  "item.label.Workshop Docs": {
+    "message": "Workshop Docs",
+    "description": "Navbar item with label Workshop Docs"
+  },
+  "item.label.Workshop Videos": {
+    "message": "Workshop Videos",
+    "description": "Navbar item with label Workshop Videos"
+  }
+}

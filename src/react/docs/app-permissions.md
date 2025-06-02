@@ -51,12 +51,12 @@ Invoke-ZTAssessment -EnableTelemetry $true
 
 ## What are the permissions required for this app?
 
-* The app requires Global Admin to consent to the following **read-only** permissions.
-  * AuditLog.Read.All
+* The app requires Application Admin to consent to the following **read-only** permissions.
   * Agreement.Read.All
   * CrossTenantInformation.ReadBasic.All
   * Directory.Read.All
   * Policy.Read.All
+  * User.Read
   * DeviceManagementServiceConfig.Read.All
   * DeviceManagementConfiguration.Read.All
   * DeviceManagementRBAC.Read.All
