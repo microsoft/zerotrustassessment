@@ -1,28 +1,22 @@
-# Design and plan Microsoft Defender for Identity deployment
-**Implementation Effort:** Medium
+# Lay the Groundwork for Microsoft Defender for Identity
 
-**User Impact:** Medium
+**Implementation Effort:** Medium — While the deployment requires planning and coordination across teams, it follows a well-documented process and can be phased in gradually.
+
+**User Impact:** Medium — Although end users are not directly involved, security teams may need to notify certain users or departments if identity-related alerts or investigations arise during rollout.
 
 ## Overview
 
-**General Prerequisites**
-* **Licensing.** Enterprise Mobility + Security E5/A5, ‎Microsoft 365‎ E5/A5/G5, ‎Microsoft 365‎ E5/A5/G5 Security, or ‎Defender for Identity‎ standalone.
-* **Credentials.** A ‎Microsoft Entra ID‎ tenant with at least one global administrator or security administrator.
-* **Firewall requirements.** We recommend using a proxy server instead of allowing direct outbound connectivity to the internet through TCP port 443 and allowing sensors to access through that proxy only your dedicated ‎Defender for Identity‎ cloud service.
-* **We recommend that you open all [required ports](https://learn.microsoft.com/defender-for-identity/deploy/prerequisites#required-ports)**
-* **Server requirements**
-  * Windows‎ Server 2016 or later. For optimal performance, set the power option of the device running a ‎Defender for Identity‎ sensor to high performance.
-  * .NET Framework 4.7 or later.
-  * Minimum of 2 cores and 6 GB of RAM installed on the domain controller.
-  * Minimum of 6 GB disk space is required (10 GB is recommended).
-* **Windows‎ events.** Domain controller, ‎AD FS‎, or ‎AD CS‎ events should be turned on to gain the maximum level of protection from the product. For the list of ‎Windows‎ events, see [Configure ‎Windows‎ Event collection.](https://learn.microsoft.com/defender-for-identity/configure-windows-event-collection)
-* **Create a Directory Service account (DSA).** Defender uses DSAs to connect to on-premises directories and perform tasks like reading information and resetting passwords. See [‎Microsoft Defender for Identity‎ Directory Service account recommendations](https://learn.microsoft.com/defender-for-identity/directory-service-accounts) to learn more.
-* **Configure remote calls to Security Account Manager (SAM).** Lateral movement path detection in Defender relies on queries that identify local admins on specific machines. These queries are performed with the Security Account Manager Remote (SAM-R) protocol, using the DSA you configured. See [Configure SAM-R to enable lateral movement path detection in ‎Microsoft Defender for Identity‎] (https://learn.microsoft.com/defender-for-identity/remote-calls-sam) to learn more.
-* **Plan capacity.** Use the [sizing tool](https://github.com/microsoft/ATA-AATP-Sizing-Tool) to plan capacity.
-* **Network name resolution.** For best results, we recommend using all of the methods. If this isn't possible, you should use the DNS lookup method and at least one of the other methods. To learn more, see [What is Network Name Resolution?] (https://learn.microsoft.com/defender-for-identity/nnr-policy#prerequisites)
-* **Test your prerequisites.** We recommend running the [Test-MdiReadiness.ps1](https://learn.microsoft.com/defender-for-identity/deploy/prerequisites#test-your-prerequisites) script in ‎PowerShell‎. The script will query your domain, domain controllers, and Certificate Authority (CA) servers to report whether the ‎Defender for Identity‎ prerequisites are in place.
+Microsoft Defender for Identity (MDI) is a cloud-native security solution that helps detect identity-based threats by analyzing signals from Active Directory environments. It identifies suspicious activities such as lateral movement, credential theft, and privilege escalation, and integrates with Microsoft Defender XDR for broader threat correlation.
+
+Laying the groundwork includes:
+- Reviewing prerequisites and licensing.
+- Identifying domain controllers and network topology.
+- Installing sensors and configuring data collection.
+- Planning alert management and incident response workflows.
+
+Without MDI, organizations may lack visibility into identity-based attack vectors, which are often exploited early in breach attempts. This deployment supports the Zero Trust principle of **"Assume Breach"** by continuously monitoring identity signals and surfacing anomalies that indicate compromise.
 
 ## Reference
-* https://learn.microsoft.com/en-us/defender-for-identity/deploy/prerequisites
-* https://learn.microsoft.com/en-us/defender-for-identity/deploy/capacity-planning
-* https://admin.microsoft.com/Adminportal/Home?Q=ADG#/modernonboarding/microsoftdefenderforidentitysetupguide
+- [Deploy Microsoft Defender for Identity](https://learn.microsoft.com/en-us/defender-for-identity/deploy/deploy-defender-identity)
+- [Plan capacity for Microsoft Defender for Identity deployment](https://learn.microsoft.com/en-us/defender-for-identity/deploy/capacity-planning)
+- [Pilot and deploy Microsoft Defender for Identity](https://learn.microsoft.com/en-us/defender-xdr/pilot-deploy-defender-identity)
