@@ -59,6 +59,11 @@ function Export-TenantData {
         Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
             -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
             -QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
+
+        # Export role management policy assignments for PIM activation alert configuration
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
+            -EntityUri 'beta/policies/roleManagementPolicyAssignments' -ProgressActivity 'Role Management Policy Assignments' `
+            -QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
     }
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
