@@ -66,7 +66,7 @@ from UserRegistrationDetails u
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21781' -Title 'Privileged accounts have phishing-resistant methods registered' `
+    Add-ZtTestResultDetail -TestId '21782' -Title 'Privileged accounts have phishing-resistant methods registered' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
         -AppliesTo Identity -Tag Credential `
         -Status $passed -Result $testResultMarkdown

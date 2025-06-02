@@ -6,11 +6,14 @@
 function Invoke-ZtTests {
     [CmdletBinding()]
     param (
-        $Database,
-        [string]$ConfigPath = ".\private\tests\TestMeta.json",
-        [ValidateSet("AAD", "CIAM")]
-        [string]$TenantType = "AAD"
+        $Database
     )
+
+    # Get Tenant Type (AAD = Workforce, CIAM = EEID)
+    $org = Invoke-ZtGraphRequest -RelativeUri 'organization'
+    $tenantType = $org.TenantType
+    Write-PSFMessage "$tenantType tenant detected. This will determine the tests that are run."
+
 
     # Map input parameters to config file values
     $tenantTypeMapping = @{
@@ -20,13 +23,10 @@ function Invoke-ZtTests {
 
     $mappedTenantType = $tenantTypeMapping[$TenantType]
 
-    # Load the test configuration from JSON file
-    $configContent = Get-Content -Path $ConfigPath -Raw
-    $config = $configContent | ConvertFrom-Json
+    $config = $__ZtSession.TestMeta
 
     # Filter tests by tenant type and execute them
-    $config.PSObject.Properties | ForEach-Object {
-        $test = $_.Value
+    foreach ($test in $config.Values) {
         if ($test.TenantType -contains $mappedTenantType) {
             $testName = "Test-Assessment-$($test.TestId)"
 
@@ -41,7 +41,7 @@ function Invoke-ZtTests {
                     & $testName
                 }
             } else {
-                Write-Warning "Test function '$testName' not found"
+                Write-PSFMessage "Test function '$testName' not found" -Level Warning
             }
         }
     }

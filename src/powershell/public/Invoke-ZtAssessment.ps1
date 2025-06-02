@@ -110,12 +110,8 @@ Write-Host $banner -ForegroundColor Cyan
     Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime
     $db = Export-Database -ExportPath $exportPath
 
-    # Get Tenant Type (AAD = Workforce, CIAM = EEID)
-    $tenantType = Get-MgOrganization | Select-Object -ExpandProperty TenantType
-    Write-Host $tenantType "tenant detected. This will determine the tests that are run." -ForegroundColor Yellow
-
     # Run the tests
-    Invoke-ZtTests -Database $db -TenantType $tenantType
+    Invoke-ZtTests -Database $db
     Invoke-ZtTenantInfo -Database $db
 
     $assessmentResults = Get-ZtAssessmentResults
