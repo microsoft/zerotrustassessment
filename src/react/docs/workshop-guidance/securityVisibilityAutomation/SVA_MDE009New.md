@@ -1,4 +1,4 @@
-# Enable cloud-delivered protection
+# Enable cloud protection
 
 
 
