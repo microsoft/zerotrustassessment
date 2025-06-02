@@ -1,13 +1,19 @@
-# Prevent or allow users to locally modify Microsoft Defender Antivirus policy settings
+# Prevent users from locally modifying Microsoft Defender Antivirus policy settings
 
-**Implementation Effort:** Medium: Enabling local policy overrides requires IT and Security Operations teams to coordinate with specific user groups (e.g., researchers or analysts), define exceptions, and manage policy scope, which constitutes a project-level effort.
+**Implementation Effort:** Low  
+This setting is configured via Group Policy and does not require ongoing maintenance once deployed.
 
-**User Impact:** Medium: A subset of non-privileged users—typically those in specialized roles—must be informed and trained on how to use the override capability responsibly.
+**User Impact:** Low  
+End users are not notified or required to take any action; changes are enforced silently through policy.
 
 ## Overview
 
-By default, Microsoft Defender Antivirus settings that are deployed via a Group Policy Object to the endpoints in your network will prevent users from locally changing the settings.
-Local policy overrides allow specific users to modify Microsoft Defender Antivirus settings on their devices, even when centralized policies are in place.
+This configuration ensures that users cannot override Microsoft Defender Antivirus settings on their local devices. By default, when antivirus settings are deployed using Group Policy, local changes are blocked. However, administrators can explicitly configure override permissions for specific settings if needed (e.g., for security researchers). To enforce strict control, administrators should ensure all override policies are set to **Disabled**. This prevents users from using the Windows Security app, local Group Policy, or PowerShell to modify antivirus behavior.
+
+This setting supports the **Zero Trust principle of "Use least privilege access"** by ensuring that only authorized administrators can change security configurations, reducing the risk of misconfiguration or intentional tampering by end users. If not implemented, users could weaken endpoint protection by disabling real-time scanning or cloud-delivered protection, increasing the risk of malware infections.
 
 ## Reference
-https://learn.microsoft.com/en-us/defender-endpoint/configure-local-policy-overrides-microsoft-defender-antivirus
+
+- [Prevent or allow users to locally modify Microsoft Defender Antivirus policy settings – Microsoft Learn](https://learn.microsoft.com/en-us/defender-endpoint/configure-local-policy-overrides-microsoft-defender-antivirus)  
+- [Configure Microsoft Defender Antivirus with Group Policy](https://learn.microsoft.com/en-us/defender-endpoint/use-group-policy-microsoft-defender-antivirus)  
+- [Prevent users from seeing or interacting with Microsoft Defender Antivirus](https://learn.microsoft.com/en-us/defender-endpoint/prevent-end-user-interaction-microsoft-defender-antivirus)
