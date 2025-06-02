@@ -12,16 +12,9 @@ function Test-Assessment-21851 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $passed = $true
-
-    if ($passed) {
-        $testResultMarkdown += "All guests protected with strong authentication methods."
-    }
-    else {
-        $testResultMarkdown += "Guests are not using strong authentication methods`n`n%TestResult%"
-    }
-
-    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    $result = $false
+    $testResultMarkdown = "Planned for future release."
+    $passed = $result
 
     Add-ZtTestResultDetail -TestId '21851' -Title 'All guests user strong authentication methods' `
         -UserImpact Medium -Risk Medium -ImplementationCost Medium `
