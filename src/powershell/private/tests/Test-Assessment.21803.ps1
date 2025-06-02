@@ -3,7 +3,7 @@
 
 #>
 
-function Test-Assessment-21803{
+function Test-Assessment-21803 {
     [CmdletBinding()]
     param()
 
@@ -12,13 +12,33 @@ function Test-Assessment-21803{
     $activity = "Checking Migrate from legacy MFA and SSPR policies"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    $result = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationMethodsPolicy" -ApiVersion beta
+    if ($null -eq $result) {
+        Write-ZtProgress -Activity $activity -Status "Failed to retrieve policy"
+        return
+    }
 
+    # Check if combined security information registration is enabled in the tenant
+    if ($result.policyMigrationState -eq "migrationComplete") {
+        $passed = $true
+        $testResultMarkdown = "Combined registration is enabled.`n`n"
+    }
+    else {
+        $passed = $false
+        $testResultMarkdown = "Combined registration is not enabled.`n`n"
+    }
 
-    Add-ZtTestResultDetail -TestId '21803' -Title "Migrate from legacy MFA and SSPR policies" `
-        -UserImpact Low -Risk High -ImplementationCost Medium `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+    $params = @{
+        TestId             = '21803'
+        Title              = "Migrate from legacy MFA and SSPR policies"
+        UserImpact         = 'Medium'
+        Risk               = 'High'
+        ImplementationCost = 'Medium'
+        AppliesTo          = 'Identity'
+        Tag                = 'Identity'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
 }
