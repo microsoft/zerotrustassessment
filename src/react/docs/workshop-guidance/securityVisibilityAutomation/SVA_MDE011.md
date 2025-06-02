@@ -1,4 +1,4 @@
-# Identify your architecture and select a deployment method for Defender for Endpoint
+# Prevent users from seeing or interacting with the Microsoft Defender Antivirus user interface
 
 
 **Implementation Effort:** low: This feature can be enabled through targeted configuration changes using Group Policy or Intune, without requiring a broader program or ongoing resource commitment.
