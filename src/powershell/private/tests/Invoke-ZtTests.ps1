@@ -33,17 +33,17 @@ function Invoke-ZtTests {
     Test-Assessment-21797
     Test-Assessment-21800
     Test-Assessment-21808
-    Test-Assessment-21815
+    Test-Assessment-21815 -Database $Database
     Test-Assessment-21829
     Test-Assessment-21861
     Test-Assessment-21863
     Test-Assessment-21864
     Test-Assessment-21866
     Test-Assessment-21872
-    Test-Assessment-21774
+    Test-Assessment-21774 -Database $Database
     Test-Assessment-21775
     Test-Assessment-21776
-    Test-Assessment-21777
+    Test-Assessment-21777 -Database $Database
     Test-Assessment-21778
     Test-Assessment-21779
     Test-Assessment-21780
@@ -150,7 +150,7 @@ function Invoke-ZtTests {
     Test-Assessment-22100
     Test-Assessment-22101
     Test-Assessment-22102
-    Test-Assessment-22128
+    Test-Assessment-22128 -Database $Database
     Test-Assessment-22659
     Test-Assessment-23183 -Database $Database
 }
