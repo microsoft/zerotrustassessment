@@ -402,7 +402,7 @@ FodyWeavers.xsd
 
 .DS_Store
 /output
-/ZeroTrustReport
+ZeroTrustReport
 /src/report/dist
 /src/powershell/export
 ZeroTrustReport

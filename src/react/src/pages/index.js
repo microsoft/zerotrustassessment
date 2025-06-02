@@ -10,6 +10,9 @@ import styles from "./index.module.css";
 
 import { msalConfig, loginRequest, apiConfig } from "../authConfig";
 
+
+import Translate, { translate } from '@docusaurus/Translate';
+
 import {
   FluentProvider,
   teamsLightTheme,
@@ -111,10 +114,12 @@ function HomepageHeader() {
       <div className="hero-content">
         <div className="hero-text">
           <Heading as="h1" className="hero__title">
-            {siteConfig.title}
+            <Translate id="homepage.title">Microsoft Zero Trust Workshop</Translate>
           </Heading>
           <p>
-            A comprehensive technical guide to help customers and partners adopt a Zero Trust strategy and deploy security solutions end-to-end to secure their organizations.
+            <Translate id="homepage.description">
+              A comprehensive technical guide to help customers and partners adopt a Zero Trust strategy and deploy security solutions end-to-end to secure their organizations.
+            </Translate>
           </p>
         </div>
         <div className="hero-image">

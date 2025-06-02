@@ -1,0 +1,360 @@
+{
+  "homepage.title": {
+      "message": "微軟零信任工作坊"
+  },
+  "homepage.description": {
+      "message": "為客戶和合作夥伴提供的全面技術指南，幫助在其組織中基於零信任安全策略部署和保護安全解決方案。"
+  },
+  "homepage.whatIsZt.title": {
+      "message": "什麼是零信任"
+  },
+  "homepage.whatIsZt.sentence1": {
+      "message": "解決現代複雜安全挑戰很困難，但零信任安全策略在這方面提供了明確的方向。通過採用零信任安全策略，組織可以加強其安全狀態，降低風險和複雜性，同時改善合規性和治理。"
+  },
+  "homepage.whatIsZt.sentence2": {
+      "message": "零信任工作坊幫助將零信任安全原則應用於微軟安全解決方案。"
+  },
+  "homepage.whatIsZt.verify": {
+      "message": "始終驗證"
+  },
+  "homepage.whatIsZt.leastPriv": {
+      "message": "最小權限訪問"
+  },
+  "homepage.whatIsZt.assumeComp": {
+      "message": "假設遭受入侵"
+  },
+  "learnMore": {
+      "message": "了解更多"
+  },
+  "homepage.whyRunWorkshop.title": {
+      "message": "舉辦工作坊的目的"
+  },
+  "homepage.whyRunWorkshop.sentence1": {
+      "message": "零信任工作坊是微軟提供的部署指南，用於在實際環境中部署零信任安全策略。"
+  },
+  "homepage.whyRunWorkshop.sentence2": {
+      "message": "基於從數千個客戶實施案例中獲得的知識，您可以評估您當前的環境，並逐步檢查改善端到端安全狀態的具體步驟。"
+  },
+  "homepage.whyRunWorkshop.learnAboutWorkshop": {
+      "message": "了解工作坊"
+  },
+  "homepage.howRunWorkshop.title": {
+      "message": "如何舉辦工作坊"
+  },
+  "homepage.howRunWorkshop.sentence1": {
+      "message": "參考逐步指南，了解如何進行討論策略和評估當前環境的會議。如果您不知道如何開始，請查看零信任工作坊的介紹視頻。"
+  },
+  "homepage.howRunWorkshop.sentence2": {
+      "message": "基於從數千個客戶實施案例中獲得的知識，您可以評估您當前的環境，並逐步檢查改善端到端安全狀態的具體步驟。"
+  },
+  "SiteHeading": {
+      "message": "微軟零信任工作坊"
+  },
+  "theme.NotFound.title": {
+      "message": "找不到頁面",
+      "description": "404頁面的標題"
+  },
+  "theme.NotFound.p1": {
+      "message": "我們找不到您要查找的內容。",
+      "description": "404頁面的第一段落"
+  },
+  "theme.NotFound.p2": {
+      "message": "請聯繫將您連接到原始URL的網站所有者，告知他們他們的連結已損壞。",
+      "description": "404頁面的第二段落"
+  },
+  "theme.ErrorPageContent.title": {
+      "message": "此頁面已崩潰。",
+      "description": "當頁面崩潰時的後備頁面標題"
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+      "message": "返回頂部",
+      "description": "返回頂部按鈕的ARIA標籤"
+  },
+  "theme.blog.archive.title": {
+      "message": "歸檔",
+      "description": "博客歸檔頁面的頁面和英雄標題"
+  },
+  "theme.blog.archive.description": {
+      "message": "歸檔",
+      "description": "博客歸檔頁面的頁面和英雄描述"
+  },
+  "theme.blog.paginator.navAriaLabel": {
+      "message": "博客列表頁面導航",
+      "description": "博客分頁的ARIA標籤"
+  },
+  "theme.blog.paginator.newerEntries": {
+      "message": "較新的條目",
+      "description": "用於導航到較新博客文章頁面的標籤（上一頁）"
+  },
+  "theme.blog.paginator.olderEntries": {
+      "message": "較舊的條目",
+      "description": "用於導航到較舊博客文章頁面的標籤（下一頁）"
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+      "message": "博客文章頁面導航",
+      "description": "博客文章分頁的ARIA標籤"
+  },
+  "theme.blog.post.paginator.newerPost": {
+      "message": "較新文章",
+      "description": "博客文章按鈕標籤，用於導航到較新/上一篇文章"
+  },
+  "theme.blog.post.paginator.olderPost": {
+      "message": "較舊文章",
+      "description": "博客文章按鈕標籤，用於導航到較舊/下一篇文章"
+  },
+  "theme.tags.tagsPageLink": {
+      "message": "查看所有標籤",
+      "description": "指向標籤列表頁面的鏈接標籤"
+  },
+  "theme.colorToggle.ariaLabel": {
+      "message": "切換暗色和亮色模式（當前為{mode}）",
+      "description": "導航欄顏色模式切換的ARIA標籤"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+      "message": "暗色模式",
+      "description": "暗色模式的名稱"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+      "message": "亮色模式",
+      "description": "亮色模式的名稱"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+      "message": "麵包屑",
+      "description": "麵包屑的ARIA標籤"
+  },
+  "theme.docs.DocCard.categoryDescription.plurals": {
+      "message": "1 個項目|{count} 個項目",
+      "description": "在生成的索引中，類別卡片的默認描述，說明該類別包含多少個項目"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+      "message": "文檔頁面",
+      "description": "文檔分頁的ARIA標籤"
+  },
+  "theme.docs.paginator.previous": {
+      "message": "上一頁",
+      "description": "用於導航到上一個文檔的標籤"
+  },
+  "theme.docs.paginator.next": {
+      "message": "下一頁",
+      "description": "用於導航到下一個文檔的標籤"
+  },
+  "theme.docs.versionBadge.label": {
+      "message": "版本：{versionLabel}"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+      "message": "這是{siteTitle} {versionLabel}版本的未發布文檔。",
+      "description": "用來告訴用戶他正在瀏覽一個未發布的文檔版本的標籤"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+      "message": "這是{siteTitle} {versionLabel}的文檔，該版本不再積極維護。",
+      "description": "用來告訴用戶他正在瀏覽一個不再維護的文檔版本的標籤"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+      "message": "有關最新文檔，請參閱{latestVersionLink}（{versionLabel}）。",
+      "description": "用來告訴用戶查看最新版本的標籤"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+      "message": "最新版本",
+      "description": "最新版本建議鏈接標籤"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+      "message": "一個標記的文檔|{count}個標記的文檔",
+      "description": "用於\"{count}個標記的文檔\"的複數標籤。使用您的語言支持的盡可能多的複數形式（由\"|\"分隔）（請參閱https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html）"
+  },
+  "theme.docs.tagDocListPageTitle": {
+      "message": "{nDocsTagged}標記為\"{tagName}\"",
+      "description": "文檔標籤頁面的標題"
+  },
+  "theme.common.editThisPage": {
+      "message": "編輯此頁面",
+      "description": "編輯當前頁面的鏈接標籤"
+  },
+  "theme.lastUpdated.atDate": {
+      "message": "於{date}",
+      "description": "用於描述頁面最後更新日期的詞語"
+  },
+  "theme.lastUpdated.byUser": {
+      "message": "由{user}",
+      "description": "用於描述頁面最後被誰更新的詞語"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+      "message": "最後更新{atDate}{byUser}",
+      "description": "用於顯示頁面何時被誰最後更新的句子"
+  },
+  "theme.common.headingLinkTitle": {
+      "message": "直接鏈接到{heading}",
+      "description": "鏈接到標題的標題"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+      "message": "版本",
+      "description": "移動視圖中導航欄版本下拉列表的標籤"
+  },
+  "theme.tags.tagsListLabel": {
+      "message": "標籤：",
+      "description": "標籤列表旁邊的標籤"
+  },
+  "theme.admonition.caution": {
+      "message": "注意",
+      "description": "用於警告提示的默認標籤(:::caution)"
+  },
+  "theme.admonition.danger": {
+      "message": "危險",
+      "description": "用於危險提示的默認標籤(:::danger)"
+  },
+  "theme.admonition.info": {
+      "message": "信息",
+      "description": "用於信息提示的默認標籤(:::info)"
+  },
+  "theme.admonition.note": {
+      "message": "備註",
+      "description": "用於注釋提示的默認標籤(:::note)"
+  },
+  "theme.admonition.tip": {
+      "message": "提示",
+      "description": "用於提示提示的默認標籤(:::tip)"
+  },
+  "theme.admonition.warning": {
+      "message": "警告",
+      "description": "用於警告提示的默認標籤(:::warning)"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+      "message": "關閉",
+      "description": "公告欄關閉按鈕的ARIA標籤"
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+      "message": "博客最近文章導航",
+      "description": "博客側邊欄中最近文章的ARIA標籤"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+      "message": "切換自動換行",
+      "description": "代碼塊行自動換行切換按鈕的標題屬性"
+  },
+  "theme.CodeBlock.copied": {
+      "message": "已複製",
+      "description": "代碼塊上已複製按鈕的標籤"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+      "message": "複製代碼到剪貼板",
+      "description": "複製代碼塊按鈕的ARIA標籤"
+  },
+  "theme.CodeBlock.copy": {
+      "message": "複製",
+      "description": "代碼塊上的複製按鈕標籤"
+  },
+  "theme.DocSidebarItem.expandCategoryAriaLabel": {
+      "message": "展開側邊欄類別'{label}'",
+      "description": "展開側邊欄類別的ARIA標籤"
+  },
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+      "message": "折疊側邊欄類別'{label}'",
+      "description": "折疊側邊欄類別的ARIA標籤"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+      "message": "語言",
+      "description": "移動語言切換下拉列表的標籤"
+  },
+  "theme.NavBar.navAriaLabel": {
+      "message": "主要",
+      "description": "主導航的ARIA標籤"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+      "message": "在此頁面上",
+      "description": "可折疊TOC組件上的按鈕使用的標籤"
+  },
+  "theme.blog.post.readMore": {
+      "message": "閱讀更多",
+      "description": "博客文章項目摘要中用來鏈接到完整博客文章的標籤"
+  },
+  "theme.blog.post.readMoreLabel": {
+      "message": "閱讀更多關於{title}",
+      "description": "從摘要到完整博客文章的鏈接的ARIA標籤"
+  },
+  "theme.docs.breadcrumbs.home": {
+      "message": "首頁",
+      "description": "麵包屑中首頁的ARIA標籤"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+      "message": "折疊側邊欄",
+      "description": "文檔側邊欄折疊按鈕的標題屬性"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+      "message": "折疊側邊欄",
+      "description": "文檔側邊欄折疊按鈕的標題屬性"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+      "message": "文檔側邊欄",
+      "description": "側邊欄導航的ARIA標籤"
+  },
+  "theme.blog.post.readingTime.plurals": {
+      "message": "閱讀時間1分鐘|閱讀時間{readingTime}分鐘",
+      "description": "用於\"{readingTime}分鐘閱讀\"的複數標籤。使用您的語言支持的盡可能多的複數形式（由\"|\"分隔）（請參閱https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html）"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+      "message": "關閉導航欄",
+      "description": "移動側邊欄關閉按鈕的ARIA標籤"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+      "message": "← 返回主菜單",
+      "description": "返回主菜單的按鈕標籤，位於移動導航欄側邊欄次級菜單內（尤其用於顯示文檔側邊欄）"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+      "message": "切換導航欄",
+      "description": "移動導航漢堡菜單按鈕的ARIA標籤"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+      "message": "展開側邊欄",
+      "description": "文檔側邊欄展開按鈕的ARIA標籤和標題屬性"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+      "message": "展開側邊欄",
+      "description": "文檔側邊欄展開按鈕的ARIA標籤和標題屬性"
+  },
+  "theme.blog.post.plurals": {
+      "message": "一篇文章|{count}篇文章",
+      "description": "用於\"{count}篇文章\"的複數標籤。使用您的語言支持的盡可能多的複數形式（由\"|\"分隔）（請參閱https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html）"
+  },
+  "theme.blog.tagTitle": {
+      "message": "{nPosts}標記為\"{tagName}\"",
+      "description": "博客標籤頁面的標題"
+  },
+  "theme.blog.author.pageTitle": {
+      "message": "{authorName} - {nPosts}",
+      "description": "博客作者頁面的標題"
+  },
+  "theme.blog.authorsList.pageTitle": {
+      "message": "作者",
+      "description": "作者頁面的標題"
+  },
+  "theme.blog.authorsList.viewAll": {
+      "message": "查看所有作者",
+      "description": "指向博客作者頁面的鏈接標籤"
+  },
+  "theme.contentVisibility.unlistedBanner.title": {
+      "message": "未列出頁面",
+      "description": "未列出內容橫幅標題"
+  },
+  "theme.contentVisibility.unlistedBanner.message": {
+      "message": "此頁面未列出。搜索引擎不會索引它，只有擁有直接鏈接的用戶才能訪問它。",
+      "description": "未列出內容橫幅消息"
+  },
+  "theme.contentVisibility.draftBanner.title": {
+      "message": "草稿頁面",
+      "description": "草稿內容橫幅標題"
+  },
+  "theme.contentVisibility.draftBanner.message": {
+      "message": "此頁面是草稿。它只會在開發環境中可見，並將從生產構建中排除。",
+      "description": "草稿內容橫幅消息"
+  },
+  "theme.ErrorPageContent.tryAgain": {
+      "message": "再試一次",
+      "description": "當React錯誤邊界捕獲錯誤時，再次嘗試渲染按鈕的標籤"
+  },
+  "theme.common.skipToMainContent": {
+      "message": "跳到主要內容",
+      "description": "用於輔助功能的跳到內容標籤，允許通過鍵盤tab/enter導航快速導航到主要內容"
+  },
+  "theme.tags.tagsPageTitle": {
+      "message": "標籤",
+      "description": "標籤列表頁面的標題"
+  }
+}
