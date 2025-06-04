@@ -1,11 +1,15 @@
-# Turn on auditing and health monitoring in Microsoft Sentinel
+# Turn on Auditing and Health Monitoring in Microsoft Sentinel
 
-**Implementation Effort:** Low: Customer IT and Security Operations teams need to configure and enable auditing and health monitoring features in Microsoft Sentinel.
+**Implementation Effort:** Low — This feature requires administrators to enable built-in monitoring and auditing settings in Microsoft Sentinel, which is a targeted configuration task with minimal ongoing resource needs.
 
-**User Impact:** Low: Action can be taken by administrators, users don’t have to be notified.
+**User Impact:** Low — This action is performed entirely by administrators; end users are not affected or required to take any action.
 
 ## Overview
-Enabling auditing and health monitoring in Microsoft Sentinel allows administrators to monitor the health and audit the integrity of supported Sentinel resources. This feature provides insights on health drifts, failure events, and unauthorized actions, fitting into the Zero Trust framework by ensuring continuous monitoring and auditing of security operations.
+
+Enabling auditing and health monitoring in Microsoft Sentinel allows security teams to track the operational health of their Sentinel environment and audit key activities such as rule changes, data connector status, and ingestion health. This helps ensure that Sentinel is functioning as expected and that any issues are detected early. It also provides visibility into who made changes and when, which is essential for compliance and forensic investigations.
+
+This capability supports the **"Assume Breach"** principle of Zero Trust by ensuring continuous visibility into the security operations platform itself. Without this monitoring, organizations risk missing critical failures in data ingestion, rule execution, or unauthorized changes, which could delay detection of threats or lead to compliance gaps.
 
 ## Reference
-[Turn on auditing and health monitoring in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/enable-monitoring)
+
+- [Monitor health and audit logs in Microsoft Sentinel](https://learn.microsoft.com
