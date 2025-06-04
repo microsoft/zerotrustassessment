@@ -7,6 +7,9 @@
 ## Overview
 [![Watch the video](https://img.youtube.com/vi/7RBp9j0P_Ao/hqdefault.jpg)](https://www.youtube.com/embed/7RBp9j0P_Ao)
 
+Designing a Log Analytics workspace for Microsoft Sentinel involves choosing between a single or multiple workspace architecture based on operational, security, and cost considerations. A single workspace simplifies management and querying, while multiple workspaces may be needed for regulatory compliance, data sovereignty, or cost optimization. Key design criteria include data ownership, Azure region placement, tenant boundaries, and whether to combine or separate operational and security data.
+
+If not properly designed, organizations may face challenges such as increased data egress costs, fragmented visibility across security data, or non-compliance with data residency requirements. This design activity supports the **Zero Trust principle of "Assume Breach"** by enabling better segmentation and visibility into security data, which is critical for threat detection and response.
 
 
 
