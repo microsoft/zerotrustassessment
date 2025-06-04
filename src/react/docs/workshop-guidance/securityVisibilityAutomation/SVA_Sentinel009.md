@@ -1,12 +1,19 @@
-# Configure Interactive and Long-Term Data Retention
+# Configure Interactive and Long-Term Data Retention in Microsoft Sentinel
 
-**Implementation Effort:** Medium - Customer IT teams need to drive projects to configure retention settings, set up policies, and manage permissions.
-**User Impact:** Low - Actions can be taken by administrators, and users don’t have to be notified.
+**Implementation Effort:** Medium  
+Setting up data retention requires IT and Security Operations teams to define policies per table or across multiple tables, and coordinate with compliance and cost management stakeholders.
+
+**User Impact:** Low  
+This configuration is handled by administrators and does not require action or awareness from end users.
 
 ## Overview
-Configuring interactive and long-term data retention involves managing how data is stored and accessed over time in services like Log Analytics and Microsoft Sentinel. Interactive retention is used for monitoring and troubleshooting, while long-term retention is for cost-effective storage. This process fits into the Zero Trust framework by ensuring data is securely retained and accessible only to authorized personnel.
+
+This feature allows organizations to manage how long data is retained in Microsoft Sentinel by configuring **interactive** (frequently accessed) and **long-term** (archived) retention policies. Interactive retention keeps data readily available for active investigation, while long-term retention stores older data at a lower cost for compliance or historical analysis. You can configure retention per table or across multiple tables in your Log Analytics workspace.
+
+Failing to configure appropriate retention settings can lead to increased storage costs, loss of critical historical data, or non-compliance with regulatory requirements. This capability supports the **"Assume Breach"** principle of Zero Trust by ensuring historical data is available for extended threat hunting and forensic analysis, even long after an incident occurs.
 
 ## Reference
+
+- [Configure interactive and long-term data retention in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/configure-data-retention-archive)  
+- [Log retention plans in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/log-plans)  
 - [Manage data retention in a Log Analytics workspace](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure)
-- [Configure interactive and long-term data retention in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/configure-data-retention-archive)
-- [Log retention plans in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/log-plans)
