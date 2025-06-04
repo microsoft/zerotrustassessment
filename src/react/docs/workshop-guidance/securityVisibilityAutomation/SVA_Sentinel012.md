@@ -1,11 +1,18 @@
-# Enable User and Entity Behavior Analytics (UEBA) in Microsoft Sentinel
+# Streamline Data Analysis with UEBA in Microsoft Sentinel
 
-**Implementation Effort:** Medium: Enabling UEBA in Microsoft Sentinel requires configuring settings and ensuring appropriate roles and permissions, which involves a moderate level of effort from IT and Security Operations teams
-**User Impact:** Low: The actions required to enable UEBA are primarily administrative and do not necessitate changes or notifications to non-privileged users 
+**Implementation Effort:** Medium – Enabling UEBA in Microsoft Sentinel requires configuring data connectors, ensuring proper log ingestion, and tuning analytics rules, which involves a project-driven effort by IT and security teams.
+
+**User Impact:** Low – UEBA operates in the background and is used by security analysts; end users are not directly impacted or required to take action.
 
 ## Overview
-Enabling User and Entity Behavior Analytics (UEBA) in Microsoft Sentinel allows the system to analyze logs and alerts from connected data sources, building behavioral profiles of entities such as users, hosts, and applications. By identifying anomalous activities, it helps in detecting potential security threats and compromised assets. This capability is crucial for enhancing security posture within the Zero Trust framework by continuously monitoring and analyzing entity behavior
+
+User and Entity Behavior Analytics (UEBA) in Microsoft Sentinel enhances threat detection by analyzing behavioral patterns of users, devices, and other entities across your environment. It builds baselines using machine learning and identifies anomalies that may indicate insider threats, compromised accounts, or advanced persistent threats. UEBA reduces the manual effort of sifting through alerts by providing enriched, high-fidelity insights that help analysts prioritize and investigate incidents more effectively.
+
+UEBA supports Zero Trust by aligning with the **"Assume Breach"** principle—continuously monitoring for abnormal behavior and potential compromise, even from internal actors. Without UEBA, organizations risk missing subtle or sophisticated threats that evade traditional rule-based detection, leading to delayed response and greater damage.
+
 ## Reference
-- [Enable entity behavior analytics to detect advanced threats](https://learn.microsoft.com/en-us/azure/sentinel/enable-entity-behavior-analytics)
-- [Advanced threat detection with User and Entity Behavior Analytics (UEBA)](https://learn.microsoft.com/en-us/azure/sentinel/identify-threats-with-entity-behavior-analytics)
+
+- [Advanced threat detection with UEBA in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/identify-threats-with-entity-behavior-analytics)  
+- [Enable entity behavior analytics to detect advanced threats](https://learn.microsoft.com/en-us/azure/sentinel/enable-entity-behavior-analytics)  
 - [Microsoft Sentinel UEBA reference](https://learn.microsoft.com/en-us/azure/sentinel/ueba-reference)
+
