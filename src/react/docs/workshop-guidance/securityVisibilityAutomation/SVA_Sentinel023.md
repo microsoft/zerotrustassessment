@@ -5,7 +5,9 @@
 **User Impact:** Low - A subset of non-privileged users, mainly security analysts, need to take action or be notified of changes.
 
 ## Overview
-This documentation covers various aspects of threat hunting and incident investigation using Microsoft Sentinel and Microsoft Defender. Security analysts can proactively hunt for threats by creating hypotheses, searching through data, validating findings, and taking actions such as creating new detections or incidents. Additionally, advanced hunting features in Microsoft Defender allow analysts to investigate incidents related to devices, files, IP addresses, URLs, users, emails, mailboxes, or cloud resources. These capabilities fit into the Zero Trust framework by enabling continuous monitoring, proactive threat detection, and thorough investigation and response to security incidents.
+The unified security operations portal brings together Microsoft Sentinel and Microsoft Defender XDR into a single workspace, allowing security teams to detect, investigate, and respond to threats more efficiently. It provides advanced tools like guided threat hunting, Kusto Query Language (KQL), and Security Copilot to help analysts uncover suspicious activity across endpoints, identities, cloud apps, and more. Incidents are automatically correlated and enriched with evidence, making investigations faster and more complete.
+
+This capability supports the Zero Trust principle of **"Assume Breach"** by enabling continuous monitoring, proactive threat detection, and rapid response. Without this integration, organizations may miss early warning signs of attacks, delay containment, and increase the risk of lateral movement by adversaries.
 
 ## Reference
 - [Conduct end-to-end threat hunting with Hunts - Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/hunts)
