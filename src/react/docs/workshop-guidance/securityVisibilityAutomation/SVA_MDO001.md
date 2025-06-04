@@ -1,15 +1,25 @@
-# Email Authentication Configuration in Microsoft 365
+# Configure Email Authentication
 
-**Implementation Effort:** High
-Implementing email authentication involves configuring multiple standards (SPF, DKIM, DMARC, ARC) which require ongoing management and monitoring [1](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about).
+**Implementation Effort:** Medium – IT and Security teams must configure SPF, DKIM, and DMARC records, which involves DNS changes, Microsoft 365 configuration, and ongoing monitoring.
 
-**User Impact:** Medium
-A subset of non-privileged users may need to be aware of changes, especially if email delivery issues arise due to misconfigurations [1](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about).
+**User Impact:** High – While users don’t directly configure anything, the impact is high because misconfigured or missing authentication can cause legitimate emails to be marked as spam or rejected, disrupting communication across the organization.
 
 ## Overview
-Email authentication in Microsoft 365 uses standards like SPF, DKIM, DMARC, and ARC to prevent spoofing and phishing attacks. These methods work together to ensure the integrity of email messages and protect against email-based threats.
+
+Email authentication in Microsoft 365 helps protect your organization from spoofing, phishing, and impersonation attacks. It uses three key standards:
+
+- **SPF (Sender Policy Framework)**: Ensures only authorized IPs can send mail for your domain.
+- **DKIM (DomainKeys Identified Mail)**: Adds a digital signature to verify message integrity.
+- **DMARC (Domain-based Message Authentication, Reporting & Conformance)**: Aligns SPF and DKIM results and provides reporting to domain owners.
+
+Together, these protocols validate that messages are truly from your domain and haven’t been altered in transit. Without proper configuration, your domain is vulnerable to abuse, and legitimate emails may be blocked or flagged as suspicious, leading to user confusion and loss of trust.
+
+This aligns with the **Zero Trust principle of “Assume Breach”**, as it ensures all email traffic is authenticated and monitored, reducing the risk of impersonation and data exfiltration.
 
 ## Reference
-- [Email authentication in Microsoft 365 - Microsoft Defender for Office 365](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about)
-- [Set up SPF to identify valid email sources for your Microsoft 365 domain](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-spf-configure)
-- [Set up DKIM to sign mail from your Microsoft 365 domain](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dkim-configure)
+
+- [Email authentication in Microsoft 365 – Overview](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about)  
+- [Set up SPF](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-spf-configure)  
+- [Set up DKIM](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dkim-configure) 
+- [Set up DMARC](https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dmarc-configure)
+
