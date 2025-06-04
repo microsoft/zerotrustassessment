@@ -1,15 +1,18 @@
-# Set Up Analytics Rules in Microsoft Sentinel
+# Set up analytics rules in Microsoft Sentinel
 
-**Implementation Effort:** Medium
-Creating and managing analytics rules in Microsoft Sentinel involves designing queries and configuring rules, which requires a moderate level of familiarity with data analysis and administrative tasks.
+**Implementation Effort:** Medium – Setting up analytics rules requires IT and security teams to design KQL queries, configure rule logic, and manage rule lifecycle, but it doesn’t require ongoing user involvement.
 
-**User Impact:** Low
-The actions are primarily performed by administrators and do not require direct involvement from non-privileged users.
+**User Impact:** Low – These rules are configured and managed by administrators; end users are not directly affected or required to take action.
 
 ## Overview
-Setting up analytics rules in Microsoft Sentinel is essential for detecting patterns of activity and identifying potential security threats. This process involves creating scheduled analytics rules, publishing rules for specific solutions, and configuring automation rules to manage responses. These rules enhance security monitoring and threat detection, fitting into the Zero Trust framework by ensuring continuous monitoring and verification.
+
+Analytics rules in Microsoft Sentinel are used to detect suspicious behavior and potential threats by analyzing data ingested from various sources. These rules can be created from templates or built from scratch using the Analytics Rule Wizard, which allows security teams to define custom logic using Kusto Query Language (KQL). Rules can trigger alerts and incidents based on specific patterns or anomalies in the data. This capability is essential for proactive threat detection and response.
+
+If analytics rules are not set up, Sentinel will not generate alerts or incidents, significantly reducing its effectiveness as a SIEM/SOAR solution. This increases the risk of undetected threats and delayed responses.
+
+This feature supports the **"Assume breach"** principle of Zero Trust by continuously monitoring for anomalies and enabling rapid detection and investigation of potential intrusions.
 
 ## Reference
-- [Create scheduled analytics rules in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/create-analytics-rules)
-- [Create Analytics Rules for Microsoft Sentinel Solutions](https://learn.microsoft.com/en-us/azure/sentinel/sentinel-analytic-rules-creation)
-- [Create and use Microsoft Sentinel automation rules to manage response](https://learn.microsoft.com/en-us/azure/sentinel/create-manage-use-automation-rules)
+
+- [Threat detection in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/threat-detection)
+
