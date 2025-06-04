@@ -1,11 +1,16 @@
-# Understand security coverage by the MITRE ATT&CK® framework
+# Understand Sentinel Security Coverage by the MITRE ATT&CK® Framework
 
-**Implementation Effort:** Medium: Customer IT and Security Operations teams need to drive projects to configure data connectors, set up query rules, and ensure permissions.
+**Implementation Effort:** Medium  
+Microsoft Sentinel requires configuration of data connectors, scheduled query rules, and permissions to enable MITRE ATT&CK coverage visualization.
 
-**User Impact:** Low: A subset of non-privileged users, such as security analysts, need to take action or be notified of changes.
+**User Impact:** Low  
+This feature is used by security administrators and analysts; end users are not impacted or required to take action.
 
 ## Overview
-Microsoft Sentinel uses the MITRE ATT&CK framework to help organizations understand their security coverage by analyzing ingested data to detect threats and visualize security status. This feature allows users to view active analytics rules and configure new ones based on MITRE ATT&CK tactics and techniques, enhancing threat detection and response capabilities.
+
+Microsoft Sentinel integrates with the MITRE ATT&CK® framework to help security teams understand how well their environment is covered against known adversary tactics and techniques. The MITRE ATT&CK framework is a globally accessible knowledge base of adversary behavior, and Sentinel maps its analytics rules (detections) to this framework. Through the MITRE page in Sentinel (currently in preview), security teams can visualize which techniques are actively being monitored, which are covered by available but inactive rules, and which are not covered at all.
+
+This capability supports the **"Assume Breach"** principle of Zero Trust by helping organizations identify gaps in detection coverage and proactively improve their threat detection posture. Without this visibility, organizations risk blind spots in their security monitoring, leaving them vulnerable to undetected attacks.
 
 ## Reference
-[Understand security coverage by the MITRE ATT&CK® framework](https://learn.microsoft.com/en-us/azure/sentinel/mitre-coverage)
+- [View MITRE coverage for your organization from Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/mitre-coverage)  
