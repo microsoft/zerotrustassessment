@@ -1,11 +1,19 @@
-# Threat intelligence integration in Microsoft Sentinel
+# Integrate MDTI Feeds to Microsoft Sentinel
 
-**Implementation Effort:** Medium: Integrating threat intelligence feeds requires configuring data connectors and possibly coordinating with vendors to obtain necessary credentials and API details.
+**Implementation Effort:** Medium  
+This requires IT and security teams to configure data connectors, manage content from the Content Hub, and potentially purchase and manage premium API access.
 
-**User Impact:** Low: Security analysts and a subset of IT staff need to be aware of the integration and may need to take action to utilize the threat intelligence data effectively.
+**User Impact:** Low  
+The integration is handled by administrators and does not require action or awareness from end users.
 
 ## Overview
-Integrating Microsoft Threat Intelligence feeds into Microsoft Sentinel enhances the ability of security analysts to detect and prioritize known threats. This integration can be achieved through various methods, including connecting to TAXII servers, using integrated threat intelligence platform products, or custom solutions that communicate with the Threat Intelligence Upload Indicators API. This capability fits into the Zero Trust framework by ensuring continuous monitoring and analysis of threat data to protect organizational assets.
+
+Integrating Microsoft Defender Threat Intelligence (MDTI) with Microsoft Sentinel allows organizations to ingest high-fidelity indicators of compromise (IOCs) from both public and Microsoft-curated sources directly into their Sentinel workspace. This is done through the Defender Threat Intelligence data connectors, available in both standard and premium tiers. Once connected, the threat intelligence data becomes available for use in analytics rules, hunting queries, and dashboards, enhancing threat detection and response capabilities.
+
+This integration supports the **"Assume Breach"** principle of Zero Trust by enabling proactive threat detection using real-time threat intelligence, helping security teams identify and respond to threats faster. If not implemented, organizations risk missing early indicators of compromise, reducing their ability to detect and mitigate threats effectively.
 
 ## Reference
-[Threat intelligence integration in Microsoft Sentinel](https://learn.microsoft.com/en-us/Azure/sentinel/threat-intelligence-integration)
+
+- [Enable the Microsoft Defender Threat Intelligence data connector](https://learn.microsoft.com/en-us/azure/sentinel/connect-mdti-data-connector)  
+- [Threat intelligence integration in Microsoft Sentinel](https://learn.microsoft.com/en-us/Azure/sentinel/threat-intelligence-integration)  
+- [Use matching analytics to detect threats](https://learn.microsoft.com/en-us/azure/sentinel/use-matching-analytics-to-detect-threats)
