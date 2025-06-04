@@ -1,46 +1,26 @@
-## Install Defender for Identity sensors on all Domain Controllers
+# Install Microsoft Defender for Identity (MDI) Sensors on All Domain Controllers
 
-**Implementation Effort:** High
+**Implementation Effort:** High  
+Installing MDI sensors requires coordination across all domain controllers, including read-only ones, and may involve proxy configuration, certificate validation, and integration with Microsoft Defender for Identity cloud services.
 
-**User Impact:** Medium
+**User Impact:** Medium  
+While end users are not directly impacted, IT and security teams must coordinate across multiple systems, and some alerts or investigations may involve notifying specific users or teams.
+
+---
 
 ## Overview
 
+Installing Microsoft Defender for Identity (MDI) sensors on all domain controllers is a foundational step in protecting your Active Directory environment from identity-based threats. MDI sensors monitor domain controller traffic to detect suspicious activities such as lateral movement, credential theft, and reconnaissance. The sensors can be installed directly on domain controllers or as standalone sensors on dedicated servers.
 
-**Download the Defender for Identity sensor**
-1. In the Microsoft 365 Defender portal, in the left mentu, select **Settings>Identities**
-2. On the **General** tab, select **Sensors**
-3. On the **Sensors** page, select **Add Sensor**
-4. On the **Add a new sensor** panel, select **Download Installer**
-5. Copy the access key and the installer to the domain controller, AD FS server, or AD CS server
+The installation process includes prerequisites like .NET Framework 4.7+, trusted root certificates, and connectivity to Defender for Identity cloud endpoints. Sensors can be deployed using a UI-based wizard or silently via command line, depending on your environment. Microsoft recommends installing sensors on **all domain controllers**, including read-only domain controllers (RODCs), to ensure full visibility.
 
-**Install the Defender for Identity sensor on a domain controller**
-1. Run and extract **Azure ATP sensor setup.exe** as an admin
-2. Select **Language**, then select **Next**
-3. Select **Deployment Type, then select **Next*
-4. On the **Configure the Sensor** page, enter the installation path, paste the access key, and then select **Next**
-5. Select **Install**
+Failing to deploy MDI sensors leaves your identity infrastructure blind to many advanced persistent threats and insider attacks. This deployment supports the **Zero Trust principle of "Assume Breach"** by enabling continuous monitoring and detection of anomalous behavior within your identity systems.
 
-**Install the Defender for Identity sensor in an AD FS environment**
-
-1. Run and extract **Azure ATP sensor setup.exe** as an admin
-2. Select **Language**, then select **Next**
-3. On the **Sensors** page, select the AD FS deployment type, then select **Next**
-4. To set up the sensor, enter the installation path, then select **Next**
-5. Select **Install**
-6. **Select the sensor installed on the AD FS server**
-    * On the **Sensors** page, in the **Resolve Domain Controllers** box, enter the **FQDN**
-    * Select the plus (+) icon, then select **Save**
-
-
-**Install the Defender for Identity sensor on an AD CS server**
-1. Run and extract **Azure ATP sensor setup.exe** as an admin
-2. Select **Language**, then select **Next**
-3. On the **Sensors** page, select the AD CS deployment type, then select **Next**
-4. To set up the sensor, enter the installation path, then select **Next**
-6. Select **Install**
-
+---
 
 ## Reference
-* https://admin.microsoft.com/#/SetupGuidance
-* https://learn.microsoft.com/en-us/defender-for-identity/deploy/install-sensor
+
+- [Install a sensor - Microsoft Defender for Identity](https://learn.microsoft.com/en-us/defender-for-identity/deploy/install-sensor)  
+- [Quick installation guide - Microsoft Defender for Identity](https://learn.microsoft.com/en-us/defender-for-identity/deploy/quick-installation-guide)  
+- [Configure sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-sensor-settings)
+
