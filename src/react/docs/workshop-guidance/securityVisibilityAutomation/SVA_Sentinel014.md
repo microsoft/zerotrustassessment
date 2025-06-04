@@ -12,4 +12,4 @@ This capability supports the **"Assume Breach"** principle of Zero Trust by ensu
 
 ## Reference
 
-- [Monitor health and audit logs in Microsoft Sentinel](https://learn.microsoft.com
+- [Monitor health and audit logs in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/enable-monitoring)
