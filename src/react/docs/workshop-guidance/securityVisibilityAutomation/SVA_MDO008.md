@@ -10,4 +10,4 @@ Quarantine policies in Microsoft Defender for Office 365 allow administrators to
 ## Reference
 - [Quarantine policies - Microsoft Defender for Office 365](https://learn.microsoft.com/en-us/defender-office-365/quarantine-policies)
 - [How to configure quarantine permissions and policies](https://learn.microsoft.com/en-us/defender-office-365/step-by-step-guides/how-to-configure-quarantine-permissions-with-quarantine-policies)
-- [Quarantine notifications (end-user spam notifications) in Microsoft 365](https://learn.microsoft.com/en-us
+
