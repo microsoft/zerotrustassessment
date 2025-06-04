@@ -15,5 +15,4 @@ This feature supports the **"Assume Breach"** principle of Zero Trust by giving 
 ## Reference
 
 - [Manage allows and blocks in the Tenant Allow/Block List](https://learn.microsoft.com/en-us/defender-office-365/tenant-allow-block-list-about)
-- [Allow or block email using the Tenant Allow/Block List](https://learn.microsoft.com/en-us/defender-office-365/tenant-allow-block-list-email-spoof-configure)
 - [Allow or block URLs using the Tenant Allow/Block List](https://learn.microsoft.com/en-us/defender-office-365/tenant-allow-block-list-urls-configure)
