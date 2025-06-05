@@ -45,7 +45,11 @@ function Invoke-ZtAssessment {
 
         # If specified, disables the collection of telemetry. The only telemetry collected is the tenant id. Defaults to true.
         [switch]
-        $DisableTelemetry = $false
+        $DisableTelemetry = $false,
+
+        # The IDs of the specific test(s) to run. If not specified, all tests will be run.
+        [string[]]
+        $Tests
     )
 
     $banner = @"
@@ -111,7 +115,7 @@ Write-Host $banner -ForegroundColor Cyan
     $db = Export-Database -ExportPath $exportPath
 
     # Run the tests
-    Invoke-ZtTests -Database $db
+    Invoke-ZtTests -Database $db -Tests $Tests
     Invoke-ZtTenantInfo -Database $db
 
     $assessmentResults = Get-ZtAssessmentResults

@@ -6,7 +6,12 @@
 function Invoke-ZtTests {
     [CmdletBinding()]
     param (
-        $Database
+        $Database,
+
+        # The IDs of the specific test(s) to run. If not specified, all tests will be run.
+        [string[]]
+        $Tests
+
     )
 
     # Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -25,8 +30,17 @@ function Invoke-ZtTests {
 
     $config = $__ZtSession.TestMeta
 
+    # Get the list of tests to run
+    if ($Tests) {
+        # If specific tests are provided, filter the config based on those tests
+        $testsToRun = $config.Values | Where-Object { $_.TestId -in $Tests }
+    } else {
+        # If no specific tests are provided, run all tests
+        $testsToRun = $config.Values
+    }
+
     # Filter tests by tenant type and execute them
-    foreach ($test in $config.Values) {
+    foreach ($test in $testsToRun) {
         if ($test.TenantType -contains $mappedTenantType) {
             $testName = "Test-Assessment-$($test.TestId)"
 
