@@ -1,8 +1,14 @@
 # MAM_01: MAM Overview
 ## Overview
 
+Microsoft Intune Mobile Application Management (MAM) allows organizations to manage and protect corporate data within apps—without requiring full device enrollment. This is especially useful in Bring Your Own Device (BYOD) scenarios, where users access corporate resources like Outlook, Teams, or OneDrive on personal devices. MAM works by applying **App Protection Policies (APP)** that enforce data protection rules such as requiring PINs, blocking copy/paste, and preventing data backup.
 
+MAM is supported on Android, iOS/iPadOS, and Windows platforms. It can be used on both unenrolled personal devices and enrolled corporate devices that need additional app-level security. Admins can configure apps, assign protection policies, and guide users to install apps via the Company Portal or other approved methods.
+
+If MAM is not implemented, there's a higher risk of data leakage through unmanaged apps or personal cloud services. This approach supports the **Zero Trust principle of "Use least privilege access"** by ensuring that only approved apps can access corporate data, and only under strict policy controls.
 
 ## Reference
 
-* 
+- https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe  
+- https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy  
+- https://learn.microsoft.com/en-us/intune/intune-service/apps/app-management
