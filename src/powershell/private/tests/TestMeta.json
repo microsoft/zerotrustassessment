@@ -1634,5 +1634,27 @@
       "Workforce",
       "External"
     ]
+  },
+  "CIAM01": {
+    "TestId": "CIAM01",
+    "ImplementationCost": "Low",
+    "UserImpact": "Medium",
+    "RiskLevel": "Medium",
+    "Category": null,
+    "Title": "Users have strong authentication methods configured",
+    "TenantType": [
+      "External"
+    ]
+  },
+  "CIAM02": {
+    "TestId": "CIAM02",
+    "ImplementationCost": "Low",
+    "UserImpact": "Medium",
+    "RiskLevel": "Medium",
+    "Category": null,
+    "Title": "Fraud prevention integration configured",
+    "TenantType": [
+      "External"
+    ]
   }
 }

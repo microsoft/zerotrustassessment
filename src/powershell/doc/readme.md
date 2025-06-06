@@ -76,6 +76,7 @@ The consent prompt is only be displayed if the Graph PowerShell app does not alr
 - RoleEligibilitySchedule.ReadWrite.Directory
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
+- RiskPreventionProviders.Read.All
 - profile
 - offline_access
 
