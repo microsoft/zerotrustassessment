@@ -1,6 +1,24 @@
 # MAM_02: Review unenrolled BYOD MAM
 
+
+# Review Unenrolled BYOD MAM in the Context of Intune App Protection Policies
+
+**Implementation Effort:** Medium  
+This requires IT teams to define and apply app protection policies, configure app deployment, and ensure proper user communication for BYOD scenarios.
+
+**User Impact:** Medium  
+A subset of users with personal (unenrolled) devices must follow new app usage rules and may need to install apps via the Company Portal or follow specific access instructions.
+
 ## Overview
-test
+
+Mobile Application Management (MAM) for unenrolled devices in Microsoft Intune allows organizations to protect corporate data on personal devices (BYOD) without requiring full device enrollment. This is especially useful when users access corporate apps like Outlook or Teams on their personal Android or iOS devices. MAM works by applying **App Protection Policies (APP)** that enforce data protection rules—such as preventing copy/paste, requiring PINs, or blocking backups—within managed apps only.
+
+This approach is ideal for organizations that want to support flexible work while maintaining control over sensitive data. It also reduces friction for users who are unwilling or unable to enroll their personal devices into full MDM. However, if not implemented, there's a risk of data leakage through unmanaged apps or services, especially in scenarios where users access corporate data on personal devices.
+
+This setup aligns with the **Zero Trust principle of "Use least privilege access"** by ensuring that only approved apps can access corporate data, and only under strict policy controls.
 
 ## Reference
+
+- https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe  
+- https://learn.microsoft.com/en-us/intune/intune-service/apps/mam-faq  
+- https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy
