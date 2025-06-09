@@ -1635,8 +1635,8 @@
       "External"
     ]
   },
-  "CIAM01": {
-    "TestId": "CIAM01",
+  "24070": {
+    "TestId": "24070",
     "ImplementationCost": "Low",
     "UserImpact": "Medium",
     "RiskLevel": "Medium",
@@ -1646,8 +1646,8 @@
       "External"
     ]
   },
-  "CIAM02": {
-    "TestId": "CIAM02",
+  "24069": {
+    "TestId": "24069",
     "ImplementationCost": "Low",
     "UserImpact": "Medium",
     "RiskLevel": "Medium",

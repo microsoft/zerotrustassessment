@@ -3,7 +3,7 @@
     Checks that MFA is enabled for all Consumer apps.
 #>
 
-function Test-Assessment-CIAM01 {
+function Test-Assessment-24070 {
     [CmdletBinding()]
     param(
         $Database
@@ -79,7 +79,7 @@ function Test-Assessment-CIAM01 {
 
     }
 
-    Add-ZtTestResultDetail -TestId 'CIAM01' -Title 'Consumer facing apps are protected with MFA'`
+    Add-ZtTestResultDetail -TestId '24070' -Title 'Consumer facing apps are protected with MFA'`
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
         -AppliesTo Identity -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown -GraphObjectType ConditionalAccess -GraphObjects $unprotectedApps

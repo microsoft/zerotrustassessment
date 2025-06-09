@@ -3,7 +3,7 @@
     Checks that Fraud prevention integration is enabled.
 #>
 
-function Test-Assessment-CIAM02 {
+function Test-Assessment-24069 {
     [CmdletBinding()]
     param()
 
@@ -23,7 +23,7 @@ function Test-Assessment-CIAM02 {
         $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
     }
 
-    Add-ZtTestResultDetail -TestId 'CIAM02' -Title 'Fraud prevention integration configured'`
+    Add-ZtTestResultDetail -TestId '24069' -Title 'Fraud prevention integration configured'`
         -UserImpact Medium -Risk Medium -ImplementationCost Low `
         -AppliesTo Identity -Tag User, Credential `
         -Status $passed -Result $testResultMarkdown
