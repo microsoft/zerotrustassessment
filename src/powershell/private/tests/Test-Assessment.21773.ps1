@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
 
@@ -32,8 +31,8 @@ function Test-Assessment-21773 {
     order by displayName, keyEndDateTime DESC
 "@
 
-    $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
-    $resultsSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
+    $resultsApp = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlApp)
+    $resultsSP = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlSP)
 
     $passed = ($resultsApp.Count -eq 0) -and ($resultsSP.Count -eq 0)
 
@@ -50,7 +49,7 @@ function Test-Assessment-21773 {
         $mdInfo += "| :--- | :--- |`n"
         foreach ($item in $resultsApp) {
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/{0}" -f $item.appId
-            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $($item.keyEndDateTime) |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-FormattedDate($item.keyEndDateTime)) |`n"
         }
     }
 
@@ -61,14 +60,23 @@ function Test-Assessment-21773 {
         foreach ($item in $resultsSP) {
             $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($item.id)/appId/$($item.appId)/preferredSingleSignOnMode/saml/servicePrincipalType/Application/fromNav/"
-            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-SafeMarkdown($tenant.displayName)) | $($item.keyEndDateTime) |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-SafeMarkdown($tenant.displayName)) | $(Get-FormattedDate($item.keyEndDateTime)) |`n"
         }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21773' -Title 'Applications don''t have certificates with expiration longer than 180 days' `
-        -UserImpact Medium -Risk High -ImplementationCost Medium `
-        -AppliesTo Identity -Tag Application `
-        -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId             = '21773'
+        Title              = 'Applications don''t have certificates with expiration longer than 180 days'
+        UserImpact         = 'Medium'
+        Risk               = 'High'
+        ImplementationCost = 'Medium'
+        AppliesTo          = 'Identity'
+        Tag                = 'Application'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
 }
