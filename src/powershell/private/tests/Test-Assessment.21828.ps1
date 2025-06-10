@@ -57,7 +57,7 @@ function Test-Assessment-21828 {
         foreach ($policy in $matchedPolicies) {
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}" -f $policy.id
             $tableRows += @"
-| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | $($policy.id) | $($policy.state) | $($policy.createdDateTime) | $($policy.modifiedDateTime) |`n
+| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | $($policy.id) | $($policy.state) | $(Get-FormattedDate($policy.createdDateTime)) | $(Get-FormattedDate($policy.modifiedDateTime)) |`n
 "@
         }
 
