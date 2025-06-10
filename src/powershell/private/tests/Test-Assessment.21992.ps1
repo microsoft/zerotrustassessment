@@ -27,8 +27,8 @@ function Test-Assessment-21992{
     where keyStartDateTime < minStartDate
     order by displayName, keyStartDateTime DESC
 "@
-    $resultsApp = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlApp)
-    $resultsSP = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlSP)
+    $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+    $resultsSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
 
     $passed = ($resultsApp.Count -eq 0) -and ($resultsSP.Count -eq 0)
     if ($passed) {
