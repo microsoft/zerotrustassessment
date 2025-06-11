@@ -1,6 +1,8 @@
-...
+Without sign-in context, threat actors can exploit authentication fatigue by flooding users with push notifications, increasing the likelihood that a user will accidentally approve a malicious request. When users receive generic push notifications without application name or geographic location context, they lack critical information needed to make informed approval decisions, making them vulnerable to social engineering attacks where threat actors can time their requests during legitimate user activity periods. This vulnerability becomes particularly dangerous when threat actors gain initial access through credential harvesting or password spraying attacks and then attempt to establish persistence by approving MFA requests from unexpected locations or applications. The lack of contextual information prevents users from detecting anomalous sign-in attempts, allowing threat actors to maintain access and potentially escalate privileges by moving laterally through systems once the initial authentication barrier is bypassed. Without location and application context, security teams also lose valuable telemetry for detecting suspicious authentication patterns that could indicate ongoing compromise or reconnaissance activities.
 
 **Remediation action**
 
+Configure additional context in Microsoft Authenticator notifications by enabling application name and geographic location display through the Authentication methods policy
+- [Use additional context in Authenticator notifications - Authentication methods policy](https://learn.microsoft.com/entra/identity/authentication/how-to-mfa-additional-context)
 <!--- Results --->
 %TestResult%
