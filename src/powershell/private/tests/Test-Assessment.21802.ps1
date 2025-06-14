@@ -52,11 +52,14 @@ function Test-Assessment-21802 {
 
     if ($appInfoEnabled -and $locationInfoEnabled) {
         $passed = $true
-        $testResultMarkdown = "✅ Microsoft Authenticator shows application name and geographic location in push notifications.`n`n%TestResult%"
+        $testResultMarkdown = "Microsoft Authenticator shows application name and geographic location in push notifications.`n`n%TestResult%"
     } else {
         $passed = $false
-        $testResultMarkdown = "❌ Microsoft Authenticator notifications lack sign-in context.`n`n%TestResult%"
+        $testResultMarkdown = "Microsoft Authenticator notifications lack sign-in context.`n`n%TestResult%"
     }
+
+    if ($appInfoEnabled) {$appEmoji = "✅"} else {$appEmoji = "❌"}
+    if ($locationInfoEnabled) {$locationEmoji = "✅"} else {$locationEmoji = "❌"}
 
     # Build the detailed sections of the markdown
 
@@ -71,13 +74,13 @@ function Test-Assessment-21802 {
 
 Feature Settings:
 
-**Application Name**
-- Status: $($authenticatorConfig.featureSettings.displayAppInformationRequiredState.state)
+$appEmoji **Application Name**
+- Status: $((Get-Culture).TextInfo.ToTitleCase($authenticatorConfig.featureSettings.displayAppInformationRequiredState.state.ToLower()))
 - Include Target: $(Get-AuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.includeTarget)
 - Exclude Target: $(Get-AuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.excludeTarget)
 
-**Geographic Location**
-- Status: $($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.state)
+$locationEmoji **Geographic Location**
+- Status: $((Get-Culture).TextInfo.ToTitleCase($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.state.ToLower()))
 - Include Target: $(Get-AuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.includeTarget)
 - Exclude Target: $(Get-AuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.excludeTarget)
 
