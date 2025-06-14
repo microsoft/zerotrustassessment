@@ -1026,9 +1026,9 @@
   },
   "21776": {
     "TestId": "21776",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
+    "ImplementationCost": "Medium",
+    "UserImpact": "High",
+    "RiskLevel": "High",
     "Category": "Access control",
     "Title": "User consent settings are restricted",
     "TenantType": [
