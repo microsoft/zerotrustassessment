@@ -48,20 +48,19 @@ function Test-Assessment-21777 {
     }
 
     if ($resultsApp.Count -eq 0) {
-        $passed = $false
-        $testResultMarkdown = "No multitenant apps found to verify app instance property lock configuration."
+        $testResultMarkdown = "No multi-tenant apps were found in this tenant."
     }
     elseif ($passed) {
-        $testResultMarkdown = "All multitenant apps have app instance property lock configured."
+        $testResultMarkdown = "All multi-tenant apps have app instance property lock configured."
     }
     else {
-        $testResultMarkdown = "Found multitenant apps without app instance property lock configured.`n`n%TestResult%"
+        $testResultMarkdown = "Found multi-tenant apps without app instance property lock configured.`n`n%TestResult%"
     }
 
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Multitenant applications and their App Instance Property Lock setting"
+    $reportTitle = "Multi-tenant applications and their App Instance Property Lock setting"
     $tableRows = ""
 
     if ($resultsApp.Count -gt 0) {
