@@ -86,14 +86,19 @@ function Test-Assessment-21830 {
         $deviceFilterMarkdown = "✅"
     }
 
+    $portalTemplate = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}"
+
+
     $testResultMarkdown += "`n`n**$compliantDeviceMarkdown Found $($compliantDevicePolicies.Count) policy(s) with compliant device control targeting all privileged roles**`n"
     foreach ($policy in $compliantDevicePolicies) {
-        $testResultMarkdown += "- **Policy:** $($policy.displayName)`n"
+        $portalLink = $portalTemplate -f $policy.id
+        $testResultMarkdown += "- **Policy:** [$(Get-SafeMarkdown($policy.displayName))]($portalLink)`n"
     }
 
     $testResultMarkdown += "`n`n**$deviceFilterMarkdown Found $($deviceFilterPolicies.Count) policy(s) with PAW/SAW device filter targeting all privileged roles**`n"
     foreach ($policy in $deviceFilterPolicies) {
-        $testResultMarkdown += "- **Policy:** $($policy.displayName)`n"
+        $portalLink = $portalTemplate -f $policy.id
+        $testResultMarkdown += "- **Policy:** [$(Get-SafeMarkdown($policy.displayName))]($portalLink)`n"
     }
 
     $params = @{

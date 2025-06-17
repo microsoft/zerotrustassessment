@@ -90,7 +90,8 @@ Function Invoke-ZtGraphRequest
 
         function Format-Result ($results, $RawOutput)
         {
-            if (!$RawOutput -and $results -and (Get-ObjectProperty $results 'value'))
+            $hasValueProperty = Get-Member -InputObject $results -Name "value" -MemberType Properties
+            if (!$RawOutput -and $results -and $hasValueProperty)
             {
                 $dataContextName = '@odata.context'
                 foreach ($result in $results.value)
