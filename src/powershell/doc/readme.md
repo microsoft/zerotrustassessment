@@ -70,14 +70,13 @@ The consent prompt is only be displayed if the Graph PowerShell app does not alr
 - IdentityRiskyUser.Read.All
 - Policy.Read.All
 - Policy.Read.ConditionalAccess
+- Policy.Read.PermissionGrant
 - PrivilegedAccess.Read.AzureAD
 - Reports.Read.All
 - RoleEligibilitySchedule.Read.Directory
 - RoleEligibilitySchedule.ReadWrite.Directory
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
-- profile
-- offline_access
 
 Run the following command to connect to Microsoft Graph and consent to the permissions using a Global Administrator account.
 
