@@ -83,7 +83,7 @@ as
 select cast(ra."roleDefinitionId" as varchar) roleDefinitionId, ra.principal.displayName as principalDisplayName,
     rd.displayName as roleDisplayName, cast(ra.principal.userPrincipalName as varchar) userPrincipalName, rd.isPrivileged,
     cast(ra.principal."@odata.type" as varchar) "@odata.type",
-    cast(ra.principalId as varchar) principalId, ra.principalOrganizationId, ra.principal.servicePrincipalType,
+    cast(ra.principalId as varchar) principalId, ra.principalOrganizationId,
     'Permanent' as privilegeType
 from main."RoleAssignment" ra
     left join main."RoleDefinition" rd on ra."roleDefinitionId" = rd.id
@@ -91,7 +91,7 @@ UNION ALL
 select cast(re."roleDefinitionId" as varchar), cast(re.principal.displayName as varchar) as principalDisplayName,
     rd.displayName as roleDisplayName, cast(re.principal.userPrincipalName as varchar), rd.isPrivileged,
     cast(re.principal."@odata.type" as varchar),
-    cast(re.principalId as varchar) principalId, null as principalOrganizationId, null as servicePrincipalType,
+    cast(re.principalId as varchar) principalId, null as principalOrganizationId,
     'Eligible' as privilegeType
 from main."RoleEligibilityScheduleRequest" re
     left join  main."RoleDefinition" rd on re."roleDefinitionId" = rd.id
