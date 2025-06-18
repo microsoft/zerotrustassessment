@@ -20,7 +20,12 @@ function Test-Assessment-21796 {
             $_.conditions.clientAppTypes -contains "other" }
 
 
-    $passed = $blockPolicies.conditions.users.includeUsers -contains "All" -and $blockPolicies.state -eq "enabled"
+    $blockPoliciesEnabled = $blockPolicies | Where-Object {`
+         $_.conditions.users.includeUsers -contains "All" -and `
+         $blockPolicies.state -eq "enabled" `
+    }
+
+    $passed = ($blockPoliciesEnabled | Measure-Object).Count -ge 1
 
     if ($passed) {
         $testResultMarkdown = "Conditional Access to block legacy Authentication are configured and enabled.`n`n%TestResult%"
