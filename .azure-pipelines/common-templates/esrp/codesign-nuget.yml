@@ -13,13 +13,13 @@ steps:
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5 
     displayName: 'NuGet CodeSigning' 
     inputs: 
-      ConnectedServiceName: 'EntraPowerShell ESRP CodeSign and NUGET'
-      AppRegistrationClientId: '$(ODataEsrpAppRegistrationClientId)'
-      AppRegistrationTenantId: '$(ODataEsrpAppRegistrationTenantId)'
-      AuthAKVName: $(ODataEsrpAuthAKVName)
-      AuthCertName: $(ODataEsrpAuthCertName)
-      AuthSignCertName: $(ODataEsrpAuthSignCertName)
-      ServiceEndpointUrl: '$(ODataEsrpServiceEndpointUrl)'
+      ConnectedServiceName: 'esrpsigning-ztassessment-wif'
+      AppRegistrationClientId: '$(EsrpAppRegistrationClientId)'
+      AppRegistrationTenantId: '$(EsrpAppRegistrationTenantId)'
+      AuthAKVName: $(EsrpAuthAKVName)
+      AuthCertName: $(EsrpAuthCertName)
+      AuthSignCertName: $(EsrpAuthSignCertName)
+      ServiceEndpointUrl: '$(EsrpServiceEndpointUrl)'
       FolderPath: ${{ parameters.FolderPath }}
       Pattern: ${{ parameters.Pattern }}
       SessionTimeout: 90

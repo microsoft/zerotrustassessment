@@ -15,7 +15,8 @@ resources:
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/heads/main
 
-
+variables:
+  - group: ZTPowerShell-variable-group
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
