@@ -30,7 +30,7 @@ const Steps = [
                         Download the <a href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZeroTrustTemplate.xlsx" title="Zero Trust Workshop Tool">workshop tool</a>.
                     </li>
                     <li>
-                        Delivery the workshop for each Zero Trust pillar with the right stakeholders. You can run them in the proposed order or choose the right pillar for the area you are focused on:
+                        Deliver the workshop for each Zero Trust pillar with the right stakeholders. You can run them in the proposed order or choose the right pillar for the area you are focused on:
                         <ul>
                             <li>
                                 <a href="docs/videos/IdentityPillar" title="Identity Pillar Info">
@@ -88,36 +88,35 @@ const Steps = [
             <>
                 <ul>
                     <li>
-                        Have feedback from running the workshop? Share it with us{" "}
+                        Have feedback from running the workshop?{" "}
                         <a
                             href="https://aka.ms/ztworkshop/feedback"
                             target="_blank"
                             title="Zero Trust Workshop Feedback"
                         >
-                            here
+                            Share it with us in this form
                         </a>
                         .
                     </li>
                     <li>
-                        Are you a Microsoft Partner? Report your workshop deliveries{" "}
+                        Are you a Microsoft Partner?{" "}
                         <a
                             href="https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7t6ckxTCw9OiSbwsJxSnMlUMDEzTUtLQ0dXSUMyTjJPVVI5M1JYNUNRNC4u"
                             target="_blank"
                             title="Zero Trust Workshop Partner Delivery Reporting Form"
                         >
-                            here
+                           Report your workshop deliveries with our Partner Delivery Survey
                         </a>
                         .
                     </li>
                     <li>
-                        Found any bugs or have enhancement suggestions? Contribute to the
-                        GitHub repository{" "}
+                        Found any bugs or have enhancement suggestions?{" "}
                         <a
                             href="https://github.com/microsoft/zerotrustassessment"
                             target="_blank"
                             title="Zero Trust Workshop and Assessment Repo"
                         >
-                            here
+                            Contribute to our GitHub repository
                         </a>
                         .
                     </li>
