@@ -96,8 +96,8 @@
   },
   "21877": {
     "TestId": "21877",
-    "ImplementationCost": "High",
-    "UserImpact": "High",
+    "ImplementationCost": "Medium",
+    "UserImpact": "Medium",
     "RiskLevel": "Medium",
     "Category": "Access control",
     "Title": "All guests have a sponsor",
