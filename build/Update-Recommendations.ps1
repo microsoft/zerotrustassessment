@@ -57,9 +57,9 @@ function Update-MarkdownLinks {
 
     # Replace matching links
     $updatedContent = [regex]::Replace($Content, $pattern, {
-        param($match)
-        Update-SingleLink -match $match
-    })
+            param($match)
+            Update-SingleLink -match $match
+        })
 
     return $updatedContent
 }
@@ -86,7 +86,8 @@ function Update-SingleLink {
     # Check if URL already has parameters
     if ($url -match "\?") {
         $appendChar = "&"
-    } else {
+    }
+    else {
         $appendChar = "?"
     }
 
@@ -109,7 +110,7 @@ function Update-SingleLink {
 
 function Test-FolderMarkdownLinks {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$FolderPath,
         [int]$TimeoutSeconds = 30,
         [switch]$IncludeRelativeLinks
@@ -133,25 +134,25 @@ function Test-FolderMarkdownLinks {
                 $status = [int]$response.StatusCode
                 $response.Close()
                 return @{
-                    IsValid = $true
+                    IsValid    = $true
                     StatusCode = $status
-                    Error = $null
+                    Error      = $null
                 }
             }
             catch [System.Net.WebException] {
                 $status = [int]$_.Exception.Response.StatusCode
                 return @{
-                    IsValid = $false
+                    IsValid    = $false
                     StatusCode = $status
-                    Error = $_.Exception.Message
+                    Error      = $_.Exception.Message
                 }
             }
         }
         catch {
             return @{
-                IsValid = $false
+                IsValid    = $false
                 StatusCode = 0
-                Error = $_.Exception.Message
+                Error      = $_.Exception.Message
             }
         }
     }
@@ -167,10 +168,10 @@ function Test-FolderMarkdownLinks {
     }
 
     $fileStats = @{
-        TotalFiles = 0
+        TotalFiles      = 0
         FilesWithErrors = 0
-        TotalLinks = 0
-        InvalidLinks = 0
+        TotalLinks      = 0
+        InvalidLinks    = 0
     }
 
     # Get all markdown files recursively
@@ -234,7 +235,12 @@ function Test-FolderMarkdownLinks {
             }
 
             if ($fileLinksCount -gt 0) {
-                Write-Host "  Links checked: $fileLinksCount, Invalid: $fileInvalidCount" -ForegroundColor $(if ($fileInvalidCount -gt 0) { "Red" } else { "Green" })
+                Write-Host "  Links checked: $fileLinksCount, Invalid: $fileInvalidCount" -ForegroundColor $(if ($fileInvalidCount -gt 0) {
+                        "Red"
+                    }
+                    else {
+                        "Green"
+                    })
                 Write-Separator
             }
         }
@@ -248,9 +254,19 @@ function Test-FolderMarkdownLinks {
     Write-Host "`nVALIDATION SUMMARY" -ForegroundColor Cyan
     Write-Separator
     Write-Host "Total Files Processed: $($fileStats.TotalFiles)"
-    Write-Host "Files With Invalid Links: $($fileStats.FilesWithErrors)" -ForegroundColor $(if ($fileStats.FilesWithErrors -gt 0) { "Red" } else { "Green" })
+    Write-Host "Files With Invalid Links: $($fileStats.FilesWithErrors)" -ForegroundColor $(if ($fileStats.FilesWithErrors -gt 0) {
+            "Red"
+        }
+        else {
+            "Green"
+        })
     Write-Host "Total Links Checked: $($fileStats.TotalLinks)"
-    Write-Host "Invalid Links Found: $($fileStats.InvalidLinks)" -ForegroundColor $(if ($fileStats.InvalidLinks -gt 0) { "Red" } else { "Green" })
+    Write-Host "Invalid Links Found: $($fileStats.InvalidLinks)" -ForegroundColor $(if ($fileStats.InvalidLinks -gt 0) {
+            "Red"
+        }
+        else {
+            "Green"
+        })
     Write-Separator
 }
 
@@ -296,7 +312,9 @@ $recommendations = Get-DocsRecommendations -entraDocsFolder $entraDocsFolder
 
 # Update the recommendations in the tests
 $testFiles = Get-ChildItem -Path "$($PSScriptRoot)../../src/powershell/private/tests" -Filter *.md
-$testMeta = @{} # We will store the TestId and Title so it can be used to display the test results
+$testMetaPath = "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
+# Read the existing test metadata and merge with the new recommendations
+$testMeta = Get-Content $testMetaPath | ConvertFrom-Json -AsHashtable
 
 foreach ($file in $testFiles) {
     # Split the name with . and get the second part
@@ -316,15 +334,20 @@ foreach ($file in $testFiles) {
 
             $docsContent = Get-MarkDownContent $docRawContent
 
-            # Add the docsTitle to the hashtable with sorted attributes
-            $testMeta[$testId] = [ordered]@{
-                TestId = $testId
-                Title = $docsTitle
-                Category = $frontMatter['# category']
-                ImplementationCost = $frontMatter['# implementationcost']
-                RiskLevel = $frontMatter['# risklevel']
-                UserImpact = $frontMatter['# userimpact']
+            # Check if test with id exists in the hashtable
+            if (!$testMeta.ContainsKey($testId)) {
+                $testMetaItem = [ordered]@{}
+                $testMeta[$testId] = $testId
             }
+
+            $testMetaItem = $testMeta[$testId]
+
+            $testMetaItem.TestId = $testId
+            $testMetaItem.Title = $docsTitle
+            $testMetaItem.Category = $frontMatter['# category']
+            $testMetaItem.ImplementationCost = $frontMatter['# implementationcost']
+            $testMetaItem.RiskLevel = $frontMatter['# risklevel']
+            $testMetaItem.UserImpact = $frontMatter['# userimpact']
 
             Write-Host "$testId Title: $docsTitle"
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
@@ -362,10 +385,19 @@ foreach ($file in $testFiles) {
 # Sort the hashtable by TestId and convert to ordered dictionary
 $sortedTestMeta = [ordered]@{}
 $testMeta.Keys | Sort-Object | ForEach-Object {
-    $sortedTestMeta[$_] = $testMeta[$_]
+    $testId = $_
+    $testData = $testMeta[$testId]
+
+    # Create ordered hashtable with sorted attributes
+    $sortedAttributes = [ordered]@{}
+    $testData.Keys | Sort-Object | ForEach-Object {
+        $sortedAttributes[$_] = $testData[$_]
+    }
+
+    $sortedTestMeta[$testId] = $sortedAttributes
 }
 
 # Save the sorted hashtable to a json file
-$sortedTestMeta | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
+$sortedTestMeta | ConvertTo-Json | Set-Content -Path $testMetaPath
 
 Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/private/tests" -IncludeRelativeLinks
