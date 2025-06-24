@@ -40,6 +40,7 @@ function Get-MarkDownContent($fileContent) {
 
     # Fix relative links to include the full path
     $markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
+    $markdownContent = $markdownContent.replace('](../../', '](https://learn.microsoft.com/en-us/entra/')
 
     $markdownContent = Update-MarkdownLinks -Content $markdownContent
 
@@ -96,6 +97,12 @@ function Update-SingleLink {
     $mdExtensions = @('.md', '.yml')
 
     # Remove any markdown extensions from the URL
+    foreach ($ext in $mdExtensions) {
+        if ($url.EndsWith($ext)) {
+            $url = $url.Substring(0, $url.Length - $ext.Length)
+        }
+    }
+
     # Create the new link with tracking parameter and add back the hash part if it existed
     return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
 }
@@ -309,8 +316,8 @@ foreach ($file in $testFiles) {
 
             $docsContent = Get-MarkDownContent $docRawContent
 
-            # Add the docsTitle to the hashtable
-            $testMeta[$testId] = @{
+            # Add the docsTitle to the hashtable with sorted attributes
+            $testMeta[$testId] = [ordered]@{
                 TestId = $testId
                 Title = $docsTitle
                 Category = $frontMatter['# category']
@@ -351,7 +358,14 @@ foreach ($file in $testFiles) {
     }
 }
 
-# Save the hashtable to a json file
-$testMeta | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
+
+# Sort the hashtable by TestId and convert to ordered dictionary
+$sortedTestMeta = [ordered]@{}
+$testMeta.Keys | Sort-Object | ForEach-Object {
+    $sortedTestMeta[$_] = $testMeta[$_]
+}
+
+# Save the sorted hashtable to a json file
+$sortedTestMeta | ConvertTo-Json | Set-Content -Path "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
 
 Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/private/tests" -IncludeRelativeLinks
