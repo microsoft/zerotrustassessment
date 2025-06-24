@@ -61,11 +61,11 @@ export const columns: ColumnDef<Test>[] = [
     },
     {
         accessorKey: "TestImplementationCost",
-        meta: { label: "Implementation Cost" },
+        meta: { label: "Implementation Effort" },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                    Imp. Cost
+                    Imp. Effort
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )

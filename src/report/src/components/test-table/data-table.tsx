@@ -230,7 +230,7 @@ export function DataTable<TData extends Test, TValue>({
                                     {/* Implementation Cost */}
                                     <div className="flex items-center gap-2">
                                         <DollarSign className="h-4 w-4 text-foreground" />
-                                        <span className="font-semibold">Implementation Cost:</span>
+                                        <span className="font-semibold">Implementation Effort:</span>
                                         <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
                                     </div>
                                 </div>
