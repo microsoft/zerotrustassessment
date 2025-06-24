@@ -1,6 +1,8 @@
-...
+Without restrictions preventing guest users from registering and owning applications, threat actors can exploit external user accounts to establish persistent backdoor access to organizational resources through application registrations that may evade traditional security monitoring. When guest users own applications, threat actors who compromise guest accounts can exploit owned applications that might have broad permissions, enabling them to request access to sensitive organizational data such as emails, files, and user information without requiring the same level of scrutiny applied to applications registered by internal users. This attack vector is particularly dangerous because guest-owned applications can be configured to request high-privilege permissions and, once granted consent, provide threat actors with legitimate OAuth tokens. Furthermore, guest-owned applications can serve as command and control infrastructure, allowing threat actors to maintain access even after the compromised guest account is detected and remediated, since application credentials and permissions may persist independently of the original guest user account. The presence of guest-owned applications also complicates security auditing and governance efforts, as organizations may have limited visibility into the purpose and security posture of applications registered by external users, creating blind spots in application lifecycle management and making it difficult to assess the true scope of data access granted to third-party entities through seemingly legitimate application registrations.
 
 **Remediation action**
 
+Remove guest users as owners from applications and service principals, and implement controls to prevent future guest user application ownership
+- [Restrict guest access permissions in Microsoft Entra ID](https://learn.microsoft.com/entra/identity/users/users-restrict-guest-permissions)
 <!--- Results --->
 %TestResult%
