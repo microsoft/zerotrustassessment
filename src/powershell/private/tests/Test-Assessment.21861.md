@@ -4,8 +4,8 @@ A lack of triage of these risky users allows for expanded reconnaissance activit
 
 **Remediation action**
 
-- [Investigate risk](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Remediate risks and unblock users](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-remediate-unblock?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Investigate high risk users](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) in Microsoft Entra ID Protection
+- [Remediate high risk users and unblock](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-remediate-unblock?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) in Microsoft Entra ID Protection
 <!--- Results --->
 %TestResult%
 

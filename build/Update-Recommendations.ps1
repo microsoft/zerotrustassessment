@@ -92,6 +92,10 @@ function Update-SingleLink {
     # Remove tracking parameter if it already exists (to avoid duplication)
     $url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
 
+    # markdown extensions to remove
+    $mdExtensions = @('.md', '.yml')
+
+    # Remove any markdown extensions from the URL
     # Create the new link with tracking parameter and add back the hash part if it existed
     return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
 }
@@ -310,9 +314,9 @@ foreach ($file in $testFiles) {
                 TestId = $testId
                 Title = $docsTitle
                 Category = $frontMatter['# category']
+                ImplementationCost = $frontMatter['# implementationcost']
                 RiskLevel = $frontMatter['# risklevel']
                 UserImpact = $frontMatter['# userimpact']
-                ImplementationCost = $frontMatter['# implementationcost']
             }
 
             Write-Host "$testId Title: $docsTitle"

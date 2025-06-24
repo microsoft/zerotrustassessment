@@ -2,8 +2,8 @@ Assume any users at high risk are compromised by threat actors. Without investig
 
 **Remediation action**
 
-- [Require a secure password change for elevated user risk](https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-user?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Investigate risk](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- Create a Conditional Access policy to [require a secure password change for elevated user risk](https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-user?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- Use Microsoft Entra ID Protection to [further investigate risk](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
 

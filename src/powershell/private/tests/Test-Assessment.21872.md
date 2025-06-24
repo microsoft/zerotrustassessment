@@ -2,7 +2,7 @@ Threat actors can exploit the lack of multifactor authentication during new devi
 
 **Remediation action**
 
-- [Require multifactor authentication for device registration](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-device-registration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- Create a Conditional Access policy to [require multifactor authentication for device registration](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-device-registration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
 

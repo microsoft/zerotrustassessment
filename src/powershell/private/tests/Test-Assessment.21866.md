@@ -2,7 +2,7 @@ Microsoft Entra recommendations give organizations opportunities to implement be
 
 **Remediation action**
 
-- [Address recommendations in the Microsoft Entra admin center](https://learn.microsoft.com/entra/identity/monitoring-health/overview-recommendations?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-does-it-work)
+- [Address all active or postponed recommendations in the Microsoft Entra admin center](https://learn.microsoft.com/entra/identity/monitoring-health/overview-recommendations?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-does-it-work)
 <!--- Results --->
 %TestResult%
 

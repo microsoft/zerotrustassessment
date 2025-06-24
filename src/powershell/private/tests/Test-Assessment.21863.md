@@ -4,7 +4,7 @@ A lack of response lets attackers execute reconnaissance, attempt to escalate th
 
 **Remediation action**
 
-- [Investigate risk](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Investigate risky sign-ins](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-investigate-risk?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Remediate risks and unblock users](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-remediate-unblock?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%

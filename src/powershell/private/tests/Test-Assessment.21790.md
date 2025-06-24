@@ -1,11 +1,11 @@
-Allowing unrestricted external collaboration with unvetted organizations increases the risk surface area to the tenant because it allows onboarding guest accounts that might not have proper security controls. Threat actors can establish initial access by compromising identities within loosely governed external tenants and leveraging legitimate collaboration pathways to infiltrate resources in your tenant. Once granted guest access, adversaries can attempt to harvest sensitive information, and exploit misconfigured permissions to escalate privileges and try additional attacks. Without vetting the security of organizations you collaborate with, malicious external accounts can persist undetected, exfiltrate confidential data, inject malicious payloads. This unbounded collaboration surface weakens organizational control, enabling cross-tenant attacks that bypass traditional perimeter defenses and undermine both data integrity and operational resilience.
+Allowing unrestricted external collaboration with unverified organizations can increase the risk surface area of the tenant because it allows guest accounts that might not have proper security controls. Threat actors can attempt to gain access by compromising identities in these loosely governed external tenants. Once granted guest access, they can then use legitimate collaboration pathways to infiltrate resources in your tenant and attempt to gain sensitive information. Threat actors can also exploit misconfigured permissions to escalate privileges and try different types of attacks.
 
-Cross-tenant access settings for outbound access in Entra provides a mechanism to block collaboration by default with unknown organizations, reducing the attack surface created.
+Without vetting the security of organizations you collaborate with, malicious external accounts can persist undetected, exfiltrate confidential data, and inject malicious payloads. This type of exposure can weaken organizational control and enable cross-tenant attacks that bypass traditional perimeter defenses and undermine both data integrity and operational resilience. Cross-tenant settings for outbound access in Microsoft Entra provide the ability to block collaboration with unknown organizations by default, reducing the attack surface.
 
 **Remediation action**
 
-Implement default outbound policy to restrict access by default. Create targeted policies for the organizations that your tenant approved collaboration with to override the default block policy.
-- [Cross-tenant access with Microsoft Entra External ID](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview)
-- [Cross-tenant access settings for B2B collaboration](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration#configure-default-settings)
-<!--- Results --->
+- [Cross-tenant access overview](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Configure cross-tenant access settings](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-default-settings)
+- [Modify outbound access settings](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
+
