@@ -10,7 +10,7 @@ Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasec
 
 Manually checking a tenant's configuration against the published guidance can be time consuming and error project. The Zero Trust Assessment PowerShell module was built to help with this activity.
 
-The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works be assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
+The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
 
 _This initial release is limited to Microsoft Entra._
 
