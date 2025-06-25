@@ -1,12 +1,18 @@
-# Microsoft Zero Trust Assessment V2 - Alpha Release
+# Microsoft Zero Trust Assessment V2 - Private Preview
 
-> The shortlink to this page is: [aka.ms/ztworkshop/v2/privatepreview](https://aka.ms/ztworkshop/v2/privatepreview)
+> The shortlink to this page is: [aka.ms/zerotrust/v2/privatepreview](https://aka.ms/zerotrust/v2/privatepreview)
 
-This assessment is an early incubation project that analyzes your
-Microsoft Entra tenant configuration and provides guidance for how to
-improve the security of your tenant.
+## About the Zero Trust Assessment tool
 
-This initial release is limited to Microsoft Entra.
+As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
+
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+​
+Manually checking a tenant's configuration against the published guidance can be time consuming and error project. The Zero Trust Assessment PowerShell module was built to help with this activity.
+
+The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works be assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
+
+_This initial release is limited to Microsoft Entra._
 
 ## Prerequisites
 
