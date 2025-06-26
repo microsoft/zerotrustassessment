@@ -1,12 +1,18 @@
-# Microsoft Zero Trust Assessment V2 - Alpha Release
+# Microsoft Zero Trust Assessment V2 - Private Preview
 
-> The shortlink to this page is: [aka.ms/ztworkshop/v2/privatepreview](https://aka.ms/ztworkshop/v2/privatepreview)
+> The shortlink to this page is: [aka.ms/zerotrust/v2/privatepreview](https://aka.ms/zerotrust/v2/privatepreview)
 
-This assessment is an early incubation project that analyzes your
-Microsoft Entra tenant configuration and provides guidance for how to
-improve the security of your tenant.
+## About the Zero Trust Assessment tool
 
-This initial release is limited to Microsoft Entra.
+As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
+
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+
+Manually checking a tenant's configuration against the published guidance can be time consuming and error project. The Zero Trust Assessment PowerShell module was built to help with this activity.
+
+The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
+
+_This initial release is limited to Microsoft Entra._
 
 ## Prerequisites
 
@@ -209,3 +215,11 @@ Inner exception type: DllNotFoundException
 This error occurs because you are running on a system that does not include Microsoft Visual C++ 2015-2022 Redistributable (x64) - Microsoft.VCRedist.2015+.x64
 
 You can download and install VCRedist from [download.visualstudio.microsoft.com](https://download.visualstudio.microsoft.com/download/pr/2c6b06c4-dc6a-4496-b769-b0d311cf515d/463F736D5925566EDC0E8F7D8E70C0A1FC95ADF44AFA5D5390B979F5A35934CC/VC_redist.x64.exe)
+
+### Is this an official Microsoft product?
+
+No. It is a community project that is maintained by Microsoft employees. The app is provided as-is and is not supported through any Microsoft support program or service. Please do not contact Microsoft support with any issues or concerns.
+
+### How do I get support?
+
+Please raise an issue on the [Zero Trust Assessment GitHub repo](https://github.com/microsoft/zerotrustassessment/issues).
