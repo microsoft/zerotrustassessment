@@ -10,6 +10,7 @@ There are currently three different workshops available for the following pillar
 - Identity 
 - Devices  
 - Data
+- Networking
 
 Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data (and any future modules as they become available).  
 
@@ -36,9 +37,9 @@ In order to get the most out of these workshops, it is recommended to have peopl
 
 Recommendations for the customer stakeholders that should attend each of the pillar workshops are as follows:
 
-|Identity|Devices|Data|
-|---|---|---|
-| • Identity and Access Management (IAM) team <br/> • Security Operations team <br/> • Devices/Endpoint team <br/> • Enterprise Application Developers <br/> • CISO (if possible) <br/> • IT Director (if possible)| • MDM Admin (Architect, Ops) <br/> • Security (Architect, Ops) <br/> • Conditional Access Admin (Security, Identity, MDM) <br/> • Governance and Risk <br/> • CISO (if possible) <br/> • IT Director (if possible) | • Information Protection architects and officers <br/> • Compliance officers and administrators <br/> • Data Platform administrators focused on data security (Exchange, SharePoint, etc.) <br/> • CISO (if possible) <br/> • IT Director or Lead Architect (if possible)|
+|Identity|Devices|Data|Networking|
+|--|--|--|--|
+| • Identity and Access Management (IAM) team <br/> • Security Operations team <br/> • Devices/Endpoint team <br/> • Enterprise Application Developers <br/> • CISO (if possible) <br/> • IT Director (if possible)| • MDM Admin (Architect, Ops) <br/> • Security (Architect, Ops) <br/> • Conditional Access Admin (Security, Identity, MDM) <br/> • Governance and Risk <br/> • CISO (if possible) <br/> • IT Director (if possible) | • Information Protection architects and officers <br/> • Compliance officers and administrators <br/> • Data Platform administrators focused on data security (Exchange, SharePoint, etc.) <br/> • CISO (if possible) <br/> • IT Director or Lead Architect (if possible)|• Identity and Access Management (IAM) team <br/> • Network Operations team <br/>  • Security Operations team <br/> • Devices/Endpoint team <br/> • Applications / workloads stakeholders <br/> • CISO (if possible) <br/> • IT Director (if possible)|
 
 ## Engagement Model
 
@@ -51,7 +52,6 @@ Recommendations for the customer stakeholders that should attend each of the pil
 
 ## Workshop Delivery Time Estimates
 Below are the estimated delivery times for each section of the pillar workshops:
-|Identity|Devices|Data|
-|---|---|---|
-| • Apps: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Devices: 0.5 hour <br/> • Operations: 1 hour <hr /> **• Total: 4 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect You Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours**|
-
+|Identity|Devices|Data|Networking|
+|--|--|--|--|
+| • Apps: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Devices: 0.5 hour <br/> • Operations: 1 hour <hr /> **• Total: 4 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect You Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours** | • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hour <hr /> **• Total: 4 hours**|
