@@ -1,0 +1,55 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+# https://aka.ms/yaml
+
+parameters:
+  - name: Sign
+    type: boolean
+    default: false
+  - name: Integration
+    type: boolean
+    default: false
+
+steps:
+- task: powershell@2
+  displayName: 'Show current PowerShell version information'
+  inputs:
+    targetType: inline
+    script: 'echo $PSVersionTable'
+    pwsh: true
+- task: powershell@2
+  displayName: 'Build Module'
+  inputs:
+    targetType: inline
+    script: |
+      ./build/Build-PSModule.ps1
+    pwsh: true
+- ${{ if eq(parameters.Sign, true) }}:
+  - template: ../common-templates/esrp/codesign.yml
+    parameters:
+      FolderPath: "bin"
+      Pattern: "*.psm1, *.psd1, *.format.ps1xml, *.ps1"
+  - task: PowerShell@2
+    displayName: "Validate Authenticode Signature"
+    inputs:
+      targetType: "inline"
+      pwsh: true
+      script: ./build/ValidateAuthenticodeSignature.ps1
+- task: powershell@2
+  displayName: 'Create Module Files Entra'
+  inputs:
+    targetType: inline
+    script: |
+      . ./build/common-functions.ps1
+      Create-ModuleFolder
+    pwsh: true
+- task: 1ES.PublishBuildArtifacts@1
+  displayName: 'Publish Module Files'
+  inputs:
+    PathtoPublish: 'bin'
+    ArtifactName: 'Module Files'
+- task: 1ES.PublishBuildArtifacts@1
+  displayName: 'Publish Module Nuget File'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'Module Nuget'
