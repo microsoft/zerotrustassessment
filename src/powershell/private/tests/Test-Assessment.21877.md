@@ -1,6 +1,11 @@
-...
+Inviting external guests is beneficial for organizational collaboration. However, in the absence of an assigned internal sponsor for each guest, such accounts may persist within the directory without clear accountability. This oversight creates a risk: threat actors could potentially compromise an unused or unmonitored guest account, thereby establishing an initial foothold within the tenant. Once granted access as an apparent “legitimate” user, an attacker may explore accessible resources and attempt privilege escalation, which could ultimately expose sensitive information or critical systems. An unmonitored guest account may therefore become the vector for unauthorized data access or a significant security breach. A typical attack sequence might involve initial access gained through compromised guest credentials, persistence due to a lack of oversight, further escalation or lateral movement if the guest account possesses group memberships or elevated permissions, and, finally, the execution of malicious objectives—all achieved under the guise of a standard external collaborator.
+
+Mandating that every guest account be assigned to a sponsor directly mitigates this risk. Such a requirement ensures that each external user is linked to a responsible internal party who is expected to regularly monitor and attest to the guest’s ongoing need for access. The sponsor feature within Microsoft Entra ID supports accountability by tracking the inviter and preventing the proliferation of “orphaned” guest accounts. When a sponsor manages the guest account lifecycle—such as removing access when collaboration concludes—the opportunity for threat actors to exploit neglected accounts is substantially reduced. This best practice is consistent with Microsoft’s guidance to require sponsorship for business guests as part of an effective guest access governance strategy. It strikes a balance between enabling collaboration and enforcing security, as it guarantees that each guest user’s presence and permissions remain under ongoing internal oversight.
 
 **Remediation action**
 
+For each guest user that has no sponsor, assign a sponsor in Microsoft Entra ID:
+- [Sponsors field for B2B users](https://learn.microsoft.com/entra/external-id/b2b-sponsors)
+- [Add sponsor](https://learn.microsoft.com/graph/api/user-post-sponsors)
 <!--- Results --->
 %TestResult%
