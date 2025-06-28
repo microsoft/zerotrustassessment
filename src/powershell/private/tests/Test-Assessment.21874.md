@@ -1,6 +1,8 @@
-...
+Without configured domain allow/deny lists for external collaboration, organizations lack granular control over which external domains can be invited into their tenant for B2B collaboration. This configuration gap allows internal users to invite external users from any domain, including potentially compromised or malicious domains that threat actors' control. When unrestricted domain access is permitted, threat actors can register domains that appear legitimate to conduct social engineering attacks, tricking internal users into extending collaboration invitations to attacker-controlled accounts. Once threat actors receive invitations and gain guest access to the tenant, they can perform reconnaissance activities to map internal resources, user relationships, and collaboration patterns within the organization. These externally invited accounts provide threat actors with persistent access that appears legitimate within audit logs and security monitoring systems, enabling them to maintain long-term presence for data collection activities. The external guest accounts can be leveraged to access shared resources, documents, and applications that internal users have configured for external collaboration, potentially leading to data exfiltration through authorized collaboration channels that may not trigger security alerts.
 
 **Remediation action**
 
+Configure Domain-Based Allow or Deny Lists as per the article:
+- [Set the allow or blocklist policy in the portal](https://learn.microsoft.com/entra/external-id/allow-deny-list#set-the-allow-or-blocklist-policy-in-the-portal)
 <!--- Results --->
 %TestResult%
