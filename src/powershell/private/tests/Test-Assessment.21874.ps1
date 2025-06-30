@@ -9,10 +9,10 @@ function Test-Assessment-21874 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Allow/Deny lists of domains to restrict external collaboration are configured"
+    $activity = "Checking Allow/Deny lists of domains to restrict external collaboration are configured"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    $policies = Invoke-ZtGraphRequest -RelativeUri 'legacy/policies' -ApiVersion beta -DisableCache
+    $policies = Invoke-ZtGraphRequest -RelativeUri 'legacy/policies' -ApiVersion beta
 
     foreach ($policy in $policies) {
         if ( $policy.definition -and ($null -ne ($policy.definition | ConvertFrom-Json).B2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.AllowedDomains) ) {
