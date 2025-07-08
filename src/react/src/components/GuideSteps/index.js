@@ -34,17 +34,32 @@ const Steps = [
                         <ul>
                             <li>
                                 <a href="docs/videos/IdentityPillar" title="Identity Pillar Info">
-                                    Identity
+                                    Identity (Recently Updated)
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/DevicesPillar" title="Devices Pillar Info">
-                                    Devices
+                                    Devices (Recently Updated)
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/DataPillar" title="Data Pillar Info">
-                                    Data
+                                    Data (Recently Updated)
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/NetworkPillar" title="Network Pillar Info">
+                                    Network (New)
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/InfrastructurePillar" title="Infrastructure Pillar Info">
+                                    Infrastructure (New)
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/SecurityOperationsPillar" title="Security Operations Pillar Info">
+                                    Security Operations (New)
                                 </a>
                             </li>
                         </ul>
