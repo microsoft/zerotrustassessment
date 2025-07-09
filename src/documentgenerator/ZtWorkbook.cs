@@ -51,20 +51,20 @@ public class ZtWorkbook
         var sheetConfigDevice = new SheetConfigDevice(_workbook, ZtSheets.ConfigDevice, _graphData);
         sheetConfigDevice.Generate();
 
-        var sheetConfigIdentity = new SheetConfigIdentity(_workbook, ZtSheets.ConfigIdentity, _graphData);
-        sheetConfigIdentity.Generate(pptxGraphData);
+        // var sheetConfigIdentity = new SheetConfigIdentity(_workbook, ZtSheets.ConfigIdentity, _graphData);
+        // sheetConfigIdentity.Generate(pptxGraphData);
 
-        var sheetHome = new SheetHome(_workbook, ZtSheets.Home, _graphData);
-        sheetHome.Generate(identityScore, deviceScore);
-        var sheet = GetWorksheet(_workbook, ZtSheets.Home);
-        sheet.Activate();
+        // var sheetHome = new SheetHome(_workbook, ZtSheets.Home, _graphData);
+        // sheetHome.Generate(identityScore, deviceScore);
+        // var sheet = GetWorksheet(_workbook, ZtSheets.Home);
+        // sheet.Activate();
     }
 
     private void SetHeaders()
     {
-        var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
-        sheetIdentity.TextBoxes["RoadmapIdTenantId"].Text = _graphData.TenantId;
-        sheetIdentity.TextBoxes["RoadmapIdTenantName"].Text = _graphData.TenantName;
+        // var sheetIdentity = GetWorksheet(_workbook, ZtSheets.WorkshopIdentity);
+        // sheetIdentity.TextBoxes["RoadmapIdTenantId"].Text = _graphData.TenantId;
+        // sheetIdentity.TextBoxes["RoadmapIdTenantName"].Text = _graphData.TenantName;
 
         foreach (var sheet in _workbook.Worksheets)
         {
@@ -253,8 +253,8 @@ public class ZtWorkbook
     /// <returns></returns>
     public static IWorksheet GetWorksheet(IWorkbook workbook, ZtSheets sheet)
     {
-        if (IsV2(workbook))
-        {
+        // if (IsV2(workbook))
+        // {
             var sheetNameToFind = Enum.GetName(sheet);
             foreach (var worksheet in workbook.Worksheets)
             {
@@ -266,11 +266,11 @@ public class ZtWorkbook
                 }
             }
             throw new Exception($"Worksheet with SheetName range set to '{sheetNameToFind}' was not found.");
-        }
-        else
-        { // Follow old style.
-            return workbook.Worksheets[(int)sheet];
-        }
+        // }
+        // else
+        // { // Follow old style.
+        //     return workbook.Worksheets[(int)sheet];
+        // }
     }
 
     private static bool IsV2(IWorkbook workbook)
