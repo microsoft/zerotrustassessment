@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, DollarSign, Users } from "lucide-react"
+import { AlertTriangle, Settings, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -229,7 +229,7 @@ export function DataTable<TData extends Test, TValue>({
                                     </div>
                                     {/* Implementation Cost */}
                                     <div className="flex items-center gap-2">
-                                        <DollarSign className="h-4 w-4 text-foreground" />
+                                        <Settings className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Implementation Effort:</span>
                                         <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
                                     </div>
