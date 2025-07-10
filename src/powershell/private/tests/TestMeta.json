@@ -405,7 +405,7 @@
       "Workforce"
     ],
     "TestId": "21807",
-    "Title": "Creating new applications and service principles is restricted to privileged users",
+    "Title": "Creating new applications and service principals is restricted to privileged users",
     "UserImpact": "Low"
   },
   "21808": {
@@ -876,14 +876,14 @@
   },
   "21851": {
     "Category": "",
-    "ImplementationCost": "",
-    "RiskLevel": "",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
     "TenantType": [
       "Workforce"
     ],
     "TestId": "21851",
     "Title": "Guest access is protected by strong authentication methods",
-    "UserImpact": ""
+    "UserImpact": "Medium"
   },
   "21854": {
     "Category": "Access control",
@@ -1497,16 +1497,16 @@
     "UserImpact": "Low"
   },
   "21985": {
-    "Category": "Access control",
-    "ImplementationCost": "Medium",
+    "Category": "Credential management",
+    "ImplementationCost": "Low",
     "RiskLevel": "Medium",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21985",
-    "Title": "Turn off Seamless SSO if there are is no usage",
-    "UserImpact": "Medium"
+    "Title": "Turn off Seamless SSO if there is no usage",
+    "UserImpact": "Low"
   },
   "21992": {
     "Category": "Application management",
