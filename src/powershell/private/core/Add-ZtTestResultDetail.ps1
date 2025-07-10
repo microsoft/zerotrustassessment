@@ -85,7 +85,12 @@ Function Add-ZtTestResultDetail {
         [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
             'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity'
             )]
-        [string[]] $Tag
+        [string[]] $Tag,
+
+        # Optional. Custom status to return instead of the default status.
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Investigate')]
+        [string] $CustomStatus
     )
 
     $hasGraphResults = $GraphObjects -and $GraphObjectType
@@ -153,7 +158,7 @@ Function Add-ZtTestResultDetail {
     $testInfo = @{
         TestId                 = $TestId
         TestTitle              = $docsTitle
-        TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause
+        TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause -CustomStatus $CustomStatus
         TestCategory           = $category
         TestTags               = $Tag
         TestAppliesTo          = $AppliesTo

@@ -4,6 +4,7 @@ import {
     ArrowUpIcon,
     CheckCircledIcon,
     CrossCircledIcon,
+    QuestionMarkCircledIcon,
     StopwatchIcon,
   } from "@radix-ui/react-icons"
 
@@ -34,6 +35,12 @@ import {
       label: "Failed",
       icon: CrossCircledIcon,
       variant: "destructive"
+    },
+    {
+      value: "Investigate",
+      label: "Investigate",
+      icon: QuestionMarkCircledIcon,
+      variant: "warning"
     },
     {
       value: "Skipped",
