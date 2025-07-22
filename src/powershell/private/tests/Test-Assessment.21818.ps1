@@ -130,7 +130,7 @@ ORDER BY rd.displayName;
         $testResultMarkdown += "Role notifications are properly configured for privileged role.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Role notifications are not properly configured.`n`n%TestResult%"
+        $testResultMarkdown += "Role notifications are not properly configured.`n`nNote: To save time, this check stops when it finds the first role that does not have notifications. After fixing this role and all other roles, we recommend running the check again to verify.`n`n%TestResult%"
     }
 
     # Build the detailed sections of the markdown
