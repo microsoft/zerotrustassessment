@@ -222,7 +222,7 @@ export function DataTable<TData extends Test, TValue>({
                                             setSelectedRisks(prev => [...prev, risk]);
                                         }
                                     }}
-                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-950 dark:hover:text-purple-300'}`}
+                                    className={`text-xs h-6 px-3 py-1 rounded-full ${isSelected ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-950 dark:hover:text-purple-300'}`}
                                     title={`${risk} (${riskCount} tests)`}
                                 >
                                     {risk}
@@ -267,7 +267,7 @@ export function DataTable<TData extends Test, TValue>({
                                             setSelectedStatuses(prev => [...prev, status]);
                                         }
                                     }}
-                                    className={`text-xs h-7 px-2 ${getStatusColors(status, isSelected)}`}
+                                    className={`text-xs h-6 px-3 py-1 rounded-full ${getStatusColors(status, isSelected)}`}
                                     title={`${status} (${statusCount} tests)`}
                                 >
                                     {status}
@@ -363,7 +363,7 @@ export function DataTable<TData extends Test, TValue>({
                                         setSelectedSfiPillars(prev => [...prev, pillar]);
                                     }
                                 }}
-                                className={`text-xs max-w-96 h-auto py-2 px-3 ${isSelected ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-300'}`}
+                                className={`text-xs max-w-96 h-auto py-1 px-4 rounded-full ${isSelected ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-300'}`}
                                 title={`${pillar} (${pillarCount} tests)`} // Show full text and count on hover
                             >
                                 <PillarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
