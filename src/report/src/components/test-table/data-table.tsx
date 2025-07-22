@@ -64,6 +64,8 @@ export function DataTable<TData extends Test, TValue>({
         TestImplementationCost: false,
         // Hide TestId by default
         TestId: false,
+        // Hide TestSfiPillar by default
+        TestSfiPillar: false,
         // Optionally specify other columns here (true => visible, false => hidden)
         // TestRisk: true,
         // TestStatus: true,

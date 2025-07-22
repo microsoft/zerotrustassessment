@@ -33,6 +33,26 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
+        accessorKey: "TestSfiPillar",
+        meta: { label: "SFI Pillar" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    SFI Pillar
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const sfiPillar = row.getValue("TestSfiPillar") as string;
+            return (
+                <div className="flex items-center">
+                    <span>{sfiPillar || "N/A"}</span>
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "TestImpact",
         meta: { label: "User Impact" },
         header: ({ column }) => {

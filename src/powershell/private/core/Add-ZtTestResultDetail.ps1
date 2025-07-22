@@ -165,6 +165,7 @@ Function Add-ZtTestResultDetail {
         TestImpact             = $UserImpact
         TestRisk               = $Risk
         TestImplementationCost = $ImplementationCost
+        TestSfiPillar           = $testMeta.SfiPillar
         TestDescription        = $Description
         TestResult             = $Result
         TestSkipped            = $SkippedBecause
