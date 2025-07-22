@@ -2,7 +2,7 @@ Organizations without proper activation alerts for highly privileged roles lack 
 
 **Remediation action**
 
-- [Configure Microsoft Entra role settings in Privileged Identity Management](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-setting?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-justification-on-active-assignment)
+- [Configure Microsoft Entra role settings in Privileged Identity Management](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-justification-on-activation)
 <!--- Results --->
 %TestResult%
 
