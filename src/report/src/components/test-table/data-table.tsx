@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap } from "lucide-react"
+import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -222,7 +222,7 @@ export function DataTable<TData extends Test, TValue>({
                                             setSelectedRisks(prev => [...prev, risk]);
                                         }
                                     }}
-                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-red-600 hover:bg-red-700' : 'hover:bg-red-50 hover:text-red-700 hover:border-red-300'}`}
+                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 dark:hover:bg-purple-950 dark:hover:text-purple-300'}`}
                                     title={`${risk} (${riskCount} tests)`}
                                 >
                                     {risk}
@@ -237,6 +237,24 @@ export function DataTable<TData extends Test, TValue>({
                         {uniqueStatuses.map((status) => {
                             const isSelected = selectedStatuses.includes(status);
                             const statusCount = data.filter(item => item.TestStatus === status).length;
+
+                            // Get color classes based on status type
+                            const getStatusColors = (status: string, isSelected: boolean) => {
+                                if (status === 'Passed') {
+                                    return isSelected
+                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                        : 'hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:hover:bg-green-950 dark:hover:text-green-300';
+                                } else if (status === 'Failed') {
+                                    return isSelected
+                                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                                        : 'hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-950 dark:hover:text-red-300';
+                                } else { // Planned and other statuses
+                                    return isSelected
+                                        ? 'bg-gray-600 hover:bg-gray-700 text-white'
+                                        : 'hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300 dark:hover:bg-gray-950 dark:hover:text-gray-300';
+                                }
+                            };
+
                             return (
                                 <Button
                                     key={status}
@@ -249,7 +267,7 @@ export function DataTable<TData extends Test, TValue>({
                                             setSelectedStatuses(prev => [...prev, status]);
                                         }
                                     }}
-                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-purple-600 hover:bg-purple-700' : 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300'}`}
+                                    className={`text-xs h-7 px-2 ${getStatusColors(status, isSelected)}`}
                                     title={`${status} (${statusCount} tests)`}
                                 >
                                     {status}
@@ -262,8 +280,8 @@ export function DataTable<TData extends Test, TValue>({
                 <div className="flex items-center gap-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline">
-                                Columns
+                            <Button variant="outline" size="sm">
+                                <Columns className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -345,7 +363,7 @@ export function DataTable<TData extends Test, TValue>({
                                         setSelectedSfiPillars(prev => [...prev, pillar]);
                                     }
                                 }}
-                                className={`text-xs max-w-96 h-auto py-2 px-3 ${isSelected ? 'bg-blue-600 hover:bg-blue-700' : 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'}`}
+                                className={`text-xs max-w-96 h-auto py-2 px-3 ${isSelected ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:text-blue-300'}`}
                                 title={`${pillar} (${pillarCount} tests)`} // Show full text and count on hover
                             >
                                 <PillarIcon className="mr-2 h-3 w-3 flex-shrink-0" />

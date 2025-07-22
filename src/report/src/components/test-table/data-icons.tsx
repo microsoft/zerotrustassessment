@@ -28,7 +28,7 @@ import {
       value: "Passed",
       label: "Passed",
       icon: CheckCircledIcon,
-      variant: "default"
+      variant: "success"
     },
     {
       value: "Failed",

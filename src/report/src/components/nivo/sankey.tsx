@@ -47,15 +47,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
         labelPosition="inside"
         labelOrientation="horizontal"
         labelPadding={16}
-        labelTextColor={{
-            from: 'color',
-            modifiers: [
-                [
-                    'darker',
-                    1
-                ]
-            ]
-        }}
+        labelTextColor={isDark ? '#ffffff' : '#000000'}
         sort='input'
         legends={[]}
         valueFormat={value =>
