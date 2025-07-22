@@ -60,6 +60,9 @@ function Invoke-ZtAssessment {
 
 Write-Host $banner -ForegroundColor Cyan
 
+    # Security warning about sensitive data
+    Show-ZtSecurityWarning -Type 'Initial'
+
     #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
     if ($ShowLog) {
@@ -133,8 +136,8 @@ Write-Host $banner -ForegroundColor Cyan
 
     Write-Host
     Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
-    Write-Host
-    Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztworkshop/v2/feedback ◀◀◀" -ForegroundColor Yellow
+    Show-ZtSecurityWarning -Type 'Final' -ExportPath $exportPath
+    Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
     Write-Host
     Write-Host
     Invoke-Item $htmlReportPath | Out-Null
@@ -147,4 +150,30 @@ Write-Host $banner -ForegroundColor Cyan
         }
         New-PSFSupportPackage -Path $logPath
     }
+}
+
+function Show-ZtSecurityWarning {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('Initial', 'Final')]
+        [string]
+        $Type,
+
+        [string]
+        $ExportPath
+    )
+
+    Write-Host
+    if ($Type -eq 'Initial') {
+        Write-Host "⚠️  SECURITY WARNING: This assessment will export and analyze sensitive tenant data." -ForegroundColor Yellow
+        Write-Host "   The exported files and generated report contain confidential information about your organization." -ForegroundColor Yellow
+        Write-Host "   Please ensure the export folder and report are deleted after use and shared only with authorized personnel." -ForegroundColor Yellow
+    }
+    elseif ($Type -eq 'Final') {
+        Write-Host "⚠️  SECURITY REMINDER: The report and export folder contain sensitive tenant information." -ForegroundColor Yellow
+        Write-Host "   Please delete the export folder ($ExportPath) and restrict access to the report." -ForegroundColor Yellow
+        Write-Host "   Share the report only with authorized personnel in your organization." -ForegroundColor Yellow
+    }
+    Write-Host
 }
