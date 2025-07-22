@@ -126,6 +126,22 @@ function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
 function Add-GraphProperty($result, $propertyName, $entityName, $entityUri) {
     $id = Get-ObjectProperty $result 'id'
     Write-PSFMessage "Adding $propertyName to $entityName $id" -Tag Graph
-    $propertyResults = Invoke-MgGraphRequest -Uri "$entityUri/$id/$propertyName" -OutputType HashTable
-    $result[$propertyName] = Get-ObjectProperty $propertyResults 'value'
+
+    try {
+        $propertyResults = Invoke-MgGraphRequest -Uri "$entityUri/$id/$propertyName" -OutputType HashTable
+        $result[$propertyName] = Get-ObjectProperty $propertyResults 'value'
+    }
+    catch {
+        $errorMessage = $_.Exception.Message
+
+        # Check for known timeout errors that should be silently logged
+        if ($entityName -eq "SignIn" -and $errorMessage -like "*The request was canceled due to the configured HttpClient.Timeout*") {
+            Write-PSFMessage "Timeout occurred while adding $propertyName to $entityName $id - silently continuing" -Tag Graph -Level Verbose
+        }
+        else {
+            # Log unknown errors and show warning
+            Write-PSFMessage "Failed to add $propertyName to $entityName $id. Error: $errorMessage" -Tag Graph -Level Warning
+            Write-Warning "Failed to retrieve property '$propertyName' for $entityName '$id': $errorMessage"
+        }
+    }
 }
