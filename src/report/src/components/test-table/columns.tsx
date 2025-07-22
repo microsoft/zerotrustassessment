@@ -45,9 +45,18 @@ export const columns: ColumnDef<Test>[] = [
         },
         cell: ({ row }) => {
             const sfiPillar = row.getValue("TestSfiPillar") as string;
+            if (!sfiPillar) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
             return (
                 <div className="flex items-center">
-                    <span>{sfiPillar || "N/A"}</span>
+                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-md">
+                        {sfiPillar}
+                    </span>
                 </div>
             )
         },

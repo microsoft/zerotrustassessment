@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, Settings, Users } from "lucide-react"
+import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -48,8 +48,6 @@ import {
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StatusIcon } from "../status-icon"
-import { Switch } from "../ui/switch"
-import { Label } from "../ui/label"
 
 export function DataTable<TData extends Test, TValue>({
     columns,
@@ -58,26 +56,113 @@ export function DataTable<TData extends Test, TValue>({
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = React.useState("");
+    const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
+    const [selectedRisks, setSelectedRisks] = React.useState<string[]>([]);
+    const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         // Hide TestImpact by default
         TestImpact: false,
         TestImplementationCost: false,
         // Hide TestId by default
         TestId: false,
-        // Hide TestSfiPillar by default
+        // Hide TestSfiPillar by default since we have toggle filters
         TestSfiPillar: false,
         // Optionally specify other columns here (true => visible, false => hidden)
         // TestRisk: true,
         // TestStatus: true,
     })
     const [rowSelection, setRowSelection] = React.useState({})
-    const [showSkipped, setShowSkipped] = React.useState(false);
 
-    // Filter the data to exclude skipped tests unless showSkipped is true
+    // Filter the data by selected SFI pillars, risks, and statuses if any are selected
     const filteredData = React.useMemo(() => {
-        if (showSkipped) return data;
-        return data.filter(item => item.TestStatus !== "Skipped" && item.TestStatus !== "Planned");
-    }, [data, showSkipped]);
+        let result = data;
+
+        // Filter by SFI pillars if any are selected
+        if (selectedSfiPillars.length > 0) {
+            result = result.filter(item =>
+                item.TestSfiPillar && selectedSfiPillars.includes(item.TestSfiPillar)
+            );
+        }
+
+        // Filter by risks if any are selected
+        if (selectedRisks.length > 0) {
+            result = result.filter(item =>
+                item.TestRisk && selectedRisks.includes(item.TestRisk)
+            );
+        }
+
+        // Filter by statuses if any are selected
+        if (selectedStatuses.length > 0) {
+            result = result.filter(item =>
+                item.TestStatus && selectedStatuses.includes(item.TestStatus)
+            );
+        } else {
+            // If no status filters are selected, exclude "Planned" items by default
+            result = result.filter(item => item.TestStatus !== "Planned");
+        }
+
+        return result;
+    }, [data, selectedSfiPillars, selectedRisks, selectedStatuses]);
+
+    // Get unique SFI pillars for the filter dropdown
+    const uniqueSfiPillars = React.useMemo(() => {
+        const pillars = data
+            .map(item => item.TestSfiPillar)
+            .filter((pillar): pillar is string => pillar !== null && pillar !== undefined);
+        return Array.from(new Set(pillars)).sort();
+    }, [data]);
+
+    // Get unique risks for the filter toggles
+    const uniqueRisks = React.useMemo(() => {
+        const risks = data
+            .map(item => item.TestRisk)
+            .filter((risk): risk is string => risk !== null && risk !== undefined);
+        const uniqueRiskSet = Array.from(new Set(risks));
+        // Custom order: High, Medium, Low
+        const riskOrder = ['High', 'Medium', 'Low'];
+        return uniqueRiskSet.sort((a, b) => {
+            const indexA = riskOrder.indexOf(a);
+            const indexB = riskOrder.indexOf(b);
+            // If both are in the custom order, sort by that order
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            // If only one is in the custom order, prioritize it
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            // If neither is in the custom order, sort alphabetically
+            return a.localeCompare(b);
+        });
+    }, [data]);
+
+    // Get unique statuses for the filter toggles
+    const uniqueStatuses = React.useMemo(() => {
+        const statuses = data
+            .map(item => item.TestStatus)
+            .filter((status): status is string => status !== null && status !== undefined);
+        const uniqueStatusSet = Array.from(new Set(statuses));
+        // Custom order: Passed, Failed, Planned
+        const statusOrder = ['Passed', 'Failed', 'Planned'];
+        return uniqueStatusSet.sort((a, b) => {
+            const indexA = statusOrder.indexOf(a);
+            const indexB = statusOrder.indexOf(b);
+            // If both are in the custom order, sort by that order
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            // If only one is in the custom order, prioritize it
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            // If neither is in the custom order, sort alphabetically
+            return a.localeCompare(b);
+        });
+    }, [data]);
+
+    // Function to get icon for SFI pillar
+    const getSfiPillarIcon = (pillar: string) => {
+        if (pillar.includes("Monitor and detect")) return Eye;
+        if (pillar.includes("Protect engineering")) return Wrench;
+        if (pillar.includes("Protect identities")) return Lock;
+        if (pillar.includes("Protect tenants")) return Building;
+        if (pillar.includes("Accelerate response")) return Zap;
+        return Shield; // Default icon
+    };
 
     const table = useReactTable({
         data: filteredData,
@@ -111,23 +196,70 @@ export function DataTable<TData extends Test, TValue>({
 
         <div>
             <div className="flex items-center py-4 justify-between">
-                <Input
-                    placeholder="Search by name..."
-                    value={globalFilter ?? ''}
-                    onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-                    className="max-w-sm"
-                />
-
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="show-skipped"
-                            checked={showSkipped}
-                            onCheckedChange={setShowSkipped}
-                        />
-                        <Label htmlFor="show-skipped" className="text-sm whitespace-nowrap">Show all</Label>
+                    <Input
+                        placeholder="Search by name..."
+                        value={globalFilter ?? ''}
+                        onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+                        className="max-w-sm"
+                    />
+
+                    {/* Risk Filter Toggles */}
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-muted-foreground mr-1">Risk:</span>
+                        {uniqueRisks.map((risk) => {
+                            const isSelected = selectedRisks.includes(risk);
+                            const riskCount = data.filter(item => item.TestRisk === risk).length;
+                            return (
+                                <Button
+                                    key={risk}
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                        if (isSelected) {
+                                            setSelectedRisks(prev => prev.filter(r => r !== risk));
+                                        } else {
+                                            setSelectedRisks(prev => [...prev, risk]);
+                                        }
+                                    }}
+                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-red-600 hover:bg-red-700' : 'hover:bg-red-50 hover:text-red-700 hover:border-red-300'}`}
+                                    title={`${risk} (${riskCount} tests)`}
+                                >
+                                    {risk}
+                                </Button>
+                            );
+                        })}
                     </div>
 
+                    {/* Status Filter Toggles */}
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-muted-foreground mr-1">Status:</span>
+                        {uniqueStatuses.map((status) => {
+                            const isSelected = selectedStatuses.includes(status);
+                            const statusCount = data.filter(item => item.TestStatus === status).length;
+                            return (
+                                <Button
+                                    key={status}
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                        if (isSelected) {
+                                            setSelectedStatuses(prev => prev.filter(s => s !== status));
+                                        } else {
+                                            setSelectedStatuses(prev => [...prev, status]);
+                                        }
+                                    }}
+                                    className={`text-xs h-7 px-2 ${isSelected ? 'bg-purple-600 hover:bg-purple-700' : 'hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300'}`}
+                                    title={`${status} (${statusCount} tests)`}
+                                >
+                                    {status}
+                                </Button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline">
@@ -158,6 +290,74 @@ export function DataTable<TData extends Test, TValue>({
                     </DropdownMenu>
                 </div>
             </div>
+
+            {/* SFI Pillar Toggle Buttons */}
+            <div className="mb-4">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">Filter by SFI Pillar:</span>
+                        {selectedSfiPillars.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedSfiPillars([])}
+                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            >
+                                Clear All ({selectedSfiPillars.length})
+                            </Button>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                        {/* Clear all filters button */}
+                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setSelectedSfiPillars([]);
+                                    setSelectedRisks([]);
+                                    setSelectedStatuses([]);
+                                }}
+                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            >
+                                Clear All Filters
+                            </Button>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                            Showing {filteredData.length} of {data.length} tests
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {uniqueSfiPillars.map((pillar) => {
+                        const isSelected = selectedSfiPillars.includes(pillar);
+                        const pillarCount = data.filter(item => item.TestSfiPillar === pillar).length;
+                        const PillarIcon = getSfiPillarIcon(pillar);
+                        return (
+                            <Button
+                                key={pillar}
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => {
+                                    if (isSelected) {
+                                        setSelectedSfiPillars(prev => prev.filter(p => p !== pillar));
+                                    } else {
+                                        setSelectedSfiPillars(prev => [...prev, pillar]);
+                                    }
+                                }}
+                                className={`text-xs max-w-96 h-auto py-2 px-3 ${isSelected ? 'bg-blue-600 hover:bg-blue-700' : 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'}`}
+                                title={`${pillar} (${pillarCount} tests)`} // Show full text and count on hover
+                            >
+                                <PillarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
+                                <span className="whitespace-normal text-left leading-tight">
+                                    {pillar}
+                                </span>
+                            </Button>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>

@@ -26,7 +26,7 @@ export default function Identity() {
                         {" "}guide.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="gap-4 p-4">
+                <CardContent className="gap-4 px-4 pb-4 pt-1">
                 <DataTable columns={columns} data={reportData.Tests} />
                 </CardContent>
             </Card>
