@@ -33,6 +33,35 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
+        accessorKey: "TestSfiPillar",
+        meta: { label: "SFI Pillar" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    SFI Pillar
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const sfiPillar = row.getValue("TestSfiPillar") as string;
+            if (!sfiPillar) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+            return (
+                <div className="flex items-center">
+                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-md">
+                        {sfiPillar}
+                    </span>
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "TestImpact",
         meta: { label: "User Impact" },
         header: ({ column }) => {

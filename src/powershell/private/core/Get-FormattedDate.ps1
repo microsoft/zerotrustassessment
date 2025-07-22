@@ -23,10 +23,16 @@ function Get-FormattedDate {
 
     $parsedDate = [datetime]::MinValue
     if ([datetime]::TryParse($DateString, [ref]$parsedDate)) {
-        return $parsedDate.ToString("yyyy-MM-dd HH:mm:ss")
+        return $parsedDate.ToString("yyyy-MM-dd")
     }
     else {
-        # If parsing fails, return the original string
-        return $DateString
+        # Try to parse as MM/dd/yyyy format specifically
+        if ([datetime]::TryParseExact($DateString, "MM/dd/yyyy", $null, [System.Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
+            return $parsedDate.ToString("yyyy-MM-dd")
+        }
+        else {
+            # If both parsing attempts fail, return the original string
+            return $DateString
+        }
     }
 }

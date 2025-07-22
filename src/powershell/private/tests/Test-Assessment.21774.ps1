@@ -103,5 +103,9 @@ else {
         Status             = $passed
         Result             = $testResultMarkdown
     }
+    if (!$passed) {
+        $params.CustomStatus = 'Investigate'
+    }
+
     Add-ZtTestResultDetail @params
 }

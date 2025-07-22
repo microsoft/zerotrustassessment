@@ -1,8 +1,14 @@
-Without restricted user consent settings, threat actors can exploit permissive application consent configurations to trick users into granting malicious applications access to sensitive organizational data through social engineering and illicit consent grant attacks. When user consent is unrestricted, threat actors can create malicious applications that impersonate legitimate services and request broad permissions to access email, files, calendars, and other critical business data, relying on users to approve these requests without proper scrutiny or administrative oversight. This attack vector enables threat actors to bypass traditional perimeter security controls by obtaining legitimate OAuth tokens through user consent, allowing them to access and exfiltrate data using officially sanctioned application permissions that appear normal to security monitoring systems. Once granted access through illicit consent, threat actors can maintain persistent access to organizational resources, conduct reconnaissance across Microsoft 365 services, move laterally through connected systems, and potentially escalate privileges by leveraging the granted permissions to access additional resources or modify configurations. Furthermore, unrestricted user consent settings prevent organizations from implementing centralized governance over application access, making it difficult to maintain visibility into which third-party applications have access to sensitive data and creating compliance risks where unauthorized applications may violate data protection regulations or organizational security policies.
+Without restricted user consent settings, threat actors can exploit permissive application consent configurations to gain unauthorized access to sensitive organizational data. When user consent is unrestricted, attackers can:
+
+- Use social engineering and illicit consent grant attacks to trick users into approving malicious applications.
+- Impersonate legitimate services to request broad permissions, such as access to email, files, calendars, and other critical business data.
+- Obtain legitimate OAuth tokens that bypass perimeter security controls, making access appear normal to security monitoring systems.
+- Establish persistent access to organizational resources, conduct reconnaissance across Microsoft 365 services, move laterally through connected systems, and potentially escalate privileges.
+
+Unrestricted user consent also limits an organization's ability to enforce centralized governance over application access, making it difficult to maintain visibility into which non-Microsoft applications have access to sensitive data. This gap creates compliance risks where unauthorized applications might violate data protection regulations or organizational security policies.
 
 **Remediation action**
 
-Configure restricted user consent settings to prevent illicit consent grants by disabling user consent or limiting it to verified publishers with low-risk permissions only
-- [Configure how users consent to applications](https://learn.microsoft.com/entra/identity/enterprise-apps/configure-user-consent?pivots=portal)
-<!--- Results --->
+-  [Configure restricted user consent settings](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to prevent illicit consent grants by disabling user consent or limiting it to verified publishers with low-risk permissions only.<!--- Results --->
 %TestResult%
+

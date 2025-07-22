@@ -3,6 +3,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -15,6 +16,7 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -27,18 +29,20 @@
     "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21772",
-    "Title": "Applications don't have secrets configured",
+    "Title": "Applications don't have client secrets configured",
     "UserImpact": "Low"
   },
   "21773": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -51,6 +55,7 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -72,21 +77,23 @@
     "UserImpact": "Medium"
   },
   "21776": {
-    "Category": "Access control",
-    "ImplementationCost": "Low",
-    "RiskLevel": "Medium",
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21776",
     "Title": "User consent settings are restricted",
-    "UserImpact": "Medium"
+    "UserImpact": "High"
   },
   "21777": {
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -135,6 +142,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce"
     ],
@@ -146,6 +154,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -157,6 +166,7 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -180,6 +190,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -192,6 +203,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
@@ -203,6 +215,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
@@ -225,6 +238,7 @@
     "Category": "Application management",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -237,6 +251,7 @@
     "Category": "External collaboration",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
@@ -248,6 +263,7 @@
     "Category": "External collaboration",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
@@ -259,6 +275,7 @@
     "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect networks",
     "TenantType": [
       "Workforce",
       "External"
@@ -271,6 +288,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce"
     ],
@@ -282,6 +300,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -293,6 +312,7 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
       "Workforce",
       "External"
@@ -305,6 +325,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -317,18 +338,20 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21799",
-    "Title": "Block high risk sign-ins",
-    "UserImpact": "Low"
+    "Title": "Restrict high risk sign-ins",
+    "UserImpact": "Medium"
   },
   "21800": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -341,6 +364,7 @@
     "Category": "Credential management",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -353,6 +377,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -365,6 +390,7 @@
     "Category": "Credential management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -377,18 +403,20 @@
     "Category": "Credential management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21804",
-    "Title": "Migrate from legacy MFA and self service password reset (SSPR) policies",
+    "Title": "SMS and Voice Call authentication methods are disabled",
     "UserImpact": "Medium"
   },
   "21806": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -401,17 +429,19 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
     "TestId": "21807",
-    "Title": "Creating new applications and service principles is restricted to privileged users",
+    "Title": "Creating new applications and service principals is restricted to privileged users",
     "UserImpact": "Low"
   },
   "21808": {
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -424,6 +454,7 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -436,6 +467,7 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -445,9 +477,10 @@
     "UserImpact": "Medium"
   },
   "21811": {
-    "Category": "Access control",
+    "Category": "Credential management",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -482,6 +515,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -493,6 +527,7 @@
     "Category": "Privileged access",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -515,6 +550,7 @@
     "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
@@ -526,6 +562,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce"
     ],
@@ -578,20 +615,22 @@
     "UserImpact": "Medium"
   },
   "21823": {
-    "Category": "Access control",
-    "ImplementationCost": "Medium",
+    "Category": "External collaboration",
+    "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
     "TestId": "21823",
-    "Title": "Guest self-service sign up via user flow is disabled",
-    "UserImpact": "Medium"
+    "Title": "Guest self-service sign-up via user flow is disabled",
+    "UserImpact": "Low"
   },
   "21824": {
-    "Category": "Access control",
+    "Category": "External collaboration",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
@@ -611,21 +650,23 @@
     "UserImpact": "Medium"
   },
   "21828": {
-    "Category": null,
-    "ImplementationCost": null,
-    "RiskLevel": null,
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21828",
-    "Title": "Authentication transfer is blocked",
-    "UserImpact": null
+    "Title": "Secure the MFA registration (My Security Info) page",
+    "UserImpact": "Low"
   },
   "21829": {
     "Category": "Access control",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -637,6 +678,7 @@
     "Category": "Application management",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
@@ -702,13 +744,14 @@
   "21836": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
-    "RiskLevel": "Medium",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21836",
-    "Title": "Workload identities assigned privileged roles",
+    "Title": "Workload Identities are not assigned privileged roles",
     "UserImpact": "Low"
   },
   "21837": {
@@ -875,15 +918,16 @@
     "UserImpact": "Low"
   },
   "21851": {
-    "Category": "",
-    "ImplementationCost": "",
-    "RiskLevel": "",
+    "Category": "External collaboration",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce"
     ],
     "TestId": "21851",
     "Title": "Guest access is protected by strong authentication methods",
-    "UserImpact": ""
+    "UserImpact": "Medium"
   },
   "21854": {
     "Category": "Access control",
@@ -922,15 +966,16 @@
     "UserImpact": "Low"
   },
   "21858": {
-    "Category": "Access control",
+    "Category": "External collaboration",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21858",
-    "Title": "Inactive guest identities are removed from the tenant",
+    "Title": "Inactive guest identities are disabled or removed from the tenant",
     "UserImpact": "Low"
   },
   "21859": {
@@ -949,6 +994,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -961,6 +1007,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -985,6 +1032,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -1009,6 +1057,7 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect networks",
     "TenantType": [
       "Workforce",
       "External"
@@ -1021,6 +1070,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -1042,28 +1092,30 @@
     "UserImpact": "Low"
   },
   "21868": {
-    "Category": "Access control",
+    "Category": "External collaboration",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21868",
-    "Title": "Guests don't own apps in the tenant",
+    "Title": "Guests do not own apps in the tenant",
     "UserImpact": "Low"
   },
   "21869": {
-    "Category": "Access control",
+    "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21869",
     "Title": "Enterprise applications must require explicit assignment or scoped provisioning",
-    "UserImpact": "Low"
+    "UserImpact": "Medium"
   },
   "21870": {
     "Category": "Access control",
@@ -1081,6 +1133,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -1089,15 +1142,16 @@
     "UserImpact": "Medium"
   },
   "21874": {
-    "Category": "Access control",
+    "Category": "External collaboration",
     "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21874",
-    "Title": "Tenant does have controls to selectively onboard External organizations (cross-tenant access polices and domain-based allow/deny lists)",
+    "Title": "Allow/Deny lists of domains to restrict external collaboration are configured",
     "UserImpact": "Medium"
   },
   "21875": {
@@ -1125,16 +1179,17 @@
     "UserImpact": "Low"
   },
   "21877": {
-    "Category": "Access control",
-    "ImplementationCost": "High",
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21877",
     "Title": "All guests have a sponsor",
-    "UserImpact": "High"
+    "UserImpact": "Medium"
   },
   "21878": {
     "Category": "Access control",
@@ -1188,6 +1243,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
       "Workforce",
       "External"
@@ -1212,6 +1268,7 @@
     "Category": "Application management",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -1248,6 +1305,7 @@
     "Category": "Application management",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -1284,6 +1342,7 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1497,21 +1556,23 @@
     "UserImpact": "Low"
   },
   "21985": {
-    "Category": "Access control",
-    "ImplementationCost": "Medium",
+    "Category": "Credential management",
+    "ImplementationCost": "Low",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
     ],
     "TestId": "21985",
-    "Title": "Turn off Seamless SSO if there are is no usage",
-    "UserImpact": "Medium"
+    "Title": "Turn off Seamless SSO if there is no usage",
+    "UserImpact": "Low"
   },
   "21992": {
     "Category": "Application management",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1591,6 +1652,7 @@
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
       "Workforce",
       "External"
@@ -1603,6 +1665,7 @@
     "Category": "Application management",
     "ImplementationCost": "Medium",
     "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
@@ -1627,6 +1690,7 @@
     "Category": "Application management",
     "ImplementationCost": "High",
     "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"

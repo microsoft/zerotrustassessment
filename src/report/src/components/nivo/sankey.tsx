@@ -17,8 +17,8 @@ type SankeyData = {
 };
 
 export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyData }) => (
-
-    <ResponsiveSankey
+    <div className={`h-full w-full ${isDark ? '' : 'sankey-light-mode'}`}>
+        <ResponsiveSankey
         data={data}
         margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
         align="justify"
@@ -47,15 +47,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
         labelPosition="inside"
         labelOrientation="horizontal"
         labelPadding={16}
-        labelTextColor={{
-            from: 'color',
-            modifiers: [
-                [
-                    'darker',
-                    1
-                ]
-            ]
-        }}
+        labelTextColor={isDark ? '#ffffff' : '#000000'}
         sort='input'
         legends={[]}
         valueFormat={value =>
@@ -82,5 +74,6 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
         //         ]
         //     }
         // ]}
-    />
+        />
+    </div>
 )

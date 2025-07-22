@@ -83,19 +83,17 @@ function Get-ZtAppWithUnsafeRedirectUris {
                 }
             }
             else {
-
-                # skip localhost and non http(s) urls
+                # skip localhost urls
                 if ($url -like "*localhost*") {
-                    $riskyUrls += "1️⃣ $url"
                     continue
                 }
                 if ($url -like "http:*") {
                     #Should use https
-                    $riskyUrls += "2️⃣ $url"
+                    $riskyUrls += "1️⃣ $url"
                     continue
                 }
                 if ($url -like "*azurewebsites.net*") {
-                    $riskyUrls += "3️⃣ $url"
+                    $riskyUrls += "2️⃣ $url"
                     continue
                 }
 
@@ -124,7 +122,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
     }
     else {
         $testResultMarkdown += "Unsafe redirect URIs found`n`n"
-        $testResultMarkdown += "1️⃣ → Use of localhost, 2️⃣ → Use of http(s) instead of https, 3️⃣ → Use of *.azurewebsites.net, 4️⃣ → Invalid URL, 5️⃣ → Domain not resolved`n`n"
+        $testResultMarkdown += "1️⃣ → Use of http(s) instead of https, 2️⃣ → Use of *.azurewebsites.net, 3️⃣ → Invalid URL, 4️⃣ → Domain not resolved`n`n"
         $testResultMarkdown += Get-RiskyAppList -Apps $riskyApps -Type $Type
     }
 

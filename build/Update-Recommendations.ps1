@@ -348,6 +348,7 @@ foreach ($file in $testFiles) {
             $testMetaItem.ImplementationCost = $frontMatter['# implementationcost']
             $testMetaItem.RiskLevel = $frontMatter['# risklevel']
             $testMetaItem.UserImpact = $frontMatter['# userimpact']
+            $testMetaItem.SfiPillar = $frontMatter['# sfipillar']
 
             Write-Host "$testId Title: $docsTitle"
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
