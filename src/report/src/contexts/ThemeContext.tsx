@@ -20,7 +20,7 @@ export const ThemeProviderContext = createContext<ThemeProviderState>(initialSta
 
 export function ThemeProvider({
     children,
-    defaultTheme = "light",
+    defaultTheme = "system",
     storageKey = "shadcn-ui-theme",
     ...props
 }: ThemeProviderProps) {
@@ -44,6 +44,24 @@ export function ThemeProvider({
         }
 
         root.classList.add(theme)
+    }, [theme])
+
+    // Listen for system theme changes when using system theme
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+        
+        const handleChange = () => {
+            if (theme === "system") {
+                const root = window.document.documentElement
+                root.classList.remove("light", "dark")
+                
+                const systemTheme = mediaQuery.matches ? "dark" : "light"
+                root.classList.add(systemTheme)
+            }
+        }
+
+        mediaQuery.addEventListener("change", handleChange)
+        return () => mediaQuery.removeEventListener("change", handleChange)
     }, [theme])
 
     return (

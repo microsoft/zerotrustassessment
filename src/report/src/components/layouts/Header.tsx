@@ -14,6 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/components/mode-toggle";
 
 import { mainMenu } from "@/config/menu";
 import { ChevronDownIcon, ViewVerticalIcon } from "@radix-ui/react-icons";
@@ -166,6 +167,7 @@ export function Header() {
                         {/* <CommandMenu /> */}
                     </div>
                     <nav className="flex items-center space-x-2">
+                        <ModeToggle />
                         <a
                             href={ztAppConfig.github.url}
                             title={ztAppConfig.github.title}
