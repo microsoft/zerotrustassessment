@@ -59,6 +59,11 @@
   }
 }
 
+/* Sankey chart text styling for better readability */
+.sankey-light-mode text {
+  fill: #1e40af;
+}
+
 @layer base {
   * {
     @apply border-border;
