@@ -72,6 +72,14 @@ Write-Host $banner -ForegroundColor Cyan
         Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
     }
 
+    if(!(Test-DuckDb)) {
+        return
+    }
+
+    if (!(Test-ZtContext)) {
+        return
+    }
+
     $exportPath = Join-Path $Path "zt-export"
 
     # Stop if folder has items inside it
@@ -90,9 +98,6 @@ Write-Host $banner -ForegroundColor Cyan
         }
     }
 
-    if (!(Test-ZtContext)) {
-        return
-    }
 
     # Send telemetry if not disabled
     if (!$DisableTelemetry) {
