@@ -1,0 +1,913 @@
+{
+  "@odata.context": null,
+  "value": [
+    {
+      "userPrincipalName": null,
+      "authenticationRequirement": null,
+      "isInteractive": null,
+      "tokenProtectionStatusDetails": {
+        "signInSessionStatusCode": null,
+        "signInSessionStatus": null
+      },
+      "authenticationRequirementPolicies": null,
+      "resourceTenantId": null,
+      "servicePrincipalId": null,
+      "deviceDetail": {
+        "browser": null,
+        "operatingSystem": null,
+        "displayName": null,
+        "deviceId": null,
+        "trustType": null,
+        "isCompliant": null,
+        "isManaged": null
+      },
+      "servicePrincipalCredentialKeyId": null,
+      "authenticationAppDeviceDetails": null,
+      "correlationId": null,
+      "appOwnerTenantId": null,
+      "resourceDisplayName": null,
+      "ipAddress": null,
+      "tokenIssuerType": null,
+      "flaggedForReview": null,
+      "originalRequestId": null,
+      "authenticationAppPolicyEvaluationDetails": null,
+      "homeTenantName": null,
+      "autonomousSystemNumber": null,
+      "clientAppUsed": null,
+      "uniqueTokenIdentifier": null,
+      "privateLinkDetails": {
+        "policyName": null,
+        "policyId": null,
+        "policyTenantId": null,
+        "resourceId": null
+      },
+      "mfaDetail": {
+        "authDetail": null,
+        "authMethod": null
+      },
+      "riskState": null,
+      "globalSecureAccessIpAddress": null,
+      "signInIdentifier": null,
+      "isTenantRestricted": null,
+      "signInIdentifierType": null,
+      "riskDetail": null,
+      "resourceOwnerTenantId": null,
+      "processingTimeInMilliseconds": null,
+      "signInEventTypes": null,
+      "authenticationProcessingDetails": [
+        {
+          "key": null,
+          "value": null
+        },
+        {
+          "key": null,
+          "value": null
+        },
+        {
+          "key": null,
+          "value": null
+        },
+        {
+          "key": null,
+          "value": null
+        }
+      ],
+      "managedServiceIdentity": {
+        "associatedResourceId": null,
+        "federatedTokenId": null,
+        "msiType": null,
+        "federatedTokenIssuer": null
+      },
+      "riskLevelAggregated": null,
+      "tokenIssuerName": null,
+      "sessionLifetimePolicies": null,
+      "userDisplayName": null,
+      "userId": null,
+      "resourceId": null,
+      "createdDateTime": null,
+      "incomingTokenType": null,
+      "networkLocationDetails": null,
+      "conditionalAccessAudiences": null,
+      "servicePrincipalCredentialThumbprint": null,
+      "authenticationProtocol": null,
+      "authenticationDetails": [
+        {
+          "authenticationMethodDetail": null,
+          "authenticationMethod": null,
+          "authenticationStepRequirement": null,
+          "succeeded": null,
+          "authenticationStepDateTime": null,
+          "authenticationStepResultDetail": null
+        }
+      ],
+      "resourceServicePrincipalId": null,
+      "userAgent": null,
+      "appId": null,
+      "conditionalAccessStatus": null,
+      "riskEventTypes_v2": null,
+      "userType": null,
+      "appliedConditionalAccessPolicies": [
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": {
+            "authenticationStrengthResult": null,
+            "displayName": null,
+            "authenticationStrengthId": null
+          },
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": {
+            "authenticationStrengthResult": null,
+            "displayName": null,
+            "authenticationStrengthId": null
+          },
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": {
+            "authenticationStrengthResult": null,
+            "displayName": null,
+            "authenticationStrengthId": null
+          },
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": null,
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": null,
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": null,
+          "id": null
+        },
+        {
+          "result": null,
+          "displayName": null,
+          "includeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            },
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "enforcedSessionControls": null,
+          "conditionsNotSatisfied": null,
+          "conditionsSatisfied": null,
+          "authenticationStrength": {
+            "authenticationStrengthResult": null,
+            "displayName": null,
+            "authenticationStrengthId": null
+          },
+          "sessionControlsNotSatisfied": null,
+          "enforcedGrantControls": null,
+          "excludeRulesSatisfied": [
+            {
+              "conditionalAccessCondition": null,
+              "ruleSatisfied": null
+            }
+          ],
+          "id": null
+        }
+      ],
+      "federatedCredentialId": null,
+      "originalTransferMethod": null,
+      "clientCredentialType": null,
+      "appliedEventListeners": null,
+      "location": {
+        "state": null,
+        "countryOrRegion": null,
+        "city": null,
+        "geoCoordinates": {
+          "latitude": null,
+          "longitude": null,
+          "altitude": null
+        }
+      },
+      "authenticationContextClassReferences": [
+        {
+          "detail": null,
+          "id": null
+        }
+      ],
+      "ipAddressFromResourceProvider": null,
+      "riskLevelDuringSignIn": null,
+      "sessionId": null,
+      "authenticationMethodsUsed": null,
+      "id": null,
+      "crossTenantAccessType": null,
+      "servicePrincipalName": null,
+      "agent": {
+        "parentAppId": null,
+        "agentType": null
+      },
+      "signInTokenProtectionStatus": null,
+      "isThroughGlobalSecureAccess": null,
+      "homeTenantId": null,
+      "status": {
+        "failureReason": null,
+        "additionalDetails": null,
+        "errorCode": null
+      },
+      "appDisplayName": null
+    }
+  ]
+}

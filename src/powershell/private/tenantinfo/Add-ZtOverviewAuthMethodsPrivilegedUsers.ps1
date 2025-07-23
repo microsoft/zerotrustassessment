@@ -12,9 +12,18 @@ function Add-ZtOverviewAuthMethodsPrivilegedUsers {
     $activity = "Getting privileged user authentication methods summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
+    $tenantInfoName = 'OverviewAuthMethodsPrivilegedUsers'
+
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free") {
+        Write-PSFMessage '🟦 Skipping: Requires Premium License' -Tag Test -Level VeryVerbose
+        Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+        return
+    }
+
     $caSummary = Get-ZtOverviewAuthMethodsPrivilegedUsers
 
-    Add-ZtTenantInfo -Name "OverviewAuthMethodsPrivilegedUsers" -Value $caSummary
+    Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
 function Get-ZtOverviewAuthMethodsPrivilegedUsers() {

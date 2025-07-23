@@ -12,6 +12,12 @@ function Test-Assessment-21817 {
     $activity = "Checking Global Administrator role activation triggers an approval workflow"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -ne "P1") {
+        Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
+        return
+    }
+
     Write-ZtProgress -Activity $activity -Status "Getting PIM policy assignments for Global Administrator role"
 
     # Query retrieves the associated PIM role management policy assignments for Global Administrator role

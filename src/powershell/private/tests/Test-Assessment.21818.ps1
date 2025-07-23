@@ -14,6 +14,12 @@ function Test-Assessment-21818 {
     $activity = "Checking Activation alert for highly privileged role assignments"
     Write-ZtProgress -Activity $activity -Status "Getting PIM policy assignments for highly privileged roles"
 
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -ne "P1") {
+        Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
+        return
+    }
+
     # Query retrieves the associated PIM role management policy assignments for each highly privileged role
     $sqlPolicyAssignments = @"
 SELECT

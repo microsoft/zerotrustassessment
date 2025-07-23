@@ -56,6 +56,10 @@ function Import-Table($db, $absExportPath, $tableName) {
     # Copy the model file if it exists (needed to create table schema to avoid sql errors when there is no data)
     $modelFilePath = Join-Path -Path $PSScriptRoot -ChildPath "model/$tableName-model.json"
     if(Test-Path $modelFilePath) {
+        # Ensure the folder exists
+        if(!(Test-Path $folderPath)) {
+            New-Item -ItemType Directory -Path $folderPath -Force -ErrorAction Stop | Out-Null
+        }
         Copy-Item -Path $modelFilePath -Destination $folderPath -Force
     }
 

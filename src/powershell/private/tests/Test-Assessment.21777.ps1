@@ -14,31 +14,37 @@ function Test-Assessment-21777 {
     $activity = "Checking App Instance Property Lock is configured for all multitenant applications"
     Write-ZtProgress -Activity $activity -Status "Getting applications"
 
-    # SQL query to find multitenant applications and check their servicePrincipalLockConfiguration
-    $sqlApp = @"
-    SELECT
-        appId,
-        displayName,
-        signInAudience,
-        servicePrincipalLockConfiguration,
-        CASE
-            WHEN servicePrincipalLockConfiguration IS NULL THEN false
-            WHEN servicePrincipalLockConfiguration->>'isEnabled' = 'false' THEN false
-            ELSE true
-        END AS isLockConfigured
-    FROM Application
-    WHERE signInAudience = 'AzureADMultipleOrgs' OR signInAudience = 'AzureADandPersonalMicrosoftAccount'
-    ORDER BY displayName
+    $sqlCount = "SELECT COUNT(*) ItemCount FROM Application WHERE ID IS NOT NULL"
+    $resultCount = Invoke-DatabaseQuery -Database $Database -Sql $sqlCount
+    $hasData = $resultCount.ItemCount -gt 0
+
+    if($hasData){
+        # SQL query to find multitenant applications and check their servicePrincipalLockConfiguration
+        $sqlApp = @"
+        SELECT
+            appId,
+            displayName,
+            signInAudience,
+            servicePrincipalLockConfiguration,
+            CASE
+                WHEN servicePrincipalLockConfiguration IS NULL THEN false
+                WHEN servicePrincipalLockConfiguration->>'isEnabled' = 'false' THEN false
+                ELSE true
+            END AS isLockConfigured
+        FROM Application
+        WHERE signInAudience = 'AzureADMultipleOrgs' OR signInAudience = 'AzureADandPersonalMicrosoftAccount'
+        ORDER BY displayName
 "@
 
-    $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+        $resultsApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+    }
 
     # Initialize variables
     $passed = $true
     $testResultMarkdown = ""
 
     # Check if any application in the results has isLockConfigured set to false
-    if ($resultsApp.Count -gt 0) {
+    if ($hasData -and $resultsApp.Count -gt 0) {
         foreach ($app in $resultsApp) {
             if ($app.isLockConfigured -eq $false) {
                 $passed = $false
@@ -47,7 +53,8 @@ function Test-Assessment-21777 {
         }
     }
 
-    if ($resultsApp.Count -eq 0) {
+    $noMultiTenantApps = -not $hasData -or $resultsApp.Count -eq 0
+    if ($noMultiTenantApps) {
         $testResultMarkdown = "No multi-tenant apps were found in this tenant."
     }
     elseif ($passed) {

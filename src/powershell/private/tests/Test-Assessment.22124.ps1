@@ -14,7 +14,6 @@ function Test-Assessment-22124 {
 
     $recommendations = Invoke-ZtGraphRequest -RelativeUri "directory/recommendations" -ApiVersion beta
     $result = $recommendations | Where-Object { $_.priority -eq 'high' -and $_.status -in @('active', 'postponed') }
-    Write-Output $result.Count
 
     $passed = $result.Count -eq 0
 

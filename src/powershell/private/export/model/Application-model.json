@@ -1,0 +1,94 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications",
+  "value": [
+    {
+      "disabledByMicrosoftStatus": null,
+      "publisherDomain": null,
+      "keyCredentials": [],
+      "verifiedPublisher": {
+        "displayName": null,
+        "verifiedPublisherId": null,
+        "addedDateTime": null
+      },
+      "orgRestrictions": [],
+      "isDeviceOnlyAuthSupported": null,
+      "createdDateTime": null,
+      "appId": null,
+      "migrationStatus": null,
+      "createdByAppId": null,
+      "displayName": null,
+      "optionalClaims": null,
+      "addIns": [],
+      "parentalControlSettings": {
+        "legalAgeGroupRule": null,
+        "countriesBlockedForMinors": []
+      },
+      "api": {
+        "oauth2PermissionScopes": [],
+        "requestedAccessTokenVersion": 2,
+        "knownClientApplications": [],
+        "tokenEncryptionSetting": {
+          "automatedTokenVersion": {
+            "available": [],
+            "current": null
+          },
+          "scheme": null,
+          "audience": null
+        },
+        "acceptMappedClaims": null,
+        "preAuthorizedApplications": []
+      },
+      "appRoles": [],
+      "isDisabled": null,
+      "info": {
+        "logoUrl": null,
+        "privacyStatementUrl": null,
+        "marketingUrl": null,
+        "supportUrl": null,
+        "termsOfServiceUrl": null
+      },
+      "oauth2RequirePostResponse": false,
+      "isAuthorizationServiceEnabled": false,
+      "requiredResourceAccess": [],
+      "requestSignatureVerification": null,
+      "servicePrincipalLockConfiguration": null,
+      "uniqueName": null,
+      "defaultRedirectUri": null,
+      "groupMembershipClaims": null,
+      "tokenEncryptionKeyId": null,
+      "deletedDateTime": null,
+      "web": {
+        "redirectUris": [],
+        "redirectUriSettings": [],
+        "logoutUrl": null,
+        "implicitGrantSettings": {
+          "enableIdTokenIssuance": false,
+          "enableAccessTokenIssuance": false
+        },
+        "homePageUrl": null
+      },
+      "isManagementRestricted": null,
+      "windows": null,
+      "appCapabilities": [],
+      "certification": null,
+      "samlMetadataUrl": null,
+      "nativeAuthenticationApisEnabled": null,
+      "identifierUris": [],
+      "tags": [],
+      "applicationTemplateId": null,
+      "serviceManagementReference": null,
+      "publicClient": {
+        "redirectUris": []
+      },
+      "description": null,
+      "id": null,
+      "passwordCredentials": [],
+      "isFallbackPublicClient": null,
+      "notes": null,
+      "spa": {
+        "redirectUris": []
+      },
+      "signInAudience": null
+    }
+  ]
+}

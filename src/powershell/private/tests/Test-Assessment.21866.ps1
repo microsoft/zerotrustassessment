@@ -15,7 +15,6 @@ function Test-Assessment-21866{
     $recommendations = Invoke-ZtGraphRequest -RelativeUri "directory/recommendations" -ApiVersion beta
     $result = $recommendations | Where-Object { $_.status -in @('active', 'postponed') }
 
-    Write-Output $result.Count
     $passed = $result.Count -eq 0
     if ($passed) {
         $testResultMarkdown = "All Entra Recommendations are addressed.`n`n"

@@ -1,0 +1,26 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#reports/authenticationMethods/userRegistrationDetails",
+    "value": [
+        {
+            "userPrincipalName": null,
+            "isSystemPreferredAuthenticationMethodEnabled": null,
+            "isPasswordlessCapable": null,
+            "userType": null,
+            "defaultMfaMethod": null,
+            "isSsprEnabled": null,
+            "systemPreferredAuthenticationMethods": [
+                null
+            ],
+            "id": null,
+            "lastUpdatedDateTime": null,
+            "userDisplayName": null,
+            "isMfaCapable": null,
+            "isMfaRegistered": null,
+            "isSsprRegistered": null,
+            "userPreferredMethodForSecondaryAuthentication": null,
+            "isSsprCapable": true,
+            "methodsRegistered": [],
+            "isAdmin": true
+        }
+    ]
+}
