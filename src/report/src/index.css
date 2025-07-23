@@ -64,6 +64,63 @@
   fill: #1e40af;
 }
 
+/* Comprehensive dark mode tooltip styling for Nivo charts */
+.dark [data-tooltip],
+.dark .tooltip,
+.dark [class*="tooltip"],
+.dark [id*="tooltip"],
+.sankey-dark-mode [data-tooltip],
+.sankey-dark-mode .tooltip,
+.sankey-dark-mode [class*="tooltip"],
+.sankey-dark-mode [id*="tooltip"] {
+  background: rgba(33, 33, 33, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.dark [data-tooltip] *,
+.dark .tooltip *,
+.dark [class*="tooltip"] *,
+.dark [id*="tooltip"] *,
+.sankey-dark-mode [data-tooltip] *,
+.sankey-dark-mode .tooltip *,
+.sankey-dark-mode [class*="tooltip"] *,
+.sankey-dark-mode [id*="tooltip"] * {
+  color: #ffffff !important;
+}
+
+/* More specific Nivo tooltip selectors */
+.dark div[role="tooltip"],
+.sankey-dark-mode div[role="tooltip"] {
+  background: rgba(33, 33, 33, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.dark div[role="tooltip"] *,
+.sankey-dark-mode div[role="tooltip"] * {
+  color: #ffffff !important;
+}
+
+/* Light mode tooltip styling for consistency */
+.sankey-light-mode [data-tooltip],
+.sankey-light-mode .tooltip,
+.sankey-light-mode [class*="tooltip"],
+.sankey-light-mode [id*="tooltip"],
+.sankey-light-mode div[role="tooltip"] {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border: 1px solid #ccc !important;
+}
+
+.sankey-light-mode [data-tooltip] *,
+.sankey-light-mode .tooltip *,
+.sankey-light-mode [class*="tooltip"] *,
+.sankey-light-mode [id*="tooltip"] *,
+.sankey-light-mode div[role="tooltip"] * {
+  color: #000000 !important;
+}
+
 @layer base {
   * {
     @apply border-border;
