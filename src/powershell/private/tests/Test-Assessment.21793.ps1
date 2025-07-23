@@ -12,6 +12,13 @@ function Test-Assessment-21793 {
     $activity = "Checking Tenant restrictions v2 are configured"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
+    if((Get-MgContext).Environment -ne 'Global')
+    {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
+
+
     # Query the cross-tenant access policy
     $crossTenantAccessPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/crossTenantAccessPolicy' -ApiVersion v1.0
 

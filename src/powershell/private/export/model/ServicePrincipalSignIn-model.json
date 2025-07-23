@@ -1,0 +1,29 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#reports/servicePrincipalSignInActivities",
+  "value": [
+    {
+      "applicationAuthenticationClientSignInActivity": {
+        "lastSignInRequestId": null,
+        "lastSignInDateTime": null
+      },
+      "delegatedClientSignInActivity": {
+        "lastSignInRequestId": null,
+        "lastSignInDateTime": null
+      },
+      "appId": null,
+      "applicationAuthenticationResourceSignInActivity": {
+        "lastSignInRequestId": null,
+        "lastSignInDateTime": null
+      },
+      "delegatedResourceSignInActivity": {
+        "lastSignInRequestId": null,
+        "lastSignInDateTime": null,
+      },
+      "lastSignInActivity": {
+        "lastSignInRequestId": null,
+        "lastSignInDateTime": null
+      },
+      "id": null
+    }
+  ]
+}

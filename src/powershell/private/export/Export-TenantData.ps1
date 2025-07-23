@@ -46,11 +46,15 @@ function Export-TenantData {
         -QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
         -ShowCount
 
-    Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
-        -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+    if((Get-MgContext).Environment -eq 'Global')
+    {
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
+            -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+    }
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
         -EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
+
 
     # Active role assignments
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `

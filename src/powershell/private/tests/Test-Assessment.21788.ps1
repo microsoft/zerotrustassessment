@@ -12,7 +12,9 @@ function Test-Assessment-21788 {
     $activity = "Checking Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant"
     Write-ZtProgress -Activity $activity -Status "Getting role assignments"
 
-    $roleAssignments = Invoke-AzRestMethod -Method GET -Uri 'https://management.azure.com/providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
+    $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
+    $azRoleAssignmentUri = $resourceManagementUrl + 'providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
+    $roleAssignments = Invoke-AzRestMethod -Method GET -Uri $azRoleAssignmentUri
 
     $results = ($roleAssignments.Content | ConvertFrom-Json).value.properties | Where-Object {
         $_.roleDefinitionId -eq '/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9'
