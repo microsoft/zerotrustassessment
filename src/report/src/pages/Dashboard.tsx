@@ -69,12 +69,18 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.nodes} />
+                                {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
+                                    <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                                {reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.description}
+                                {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>
@@ -96,12 +102,18 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsAllUsers.nodes} />
+                                {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
+                                    <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsAllUsers.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                                {reportData.TenantInfo.OverviewAuthMethodsAllUsers.description}
+                                {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>
@@ -369,12 +381,18 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
+                                {reportData.TenantInfo?.OverviewCaMfaAllUsers?.nodes ? (
+                                    <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                            {reportData.TenantInfo.OverviewCaMfaAllUsers.description}
+                            {reportData.TenantInfo?.OverviewCaMfaAllUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>
@@ -396,12 +414,18 @@ export default function Dashboard() {
                                     },
                                 }}
                             >
-                                <CaDeviceSankey data={reportData.TenantInfo.OverviewCaDevicesAllUsers.nodes} />
+                                {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.nodes ? (
+                                    <CaDeviceSankey data={reportData.TenantInfo.OverviewCaDevicesAllUsers.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
                             </ChartContainer>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                            {reportData.TenantInfo.OverviewCaDevicesAllUsers.description}
+                            {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>

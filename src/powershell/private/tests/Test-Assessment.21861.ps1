@@ -12,6 +12,12 @@ function Test-Assessment-21861 {
     $activity = "Checking All risky users are triaged"
     Write-ZtProgress -Activity $activity -Status "Getting risky users"
 
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -ne "P1") {
+        Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
+        return
+    }
+
     # Query 1: Get untriaged risky users with high risk level
     $riskyUsersQuery = "identityProtection/riskyUsers"
     $riskyUsers = Invoke-ZtGraphRequest -RelativeUri $riskyUsersQuery -ApiVersion 'v1.0' -Filter "riskState eq 'atRisk' and riskLevel eq 'High'"

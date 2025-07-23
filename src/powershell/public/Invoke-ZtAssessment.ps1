@@ -60,8 +60,6 @@ function Invoke-ZtAssessment {
 
 Write-Host $banner -ForegroundColor Cyan
 
-    # Security warning about sensitive data
-    Show-ZtSecurityWarning -Type 'Initial'
 
     #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
@@ -70,6 +68,14 @@ Write-Host $banner -ForegroundColor Cyan
     }
     else {
         Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
+    }
+
+    if(!(Test-DuckDb)) {
+        return
+    }
+
+    if (!(Test-ZtContext)) {
+        return
     }
 
     $exportPath = Join-Path $Path "zt-export"
@@ -90,9 +96,6 @@ Write-Host $banner -ForegroundColor Cyan
         }
     }
 
-    if (!(Test-ZtContext)) {
-        return
-    }
 
     # Send telemetry if not disabled
     if (!$DisableTelemetry) {
@@ -126,7 +129,7 @@ Write-Host $banner -ForegroundColor Cyan
     Disconnect-Database -Db $db
 
     $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
-    $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
+    $resultsJsonPath = Join-Path $exportPath "ZeroTrustAssessmentReport.json"
     $assessmentResultsJson | Out-File -FilePath $resultsJsonPath
 
     Write-ZtProgress -Activity "Creating html report"
@@ -136,7 +139,7 @@ Write-Host $banner -ForegroundColor Cyan
 
     Write-Host
     Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
-    Show-ZtSecurityWarning -Type 'Final' -ExportPath $exportPath
+    Show-ZtSecurityWarning -ExportPath $exportPath
     Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
     Write-Host
     Write-Host
@@ -155,25 +158,14 @@ Write-Host $banner -ForegroundColor Cyan
 function Show-ZtSecurityWarning {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [ValidateSet('Initial', 'Final')]
-        [string]
-        $Type,
-
         [string]
         $ExportPath
     )
 
     Write-Host
-    if ($Type -eq 'Initial') {
-        Write-Host "⚠️  SECURITY WARNING: This assessment will export and analyze sensitive tenant data." -ForegroundColor Yellow
-        Write-Host "   The exported files and generated report contain confidential information about your organization." -ForegroundColor Yellow
-        Write-Host "   Please ensure the export folder and report are deleted after use and shared only with authorized personnel." -ForegroundColor Yellow
-    }
-    elseif ($Type -eq 'Final') {
-        Write-Host "⚠️  SECURITY REMINDER: The report and export folder contain sensitive tenant information." -ForegroundColor Yellow
-        Write-Host "   Please delete the export folder ($ExportPath) and restrict access to the report." -ForegroundColor Yellow
-        Write-Host "   Share the report only with authorized personnel in your organization." -ForegroundColor Yellow
-    }
+    Write-Host "⚠️ SECURITY REMINDER: The report and export folder contain sensitive tenant information." -ForegroundColor Yellow
+    Write-Host "Please delete the export folder and restrict access to the report." -ForegroundColor Yellow
+    Write-Host "Export folder: $ExportPath" -ForegroundColor Yellow
+    Write-Host "Share the report only with authorized personnel in your organization." -ForegroundColor Yellow
     Write-Host
 }

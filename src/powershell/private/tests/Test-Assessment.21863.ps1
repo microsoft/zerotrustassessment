@@ -12,6 +12,12 @@ function Test-Assessment-21863{
     $activity = "All high-risk sign-ins are triaged"
     Write-ZtProgress -Activity $activity -Status "Getting risky sign ins."
 
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -ne "P1") {
+        Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
+        return
+    }
+
     $filter = "riskState eq 'atRisk' and riskLevel eq 'high'"
 
     $riskDetections = Invoke-ZtGraphRequest -RelativeUri 'identityProtection/riskDetections' -Filter $filter

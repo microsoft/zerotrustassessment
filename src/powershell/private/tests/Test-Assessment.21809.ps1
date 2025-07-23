@@ -14,7 +14,6 @@ function Test-Assessment-21809{
 
     $result = Invoke-ZtGraphRequest -RelativeUri "policies/adminConsentRequestPolicy" -ApiVersion v1.0
     $passed = $result.isEnabled
-    Write-Output $passed
 
     if ($passed) {
         $testResultMarkdown = "Admin consent workflow is enabled.`n`n"

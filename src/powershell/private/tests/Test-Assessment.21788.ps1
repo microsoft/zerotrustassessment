@@ -49,12 +49,19 @@ function Test-Assessment-21788 {
 '@
 
         foreach ($result in $results) {
-            $object = Invoke-ZtGraphRequest -RelativeUri "directoryObjects/$($result.principalId)" -ApiVersion 'v1.0'
-            if ($result.principalType -eq 'User') {
-                $displayName = $object.userPrincipalName
+            try {
+                $object = Invoke-ZtGraphRequest -RelativeUri "directoryObjects/$($result.principalId)" -ApiVersion 'v1.0'
+                if ($result.principalType -eq 'User') {
+                    $displayName = $object.userPrincipalName
+                }
+                else {
+                    $displayName = $object.displayName
+                }
+
             }
-            else {
-                $displayName = $object.displayName
+            catch {
+                Write-PSFMessage "Failed to get object for principalId $($result.principalId): $_"
+                $displayName = $result.principalId
             }
 
             $tableRows += @"

@@ -1,0 +1,12 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/roleManagementPolicyAssignments",
+    "value": [
+        {
+            "scopeType": null,
+            "scopeId": null,
+            "id": null,
+            "policyId": null,
+            "roleDefinitionId": null
+        }
+    ]
+}

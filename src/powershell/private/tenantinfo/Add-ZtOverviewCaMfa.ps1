@@ -9,8 +9,18 @@ function Add-ZtOverviewCaMfa {
     param(
         $Database
     )
+
+    $tenantInfoName = 'OverviewCaMfaAllUsers'
+
     $activity = "Getting Conditional Access summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
+
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free") {
+        Write-PSFMessage '🟦 Skipping: Requires Premium License' -Tag Test -Level VeryVerbose
+        Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+        return
+    }
 
     $sql = @"
 select conditionalAccessStatus, authenticationRequirement, count(*) as cnt from SignIn
@@ -30,7 +40,7 @@ group by conditionalAccessStatus, authenticationRequirement
 
     $caSummary = Get-ZtOverviewCaMfa $results
 
-    Add-ZtTenantInfo -Name "OverviewCaMfaAllUsers" -Value $caSummary
+    Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
 function Get-ZtOverviewCaMfa($results) {

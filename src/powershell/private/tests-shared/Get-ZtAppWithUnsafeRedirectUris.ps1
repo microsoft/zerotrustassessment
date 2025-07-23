@@ -13,7 +13,6 @@ function Get-ZtAppWithUnsafeRedirectUris {
         [switch]$DnsCheckOnly = $false
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     # Get current tenantid
     $currentTenantId = (Get-MgContext).TenantId
 
