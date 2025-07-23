@@ -15,7 +15,7 @@ function Test-Assessment-21818 {
     Write-ZtProgress -Activity $activity -Status "Getting PIM policy assignments for highly privileged roles"
 
     $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
-    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -ne "P1") {
+    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -eq "P1") {
         Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
         return
     }
