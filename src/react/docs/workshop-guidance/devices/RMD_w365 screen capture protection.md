@@ -1,16 +1,12 @@
-**Windows 365 Screen Capture Protection**
+# Windows 365: Screen Capture Protection
 
-**Implementation Effort:** Medium\
-Configuration requires policy deployment via Intune or Group Policy and
-testing across supported platforms, especially for mixed-device
-environments.
+**Implementation Effort:** Medium – Configuration requires policy deployment via Intune or Group Policy and testing across supported platforms, especially for mixed-device environments.
 
-**User Impact:** Medium\
-Users may be restricted from using screen sharing or collaboration tools
-like Teams during Cloud PC sessions, and unsupported platforms may be
-blocked from connecting.
+**User Impact:** Medium - Users may be restricted from using screen sharing or collaboration tools like Teams during Cloud PC sessions, and unsupported platforms may be blocked from connecting.
 
-**Overview**
+---
+
+## Overview
 
 Screen capture protection in Windows 365 prevents sensitive content from
 being captured through screenshots or screen sharing tools on client
@@ -29,10 +25,10 @@ exposed through screen capture tools, increasing the risk of data
 leakage.
 
 Screen capture protection supports the Zero Trust principle of
-**\"Assume breach\"** by minimizing the risk of data exfiltration
+**"Assume breach"** by minimizing the risk of data exfiltration
 through visual capture methods.
 
-**Reference**
+## Reference
 
-- [Enable screen capture protection in Azure Virtual
+* [Enable screen capture protection in Azure Virtual
   Desktop](https://learn.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection)

@@ -1,13 +1,12 @@
-**Windows 365 User Settings**
+# Windows 365: User Settings
 
-**Implementation Effort:** Low -- Admins only need to configure settings
-in the Intune admin center and assign them to user groups.
+**Implementation Effort:** Low – Admins only need to configure settings in the Intune admin center and assign them to user groups.
 
-**User Impact:** Low -- Settings are applied automatically; users are
-not required to take action or be notified unless they use optional
-features like reset or restore.
+**User Impact:** Low - Settings are applied automatically; users are not required to take action or be notified unless they use optional features like reset or restore.
 
-**Overview**
+---
+
+## Overview
 
 Windows 365 User Settings allow IT administrators to control user-level
 permissions and self-service capabilities for Cloud PCs. These include
@@ -20,11 +19,11 @@ created policy takes precedence. These settings do not apply to Windows
 
 Improper configuration may lead to users having excessive privileges or
 lacking recovery options, which can affect security and productivity.
-This capability supports the Zero Trust principle of **Use least
-privilege access**, by allowing admins to selectively grant elevated
+This capability supports the Zero Trust principle of **"Use least
+privilege access"**, by allowing admins to selectively grant elevated
 rights and recovery tools only to specific users or groups.
 
-**Reference**
+## Reference
 
-- [User settings in Windows
+* [User settings in Windows
   365](https://learn.microsoft.com/en-us/windows-365/enterprise/assign-users-as-local-admin)

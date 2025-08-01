@@ -1,16 +1,12 @@
-**Windows 365 Conditional Access**
+# Windows 365: Conditional Access
 
-**Implementation Effort:** Medium\
-Setting up Conditional Access requires IT and security teams to define,
-test, and deploy policies using Microsoft Entra and Intune, but does not
-require ongoing user training or infrastructure changes.
+**Implementation Effort:** Medium – Setting up Conditional Access requires IT and security teams to define, test, and deploy policies using Microsoft Entra and Intune, but does not require ongoing user training or infrastructure changes.
 
-**User Impact:** Medium\
-Users may be prompted for multifactor authentication or blocked from
-accessing Cloud PCs based on risk signals, device compliance, or
-location, which may require communication and support.
+**User Impact:** Medium - Users may be prompted for multifactor authentication or blocked from accessing Cloud PCs based on risk signals, device compliance, or location, which may require communication and support.
 
-**Overview**
+---
+
+## Overview
 
 Conditional Access for Windows 365 allows organizations to enforce
 access controls based on user identity, device compliance, location, and
@@ -34,17 +30,17 @@ Cloud PCs, reducing the risk of unauthorized access. If not implemented,
 organizations risk exposing sensitive resources to compromised accounts
 or unmanaged devices.
 
-This feature supports the Zero Trust principle of **\"Verify
-explicitly\"** by requiring authentication and authorization based on
+This feature supports the Zero Trust principle of **"Verify
+explicitly"** by requiring authentication and authorization based on
 real-time signals such as user risk, device health, and location.
 
-**Reference**
+## Reference
 
-- [Set Conditional Access policies for Windows
+* [Set Conditional Access policies for Windows
   365](https://learn.microsoft.com/en-us/windows-365/enterprise/set-conditional-access-policies)
 
-- [Conditional Access policies for Windows 365
+* [Conditional Access policies for Windows 365
   Link](https://learn.microsoft.com/en-us/windows-365/link/conditional-access-policies)
 
-- [Security overview for Windows
+* [Security overview for Windows
   365](https://learn.microsoft.com/en-us/windows-365/enterprise/security-guidelines)

@@ -1,16 +1,12 @@
-**Windows 365 Security Baselines**
+# Windows 365: Security Baselines
 
-**Implementation Effort:** Medium\
-Deploying security baselines requires IT and security teams to review,
-customize, and assign policy profiles via Intune, with periodic updates
-and testing.
+**Implementation Effort:** Medium – Deploying security baselines requires IT and security teams to review, customize, and assign policy profiles via Intune, with periodic updates and testing.
 
-**User Impact:** Low\
-Security baselines are applied silently to Cloud PCs; users are not
-required to take action or be notified unless specific settings impact
-usability.
+**User Impact:** Low - Security baselines are applied silently to Cloud PCs; users are not required to take action or be notified unless specific settings impact usability.
 
-**Overview**
+---
+
+## Overview
 
 Windows 365 Security Baselines are preconfigured sets of security
 policies designed to enforce best practices across Cloud PCs. These
@@ -28,17 +24,17 @@ over time. If not deployed, Cloud PCs may remain misconfigured or
 exposed to known threats due to inconsistent or outdated security
 settings.
 
-This capability supports the Zero Trust principle of **\"Use least
-privilege access\"** by enforcing strict, role-appropriate
+This capability supports the Zero Trust principle of **"Use least
+privilege access"** by enforcing strict, role-appropriate
 configurations and reducing the attack surface.
 
-**Reference**
+## Reference
 
-- [Deploy security baselines for Windows
+* [Deploy security baselines for Windows
   365](https://learn.microsoft.com/en-us/windows-365/enterprise/deploy-security-baselines)
 
-- [Windows 365 Cloud PC security baseline settings
+* [Windows 365 Cloud PC security baseline settings
   reference](https://learn.microsoft.com/en-us/intune/intune-service/protect/security-baseline-settings-windows-365)
 
-- [Security baselines
+* [Security baselines
   guide](https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/windows-security-baselines)

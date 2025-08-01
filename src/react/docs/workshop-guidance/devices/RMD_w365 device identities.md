@@ -1,16 +1,12 @@
-**Windows 365 Device Identities**
+# Windows 365: Device Identities
 
-**Implementation Effort:** Medium\
-Admins must choose and configure the appropriate device join type
-(Microsoft Entra Join or Hybrid Join) during provisioning, which
-requires planning and coordination with identity and network teams.
+**Implementation Effort:** Medium – Admins must choose and configure the appropriate device join type (Microsoft Entra Join or Hybrid Join) during provisioning, which requires planning and coordination with identity and network teams.
 
-**User Impact:** Low\
-Device identity configuration is handled by IT and does not require user
-action unless specific authentication methods (e.g., Windows Hello) are
-enforced.
+**User Impact:** Low - Device identity configuration is handled by IT and does not require user action unless specific authentication methods (e.g., Windows Hello) are enforced.
 
-**Overview**
+---
+
+## Overview
 
 Windows 365 device identities define how Cloud PCs are joined to
 Microsoft Entra ID and how they are managed and authenticated. There are
@@ -28,14 +24,14 @@ Intune. If device identities are not properly configured, organizations
 may face authentication failures, policy misapplication, or reduced
 security posture.
 
-This capability supports the Zero Trust principle of **\"Verify
-explicitly\"** by ensuring that each Cloud PC is uniquely identified and
+This capability supports the Zero Trust principle of **"Verify
+explicitly"** by ensuring that each Cloud PC is uniquely identified and
 authenticated before access is granted.
 
-**Reference**
+## Reference
 
-- [Windows 365 identity and
+* [Windows 365 identity and
   authentication](https://learn.microsoft.com/en-us/windows-365/enterprise/identity-authentication)
 
-- [What is device identity in Microsoft Entra
+* [What is device identity in Microsoft Entra
   ID?](https://learn.microsoft.com/en-us/entra/identity/devices/overview)

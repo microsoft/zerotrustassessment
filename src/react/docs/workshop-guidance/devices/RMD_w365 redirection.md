@@ -1,16 +1,12 @@
-**Windows 365 Redirections**
+# Windows 365: Redirections
 
-**Implementation Effort:** Medium\
-Admins must configure and deploy redirection policies using Intune or
-Group Policy, which requires coordination and testing across device
-types and user groups.
+**Implementation Effort:** Medium – Admins must configure and deploy redirection policies using Intune or Group Policy, which requires coordination and testing across device types and user groups.
 
-**User Impact:** Medium\
-Changes to redirection settings may affect how users access local
-devices (e.g., printers, USB drives, microphones) during Cloud PC
-sessions, requiring communication and support.
+**User Impact:** Medium - Changes to redirection settings may affect how users access local devices (e.g., printers, USB drives, microphones) during Cloud PC sessions, requiring communication and support.
 
-**Overview**
+---
+
+## Overview
 
 Windows 365 redirections allow users to access local device
 resources---such as printers, USB drives, webcams, audio devices, and
@@ -51,13 +47,13 @@ role, reducing the attack surface.
 Beginning in August, 2025 Clipboard, Drive, Printers, and USB
 redirections are disabled by default.
 
-**Reference**
+## Reference
 
-- [Manage RDP device redirections for Cloud
+* [Manage RDP device redirections for Cloud
   PCs](https://learn.microsoft.com/en-us/windows-365/enterprise/manage-rdp-device-redirections)
 
-- [Configure drive redirection over
+* [Configure drive redirection over
   RDP](https://learn.microsoft.com/en-us/azure/virtual-desktop/redirection-configure-drives-storage)
 
-- [Redirect local devices and folders in Windows
+* [Redirect local devices and folders in Windows
   App](https://learn.microsoft.com/en-us/windows-app/device-audio-folder-redirection-teams)
