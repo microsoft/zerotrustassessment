@@ -54,12 +54,30 @@ This repository contains workshop guidance organized by Zero Trust security pill
 - **Primary Sites**: `site:learn.microsoft.com/azure/devops`, `site:docs.github.com/en/code-security`
 - **Key Topics**: Code security, dependency management, pipeline security, compliance automation
 
+## Cross-Service References
+
+Cross-references between Microsoft services are allowed when they represent:
+
+- **Shared infrastructure** (e.g., RDP for Windows 365 and Azure Virtual Desktop)
+- **Overlapping admin experiences** (e.g., Intune and Entra ID integration)
+- **Related features** that users commonly use together
+
+Do not flag links across products as problems if the context is valid.
+
+If the connection is unclear, flag it as a warning, not a problem, and explain why it may be confusing.
+
+This rule applies across all Zero Trust pillars.
+
+
 ## Analysis Functions
+
+Do not explore the current state of the workshop until you determine the user's analysis needs and the relevant Zero Trust pillar.
 
 Based on your analysis needs, use these specialized prompt functions:
 
 ### Freshness Analysis
 Use `librarian-freshness.prompt.md` to:
+- If the user asks about outdated info, accuracy, links, or new features
 - Verify technical accuracy against current Microsoft documentation
 - Check link validity and currency
 - Identify deprecated features and missing new features
@@ -67,6 +85,7 @@ Use `librarian-freshness.prompt.md` to:
 
 ### Alignment Analysis  
 Use `librarian-alignment.prompt.md` to:
+- If the user asks about structure, formatting, standards, or completeness
 - Check content structure and formatting consistency
 - Verify required metadata sections
 - Identify missing or incomplete content
@@ -81,18 +100,17 @@ Use `librarian-alignment.prompt.md` to:
 
 ## Web Search Guidelines
 
-When using web search tools for verification:
-- Use pillar-specific Microsoft Learn sites for authoritative information
-- Always include `site:learn.microsoft.com/security/zero-trust` for Zero Trust validation
-- Cross-reference with current Microsoft documentation dates
-- Verify against official Microsoft security benchmarks and best practices
+### Use Web Search (Bing/External) When:
+- **Freshness Analysis**: Verifying current Microsoft Learn documentation
+- **Technical Accuracy**: Checking if features are deprecated or new capabilities exist
+- **Link Validation**: Confirming external Microsoft Learn URLs are current
+- **Best Practices**: Getting latest Microsoft recommendations
+- **User Triggers**: "outdated info", "accuracy", "links", "new features", "current documentation"
 
-## Universal References
-
-- **Zero Trust Overview**: `https://learn.microsoft.com/security/zero-trust/`
-- **Microsoft Security**: `https://learn.microsoft.com/security/`
-- **Azure Well-Architected**: `https://learn.microsoft.com/azure/well-architected/`
-- **Microsoft Learn**: `https://learn.microsoft.com/`
+### Use Hybrid Approach When:
+- Comparing workshop content against current Microsoft documentation
+- Validating technical accuracy of workshop guidance
+- Cross-referencing internal content with external Microsoft Learn sources
 
 ## Output Format
 

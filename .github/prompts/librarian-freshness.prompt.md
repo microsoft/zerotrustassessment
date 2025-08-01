@@ -35,12 +35,11 @@ Verify all Microsoft Learn references:
 
 ### Step 3: Reference Verification
 Use pillar-specific search patterns:
-```
+
 Primary: site:[pillar-primary-site] [topic]
 Secondary: site:[pillar-secondary-site] [topic]  
 Zero Trust: site:learn.microsoft.com/security/zero-trust [topic]
-General: site:learn.microsoft.com [topic]
-```
+General: 'site:learn.microsoft.com [topic]', 'site:techcommunity.microsoft.com [topic]'
 
 ### Step 4: Feature Currency Check
 - **Deprecated features**: Mark for removal or update
