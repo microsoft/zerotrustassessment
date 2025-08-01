@@ -66,7 +66,7 @@ Update-Module Az.Accounts -Force -Scope CurrentUser 
 To run this assessment, you must connect to Microsoft Graph and
 optionally to Azure. When connecting using Microsoft Graph PowerShell, the following permissions are requested. You are presented with a permissions requested page that you must consent to be able to run the assessment. 
 
-The consent prompt is only be displayed if the Graph PowerShell app does not already have these permissions.
+The consent prompt is only displayed if the Graph PowerShell app does not already have these permissions.
 
 - AuditLog.Read.All
 - CrossTenantInformation.ReadBasic.All
