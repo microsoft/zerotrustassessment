@@ -3,6 +3,8 @@ import { DataTable } from "@/components/test-table/data-table";
 import { reportData } from "@/config/report-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { columns } from "@/components/test-table/columns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DevicesConfig from "@/components/DevicesConfig";
 
 
 export default function Devices() {
@@ -11,16 +13,36 @@ export default function Devices() {
             <PageHeader>
                 <PageHeaderHeading>Devices</PageHeaderHeading>
             </PageHeader>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="mb-3">Assessment results</CardTitle>
-                    <CardDescription>Review the checks below for the assessment of your Intune and devices related configuration.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="gap-4 px-4 pb-4 pt-1">
-                <DataTable columns={columns} data={reportData.Tests} pillar="Devices" />
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="assessment" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="assessment">Assessment results</TabsTrigger>
+                    <TabsTrigger value="config">Config</TabsTrigger>
+                </TabsList>
+                <TabsContent value="assessment" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="mb-3">Assessment results</CardTitle>
+                            <CardDescription>Review the checks below for the assessment of your Intune and devices related configuration.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="gap-4 px-4 pb-4 pt-1">
+                            <DataTable columns={columns} data={reportData.Tests} pillar="Devices" />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="config" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="mb-3">Configuration</CardTitle>
+                            <CardDescription>Device configuration settings and options.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="gap-4 px-4 pb-4 pt-1">
+                            <DevicesConfig />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </>
     )
 }
