@@ -25,4 +25,5 @@ function Invoke-ZtTenantInfo {
     Add-ZtOverviewCaDevicesAllUsers -Database $Database
     Add-ZtOverviewAuthMethodsAllUsers -Database $Database
     Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $Database
+    Add-ZtDeviceWindowsEnrollment
 }
