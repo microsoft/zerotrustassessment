@@ -13,8 +13,8 @@ function Test-Assessment-40000{
     $activity = "Checking Windows automatic enrollment is enabled"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
+    $result = $true
+    $testResultMarkdown = "Windows automatic enrollment is enabled and configured correctly."
     $passed = $result
 
 

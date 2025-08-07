@@ -40,7 +40,7 @@ export default function Devices() {
                 <TabsContent value="config" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="mb-3">Configuration</CardTitle>
+                            <CardTitle className="mb-3">Device Configuration</CardTitle>
                             <CardDescription>Device configuration settings and options.
                             </CardDescription>
                         </CardHeader>
