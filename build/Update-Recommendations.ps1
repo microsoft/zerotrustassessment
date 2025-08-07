@@ -349,6 +349,7 @@ foreach ($file in $testFiles) {
             $testMetaItem.RiskLevel = $frontMatter['# risklevel']
             $testMetaItem.UserImpact = $frontMatter['# userimpact']
             $testMetaItem.SfiPillar = $frontMatter['# sfipillar']
+            $testMetaItem.Pillar = 'Identity' #$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
 
             Write-Host "$testId Title: $docsTitle"
             # Find everything before <!--- Results ---> and replace it with the recommendations from the docs

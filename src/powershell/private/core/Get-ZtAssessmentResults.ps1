@@ -33,6 +33,7 @@ function Get-ZtAssessmentResults {
         EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
     }
 
+    Write-PSFMessage $ztTestResults -Level Debug -Tag ZtAssessmentResults
     return $ztTestResults
 }
 

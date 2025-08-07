@@ -23,8 +23,19 @@ function Export-TenantData {
 
         # The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to collecting sign logs for 60 minutes. Set to 0 for no limit.
         [int]
-        $MaximumSignInLogQueryTime
+        $MaximumSignInLogQueryTime,
+
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
+
+    # Nothing to do if the Pillar is Device (for now)
+    if ($Pillar -eq 'Devices') {
+        Write-PSFMessage 'Skipping data export for Device pillar.'
+        return
+    }
 
     # TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
     $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID

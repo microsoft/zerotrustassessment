@@ -10,8 +10,12 @@ function Invoke-ZtTests {
 
         # The IDs of the specific test(s) to run. If not specified, all tests will be run.
         [string[]]
-        $Tests
+        $Tests,
 
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
 
     # Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -37,6 +41,11 @@ function Invoke-ZtTests {
     } else {
         # If no specific tests are provided, run all tests
         $testsToRun = $config.Values
+
+        # If the users wants just a pillar then filter by that
+        if ($Pillar -ne 'All') {
+            $testsToRun = $testsToRun | Where-Object { $_.Pillar -eq $Pillar }
+        }
     }
 
     # Filter tests by tenant type and execute them

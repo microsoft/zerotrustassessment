@@ -5,10 +5,23 @@ Runs the Zero Trust Assessment against the signed in tenant and generates a repo
 .DESCRIPTION
 This function is only a sample Advanced function that returns the Data given via parameter Data.
 
+.PARAMETER Pillar
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', or 'Devices'. Defaults to 'All' which runs all tests.
+
 .EXAMPLE
 Invoke-ZeroTrustAssessment
 
 Run the Zero Trust Assessment against the signed in tenant and generates a report of the findings.
+
+.EXAMPLE
+Invoke-ZeroTrustAssessment -Pillar Identity
+
+Run only the Identity pillar tests of the Zero Trust Assessment.
+
+.EXAMPLE
+Invoke-ZeroTrustAssessment -Pillar Devices
+
+Run only the Devices pillar tests of the Zero Trust Assessment.
 #>
 
 function Invoke-ZtAssessment {
@@ -49,7 +62,12 @@ function Invoke-ZtAssessment {
 
         # The IDs of the specific test(s) to run. If not specified, all tests will be run.
         [string[]]
-        $Tests
+        $Tests,
+
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
 
     $banner = @"
@@ -58,10 +76,7 @@ function Invoke-ZtAssessment {
 ╚═══════════════════════════════════════════════════════════════╝
 "@
 
-Write-Host $banner -ForegroundColor Cyan
-
-
-    #$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
+    Write-Host $banner -ForegroundColor Cyan
 
     if ($ShowLog) {
         $null = New-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose -Modifier -1 -IncludeModuleName ZeroTrustAssessmentV2
@@ -96,6 +111,11 @@ Write-Host $banner -ForegroundColor Cyan
         }
     }
 
+    # Create the export path if it doesn't exist
+    if (!(Test-Path $exportPath)) {
+        New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
+    }
+
 
     # Send telemetry if not disabled
     if (!$DisableTelemetry) {
@@ -117,12 +137,12 @@ Write-Host $banner -ForegroundColor Cyan
     New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
 
     # Collect data
-    Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime
-    $db = Export-Database -ExportPath $exportPath
+    Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
+    $db = Export-Database -ExportPath $exportPath -Pillar $Pillar
 
     # Run the tests
-    Invoke-ZtTests -Database $db -Tests $Tests
-    Invoke-ZtTenantInfo -Database $db
+    Invoke-ZtTests -Database $db -Tests $Tests -Pillar $Pillar
+    Invoke-ZtTenantInfo -Database $db -Pillar $Pillar
 
     $assessmentResults = Get-ZtAssessmentResults
 
@@ -130,7 +150,7 @@ Write-Host $banner -ForegroundColor Cyan
 
     $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
     $resultsJsonPath = Join-Path $exportPath "ZeroTrustAssessmentReport.json"
-    $assessmentResultsJson | Out-File -FilePath $resultsJsonPath
+    $assessmentResultsJson | Out-File -FilePath $resultsJsonPath -Force
 
     Write-ZtProgress -Activity "Creating html report"
     $htmlReportPath = Join-Path $Path "ZeroTrustAssessmentReport.html"

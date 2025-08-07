@@ -83,7 +83,7 @@ Function Add-ZtTestResultDetail {
         [string[]] $AppliesTo,
 
         [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
-            'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity'
+            'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity', 'Devices'
             )]
         [string[]] $Tag,
 

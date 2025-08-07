@@ -6,10 +6,20 @@
 function Invoke-ZtTenantInfo {
     [CmdletBinding()]
     param (
-        # The folder that has the test data
-        [Parameter(Mandatory = $true)]
-        $Database
+        # The database to export the tenant information to.
+        $Database,
+
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
+
+        # Nothing to do if the Pillar is Devices (for now)
+    if ($Pillar -eq 'Devices') {
+        Write-PSFMessage 'Skipping data export for Devices pillar.'
+        return
+    }
 
     Add-ZtOverviewCaMfa -Database $Database
     Add-ZtOverviewCaDevicesAllUsers -Database $Database

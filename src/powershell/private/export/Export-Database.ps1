@@ -8,8 +8,20 @@ function Export-Database {
     param (
         # The path to the folder where all the files were exported.
         [Parameter(Mandatory = $true)]
-        [string]$ExportPath
+        [string]$ExportPath,
+
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
+
+    # Nothing to do if the Pillar is Devices (for now)
+    if ($Pillar -eq 'Devices') {
+        Write-PSFMessage 'Skipping data export for Device pillar.' -Tag Import
+        return
+    }
+
     $activity = "Creating database"
     Write-ZtProgress -Activity $activity -Status "Starting"
 

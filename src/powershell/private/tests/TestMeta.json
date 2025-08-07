@@ -2,6 +2,7 @@
   "21770": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -15,6 +16,7 @@
   "21771": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -28,6 +30,7 @@
   "21772": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -41,6 +44,7 @@
   "21773": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -54,6 +58,7 @@
   "21774": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -79,6 +84,7 @@
   "21776": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -92,6 +98,7 @@
   "21777": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -141,6 +148,7 @@
   "21781": {
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -153,6 +161,7 @@
   "21782": {
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -165,6 +174,7 @@
   "21783": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -189,6 +199,7 @@
   "21786": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -202,6 +213,7 @@
   "21787": {
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -214,6 +226,7 @@
   "21788": {
     "Category": "Privileged access",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -237,6 +250,7 @@
   "21790": {
     "Category": "Application management",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -250,6 +264,7 @@
   "21791": {
     "Category": "External collaboration",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -262,6 +277,7 @@
   "21792": {
     "Category": "External collaboration",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -274,6 +290,7 @@
   "21793": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect networks",
     "TenantType": [
@@ -287,6 +304,7 @@
   "21795": {
     "Category": "Monitoring",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -299,6 +317,7 @@
   "21796": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -311,6 +330,7 @@
   "21797": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
@@ -324,6 +344,7 @@
   "21798": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -337,6 +358,7 @@
   "21799": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
@@ -350,6 +372,7 @@
   "21800": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -363,6 +386,7 @@
   "21801": {
     "Category": "Credential management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -376,6 +400,7 @@
   "21802": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -389,6 +414,7 @@
   "21803": {
     "Category": "Credential management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -402,6 +428,7 @@
   "21804": {
     "Category": "Credential management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -415,6 +442,7 @@
   "21806": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -428,6 +456,7 @@
   "21807": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -440,6 +469,7 @@
   "21808": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -453,6 +483,7 @@
   "21809": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -466,6 +497,7 @@
   "21810": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -479,6 +511,7 @@
   "21811": {
     "Category": "Credential management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -514,6 +547,7 @@
   "21814": {
     "Category": "Privileged access",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -526,6 +560,7 @@
   "21815": {
     "Category": "Privileged access",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -549,6 +584,7 @@
   "21817": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -561,6 +597,7 @@
   "21818": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -617,6 +654,7 @@
   "21823": {
     "Category": "External collaboration",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -629,6 +667,7 @@
   "21824": {
     "Category": "External collaboration",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -652,6 +691,7 @@
   "21828": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -665,6 +705,7 @@
   "21829": {
     "Category": "Access control",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -677,6 +718,7 @@
   "21830": {
     "Category": "Application management",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -744,6 +786,7 @@
   "21836": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -920,6 +963,7 @@
   "21851": {
     "Category": "External collaboration",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -968,6 +1012,7 @@
   "21858": {
     "Category": "External collaboration",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -993,6 +1038,7 @@
   "21860": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -1006,6 +1052,7 @@
   "21861": {
     "Category": "Monitoring",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -1031,6 +1078,7 @@
   "21863": {
     "Category": "Monitoring",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -1056,6 +1104,7 @@
   "21865": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect networks",
     "TenantType": [
@@ -1069,6 +1118,7 @@
   "21866": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -1094,6 +1144,7 @@
   "21868": {
     "Category": "External collaboration",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -1107,6 +1158,7 @@
   "21869": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -1132,6 +1184,7 @@
   "21872": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -1144,6 +1197,7 @@
   "21874": {
     "Category": "External collaboration",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -1181,6 +1235,7 @@
   "21877": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -1242,6 +1297,7 @@
   "21883": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Accelerate response and remediation",
     "TenantType": [
@@ -1267,6 +1323,7 @@
   "21885": {
     "Category": "Application management",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -1304,6 +1361,7 @@
   "21888": {
     "Category": "Application management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -1341,6 +1399,7 @@
   "21891": {
     "Category": "Access control",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -1558,6 +1617,7 @@
   "21985": {
     "Category": "Credential management",
     "ImplementationCost": "Low",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -1571,6 +1631,7 @@
   "21992": {
     "Category": "Application management",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -1651,6 +1712,7 @@
   "22124": {
     "Category": "Monitoring",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Monitor and detect cyberthreats",
     "TenantType": [
@@ -1664,6 +1726,7 @@
   "22128": {
     "Category": "Application management",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
@@ -1689,6 +1752,7 @@
   "23183": {
     "Category": "Application management",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
@@ -1697,6 +1761,19 @@
     ],
     "TestId": "23183",
     "Title": "Service principals use safe redirect URIs",
+    "UserImpact": "Low"
+  },
+  "40000": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "40000",
+    "Title": "Windows automatic enrollment is enabled",
     "UserImpact": "Low"
   }
 }
