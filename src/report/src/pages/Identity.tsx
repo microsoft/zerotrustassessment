@@ -27,7 +27,7 @@ export default function Identity() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="gap-4 px-4 pb-4 pt-1">
-                <DataTable columns={columns} data={reportData.Tests} />
+                <DataTable columns={columns} data={reportData.Tests} pillar="Identity" />
                 </CardContent>
             </Card>
         </>

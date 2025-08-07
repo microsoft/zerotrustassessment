@@ -63,12 +63,12 @@ function GetOrganization() {
     }
 }
 
-function GetTestPassedCount($testResults, $appliesTo) {
-    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -eq 'Passed' } | Measure-Object | Select-Object -ExpandProperty Count
+function GetTestPassedCount($testResults, $pillar) {
+    return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -eq 'Passed' } | Measure-Object | Select-Object -ExpandProperty Count
 }
 
-function GetTestTotalCount($testResults, $appliesTo) {
-    return $testResults | Where-Object { $_.TestAppliesTo -eq $appliesTo -and $_.TestStatus -ne 'Skipped' -and $_.TestStatus -ne 'Planned'  } | Measure-Object | Select-Object -ExpandProperty Count
+function GetTestTotalCount($testResults, $pillar) {
+    return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -ne 'Skipped' -and $_.TestStatus -ne 'Planned'  } | Measure-Object | Select-Object -ExpandProperty Count
 }
 
 function GetTestResultSummary($testResults) {

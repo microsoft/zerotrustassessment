@@ -21,5 +21,5 @@ function Test-Assessment-40000{
     Add-ZtTestResultDetail -TestId '40000' -Title "Windows automatic enrollment is enabled" `
         -UserImpact Low -Risk Low -ImplementationCost Low `
         -AppliesTo Devices -Tag Devices `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+        -Status $passed -Result $testResultMarkdown
 }

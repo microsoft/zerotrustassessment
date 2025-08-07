@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input"
 interface DataTableProps<TData extends Test, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
+    pillar?: string
 }
 
 import {
@@ -52,6 +53,7 @@ import { StatusIcon } from "../status-icon"
 export function DataTable<TData extends Test, TValue>({
     columns,
     data,
+    pillar,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -73,9 +75,19 @@ export function DataTable<TData extends Test, TValue>({
     })
     const [rowSelection, setRowSelection] = React.useState({})
 
-    // Filter the data by selected SFI pillars, risks, and statuses if any are selected
+    // First filter by pillar if specified (for unique value calculations)
+    const pillarFilteredData = React.useMemo(() => {
+        if (pillar) {
+            return data.filter(item =>
+                item.TestTags && item.TestTags.includes(pillar)
+            );
+        }
+        return data;
+    }, [data, pillar]);
+
+    // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
     const filteredData = React.useMemo(() => {
-        let result = data;
+        let result = pillarFilteredData;
 
         // Filter by SFI pillars if any are selected
         if (selectedSfiPillars.length > 0) {
@@ -102,19 +114,19 @@ export function DataTable<TData extends Test, TValue>({
         }
 
         return result;
-    }, [data, selectedSfiPillars, selectedRisks, selectedStatuses]);
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
-        const pillars = data
+        const pillars = pillarFilteredData
             .map(item => item.TestSfiPillar)
             .filter((pillar): pillar is string => pillar !== null && pillar !== undefined);
         return Array.from(new Set(pillars)).sort();
-    }, [data]);
+    }, [pillarFilteredData]);
 
     // Get unique risks for the filter toggles
     const uniqueRisks = React.useMemo(() => {
-        const risks = data
+        const risks = pillarFilteredData
             .map(item => item.TestRisk)
             .filter((risk): risk is string => risk !== null && risk !== undefined);
         const uniqueRiskSet = Array.from(new Set(risks));
@@ -131,11 +143,11 @@ export function DataTable<TData extends Test, TValue>({
             // If neither is in the custom order, sort alphabetically
             return a.localeCompare(b);
         });
-    }, [data]);
+    }, [pillarFilteredData]);
 
     // Get unique statuses for the filter toggles
     const uniqueStatuses = React.useMemo(() => {
-        const statuses = data
+        const statuses = pillarFilteredData
             .map(item => item.TestStatus)
             .filter((status): status is string => status !== null && status !== undefined);
         const uniqueStatusSet = Array.from(new Set(statuses));
@@ -152,7 +164,7 @@ export function DataTable<TData extends Test, TValue>({
             // If neither is in the custom order, sort alphabetically
             return a.localeCompare(b);
         });
-    }, [data]);
+    }, [pillarFilteredData]);
 
     // Function to get icon for SFI pillar
     const getSfiPillarIcon = (pillar: string) => {

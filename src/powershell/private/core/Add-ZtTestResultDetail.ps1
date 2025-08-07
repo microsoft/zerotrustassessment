@@ -80,7 +80,7 @@ Function Add-ZtTestResultDetail {
         [string] $ImplementationCost,
 
         [ValidateSet('Identity', 'Devices', 'Data')]
-        [string[]] $AppliesTo,
+        [string[]] $AppliesTo, #TODO Update this to specific product (Entra, Intune, etc)
 
         [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
             'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity', 'Devices'
@@ -166,6 +166,7 @@ Function Add-ZtTestResultDetail {
         TestRisk               = $Risk
         TestImplementationCost = $ImplementationCost
         TestSfiPillar           = $testMeta.SfiPillar
+        TestPillar             = $testMeta.Pillar
         TestDescription        = $Description
         TestResult             = $Result
         TestSkipped            = $SkippedBecause
