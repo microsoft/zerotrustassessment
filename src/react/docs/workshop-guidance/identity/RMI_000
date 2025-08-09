@@ -20,7 +20,7 @@ To make this happen, follow three Zero Trust principles:
 - Use least-privileged access. Limit user access with Just-In-Time and Just-Enough-Access (JIT/JEA), risk-based adaptive policies, and data protection to protect both data and productivity.
 - Assume breach. Minimize influence radius for breaches and prevent lateral movement by segmenting access by network, user, devices, and application awareness. Verify all sessions are encrypted end to end. Use analytics to get visibility, drive threat detection, and improve defenses.
 
-Zero Trust (ZT) is a security model that assumes no implicit trust and continuously verifies every access request. The Network Pillar in Zero Trust focuses on securing communications, segmenting environments, and enforcing least privilege access to resources.
+Zero Trust (ZT) is a security model that assumes no implicit trust and continuously verifies every access request. The Identity Pillar in Zero Trust focuses on securing anything human or machine based that is able to sign in or use your services.
 
 ## Reference
 * https://learn.microsoft.com/en-us/security/zero-trust/deploy/identity
