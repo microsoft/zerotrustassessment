@@ -1,0 +1,27 @@
+# Overview Infrastructure Pillar
+
+**Implementation Effort:** High
+
+**User Impact:** High
+
+## Overview
+Infrastructure—whether on-premises servers, cloud-based VMs, containers, or micro-services—represents a critical threat vector. 
+Assess for version, configuration, and JIT access to harden defense. 
+Use telemetry to detect attacks and anomalies, and automatically block and flag risky behavior and take protective actions.
+IT Infrastructure, whether on-premises or multicloud, is defined as all the hardware (physical, virtual, containerized), software (open source, first- and third-party, PaaS, SaaS), micro-services (functions, APIs), networking infrastructure, facilities, and so on, that is required to develop, test, deliver, monitor, control, or support IT services. 
+
+### Key Principles of the Zero Trust Network Model
+Instead of assuming that everything behind the corporate firewall is secure, an end-to-end Zero Trust strategy acknowledges that breaches are inevitable. 
+This approach requires verifying each request as if it originates from an uncontrolled network, with identity management playing a crucial role. 
+When organizations incorporate the Cybersecurity and Infrastructure Security Agency (CISA) and National Institute of Standards and Technology (NIST) Zero Trust models and patterns, they enhance their security posture and better protect their networks.
+
+To make this happen, follow three Zero Trust principles:
+
+- Verify explicitly. Always authenticate and authorize based on all available data points. Include user identity, location, device health, service or workload, user and device risk, data classification, and anomalies.
+- Use least-privileged access. Limit user access with Just-In-Time and Just-Enough-Access (JIT/JEA), risk-based adaptive policies, and data protection to protect both data and productivity.
+- Assume breach. Minimize influence radius for breaches and prevent lateral movement by segmenting access by network, user, devices, and application awareness. Verify all sessions are encrypted end to end. Use analytics to get visibility, drive threat detection, and improve defenses.
+
+Zero Trust (ZT) is a security model that assumes no implicit trust and continuously verifies every access request. The Infrastructure Pillar in Zero Trust focuses on protecting the technical foundations and components that support your organization, including physical and virtual servers hosted in your datacenter or a cloud service.
+
+## Reference
+* https://learn.microsoft.com/en-us/security/zero-trust/deploy/infrastructure
