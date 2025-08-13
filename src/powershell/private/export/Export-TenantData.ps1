@@ -74,6 +74,11 @@ function Export-TenantData {
 
     if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
         # API requires PIM license
+        # Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
+            -EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
+            -QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
+
         # Filter for currently valid, eligible role assignments
         Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
             -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `

@@ -51,6 +51,7 @@ function Export-Database {
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleDefinition'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignment'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentGroup'
+    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentSchedule'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequest'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequestGroup'
     Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleManagementPolicyAssignment'
@@ -93,19 +94,43 @@ function Close-DbConnection ($db) {
 
 function New-ViewRole($db){
 
-    $sql = @"
+    $result = Invoke-DatabaseQuery -Database $db -Sql "select count(*) as RoleAssignmentScheduleCount from RoleAssignmentSchedule where id is not null"
+
+        $sql = @"
 create view vwRole
 as
+
+"@
+    if($result.RoleAssignmentScheduleCount -gt 0) {
+        # Is P2 tenant, don't read RoleAssignment because it contains PIM Eligible temporary users and has no way to filter it out.
+        $sql += @"
+select cast(ra."roleDefinitionId" as varchar), cast(ra.principal.displayName as varchar) as principalDisplayName,
+    rd.displayName as roleDisplayName, cast(ra.principal.userPrincipalName as varchar) as userPrincipalName, rd.isPrivileged,
+    cast(ra.principal."@odata.type" as varchar),
+    cast(ra.principalId as varchar) principalId, null as principalOrganizationId,
+    'Permanent' as privilegeType
+from main."RoleAssignmentSchedule" ra
+    left join main."RoleDefinition" rd on ra."roleDefinitionId" = rd.id
+"@
+    }
+    else {
+        # Is Free or P1 tenant so we only have the RoleAssignment table to go on.
+        $sql += @"
 select cast(ra."roleDefinitionId" as varchar) roleDefinitionId, ra.principal.displayName as principalDisplayName,
-    rd.displayName as roleDisplayName, cast(ra.principal.userPrincipalName as varchar) userPrincipalName, rd.isPrivileged,
+    rd.displayName as roleDisplayName, cast(ra.principal.userPrincipalName as varchar) as userPrincipalName, rd.isPrivileged,
     cast(ra.principal."@odata.type" as varchar) "@odata.type",
     cast(ra.principalId as varchar) principalId, ra.principalOrganizationId,
     'Permanent' as privilegeType
 from main."RoleAssignment" ra
     left join main."RoleDefinition" rd on ra."roleDefinitionId" = rd.id
+"@
+    }
+    # Now read RoleEligibilityScheduleRequest to get PIM Eligible users
+        $sql += @"
+
 UNION ALL
 select cast(re."roleDefinitionId" as varchar), cast(re.principal.displayName as varchar) as principalDisplayName,
-    rd.displayName as roleDisplayName, cast(re.principal.userPrincipalName as varchar), rd.isPrivileged,
+    rd.displayName as roleDisplayName, cast(re.principal.userPrincipalName as varchar) as userPrincipalName, rd.isPrivileged,
     cast(re.principal."@odata.type" as varchar),
     cast(re.principalId as varchar) principalId, null as principalOrganizationId,
     'Eligible' as privilegeType
@@ -114,5 +139,8 @@ from main."RoleEligibilityScheduleRequest" re
 where re."roleDefinitionId" is not null
 
 "@
+
+    Write-Host "Creating view vwRole"
+    Write-Host $sql -ForegroundColor Green
     Invoke-DatabaseQuery -Database $db -Sql $sql -NonQuery
 }
