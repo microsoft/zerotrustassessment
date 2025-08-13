@@ -140,7 +140,5 @@ where re."roleDefinitionId" is not null
 
 "@
 
-    Write-Host "Creating view vwRole"
-    Write-Host $sql -ForegroundColor Green
     Invoke-DatabaseQuery -Database $db -Sql $sql -NonQuery
 }
