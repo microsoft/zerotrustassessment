@@ -66,185 +66,179 @@ export interface Test {
 }
 
 export const reportData: ZeroTrustAssessmentReport = {
-  "ExecutedAt": "2025-08-07T21:02:52.013609+10:00",
-  "TenantId": "0817c655-a853-4d8f-9723-3a333b5b9235",
-  "TenantName": "Pora Inc.",
-  "Domain": "elapora.com",
-  "Account": "merill@elapora.com",
+  "ExecutedAt": "2025-08-14T21:07:07.24614+10:00",
+  "TenantId": "0ae863cb-7e9c-481a-9762-cc7fd08df299",
+  "TenantName": "Merill - Sep 25",
+  "Domain": "merillsep25.onmicrosoft.com",
+  "Account": "merill@merillsep25.onmicrosoft.com",
   "CurrentVersion": "0.11.0",
   "LatestVersion": "0.11.0",
   "TestResultSummary": {
-    "IdentityPassed": 0,
-    "IdentityTotal": 0,
-    "DevicesPassed": 1,
-    "DevicesTotal": 1,
+    "IdentityPassed": 1,
+    "IdentityTotal": 1,
+    "DevicesPassed": 0,
+    "DevicesTotal": 0,
     "DataPassed": 0,
     "DataTotal": 0
   },
   "Tests": [
     {
-      "TestTags": [
-        "Devices"
-      ],
-      "TestImplementationCost": "High",
-      "TestAppliesTo": [
-        "Devices"
-      ],
+      "TestResult": "\nNo inactive applications with privileged Entra built-in roles\n\n\n\n",
+      "TestPillar": "Identity",
       "SkippedReason": null,
-      "TestPillar": "Devices",
-      "TestId": "40000",
-      "TestDescription": "Windows automatic enrollment enables a device to be automatically managed by Microsoft Intune as part of the initial sign on to the device. This ensures the device is protected by the security policies defined by the organization. \n\nThreats: Data Exfiltration, Data Deletion, Password Cracking, Data Spillage\n\nRemediation impact: This change will have low impact on your users.\n\nLearn more: [Enable MDM automatic enrollment for Windows](https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enroll)\n\n**Remediation action**\n\n- Enable Windows devices to automatically enroll for management with Microsoft Intune.\n\n",
-      "TestResult": "\nWindows automatic enrollment is enabled and configured correctly.\n",
-      "TestRisk": "High",
       "TestSkipped": "",
-      "TestTitle": "Windows automatic enrollment is enabled",
-      "TestImpact": "Low",
+      "TestTags": [
+        "Application"
+      ],
+      "TestSfiPillar": "Protect engineering systems",
       "TestStatus": "Passed",
-      "TestCategory": "Device management",
-      "TestSfiPillar": "Protect engineering systems"
+      "TestId": "21771",
+      "TestAppliesTo": [
+        "Identity"
+      ],
+      "TestCategory": "Application management",
+      "TestDescription": "Attackers might exploit valid but inactive applications that still have elevated privileges. These applications can be used to gain initial access without raising alarm because they're legitimate applications. From there, attackers can use the application privileges to plan or execute other attacks. Attackers might also maintain access by manipulating the inactive application, such as by adding credentials. This persistence ensures that even if their primary access method is detected, they can regain access later.\n\n**Remediation action**\n\n- [Disable inactive privileged service principals](https://learn.microsoft.com/graph/api/serviceprincipal-update?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n- Investigate if the application has legitimate use cases. If so, [analyze if a OAuth2 permission is a better fit](https://learn.microsoft.com/entra/identity-platform/v2-app-types?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n- [If service principal doesn't have legitimate use cases, delete it](https://learn.microsoft.com/graph/api/serviceprincipal-delete?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n",
+      "TestRisk": "High",
+      "TestImpact": "Low",
+      "TestTitle": "Inactive applications don’t have highly privileged built-in roles",
+      "TestImplementationCost": "Low"
     }
   ],
   "TenantInfo": {
-    "ConfigWindowsEnrollment": [
-      {
-        "Type": "MDM",
-        "PolicyName": "Microsoft Intune",
-        "AppliesTo": "Selected",
-        "Groups": "All active users"
-      },
-      {
-        "Type": "MDM",
-        "PolicyName": "Microsoft Intune Enrollment",
-        "AppliesTo": "None",
-        "Groups": "Not Applicable"
-      }
-    ],
+    "OverviewCaMfaAllUsers": {
+      "nodes": [
+        {
+          "source": "User sign in",
+          "value": 25,
+          "target": "No CA applied"
+        },
+        {
+          "source": "User sign in",
+          "value": 27,
+          "target": "CA applied"
+        },
+        {
+          "source": "CA applied",
+          "value": 3,
+          "target": "No MFA"
+        },
+        {
+          "source": "CA applied",
+          "value": 24,
+          "target": "MFA"
+        }
+      ],
+      "description": "Over the past 29 days, 46.2% of sign-ins were protected by conditional access policies enforcing multifactor."
+    },
     "OverviewCaDevicesAllUsers": {
       "nodes": [
         {
-          "target": "Unmanaged",
-          "value": 381,
-          "source": "User sign in"
+          "source": "User sign in",
+          "value": 52,
+          "target": "Unmanaged"
         },
         {
-          "target": "Managed",
+          "source": "User sign in",
           "value": 0,
-          "source": "User sign in"
+          "target": "Managed"
         },
         {
-          "target": "Non-compliant",
+          "source": "Managed",
           "value": 0,
-          "source": "Managed"
+          "target": "Non-compliant"
         },
         {
-          "target": "Compliant",
+          "source": "Managed",
           "value": 0,
-          "source": "Managed"
+          "target": "Compliant"
         }
       ],
-      "description": "Over the past 30 days, 0% of sign-ins were from compliant devices."
+      "description": "Over the past 29 days, 0% of sign-ins were from compliant devices."
     },
     "OverviewAuthMethodsAllUsers": {
       "nodes": [
         {
-          "target": "Single factor",
-          "value": 45,
-          "source": "Users"
+          "source": "Users",
+          "value": 1,
+          "target": "Single factor"
         },
         {
-          "target": "Phishable",
-          "value": 23,
-          "source": "Users"
+          "source": "Users",
+          "value": 3,
+          "target": "Phishable"
         },
         {
-          "target": "Phone",
-          "value": 7,
-          "source": "Phishable"
+          "source": "Phishable",
+          "value": 1,
+          "target": "Phone"
         },
         {
-          "target": "Authenticator",
-          "value": 16,
-          "source": "Phishable"
-        },
-        {
-          "target": "Phish resistant",
-          "value": 6,
-          "source": "Users"
-        },
-        {
-          "target": "Passkey",
-          "value": 4,
-          "source": "Phish resistant"
-        },
-        {
-          "target": "WHfB",
+          "source": "Phishable",
           "value": 2,
-          "source": "Phish resistant"
+          "target": "Authenticator"
+        },
+        {
+          "source": "Users",
+          "value": 0,
+          "target": "Phish resistant"
+        },
+        {
+          "source": "Phish resistant",
+          "value": 0,
+          "target": "Passkey"
+        },
+        {
+          "source": "Phish resistant",
+          "value": 0,
+          "target": "WHfB"
         }
       ],
       "description": "Strongest authentication method registered by all users."
     },
-    "OverviewCaMfaAllUsers": {
-      "nodes": [
-        {
-          "target": "No CA applied",
-          "value": 251,
-          "source": "User sign in"
-        },
-        {
-          "target": "CA applied",
-          "value": 130,
-          "source": "User sign in"
-        },
-        {
-          "target": "No MFA",
-          "value": 0,
-          "source": "CA applied"
-        },
-        {
-          "target": "MFA",
-          "value": 130,
-          "source": "CA applied"
-        }
-      ],
-      "description": "Over the past 30 days, 34.1% of sign-ins were protected by conditional access policies enforcing multifactor."
-    },
+    "ConfigWindowsEnrollment": [
+      {
+        "Type": "MDM",
+        "PolicyName": "Microsoft Intune",
+        "AppliesTo": "None",
+        "Groups": "Not Applicable"
+      }
+    ],
     "OverviewAuthMethodsPrivilegedUsers": {
       "nodes": [
         {
-          "target": "Single factor",
-          "value": 4,
-          "source": "Users"
-        },
-        {
-          "target": "Phishable",
-          "value": 9,
-          "source": "Users"
-        },
-        {
-          "target": "Phone",
-          "value": 2,
-          "source": "Phishable"
-        },
-        {
-          "target": "Authenticator",
-          "value": 7,
-          "source": "Phishable"
-        },
-        {
-          "target": "Phish resistant",
-          "value": 4,
-          "source": "Users"
-        },
-        {
-          "target": "Passkey",
-          "value": 3,
-          "source": "Phish resistant"
-        },
-        {
-          "target": "WHfB",
+          "source": "Users",
           "value": 1,
-          "source": "Phish resistant"
+          "target": "Single factor"
+        },
+        {
+          "source": "Users",
+          "value": 3,
+          "target": "Phishable"
+        },
+        {
+          "source": "Phishable",
+          "value": 1,
+          "target": "Phone"
+        },
+        {
+          "source": "Phishable",
+          "value": 2,
+          "target": "Authenticator"
+        },
+        {
+          "source": "Users",
+          "value": 0,
+          "target": "Phish resistant"
+        },
+        {
+          "source": "Phish resistant",
+          "value": 0,
+          "target": "Passkey"
+        },
+        {
+          "source": "Phish resistant",
+          "value": 0,
+          "target": "WHfB"
         }
       ],
       "description": "Strongest authentication method registered by privileged users."

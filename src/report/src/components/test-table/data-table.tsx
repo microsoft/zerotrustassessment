@@ -79,7 +79,7 @@ export function DataTable<TData extends Test, TValue>({
     const pillarFilteredData = React.useMemo(() => {
         if (pillar) {
             return data.filter(item =>
-                item.TestTags && item.TestTags.includes(pillar)
+                item.TestPillar === pillar
             );
         }
         return data;
@@ -354,7 +354,7 @@ export function DataTable<TData extends Test, TValue>({
                             </Button>
                         )}
                         <div className="text-xs text-muted-foreground">
-                            Showing {filteredData.length} of {data.length} tests
+                            Showing {filteredData.length} of {pillarFilteredData.length} tests
                         </div>
                     </div>
                 </div>
