@@ -1,1638 +1,1779 @@
 {
-  "21809": {
-    "TestId": "21809",
+  "21770": {
+    "Category": "Access control",
     "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Admin consent workflow is enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21897": {
-    "TestId": "21897",
-    "ImplementationCost": "High",
-    "UserImpact": "High",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All app assignment and group membership is governed",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
-    ]
-  },
-  "21894": {
-    "TestId": "21894",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "All certificates Microsoft Entra Application Registrations and Service Principals must be issued by an approved certification authority",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21867": {
-    "TestId": "21867",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "All enterprise applications have owners",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21929": {
-    "TestId": "21929",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All entitlement management packages that apply to guests have expirations or access reviews configured in their assignment policies",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21878": {
-    "TestId": "21878",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All entitlement management policies have an expiration date",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21879": {
-    "TestId": "21879",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All entitlement management policies that apply to External users require approval",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21832": {
-    "TestId": "21832",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All groups in Conditional Access policies belong to a restricted management administrative unit",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21877": {
-    "TestId": "21877",
-    "ImplementationCost": "High",
-    "UserImpact": "High",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All guests have a sponsor",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21899": {
-    "TestId": "21899",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All privileged role assignments have a recipient that can receive notifications",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21887": {
-    "TestId": "21887",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All registered redirect URIs must have proper DNS records and ownerships",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21864": {
-    "TestId": "21864",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "All risk detections are triaged",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21862": {
-    "TestId": "21862",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All risky workload identities are triaged",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22659": {
-    "TestId": "22659",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "All risky workload identity sign ins are triaged",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21892": {
-    "TestId": "21892",
-    "ImplementationCost": "High",
-    "UserImpact": "High",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All sign-in activity comes from managed devices",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21898": {
-    "TestId": "21898",
-    "ImplementationCost": "High",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All supported access lifecycle resources are managed with entitlement management packages",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21784": {
-    "TestId": "21784",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "All user sign in activity uses phishing-resistant authentication methods",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21888": {
-    "TestId": "21888",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "App registrations must not have dangling or abandoned domain redirect URIs",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21895": {
-    "TestId": "21895",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Application Certificate Credentials are managed using HSM",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21886": {
-    "TestId": "21886",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Applications that use Microsoft Entra for authentication and support provisioning are configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21841": {
-    "TestId": "21841",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Authenticator app report suspicious activity is enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21802": {
-    "TestId": "21802",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Authenticator app shows sign-in context",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21912": {
-    "TestId": "21912",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Azure resources used by Microsoft Entra only allow access from privileged roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21881": {
-    "TestId": "21881",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Azure subscriptions used by Identity Governance are secured consistently with Identity Governance roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21842": {
-    "TestId": "21842",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Block administrators from using SSPR",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21799": {
-    "TestId": "21799",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Block high risk sign-ins",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21844": {
-    "TestId": "21844",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Block legacy Azure AD PowerShell module",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21843": {
-    "TestId": "21843",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Block legacy Microsoft Online PowerShell module",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21831": {
-    "TestId": "21831",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Conditional Access protected actions are enabled",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21834": {
-    "TestId": "21834",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Directory sync account is locked down to specific named location",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "22101": {
-    "TestId": "22101",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Disable ciamlogin endpoints when custom domain enabled",
-    "TenantType": [
-      "External"
-    ]
-  },
-  "21848": {
-    "TestId": "21848",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Enable custom banned passwords",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22102": {
-    "TestId": "22102",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Enable custom domain",
-    "TenantType": [
-      "External"
-    ]
-  },
-  "21893": {
-    "TestId": "21893",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Enable Microsoft Entra ID Protection policy to enforce multifactor authentication registration",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21964": {
-    "TestId": "21964",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Enable protected actions to secure Conditional Access policy creation and changes",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21870": {
-    "TestId": "21870",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Enable SSPR",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22100": {
-    "TestId": "22100",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Enable WAF for ciamlogin endpoints",
-    "TenantType": [
-      "External"
-    ]
-  },
-  "21869": {
-    "TestId": "21869",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Enterprise applications must require explicit assignment or scoped provisioning",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21859": {
-    "TestId": "21859",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "GDAP admin least privilege",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21822": {
-    "TestId": "21822",
-    "ImplementationCost": "High",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guest access is limited to approved tenants",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21821": {
-    "TestId": "21821",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guest access is restricted",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21857": {
-    "TestId": "21857",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guest identities are lifecycle managed with access reviews",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21823": {
-    "TestId": "21823",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guest self-service sign up via user flow is disabled",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "22128": {
-    "TestId": "22128",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Guests are not assigned high privileged directory roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21824": {
-    "TestId": "21824",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guests don't have long lived sign-in sessions",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21868": {
-    "TestId": "21868",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Guests don't own apps in the tenant",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21858": {
-    "TestId": "21858",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Inactive guest identities are removed from the tenant",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22098": {
-    "TestId": "22098",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Integrate Entra Audit logs with Azure Monitor",
-    "TenantType": [
-      "External"
-    ]
-  },
-  "22099": {
-    "TestId": "22099",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Integrate Entra Sign-In logs with Azure Monitor",
-    "TenantType": [
-      "External"
-    ]
-  },
-  "21953": {
-    "TestId": "21953",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Local Admin Password Solution is deployed",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21955": {
-    "TestId": "21955",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Manage the local administrators on Microsoft Entra joined devices",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21803": {
-    "TestId": "21803",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Migrate from legacy MFA and SSPR policies",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21984": {
-    "TestId": "21984",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "No Active low priority Entra recommendations found",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21983": {
-    "TestId": "21983",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "No Active Medium priority Entra recommendations found",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21882": {
-    "TestId": "21882",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "No nested groups in PIM for groups",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21839": {
-    "TestId": "21839",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Passkey authentication method enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21811": {
-    "TestId": "21811",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Password expiration is disabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21847": {
-    "TestId": "21847",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Password protection for on-premises is enabled",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21854": {
-    "TestId": "21854",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Privileged roles aren't assigned to stale identities",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21855": {
-    "TestId": "21855",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Privileged roles have access reviews",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21825": {
-    "TestId": "21825",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Privileged user sessions don't have long lived sign-in sessions",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21889": {
-    "TestId": "21889",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Reduce the user-visible password surface area",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21872": {
-    "TestId": "21872",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Require multifactor authentication for device join and device registration using user action",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21891": {
-    "TestId": "21891",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Require password reset notifications for administrator roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21890": {
-    "TestId": "21890",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Require password reset notifications for user roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21797": {
-    "TestId": "21797",
-    "ImplementationCost": "Medium",
-    "UserImpact": "High",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Restrict access to high risk users",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21808": {
-    "TestId": "21808",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Restrict device code flow",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21954": {
-    "TestId": "21954",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Restrict nonadministrator users from recovering the BitLocker keys for their owned devices",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21806": {
-    "TestId": "21806",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Secure the MFA registration (My Security Info) page",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21840": {
-    "TestId": "21840",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Security key attestation is enforced",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21838": {
-    "TestId": "21838",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Security key authentication method enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22072": {
-    "TestId": "22072",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Self-Service Password Reset does not use Q & A",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21896": {
-    "TestId": "21896",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Service principals don't have certificates or credentials associated with them",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "23183": {
-    "TestId": "23183",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Service principals use safe redirect URIs",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21849": {
-    "TestId": "21849",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Smart lockout duration is set to a minimum of 60",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21850": {
-    "TestId": "21850",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Smart lockout threshold isn't greater than 10",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21845": {
-    "TestId": "21845",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Temporary access pass is enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21846": {
-    "TestId": "21846",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Temporary access pass restricted to one-time use",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21775": {
-    "TestId": "21775",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Low",
-    "Category": "Access control",
-    "Title": "Tenant app management policy is configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21874": {
-    "TestId": "21874",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Tenant does have controls to selectively onboard External organizations (cross-tenant access polices and domain-based allow/deny lists)",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21875": {
-    "TestId": "21875",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Tenant has all External organizations allowed to collaborate as Connected Organization",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21793": {
-    "TestId": "21793",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Tenant restrictions v2 are configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21941": {
-    "TestId": "21941",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Token protection policies are configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21865": {
-    "TestId": "21865",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Trusted network locations are configured to increase quality of risk detections",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21985": {
-    "TestId": "21985",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Turn off Seamless SSO if there are is no usage",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21829": {
-    "TestId": "21829",
-    "ImplementationCost": "High",
-    "UserImpact": "High",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Use cloud authentication",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21876": {
-    "TestId": "21876",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Use PIM for Microsoft Entra privileged roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21776": {
-    "TestId": "21776",
-    "ImplementationCost": "Low",
-    "UserImpact": "Medium",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "User consent settings are restricted",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21804": {
-    "TestId": "21804",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Weak authentication methods are disabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21883": {
-    "TestId": "21883",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Access control",
-    "Title": "Workload identities are configured with risk-based policies",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21884": {
-    "TestId": "21884",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Access control",
-    "Title": "Workload identities based on known networks are configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21885": {
-    "TestId": "21885",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Application management",
-    "Title": "App registrations use safe redirect URIs",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21992": {
-    "TestId": "21992",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Application management",
-    "Title": "Application Certificates need to be rotated on a regular basis",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21778": {
-    "TestId": "21778",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Application management",
-    "Title": "Line-of-business and partner apps use MSAL",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21780": {
-    "TestId": "21780",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Application management",
-    "Title": "No usage of ADAL in the tenant",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21779": {
-    "TestId": "21779",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Application management",
-    "Title": "Use recent versions of Microsoft Applications",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21836": {
-    "TestId": "21836",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Application management",
-    "Title": "Workload identities assigned privileged roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21837": {
-    "TestId": "21837",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Device management",
-    "Title": "Limit the maximum number of devices per user to 10",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21863": {
-    "TestId": "21863",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Monitoring",
-    "Title": "All high-risk sign-ins are triaged",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21861": {
-    "TestId": "21861",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Monitoring",
-    "Title": "All high-risk users are triaged",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21866": {
-    "TestId": "21866",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Monitoring",
-    "Title": "All Microsoft Entra recommendations are addressed",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "22124": {
-    "TestId": "22124",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Medium",
-    "RiskLevel": "High",
-    "Category": "Monitoring",
-    "Title": "High priority Entra recommendations are addressed",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21798": {
-    "TestId": "21798",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Monitoring",
-    "Title": "ID Protection notifications enabled",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21789": {
-    "TestId": "21789",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Monitoring",
-    "Title": "Tenant creation events are triaged",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21820": {
-    "TestId": "21820",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "Activation alert for all privileged role assignments",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21819": {
-    "TestId": "21819",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Medium",
-    "Category": "Privileged access",
-    "Title": "Activation alert for Global Administrator role assignments",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21818": {
-    "TestId": "21818",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Privileged access",
-    "Title": "Activation alert for highly privileged role assignments",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21815": {
-    "TestId": "21815",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Privileged access",
-    "Title": "All privileged role assignments are activated just in time and not permanently active",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21816": {
-    "TestId": "21816",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "All privileged role assignments are managed with PIM",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21833": {
-    "TestId": "21833",
-    "ImplementationCost": "High",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "Directory Sync account credentials haven't been rotated recently",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21835": {
-    "TestId": "21835",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "Emergency account exists",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21817": {
-    "TestId": "21817",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Privileged access",
-    "Title": "Global Administrator role activation triggers an approval workflow",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21788": {
-    "TestId": "21788",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Privileged access",
-    "Title": "Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21813": {
-    "TestId": "21813",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "High Global Administrator to privileged user ratio",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21830": {
-    "TestId": "21830",
-    "ImplementationCost": "Medium",
-    "UserImpact": "Low",
-    "RiskLevel": "High",
-    "Category": "Privileged access",
-    "Title": "Highly privileged roles are only activated in a PAW/SAW device",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21812": {
-    "TestId": "21812",
-    "ImplementationCost": "Low",
-    "UserImpact": "Low",
-    "RiskLevel": "Low",
-    "Category": "Privileged access",
-    "Title": "Maximum number of Global Administrators doesn't exceed eight users",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21800": {
-    "TestId": "21800",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "All user sign-in activity uses strong authentication methods",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21773": {
-    "TestId": "21773",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Applications don't have certificates with expiration longer than 180 days",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21772": {
-    "TestId": "21772",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Applications don't have secrets configured",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21828": {
-    "TestId": "21828",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Authentication transfer is blocked",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21796": {
-    "TestId": "21796",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Block legacy authentication policy is configured",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21810": {
-    "TestId": "21810",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Checking Resource-Specific Consent is restricted",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21807": {
-    "TestId": "21807",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Creating new applications and service principles is restricted to privileged users",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21860": {
-    "TestId": "21860",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Diagnostic settings are configured for all Microsoft Entra logs",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
-  },
-  "21851": {
-    "TestId": "21851",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Guest access is protected by strong authentication methods",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21791": {
-    "TestId": "21791",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Guests can't invite other guests",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21792": {
-    "TestId": "21792",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Guests have restricted access to directory objects",
-    "TenantType": [
-      "Workforce"
-    ]
+    ],
+    "TestId": "21770",
+    "Title": "Inactive applications don’t have highly privileged Microsoft Graph API permissions",
+    "UserImpact": "High"
   },
   "21771": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
     "TestId": "21771",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Inactive applications don't have highly privileged built-in roles",
-    "TenantType": [
-      "Workforce",
-      "External"
-    ]
+    "Title": "Inactive applications don’t have highly privileged built-in roles",
+    "UserImpact": "Low"
   },
-  "21770": {
-    "TestId": "21770",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Inactive applications don't have highly privileged Microsoft Graph API permissions",
+  "21772": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
-    ]
+    ],
+    "TestId": "21772",
+    "Title": "Applications don't have client secrets configured",
+    "UserImpact": "Low"
+  },
+  "21773": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21773",
+    "Title": "Applications don't have certificates with expiration longer than 180 days",
+    "UserImpact": "Low"
   },
   "21774": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
     "TestId": "21774",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
     "Title": "Microsoft services applications don't have credentials configured",
+    "UserImpact": "Low"
+  },
+  "21775": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
     "TenantType": [
       "Workforce",
       "External"
-    ]
+    ],
+    "TestId": "21775",
+    "Title": "Tenant app management policy is configured",
+    "UserImpact": "Medium"
   },
-  "21795": {
-    "TestId": "21795",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "No legacy authentication sign-in activity",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21790": {
-    "TestId": "21790",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Outbound cross-tenant access settings are configured",
+  "21776": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
-    ]
-  },
-  "21787": {
-    "TestId": "21787",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Permissions to create new tenants is limited to the Tenant Creator role",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21814": {
-    "TestId": "21814",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Privileged accounts are cloud native identities",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21782": {
-    "TestId": "21782",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Privileged accounts have phishing-resistant methods registered",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21783": {
-    "TestId": "21783",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods",
-    "TenantType": [
-      "Workforce"
-    ]
-  },
-  "21781": {
-    "TestId": "21781",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Privileged users sign in with phishing-resistant methods",
-    "TenantType": [
-      "Workforce"
-    ]
+    ],
+    "TestId": "21776",
+    "Title": "User consent settings are restricted",
+    "UserImpact": "High"
   },
   "21777": {
-    "TestId": "21777",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "App Instance Property Lock is configured for all multitenant applications",
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
     "TenantType": [
       "Workforce",
       "External"
-    ]
+    ],
+    "TestId": "21777",
+    "Title": "App instance property lock is configured for all multitenant applications",
+    "UserImpact": "Low"
+  },
+  "21778": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21778",
+    "Title": "Line-of-business and partner apps use MSAL",
+    "UserImpact": "Low"
+  },
+  "21779": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21779",
+    "Title": "Use recent versions of Microsoft Applications",
+    "UserImpact": "Low"
+  },
+  "21780": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21780",
+    "Title": "No usage of ADAL in the tenant",
+    "UserImpact": "Low"
+  },
+  "21781": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21781",
+    "Title": "Privileged users sign in with phishing-resistant methods",
+    "UserImpact": "Low"
+  },
+  "21782": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21782",
+    "Title": "Privileged accounts have phishing-resistant methods registered",
+    "UserImpact": "Low"
+  },
+  "21783": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21783",
+    "Title": "Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods",
+    "UserImpact": "Low"
+  },
+  "21784": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21784",
+    "Title": "All user sign in activity uses phishing-resistant authentication methods",
+    "UserImpact": "Low"
   },
   "21786": {
-    "TestId": "21786",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "User sign-in activity uses token protection",
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
-    ]
+    ],
+    "TestId": "21786",
+    "Title": "User sign-in activity uses token protection",
+    "UserImpact": "Low"
+  },
+  "21787": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21787",
+    "Title": "Permissions to create new tenants are limited to the Tenant Creator role",
+    "UserImpact": "Medium"
+  },
+  "21788": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21788",
+    "Title": "Global Administrators don't have standing access to Azure subscriptions",
+    "UserImpact": "Low"
+  },
+  "21789": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21789",
+    "Title": "Tenant creation events are triaged",
+    "UserImpact": "Low"
+  },
+  "21790": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21790",
+    "Title": "Outbound cross-tenant access settings are configured",
+    "UserImpact": "Medium"
+  },
+  "21791": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21791",
+    "Title": "Guests can’t invite other guests",
+    "UserImpact": "Medium"
+  },
+  "21792": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21792",
+    "Title": "Guests have restricted access to directory objects",
+    "UserImpact": "Medium"
+  },
+  "21793": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect networks",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21793",
+    "Title": "Tenant restrictions v2 policy is configured",
+    "UserImpact": "Low"
+  },
+  "21795": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21795",
+    "Title": "No legacy authentication sign-in activity",
+    "UserImpact": "High"
+  },
+  "21796": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21796",
+    "Title": "Block legacy authentication policy is configured",
+    "UserImpact": "High"
+  },
+  "21797": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Accelerate response and remediation",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21797",
+    "Title": "Restrict access to high risk users",
+    "UserImpact": "High"
+  },
+  "21798": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21798",
+    "Title": "ID Protection notifications are enabled",
+    "UserImpact": "Low"
+  },
+  "21799": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Accelerate response and remediation",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21799",
+    "Title": "Restrict high risk sign-ins",
+    "UserImpact": "Medium"
+  },
+  "21800": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21800",
+    "Title": "All user sign-in activity uses strong authentication methods",
+    "UserImpact": "Medium"
   },
   "21801": {
-    "TestId": "21801",
-    "ImplementationCost": null,
-    "UserImpact": null,
-    "RiskLevel": null,
-    "Category": null,
-    "Title": "Users have strong authentication methods configured",
+    "Category": "Credential management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
-    ]
+    ],
+    "TestId": "21801",
+    "Title": "Users have strong authentication methods configured",
+    "UserImpact": "Medium"
+  },
+  "21802": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21802",
+    "Title": "Authenticator app shows sign-in context",
+    "UserImpact": "Low"
+  },
+  "21803": {
+    "Category": "Credential management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21803",
+    "Title": "Migrate from legacy MFA and SSPR policies",
+    "UserImpact": "Medium"
+  },
+  "21804": {
+    "Category": "Credential management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21804",
+    "Title": "SMS and Voice Call authentication methods are disabled",
+    "UserImpact": "Medium"
+  },
+  "21806": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21806",
+    "Title": "Secure the MFA registration (My Security Info) page",
+    "UserImpact": "Low"
+  },
+  "21807": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21807",
+    "Title": "Creating new applications and service principals is restricted to privileged users",
+    "UserImpact": "Low"
+  },
+  "21808": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21808",
+    "Title": "Restrict device code flow",
+    "UserImpact": "Medium"
+  },
+  "21809": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21809",
+    "Title": "Admin consent workflow is enabled",
+    "UserImpact": "Low"
+  },
+  "21810": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21810",
+    "Title": "Resource-specific consent is restricted",
+    "UserImpact": "Medium"
+  },
+  "21811": {
+    "Category": "Credential management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21811",
+    "Title": "Password expiration is disabled",
+    "UserImpact": "Low"
+  },
+  "21812": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21812",
+    "Title": "Maximum number of Global Administrators doesn't exceed eight users",
+    "UserImpact": "Low"
+  },
+  "21813": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21813",
+    "Title": "High Global Administrator to privileged user ratio",
+    "UserImpact": "Low"
+  },
+  "21814": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21814",
+    "Title": "Privileged accounts are cloud native identities",
+    "UserImpact": "Low"
+  },
+  "21815": {
+    "Category": "Privileged access",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21815",
+    "Title": "All privileged role assignments are activated just in time and not permanently active",
+    "UserImpact": "Low"
+  },
+  "21816": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21816",
+    "Title": "All privileged role assignments are managed with PIM",
+    "UserImpact": "Low"
+  },
+  "21817": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21817",
+    "Title": "Global Administrator role activation triggers an approval workflow",
+    "UserImpact": "Low"
+  },
+  "21818": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21818",
+    "Title": "Privileged role activations have monitoring and alerting configured",
+    "UserImpact": "Low"
+  },
+  "21819": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21819",
+    "Title": "Activation alert for Global Administrator role assignments",
+    "UserImpact": "Low"
+  },
+  "21820": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21820",
+    "Title": "Activation alert for all privileged role assignments",
+    "UserImpact": "Low"
+  },
+  "21821": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21821",
+    "Title": "Guest access is restricted",
+    "UserImpact": "Medium"
+  },
+  "21822": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21822",
+    "Title": "Guest access is limited to approved tenants",
+    "UserImpact": "Medium"
+  },
+  "21823": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21823",
+    "Title": "Guest self-service sign-up via user flow is disabled",
+    "UserImpact": "Low"
+  },
+  "21824": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21824",
+    "Title": "Guests don't have long lived sign-in sessions",
+    "UserImpact": "Medium"
+  },
+  "21825": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21825",
+    "Title": "Privileged user sessions don't have long lived sign-in sessions",
+    "UserImpact": "Medium"
+  },
+  "21828": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21828",
+    "Title": "Secure the MFA registration (My Security Info) page",
+    "UserImpact": "Low"
+  },
+  "21829": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21829",
+    "Title": "Use cloud authentication",
+    "UserImpact": "High"
+  },
+  "21830": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21830",
+    "Title": "Conditional Access policies for Privileged Access Workstations are configured",
+    "UserImpact": "Low"
+  },
+  "21831": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21831",
+    "Title": "Conditional Access protected actions are enabled",
+    "UserImpact": "Low"
+  },
+  "21832": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21832",
+    "Title": "All groups in Conditional Access policies belong to a restricted management administrative unit",
+    "UserImpact": "Low"
+  },
+  "21833": {
+    "Category": "Privileged access",
+    "ImplementationCost": "High",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21833",
+    "Title": "Directory Sync account credentials haven't been rotated recently",
+    "UserImpact": "Low"
+  },
+  "21834": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21834",
+    "Title": "Directory sync account is locked down to specific named location",
+    "UserImpact": "Low"
+  },
+  "21835": {
+    "Category": "Privileged access",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21835",
+    "Title": "Emergency account exists",
+    "UserImpact": "Low"
+  },
+  "21836": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21836",
+    "Title": "Workload Identities are not assigned privileged roles",
+    "UserImpact": "Low"
+  },
+  "21837": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21837",
+    "Title": "Limit the maximum number of devices per user to 10",
+    "UserImpact": "Low"
+  },
+  "21838": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21838",
+    "Title": "Security key authentication method enabled",
+    "UserImpact": "Low"
+  },
+  "21839": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21839",
+    "Title": "Passkey authentication method enabled",
+    "UserImpact": "Low"
+  },
+  "21840": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21840",
+    "Title": "Security key attestation is enforced",
+    "UserImpact": "Low"
+  },
+  "21841": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21841",
+    "Title": "Authenticator app report suspicious activity is enabled",
+    "UserImpact": "Low"
+  },
+  "21842": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21842",
+    "Title": "Block administrators from using SSPR",
+    "UserImpact": "Low"
+  },
+  "21843": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21843",
+    "Title": "Block legacy Microsoft Online PowerShell module",
+    "UserImpact": "Low"
+  },
+  "21844": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21844",
+    "Title": "Block legacy Azure AD PowerShell module",
+    "UserImpact": "Low"
+  },
+  "21845": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21845",
+    "Title": "Temporary access pass is enabled",
+    "UserImpact": "Low"
+  },
+  "21846": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21846",
+    "Title": "Temporary access pass restricted to one-time use",
+    "UserImpact": "Low"
+  },
+  "21847": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21847",
+    "Title": "Password protection for on-premises is enabled",
+    "UserImpact": "Low"
+  },
+  "21848": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21848",
+    "Title": "Enable custom banned passwords",
+    "UserImpact": "Low"
+  },
+  "21849": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21849",
+    "Title": "Smart lockout duration is set to a minimum of 60",
+    "UserImpact": "Low"
+  },
+  "21850": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21850",
+    "Title": "Smart lockout threshold isn't greater than 10",
+    "UserImpact": "Low"
+  },
+  "21851": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21851",
+    "Title": "Guest access is protected by strong authentication methods",
+    "UserImpact": "Medium"
+  },
+  "21854": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21854",
+    "Title": "Privileged roles aren't assigned to stale identities",
+    "UserImpact": "Low"
+  },
+  "21855": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21855",
+    "Title": "Privileged roles have access reviews",
+    "UserImpact": "Low"
+  },
+  "21857": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21857",
+    "Title": "Guest identities are lifecycle managed with access reviews",
+    "UserImpact": "Low"
+  },
+  "21858": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21858",
+    "Title": "Inactive guest identities are disabled or removed from the tenant",
+    "UserImpact": "Low"
+  },
+  "21859": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21859",
+    "Title": "GDAP admin least privilege",
+    "UserImpact": "Low"
+  },
+  "21860": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21860",
+    "Title": "Diagnostic settings are configured for all Microsoft Entra logs",
+    "UserImpact": "Low"
+  },
+  "21861": {
+    "Category": "Monitoring",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21861",
+    "Title": "All high-risk users are triaged",
+    "UserImpact": "Low"
+  },
+  "21862": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21862",
+    "Title": "All risky workload identities are triaged",
+    "UserImpact": "Low"
+  },
+  "21863": {
+    "Category": "Monitoring",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21863",
+    "Title": "All high-risk sign-ins are triaged",
+    "UserImpact": "Low"
+  },
+  "21864": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "High",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21864",
+    "Title": "All risk detections are triaged",
+    "UserImpact": "Low"
+  },
+  "21865": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect networks",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21865",
+    "Title": "Named locations are configured",
+    "UserImpact": "Low"
+  },
+  "21866": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21866",
+    "Title": "All Microsoft Entra recommendations are addressed",
+    "UserImpact": "Low"
+  },
+  "21867": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21867",
+    "Title": "All enterprise applications have owners",
+    "UserImpact": "Low"
+  },
+  "21868": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21868",
+    "Title": "Guests do not own apps in the tenant",
+    "UserImpact": "Low"
+  },
+  "21869": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21869",
+    "Title": "Enterprise applications must require explicit assignment or scoped provisioning",
+    "UserImpact": "Medium"
+  },
+  "21870": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21870",
+    "Title": "Enable SSPR",
+    "UserImpact": "Low"
+  },
+  "21872": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "21872",
+    "Title": "Require multifactor authentication for device join and device registration using user action",
+    "UserImpact": "Medium"
+  },
+  "21874": {
+    "Category": "External collaboration",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21874",
+    "Title": "Allow/Deny lists of domains to restrict external collaboration are configured",
+    "UserImpact": "Medium"
+  },
+  "21875": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21875",
+    "Title": "Tenant has all External organizations allowed to collaborate as Connected Organization",
+    "UserImpact": "Medium"
+  },
+  "21876": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21876",
+    "Title": "Use PIM for Microsoft Entra privileged roles",
+    "UserImpact": "Low"
+  },
+  "21877": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21877",
+    "Title": "All guests have a sponsor",
+    "UserImpact": "Medium"
+  },
+  "21878": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21878",
+    "Title": "All entitlement management policies have an expiration date",
+    "UserImpact": "Medium"
+  },
+  "21879": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21879",
+    "Title": "All entitlement management policies that apply to External users require approval",
+    "UserImpact": "Medium"
+  },
+  "21881": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "High",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21881",
+    "Title": "Azure subscriptions used by Identity Governance are secured consistently with Identity Governance roles",
+    "UserImpact": "Low"
+  },
+  "21882": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21882",
+    "Title": "No nested groups in PIM for groups",
+    "UserImpact": "Low"
+  },
+  "21883": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Accelerate response and remediation",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21883",
+    "Title": "Workload Identities are configured with risk-based policies",
+    "UserImpact": "High"
+  },
+  "21884": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21884",
+    "Title": "Workload identities based on known networks are configured",
+    "UserImpact": "Low"
+  },
+  "21885": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21885",
+    "Title": "App registrations use safe redirect URIs",
+    "UserImpact": "Low"
+  },
+  "21886": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21886",
+    "Title": "Applications that use Microsoft Entra for authentication and support provisioning are configured",
+    "UserImpact": "Low"
+  },
+  "21887": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21887",
+    "Title": "All registered redirect URIs must have proper DNS records and ownerships",
+    "UserImpact": "Low"
+  },
+  "21888": {
+    "Category": "Application management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21888",
+    "Title": "App registrations must not have dangling or abandoned domain redirect URIs",
+    "UserImpact": "Low"
+  },
+  "21889": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21889",
+    "Title": "Reduce the user-visible password surface area",
+    "UserImpact": "Medium"
+  },
+  "21890": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21890",
+    "Title": "Require password reset notifications for user roles",
+    "UserImpact": "Medium"
+  },
+  "21891": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21891",
+    "Title": "Require password reset notifications for administrator roles",
+    "UserImpact": "Low"
+  },
+  "21892": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21892",
+    "Title": "All sign-in activity comes from managed devices",
+    "UserImpact": "High"
+  },
+  "21893": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21893",
+    "Title": "Enable Microsoft Entra ID Protection policy to enforce multifactor authentication registration",
+    "UserImpact": "Medium"
+  },
+  "21894": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21894",
+    "Title": "All certificates Microsoft Entra Application Registrations and Service Principals must be issued by an approved certification authority",
+    "UserImpact": "Low"
+  },
+  "21895": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21895",
+    "Title": "Application Certificate Credentials are managed using HSM",
+    "UserImpact": "Low"
+  },
+  "21896": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21896",
+    "Title": "Service principals don't have certificates or credentials associated with them",
+    "UserImpact": "Low"
+  },
+  "21897": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21897",
+    "Title": "All app assignment and group membership is governed",
+    "UserImpact": "High"
+  },
+  "21898": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21898",
+    "Title": "All supported access lifecycle resources are managed with entitlement management packages",
+    "UserImpact": "Medium"
+  },
+  "21899": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21899",
+    "Title": "All privileged role assignments have a recipient that can receive notifications",
+    "UserImpact": "Low"
+  },
+  "21912": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "High",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21912",
+    "Title": "Azure resources used by Microsoft Entra only allow access from privileged roles",
+    "UserImpact": "Low"
+  },
+  "21929": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21929",
+    "Title": "All entitlement management packages that apply to guests have expirations or access reviews configured in their assignment policies",
+    "UserImpact": "Medium"
+  },
+  "21941": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21941",
+    "Title": "Token protection policies are configured",
+    "UserImpact": "Low"
+  },
+  "21953": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21953",
+    "Title": "Local Admin Password Solution is deployed",
+    "UserImpact": "Low"
+  },
+  "21954": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21954",
+    "Title": "Restrict nonadministrator users from recovering the BitLocker keys for their owned devices",
+    "UserImpact": "Low"
+  },
+  "21955": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21955",
+    "Title": "Manage the local administrators on Microsoft Entra joined devices",
+    "UserImpact": "Low"
+  },
+  "21964": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21964",
+    "Title": "Enable protected actions to secure Conditional Access policy creation and changes",
+    "UserImpact": "Low"
+  },
+  "21983": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21983",
+    "Title": "No Active Medium priority Entra recommendations found",
+    "UserImpact": "Low"
+  },
+  "21984": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Low",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21984",
+    "Title": "No Active low priority Entra recommendations found",
+    "UserImpact": "Low"
+  },
+  "21985": {
+    "Category": "Credential management",
+    "ImplementationCost": "Low",
+    "Pillar": "Identity",
+    "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21985",
+    "Title": "Turn off Seamless SSO if there is no usage",
+    "UserImpact": "Low"
+  },
+  "21992": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "21992",
+    "Title": "Application certificates must be rotated on a regular basis",
+    "UserImpact": "Low"
+  },
+  "22072": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "22072",
+    "Title": "Self-Service Password Reset does not use Q & A",
+    "UserImpact": "Medium"
+  },
+  "22098": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "External"
+    ],
+    "TestId": "22098",
+    "Title": "Integrate Entra Audit logs with Azure Monitor",
+    "UserImpact": "Low"
+  },
+  "22099": {
+    "Category": "Access control",
+    "ImplementationCost": "Low",
+    "RiskLevel": "Medium",
+    "TenantType": [
+      "External"
+    ],
+    "TestId": "22099",
+    "Title": "Integrate Entra Sign-In logs with Azure Monitor",
+    "UserImpact": "Low"
+  },
+  "22100": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "High",
+    "TenantType": [
+      "External"
+    ],
+    "TestId": "22100",
+    "Title": "Enable WAF for ciamlogin endpoints",
+    "UserImpact": "Low"
+  },
+  "22101": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "High",
+    "TenantType": [
+      "External"
+    ],
+    "TestId": "22101",
+    "Title": "Disable ciamlogin endpoints when custom domain enabled",
+    "UserImpact": "Low"
+  },
+  "22102": {
+    "Category": "Access control",
+    "ImplementationCost": "Medium",
+    "RiskLevel": "High",
+    "TenantType": [
+      "External"
+    ],
+    "TestId": "22102",
+    "Title": "Enable custom domain",
+    "UserImpact": "Low"
+  },
+  "22124": {
+    "Category": "Monitoring",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Monitor and detect cyberthreats",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "22124",
+    "Title": "High priority Microsoft Entra recommendations are addressed",
+    "UserImpact": "Medium"
+  },
+  "22128": {
+    "Category": "Application management",
+    "ImplementationCost": "Medium",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect tenants and isolate production systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "22128",
+    "Title": "Guests are not assigned high privileged directory roles",
+    "UserImpact": "Low"
+  },
+  "22659": {
+    "Category": "Access control",
+    "ImplementationCost": "High",
+    "RiskLevel": "High",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "22659",
+    "Title": "All risky workload identity sign ins are triaged",
+    "UserImpact": "Low"
+  },
+  "23183": {
+    "Category": "Application management",
+    "ImplementationCost": "High",
+    "Pillar": "Identity",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce",
+      "External"
+    ],
+    "TestId": "23183",
+    "Title": "Service principals use safe redirect URIs",
+    "UserImpact": "Low"
+  },
+  "40000": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "40000",
+    "Title": "Windows automatic enrollment is enabled",
+    "UserImpact": "Low"
   }
 }

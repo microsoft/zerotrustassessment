@@ -1,8 +1,8 @@
-Without proper activation alerts configured for highly privileged roles, organizations lack visibility into when these roles are being exercised. Threat actors who gain initial access through compromised accounts or insider threats can exploit this lack of monitoring to perform privilege escalation by activating highly privileged roles without detection. Once threat actors successfully activate privileged roles undetected, they can establish persistence through creation of additional administrative accounts, modification of security policies, or deployment of backdoors across the environment. The absence of real-time alerting enables threat actors to conduct lateral movement using elevated privileges to access sensitive systems, modify audit configurations, or disable security controls without triggering immediate response procedures. Finally, threat actors achieve impact through unauthorized access to sensitive data, deployment of ransomware with administrative privileges, or complete compromise of the identity infrastructure while evading detection due to insufficient monitoring of privileged role activations.
+Organizations without proper activation alerts for highly privileged roles lack visibility into when users access these critical permissions. Threat actors can exploit this monitoring gap to perform privilege escalation by activating highly privileged roles without detection, then establish persistence through admin account creation or security policy modifications. The absence of real-time alerts enables attackers to conduct lateral movement, modify audit configurations, and disable security controls without triggering immediate response procedures.
 
 **Remediation action**
 
-Configure notifications for privileged roles
-- [Configure Microsoft Entra role settings in Privileged Identity Management (PIM)](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings#require-justification-on-active-assignment)
+- [Configure Microsoft Entra role settings in Privileged Identity Management](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-justification-on-activation)
 <!--- Results --->
 %TestResult%
+

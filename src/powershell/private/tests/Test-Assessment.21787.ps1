@@ -14,7 +14,6 @@ function Test-Assessment-21787 {
 
     $result = Invoke-ZtGraphRequest -RelativeUri "policies/authorizationPolicy" -ApiVersion v1.0
     $passed = -not $result.defaultUserRolePermissions.allowedToCreateTenants
-    Write-Output $result.defaultUserRolePermissions.allowedToCreateTenants
 
     if ($passed) {
         $testResultMarkdown = "Non-privileged users are restricted from creating tenants.`n`n"

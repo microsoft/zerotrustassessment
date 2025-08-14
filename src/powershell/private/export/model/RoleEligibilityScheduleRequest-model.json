@@ -1,6 +1,7 @@
 {
   "value": [
     {
+      "isZtModelRow": true,
       "customData": null,
       "roleDefinitionId": null,
       "ticketInfo": {
@@ -38,6 +39,5 @@
       },
       "approvalId": null
     }
-  ],
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleEligibilityScheduleRequests(principal())"
+  ]
 }

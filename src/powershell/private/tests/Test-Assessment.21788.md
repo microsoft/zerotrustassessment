@@ -1,8 +1,13 @@
-While Global Administrators can assign themselves access to Azure subscriptions to regain access, or grant access to other users, removing standing permissions reduces the attack surface and ensures that such escalation is a deliberate and auditable action. If a Global Administrator account is compromised or misused, pre-existing access to all subscriptions allows the attacker to immediately enumerate resources, modify configurations, assign roles, and exfiltrate sensitive data. In contrast, requiring explicit elevation introduces detectable signals, and reduces attacker velocity. This constraint forces high-impact operations through observable control points, making malicious activity easier to detect and contain before widespread impact occurs.
+Global Administrators with persistent access to Azure subscriptions expand the attack surface for threat actors. If a Global Administrator account is compromised, attackers can immediately enumerate resources, modify configurations, assign roles, and exfiltrate sensitive data across all subscriptions. Requiring just-in-time elevation for subscription access introduces detectable signals, slows attacker velocity, and routes high-impact operations through observable control points.
 
 **Remediation action**
 
-Remove elevated access as documented here:
-- [Elevate access to manage all Azure subscriptions and management groups](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin?tabs=azure-portal%2Centra-audit-logs#step-2-remove-elevated-access)
-<!--- Results --->
+- [Get started with a phishing-resistant passwordless authentication deployment](https://learn.microsoft.com/entra/identity/authentication/how-to-plan-prerequisites-phishing-resistant-passwordless-authentication?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+
+- [Ensure that privileged accounts register and use phishing resistant methods](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#authentication-strengths.md)
+
+- [Deploy Conditional Access policy to target privileged accounts and require phishing resistant credentials using authentication strengths](https://learn.microsoft.com/entra/identity/conditional-access/policy-admin-phish-resistant-mfa?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+
+- [Monitor authentication method activity](https://learn.microsoft.com/entra/identity/monitoring-health/concept-usage-insights-report?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#authentication-methods-activity.md)<!--- Results --->
 %TestResult%
+

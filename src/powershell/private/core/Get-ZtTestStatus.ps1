@@ -1,7 +1,7 @@
 ﻿<#
     Returns the status of the test as a string.
 #>
-function Get-ZtTestStatus{
+function Get-ZtTestStatus {
     [CmdletBinding()]
     param(
         # The status of the test.
@@ -9,8 +9,15 @@ function Get-ZtTestStatus{
         [bool] $Status,
 
         # Whether the test was skipped.
-        [string] $SkippedBecause
+        [string] $SkippedBecause,
+
+        # Optional. Custom status to return instead of the default status.
+        [string] $CustomStatus
     )
+
+    if ($CustomStatus) {
+        return $CustomStatus
+    }
 
     if ($Status) {
         return "Passed"

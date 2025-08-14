@@ -15,6 +15,12 @@ function Test-Assessment-21801 {
     $activity = "Checking phishing resistant authentication for user"
     Write-ZtProgress -Activity $activity -Status "Getting authentication methods"
 
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free") {
+        Write-PSFMessage '🟦 Skipping: Requires Premium License' -Tag Test -Level VeryVerbose
+        return
+    }
+
     $sql = @"
 select distinct u.id, u.displayName, list_has_any(['passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator', 'windowsHelloForBusiness'], methodsRegistered) as phishResistantAuthMethod,
     u.signInActivity.lastSuccessfulSignInDateTime

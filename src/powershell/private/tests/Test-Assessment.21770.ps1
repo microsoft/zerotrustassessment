@@ -13,7 +13,7 @@ function Test-Assessment-21770 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
-    select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId,
+    select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
     spsi.lastSignInActivity.lastSignInDateTime
     from main.ServicePrincipal sp
         left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
@@ -120,12 +120,12 @@ function Add-GraphRisk($item) {
 function Get-AppList($Apps, $Icon) {
     $mdInfo = ""
     foreach ($item in $apps) {
-        $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId
+        $tenant = $item.publisherName
         $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.id)/appId/$($item.appId)"
         $risk = $item.Risk
         $delPerm = $item.DelegatePermissions -join ", "
         $appPerm = $item.AppPermissions -join ", "
-        $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $risk | $delPerm | $appPerm | $(Get-SafeMarkdown($tenant.displayName)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
+        $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $risk | $delPerm | $appPerm | $(Get-SafeMarkdown($tenant)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
     }
     return $mdInfo
 }

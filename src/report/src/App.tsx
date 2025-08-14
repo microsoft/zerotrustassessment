@@ -5,7 +5,7 @@ import { router } from "./Router";
 export default function App() {
 
     return (
-        <ThemeProvider>
+        <ThemeProvider defaultTheme="system">
             <RouterProvider router={router} />
         </ThemeProvider>
     )

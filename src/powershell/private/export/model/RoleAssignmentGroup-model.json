@@ -1,6 +1,7 @@
 {
   "value": [
     {
+      "isZtModelRow": true,
       "@odata.type": null,
       "id": null,
       "businessPhones": [

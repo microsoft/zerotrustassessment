@@ -22,19 +22,20 @@ Function Get-ZtGraphScope {
     # Default read-only scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
         'AuditLog.Read.All'
+        'CrossTenantInformation.ReadBasic.All'
         'Directory.Read.All'
-        'Policy.Read.All'
-        'Reports.Read.All'
         'DirectoryRecommendations.Read.All'
-        'PrivilegedAccess.Read.AzureAD'
         'IdentityRiskEvent.Read.All'
         'IdentityRiskyUser.Read.All'
-        'RoleEligibilitySchedule.Read.Directory'
-        'RoleManagement.Read.All'
-        'RoleEligibilitySchedule.ReadWrite.Directory'
+        'Policy.Read.All'
         'Policy.Read.ConditionalAccess'
+        'Policy.Read.PermissionGrant'
+        'PrivilegedAccess.Read.AzureAD'
+        'Reports.Read.All'
+        'RoleEligibilitySchedule.Read.Directory'
+        'RoleEligibilitySchedule.ReadWrite.Directory'
+        'RoleManagement.Read.All'
         'UserAuthenticationMethod.Read.All'
-        'CrossTenantInformation.ReadBasic.All'
     )
 
     #$scopes += Get-EERequiredScopes -PermissionType Delegated

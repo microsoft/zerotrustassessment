@@ -1,5 +1,12 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/test-table/data-table";
+import { reportData } from "@/config/report-data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { columns } from "@/components/test-table/columns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DevicesConfig from "@/components/DevicesConfig";
+import { BarChart3, Settings } from "lucide-react";
+
 
 export default function Devices() {
     return (
@@ -7,12 +14,42 @@ export default function Devices() {
             <PageHeader>
                 <PageHeaderHeading>Devices</PageHeaderHeading>
             </PageHeader>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Coming soon</CardTitle>
-                    <CardDescription>Good things take time. Great things take a little longer. -John Wooden</CardDescription>
-                </CardHeader>
-            </Card>
+            <Tabs defaultValue="assessment" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="assessment" className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        Assessment results
+                    </TabsTrigger>
+                    <TabsTrigger value="config" className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Config
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="assessment" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="mb-3">Assessment results</CardTitle>
+                            <CardDescription>Review the checks below for the assessment of your Intune and devices related configuration.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="gap-4 px-4 pb-4 pt-1">
+                            <DataTable columns={columns} data={reportData.Tests} pillar="Devices" />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="config" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="mb-3">Device Configuration</CardTitle>
+                            <CardDescription>Device configuration settings and options.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="gap-4 px-4 pb-4 pt-1">
+                            <DevicesConfig />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </>
     )
 }

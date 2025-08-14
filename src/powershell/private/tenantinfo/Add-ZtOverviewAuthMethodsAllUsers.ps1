@@ -12,6 +12,15 @@ function Add-ZtOverviewAuthMethodsAllUsers {
     $activity = "Getting authentication methods summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
+    $tenantInfoName = 'OverviewAuthMethodsAllUsers'
+
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free") {
+        Write-PSFMessage '🟦 Skipping: Requires Premium License' -Tag Test -Level VeryVerbose
+        Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+        return
+    }
+
     $caSummary = Get-ZtOverviewAuthMethodsAllUsers
 
     Add-ZtTenantInfo -Name "OverviewAuthMethodsAllUsers" -Value $caSummary

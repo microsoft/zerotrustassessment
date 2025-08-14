@@ -11,7 +11,7 @@ export function Applayout() {
                     <Outlet />
                 </div>
             </div>
-            <div className="container px-4 md:px-8">
+            <div className="container max-w-6xl px-4 md:px-8">
                 <Footer />
             </div>
         </>

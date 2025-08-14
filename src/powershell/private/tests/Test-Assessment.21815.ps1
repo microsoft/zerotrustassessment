@@ -15,9 +15,8 @@ function Test-Assessment-21815 {
     Write-ZtProgress -Activity $activity -Status "Getting privileged role assignments"
 
     $sql = @"
-select distinct id, userDisplayName, u.userPrincipalName, roleDisplayName, privilegeType, isPrivileged
-from UserRegistrationDetails u
-    inner join vwRole r on u.id = r.principalId
+select distinct  principalDisplayName, userPrincipalName, roleDisplayName, privilegeType, isPrivileged
+from vwRole
 "@
     $roleAssignments = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
@@ -55,9 +54,9 @@ from UserRegistrationDetails u
 '@
 
         foreach ($result in $results) {
-            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $result.id
+            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $result.principalId
             $tableRows += @"
-| [$(Get-SafeMarkdown($result.userDisplayName))]($portalLink) | $($result.userPrincipalName) | $($result.roleDisplayName) | $($result.privilegeType) |`n
+| [$(Get-SafeMarkdown($result.principalDisplayName))]($portalLink) | $($result.userPrincipalName) | $($result.roleDisplayName) | $($result.privilegeType) |`n
 "@
         }
 

@@ -51,12 +51,74 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
+}
+
+/* Sankey chart text styling for better readability */
+.sankey-light-mode text {
+  fill: #1e40af;
+}
+
+/* Comprehensive dark mode tooltip styling for Nivo charts */
+.dark [data-tooltip],
+.dark .tooltip,
+.dark [class*="tooltip"],
+.dark [id*="tooltip"],
+.sankey-dark-mode [data-tooltip],
+.sankey-dark-mode .tooltip,
+.sankey-dark-mode [class*="tooltip"],
+.sankey-dark-mode [id*="tooltip"] {
+  background: rgba(33, 33, 33, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.dark [data-tooltip] *,
+.dark .tooltip *,
+.dark [class*="tooltip"] *,
+.dark [id*="tooltip"] *,
+.sankey-dark-mode [data-tooltip] *,
+.sankey-dark-mode .tooltip *,
+.sankey-dark-mode [class*="tooltip"] *,
+.sankey-dark-mode [id*="tooltip"] * {
+  color: #ffffff !important;
+}
+
+/* More specific Nivo tooltip selectors */
+.dark div[role="tooltip"],
+.sankey-dark-mode div[role="tooltip"] {
+  background: rgba(33, 33, 33, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.dark div[role="tooltip"] *,
+.sankey-dark-mode div[role="tooltip"] * {
+  color: #ffffff !important;
+}
+
+/* Light mode tooltip styling for consistency */
+.sankey-light-mode [data-tooltip],
+.sankey-light-mode .tooltip,
+.sankey-light-mode [class*="tooltip"],
+.sankey-light-mode [id*="tooltip"],
+.sankey-light-mode div[role="tooltip"] {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border: 1px solid #ccc !important;
+}
+
+.sankey-light-mode [data-tooltip] *,
+.sankey-light-mode .tooltip *,
+.sankey-light-mode [class*="tooltip"] *,
+.sankey-light-mode [id*="tooltip"] *,
+.sankey-light-mode div[role="tooltip"] * {
+  color: #000000 !important;
 }
 
 @layer base {

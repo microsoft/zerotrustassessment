@@ -46,6 +46,9 @@ Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
 
+.PARAMETER Pillar
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', or 'Devices'. Defaults to 'All' which runs all tests.
+
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
 
@@ -60,6 +63,16 @@ Run the Zero Trust Assessment using settings from a configuration file, but over
 Invoke-ZtAssessment -Interactive
 
 Run the Zero Trust Assessment with an interactive text-based user interface to configure all parameters.
+
+.EXAMPLE
+Invoke-ZeroTrustAssessment -Pillar Identity
+
+Run only the Identity pillar tests of the Zero Trust Assessment.
+
+.EXAMPLE
+Invoke-ZeroTrustAssessment -Pillar Devices
+
+Run only the Devices pillar tests of the Zero Trust Assessment.
 #>
 
 function Invoke-ZtAssessment {
@@ -125,7 +138,12 @@ function Invoke-ZtAssessment {
         # If specified, prompts the user interactively for input values.
         [Parameter(ParameterSetName = 'Interactive', Mandatory)]
         [switch]
-        $Interactive
+        $Interactive,
+        
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
 
     $banner = @"
@@ -240,6 +258,14 @@ function Invoke-ZtAssessment {
         Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
     }
 
+    if(!(Test-DuckDb)) {
+        return
+    }
+
+    if (!(Test-ZtContext)) {
+        return
+    }
+
     $exportPath = Join-Path $Path "zt-export"
 
     # Stop if folder has items inside it
@@ -272,9 +298,11 @@ function Invoke-ZtAssessment {
         }
     }
 
-    if (!(Test-ZtContext)) {
-        return
+    # Create the export path if it doesn't exist
+    if (!(Test-Path $exportPath)) {
+        New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
     }
+
 
     # Send telemetry if not disabled
     if (!$DisableTelemetry) {
@@ -308,20 +336,20 @@ function Invoke-ZtAssessment {
     }
 
     # Collect data
-    Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime
-    $db = Export-Database -ExportPath $exportPath
+    Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
+    $db = Export-Database -ExportPath $exportPath -Pillar $Pillar
 
     # Run the tests
-    Invoke-ZtTests -Database $db -Tests $Tests
-    Invoke-ZtTenantInfo -Database $db
+    Invoke-ZtTests -Database $db -Tests $Tests -Pillar $Pillar
+    Invoke-ZtTenantInfo -Database $db -Pillar $Pillar
 
     $assessmentResults = Get-ZtAssessmentResults
 
     Disconnect-Database -Db $db
 
     $assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
-    $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReport.json"
-    $assessmentResultsJson | Out-File -FilePath $resultsJsonPath
+    $resultsJsonPath = Join-Path $exportPath "ZeroTrustAssessmentReport.json"
+    $assessmentResultsJson | Out-File -FilePath $resultsJsonPath -Force
 
     Write-ZtProgress -Activity "Creating html report"
     $htmlReportPath = Join-Path $Path "ZeroTrustAssessmentReport.html"
@@ -330,8 +358,8 @@ function Invoke-ZtAssessment {
 
     Write-Host
     Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
-    Write-Host
-    Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztworkshop/v2/feedback ◀◀◀" -ForegroundColor Yellow
+    Show-ZtSecurityWarning -ExportPath $exportPath
+    Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
     Write-Host
     Write-Host
     Invoke-Item $htmlReportPath | Out-Null
@@ -344,4 +372,19 @@ function Invoke-ZtAssessment {
         }
         New-PSFSupportPackage -Path $logPath
     }
+}
+
+function Show-ZtSecurityWarning {
+    [CmdletBinding()]
+    param (
+        [string]
+        $ExportPath
+    )
+
+    Write-Host
+    Write-Host "⚠️ SECURITY REMINDER: The report and export folder contain sensitive tenant information." -ForegroundColor Yellow
+    Write-Host "Please delete the export folder and restrict access to the report." -ForegroundColor Yellow
+    Write-Host "Export folder: $ExportPath" -ForegroundColor Yellow
+    Write-Host "Share the report only with authorized personnel in your organization." -ForegroundColor Yellow
+    Write-Host
 }

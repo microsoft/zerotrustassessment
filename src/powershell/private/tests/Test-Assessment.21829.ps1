@@ -13,11 +13,7 @@ function Test-Assessment-21829{
     Write-ZtProgress -Activity $activity
     $domains = Invoke-ZtGraphRequest -RelativeUri "domains" -ApiVersion v1.0
     $result = $domains | Where-Object { $_.authenticationType -eq 'Federated' }
-    Write-PSFMessage 'Federated domains:'
-    Write-Output $result.Count
     $manageddomains = $domains | Where-Object { $_.authenticationType -eq 'Managed' }
-    Write-PSFMessage 'Managed domains:'
-    Write-Output $manageddomains.Count
     $passed = $result.Count -eq 0
 
     if ($passed) {

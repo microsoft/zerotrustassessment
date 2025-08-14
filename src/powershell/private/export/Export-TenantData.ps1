@@ -23,15 +23,30 @@ function Export-TenantData {
 
         # The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to collecting sign logs for 60 minutes. Set to 0 for no limit.
         [int]
-        $MaximumSignInLogQueryTime
+        $MaximumSignInLogQueryTime,
+
+        # The Zero Trust pillar to assess. Defaults to All.
+        [ValidateSet('All', 'Identity', 'Devices')]
+        [string]
+        $Pillar = 'All'
     )
+
+    # Nothing to do if the Pillar is Device (for now)
+    if ($Pillar -eq 'Devices') {
+        Write-PSFMessage 'Skipping data export for Device pillar.'
+        return
+    }
 
     # TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
     $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
 
+    $userQueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
+    if($EntraIDPlan -ne 'Free') { #Add premium fields
+        $userQueryString += ', signInActivity'
+    }
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'User' `
         -EntityUri 'beta/users' -ProgressActivity 'Users' `
-        -QueryString '$top=999&$select=signInActivity, deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country' -ShowCount
+        -QueryString $userQueryString -ShowCount
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
         -EntityUri 'beta/applications' -ProgressActivity 'Applications' `
@@ -42,11 +57,15 @@ function Export-TenantData {
         -QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
         -ShowCount
 
-    Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
-        -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+    if((Get-MgContext).Environment -eq 'Global')
+    {
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
+            -EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+    }
 
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
         -EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
+
 
     # Active role assignments
     Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
@@ -55,6 +74,11 @@ function Export-TenantData {
 
     if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
         # API requires PIM license
+        # Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
+            -EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
+            -QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
+
         # Filter for currently valid, eligible role assignments
         Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
             -EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
@@ -66,19 +90,26 @@ function Export-TenantData {
             -QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
     }
 
-    Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
-        -EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
+    if ($EntraIDPlan -ne 'Free'){
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
+            -EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
+    }
 
     ## Download all privileged user details based on roles and role assignments
     Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
         -InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
-    Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
-        -InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
 
-    Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
-        -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
-        -QueryString (Get-AuditQueryString $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
+    if($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+        # Export eligible privileged groups
+        Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
+            -InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
+    }
 
+    if ($EntraIDPlan -ne 'Free'){
+        Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
+            -EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
+            -QueryString (Get-AuditQueryString $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
+    }
     #Export-Entra -Path $OutputFolder -Type Config
 }
 

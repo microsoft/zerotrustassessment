@@ -1,10 +1,10 @@
-A threat actor can intercept or extract authentication tokens from memory, local storage on a legitimate device, or through inspection of network traffic. They may attempt to replay those tokens to bypass the authentication controls on user and devices and gain unauthorized access to sensitive data or execute further attacks. Since these tokens are valid and time-bound, traditional anomaly detection might not flag the activity and allow sustained access until the token expires or is revoked.
+A threat actor can intercept or extract authentication tokens from memory, local storage on a legitimate device, or by inspecting network traffic. The attacker might replay those tokens to bypass authentication controls on users and devices, get unauthorized access to sensitive data, or run further attacks. Because these tokens are valid and time bound, traditional anomaly detection often fails to flag the activity, which might allow sustained access until the token expires or is revoked.
 
-Token protection, also known as token binding, helps to mitigate token theft by ensuring a token is usable only from the intended device. Token protection uses cryptography to ensure that without the client device key, the token cannot be used.
+Token protection, also called token binding, helps prevent token theft by making sure a token is usable only from the intended device. Token protection uses cryptography so that without the client device key, no one can use the token.
 
-**Remediation action**
-
-Implement Token Protection using Conditional Access policies following the best practices here:
-- [Microsoft Entra Conditional Access: Token protection](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection)
+**Remediation action**   
+Create a Conditional Access policy to set up token protection.   
+- [Microsoft Entra Conditional Access: Token protection](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

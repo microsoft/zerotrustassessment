@@ -1,6 +1,8 @@
-...
+When applications that support both authentication and provisioning through Microsoft Entra are not configured for automatic provisioning, organizations become vulnerable to identity lifecycle gaps that threat actors can exploit. Without automated provisioning, user accounts may persist in applications after employees leave the organization, creating dormant accounts that threat actors can discover through reconnaissance activities. These orphaned accounts often retain their original access permissions but lack active monitoring, making them attractive targets for initial access. Threat actors who gain access to these dormant accounts can use them to establish persistence in the target application, as the accounts appear legitimate and may not trigger security alerts. From these compromised application accounts, attackers can then attempt to escalate their privileges by exploring application-specific permissions, accessing sensitive data stored within the application, or using the application as a pivot point to access other connected systems. The lack of centralized identity lifecycle management also makes it difficult for security teams to detect when an attacker is using these orphaned accounts, as the accounts may not be properly correlated with the organization's active user directory.
 
 **Remediation action**
 
+Configure application provisioning for missing applications:
+- [Managing user account provisioning for enterprise apps in the Microsoft Entra admin center](https://learn.microsoft.com/entra/identity/app-provisioning/configure-automatic-user-provisioning-portal)
 <!--- Results --->
 %TestResult%

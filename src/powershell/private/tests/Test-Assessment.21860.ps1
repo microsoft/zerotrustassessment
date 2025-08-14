@@ -9,6 +9,14 @@ function Test-Assessment-21860 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if((Get-MgContext).Environment -ne 'Global')
+    {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
+
+
     $skipped = $null
     try {
         $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
@@ -26,7 +34,9 @@ function Test-Assessment-21860 {
     else {
         $azAccessToken = ($accessToken.Token)
 
-        $result = Invoke-WebRequest -Uri 'https://management.azure.com/providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview' -Authentication Bearer -Token $azAccessToken
+        $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
+        $azDiagUri = $resourceManagementUrl + 'providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
+        $result = Invoke-WebRequest -Uri $azDiagUri -Authentication Bearer -Token $azAccessToken
 
         $diagnosticSettings = $result.Content | ConvertFrom-Json
         $enabledLogs = $diagnosticSettings.value.properties.logs | Where-Object { $_.enabled } | Select-Object -ExpandProperty category -Unique

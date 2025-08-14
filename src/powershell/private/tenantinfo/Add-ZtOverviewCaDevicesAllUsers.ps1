@@ -12,6 +12,15 @@ function Add-ZtOverviewCaDevicesAllUsers {
     $activity = "Getting Conditional Access summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
+    $tenantInfoName = 'OverviewCaDevicesAllUsers'
+
+    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+    if ($EntraIDPlan -eq "Free") {
+        Write-PSFMessage '🟦 Skipping: Requires Premium License' -Tag Test -Level VeryVerbose
+        Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+        return
+    }
+
     $sql = @"
 select deviceDetail.isManaged as isManaged, deviceDetail.isCompliant as isCompliant, count(*) as cnt from SignIn
 where isInteractive == true and status.errorCode == 0
@@ -29,7 +38,7 @@ group by isManaged, isCompliant
 
     $caSummary = Get-ZtOverviewCaDevicesAllUsers $results
 
-    Add-ZtTenantInfo -Name "OverviewCaDevicesAllUsers" -Value $caSummary
+    Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
 function Get-ZtOverviewCaDevicesAllUsers($results) {

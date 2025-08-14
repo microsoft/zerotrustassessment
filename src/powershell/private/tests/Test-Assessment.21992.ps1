@@ -43,7 +43,7 @@ function Test-Assessment-21992{
         $mdInfo += "| :--- | :--- |`n"
         foreach ($item in $resultsApp) {
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/{0}" -f $item.appId
-            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $($item.keyStartDateTime) |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-FormattedDate($item.keyStartDateTime)) |`n"
         }
     }
     if ($resultsSP.Count -gt 0) {
@@ -53,14 +53,23 @@ function Test-Assessment-21992{
         foreach ($item in $resultsSP) {
             $tenant = Get-ZtTenant -tenantId $item.appOwnerOrganizationId
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($item.id)/appId/$($item.appId)/preferredSingleSignOnMode/saml/servicePrincipalType/Application/fromNav/"
-            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-SafeMarkdown($tenant.displayName)) | $($item.keyStartDateTime) |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $(Get-SafeMarkdown($tenant.displayName)) | $(Get-FormattedDate($item.keyStartDateTime)) |`n"
         }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21992' -Title "Application Certificates need to be rotated on a regular basis" `
-        -UserImpact Low -Risk High -ImplementationCost High `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId             = '21992'
+        Title              = 'Application Certificates need to be rotated on a regular basis'
+        UserImpact         = 'Low'
+        Risk               = 'High'
+        ImplementationCost = 'High'
+        AppliesTo          = 'Identity'
+        Tag                = 'Identity'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
 }

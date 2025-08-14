@@ -12,6 +12,13 @@ function Test-Assessment-21793 {
     $activity = "Checking Tenant restrictions v2 are configured"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
+    if((Get-MgContext).Environment -ne 'Global')
+    {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
+
+
     # Query the cross-tenant access policy
     $crossTenantAccessPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/crossTenantAccessPolicy' -ApiVersion v1.0
 
@@ -25,9 +32,11 @@ function Test-Assessment-21793 {
 
         # Check if both usersAndGroups and applications are properly configured
         $usersAndGroupsBlocked = $result.usersAndGroups.accessType -eq 'blocked' -and
+        $result.usersAndGroups.targets -and
         $result.usersAndGroups.targets[0].target -eq 'AllUsers'
 
         $applicationsBlocked = $result.applications.accessType -eq 'blocked' -and
+        $result.applications -and
         $result.applications.targets[0].target -eq 'AllApplications'
 
         if ($usersAndGroupsBlocked -and $applicationsBlocked) {
@@ -63,7 +72,7 @@ function Test-Assessment-21793 {
 
 $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantRestrictions.ReactView/isDefault~/true/name//id/'
 
-    $targetUsersAndGroup = if ($result.usersAndGroups.targets[0].target -eq 'AllUsers') {
+    $targetUsersAndGroup = if ($result.usersAndGroups.targets -and $result.usersAndGroups.targets[0].target -eq 'AllUsers') {
         "All external users and groups"
     }
     else {
@@ -71,7 +80,7 @@ $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantRestric
             ($result.usersAndGroups.targets | ForEach-Object { $_.target }) -join ', '
     }
 
-    $targetApplications = if ($result.applications.targets[0].target -eq 'AllApplications') {
+    $targetApplications = if ($result.applications.targets -and $result.applications.targets[0].target -eq 'AllApplications') {
         "All external applications"
     }
     else {
