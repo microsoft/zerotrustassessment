@@ -14,6 +14,7 @@ function Test-Assessment-21874 {
 
     $policies = Invoke-ZtGraphRequest -RelativeUri 'legacy/policies' -ApiVersion beta -DisableCache
 
+    $passed = false
     foreach ($policy in $policies) {
         if ( $policy.definition -and ($null -ne ($policy.definition | ConvertFrom-Json).B2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.AllowedDomains) ) {
             $passed = $true

@@ -2,6 +2,7 @@
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications",
   "value": [
     {
+      "isZtModelRow": true,
       "disabledByMicrosoftStatus": null,
       "publisherDomain": null,
       "keyCredentials": [],

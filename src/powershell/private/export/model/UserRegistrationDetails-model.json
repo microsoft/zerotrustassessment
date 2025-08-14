@@ -2,6 +2,7 @@
     "@odata.context": "https://graph.microsoft.com/beta/$metadata#reports/authenticationMethods/userRegistrationDetails",
     "value": [
         {
+            "isZtModelRow": true,
             "userPrincipalName": null,
             "isSystemPreferredAuthenticationMethodEnabled": null,
             "isPasswordlessCapable": null,

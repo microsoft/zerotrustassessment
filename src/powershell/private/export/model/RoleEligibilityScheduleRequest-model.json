@@ -1,6 +1,7 @@
 {
   "value": [
     {
+      "isZtModelRow": true,
       "customData": null,
       "roleDefinitionId": null,
       "ticketInfo": {

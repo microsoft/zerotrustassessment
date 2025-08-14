@@ -22,7 +22,7 @@ SELECT
     preferredSingleSignOnMode,
     accountEnabled
 FROM ServicePrincipal
-WHERE preferredSingleSignOnMode IN ('password', 'saml', 'oidc')
+WHERE preferredSingleSignOnMode IS NOT NULL AND preferredSingleSignOnMode IN ('password', 'saml', 'oidc')
     AND accountEnabled = true
 ORDER BY LOWER(displayName) ASC
 "@

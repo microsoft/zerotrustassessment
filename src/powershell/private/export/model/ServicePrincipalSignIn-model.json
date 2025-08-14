@@ -2,6 +2,7 @@
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#reports/servicePrincipalSignInActivities",
   "value": [
     {
+      "isZtModelRow": true,
       "applicationAuthenticationClientSignInActivity": {
         "lastSignInRequestId": null,
         "lastSignInDateTime": null

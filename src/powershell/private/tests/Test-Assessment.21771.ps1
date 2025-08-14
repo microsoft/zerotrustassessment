@@ -13,7 +13,7 @@ function Test-Assessment-21771 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
-    select distinct r.principalId, r.principalDisplayName, r.principalOrganizationId,
+    select distinct r.principalId, r.principalDisplayName, sp.publisherName,
         spsi.lastSignInActivity.lastSignInDateTime, r.privilegeType, sp.appId
     from main.vwRole r
         left join main.ServicePrincipal sp on r.principalId = sp.id
@@ -65,9 +65,8 @@ function Get-AppListRole($Apps, $Icon) {
     foreach ($item in $apps) {
         $role = Invoke-DatabaseQuery -Database $Database -Sql ($sqlRole -f $item.principalId)
         $roleDisplayName = $role.roleDisplayName -join ", "
-        $tenant = Get-ZtTenant -tenantId $item.principalOrganizationId
         $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.principalId)/appId/$($item.appId)"
-        $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.principalDisplayName))]($portalLink) | $roleDisplayName | $($item.privilegeType) | $(Get-SafeMarkdown($tenant.displayName)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
+        $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.principalDisplayName))]($portalLink) | $roleDisplayName | $($item.privilegeType) | $(Get-SafeMarkdown($item.publisherName)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
     }
     return $mdInfo
 }
