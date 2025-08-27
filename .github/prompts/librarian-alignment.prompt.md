@@ -43,3 +43,19 @@ Categorize findings as:
 - **Low Priority:** Content improvements and enhancements
 
 For each file, provide: filename, specific issues, and recommended actions.
+
+## Link Domain Compliance
+
+Validate all external links for Microsoft domain compliance:
+
+### Domain Validation Checklist
+- [ ] All links use Microsoft-owned domains (`microsoft.com`, `learn.microsoft.com`, etc.)
+- [ ] No unauthorized external domains referenced
+- [ ] GitHub links only point to `github.com/microsoft/*` or `microsoft.github.io/*` repositories
+- [ ] `aka.ms` short links are used appropriately for Microsoft redirects
+
+### Non-Compliance Actions
+- **Document**: List all non-Microsoft domain links
+- **Categorize**: Essential vs. replaceable external references  
+- **Recommend**: Microsoft Learn alternatives or content summarization
+- **Flag**: Links requiring security review for business justification
