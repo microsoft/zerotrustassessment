@@ -111,7 +111,7 @@ public class SheetBase
         var scoreValue = GetAssessmentScoreValue();
         _sheet.TextBoxes["asessScoreValue"].Text = $"{scoreValue}%";
 
-        ShowScore("assessScorePic", score);
+        //ShowScore("assessScorePic", score);
     }
 
     protected void ShowScore(string imagePosition, AssessmentScore identityScore)

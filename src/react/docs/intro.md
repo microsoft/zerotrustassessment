@@ -8,9 +8,12 @@ Implementing a Zero Trust strategy can pose many challenges, such as knowing whe
 
 ## Microsoft Zero Trust Workshop
 The Zero Trust Workshop Tool is a manual tool (in the form of an Excel file) that enables customers to log their current Zero Trust progress and develop an actionable roadmap for moving forward. The Zero Trust Workshop Tool currently supports the following pillars:
-- Identity
-- Devices
-- Data
+- Identity (Recently Updated)
+- Devices (Recently Upated)
+- Data (Recently Updated)
+- Network (New)
+- Infrastructure (New)
+- Security Operations (New)
 
 For more information, check out the [Introduction to the Zero Trust Workshop](./videos/IntroductionToZT.md) page.
 

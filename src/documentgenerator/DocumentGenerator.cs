@@ -8,7 +8,7 @@ public class DocumentGenerator
 {
     public async Task GenerateDocumentAsync(GraphData graphData, IdPowerToys.PowerPointGenerator.Graph.GraphData pptxGraphData, Stream outputStream, ConfigOptions configOptions)
     {
-        IWorkbook workbook = ExcelHelper.OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplate.xlsx");
+        IWorkbook workbook = ExcelHelper.OpenWorkbook("ZeroTrustAssessment.DocumentGenerator.Assets.ZeroTrustTemplateAssessment.xlsx");
 
         await GenerateDocumentAsync(graphData, pptxGraphData, workbook, outputStream, configOptions);
     }
