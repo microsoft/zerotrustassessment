@@ -15,15 +15,16 @@ function Invoke-ZtTenantInfo {
         $Pillar = 'All'
     )
 
-        # Nothing to do if the Pillar is Devices (for now)
-    if ($Pillar -eq 'Devices') {
-        Write-PSFMessage 'Skipping data export for Devices pillar.'
-        return
+    # Only run if Pillar is All or Identity
+    if ($Pillar -in ('All','Identity')) {
+        Add-ZtOverviewCaMfa -Database $Database
+        Add-ZtOverviewCaDevicesAllUsers -Database $Database
+        Add-ZtOverviewAuthMethodsAllUsers -Database $Database
+        Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $Database
     }
 
-    Add-ZtOverviewCaMfa -Database $Database
-    Add-ZtOverviewCaDevicesAllUsers -Database $Database
-    Add-ZtOverviewAuthMethodsAllUsers -Database $Database
-    Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $Database
-    Add-ZtDeviceWindowsEnrollment
+    if ($Pillar -in ('All','Devices')) {
+        Add-ZtDeviceWindowsEnrollment
+        Add-ZtDeviceEnrollmentRestriction
+    }
 }
