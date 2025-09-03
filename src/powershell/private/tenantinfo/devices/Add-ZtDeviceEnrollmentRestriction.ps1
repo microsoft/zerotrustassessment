@@ -17,6 +17,7 @@ function Add-ZtDeviceEnrollmentRestriction {
     # Sort by Priority (descending) then by DisplayName (ascending)
     $platformRestrictions = $platformRestrictions | Sort-Object @{Expression='priority';Descending=$true}, @{Expression='displayName';Ascending=$true}
 
+
     # Create the table data structure
     $tableData = @()
     foreach ($enrollmentRestriction in $platformRestrictions) {
@@ -35,6 +36,70 @@ function Add-ZtDeviceEnrollmentRestriction {
         }
     }
 
+    # Get all the platform restriction with @odata.type #microsoft.graph.deviceEnrollmentPlatformRestrictionsConfiguration
+    $defaultPlatformRestriction = $deviceEnrollmentConfigurations | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.deviceEnrollmentPlatformRestrictionsConfiguration' }
+
+    $defaultRestrictions = @()
+
+    if ($defaultPlatformRestriction) {
+
+        $defaultPlatforms = @(
+            @{
+                Name = 'iosRestriction'
+                DisplayName = 'iOS/iPadOS'
+            },
+            @{
+                Name = 'windowsRestriction'
+                DisplayName = 'Windows'
+            },
+            @{
+                Name = 'windowsMobileRestriction'
+                DisplayName = 'Windows Mobile'
+            },
+            @{
+                Name = 'androidRestriction'
+                DisplayName = 'Android device administrator'
+            },
+            @{
+                Name = 'macOSRestriction'
+                DisplayName = 'macOS'
+            },
+            @{
+                Name = 'androidForWorkRestriction'
+                DisplayName = 'Android Enterprise (work profile)'
+            }
+        )
+
+        foreach($defaultPlatform in $defaultPlatforms){
+            $propName = $defaultPlatform.Name
+            $restriction = $defaultPlatformRestriction.$propName
+            $json = $restriction | ConvertTo-Json
+
+            Write-Host "Prop: $propName"
+            Write-Host $json
+            $platformBlockAllow = 'Allowed'
+            if($restriction.platformBlocked -eq 'true'){
+                $platformBlockAllow = 'Blocked'
+            }
+            $personallyOwnedBlockAllow = 'Allowed'
+            if($restriction.personalDeviceEnrollmentBlocked -eq 'true'){
+                $personallyOwnedBlockAllow = 'Blocked'
+            }
+
+            $tableData += [PSCustomObject]@{
+                Platform = $defaultPlatform.DisplayName
+                Priority = $defaultPlatformRestriction.priority
+                Name = 'Default'
+                MDM = $platformBlockAllow
+                MinVer = $restriction.osMinimumVersion
+                MaxVer = $restriction.osMaximumVersion
+                PersonallyOwned = $personallyOwnedBlockAllow
+                BlockedManufacturers = $restriction.blockedManufacturers | Join-String -Separator ', '
+                Scope = ''
+                AssignedTo = ''
+            }
+        }
+    }
     Add-ZtTenantInfo -Name "ConfigDeviceEnrollmentRestriction" -Value $tableData
 
     Write-ZtProgress -Activity $activity -Status "Completed"
