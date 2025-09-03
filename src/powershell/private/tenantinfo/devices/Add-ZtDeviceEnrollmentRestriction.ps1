@@ -15,18 +15,19 @@ function Add-ZtDeviceEnrollmentRestriction {
     }
 
     function Get-RoleScopeTag ($roleScopeTagId){
-
+        $scopeTags =  Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/roleScopeTags' -ApiVersion 'beta'
+        return ($roleScopeTagId | ConvertTo-Json)
     }
 
     $activity = "Getting Device enrollment restriction summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
-    $deviceEnrollmentConfigurations = Invoke-ZtGraphRequest -RelativeUri 'DeviceManagement/DeviceEnrollmentConfigurations' -QueryParameters @{ '$expand' = 'assignments' } -ApiVersion 'beta'
+    $deviceEnrollmentConfigurations = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceEnrollmentConfigurations' -QueryParameters @{ '$expand' = 'assignments' } -ApiVersion 'beta'
 
-    $scopeTags =  Invoke-ZtGraphRequest -RelativeUri 'DeviceManagement/RoleScopeTags' -ApiVersion 'beta'
+
 
     # Filter the ones where the id contains '_SinglePlatformRestriction'
-    $platformRestrictions = $deviceEnrollmentConfigurations | Where-Object { $_.id -like '*_SinglePlatformRestriction*' }
+    $platformRestrictions = $deviceEnrollmentConfigurations | Where-Object { $_.deviceEnrollmentConfigurationType -eq 'singlePlatformRestriction' }
 
     # Sort by Priority (descending) then by DisplayName (ascending)
     $platformRestrictions = $platformRestrictions | Sort-Object @{Expression='priority';Descending=$true}, @{Expression='displayName';Ascending=$true}
@@ -36,16 +37,16 @@ function Add-ZtDeviceEnrollmentRestriction {
     foreach ($enrollmentRestriction in $platformRestrictions) {
 
         $tableData += [PSCustomObject]@{
-            Platform = ''
+            Platform = $enrollmentRestriction.platformType
             Priority = $enrollmentRestriction.priority
             Name = $enrollmentRestriction.displayName
-            MDM = ''
-            MinVer = ''
-            MaxVer = ''
-            PersonallyOwned = ''
-            BlockedManufacturers = ''
-            Scope = ''
-            AssignedTo = ''
+            MDM = Get-BlockAllow $enrollmentRestriction.platformRestriction.platformBlocked
+            MinVer = $enrollmentRestriction.platformRestriction.osMinimumVersion
+            MaxVer = $enrollmentRestriction.platformRestriction.osMaximumVersion
+            PersonallyOwned = Get-BlockAllow $enrollmentRestriction.platformRestriction.personalDeviceEnrollmentBlocked
+            BlockedManufacturers = $enrollmentRestriction.platformRestriction.blockedManufacturers | Join-String -Separator ', '
+            Scope = Get-RoleScopeTag $enrollmentRestriction.roleScopeTagId
+            AssignedTo = $enrollmentRestriction.assignments | ConvertTo-Json
         }
     }
 
@@ -84,17 +85,14 @@ function Add-ZtDeviceEnrollmentRestriction {
             $restriction = $defaultPlatformRestriction.$propName
             $json = $restriction | ConvertTo-Json
 
-            $platformBlockAllow = Get-BlockAllow $restriction.platformBlocked
-            $personallyOwnedBlockAllow = Get-BlockAllow $restriction.personalDeviceEnrollmentBlocked
-
             $tableData += [PSCustomObject]@{
                 Platform = $defaultPlatform.DisplayName
                 Priority = 'Default'
                 Name = 'All users'
-                MDM = $platformBlockAllow
+                MDM = Get-BlockAllow $restriction.platformBlocked
                 MinVer = $restriction.osMinimumVersion
                 MaxVer = $restriction.osMaximumVersion
-                PersonallyOwned = $personallyOwnedBlockAllow
+                PersonallyOwned = Get-BlockAllow $restriction.personalDeviceEnrollmentBlocked
                 BlockedManufacturers = $restriction.blockedManufacturers | Join-String -Separator ', '
                 Scope = ''
                 AssignedTo = 'All devices'
