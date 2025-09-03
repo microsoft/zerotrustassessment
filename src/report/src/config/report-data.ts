@@ -20,6 +20,7 @@ export interface TenantInfo {
   OverviewAuthMethodsPrivilegedUsers: SankeyData | null;
   OverviewAuthMethodsAllUsers: SankeyData | null;
   ConfigWindowsEnrollment: ConfigWindowsEnrollment[] | null;
+  ConfigDeviceEnrollmentRestriction: ConfigDeviceEnrollmentRestriction[] | null;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -27,6 +28,19 @@ export interface ConfigWindowsEnrollment {
   PolicyName: string | null;
   AppliesTo: string | null;
   Groups: string | null;
+}
+
+export interface ConfigDeviceEnrollmentRestriction {
+  Platform: string | null;
+  Priority: number | null;
+  Name: string | null;
+  MDM: string | null;
+  MinVer: string | null;
+  MaxVer: string | null;
+  PersonallyOwned: string | null;
+  BlockedManufacturers: string | null;
+  Scope: string | null;
+  AssignedTo: string | null;
 }
 
 export interface TestResultSummaryData {
@@ -201,6 +215,68 @@ export const reportData: ZeroTrustAssessmentReport = {
         "PolicyName": "Microsoft Intune",
         "AppliesTo": "None",
         "Groups": "Not Applicable"
+      }
+    ],
+        "ConfigDeviceEnrollmentRestriction": [
+      {
+        "Platform": "",
+        "Priority": 2,
+        "Name": "iOS Restriction 2",
+        "MDM": "",
+        "MinVer": "",
+        "MaxVer": "",
+        "PersonallyOwned": "",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": ""
+      },
+      {
+        "Platform": "",
+        "Priority": 1,
+        "Name": "Andy Penn",
+        "MDM": "",
+        "MinVer": "",
+        "MaxVer": "",
+        "PersonallyOwned": "",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": ""
+      },
+      {
+        "Platform": "",
+        "Priority": 1,
+        "Name": "Andy Penn",
+        "MDM": "",
+        "MinVer": "",
+        "MaxVer": "",
+        "PersonallyOwned": "",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": ""
+      },
+      {
+        "Platform": "",
+        "Priority": 1,
+        "Name": "iOS Restriction",
+        "MDM": "",
+        "MinVer": "",
+        "MaxVer": "",
+        "PersonallyOwned": "",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": ""
+      },
+      {
+        "Platform": "",
+        "Priority": 1,
+        "Name": "Win1",
+        "MDM": "",
+        "MinVer": "",
+        "MaxVer": "",
+        "PersonallyOwned": "",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": ""
       }
     ],
     "OverviewAuthMethodsPrivilegedUsers": {

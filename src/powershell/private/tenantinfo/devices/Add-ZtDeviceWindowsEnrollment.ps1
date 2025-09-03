@@ -1,7 +1,7 @@
 ﻿
 <#
 .SYNOPSIS
-    Calculates auth methods registered by all users.
+    Add Windows enrollment summary used in Devices config view.
 #>
 
 function Add-ZtDeviceWindowsEnrollment {
