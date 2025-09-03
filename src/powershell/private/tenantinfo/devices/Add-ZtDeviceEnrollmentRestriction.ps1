@@ -6,17 +6,30 @@
 
 function Add-ZtDeviceEnrollmentRestriction {
 
+    function Get-BlockAllow($blockAllowBoolean) {
+        switch($blockAllowBoolean) {
+            'true' { return 'Blocked' }
+            'false' { return 'Allowed' }
+            default { return '' }
+        }
+    }
+
+    function Get-RoleScopeTag ($roleScopeTagId){
+
+    }
+
     $activity = "Getting Device enrollment restriction summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
     $deviceEnrollmentConfigurations = Invoke-ZtGraphRequest -RelativeUri 'DeviceManagement/DeviceEnrollmentConfigurations' -QueryParameters @{ '$expand' = 'assignments' } -ApiVersion 'beta'
+
+    $scopeTags =  Invoke-ZtGraphRequest -RelativeUri 'DeviceManagement/RoleScopeTags' -ApiVersion 'beta'
 
     # Filter the ones where the id contains '_SinglePlatformRestriction'
     $platformRestrictions = $deviceEnrollmentConfigurations | Where-Object { $_.id -like '*_SinglePlatformRestriction*' }
 
     # Sort by Priority (descending) then by DisplayName (ascending)
     $platformRestrictions = $platformRestrictions | Sort-Object @{Expression='priority';Descending=$true}, @{Expression='displayName';Ascending=$true}
-
 
     # Create the table data structure
     $tableData = @()
@@ -53,10 +66,6 @@ function Add-ZtDeviceEnrollmentRestriction {
                 DisplayName = 'Windows'
             },
             @{
-                Name = 'windowsMobileRestriction'
-                DisplayName = 'Windows Mobile'
-            },
-            @{
                 Name = 'androidRestriction'
                 DisplayName = 'Android device administrator'
             },
@@ -75,28 +84,20 @@ function Add-ZtDeviceEnrollmentRestriction {
             $restriction = $defaultPlatformRestriction.$propName
             $json = $restriction | ConvertTo-Json
 
-            Write-Host "Prop: $propName"
-            Write-Host $json
-            $platformBlockAllow = 'Allowed'
-            if($restriction.platformBlocked -eq 'true'){
-                $platformBlockAllow = 'Blocked'
-            }
-            $personallyOwnedBlockAllow = 'Allowed'
-            if($restriction.personalDeviceEnrollmentBlocked -eq 'true'){
-                $personallyOwnedBlockAllow = 'Blocked'
-            }
+            $platformBlockAllow = Get-BlockAllow $restriction.platformBlocked
+            $personallyOwnedBlockAllow = Get-BlockAllow $restriction.personalDeviceEnrollmentBlocked
 
             $tableData += [PSCustomObject]@{
                 Platform = $defaultPlatform.DisplayName
-                Priority = $defaultPlatformRestriction.priority
-                Name = 'Default'
+                Priority = 'Default'
+                Name = 'All users'
                 MDM = $platformBlockAllow
                 MinVer = $restriction.osMinimumVersion
                 MaxVer = $restriction.osMaximumVersion
                 PersonallyOwned = $personallyOwnedBlockAllow
                 BlockedManufacturers = $restriction.blockedManufacturers | Join-String -Separator ', '
                 Scope = ''
-                AssignedTo = ''
+                AssignedTo = 'All devices'
             }
         }
     }
