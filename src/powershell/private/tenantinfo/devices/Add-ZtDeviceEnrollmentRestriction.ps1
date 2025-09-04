@@ -1,4 +1,4 @@
-﻿
+
 <#
 .SYNOPSIS
     Add Windows enrollment restriction used in Devices config view.
