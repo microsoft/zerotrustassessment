@@ -26,5 +26,7 @@ function Invoke-ZtTenantInfo {
     if ($Pillar -in ('All','Devices')) {
         Add-ZtDeviceWindowsEnrollment
         Add-ZtDeviceEnrollmentRestriction
+        Add-ZTDeviceCompliancePolicies
+        Add-ZTDeviceAppProtectionPolicies
     }
 }
