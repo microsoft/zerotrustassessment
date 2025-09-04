@@ -34,7 +34,7 @@ export interface ConfigWindowsEnrollment {
 
 export interface ConfigDeviceEnrollmentRestriction {
   Platform: string | null;
-  Priority: number | null;
+  Priority: string | null;
   Name: string | null;
   MDM: string | null;
   MinVer: string | null;
@@ -664,7 +664,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     "ConfigDeviceEnrollmentRestriction": [
       {
         "Platform": "iOS/iPadOS",
-        "Priority": 2,
+        "Priority": "2",
         "Name": "iOS Restriction 2",
         "MDM": "Blocked",
         "MinVer": null,
@@ -676,7 +676,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "Android Enterprise (work profile)",
-        "Priority": 1,
+        "Priority": "1",
         "Name": "Andy Penn",
         "MDM": "Allowed",
         "MinVer": "5.0",
@@ -688,7 +688,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "Android device administrator",
-        "Priority": 1,
+        "Priority": "1",
         "Name": "Andy Penn",
         "MDM": "Allowed",
         "MinVer": "5.0",
@@ -700,7 +700,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "iOS/iPadOS",
-        "Priority": 1,
+        "Priority": "1",
         "Name": "iOS Restriction",
         "MDM": "Allowed",
         "MinVer": "9.0",
@@ -712,7 +712,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "Windows",
-        "Priority": 1,
+        "Priority": "1",
         "Name": "Win1",
         "MDM": "Allowed",
         "MinVer": null,
