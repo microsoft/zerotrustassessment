@@ -21,6 +21,8 @@ export interface TenantInfo {
   OverviewAuthMethodsAllUsers: SankeyData | null;
   ConfigWindowsEnrollment: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction: ConfigDeviceEnrollmentRestriction[] | null;
+  ConfigDeviceCompliancePolicies: ConfigDeviceCompliancePolicies[] | null;
+  ConfigDeviceAppProtectionPolicies: ConfigDeviceAppProtectionPolicies[] | null;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -41,6 +43,68 @@ export interface ConfigDeviceEnrollmentRestriction {
   BlockedManufacturers: string | null;
   Scope: string | null;
   AssignedTo: string | null;
+}
+
+export interface ConfigDeviceCompliancePolicies {
+  Platform: string | null;
+  PolicyName: string | null;
+  DefenderForEndPoint: string | null;
+  MinOsVersion: string | null;
+  MaxOsVersion: string | null;
+  RequirePswd: string | null;
+  MinPswdLength: string | null;
+  PasswordType: string | null;
+  PswdExpiryDays: string | null;
+  CountOfPreviousPswdToBlock: string | null;
+  MaxInactivityMin: string | null;
+  RequireEncryption: string | null;
+  RootedJailbrokenDevices: string | null;
+  MaxDeviceThreatLevel: string | null;
+  RequireFirewall: string | null;
+  ActionForNoncomplianceDaysPushNotification: string | null;
+  ActionForNoncomplianceDaysSendEmail: string | null;
+  ActionForNoncomplianceDaysRemoteLock: string | null;
+  ActionForNoncomplianceDaysBlock: string | null;
+  ActionForNoncomplianceDaysRetire: string | null;
+  Scope: string | null;
+  IncludedGroups: string | null;
+  ExcludedGroups: string | null;
+}
+
+export interface ConfigDeviceAppProtectionPolicies {
+  Platform: string | null;
+  Name: string | null;
+  AppsPublic: string | null;
+  AppsCustom: string | null;
+  BackupOrgDataToICloudOrGoogle: string | null;
+  SendOrgDataToOtherApps: string | null;
+  AppsToExempt: string | null;
+  SaveCopiesOfOrgData: string | null;
+  AllowUserToSaveCopiesToSelectedServices: string | null;
+  DataProtectionTransferTelecommunicationDataTo: string | null;
+  DataProtectionReceiveDataFromOtherApps: string | null;
+  DataProtectionOpenDataIntoOrgDocuments: string | null;
+  DataProtectionAllowUsersToOpenDataFromSelectedServices: string | null;
+  DataProtectionRestrictCutCopyBetweenOtherApps: string | null;
+  DataProtectionCutCopyCharacterLimitForAnyApp: string | null;
+  DataProtectionEncryptOrgData: string | null;
+  DataProtectionSyncPolicyManagedAppDataWithNativeApps: string | null;
+  DataProtectionPrintingOrgData: string | null;
+  DataProtectionRestrictWebContentTransferWithOtherApps: string | null;
+  DataProtectionOrgDataNotifications: string | null;
+  ConditionalLaunchAppMaxPinAttempts: string | null;
+  ConditionalLaunchAppOfflineGracePeriodBlockAccess: string | null;
+  ConditionalLaunchAppOfflineGracePeriodWipeData: string | null;
+  ConditionalLaunchAppDisabedAccount: string | null;
+  ConditionalLaunchAppMinAppVersion: string | null;
+  ConditionalLaunchDeviceRootedJailbrokenDevices: string | null;
+  ConditionalLaunchDevicePrimaryMtdService: string | null;
+  ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel: string | null;
+  ConditionalLaunchDeviceMinOsVersion: string | null;
+  ConditionalLaunchDeviceMaxOsVersion: string | null;
+  Scope: string | null;
+  IncludedGroups: string | null;
+  ExcludedGroups: string | null;
 }
 
 export interface TestResultSummaryData {
@@ -209,76 +273,6 @@ export const reportData: ZeroTrustAssessmentReport = {
       ],
       "description": "Strongest authentication method registered by all users."
     },
-    "ConfigWindowsEnrollment": [
-      {
-        "Type": "MDM",
-        "PolicyName": "Microsoft Intune",
-        "AppliesTo": "None",
-        "Groups": "Not Applicable"
-      }
-    ],
-        "ConfigDeviceEnrollmentRestriction": [
-      {
-        "Platform": "",
-        "Priority": 2,
-        "Name": "iOS Restriction 2",
-        "MDM": "",
-        "MinVer": "",
-        "MaxVer": "",
-        "PersonallyOwned": "",
-        "BlockedManufacturers": "",
-        "Scope": "",
-        "AssignedTo": ""
-      },
-      {
-        "Platform": "",
-        "Priority": 1,
-        "Name": "Andy Penn",
-        "MDM": "",
-        "MinVer": "",
-        "MaxVer": "",
-        "PersonallyOwned": "",
-        "BlockedManufacturers": "",
-        "Scope": "",
-        "AssignedTo": ""
-      },
-      {
-        "Platform": "",
-        "Priority": 1,
-        "Name": "Andy Penn",
-        "MDM": "",
-        "MinVer": "",
-        "MaxVer": "",
-        "PersonallyOwned": "",
-        "BlockedManufacturers": "",
-        "Scope": "",
-        "AssignedTo": ""
-      },
-      {
-        "Platform": "",
-        "Priority": 1,
-        "Name": "iOS Restriction",
-        "MDM": "",
-        "MinVer": "",
-        "MaxVer": "",
-        "PersonallyOwned": "",
-        "BlockedManufacturers": "",
-        "Scope": "",
-        "AssignedTo": ""
-      },
-      {
-        "Platform": "",
-        "Priority": 1,
-        "Name": "Win1",
-        "MDM": "",
-        "MinVer": "",
-        "MaxVer": "",
-        "PersonallyOwned": "",
-        "BlockedManufacturers": "",
-        "Scope": "",
-        "AssignedTo": ""
-      }
-    ],
     "OverviewAuthMethodsPrivilegedUsers": {
       "nodes": [
         {
@@ -318,7 +312,477 @@ export const reportData: ZeroTrustAssessmentReport = {
         }
       ],
       "description": "Strongest authentication method registered by privileged users."
-    }
+    },
+    "ConfigDeviceCompliancePolicies": [
+      {
+        "Platform": "",
+        "PolicyName": "My iOS policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My android personally-owned",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "Min Windows Compliance",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My macOS policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My Windows policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My android device policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My android enterprise policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My Windows 8 policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "PolicyName": "My android aosp policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "",
+        "MaxOsVersion": "",
+        "RequirePswd": "",
+        "MinPswdLength": "",
+        "PasswordType": "",
+        "PswdExpiryDays": "",
+        "CountOfPreviousPswdToBlock": "",
+        "MaxInactivityMin": "",
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "",
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      }
+    ],
+    "ConfigWindowsEnrollment": [
+      {
+        "Type": "MDM",
+        "PolicyName": "Microsoft Intune",
+        "AppliesTo": "Selected",
+        "Groups": "All active users"
+      },
+      {
+        "Type": "MDM",
+        "PolicyName": "Microsoft Intune Enrollment",
+        "AppliesTo": "None",
+        "Groups": "Not Applicable"
+      }
+    ],
+    "ConfigDeviceAppProtectionPolicies": [
+      {
+        "Platform": "",
+        "Name": "Test",
+        "AppsPublic": "",
+        "AppsCustom": "",
+        "BackupOrgDataToICloudOrGoogle": "",
+        "SendOrgDataToOtherApps": "",
+        "AppsToExempt": "",
+        "SaveCopiesOfOrgData": "",
+        "AllowUserToSaveCopiesToSelectedServices": "",
+        "DataProtectionTransferTelecommunicationDataTo": "",
+        "DataProtectionReceiveDataFromOtherApps": "",
+        "DataProtectionOpenDataIntoOrgDocuments": "",
+        "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
+        "DataProtectionRestrictCutCopyBetweenOtherApps": "",
+        "DataProtectionCutCopyCharacterLimitForAnyApp": "",
+        "DataProtectionEncryptOrgData": "",
+        "DataProtectionSyncPolicyManagedAppDataWithNativeApps": "",
+        "DataProtectionPrintingOrgData": "",
+        "DataProtectionRestrictWebContentTransferWithOtherApps": "",
+        "DataProtectionOrgDataNotifications": "",
+        "ConditionalLaunchAppMaxPinAttempts": "",
+        "ConditionalLaunchAppOfflineGracePeriodBlockAccess": "",
+        "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
+        "ConditionalLaunchAppDisabedAccount": "",
+        "ConditionalLaunchAppMinAppVersion": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDevicePrimaryMtdService": "",
+        "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
+        "ConditionalLaunchDeviceMinOsVersion": "",
+        "ConditionalLaunchDeviceMaxOsVersion": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "Name": null,
+        "AppsPublic": "",
+        "AppsCustom": "",
+        "BackupOrgDataToICloudOrGoogle": "",
+        "SendOrgDataToOtherApps": "",
+        "AppsToExempt": "",
+        "SaveCopiesOfOrgData": "",
+        "AllowUserToSaveCopiesToSelectedServices": "",
+        "DataProtectionTransferTelecommunicationDataTo": "",
+        "DataProtectionReceiveDataFromOtherApps": "",
+        "DataProtectionOpenDataIntoOrgDocuments": "",
+        "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
+        "DataProtectionRestrictCutCopyBetweenOtherApps": "",
+        "DataProtectionCutCopyCharacterLimitForAnyApp": "",
+        "DataProtectionEncryptOrgData": "",
+        "DataProtectionSyncPolicyManagedAppDataWithNativeApps": "",
+        "DataProtectionPrintingOrgData": "",
+        "DataProtectionRestrictWebContentTransferWithOtherApps": "",
+        "DataProtectionOrgDataNotifications": "",
+        "ConditionalLaunchAppMaxPinAttempts": "",
+        "ConditionalLaunchAppOfflineGracePeriodBlockAccess": "",
+        "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
+        "ConditionalLaunchAppDisabedAccount": "",
+        "ConditionalLaunchAppMinAppVersion": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDevicePrimaryMtdService": "",
+        "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
+        "ConditionalLaunchDeviceMinOsVersion": "",
+        "ConditionalLaunchDeviceMaxOsVersion": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "",
+        "Name": null,
+        "AppsPublic": "",
+        "AppsCustom": "",
+        "BackupOrgDataToICloudOrGoogle": "",
+        "SendOrgDataToOtherApps": "",
+        "AppsToExempt": "",
+        "SaveCopiesOfOrgData": "",
+        "AllowUserToSaveCopiesToSelectedServices": "",
+        "DataProtectionTransferTelecommunicationDataTo": "",
+        "DataProtectionReceiveDataFromOtherApps": "",
+        "DataProtectionOpenDataIntoOrgDocuments": "",
+        "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
+        "DataProtectionRestrictCutCopyBetweenOtherApps": "",
+        "DataProtectionCutCopyCharacterLimitForAnyApp": "",
+        "DataProtectionEncryptOrgData": "",
+        "DataProtectionSyncPolicyManagedAppDataWithNativeApps": "",
+        "DataProtectionPrintingOrgData": "",
+        "DataProtectionRestrictWebContentTransferWithOtherApps": "",
+        "DataProtectionOrgDataNotifications": "",
+        "ConditionalLaunchAppMaxPinAttempts": "",
+        "ConditionalLaunchAppOfflineGracePeriodBlockAccess": "",
+        "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
+        "ConditionalLaunchAppDisabedAccount": "",
+        "ConditionalLaunchAppMinAppVersion": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDevicePrimaryMtdService": "",
+        "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
+        "ConditionalLaunchDeviceMinOsVersion": "",
+        "ConditionalLaunchDeviceMaxOsVersion": "",
+        "Scope": "",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      }
+    ],
+    "ConfigDeviceEnrollmentRestriction": [
+      {
+        "Platform": "iOS/iPadOS",
+        "Priority": 2,
+        "Name": "iOS Restriction 2",
+        "MDM": "Blocked",
+        "MinVer": null,
+        "MaxVer": null,
+        "PersonallyOwned": "Allowed",
+        "BlockedManufacturers": "",
+        "Scope": "Default",
+        "AssignedTo": "All users"
+      },
+      {
+        "Platform": "Android Enterprise (work profile)",
+        "Priority": 1,
+        "Name": "Andy Penn",
+        "MDM": "Allowed",
+        "MinVer": "5.0",
+        "MaxVer": "5.1.1",
+        "PersonallyOwned": "Allowed",
+        "BlockedManufacturers": "Samsung",
+        "Scope": "Biscope, Default",
+        "AssignedTo": "aad-conditional-access-allow-legacy-auth"
+      },
+      {
+        "Platform": "Android device administrator",
+        "Priority": 1,
+        "Name": "Andy Penn",
+        "MDM": "Allowed",
+        "MinVer": "5.0",
+        "MaxVer": "6.0",
+        "PersonallyOwned": "Allowed",
+        "BlockedManufacturers": "Samsung",
+        "Scope": "Biscope, Default",
+        "AssignedTo": "aad-conditional-access-allow-legacy-auth"
+      },
+      {
+        "Platform": "iOS/iPadOS",
+        "Priority": 1,
+        "Name": "iOS Restriction",
+        "MDM": "Allowed",
+        "MinVer": "9.0",
+        "MaxVer": "10.0",
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "",
+        "Scope": "Default",
+        "AssignedTo": "aad-conditional-access-excluded, Avanade Users"
+      },
+      {
+        "Platform": "Windows",
+        "Priority": 1,
+        "Name": "Win1",
+        "MDM": "Allowed",
+        "MinVer": null,
+        "MaxVer": null,
+        "PersonallyOwned": "Allowed",
+        "BlockedManufacturers": "",
+        "Scope": "Biscope, Default",
+        "AssignedTo": "All users"
+      },
+      {
+        "Platform": "iOS/iPadOS",
+        "Priority": "Default",
+        "Name": "All users",
+        "MDM": "Allowed",
+        "MinVer": "9.0",
+        "MaxVer": "10.0",
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": "All devices"
+      },
+      {
+        "Platform": "Windows",
+        "Priority": "Default",
+        "Name": "All users",
+        "MDM": "Allowed",
+        "MinVer": "10.0",
+        "MaxVer": "11.0",
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": "All devices"
+      },
+      {
+        "Platform": "Android device administrator",
+        "Priority": "Default",
+        "Name": "All users",
+        "MDM": "Allowed",
+        "MinVer": "7.0",
+        "MaxVer": "8.0",
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "Samsung",
+        "Scope": "",
+        "AssignedTo": "All devices"
+      },
+      {
+        "Platform": "macOS",
+        "Priority": "Default",
+        "Name": "All users",
+        "MDM": "Allowed",
+        "MinVer": null,
+        "MaxVer": null,
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "",
+        "Scope": "",
+        "AssignedTo": "All devices"
+      },
+      {
+        "Platform": "Android Enterprise (work profile)",
+        "Priority": "Default",
+        "Name": "All users",
+        "MDM": "Allowed",
+        "MinVer": "5.0",
+        "MaxVer": "6.0",
+        "PersonallyOwned": "Blocked",
+        "BlockedManufacturers": "Samsung",
+        "Scope": "",
+        "AssignedTo": "All devices"
+      }
+    ]
   },
   "EndOfJson": "EndOfJson"
 }
