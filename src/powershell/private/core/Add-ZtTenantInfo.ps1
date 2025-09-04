@@ -14,11 +14,11 @@ function Add-ZtTenantInfo {
         $Value
     )
 
-    if ($__ZtSession.ContainsKey($Name)) {
+    if ($script:__ZtSession.ContainsKey($Name)) {
         # throw exception, should be caught during dev if there is clash in names
         throw "Tenant info with name $Name already exists"
     }
     else {
-        $__ZtSession.TenantInfo[$Name] = $Value
+        $script:__ZtSession.TenantInfo[$Name] = $Value
     }
 }

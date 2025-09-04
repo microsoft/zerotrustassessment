@@ -9,7 +9,12 @@
   Get-EEDefaultSchema
 #>
 
-function Get-EEDefaultSchema  {
+function Get-EEDefaultSchema
+{
+	[CmdletBinding()]
+	param (
+
+	)
     $global:TenantID = (Get-MgContext).TenantId
     return  @(
         # Organization

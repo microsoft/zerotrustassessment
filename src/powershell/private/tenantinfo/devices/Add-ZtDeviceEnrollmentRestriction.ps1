@@ -4,9 +4,19 @@
     Add Windows enrollment restriction used in Devices config view.
 #>
 
-function Add-ZtDeviceEnrollmentRestriction {
+function Add-ZtDeviceEnrollmentRestriction
+{
+	[CmdletBinding()]
+	param (
 
-    function Get-BlockAllow($blockAllowBoolean) {
+	)
+
+    function Get-BlockAllow
+{
+	[CmdletBinding()]
+	param (
+		$blockAllowBoolean
+	)
         switch($blockAllowBoolean) {
             'true' { return 'Blocked' }
             'false' { return 'Allowed' }
@@ -14,7 +24,12 @@ function Add-ZtDeviceEnrollmentRestriction {
         }
     }
 
-    function Get-RoleScopeTag ($roleScopeTagIds){
+    function Get-RoleScopeTag
+{
+	[CmdletBinding()]
+	param (
+		$roleScopeTagIds
+	)
         $scopeTags =  Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/roleScopeTags' -ApiVersion 'beta'
         $roleScopeTagNames = @()
         foreach($scopeTagId in $roleScopeTagIds) {
@@ -29,7 +44,12 @@ function Add-ZtDeviceEnrollmentRestriction {
         return $roleScopeTagNames -join ", "
     }
 
-    function Get-GroupName($groupId){
+    function Get-GroupName
+{
+	[CmdletBinding()]
+	param (
+		$groupId
+	)
         $result = $groupId
         $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId" -ErrorAction SilentlyContinue
         if($group) {
@@ -39,7 +59,12 @@ function Add-ZtDeviceEnrollmentRestriction {
         return $result
     }
 
-    function Get-PlatformTypes(){
+    function Get-PlatformTypes
+{
+	[CmdletBinding()]
+	param (
+
+	)
         return @(
             @{
                 Name = 'android'
@@ -72,7 +97,12 @@ function Add-ZtDeviceEnrollmentRestriction {
         )
     }
 
-    function Get-PlatformTypeName($platformTypeName){
+    function Get-PlatformTypeName
+{
+	[CmdletBinding()]
+	param (
+		$platformTypeName
+	)
         $platformTypes = Get-PlatformTypes
         $platformName = $platformTypes | Where-Object { $_.Name -eq $platformTypeName }
         if($platformName){
@@ -83,7 +113,12 @@ function Add-ZtDeviceEnrollmentRestriction {
         }
     }
 
-    function Get-AssignmentText($assignments){
+    function Get-AssignmentText
+{
+	[CmdletBinding()]
+	param (
+		$assignments
+	)
         $text = @()
         foreach($assignment in $assignments){
             switch($assignment.target.'@odata.type'){

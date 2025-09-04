@@ -27,7 +27,7 @@ function Get-HtmlReport {
     Remove-Item -Path $resultsJsonPath -Force -ErrorAction SilentlyContinue | Out-Null
 
     Write-PSFMessage -Message $json -Level Debug
-    $htmlFilePath = Join-Path -Path $PSScriptRoot -ChildPath '../../assets/ReportTemplate.html'
+    $htmlFilePath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.html'
     $templateHtml = Get-Content -Path $htmlFilePath -Raw
 
     # Insert the test results json into the template

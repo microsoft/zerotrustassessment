@@ -1,9 +1,14 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that DuckDB is installed and provide instruction on how to install.
 #>
 
-function Test-DuckDb {
+function Test-DuckDb
+{
+	[CmdletBinding()]
+	param (
+
+	)
 
     try {
         Connect-Database # Try connecting with in memory db

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Creates a database with the data files found in the specified folder.
 #>
@@ -61,13 +61,22 @@ function Export-Database {
     return $db
 }
 
-function Import-Table($db, $absExportPath, $tableName) {
+function Import-Table
+{
+	[CmdletBinding()]
+	param (
+		$db,
+
+		$absExportPath,
+
+		$tableName
+	)
 
     Write-PSFMessage "Importing table $tableName" -Tag Import
     $folderPath = Join-Path $absExportPath $tableName
 
     # Copy the model file if it exists (needed to create table schema to avoid sql errors when there is no data)
-    $modelFilePath = Join-Path -Path $PSScriptRoot -ChildPath "model/$tableName-model.json"
+    $modelFilePath = Join-Path -Path $script:ModuleRoot -ChildPath "assets/export-model/$tableName-model.json"
 
     $hasModelRow = $false
     if(Test-Path $modelFilePath) {
@@ -90,18 +99,38 @@ function Import-Table($db, $absExportPath, $tableName) {
     }
 }
 
-function Get-DbConnection ($DbPath) {
+function Get-DbConnection
+{
+	[CmdletBinding()]
+	param (
+		$DbPath
+	)
     $db = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$DbPath")
     $db.Open()
     return $db
 }
 
-function Close-DbConnection ($db) {
+function Close-DbConnection
+{
+	[CmdletBinding()]
+	param (
+		$db
+	)
     $db.Close()
     $db.Dispose()
 }
 
-function Get-RoleSelectSql($tableName, $privilegeType, [switch]$addUnion) {
+function Get-RoleSelectSql
+{
+	[CmdletBinding()]
+	param (
+		$tableName,
+
+		$privilegeType,
+
+		[switch]
+		$addUnion
+	)
     $sql = @"
 
     select
@@ -124,7 +153,12 @@ function Get-RoleSelectSql($tableName, $privilegeType, [switch]$addUnion) {
 
     return $sql
 }
-function New-ViewRole($db){
+function New-ViewRole
+{
+	[CmdletBinding()]
+	param (
+		$db
+	)
 
     $sql = @"
 create view vwRole

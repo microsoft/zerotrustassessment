@@ -17,6 +17,7 @@ function Test-Assessment-21790 {
 
     # Helper function to process targets
     function Get-TargetDescription {
+        [CmdletBinding()]
         param (
             [Parameter(Mandatory)]
             [object]$TargetConfig

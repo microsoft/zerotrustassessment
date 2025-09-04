@@ -1,4 +1,4 @@
-﻿<#
+<#
 
 .SYNOPSIS
     Updates the tests recommendations from the Entra docs
@@ -6,7 +6,12 @@
 
 # Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs-pr'
 
-function Get-DocsRecommendations($entraDocsFolder) {
+function Get-DocsRecommendations
+{
+	[CmdletBinding()]
+	param (
+		$entraDocsFolder
+	)
     $recommendationsFolder = Join-Path -Path $entraDocsFolder -ChildPath 'docs/includes/secure-recommendations'
 
     Write-Host "Reading the recommendations from the Entra docs at $recommendationsFolder"
@@ -28,7 +33,12 @@ function Get-DocsRecommendations($entraDocsFolder) {
 
     return $recommendations
 }
-function Get-MarkDownContent($fileContent) {
+function Get-MarkDownContent
+{
+	[CmdletBinding()]
+	param (
+		$fileContent
+	)
 
     $markdownContent = $fileContent # Default to the original content
 
@@ -48,6 +58,7 @@ function Get-MarkDownContent($fileContent) {
 }
 
 function Update-MarkdownLinks {
+    [CmdletBinding()]
     param(
         [string]$Content
     )
@@ -65,6 +76,7 @@ function Update-MarkdownLinks {
 }
 
 function Update-SingleLink {
+    [CmdletBinding()]
     param(
         [System.Text.RegularExpressions.Match]$match
     )
@@ -109,6 +121,7 @@ function Update-SingleLink {
 }
 
 function Test-FolderMarkdownLinks {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
         [string]$FolderPath,
@@ -118,6 +131,7 @@ function Test-FolderMarkdownLinks {
 
     # Function to test a single URL
     function Test-Url {
+        [CmdletBinding()]
         param (
             [string]$Url,
             [int]$Timeout
@@ -158,7 +172,12 @@ function Test-FolderMarkdownLinks {
     }
 
     # Function to print a separator line
-    function Write-Separator {
+    function Write-Separator
+{
+	[CmdletBinding()]
+	param (
+
+	)
         Write-Host ("-" * 80)
     }
 
@@ -270,7 +289,12 @@ function Test-FolderMarkdownLinks {
     Write-Separator
 }
 
-function Get-FrontMatterList($content) {
+function Get-FrontMatterList
+{
+	[CmdletBinding()]
+	param (
+		$content
+	)
     $results = @{}
     if ($content -match '^---\s*\n([\s\S]*?)\n---') {
         $frontMatter = $Matches[1]
@@ -288,6 +312,7 @@ function Get-FrontMatterList($content) {
 }
 
 function Remove-TrailingEmptyLines {
+    [CmdletBinding()]
     param (
         [string]$Content
     )

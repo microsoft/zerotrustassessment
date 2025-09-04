@@ -1,7 +1,12 @@
-﻿# Generates test scaffold based on the csv export from ADO (note: remove the spaces from the headers)
+# Generates test scaffold based on the csv export from ADO (note: remove the spaces from the headers)
 # Run this command after changing into the scaffold directory.
 
-function Get-DefaultLevel ($value) {
+function Get-DefaultLevel
+{
+	[CmdletBinding()]
+	param (
+		$value
+	)
     # if empty return Low
     if ([string]::IsNullOrEmpty($value)) {
         return "Low"

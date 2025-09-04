@@ -29,7 +29,12 @@ Function Get-ZtUserAuthenticationMethod {
   )
 
   process {
-    function AddAuthMethodInfo ($userAuthMethod) {
+    function AddAuthMethodInfo
+{
+	[CmdletBinding()]
+	param (
+		$userAuthMethod
+	)
       $authMethodInfo = Get-ZtUserAuthenticationMethodInfoByType -AuthenticationMethod $userAuthMethod
 
       $userAuthMethod | Add-Member -MemberType NoteProperty -Name "typeDisplayName" -Value $authMethodInfo.DisplayName -ErrorAction SilentlyContinue

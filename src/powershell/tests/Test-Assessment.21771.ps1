@@ -55,7 +55,14 @@ function Test-Assessment-21771 {
         -Status $passed -Result $testResultMarkdown
 }
 
-function Get-AppListRole($Apps, $Icon) {
+function Get-AppListRole
+{
+	[CmdletBinding()]
+	param (
+		$Apps,
+
+		$Icon
+	)
     $mdInfo = ""
     $sqlRole = @"
     select r.roleDisplayName

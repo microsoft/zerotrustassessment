@@ -1,4 +1,5 @@
-﻿function Test-DomainResolves {
+function Test-DomainResolves {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [string]$Domain,

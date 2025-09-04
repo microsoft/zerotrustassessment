@@ -77,7 +77,12 @@ function Test-Assessment-21770 {
         -Status $passed -Result $testResultMarkdown
 }
 
-function Add-DelegatePermissions($item) {
+function Add-DelegatePermissions
+{
+	[CmdletBinding()]
+	param (
+		$item
+	)
     $sql = @"
     select sp.id, sp.oauth2PermissionGrants.scope as permissionName,
     from main.ServicePrincipal sp
@@ -94,7 +99,12 @@ function Add-DelegatePermissions($item) {
     return $item
 }
 
-function Add-AppPermissions($item) {
+function Add-AppPermissions
+{
+	[CmdletBinding()]
+	param (
+		$item
+	)
     $sql = @"
     select distinct spAppRole.*
     from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
@@ -111,13 +121,25 @@ function Add-AppPermissions($item) {
     return $item
 }
 
-function Add-GraphRisk($item) {
+function Add-GraphRisk
+{
+	[CmdletBinding()]
+	param (
+		$item
+	)
     $item.Risk = Get-GraphRisk -delegatePermissions $item.DelegatePermissions -applicationPermissions $item.AppPermissions
     $item.IsRisky = $item.Risk -eq "High"
     return $item
 }
 
-function Get-AppList($Apps, $Icon) {
+function Get-AppList
+{
+	[CmdletBinding()]
+	param (
+		$Apps,
+
+		$Icon
+	)
     $mdInfo = ""
     foreach ($item in $apps) {
         $tenant = $item.publisherName
@@ -130,7 +152,14 @@ function Get-AppList($Apps, $Icon) {
     return $mdInfo
 }
 
-function Get-GraphRisk($delegatePermissions, $applicationPermissions) {
+function Get-GraphRisk
+{
+	[CmdletBinding()]
+	param (
+		$delegatePermissions,
+
+		$applicationPermissions
+	)
     $finalRisk = "Unranked"
     foreach($permission in $applicationPermissions){
         $risk = Get-GraphPermissionRisk -Permission $permission -PermissionType "Application"

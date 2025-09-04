@@ -57,7 +57,7 @@ function Connect-ZtAssessment
         if($Environment -eq 'China') {
             $azEnvironment = Get-AzEnvironment -Name AzureChinaCloud
         }
-        elseif($Environment -eq 'USGov' -or $Environment -eq 'USGovDoD') {
+        elseif($Environment -in 'USGov', 'USGovDoD') {
             $azEnvironment = 'AzureUSGovernment'
         }
         Connect-AzAccount -UseDeviceAuthentication:$UseDeviceCode -Environment $azEnvironment

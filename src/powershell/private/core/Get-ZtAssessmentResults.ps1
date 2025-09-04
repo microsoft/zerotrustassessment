@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Gets the results of all the Zero Trust Assessment tests
 #>
@@ -16,7 +16,7 @@ function Get-ZtAssessmentResults {
     $currentVersion = ((Get-Module -Name ZeroTrustAssessmentV2).Version | Select-Object -Last 1).ToString()
     $latestVersion = GetModuleLatestVersion
 
-    $tests = $__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk }}, @{Expression = { $_.TestStatus } }
+    $tests = $script:__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk }}, @{Expression = { $_.TestStatus } }
 
     # Sort by risk then by status
     $ztTestResults = [PSCustomObject]@{
@@ -27,9 +27,9 @@ function Get-ZtAssessmentResults {
         Account        = $account
         CurrentVersion = $currentVersion
         LatestVersion  = $latestVersion
-        TestResultSummary = GetTestResultSummary $__ZtSession.TestResultDetail.values
+        TestResultSummary = GetTestResultSummary $script:__ZtSession.TestResultDetail.values
         Tests          = @($tests) # Use @() to ensure it's an array
-        TenantInfo     = $__ZtSession.TenantInfo
+        TenantInfo     = $script:__ZtSession.TenantInfo
         EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
     }
 
@@ -37,7 +37,12 @@ function Get-ZtAssessmentResults {
     return $ztTestResults
 }
 
-function GetModuleLatestVersion() {
+function GetModuleLatestVersion
+{
+	[CmdletBinding()]
+	param (
+
+	)
     if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
         return (Find-Module -Name ZeroTrustAssessmentV2).Version
     }
@@ -45,7 +50,12 @@ function GetModuleLatestVersion() {
     return 'Unknown'
 }
 
-function GetFormattedDate($date) {
+function GetFormattedDate
+{
+	[CmdletBinding()]
+	param (
+		$date
+	)
     if(!$IsCoreCLR) { # Prevent 5.1 date format to json issue
         return $date.ToString("o")
     }
@@ -54,7 +64,12 @@ function GetFormattedDate($date) {
     }
 }
 
-function GetOrganization() {
+function GetOrganization
+{
+	[CmdletBinding()]
+	param (
+
+	)
     $org = Invoke-ZtGraphRequest -RelativeUri 'organization'
     $defaultDomain = $org.verifiedDomains | Where-Object { $_.isDefault } | Select-Object -First 1
     return [PSCustomObject]@{
@@ -63,15 +78,34 @@ function GetOrganization() {
     }
 }
 
-function GetTestPassedCount($testResults, $pillar) {
+function GetTestPassedCount
+{
+	[CmdletBinding()]
+	param (
+		$testResults,
+
+		$pillar
+	)
     return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -eq 'Passed' } | Measure-Object | Select-Object -ExpandProperty Count
 }
 
-function GetTestTotalCount($testResults, $pillar) {
+function GetTestTotalCount
+{
+	[CmdletBinding()]
+	param (
+		$testResults,
+
+		$pillar
+	)
     return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -ne 'Skipped' -and $_.TestStatus -ne 'Planned'  } | Measure-Object | Select-Object -ExpandProperty Count
 }
 
-function GetTestResultSummary($testResults) {
+function GetTestResultSummary
+{
+	[CmdletBinding()]
+	param (
+		$testResults
+	)
     $summary = [PSCustomObject]@{
         IdentityPassed = GetTestPassedCount $testResults 'Identity'
         IdentityTotal = GetTestTotalCount $testResults 'Identity'

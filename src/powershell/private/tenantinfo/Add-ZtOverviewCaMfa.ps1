@@ -43,7 +43,12 @@ group by conditionalAccessStatus, authenticationRequirement
     Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
-function Get-ZtOverviewCaMfa($results) {
+function Get-ZtOverviewCaMfa
+{
+	[CmdletBinding()]
+	param (
+		$results
+	)
 
     $caMfa = GetCount $results "success" "multiFactorAuthentication"
     $caNoMfa = GetCount $results "success" "singleFactorAuthentication"
@@ -85,7 +90,16 @@ function Get-ZtOverviewCaMfa($results) {
     return $caSummaryArray
 }
 
-function GetCount($results, $caStatus, $authReq) {
+function GetCount
+{
+	[CmdletBinding()]
+	param (
+		$results,
+
+		$caStatus,
+
+		$authReq
+	)
     return ($results
         | Where-Object { $_.conditionalAccessStatus -eq $caStatus -and $_.authenticationRequirement -eq $authReq }
         | Select-Object -ExpandProperty cnt) -as [int]

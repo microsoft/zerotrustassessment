@@ -98,15 +98,14 @@ Function Add-ZtTestResultDetail {
     if ($SkippedBecause) {
         $SkippedReason = Get-ZtSkippedReason $SkippedBecause
 
-        if ([string]::IsNullOrEmpty($Result)) {
+        if (-not $Result) {
             $Result = "Skipped. $SkippedReason"
         }
     }
 
-    if ([string]::IsNullOrEmpty($Description)) {
+    if (-not $Description) {
         # Check if a markdown file exists for the cmdlet and parse the content
-        $cmdletPath = $MyInvocation.PSCommandPath
-        $markdownPath = $cmdletPath -replace '.ps1', '.md'
+		$markdownPath = Join-Path -Path $script:ModuleRoot -ChildPath "tests/Test-Assessment.$TestId.md"
         if (Test-Path $markdownPath) {
             # Read the content and split it into description and result with "<!--- Results --->" as the separator
             $content = Get-Content $markdownPath -Raw
@@ -135,22 +134,22 @@ Function Add-ZtTestResultDetail {
     }
 
     # Check if the docs team have provided a title for the test and use it if available
-    $testMeta = $__ZtSession.TestMeta[$TestId]
+    $testMeta = $script:__ZtSession.TestMeta[$TestId]
     $docsTitle = $Title # Default to the title provided in the parameter
 
     if ($null -ne $testMeta -and ![string]::IsNullOrEmpty($testMeta.Title)) {
         Write-PSFMessage "Using title from docs" -Level Debug -Tag Test
         $docsTitle = $testMeta.Title
-        if(![string]::IsNullOrEmpty($testMeta.Category)) {
+        if($testMeta.Category) {
             $category = $testMeta.Category
         }
-        if(![string]::IsNullOrEmpty($testMeta.RiskLevel)) {
+        if($testMeta.RiskLevel) {
             $Risk = $testMeta.RiskLevel
         }
-        if(![string]::IsNullOrEmpty($testMeta.ImplementationCost)) {
+        if($testMeta.ImplementationCost) {
             $ImplementationCost = $testMeta.ImplementationCost
         }
-        if(![string]::IsNullOrEmpty($testMeta.UserImpact)) {
+        if($testMeta.UserImpact) {
             $UserImpact = $testMeta.UserImpact
         }
     }
@@ -177,10 +176,10 @@ Function Add-ZtTestResultDetail {
     Write-PSFMessage "Adding test result detail for $Title" -Tag Test
     Write-PSFMessage "Result: $Result" -Level Debug -Tag Test
 
-    if ($__ZtSession -and $__ZtSession.TestResultDetail) {
-        if (![string]::IsNullOrEmpty($TestId)) {
+    if ($script:__ZtSession -and $script:__ZtSession.TestResultDetail) {
+        if ($TestId) {
             # Only set if we are running in the context of Maester
-            $__ZtSession.TestResultDetail[$TestId] = $testInfo
+            $script:__ZtSession.TestResultDetail[$TestId] = $testInfo
         }
     }
 }

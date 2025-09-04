@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Connects to the tenant and downloads the data to a local folder.
 
@@ -113,7 +113,12 @@ function Export-TenantData {
     #Export-Entra -Path $OutputFolder -Type Config
 }
 
-function Get-AuditQueryString($pastDays) {
+function Get-AuditQueryString
+{
+	[CmdletBinding()]
+	param (
+		$pastDays
+	)
 
     # Get the date range to query by subtracting the number of days from today set to midnight
     $dateFilter = $null

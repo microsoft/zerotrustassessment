@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checking App registrations must use safe redirect URIs
 #>
@@ -133,7 +133,14 @@ function Get-ZtAppWithUnsafeRedirectUris {
     return $result
 }
 
-function Get-RiskyAppList($Apps, $Type) {
+function Get-RiskyAppList
+{
+	[CmdletBinding()]
+	param (
+		$Apps,
+
+		$Type
+	)
     $mdInfo = ""
     $mdInfo += "| | Name | Unsafe Redirect URIs |"
     # Only add the app owner tenant column for ServicePrincipal

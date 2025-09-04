@@ -1,4 +1,4 @@
-﻿function Export-GraphEntity {
+function Export-GraphEntity {
     [CmdletBinding()]
     param (
         # The entity to export. e.g. /beta/servicePrincipals
@@ -88,7 +88,30 @@
     Set-ZtConfig -ExportPath $ExportPath -Property $EntityName -Value $true
 }
 
-function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityName, $entityUri, $currentCount, $totalCount, $progressActivity, $showCount) {
+function ExportPage
+{
+	[CmdletBinding()]
+	param (
+		$pageIndex,
+
+		$path,
+
+		$results,
+
+		$relatedPropertyNames,
+
+		$entityName,
+
+		$entityUri,
+
+		$currentCount,
+
+		$totalCount,
+
+		$progressActivity,
+
+		$showCount
+	)
     Write-PSFMessage "Exporting $entityName page $pageIndex"
 
     if ($relatedPropertyNames) {
@@ -112,7 +135,20 @@ function ExportPage($pageIndex, $path, $results, $relatedPropertyNames, $entityN
     return $currentCount
 }
 
-function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
+function Get-Status
+{
+	[CmdletBinding()]
+	param (
+		$currentCount,
+
+		$totalCount,
+
+		$showCount,
+
+		$name,
+
+		$result
+	)
     if ($showCount -and $null -ne $result) {
         $name = Get-ObjectProperty $result 'displayName'
         $status = "$currentCount of $totalCount : $name"
@@ -123,7 +159,18 @@ function Get-Status($currentCount, $totalCount, $showCount, $name, $result) {
     return $status
 }
 
-function Add-GraphProperty($result, $propertyName, $entityName, $entityUri) {
+function Add-GraphProperty
+{
+	[CmdletBinding()]
+	param (
+		$result,
+
+		$propertyName,
+
+		$entityName,
+
+		$entityUri
+	)
     $id = Get-ObjectProperty $result 'id'
     Write-PSFMessage "Adding $propertyName to $entityName $id" -Tag Graph
 

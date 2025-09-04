@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Returns DisplayName and IsMfa metadata about a specific user authentication method type
 
@@ -103,7 +103,12 @@ Function Get-ZtUserAuthenticationMethodInfoByType {
         )
     }
     process {
-        function GetMethodInfo($authMethod) {
+        function GetMethodInfo
+{
+	[CmdletBinding()]
+	param (
+		$authMethod
+	)
             $type = $authMethod.'@odata.type'
             $methodInfo = $authMethodMetadata | Where-Object { $_.Type -eq $type }
             if ($null -eq $methodInfo) {
