@@ -5,8 +5,8 @@ $script:__ZtSession = @{
 	GraphBaseUri = $null
 }
 
-$testMetaPath = "$script:ModuleRoot\private\tests\TestMeta.json"
+$testMetaPath = "$script:ModuleRoot\tests\TestMeta.json"
 if (Test-Path $testMetaPath) {
 	# Read json and store in hashtable
-	$script:__ZtSession.TestMeta = Import-PSFJson -LiteralPath $testMetaPath
+	$script:__ZtSession.TestMeta = Import-PSFJson -LiteralPath $testMetaPath -AsHashtable
 }

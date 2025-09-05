@@ -33,39 +33,39 @@ function Export-Database {
 
     if (Test-Path $dbFolder) {
         Write-PSFMessage "Clearing previous db $dbFolder" -Tag Import
-        $db = Connect-Database -Path $dbPath
+        $database = Connect-Database -Path $dbPath
         $sqlTemp = "FORCE CHECKPOINT;"
-        Invoke-DatabaseQuery -Database $db -Sql $sqlTemp -NonQuery
-        Disconnect-Database -Database $db
+        Invoke-DatabaseQuery -Database $database -Sql $sqlTemp -NonQuery
+        Disconnect-Database -Database $database
         Remove-Item $dbFolder -Recurse -Force | Out-Null # Remove the existing database
     }
     New-Item -ItemType Directory -Path $dbFolder -Force -ErrorAction Stop | Out-Null
 
-    $db = Connect-Database -Path $dbPath
+    $database = Connect-Database -Path $dbPath
 
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'User'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'Application'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipal'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'ServicePrincipalSignIn'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'SignIn'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleDefinition'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignment'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentGroup'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleAssignmentSchedule'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequest'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequestGroup'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'RoleManagementPolicyAssignment'
-    Import-Table -db $db -absExportPath $absExportPath -tableName 'UserRegistrationDetails'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'User'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'Application'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'ServicePrincipal'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'ServicePrincipalSignIn'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'SignIn'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleDefinition'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleAssignment'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleAssignmentGroup'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleAssignmentSchedule'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequest'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleEligibilityScheduleRequestGroup'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'RoleManagementPolicyAssignment'
+    Import-Table -database  $database -absExportPath $absExportPath -tableName 'UserRegistrationDetails'
 
-    New-ViewRole -db $db
-    return $db
+    New-ViewRole -database  $database
+    return $database
 }
 
 function Import-Table
 {
 	[CmdletBinding()]
 	param (
-		$db,
+		$database,
 
 		$absExportPath,
 
@@ -90,12 +90,12 @@ function Import-Table
 
     $filePath = Join-Path $folderPath "$tableName*.json"
 
-    New-EntraTable -Connection $db -TableName $tableName -FilePath $filePath
+    New-EntraTable -Connection $database -TableName $tableName -FilePath $filePath
 
     if($hasModelRow) {
         # Let's delete the model row to keep the data clean.
         $deleteModelRow = "DELETE FROM main.$tableName WHERE isZtModelRow = true;"
-        Invoke-DatabaseQuery -Database $db -Sql $deleteModelRow -NonQuery
+        Invoke-DatabaseQuery -Database $database -Sql $deleteModelRow -NonQuery
     }
 }
 
@@ -105,19 +105,19 @@ function Get-DbConnection
 	param (
 		$DbPath
 	)
-    $db = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$DbPath")
-    $db.Open()
-    return $db
+    $database = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$DbPath")
+    $database.Open()
+    return $database
 }
 
 function Close-DbConnection
 {
 	[CmdletBinding()]
 	param (
-		$db
+		$database
 	)
-    $db.Close()
-    $db.Dispose()
+    $database.Close()
+    $database.Dispose()
 }
 
 function Get-RoleSelectSql
@@ -157,7 +157,7 @@ function New-ViewRole
 {
 	[CmdletBinding()]
 	param (
-		$db
+        $database
 	)
 
     $sql = @"
@@ -167,7 +167,7 @@ as
 "@
 
     $RoleAssignmentScheduleCountSql = 'select count(*) as RoleAssignmentScheduleCount from RoleAssignmentSchedule where id is not null'
-    $result = Invoke-DatabaseQuery -Database $db -Sql $RoleAssignmentScheduleCountSql
+    $result = Invoke-DatabaseQuery -Database $database -Sql $RoleAssignmentScheduleCountSql
     if($result.RoleAssignmentScheduleCount -gt 0) {
         # Is P2 tenant, don't read RoleAssignment because it contains PIM Eligible temporary users and has no way to filter it out.
         $sql += Get-RoleSelectSql -tableName 'RoleAssignmentSchedule' -privilegeType 'Permanent' -addUnion
@@ -179,5 +179,5 @@ as
     # Now read RoleEligibilityScheduleRequest to get PIM Eligible users
     $sql += Get-RoleSelectSql -tableName "RoleEligibilityScheduleRequest" -privilegeType 'Eligible'
 
-    Invoke-DatabaseQuery -Database $db -Sql $sql -NonQuery
+    Invoke-DatabaseQuery -Database $database -Sql $sql -NonQuery
 }
