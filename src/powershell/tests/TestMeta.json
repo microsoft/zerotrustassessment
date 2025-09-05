@@ -1763,43 +1763,17 @@
     "Title": "Service principals use safe redirect URIs",
     "UserImpact": "Low"
   },
-    "24540": {
+  "40000": {
     "Category": "Device management",
-    "ImplementationCost": "Low",
+    "ImplementationCost": "High",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
-    "TestId": "24540",
-    "Title": "Windows Firewall policy is created and assigned",
-    "UserImpact": "Low"
-  },
-  "24542": {
-    "Category": "Device management",
-    "ImplementationCost": "Low",
-    "Pillar": "Devices",
-    "RiskLevel": "High",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24542",
-    "Title": "macOS Compliance policy is created and assigned",
-    "UserImpact": "Medium"
-  },
-  "24543": {
-    "Category": "Device management",
-    "ImplementationCost": "Low",
-    "Pillar": "Devices",
-    "RiskLevel": "High",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24543",
-    "Title": "Compliance policy assignment for iOS/iPadOS devices",
+    "TestId": "40000",
+    "Title": "Windows automatic enrollment is enabled",
     "UserImpact": "Low"
   }
 }
