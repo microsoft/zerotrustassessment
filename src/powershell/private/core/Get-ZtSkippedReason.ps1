@@ -1,8 +1,9 @@
-﻿<#
+<#
 .SYNOPSIS
     Returns the description for why a test was skipped.
 #>
 function Get-ZtSkippedReason {
+    [CmdletBinding()]
     param(
         # The reason for skipping
         [string] $SkippedBecause

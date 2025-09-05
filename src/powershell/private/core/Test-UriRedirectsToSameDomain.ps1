@@ -1,4 +1,5 @@
-﻿function Test-UriRedirectsToSameDomain {
+function Test-UriRedirectsToSameDomain {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [string]$Url

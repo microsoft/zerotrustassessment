@@ -1,28 +1,26 @@
-﻿Add-Type -Path "$PSScriptRoot\lib\DuckDB.NET.Data.dll"
+﻿# To give a module-wide constant point of reference
+$script:ModuleRoot = $PSScriptRoot
 
-## Initialize Module Variables
-## Update Clear-ModuleVariable function in private/Clear-ModuleVariable.ps1 if you add new variables here
-$__ZtSession = @{
-	GraphCache = @{}
-	GraphBaseUri = $null
-}
-New-Variable -Name __ZtSession -Value $__ZtSession -Scope Script -Force
-
-
-# Import private and public scripts and expose the public ones
-$privateScripts = @(Get-ChildItem -Path "$PSScriptRoot\private" -Recurse -Filter "*.ps1")
-$publicScripts = @(Get-ChildItem -Path "$PSScriptRoot\public" -Recurse -Filter "*.ps1")
-
-foreach ($script in ($privateScripts + $publicScripts)) {
-	try {
-		. $script.FullName
-	} catch {
-		Write-Error -Message ("Failed to import function {0}: {1}" -f $script, $_)
-	}
+# Load Non-Public commands
+foreach ($file in Get-ChildItem -Path "$script:ModuleRoot\private" -Recurse -Filter "*.ps1") {
+	try { . $file.FullName }
+	catch { Write-PSFMessage -Level Error -Message "Failed to import file {0}" -StringValues $file.FullName -ErrorRecord $_ -Target $file }
 }
 
-$testMetaPath = "$PSScriptRoot\private\tests\TestMeta.json"
-if (Test-Path $testMetaPath) {
-	# Read json and store in hashtable
-	$__ZtSession.TestMeta = Get-Content -Path $testMetaPath | ConvertFrom-Json -AsHashtable
+# Load Public commands
+foreach ($file in Get-ChildItem -Path "$script:ModuleRoot\public" -Recurse -Filter "*.ps1") {
+	try { . $file.FullName }
+	catch { Write-PSFMessage -Level Error -Message "Failed to import file {0}" -StringValues $file.FullName -ErrorRecord $_ -Target $file }
+}
+
+# Execute Startup scripts
+foreach ($file in Get-ChildItem -Path "$script:ModuleRoot\scripts" -Recurse -Filter "*.ps1") {
+	try { . $file.FullName }
+	catch { Write-PSFMessage -Level Error -Message "Failed to import file {0}" -StringValues $file.FullName -ErrorRecord $_ -Target $file }
+}
+
+# Ready the Tests
+foreach ($file in Get-ChildItem -Path "$script:ModuleRoot\tests" -Recurse -Filter "*.ps1") {
+	try { . $file.FullName }
+	catch { Write-PSFMessage -Level Error -Message "Failed to import file {0}" -StringValues $file.FullName -ErrorRecord $_ -Target $file }
 }

@@ -33,14 +33,14 @@ Function Invoke-ZtGraphRequestCache {
 
     $results = $null
     $isBatch = $uri.AbsoluteUri.EndsWith('$batch')
-    $isInCache = $__ZtSession.GraphCache.ContainsKey($Uri.AbsoluteUri)
+    $isInCache = $script:__ZtSession.GraphCache.ContainsKey($Uri.AbsoluteUri)
     $cacheKey = $Uri.AbsoluteUri
     $isMethodGet = $Method -eq 'GET'
 
     if (!$DisableCache -and !$isBatch -and $isInCache -and $isMethodGet) {
         # Don't read from cache for batch requests.
         Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
-        $results = $__ZtSession.GraphCache[$cacheKey]
+        $results = $script:__ZtSession.GraphCache[$cacheKey]
     }
 
     if (!$results) {
@@ -67,10 +67,10 @@ Function Invoke-ZtGraphRequestCache {
         if (!$isBatch -and $isMethodGet) {
             # Update cache
             if ($isInCache) {
-                $__ZtSession.GraphCache[$cacheKey] = $results
+                $script:__ZtSession.GraphCache[$cacheKey] = $results
             }
             else {
-                $__ZtSession.GraphCache.Add($cacheKey, $results)
+                $script:__ZtSession.GraphCache.Add($cacheKey, $results)
             }
         }
     }

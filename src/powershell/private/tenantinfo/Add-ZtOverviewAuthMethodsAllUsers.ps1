@@ -26,7 +26,12 @@ function Add-ZtOverviewAuthMethodsAllUsers {
     Add-ZtTenantInfo -Name "OverviewAuthMethodsAllUsers" -Value $caSummary
 }
 
-function Get-ZtOverviewAuthMethodsAllUsers() {
+function Get-ZtOverviewAuthMethodsAllUsers
+{
+	[CmdletBinding()]
+	param (
+
+	)
 
     $singleFactor = GetAllUsersAuthMethodCountSingleFactor
     $phone = GetAllUsersAuthMethodCount "'mobilePhone'"
@@ -80,7 +85,12 @@ function Get-ZtOverviewAuthMethodsAllUsers() {
     return $caSummaryArray
 }
 
-function GetAllUsersAuthMethodCountSingleFactor() {
+function GetAllUsersAuthMethodCountSingleFactor
+{
+	[CmdletBinding()]
+	param (
+
+	)
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails
@@ -90,7 +100,12 @@ where len(methodsRegistered) = 0
     return $results.count
 }
 
-function GetAllUsersAuthMethodCount($methodTypes) {
+function GetAllUsersAuthMethodCount
+{
+	[CmdletBinding()]
+	param (
+		$methodTypes
+	)
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails

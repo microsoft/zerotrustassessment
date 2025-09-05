@@ -17,7 +17,7 @@ select
 from SignIn
 "@
 
-    if ($null -eq $__ZtSession.SignInLogDuration) {
+    if ($null -eq $script:__ZtSession.SignInLogDuration) {
         $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
         $duration = 0
@@ -41,8 +41,8 @@ from SignIn
             $label += "s" # Pluralize
         }
 
-        $__ZtSession.SignInLogDuration = "$duration $label"
+        $script:__ZtSession.SignInLogDuration = "$duration $label"
     }
 
-    return $__ZtSession.SignInLogDuration
+    return $script:__ZtSession.SignInLogDuration
 }

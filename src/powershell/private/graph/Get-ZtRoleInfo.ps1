@@ -1,9 +1,10 @@
-﻿<#
+<#
 .SYNOPSIS
     Returns the Guid given the role name.
 
 #>
 function Get-ZtRoleInfo {
+    [CmdletBinding()]
     param(
         # The name of the role to get the Guid for.
         [string] $RoleName

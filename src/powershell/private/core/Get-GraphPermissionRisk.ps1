@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Get the risk of a permission in the graph database.
 #>
@@ -66,9 +66,14 @@ function Get-GraphPermissionRisk {
     return $Script:GraphPermissions[$permKey]
 }
 
-function GetPermissionsTable {
+function GetPermissionsTable
+{
+	[CmdletBinding()]
+	param (
+
+	)
     if (!$Script:GraphPermissionsCsv) {
-        $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath '../../assets/aadconsentgrantpermissiontable.csv'
+        $csvFilePath = Join-Path -Path $Script:ModuleRoot -ChildPath 'assets/aadconsentgrantpermissiontable.csv'
         $Script:GraphPermissionsTable = Import-Csv $csvFilePath -Delimiter ','
     }
     return $Script:GraphPermissionsTable

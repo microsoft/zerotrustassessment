@@ -41,7 +41,12 @@ group by isManaged, isCompliant
     Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
-function Get-ZtOverviewCaDevicesAllUsers($results) {
+function Get-ZtOverviewCaDevicesAllUsers
+{
+	[CmdletBinding()]
+	param (
+		$results
+	)
 
     $managed = GetManagedCount $results -isManaged $true
     $unmanaged = GetManagedCount $results -isManaged $false
@@ -82,13 +87,29 @@ function Get-ZtOverviewCaDevicesAllUsers($results) {
     return $caSummaryArray
 }
 
-function GetManagedCount($results, $isManaged) {
+function GetManagedCount
+{
+	[CmdletBinding()]
+	param (
+		$results,
+
+		$isManaged
+	)
     return ($results
     | Where-Object { $_.isManaged -eq $isManaged}
     | Select-Object -ExpandProperty cnt) -as [int]
 }
 
-function GetCompliant($results, $isManaged, $isCompliant) {
+function GetCompliant
+{
+	[CmdletBinding()]
+	param (
+		$results,
+
+		$isManaged,
+
+		$isCompliant
+	)
     return ($results
     | Where-Object { $_.isManaged -eq $isManaged -and $_.isCompliant -eq $isCompliant }
     | Select-Object -ExpandProperty cnt) -as [int]

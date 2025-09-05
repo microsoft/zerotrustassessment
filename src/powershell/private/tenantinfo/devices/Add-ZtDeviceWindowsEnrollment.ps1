@@ -1,10 +1,15 @@
-﻿
+
 <#
 .SYNOPSIS
     Add Windows enrollment summary used in Devices config view.
 #>
 
-function Add-ZtDeviceWindowsEnrollment {
+function Add-ZtDeviceWindowsEnrollment
+{
+	[CmdletBinding()]
+	param (
+
+	)
 
     $activity = "Getting Windows enrollment summary"
     Write-ZtProgress -Activity $activity -Status "Processing"

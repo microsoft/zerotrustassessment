@@ -1,4 +1,4 @@
-﻿<#
+<#
  .SYNOPSIS
    Helper module to run graph request that supports paging, batching and caching.
 
@@ -78,18 +78,24 @@ Function Invoke-ZtGraphRequest
     {
         if ([string]::IsNullOrEmpty($GraphBaseUri))
         {
-            if ([string]::IsNullOrEmpty($__ZtSession.GraphBaseUri))
+            if ([string]::IsNullOrEmpty($script:__ZtSession.GraphBaseUri))
             {
                 Write-PSFMessage -Message 'Setting GraphBaseUri to default value from MgContext.'
-                $__ZtSession.GraphBaseUri = $((Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint)
+                $script:__ZtSession.GraphBaseUri = $((Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint)
             }
         }
-        $GraphBaseUri = $__ZtSession.GraphBaseUri
+        $GraphBaseUri = $script:__ZtSession.GraphBaseUri
 
         $listRequests = New-Object 'System.Collections.Generic.List[psobject]'
 
-        function Format-Result ($results, $RawOutput)
-        {
+        function Format-Result
+{
+	[CmdletBinding()]
+	param (
+		$results,
+
+		$RawOutput
+	)
             $hasValueProperty = $false #Avoid error calling Get-Member when $results is $null
             if($results)
             {
@@ -124,8 +130,14 @@ Function Invoke-ZtGraphRequest
             }
         }
 
-        function Complete-Result ($results, $DisablePaging)
-        {
+        function Complete-Result
+{
+	[CmdletBinding()]
+	param (
+		$results,
+
+		$DisablePaging
+	)
             if (!$DisablePaging -and $results)
             {
                 $pageIndex = 1

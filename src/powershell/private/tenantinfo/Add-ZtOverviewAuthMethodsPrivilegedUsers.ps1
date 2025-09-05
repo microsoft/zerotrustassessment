@@ -26,7 +26,12 @@ function Add-ZtOverviewAuthMethodsPrivilegedUsers {
     Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
 
-function Get-ZtOverviewAuthMethodsPrivilegedUsers() {
+function Get-ZtOverviewAuthMethodsPrivilegedUsers
+{
+	[CmdletBinding()]
+	param (
+
+	)
 
     $singleFactor = GetPrivUserAuthMethodCountSingleFactor
     $phone = GetPrivUserAuthMethodCount "'mobilePhone'"
@@ -80,7 +85,12 @@ function Get-ZtOverviewAuthMethodsPrivilegedUsers() {
     return $caSummaryArray
 }
 
-function GetPrivUserAuthMethodCountSingleFactor() {
+function GetPrivUserAuthMethodCountSingleFactor
+{
+	[CmdletBinding()]
+	param (
+
+	)
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails
@@ -92,7 +102,12 @@ where len(methodsRegistered) = 0
     return $results.count
 }
 
-function GetPrivUserAuthMethodCount($methodTypes) {
+function GetPrivUserAuthMethodCount
+{
+	[CmdletBinding()]
+	param (
+		$methodTypes
+	)
     $sql = @"
 select count(*) as 'count'
 from UserRegistrationDetails

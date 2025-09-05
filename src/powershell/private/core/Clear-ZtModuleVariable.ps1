@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Resets all module variables to their default values.
 
@@ -11,11 +11,12 @@
 
 function Clear-ZtModuleVariable {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Module variables used in other functions.')]
+    [CmdletBinding()]
     param()
 
-    $__ZtSession.GraphCache = @{}
-    $__ZtSession.GraphBaseUri = $null
-    $__ZtSession.TestResultDetail = @{}
-    $__ZtSession.TenantInfo = @{}
-    $__ZtSession.SignInLogDuration = $null
+    $script:__ZtSession.GraphCache = @{}
+    $script:__ZtSession.GraphBaseUri = $null
+    $script:__ZtSession.TestResultDetail = @{}
+    $script:__ZtSession.TenantInfo = @{}
+    $script:__ZtSession.SignInLogDuration = $null
 }

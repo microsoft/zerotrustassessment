@@ -117,7 +117,7 @@ function Get-ZtTestCompletion {
 
     try {
         # Get test metadata from the known location
-        $testMetaPath = Join-Path $PSScriptRoot 'tests\TestMeta.json'
+        $testMetaPath = Join-Path -Path $script:ModuleRoot 'tests\TestMeta.json'
 
         if (-not (Test-Path $testMetaPath)) { return @() }
 
@@ -127,7 +127,7 @@ function Get-ZtTestCompletion {
             $testMetaContent = $script:TestMetaCache.Content
         } else {
             # Read and cache content
-            $testMetaContent = Get-Content $testMetaPath -Raw | ConvertFrom-Json
+            $testMetaContent = Import-PSFJson -Path $testMetaPath
             $script:TestMetaCache = @{ Content = $testMetaContent; LastModified = $fileInfo.LastWriteTime }
         }
 
@@ -195,7 +195,8 @@ function Get-ZtTestCompletion {
                         $isMatch = $true
                         $priority = 3
                     }
-                } else {
+                }
+				else {
                     # Single word: check all fields
                     $searchWord = $searchWords[0]
                     foreach ($field in $searchFields) {
@@ -245,7 +246,7 @@ function Get-ZtTestCompletion {
         }
 
         # Sort results
-        $sortedResults = $completions | Sort-Object Priority, NumericId | ForEach-Object { $_.CompletionResult }
+        $sortedResults = $completions | Sort-Object Priority, NumericId | ForEach-Object CompletionResult
 
         # Apply pagination if we have more than 10 results
         return Get-PaginatedCompletions -CompletionResults $sortedResults

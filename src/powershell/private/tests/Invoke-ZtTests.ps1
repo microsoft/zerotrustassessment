@@ -32,7 +32,7 @@ function Invoke-ZtTests {
 
     $mappedTenantType = $tenantTypeMapping[$TenantType]
 
-    $config = $__ZtSession.TestMeta
+    $config = $script:__ZtSession.TestMeta
 
     # Get the list of tests to run
     if ($Tests) {
