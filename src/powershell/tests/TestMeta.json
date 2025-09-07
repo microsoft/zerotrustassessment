@@ -1765,7 +1765,7 @@
     "Title": "Service principals use safe redirect URIs",
     "UserImpact": "Low"
   },
-    "24540": {
+  "24540": {
     "Category": "Device management",
     "ImplementationCost": "Low",
     "Pillar": "Devices",
@@ -1806,7 +1806,7 @@
   },
   "24548": {
     "Category": "Device management",
-    "ImplementationCost": "High",
+    "ImplementationCost": "Low",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
