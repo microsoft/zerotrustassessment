@@ -78,11 +78,10 @@ function Test-Assessment-24540 {
             }
 
             # Get assignment details for this specific policy
-            $policyWithAssignments = $firewallPoliciesWithAssignments | Where-Object { $_.id -eq $policy.id }
-            $assignmentTarget = "None"
+            $assignmentTarget = 'None'
 
-            if ($policyWithAssignments -and $policyWithAssignments.assignments -and $policyWithAssignments.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policyWithAssignments.assignments
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
             $tableRows += @"
