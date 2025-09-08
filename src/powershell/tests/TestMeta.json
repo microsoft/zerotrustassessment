@@ -1802,6 +1802,19 @@
     "Title": "Compliance policy assignment for iOS/iPadOS devices",
     "UserImpact": "Low"
   },
+    "24554": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24554",
+    "Title": "An iOS update policy is created and assigned",
+    "UserImpact": "Low"
+  },
   "40000": {
     "Category": "Device management",
     "ImplementationCost": "High",
