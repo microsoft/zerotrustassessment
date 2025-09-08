@@ -1,21 +1,29 @@
-<#
-.SYNOPSIS
-    Validates that DuckDB is installed and provide instruction on how to install.
-#>
-
-function Test-DuckDb
+function Test-DatabaseAssembly
 {
-	[CmdletBinding()]
-	param (
+	<#
+	.SYNOPSIS
+		Validates that DuckDB is installed and provides instruction on how to install.
 
-	)
+	.DESCRIPTION
+		Validates that DuckDB is installed and provides instruction on how to install.
+		This is done by connecting to the automatic in-memory database.
+		If that works, then the database binaries must be ready to work.
+
+	.EXAMPLE
+		PS C:\> Test-DatabaseAssembly
+
+		Validates that DuckDB is installed and - if needed - provides instruction on how to install.
+	#>
+	[CmdletBinding()]
+	param ()
 
     try {
-        Connect-Database # Try connecting with in memory db
+		# Try connecting with in memory db. Should always work if the assemblies can be loaded
+        $null = Connect-Database -Transient
         return $true
     }
     catch {
-        Write-PSFMessage $_.Exception.Message -Level Debug # Log silently
+        Write-PSFMessage 'Database binaries not ready to use' -ErrorRecord $_ -Tag DB -Level Debug # Log silently
 
         # Check for specific DuckDB initialization error that indicates missing Visual C++ Redistributable
         if ($_.Exception.Message -like "*The type initializer for 'DuckDB.NET*") {
@@ -28,7 +36,7 @@ function Test-DuckDb
         }
         else {
             # Throw exceptions
-            throw $_.Exception
+            throw
         }
         return $false
     }

@@ -3,42 +3,13 @@
     Creates a new table in the database.
 #>
 
-<#
-.SYNOPSIS
-    Returns the explicit schema handling information for tables that need special treatment.
-#>
-function Get-TableSchemaConfig {
-    [CmdletBinding()]
-    param (
-        # The name of the table to get schema config for
-        [Parameter(Mandatory = $true)]
-        [string]
-        $TableName
-    )
-
-    $configs = @{
-        'ServicePrincipalSignIn' = @{
-            'use_union_by_name' = $true
-            'sample_size' = 50  # Sample more files to avoid schema inference issues
-            'reason' = 'Contains mixed data types in lastSignInRequestId fields (UUIDs and "Aggregated")'
-        }
-        'SignIn' = @{
-            'use_union_by_name' = $true
-            'sample_size' = 20  # Sample more files to avoid schema inference issues
-            'reason' = 'Sign-in logs may have similar mixed data type issues'
-        }
-    }
-
-    return $configs[$TableName]
-}
-
 function New-EntraTable {
     [CmdletBinding()]
     param (
         # The connection to the database.
         [Parameter(Mandatory = $true)]
         [DuckDB.NET.Data.DuckDBConnection]
-        $Connection,
+        $Database,
 
         # The name of the table to create.
         [Parameter(Mandatory = $true)]
@@ -79,10 +50,10 @@ function New-EntraTable {
 
     try {
         Write-PSFMessage "Creating temporary table temp$TableName with parameters: $paramsString" -Level Debug -Tag DB
-        Invoke-DatabaseQuery -Database $Connection -Sql $sqlTemp -NonQuery
+        Invoke-DatabaseQuery -Database $Database -Sql $sqlTemp -NonQuery
 
         Write-PSFMessage "Creating final table $TableName" -Level Debug -Tag DB
-        Invoke-DatabaseQuery -Database $Connection -Sql $sqlTable -NonQuery
+        Invoke-DatabaseQuery -Database $Database -Sql $sqlTable -NonQuery
     }
     catch {
         Write-PSFMessage "Error creating table $TableName`: $($_.Exception.Message)" -Level Error -Tag DB -ErrorRecord $_
