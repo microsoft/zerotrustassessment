@@ -1337,7 +1337,9 @@
   "21886": {
     "Category": "Access control",
     "ImplementationCost": "Medium",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce",
       "External"
