@@ -1819,7 +1819,7 @@
   },
   "24549": {
     "Category": "Device management",
-    "ImplementationCost": "High",
+    "ImplementationCost": "Low",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
@@ -1827,8 +1827,8 @@
       "Workforce"
     ],
     "TestId": "24549",
-    "Title": "App Protection Policy assigned on Android Devices",
-    "UserImpact": "Low"
+    "Title": "An App protection policy for Android platform exists in Intune",
+    "UserImpact": "Medium"
   },
   "24550": {
     "Category": "Device management",
