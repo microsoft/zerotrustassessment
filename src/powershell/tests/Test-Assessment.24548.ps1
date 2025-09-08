@@ -9,22 +9,15 @@ function Test-Assessment-24548 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    #region Data Collection
     $activity = "Checking that an app protection policy for iOS devices exists"
     Write-ZtProgress -Activity $activity
 
+    # Query 1: Retrieve all iOS App Protection Policies and their assignments
     $iosAppProtectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections?$expand=assignments' -ApiVersion v1.0
-    $iosAppProtectionPolicies.Foreach{
-        $_ | Add-Member -MemberType NoteProperty -Name PortalUrl -Value ("https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AppsMenu/~/protection" -f $null) -Force
-    }
+    #endregion Data Collection
 
-    $iosAppProtectionPolicies.assignments.Foreach{
-        # Resolve group display names for each assignment of each policy
-        $groupId = $_.target.groupId
-        $groupDisplayName = (Invoke-ZtGraphRequest -RelativeUri ('groups/{0}?$select=displayName' -f $groupId) -ApiVersion v1.0).displayName
-        # Add the display name as extra property to the assignment object
-        $_ | Add-Member -MemberType NoteProperty -Name displayName -Value $groupDisplayName -Force
-    }
-
+    #region Assessment Logic
     $passed = $iosAppProtectionPolicies.Count -ne 0 -and $iosAppProtectionPolicies.Where{$_.IsAssigned -eq $true}.count -ne 0
 
     if ($passed) {
@@ -33,26 +26,60 @@ function Test-Assessment-24548 {
     else {
         $testResultMarkdown = "No App protection policy for iOS exists or none are assigned.`n`n%TestResult%"
     }
+    #endregion Assessment Logic
+
+    #region Report Generation
+    # Build the detailed sections of the markdown
+
+    # Define variables to insert into the format string
+    $reportTitle = "OS App Protection policies configured for iOS"
+    $tableRows = ""
+
+    # Generate markdown table rows for each policy
 
     if ($iosAppProtectionPolicies.Count -gt 0) {
-        $mdInfo = "`n## iOS App Protection policies configured for iOS`n`n"
-        $mdInfo += "| Display Name | Status | Assignments |`n"
-        $mdInfo += "| :--- | :--- | :--- |`n"
-        foreach ($item in $iosAppProtectionPolicies) {
-            $excluded = $item.assignments.where{$_.target.'@odata.type' -eq '#microsoft.graph.exclusionGroupAssignmentTarget'}
-            $included = $item.assignments.where{$_.target.'@odata.type' -eq '#microsoft.graph.groupAssignmentTarget'}
-            $status = if ($item.IsAssigned) { '✅ Assigned' } else { '❌ Not Assigned' }
-            $policyName = Get-SafeMarkdown -Text $item.displayName
-            $includedNames = $included.displayName.Foreach{ Get-SafeMarkdown -Text $_ } -join ', '
-            $excludedNames = $excluded.displayName.Foreach{ Get-SafeMarkdown -Text $_ } -join ', '
-            $mdInfo += '| [**{0}**]({1}) | {2} | **Included**: {3}, **Excluded:**  {4}. |`n' -f $policyName, $item.PortalUrl, $status, $includedNames, $excludedNames
+                # Create a here-string with format placeholders {0}, {1}, etc.
+        $formatTemplate = @'
+
+## {0}
+
+| Policy Name | Status | Assignment |
+| :---------- | :----- | :--------- |
+{1}
+
+'@
+
+        foreach ($policy in $iosAppProtectionPolicies) {
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AppsMenu/~/protection'
+            $status = if ($policy.IsAssigned) {
+                '✅ Assigned'
+            }
+            else {
+                '❌ Not Assigned'
+            }
+
+            $policyName = Get-SafeMarkdown -Text $policy.displayName
+            $assignmentTarget = "None"
+
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+            }
+
+            $tableRows += @"
+| [$policyName]($portalLink) | $status | $assignmentTarget |`n
+"@
         }
+
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "`nNo iOS App Protection policies were found.`n"
+        $mdInfo = "No iOS App Protection policies were found.`n"
     }
 
+    # Replace the placeholder in the test result markdown with the generated details
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    #endregion Report Generation
 
     $params = @{
         TestId             = '24548'
