@@ -1763,7 +1763,7 @@
     "Title": "Service principals use safe redirect URIs",
     "UserImpact": "Low"
   },
-    "24540": {
+  "24540": {
     "Category": "Device management",
     "ImplementationCost": "Low",
     "Pillar": "Devices",
@@ -1802,7 +1802,85 @@
     "Title": "Compliance policy assignment for iOS/iPadOS devices",
     "UserImpact": "Low"
   },
-    "24554": {
+  "24548": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24548",
+    "Title": "App Protection Policy assigned on iOS/iPad devices",
+    "UserImpact": "Low"
+  },
+  "24549": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24549",
+    "Title": "An App protection policy for Android platform exists in Intune",
+    "UserImpact": "Medium"
+  },
+  "24550": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24550",
+    "Title": "Windows - BitLocker Policy is created and assigned",
+    "UserImpact": "Low"
+  },
+  "24551": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24551",
+    "Title": "Windows - Hello for Business policy is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "",
+    "Title": "",
+    "UserImpact": "Low"
+  },
+  "24553": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24553",
+    "Title": "Windows - Windows Update Policy is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "24554": {
     "Category": "Device management",
     "ImplementationCost": "Low",
     "Pillar": "Devices",

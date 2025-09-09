@@ -1,0 +1,1 @@
+﻿Set-PSFConfig -Module ZeroTrustAssessment -Name 'Logging.Database.IncludeQueryResults' -Value $false -Initialize -Validation bool -Description 'Include the individual results from queries against the internal database in the logs. Significantly increases logsize and includes sensitive data.'

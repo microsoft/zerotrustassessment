@@ -10,3 +10,6 @@ if (Test-Path $testMetaPath) {
 	# Read json and store in hashtable
 	$script:__ZtSession.TestMeta = Import-PSFJson -LiteralPath $testMetaPath -AsHashtable
 }
+
+# The Database Connection used by Invoke-DatabaseQuery. Established by Connect-Database, cleared by Disconnect-Database
+$script:_DatabaseConnection = $null

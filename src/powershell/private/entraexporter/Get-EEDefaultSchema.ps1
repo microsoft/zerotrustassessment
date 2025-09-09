@@ -15,7 +15,7 @@ function Get-EEDefaultSchema
 	param (
 
 	)
-    $global:TenantID = (Get-MgContext).TenantId
+    $tenantID = (Get-MgContext).TenantId
     return  @(
         # Organization
         @{
@@ -27,14 +27,14 @@ function Get-EEDefaultSchema
             ApplicationPermission = 'Directory.Read.All'
         },
         @{
-            GraphUri = 'organization/{0}/branding/localizations' -f $TenantID
+            GraphUri = 'organization/{0}/branding/localizations' -f $tenantID
             Table = 'organizationalBrandingLocalization'
             Path = 'Organization/Branding/Localizations.json'
             Tag = @('All', 'Config', 'Organization')
             DelegatedPermission = 'User.Read.All'
         },
         @{
-            GraphUri = 'organization/{0}/certificateBasedAuthConfiguration' -f $TenantID
+            GraphUri = 'organization/{0}/certificateBasedAuthConfiguration' -f $tenantID
             Table = 'certificateBasedAuthConfiguration'
             Path = 'Organization/CertificateBasedAuthConfiguration.json'
             Tag = @('All', 'Config', 'Organization')
@@ -42,7 +42,7 @@ function Get-EEDefaultSchema
             ApplicationPermission = 'Organization.Read.All'
         },
         @{
-            GraphUri = 'directory/onPremisesSynchronization/{0}' -f $TenantID
+            GraphUri = 'directory/onPremisesSynchronization/{0}' -f $tenantID
             Table = 'onPremisesSynchronization'
             Path = 'Directory/OnPremisesSynchronization.json'
             Tag = @('All', 'Config', 'Directory')
