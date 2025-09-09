@@ -406,3 +406,4 @@ ZeroTrustReport
 /src/report/dist
 /src/powershell/export
 ZeroTrustReport
+/code-tests/TestResults
