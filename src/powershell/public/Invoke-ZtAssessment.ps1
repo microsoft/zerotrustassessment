@@ -139,7 +139,7 @@ function Invoke-ZtAssessment {
         [Parameter(ParameterSetName = 'Interactive', Mandatory)]
         [switch]
         $Interactive,
-        
+
         # The Zero Trust pillar to assess. Defaults to All.
         [ValidateSet('All', 'Identity', 'Devices')]
         [string]
@@ -258,11 +258,11 @@ function Invoke-ZtAssessment {
         Get-PSFMessageLevelModifier -Name ZeroTrustAssessmentV2.VeryVerbose | Remove-PSFMessageLevelModifier
     }
 
-    if(!(Test-DuckDb)) {
+    if(-not (Test-DatabaseAssembly)) {
         return
     }
 
-    if (!(Test-ZtContext)) {
+    if (-not (Test-ZtContext)) {
         return
     }
 
