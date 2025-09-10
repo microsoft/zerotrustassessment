@@ -1923,7 +1923,7 @@
   },
   "24560": {
     "Category": "Device management",
-    "ImplementationCost": "High",
+    "ImplementationCost": "Low",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
