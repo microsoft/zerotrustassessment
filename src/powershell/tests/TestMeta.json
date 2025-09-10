@@ -1856,18 +1856,18 @@
     "Title": "Windows - Hello for Business policy is configured and assigned",
     "UserImpact": "Low"
   },
-  "": {
+  "24552": {
     "Category": "Device management",
     "ImplementationCost": "High",
     "Pillar": "Devices",
-    "RiskLevel": "High",
+    "RiskLevel": "Medium",
     "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
-    "TestId": "",
-    "Title": "",
-    "UserImpact": "Low"
+    "TestId": "24552",
+    "Title": "macOS - Firewall policy is created and assigned",
+    "UserImpact": "High"
   },
   "24553": {
     "Category": "Device management",
