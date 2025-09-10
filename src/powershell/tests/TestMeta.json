@@ -1778,6 +1778,19 @@
     "Title": "Windows Firewall policy is created and assigned",
     "UserImpact": "Low"
   },
+  "24541": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24541",
+    "Title": "A compliance policy for Windows devices exists ",
+    "UserImpact": "Low"
+  },
   "24542": {
     "Category": "Device management",
     "ImplementationCost": "Low",
@@ -1803,6 +1816,19 @@
     "TestId": "24543",
     "Title": "Compliance policy assignment for iOS/iPadOS devices",
     "UserImpact": "Low"
+  },
+  "24546": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24546",
+    "Title": "Windows Automatic Enrollment is enabled ",
+    "UserImpact": "Medium"
   },
   "24548": {
     "Category": "Device management",
@@ -1893,6 +1919,32 @@
     ],
     "TestId": "24554",
     "Title": "iOS - Update policy is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "24560": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24560",
+    "Title": "Windows Cloud LAPS policy is created and assigned ",
+    "UserImpact": "Low"
+  },
+  "24576": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "Low",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24576",
+    "Title": "Intune Endpoint Analytics policy is created and Assigned ",
     "UserImpact": "Low"
   },
   "24690": {
