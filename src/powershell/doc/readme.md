@@ -6,13 +6,13 @@
 
 As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
 
-Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) and __Intune Security Recommendations (Coming Soon)__ guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
 
 Manually checking a tenant's configuration against the published guidance can be time consuming and error-prone. The Zero Trust Assessment PowerShell module was built to help with this activity.
 
 The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
 
-_This initial release is limited to Microsoft Entra._
+_This initial release is limited to Microsoft Entra and Microsoft Intune._
 
 ## Prerequisites
 
@@ -64,7 +64,7 @@ Update-Module Az.Accounts -Force -Scope CurrentUser 
 ## Connect to Microsoft Graph and Azure
 
 To run this assessment, you must connect to Microsoft Graph and
-optionally to Azure. When connecting using Microsoft Graph PowerShell, the following permissions are requested. You are presented with a permissions requested page that you must consent to be able to run the assessment. 
+optionally to Azure. When connecting using Microsoft Graph PowerShell, the following permissions are requested. You are presented with a permissions requested page that you must consent to be able to run the assessment.
 
 The consent prompt is only displayed if the Graph PowerShell app does not already have these permissions.
 
@@ -129,6 +129,15 @@ Use the following command to run the assessment.
 Invoke-ZtAssessment
 ```
 
+> The assessment may take more than 24 hours to run on large
+tenants. Please do not abort the assessment while it is running (even if warnings and errors are logged)
+
+If you are only interested in the Devices (Intune) pillar (which takes less than 5 minutes to run), you can use the following command:
+
+```powershell
+Invoke-ZtAssessment -Pillar Devices
+```
+
 The results are created in the current working folder `.\ZeroTrustReport\ZeroTrustAssessmentReport.html`. After the
 assessment completes, the report is automatically opened in the default browser.
 
@@ -139,9 +148,6 @@ store the assessment report. For example, the following command produces the rep
 ```powershell
 Invoke-ZtAssessment --Path C:/MyAssessment01
 ```
-
-> The assessment may take more than 24 hours to run on large
-tenants. Please do not abort the assessment while it is running (even if warnings and errors are logged)
 
 ## Review assessment results
 

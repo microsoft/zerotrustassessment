@@ -29,10 +29,11 @@ if ($OutputModuleFileInfo.Extension -eq ".psm1") {
     if ($ModuleManifest['PowerShellVersion']) { $RequiresStatements += "#Requires -Version {0}`r`n" -f $ModuleManifest['PowerShellVersion'] }
     if ($ModuleManifest['CompatiblePSEditions']) { $RequiresStatements += "#Requires -PSEdition {0}`r`n" -f ($ModuleManifest['CompatiblePSEditions'] -join ',') }
     foreach ($RequiredAssembly in $ModuleManifest['RequiredAssemblies']) {
-        $RequiresStatements += "#Requires -Assembly $_`r`n"
+        $RequiresStatements += "#Requires -Assembly $RequiredAssembly`r`n"
     }
     foreach ($RequiredModule in $ModuleManifest['RequiredModules']) {
-        $RequiresStatements += ConvertTo-PsString $ModuleManifest['RequiredModules'] -Compact -RemoveTypes ([hashtable], [string]) | ForEach-Object { "#Requires -Module $_`r`n" }
+        $RequiredModuleString = ConvertTo-PsString $RequiredModule -Compact -RemoveTypes ([hashtable], [string])
+        $RequiresStatements += "#Requires -Module $RequiredModuleString`r`n"
     }
 
     ## Build Module Comment Header
