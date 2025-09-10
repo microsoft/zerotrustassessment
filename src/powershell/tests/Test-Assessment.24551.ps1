@@ -31,9 +31,7 @@ function Test-Assessment-24551 {
     $passed = $windowsHelloTenantConfig.state -eq 'enabled' -or $windowsHelloMdmPolicies.Where{$_.Assignments.target.groupId}.count -ne 0
 
     if ($passed) {
-        # TODO: Result is misleading. It might be assigned and enforced on some devices but not all.
-        # A more thorough check would require checking each assignment target and ensuring it covers all corporate devices
-        $testResultMarkdown = "Windows Hello for Business policy is assigned and enforced for all devices.`n`n%TestResult%"
+        $testResultMarkdown = "Windows Hello for Business policy is assigned and enforced.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Windows Hello for Business policy is not assigned or not enforced.`n`n%TestResult%"
@@ -76,7 +74,6 @@ function Test-Assessment-24551 {
     if ($windowsHelloMdmPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         foreach ($policy in $windowsHelloMdmPolicies) {
-            # TODO: check URL
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
