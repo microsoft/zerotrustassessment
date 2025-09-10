@@ -17,7 +17,7 @@ function Test-Assessment-24540 {
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Query 1: Retrieve all Windows Firewall configuration policies and their potential assignments
-    $firewallPoliciesWithAssignmentsUri = "deviceManagement/configurationPolicies?`$select=id,name,description,isAssigned,templateReference&`$expand=assignments&`$top=25&`$filter=templateReference/TemplateFamily eq 'endpointSecurityFirewall'"
+    $firewallPoliciesWithAssignmentsUri = "deviceManagement/configurationPolicies?`$select=id,name,description,isAssigned,templateReference&`$expand=assignments&`$filter=templateReference/TemplateFamily eq 'endpointSecurityFirewall'"
     $firewallPoliciesWithAssignments = Invoke-ZtGraphRequest -RelativeUri $firewallPoliciesWithAssignmentsUri -ApiVersion beta
     #endregion Data Collection
 
