@@ -46,7 +46,7 @@ function Test-Assessment-24554 {
 
     # DDM iOS Update Policies
     $iOSPolicies_DDMUri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')&`$expand=settings"
-    $iOSPolicies_DDM = Invoke-ZtGraphRequest -RelativeUri $iOSPolicies_DDMUri -ApiVersion beta -DisableCache
+    $iOSPolicies_DDM = Invoke-ZtGraphRequest -RelativeUri $iOSPolicies_DDMUri -ApiVersion beta
 
     $iOSUpdatePolicies_DDM = @()
     foreach ($iOSPolicy_DDM in $iOSPolicies_DDM) {
@@ -175,39 +175,3 @@ function Test-Assessment-24554 {
 
     Add-ZtTestResultDetail @params
 }
-
-<#
-WRONG:
-# https://graph.microsoft.com/beta/deviceManagement/configurationCategories?&$filter=(platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')
-
-https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?&$filter = (platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')
-
-ID: b22ab433-3b70-489c-b74d-07afeb7d4e75
-
-https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('b22ab433-3b70-489c-b74d-07afeb7d4e75')?$expand=settings
-
-JUST ONE CALL:
-https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?&$filter = (platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')&$expand = settings
-
-$testUri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')&`$expand=settings"
-Invoke-ZtGraphRequest -RelativeUri $testUri -ApiVersion beta
-
-https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('b22ab433-3b70-489c-b74d-07afeb7d4e75')/assignments
-
-b22ab433-3b70-489c-b74d-07afeb7d4e75
-f4cb6c07-5529-409e-bbeb-73d311728aaa
-f82068b8-c49f-4ddf-b380-451506f28e44
-9f6b8367-6928-4781-b9c0-41790ad610d5
-
-$settings1 = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies('b22ab433-3b70-489c-b74d-07afeb7d4e75')?`$expand=settings" -ApiVersion beta -DisableCache
-
-$settings1.settings.settingInstance.groupSettingCollectionValue.Children.settingDefinitionId -eq 'ddm-latestsoftwareupdate_enforcelatestsoftwareupdateversion'
-# NO GARANTEE THIS VALUE WILL BE 1. It's configurational (number of delay days)
-$settings1.settings.settingInstance.groupSettingCollectionValue.Children.choiceSettingValue.children.simpleSettingValue[0].value
-
-$settings2 = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies('f4cb6c07-5529-409e-bbeb-73d311728aaa')?`$expand=settings" -ApiVersion beta -DisableCache
-
-$settings3 = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies('f82068b8-c49f-4ddf-b380-451506f28e44')?`$expand=settings" -ApiVersion beta -DisableCache
-
-$settings4 = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies('9f6b8367-6928-4781-b9c0-41790ad610d5')?`$expand=settings" -ApiVersion beta -DisableCache
-#>
