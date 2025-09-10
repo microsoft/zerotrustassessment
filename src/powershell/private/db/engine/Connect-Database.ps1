@@ -64,8 +64,7 @@
     if ($PassThru -or $Transient) {$database}
 	if (-not $Transient) {
 		if ($script:_DatabaseConnection) {
-			$script:_DatabaseConnection.Close()
-			$script:_DatabaseConnection.Dispose()
+			Disconnect-Database
 		}
 		$script:_DatabaseConnection = $database
 	}

@@ -29,11 +29,15 @@
 	)
 
 	if ($Database) {
-		$Database.Close()
+		if ($Database.State -eq 'Open') {
+			$Database.Close()
+		}
 		$Database.Dispose()
 	}
 	elseif ($script:_DatabaseConnection) {
-		$script:_DatabaseConnection.Close()
+		if ($script:_DatabaseConnection.State -eq 'Open') {
+			$script:_DatabaseConnection.Close()
+		}
 		$script:_DatabaseConnection.Dispose()
 		$script:_DatabaseConnection = $null
 	}
