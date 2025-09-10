@@ -107,7 +107,7 @@ function Test-Assessment-24543 {
             }
 
             $tableRows += @"
-| [$(Get-SafeMarkdown($policyWithAssignments.displayName))]($portalLink) | $status | $assignmentTarget |
+| [$(Get-SafeMarkdown($policyWithAssignments.displayName))]($portalLink) | $status | $assignmentTarget |`n
 "@
         }
 

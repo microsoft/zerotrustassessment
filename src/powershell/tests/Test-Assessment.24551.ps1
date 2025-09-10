@@ -103,7 +103,7 @@ function Test-Assessment-24551 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget | $biometrics |
+| [$policyName]($portalLink) | $status | $assignmentTarget | $biometrics |`n
 "@
         }
     }

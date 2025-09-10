@@ -65,7 +65,6 @@ function Test-Assessment-24560 {
     if ($cloudLapsPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         foreach ($policy in $cloudLapsPolicies) {
-            # TODO: check URL
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/accountprotection'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
@@ -82,7 +81,7 @@ function Test-Assessment-24560 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
+| [$policyName]($portalLink) | $status | $assignmentTarget |`n
 "@
         }
     }
