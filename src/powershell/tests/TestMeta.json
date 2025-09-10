@@ -1845,7 +1845,7 @@
   },
   "24551": {
     "Category": "Device management",
-    "ImplementationCost": "High",
+    "ImplementationCost": "Medium",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
@@ -1853,8 +1853,8 @@
       "Workforce"
     ],
     "TestId": "24551",
-    "Title": "Windows - Hello for Business policy is configured and assigned",
-    "UserImpact": "Low"
+    "Title": "Windows Hello for Business Policy is Configured and Assigned",
+    "UserImpact": "Medium"
   },
   "24552": {
     "Category": "Device management",
