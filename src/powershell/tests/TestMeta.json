@@ -1871,7 +1871,7 @@
   },
   "24553": {
     "Category": "Device management",
-    "ImplementationCost": "High",
+    "ImplementationCost": "Medium",
     "Pillar": "Devices",
     "RiskLevel": "High",
     "SfiPillar": "Protect engineering systems",
@@ -1879,8 +1879,8 @@
       "Workforce"
     ],
     "TestId": "24553",
-    "Title": "Windows - Windows Update Policy is configured and assigned",
-    "UserImpact": "Low"
+    "Title": "Windows Update policy is assigned and enforced.",
+    "UserImpact": "Medium"
   },
   "24554": {
     "Category": "Device management",
