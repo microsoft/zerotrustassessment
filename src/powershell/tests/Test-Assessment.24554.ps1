@@ -12,25 +12,25 @@ function Test-Assessment-24554 {
 
     #region Helper Functions
 
-    function Test-PolicyAssignment {
-        [CmdletBinding()]
-        param(
-            [Parameter(Mandatory)]
-            $Policies
-        )
+function Test-PolicyAssignment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $false)]
+        [array]$Policies
+    )
 
-        # Check if at least one policy exists
-        if ($Policies.Count -gt 0) {
-            # Check if at least one policy has assignments
-            $assignedPolicies = $Policies | Where-Object {
-                $_.assignments -and $_.assignments.Count -gt 0
-            }
-
-            return $assignedPolicies.Count -gt 0
-        }
-
+    # Return false if $Policies is null or empty
+    if (-not $Policies) {
         return $false
     }
+
+    # Check if at least one policy has assignments
+    $assignedPolicies = $Policies | Where-Object {
+        $_.PSObject.Properties.Match("assignments") -and $_.assignments -and $_.assignments.Count -gt 0
+    }
+
+    return $assignedPolicies.Count -gt 0
+}
     #endregion Helper Functions
 
     #region Data Collection
@@ -45,7 +45,7 @@ function Test-Assessment-24554 {
     $iOSUpdatePolicies_MDM_assignments = Invoke-ZtGraphRequest -RelativeUri $iOSUpdatePolicies_MDMUri -ApiVersion beta
 
     # DDM iOS Update Policies
-    $iOSPolicies_DDMUri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'iOS') and (technologies has 'mdm' or technologies has 'appleRemoteManagement')&`$expand=settings"
+    $iOSPolicies_DDMUri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'iOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$expand=settings"
     $iOSPolicies_DDM = Invoke-ZtGraphRequest -RelativeUri $iOSPolicies_DDMUri -ApiVersion beta
 
     $iOSUpdatePolicies_DDM = @()
