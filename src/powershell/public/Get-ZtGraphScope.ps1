@@ -23,6 +23,10 @@ Function Get-ZtGraphScope {
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
         'AuditLog.Read.All'
         'CrossTenantInformation.ReadBasic.All'
+        'DeviceManagementApps.Read.All'
+        'DeviceManagementConfiguration.Read.All'
+        'DeviceManagementRBAC.Read.All'
+        'DeviceManagementServiceConfig.Read.All'
         'Directory.Read.All'
         'DirectoryRecommendations.Read.All'
         'IdentityRiskEvent.Read.All'
