@@ -40,7 +40,7 @@ function Test-PolicyAssignment {
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Retrieve all device configuration policies
-    $deviceConfigurationPolicies_Uri = "deviceManagement/deviceConfigurations?`$select=id,displayName,assignments,deviceStatusOverview&`$expand=deviceStatusOverview,assignments"
+    $deviceConfigurationPolicies_Uri = "deviceManagement/deviceConfigurations?`$select=id,displayName,assignments&`$expand=assignments"
     $deviceConfigurationPolicies = Invoke-ZtGraphRequest -RelativeUri $deviceConfigurationPolicies_Uri -ApiVersion beta
 
     # Filter device configuration policies for Windows Health Monitoring
