@@ -2114,7 +2114,7 @@
     "ImplementationCost": "High",
     "Pillar": "Devices",
     "RiskLevel": "High",
-    "SfiPillar": "Tenant - Enrollment Notification",
+    "SfiPillar": "Protect engineering systems",
     "TenantType": [
       "Workforce"
     ],
