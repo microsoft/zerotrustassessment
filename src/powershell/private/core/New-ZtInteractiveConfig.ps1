@@ -22,19 +22,12 @@ Requires PowerShell 7+ and the PwshSpectreConsole module.
 Use 'Install-Module PwshSpectreConsole' to install the required module.
 #>
 
-#requires -version 7
-#requires -modules PwshSpectreConsole
-
 function New-ZtInteractiveConfig {
     [CmdletBinding()]
     [OutputType([System.IO.FileInfo])]
     param (
         # No parameters needed
     )
-
-    if (!(Get-Module -Name PwshSpectreConsole -ListAvailable)) {
-        Import-Module PwshSpectreConsole -Force
-    }
 
     # Create the output file path in temporary folder
     $tempPath = [System.IO.Path]::GetTempPath()
@@ -66,11 +59,11 @@ function New-ZtInteractiveConfig {
         # Loop until a valid number of days is provided
         do {
             $days = Read-SpectreText -Prompt "[cyan1]Number of days[/] [dim](1-30)[/]" -DefaultAnswer "30"
-            $daysValid = $days -as [int] -and $days -ge 1 -and $days -le 30
-            if (!$daysValid) {
+            $daysValid = $days -as [int] -and 1 -le $days -and 30 -ge $days
+            if (-not $daysValid) {
                 Write-SpectreHost "[red]❌ Please enter a number between 1 and 30.[/]"
             }
-        } while (!$daysValid)
+        } while (-not $daysValid)
         $configData.Days = [int]$days
         Write-SpectreHost "[green]✅ Will analyze $days days of sign-in logs[/]"
         Write-Host
@@ -85,10 +78,10 @@ function New-ZtInteractiveConfig {
         do {
             $maxTime = Read-SpectreText -Prompt "[cyan1]Maximum query time in minutes[/] [dim](0 = no limit)[/]" -DefaultAnswer "60"
             $maxTimeValid = $maxTime -match '^\d+$' -and [int]$maxTime -ge 0
-            if (!$maxTimeValid) {
+            if (-not $maxTimeValid) {
                 Write-SpectreHost "[red]❌ Please enter a number 0 or greater.[/]"
             }
-        } while (!$maxTimeValid)
+        } while (-not $maxTimeValid)
         $configData.MaximumSignInLogQueryTime = [int]$maxTime
 
         if ([int]$maxTime -eq 0) {
@@ -241,7 +234,7 @@ function New-ZtInteractiveConfig {
 
         $saveConfig = Read-SpectreConfirm -Prompt "[bold cyan1]💾 Save this configuration?[/]" -DefaultAnswer "y"
 
-        if (!$saveConfig) {
+        if (-not $saveConfig) {
             Write-Host
             Write-SpectreRule "❌ Configuration Cancelled" -Color ([Spectre.Console.Color]::Red)
             Write-SpectreHost "[yellow]Configuration creation cancelled by user.[/]"
@@ -251,8 +244,7 @@ function New-ZtInteractiveConfig {
         }
 
         # Generate and save configuration file as JSON in temporary folder
-        $configJson = $configData | ConvertTo-Json -Depth 3
-        $configJson | Out-File -FilePath $OutputPath -Encoding UTF8
+		$configData | Export-PSFJson -Path $OutputPath -Depth 3 -Encoding UTF8NoBom
 
         # Enhanced success message
         Write-Host
@@ -264,7 +256,7 @@ function New-ZtInteractiveConfig {
         Write-SpectreHost "[bold cyan1]🚀 Ready to start your Zero Trust Assessment![/]"
         Write-Host
 
-        return Get-Item $OutputPath
+        Get-Item $OutputPath
     }
     catch {
         Write-Host

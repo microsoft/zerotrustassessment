@@ -1,119 +1,83 @@
-<#
-.SYNOPSIS
-    Gets the results of all the Zero Trust Assessment tests
-#>
-
 function Get-ZtAssessmentResults {
-    [CmdletBinding()]
-    param ()
+	<#
+	.SYNOPSIS
+		Gets the results of all the Zero Trust Assessment tests
 
-    $mgContext = Get-MgContext
+	.DESCRIPTION
+		Gets the results of all the Zero Trust Assessment tests
+		Ran as the last part of the assessment invocation.
 
-    $tenantId = $mgContext.TenantId
-    $org = GetOrganization
-    $account = $mgContext.Account
+		Can be used independently after the assessment command has completed to review the last results.
 
-    $currentVersion = ((Get-Module -Name ZeroTrustAssessmentV2).Version | Select-Object -Last 1).ToString()
-    $latestVersion = GetModuleLatestVersion
+	.EXAMPLE
+		PS C:\> Get-ZtAssessmentResults
 
-    $tests = $script:__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk }}, @{Expression = { $_.TestStatus } }
-
-    # Sort by risk then by status
-    $ztTestResults = [PSCustomObject]@{
-        ExecutedAt     = GetFormattedDate(Get-Date)
-        TenantId       = $tenantId
-        TenantName     = $org.TenantName
-        Domain         = $org.Domain
-        Account        = $account
-        CurrentVersion = $currentVersion
-        LatestVersion  = $latestVersion
-        TestResultSummary = GetTestResultSummary $script:__ZtSession.TestResultDetail.values
-        Tests          = @($tests) # Use @() to ensure it's an array
-        TenantInfo     = $script:__ZtSession.TenantInfo
-        EndOfJson      = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
-    }
-
-    Write-PSFMessage $ztTestResults -Level Debug -Tag ZtAssessmentResults
-    return $ztTestResults
-}
-
-function GetModuleLatestVersion
-{
+		Gets the results of all the Zero Trust Assessment tests
+	#>
 	[CmdletBinding()]
-	param (
+	param ()
 
-	)
-    if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
-        return (Find-Module -Name ZeroTrustAssessmentV2).Version
-    }
+	#region Utility Functions
+	function Get-ModuleLatestVersion {
+		[CmdletBinding()]
+		param (
 
-    return 'Unknown'
-}
+		)
+		if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
+			return (Find-Module -Name ZeroTrustAssessmentV2).Version -as [string]
+		}
 
-function GetFormattedDate
-{
-	[CmdletBinding()]
-	param (
-		$date
-	)
-    if(!$IsCoreCLR) { # Prevent 5.1 date format to json issue
-        return $date.ToString("o")
-    }
-    else {
-        return $date
-    }
-}
+		return 'Unknown'
+	}
 
-function GetOrganization
-{
-	[CmdletBinding()]
-	param (
+	function Get-TestResultSummary {
+		[CmdletBinding()]
+		param (
+			$TestResults
+		)
+		[PSCustomObject]@{
+			IdentityPassed = @($TestResults).Where{ $_.TestPillar -eq 'Identity' -and $_.TestStatus -eq 'Passed' }.Count
+			IdentityTotal  = @($TestResults).Where{ $_.TestPillar -eq 'Identity' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+			DevicesPassed  = @($TestResults).Where{ $_.TestPillar -eq 'Devices' -and $_.TestStatus -eq 'Passed' }.Count
+			DevicesTotal   = @($TestResults).Where{ $_.TestPillar -eq 'Devices' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+			DataPassed     = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count
+			DataTotal      = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+		}
+	}
 
-	)
-    $org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-    $defaultDomain = $org.verifiedDomains | Where-Object { $_.isDefault } | Select-Object -First 1
-    return [PSCustomObject]@{
-        TenantName = $org.displayName
-        Domain     = $defaultDomain.name
-    }
-}
+	function Get-Organization {
+		[CmdletBinding()]
+		param (
 
-function GetTestPassedCount
-{
-	[CmdletBinding()]
-	param (
-		$testResults,
+		)
+		$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
+		$defaultDomain = $org.verifiedDomains | Where-Object { $_.isDefault } | Select-Object -First 1
+		return [PSCustomObject]@{
+			TenantName = $org.displayName
+			Domain     = $defaultDomain.name
+		}
+	}
+	#endregion Utility Functions
 
-		$pillar
-	)
-    return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -eq 'Passed' } | Measure-Object | Select-Object -ExpandProperty Count
-}
+	$mgContext = Get-MgContext
+	$org = Get-Organization
+	# Sort by risk then by status
+	$tests = $script:__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk } }, @{Expression = { $_.TestStatus } }
 
-function GetTestTotalCount
-{
-	[CmdletBinding()]
-	param (
-		$testResults,
+	$ztTestResults = [PSCustomObject][ordered]@{
+		ExecutedAt        = Get-Date
+		TenantId          = $mgContext.TenantId
+		TenantName        = $org.TenantName
+		Domain            = $org.Domain
+		Account           = $mgContext.Account
+		CurrentVersion    = $PSCmdlet.MyInvocation.MyCommand.Module.Version.ToString()
+		LatestVersion     = Get-ModuleLatestVersion
+		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.values
+		Tests             = @($tests) # Use @() to ensure it's an array
+		TenantInfo        = $script:__ZtSession.TenantInfo
+		EndOfJson         = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
+	}
 
-		$pillar
-	)
-    return $testResults | Where-Object { $_.TestPillar -eq $pillar -and $_.TestStatus -ne 'Skipped' -and $_.TestStatus -ne 'Planned'  } | Measure-Object | Select-Object -ExpandProperty Count
-}
-
-function GetTestResultSummary
-{
-	[CmdletBinding()]
-	param (
-		$testResults
-	)
-    $summary = [PSCustomObject]@{
-        IdentityPassed = GetTestPassedCount $testResults 'Identity'
-        IdentityTotal = GetTestTotalCount $testResults 'Identity'
-        DevicesPassed = GetTestPassedCount $testResults 'Devices'
-        DevicesTotal = GetTestTotalCount $testResults 'Devices'
-        DataPassed = GetTestPassedCount $testResults 'Data'
-        DataTotal = GetTestTotalCount $testResults 'Data'
-    }
-
-    return $summary
+	Write-PSFMessage $ztTestResults -Level Debug -Tag ZtAssessmentResults -Target $ztTestResults
+	$ztTestResults
 }

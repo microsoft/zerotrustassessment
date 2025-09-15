@@ -2,9 +2,10 @@
     [CmdletBinding()]
     param (
         # The export path
+		[Parameter(Mandatory = $true)]
         [string]
         $ExportPath
     )
 
-    return Join-Path $ExportPath "ztConfig.json"
+    Join-Path -Path $ExportPath -ChildPath "ztConfig.json"
 }
