@@ -3,7 +3,7 @@
     param (
         # The folder to output the report to.
         [Parameter(Mandatory = $true, Position = 0)]
-        [PSFNewFileSingle]
+        [string]
         $ExportPath,
 
         # Optional. The specific step to set
