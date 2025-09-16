@@ -16,25 +16,31 @@ function Test-Assessment-24560 {
     # Query 1: Retrieve assignment for Tenant wide Windows Hello for Business Configuration Policies
     $windowsPolicies = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies?`$filter=templateReference/templateFamily eq 'endpointSecurityAccountProtection' and platforms eq 'windows10'&`$expand=settings,assignments" -ApiVersion beta
 
-    $endpointSecurityAcctPolicies = $windowsPolicies.Where{
+    $lapsPolicies = $windowsPolicies.Where{
         $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -or
         $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_automaticaccountmanagementenabled'
     }
 
-    $cloudLapsPolicies = $endpointSecurityAcctPolicies.Where{
-        # backup in Azure AD only
-        ($_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -and
-        $_.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_1') -or
+    $compliantPolicies = $lapsPolicies.Where{
+        # backup in Entra ID only
+        (
+            $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -and
+            $_.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_1' -and
+            $_.settings.SettingInstance.choiceSettingValue.value -contains 'device_vendor_msft_laps_policies_automaticaccountmanagementenabled_true'
+        ) -or
 
         # Backup in AD only
-        ($_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -and
-        $_.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_2')
+        (
+            $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -and
+            $_.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_2' -and
+            $_.settings.SettingInstance.choiceSettingValue.value -contains 'device_vendor_msft_laps_policies_automaticaccountmanagementenabled_true'
+        )
     }
 
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $cloudLapsPolicies.count -gt 0 -and $cloudLapsPolicies.Where{$_.assignments.count -gt 0}.count -gt 0
+    $passed = $compliantPolicies.count -gt 0 -and $compliantPolicies.Where{$_.assignments.count -gt 0}.count -gt 0
 
     if ($passed) {
         $testResultMarkdown = "Cloud LAPS policy is assigned and enforced.`n`n%TestResult%"
@@ -55,22 +61,49 @@ function Test-Assessment-24560 {
 
 ## {0}
 
-| Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| Policy Name | Status | Assignment | Backup Directory | Automatic Account Management |
+| :---------- | :----- | :--------- | :--------------- | :--------------------------- |
 {1}
 
 '@
 
     # Generate markdown table rows for each policy
-    if ($cloudLapsPolicies.Count -gt 0) {
+    if ($lapsPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
-        foreach ($policy in $cloudLapsPolicies) {
+        foreach ($policy in $lapsPolicies) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/accountprotection'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
             }
             else {
                 '❌ Not Assigned'
+            }
+
+            $backupDirectory = if ($policy.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory') {
+                if ($policy.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_1') {
+                    '✅ Entra ID (AAD)'
+                }
+                elseif ($policy.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_laps_policies_backupdirectory_2') {
+                    '✅ Active Directory'
+                }
+                else {
+                    '❌ Disabled'
+                }
+            }
+            else {
+                '❌ Not Configured'
+            }
+
+            $management = if ($policy.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_automaticaccountmanagementenabled') {
+                if ($policy.settings.SettingInstance.choiceSettingValue.value -contains 'device_vendor_msft_laps_policies_automaticaccountmanagementenabled_true') {
+                    '✅ Enabled'
+                }
+                else {
+                    '❌ Disabled'
+                }
+            }
+            else {
+                '❌ Not Configured'
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.name
@@ -81,7 +114,7 @@ function Test-Assessment-24560 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |`n
+| [$policyName]($portalLink) | $status | $assignmentTarget | $backupDirectory | $management |`n
 "@
         }
     }

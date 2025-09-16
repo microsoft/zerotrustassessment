@@ -51,8 +51,8 @@ function Test-Assessment-24551 {
 
 {2}
 
-| Policy Name | Status | Assignment | Biometrics |
-| :---------- | :----- | :--------- | :--------- |
+| Policy Name | Status | Assignment |
+| :---------- | :----- | :--------- |
 {1}
 
 '@
@@ -82,16 +82,6 @@ function Test-Assessment-24551 {
                 '❌ Not Assigned'
             }
 
-            $biometrics = if ($policy.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_passportforwork_biometrics_usebiometrics_true') {
-                '✅ Enabled'
-            }
-            elseif ($policy.settings.settingInstance.ChoiceSettingValue.Value -contains 'device_vendor_msft_passportforwork_biometrics_usebiometrics_false') {
-                '❌ Disabled'
-            }
-            else {
-                '❓ Not Configured'
-            }
-
             $policyName = Get-SafeMarkdown -Text $policy.name
             $assignmentTarget = "None"
 
@@ -100,7 +90,7 @@ function Test-Assessment-24551 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget | $biometrics |`n
+| [$policyName]($portalLink) | $status | $assignmentTarget |`n
 "@
         }
     }
