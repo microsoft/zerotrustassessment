@@ -654,8 +654,8 @@
   },
   "21822": {
     "Category": "Access control",
-    "Pillar": "Identity",
     "ImplementationCost": "High",
+    "Pillar": "Identity",
     "RiskLevel": "Medium",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
@@ -761,8 +761,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -774,8 +774,8 @@
     "Category": "Privileged access",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -787,8 +787,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -800,8 +800,8 @@
     "Category": "Privileged access",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -827,8 +827,8 @@
     "Category": "Device management",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -840,8 +840,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -854,8 +854,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -868,8 +868,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -882,8 +882,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -896,8 +896,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -909,8 +909,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -922,8 +922,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -935,8 +935,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -949,8 +949,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -963,8 +963,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
     ],
@@ -976,8 +976,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -990,8 +990,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1004,8 +1004,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1031,8 +1031,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1045,8 +1045,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1059,8 +1059,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1087,8 +1087,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1129,8 +1129,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1157,8 +1157,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1199,8 +1199,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1241,8 +1241,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1282,8 +1282,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1296,8 +1296,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1324,8 +1324,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1338,8 +1338,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1352,8 +1352,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1366,8 +1366,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1394,8 +1394,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1436,8 +1436,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1476,8 +1476,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1504,8 +1504,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1518,8 +1518,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1532,8 +1532,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1546,8 +1546,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1560,8 +1560,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1574,8 +1574,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1588,8 +1588,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1602,8 +1602,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1616,8 +1616,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1630,8 +1630,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1644,8 +1644,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1658,8 +1658,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1672,8 +1672,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1686,8 +1686,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1700,8 +1700,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1714,8 +1714,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1728,8 +1728,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Low",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1770,8 +1770,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -1784,8 +1784,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "External"
     ],
@@ -1797,8 +1797,8 @@
     "Category": "Access control",
     "ImplementationCost": "Low",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "Medium",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "External"
     ],
@@ -1810,8 +1810,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "External"
     ],
@@ -1823,8 +1823,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "External"
     ],
@@ -1836,8 +1836,8 @@
     "Category": "Access control",
     "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "External"
     ],
@@ -1877,8 +1877,8 @@
     "Category": "Access control",
     "ImplementationCost": "High",
     "Pillar": "Identity",
-    "SfiPillar": "Protect identities and secrets",
     "RiskLevel": "High",
+    "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce",
       "External"
@@ -2070,58 +2070,6 @@
     "Title": "Windows Cloud LAPS policy is created and assigned ",
     "UserImpact": "Low"
   },
-  "24576": {
-    "Category": "Device management",
-    "ImplementationCost": "Low",
-    "Pillar": "Devices",
-    "RiskLevel": "Low",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24576",
-    "Title": "Intune Endpoint Analytics policy is created and Assigned ",
-    "UserImpact": "Low"
-  },
-  "24690": {
-    "Category": "Device management",
-    "ImplementationCost": "High",
-    "Pillar": "Devices",
-    "RiskLevel": "High",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24690",
-    "Title": "macOS - Update policy is configured and assigned",
-    "UserImpact": "Low"
-  },
-  "24573": {
-    "Category": "Device management",
-    "ImplementationCost": "High",
-    "Pillar": "Devices",
-    "RiskLevel": "High",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24573",
-    "Title": "Windows - A security baseline is configured and assigned",
-    "UserImpact": "Low"
-  },
-  "24572": {
-    "Category": "Device management",
-    "ImplementationCost": "High",
-    "Pillar": "Devices",
-    "RiskLevel": "High",
-    "SfiPillar": "Protect engineering systems",
-    "TenantType": [
-      "Workforce"
-    ],
-    "TestId": "24572",
-    "Title": "Device enrollment notification is configured and assigned",
-    "UserImpact": "Low"
-  },
   "24564": {
     "Category": "Device management",
     "ImplementationCost": "High",
@@ -2146,6 +2094,58 @@
     ],
     "TestId": "24568",
     "Title": "Windows - Local Account Protection policy is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "24572": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24572",
+    "Title": "Device enrollment notification is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "24573": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24573",
+    "Title": "Windows - A security baseline is configured and assigned",
+    "UserImpact": "Low"
+  },
+  "24576": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "Low",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24576",
+    "Title": "Intune Endpoint Analytics policy is created and Assigned ",
+    "UserImpact": "Low"
+  },
+  "24690": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24690",
+    "Title": "macOS - Update policy is configured and assigned",
     "UserImpact": "Low"
   }
 }
