@@ -60,7 +60,6 @@ Invoke-ZTAssessment -EnableTelemetry $true
   * DeviceManagementServiceConfig.Read.All
   * DeviceManagementConfiguration.Read.All
   * DeviceManagementRBAC.Read.All
-  * DeviceManagementConfiguration.Read.All
   * DeviceManagementApps.Read.All
   * RoleAssignmentSchedule.Read.Directory
   * RoleEligibilitySchedule.Read.Directory
