@@ -2119,7 +2119,7 @@
       "Workforce"
     ],
     "TestId": "24572",
-    "Title": "macOS - Update policy is configured and assigned",
+    "Title": "Device enrollment notification is configured and assigned",
     "UserImpact": "Low"
   },
   "24564": {
