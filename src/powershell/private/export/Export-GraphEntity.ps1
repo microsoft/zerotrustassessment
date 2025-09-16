@@ -87,7 +87,7 @@ function Export-GraphEntity {
 		}
 
 		$filePath = Join-Path -Path $Path -ChildPath "$EntityName-$PageIndex.json"
-		$results | Export-PSFJson -Path $filePath -Depth 100
+		$results | Export-PSFJson -Path $filePath -Depth 100 -Encoding UTF8NoBom
 		$CurrentCount
 	}
 
