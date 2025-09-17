@@ -2135,6 +2135,32 @@
     "Title": "Windows - A security baseline is configured and assigned",
     "UserImpact": "Low"
   },
+  "24574": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24574",
+    "Title": "Deploy Attack Surface Reduction Policies (ASR) policies for Windows devices",
+    "UserImpact": "Low"
+  },
+  "24575": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24575",
+    "Title": "A Windows Defender Antivirus policy is created and assigned",
+    "UserImpact": "Low"
+  },
   "24576": {
     "Category": "Device management",
     "ImplementationCost": "Low",
