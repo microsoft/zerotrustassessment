@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-
+    Check if Temporary Access Pass is configured for one-time use only
 #>
 
 function Test-Assessment-21846{
@@ -10,15 +10,54 @@ function Test-Assessment-21846{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Temporary access pass restricted to one-time use"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    Write-ZtProgress -Activity $activity -Status "Getting Temporary Access Pass policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    # Query Temporary Access Pass authentication method configuration
+    $tapConfig = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass' -ApiVersion 'v1.0'
 
+    # Check if isUsableOnce property is true
+    $passed = $tapConfig.isUsableOnce -eq $true
 
-    Add-ZtTestResultDetail -TestId '21846' -Title "Temporary access pass restricted to one-time use" `
-        -UserImpact Low -Risk Low -ImplementationCost Low `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+    if ($passed) {
+        $testResultMarkdown = "Temporary Access Pass is configured for one-time use only.`n`n%TestResult%"
+    } else {
+        $testResultMarkdown = "Temporary Access Pass allows multiple uses during validity period.`n`n%TestResult%"
+    }
+
+    # Build the detailed sections of the markdown
+    $reportTitle = "Temporary Access Pass Configuration"
+
+    # Create a here-string with format placeholders
+    $formatTemplate = @"
+
+## {0}
+
+| Setting | Value | Status |
+| :------ | :---- | :----- |
+| One-time use restriction | {1} | {2} |
+
+"@
+
+    $isUsableOnceValue = if ($tapConfig.isUsableOnce) { "Enabled" } else { "Disabled" }
+    $statusEmoji = if ($passed) { "✅ Pass" } else { "❌ Fail" }
+    $methodState = (Get-Culture).TextInfo.ToTitleCase($tapConfig.state.ToLower())
+
+    # Format the template by replacing placeholders with values
+    $mdInfo = $formatTemplate -f $reportTitle, $isUsableOnceValue, $statusEmoji, $methodState
+
+    # Replace the placeholder with the detailed information
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+
+    $params = @{
+        TestId             = '21846'
+        Title              = "Temporary access pass restricted to one-time use"
+        UserImpact         = 'Low'
+        Risk               = 'Low'
+        ImplementationCost = 'Low'
+        AppliesTo          = 'Identity'
+        Tag                = 'Identity'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
