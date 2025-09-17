@@ -34,7 +34,7 @@ function Test-Assessment-21846{
 
 | Setting | Value | Status |
 | :------ | :---- | :----- |
-| One-time use restriction | {1} | {2} |
+| [One-time use restriction](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AdminAuthMethods/fromNav/) | {1} | {2} |
 
 "@
 
