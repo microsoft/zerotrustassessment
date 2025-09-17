@@ -2,6 +2,7 @@
     [CmdletBinding()]
     param (
         # The export path
+		[Parameter(Mandatory = $true)]
         [string]
         $ExportPath,
 
@@ -13,14 +14,11 @@
     $configPath = Get-ZtConfigPath -ExportPath $ExportPath
     $Config = @{}
     if (Test-Path $configPath) {
-        $Config = Get-Content $configPath | ConvertFrom-Json -AsHashtable
+        $Config = Import-PSFJson -Path $configPath -AsHashtable
     }
 
     if ($Property) {
-        if($null -eq $Config) {
-            return $null
-        }
-        return Get-ObjectProperty $Config $Property
+        $Config.$Property
     }
     else {
         return $Config

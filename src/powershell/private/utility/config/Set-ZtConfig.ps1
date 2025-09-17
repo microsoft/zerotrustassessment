@@ -1,29 +1,36 @@
 ﻿function Set-ZtConfig {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Property')]
     param (
         # The folder to output the report to.
+        [Parameter(Mandatory = $true, Position = 0)]
         [string]
-        [Parameter(Mandatory = $true)]
         $ExportPath,
 
         # Optional. The specific step to set
-        [Parameter(Mandatory = $false)]
+		[Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+		[string]
         $Property,
 
+		[Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+		[AllowNull()]
+		[AllowEmptyCollection()]
+		[AllowEmptyString()]
         $Value,
 
         # Optional. Provide the complete config to set
+		[Parameter(Mandatory = $true, ParameterSetName = 'Object')]
+		[hashtable]
         $Config
     )
 
     $configPath = Get-ZtConfigPath -ExportPath $ExportPath
     Write-PSFMessage "Setting config at $configPath"
     if ($Config) {
-        $Config | ConvertTo-Json | Set-Content $configPath
+        $Config | Export-PSFJson -Path $configPath
     }
     else {
         $config = Get-ZtConfig -ExportPath $ExportPath
         $config[$Property] = $Value
-        $config | ConvertTo-Json | Set-Content $configPath -Force
+        $config | Export-PSFJson -Path $configPath
     }
 }

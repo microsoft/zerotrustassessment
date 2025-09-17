@@ -85,7 +85,7 @@ Function Export-Entra {
         $graphUri = Get-ObjectProperty $entry "GraphUri"
         # filter out synced users or groups
         if ($CloudUsersAndGroupsOnly -and ($graphUri -in "users", "groups")) {
-            if ([string]::IsNullOrEmpty($entry.Filter)) {
+            if (-not $entry.Filter) {
                 $entry.Filter = "onPremisesSyncEnabled ne true"
             }
             else {
@@ -101,7 +101,7 @@ Function Export-Entra {
     foreach ($item in $ExportSchema) {
         $typeMatch = Compare-Object $item.Tag $Type -ExcludeDifferent -IncludeEqual
         $hasParents = $Parents -and $Parents.Count -gt 0
-        if ( ($typeMatch)) {
+        if ($typeMatch) {
             $outputFileName = Join-Path -Path $Path -ChildPath $item.Path
 
             $spacer = ''
@@ -120,10 +120,11 @@ Function Export-Entra {
             }
             $resultItems = $null
             if ($command) {
+				$commandParam = @{ }
                 if ($hasParents) {
-                    $command += " -Parents $Parents"
+					$commandParam['Parents'] = $Parents
                 }
-                $resultItems = Invoke-Expression -Command $command
+				$resultItems = & $command @commandParam
             }
             else {
                 if ($hasParents) {

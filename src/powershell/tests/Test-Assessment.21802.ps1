@@ -41,7 +41,7 @@ function Test-Assessment-21802 {
         else {
             if ($Target.targetType -eq 'group') {
                 $group = Invoke-ZtGraphRequest -RelativeUri "groups/$($Target.id)" -ApiVersion 'v1.0'
-                Write-Output "Group: $($group.displayName)"
+                "Group: $($group.displayName)"
             }
         }
     }

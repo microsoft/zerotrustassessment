@@ -1,30 +1,30 @@
-<#
-.SYNOPSIS
-  Returns DisplayName and IsMfa metadata about a specific user authentication method type
-
-.DESCRIPTION
-    The user authentication method returned by the /users/{id}/authentication/methods endpoint
-    is missing key information such as the display name (as shown in the Portal) and if an auth method
-    is a multi-factor authentication method or not.
-
-    This cmdlet returns the DisplayName and IsMfa metadata for a specific user authentication method type.
-
-.EXAMPLE
-
-    $userId = 'john@contoso.com'
-    $userAuthMethods = Invoke-ZtGraphRequest -RelativeUri "users/$userId/authentication/methods"
-    $authMethod | Get-ZtUserAuthenticationMethodInfoByType
-
-    # Returns the DisplayName and IsMfa metadata for the authentication methods registered by the specified user.
-#>
-
+﻿
 Function Get-ZtUserAuthenticationMethodInfoByType {
+	<#
+	.SYNOPSIS
+	  Returns DisplayName and IsMfa metadata about a specific user authentication method type
 
+	.DESCRIPTION
+		The user authentication method returned by the /users/{id}/authentication/methods endpoint
+		is missing key information such as the display name (as shown in the Portal) and if an auth method
+		is a multi-factor authentication method or not.
+
+		This cmdlet returns the DisplayName and IsMfa metadata for a specific user authentication method type.
+
+	.EXAMPLE
+
+		$userId = 'john@contoso.com'
+		$userAuthMethods = Invoke-ZtGraphRequest -RelativeUri "users/$userId/authentication/methods"
+		$authMethod | Get-ZtUserAuthenticationMethodInfoByType
+
+		# Returns the DisplayName and IsMfa metadata for the authentication methods registered by the specified user.
+	#>
     [CmdletBinding()]
     param(
         # The type of authentication method to get metadata for
         [Parameter(Position = 0, ValueFromPipeline = $true)]
-        [psobject] $AuthenticationMethod
+        [psobject]
+		$AuthenticationMethod
     )
 
     begin {
@@ -101,16 +101,16 @@ Function Get-ZtUserAuthenticationMethodInfoByType {
                 IsMfa       = $true
             }
         )
-    }
-    process {
-        function GetMethodInfo
-{
-	[CmdletBinding()]
-	param (
-		$authMethod
-	)
-            $type = $authMethod.'@odata.type'
-            $methodInfo = $authMethodMetadata | Where-Object { $_.Type -eq $type }
+		function Get-ZtiMethodInfo
+		{
+			[CmdletBinding()]
+			param (
+				$AuthMethod,
+
+				$MetaData
+			)
+            $type = $AuthMethod.'@odata.type'
+            $methodInfo = $MetaData | Where-Object Type -eq $type
             if ($null -eq $methodInfo) {
                 # Default to the type and assume it is MFA
                 $methodInfo = @{
@@ -119,15 +119,18 @@ Function Get-ZtUserAuthenticationMethodInfoByType {
                     IsMfa       = $true
                 }
             }
-            Write-Output $methodInfo
+            $methodInfo
         }
+    }
+    process {
+
 
         if ($AuthenticationMethod -is [array]) {
             Write-PSFMessage "Processing multiple authentication methods" -Level Debug
             $AuthenticationMethod | ForEach-Object { GetMethodInfo $_ }
         } else {
             Write-PSFMessage "Processing single authentication method" -Level Debug
-            GetMethodInfo $AuthenticationMethod
+            Get-ZtiMethodInfo -AuthMethod $AuthenticationMethod -MetaData $authMethodMetadata
         }
     }
 }

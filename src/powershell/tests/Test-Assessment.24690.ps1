@@ -16,6 +16,8 @@ function Test-Assessment-24690 {
         [CmdletBinding()]
         param(
             [Parameter(Mandatory)]
+            [AllowEmptyCollection()]
+            [AllowNull()]
             $Policies
         )
 

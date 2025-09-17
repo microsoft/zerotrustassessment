@@ -1,80 +1,62 @@
-<#
-.SYNOPSIS
-    Get the risk of a permission in the graph database.
-#>
-
-
 function Get-GraphPermissionRisk {
-    [CmdletBinding()]
-    param(
-        # The permission to get the risk for e.g. User.Read
-        [Parameter(Mandatory)]
-        [string]
-        $Permission,
+	<#
+	.SYNOPSIS
+		Get the risk of a permission in the graph database.
 
-        # The type of permission e.g. Application, Delegated
-        [Parameter(Mandatory)]
-        [ValidateSet('Application', 'Delegated')]
-        [string]
-        $PermissionType
-    )
+	.DESCRIPTION
+		Get the risk of a permission in the graph database.
+		The list of scopes / app roles is stored in "assets/aadconsentgrantpermissiontable.csv" and loaded during module import.
 
-    $permKey = $Permission + $PermissionType
-    if (!$Script:GraphPermissions) {
-        $Script:GraphPermissions = @{}
-    }
-    # Check if permission has been cached
-    if (!$Script:GraphPermissions.ContainsKey($permKey)) {
+	.PARAMETER Permission
+		The actual scope / role name, suchas "User.ReadBasic.All" or "Directory.ReadWrite.All".
 
-        $permstable = GetPermissionsTable
+	.PARAMETER PermissionType
+		Whether it is an Application or Delegated role/Scope.
 
-        $permsHash = @{}
+	.EXAMPLE
+		PS C:\> Get-GraphPermissionRisk -Permission Application.ReadWrite.All -PermissionType Application
 
-        foreach ($perm in $permstable) {
-            $key = $perm.Type + $perm.Permission
-            $permsHash[$key] = $perm
-            if ($perm.permission -Match ".") {
-                $key = $perm.Type + $perm.Permission.Split(".")[0]
-                $permsHash[$key] = $perm
-            }
-        }
-        $scope = $Permission
-        $type = $PermissionType
-
-
-        $scoperoot = $scope.Split(".")[0]
-
-        $risk = "Unranked"
-        # Search for matching root level permission if there was no exact match
-        if ($permsHash.ContainsKey($type + $scope)) {
-            # Exact match e.g. Application.Read.All
-            $risk = $permsHash[$type + $scope].Privilege
-        }
-        elseif ($permsHash.ContainsKey($type + $scoperoot)) {
-            #Matches top level e.g. Application.
-            $risk = $permsHash[$type + $scoperoot].Privilege
-        }
-        elseif ($type -eq "Application") {
-            # Application permissions without exact or root matches with write scope
-            $risk = "Medium"
-            if ($scope -like "*Write*") {
-                $risk = "High"
-            }
-        }
-        $Script:GraphPermissions[$permKey] = $risk
-    }
-    return $Script:GraphPermissions[$permKey]
-}
-
-function GetPermissionsTable
-{
+		Returns how risky/sensitive the role "Application.ReadWrite.All" is.
+		(Spoiler: Very, very risky)
+	#>
 	[CmdletBinding()]
-	param (
+	param(
+		[Parameter(Mandatory)]
+		[string]
+		$Permission,
 
+		[Parameter(Mandatory)]
+		[ValidateSet('Application', 'Delegated')]
+		[string]
+		$PermissionType
 	)
-    if (!$Script:GraphPermissionsCsv) {
-        $csvFilePath = Join-Path -Path $Script:ModuleRoot -ChildPath 'assets/aadconsentgrantpermissiontable.csv'
-        $Script:GraphPermissionsTable = Import-Csv $csvFilePath -Delimiter ','
-    }
-    return $Script:GraphPermissionsTable
+
+	$permKey = $PermissionType + $Permission
+	$permRootKey = $PermissionType + $Permission.Split(".")[0]
+
+	if ($Script:_GraphPermissions[$permKey]) {
+		return $Script:_GraphPermissions[$permKey]
+	}
+
+	$permsHash = $script:_GraphPermissionsHash # Loaded during module import in variables.ps1
+
+	$risk = "Unranked"
+	# Search for matching root level permission if there was no exact match
+	if ($permsHash[$permKey]) {
+		# Exact match e.g. Application.Read.All
+		$risk = $permsHash[$permKey].Privilege
+	}
+	elseif ($permsHash[$permRootKey]) {
+		# Matches top level e.g. Application.
+		$risk = $permsHash[$permRootKey].Privilege
+	}
+	elseif ($type -eq "Application") {
+		# Application permissions without exact or root matches with write scope
+		$risk = "Medium"
+		if ($scope -like "*Write*") {
+			$risk = "High"
+		}
+	}
+	$Script:_GraphPermissions[$permKey] = $risk
+	$Script:_GraphPermissions[$permKey]
 }

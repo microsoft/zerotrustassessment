@@ -44,4 +44,6 @@ $global:__testData.Tests.Integrity.MayContainCommand = @{
 	"Write-Output" = @()
 	"Write-Information" = @()
 	"Write-Debug" = @()
+	"Clear-Host" = @('New-ZtInteractiveConfig.ps1')
+	'Set-Variable' = @('Invoke-ZtAssessment.ps1')
 }
