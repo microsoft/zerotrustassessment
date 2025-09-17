@@ -23,7 +23,8 @@ function Test-DnsName {
     )
 
 	try {
-		$resolution = Resolve-DnsName -Name $Name -ErrorAction Stop
+		# Resolve-DnsName is windows only, .NET methods work xplat
+		$resolution = [System.Net.Dns]::GetHostEntry($Name)
 		$resolution -as [bool]
 	}
 	catch {
