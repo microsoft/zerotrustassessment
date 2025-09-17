@@ -17,9 +17,9 @@ Example Usage:
 function Get-Test {
 	[ZtTest(
 		Category = 'Access control',
-		Cost = 'Low',
+		ImplementationCost = 'Low',
 		Pillar = 'Identity',
-		Risk = 'High',
+		RiskLevel = 'High',
 		SfiPillar = "Protect identities and secrets",
 		TenantType = ('Workforce', 'External'),
 		TestId = 21786,
