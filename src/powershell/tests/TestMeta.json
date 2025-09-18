@@ -2122,6 +2122,19 @@
     "Title": "macOS - Platform SSO is configured and assigned",
     "UserImpact": "Low"
   },
+  "24802": {
+    "Category": "Device management",
+    "ImplementationCost": "High",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24802",
+    "Title": "Device Clean-up Rule is Created",
+    "UserImpact": "Low"
+  },
   "24569": {
     "Category": "Device management",
     "ImplementationCost": "Low",
