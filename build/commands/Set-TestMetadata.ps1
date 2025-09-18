@@ -217,7 +217,7 @@ function Set-TestMetadata {
 		foreach ($testID in $Test) {
 			#region Preparation
 			try {
-				$metaData = Get-TestMetadata -Test $testID -ErrorAction Stop
+				$metaData = Get-ZtTestMetadata -Test $testID -ErrorAction Stop
 			}
 			catch {
 				$PSCmdlet.WriteError($_)
