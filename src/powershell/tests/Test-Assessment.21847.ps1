@@ -70,4 +70,4 @@ function Test-Assessment-21847 {
         Result            = $testResultMarkdown
     }
     Add-ZtTestResultDetail @params
-//initial commit
+}
