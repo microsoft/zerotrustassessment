@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21809{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21809,
+    	Title = 'Admin consent workflow is enabled',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

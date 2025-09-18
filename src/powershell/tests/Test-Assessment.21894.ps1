@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21894{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21894,
+    	Title = 'All certificates Microsoft Entra Application Registrations and Service Principals must be issued by an approved certification authority',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

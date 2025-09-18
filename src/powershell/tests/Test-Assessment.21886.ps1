@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21886 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21886,
+    	Title = 'Applications that use Microsoft Entra for authentication and support provisioning are configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

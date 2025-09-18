@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     An app protection policy for Android devices exists
 #>
 
 function Test-Assessment-24549 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24549,
+    	Title = 'An App protection policy for Android platform exists in Intune',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

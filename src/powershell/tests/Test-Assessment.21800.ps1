@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21800{
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21800,
+    	Title = 'All user sign-in activity uses strong authentication methods',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

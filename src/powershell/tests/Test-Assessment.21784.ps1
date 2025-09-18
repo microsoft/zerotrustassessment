@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21784{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = '',
+    	RiskLevel = 'Medium',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21784,
+    	Title = 'All user sign in activity uses phishing-resistant authentication methods',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

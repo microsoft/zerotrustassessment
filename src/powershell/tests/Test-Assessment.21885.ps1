@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Checking App registrations must not have reply URLs containing *.azurewebsites.net
 #>
 
 function Test-Assessment-21885 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21885,
+    	Title = 'App registrations use safe redirect URIs',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param($Database)
 

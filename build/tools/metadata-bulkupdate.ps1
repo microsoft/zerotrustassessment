@@ -81,5 +81,12 @@ function ConvertTo-ConfigEntry {
 
 $configEntries = $ConfigFile | ConvertTo-ConfigEntry
 foreach ($entry in $configEntries) {
-	Set-TestMetadata @entry
+	try { Set-TestMetadata @entry -ErrorAction Stop }
+	catch {
+		$testID = $entry.Test
+		if (-not $testID) {
+			$testID = $entry.TestID
+		}
+		Write-PSFMessage -Level Warning -Message "Failed to update Test $($testID)" -ErrorRecord $_ -Target $entry
+	}
 }

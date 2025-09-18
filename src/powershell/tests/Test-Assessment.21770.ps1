@@ -1,4 +1,4 @@
-
+﻿
 <#
 .SYNOPSIS
 
@@ -10,10 +10,10 @@ function Test-Assessment-21770 {
 		ImplementationCost = 'Low',
 		Pillar = 'Identity',
 		RiskLevel = 'Medium',
-		SfiPillar = "Protect engineering systems",
-		TenantType = ('Workforce', 'External'),
+		SfiPillar = 'Protect engineering systems',
+		TenantType = ('Workforce','External'),
 		TestId = 21770,
-		Title = 'Inactive applications don''t have highly privileged permissions',
+		Title = 'Inactive applications don’’t have highly privileged Microsoft Graph API permissions',
 		UserImpact = 'High'
 	)]
     [CmdletBinding()]

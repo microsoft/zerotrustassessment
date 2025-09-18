@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Windows Update policy is configured and assigned
 #>
 
 function Test-Assessment-24553 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24553,
+    	Title = 'Windows Update policy is assigned and enforced.',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21778{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = '',
+    	RiskLevel = 'Medium',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21778,
+    	Title = 'Line-of-business and partner apps use MSAL',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
