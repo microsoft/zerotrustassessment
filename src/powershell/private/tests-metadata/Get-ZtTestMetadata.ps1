@@ -166,13 +166,11 @@
 				TenantType         = $null
 				Title              = $null
 				UserImpact         = $null
-				Path               = $commandItem.Path
-				Ast                = $commandItem.Ast
 			}
 			if ($IncludeMetadata) {
 				$extra = @{
 					Path = $commandItem.Path
-					Ast = $commandItem.Ast
+					Ast  = $commandItem.Ast
 				}
 				if ($extra.Path -and (Test-Path -Path $extra.Path)) {
 					$extra.Path = (Get-Item -LiteralPath $extra.Path).FullName
