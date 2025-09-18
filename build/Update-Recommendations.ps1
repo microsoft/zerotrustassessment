@@ -10,15 +10,16 @@ function Get-DocsRecommendations
 {
 	[CmdletBinding()]
 	param (
-		$entraDocsFolder
+		$recommendationsFolder
 	)
-    $recommendationsFolder = Join-Path -Path $entraDocsFolder -ChildPath 'docs/includes/secure-recommendations'
 
-    Write-Host "Reading the recommendations from the Entra docs at $recommendationsFolder"
+    $recommendationsFolder = Resolve-Path $recommendationsFolder
+    Write-Host "Reading the recommendations from the $recommendationsFolder"
 
     # Read all the .md files in the secure-recommendations folder
     $recommendationsFiles = Get-ChildItem -Path $recommendationsFolder -Filter *.md
 
+    Write-Host "Found $($recommendationsFiles.Count) recommendation files."
     # Create a hashtable to store the recommendations
     $recommendations = @{}
 
@@ -331,13 +332,17 @@ function Remove-TrailingEmptyLines {
     return ($lines -join "`n") + "`n"
 }
 
-$entraDocsFolder = "$($PSScriptRoot)../../../entra-docs-pr"
+$entraDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../entra-docs-pr" -ChildPath 'docs/includes/secure-recommendations'
+$intuneDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../memdocs-pr" -ChildPath 'intune/intune-service/protect/includes/secure-recommendations'
 
-$recommendations = Get-DocsRecommendations -entraDocsFolder $entraDocsFolder
+$entraRecommendations = Get-DocsRecommendations -recommendationsFolder $entraDocsFolder
+$intuneRecommendations = Get-DocsRecommendations -recommendationsFolder $intuneDocsFolder
+
+$recommendations = $entraRecommendations + $intuneRecommendations
 
 # Update the recommendations in the tests
 $testFiles = Get-ChildItem -Path "$($PSScriptRoot)../../src/powershell/private/tests" -Filter *.md
-$testMetaPath = "$($PSScriptRoot)../../src/powershell/private/tests/TestMeta.json"
+$testMetaPath = "$($PSScriptRoot)../../src/powershell/tests/TestMeta.json"
 # Read the existing test metadata and merge with the new recommendations
 $testMeta = Get-Content $testMetaPath | ConvertFrom-Json -AsHashtable
 
@@ -427,4 +432,4 @@ $testMeta.Keys | Sort-Object | ForEach-Object {
 # Save the sorted hashtable to a json file
 $sortedTestMeta | ConvertTo-Json | Set-Content -Path $testMetaPath
 
-Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/private/tests" -IncludeRelativeLinks
+Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks
