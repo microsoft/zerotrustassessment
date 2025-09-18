@@ -18,7 +18,7 @@ function Test-Assessment-21847 {
 
     if (-not $org.onPremisesSyncEnabled) {
         $result = $true
-        $testResultMarkdown = "This tenant is not synchronized to an on-premises environment.%TestResult%"
+        $testResultMarkdown = "✅ **Pass**: This tenant is not synchronized to an on-premises environment.%TestResult%"
     }
     else {
         # Q2: Check password protection settings
@@ -30,7 +30,7 @@ function Test-Assessment-21847 {
 
         if ($null -eq $pwdSettings) {
             $result = $false
-            $testResultMarkdown = "Password protection settings were not found in the tenant configuration.%TestResult%"
+            $testResultMarkdown = "❌ **Fail**: Password protection settings were not found in the tenant configuration.%TestResult%"
         }
         else {
             $settingValues = Invoke-ZtGraphRequest -Uri "https://graph.microsoft.com/v1.0/groupSettings/$($pwdSettings.id)"
@@ -46,11 +46,11 @@ function Test-Assessment-21847 {
 
             if ($enabledSetting.value -eq $true -and $modeSetting.value -eq "Enforce") {
                 $result = $true
-                $testResultMarkdown = "Entra password protection is enabled and enforced.%TestResult%"
+                $testResultMarkdown = "✅ **Pass**: Entra password protection is enabled and enforced.%TestResult%"
             }
             else {
                 $result = $false
-                $testResultMarkdown = "Entra password protection is not enabled or not enforced.%TestResult%"
+                $testResultMarkdown = "❌ **Fail**: Entra password protection is not enabled or not enforced.%TestResult%"
             }
         }
     }
