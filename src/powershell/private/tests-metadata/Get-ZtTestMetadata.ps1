@@ -1,4 +1,4 @@
-﻿function Get-TestMetadata {
+﻿function Get-ZtTestMetadata {
 	<#
 	.SYNOPSIS
 		Reads the configured Test Metadata tracking information from commands.
@@ -20,7 +20,7 @@
 		Must be a function definition.
 
 	.EXAMPLE
-		PS C:\> Get-TestMetadata -Test 21770
+		PS C:\> Get-ZtTestMetadata -Test 21770
 
 		Returns the metadata for the test with ID "21770"
 	#>
@@ -115,7 +115,14 @@
 		}
 		#endregion Utility Functions
 
-		$testRoot = "$PSScriptRoot\..\..\src\powershell\tests"
+		# Case: Loaded through the module
+		if ($script:ModuleRoot) {
+			$testRoot = "$script:ModuleRoot\tests"
+		}
+		# Case: Called Directly from the build tools
+		else {
+			$testRoot = "$PSScriptRoot\..\..\tests"
+		}
 	}
 	process {
 		$commandAsts = [System.Collections.Generic.List[object]]::new()
@@ -151,6 +158,10 @@
 				Title              = $null
 				UserImpact         = $null
 				Path               = $commandItem.Path
+				Ast                = $commandItem.Ast
+			}
+			if ($result.Path -and (Test-Path -Path $result.Path)) {
+				$result.Path = (Get-Item -LiteralPath $result.Path).FullName
 			}
 
 			$testAttribute = $commandItem.Ast.Body.ParamBlock.Attributes.Where{ $_.TypeName.FullName -eq 'ZtTest' }
