@@ -25,8 +25,8 @@ function Test-Assessment-21822 {
         $testResultMarkdown = "Guest access is note limited to approved tenants ❌"
     }
 
-    Add-ZtTestResultDetail -TestId '21822' -Title 'Checks if domain-based allow/deny lists is configured' `
-        -UserImpact Medium -Risk Medium -ImplementationCost Low `
-        -AppliesTo Identity -Tag Application `
+    Add-ZtTestResultDetail -TestId '21822' -Title 'Guest access is limited to approved tenants' `
+        -UserImpact Medium -Risk Medium -ImplementationCost High `
+        -AppliesTo Identity -Tag Identity  `
         -Status $passed -Result $testResultMarkdown
 }
