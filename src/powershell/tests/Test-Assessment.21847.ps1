@@ -4,6 +4,19 @@
 #>
 
 function Test-Assessment-21847 {
+
+    [ZtTest(
+        Category = 'Access control',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce'),
+        TestId = 21847,
+        Title = 'Password protection for on-premises is enabled',
+        UserImpact = 'Low'
+    )]
+
     [CmdletBinding()]
     param()
 
