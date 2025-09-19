@@ -24,7 +24,8 @@ function Test-Assessment-21892{
     Write-ZtProgress -Activity $activity -Status "Getting Conditional Access policies"
 
     # Get all enabled Conditional Access policies
-    $policies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies?\$filter=state eq 'enabled'" -ApiVersion v1.0
+    $policies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -ApiVersion v1.0
+    $policies = $policies | Where-Object { $_.state -eq "enabled" }
 
     $matchingPolicies    = @()
     $nonMatchingPolicies = @()
@@ -66,7 +67,7 @@ function Test-Assessment-21892{
         }
     }
 
-    $passed = ($matchingPolicies | Measure-Object).Count -gt 0
+    $passed = ($nonMatchingPolicies | Measure-Object).Count -gt 0
     $testResultMarkdown = ""
 
     if ($passed) {
