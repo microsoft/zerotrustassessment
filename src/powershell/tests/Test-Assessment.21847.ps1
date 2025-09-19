@@ -13,27 +13,24 @@ function Test-Assessment-21847 {
     Write-ZtProgress -Activity $activity -Status "Getting organization details"
 
     # Q1: Check if tenant has on-premises sync
-    $orgResponse = Invoke-ZtGraphRequest -Uri "https://graph.microsoft.com/v1.0/organization?`$select=id,displayName,onPremisesSyncEnabled,onPremisesLastSyncDateTime"
-    $org = $orgResponse.value[0]
+    $orgResponse = Invoke-ZtGraphRequest -RelativeUri "organization?`$select=id,displayName,onPremisesSyncEnabled,onPremisesLastSyncDateTime" -ApiVersion v1.0
 
-    if (-not $org.onPremisesSyncEnabled) {
-        $result = $true
+    if ($orgResponse.onPremisesSyncEnabled -ne $true)  {
+        $passed = $true
         $testResultMarkdown = "✅ **Pass**: This tenant is not synchronized to an on-premises environment.%TestResult%"
     }
     else {
         # Q2: Check password protection settings
         Write-ZtProgress -Activity $activity -Status "Checking password protection settings"
 
-        $pwdSettings = Invoke-ZtGraphRequest -Uri "https://graph.microsoft.com/v1.0/groupSettings" |
-                Select-Object -ExpandProperty value |
-                Where-Object { $_.displayName -eq "Password Rule Settings" }
+        $pwdSettings = Invoke-ZtGraphRequest -RelativeUri "groupSettings" -ApiVersion v1.0 | Where-Object { $_.displayName -eq "Password Rule Settings" }
 
         if ($null -eq $pwdSettings) {
-            $result = $false
+            $passed = $false
             $testResultMarkdown = "❌ **Fail**: Password protection settings were not found in the tenant configuration.%TestResult%"
         }
         else {
-            $settingValues = Invoke-ZtGraphRequest -Uri "https://graph.microsoft.com/v1.0/groupSettings/$($pwdSettings.id)"
+            $settingValues = Invoke-ZtGraphRequest -RelativeUri "groupSettings/$($pwdSettings.id)" -ApiVersion v1.0
 
             $enabledSetting = $settingValues.values | Where-Object { $_.name -eq "EnableBannedPasswordCheckOnPremises" }
             $modeSetting = $settingValues.values | Where-Object { $_.name -eq "BannedPasswordCheckOnPremisesMode" }
@@ -45,11 +42,11 @@ function Test-Assessment-21847 {
             $mdInfo += "| BannedPasswordCheckOnPremisesMode | $($modeSetting.value) |`n"
 
             if ($enabledSetting.value -eq $true -and $modeSetting.value -eq "Enforce") {
-                $result = $true
+                $passed = $true
                 $testResultMarkdown = "✅ **Pass**: Entra password protection is enabled and enforced.%TestResult%"
             }
             else {
-                $result = $false
+                $passed = $false
                 $testResultMarkdown = "❌ **Fail**: Entra password protection is not enabled or not enforced.%TestResult%"
             }
         }
@@ -66,7 +63,7 @@ function Test-Assessment-21847 {
         ImplementationCost = 'Medium'
         AppliesTo         = 'Identity'
         Tag               = 'Identity'
-        Status            = $result
+        Status            = $passed
         Result            = $testResultMarkdown
     }
     Add-ZtTestResultDetail @params
