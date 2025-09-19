@@ -2238,5 +2238,18 @@
     "TestId": "24690",
     "Title": "macOS - Update policy is configured and assigned",
     "UserImpact": "Low"
+  },
+  "24784": {
+    "Category": "Device management",
+    "ImplementationCost": "Low",
+    "Pillar": "Devices",
+    "RiskLevel": "High",
+    "SfiPillar": "Protect engineering systems",
+    "TenantType": [
+      "Workforce"
+    ],
+    "TestId": "24784",
+    "Title": "A Microsoft Defender Antivirus policy is created and assigned in Intune for macOS",
+    "UserImpact": "Low"
   }
 }
