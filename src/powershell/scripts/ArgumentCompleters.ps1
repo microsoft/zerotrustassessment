@@ -72,7 +72,8 @@ function Get-PaginatedCompletions {
         [Parameter(Mandatory)]
         [array]$CompletionResults,
 
-        [int]$PageSize = 10
+        [int]
+		$PageSize = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.TabExpansion.TestLimit' -FallBack 10)
     )
 
     if ($CompletionResults.Count -le $PageSize) {
@@ -264,4 +265,9 @@ $commandNames = @(
 
 $commandNames | ForEach-Object {
     Register-ArgumentCompleter -CommandName $_ -ParameterName 'Tests' -ScriptBlock $ztTestsCompleterScript
+}
+
+#-> Test Pillars
+Register-PSFTeppScriptblock -Name 'ZeroTrustAssessment.Tests.Pillar' -ScriptBlock {
+	(Get-ZtTest).Pillar | Sort-Object -Unique | Remove-PSFNull
 }
