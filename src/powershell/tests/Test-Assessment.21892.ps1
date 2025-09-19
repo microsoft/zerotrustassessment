@@ -3,7 +3,7 @@
     Assessment 21892 – Verifies that all sign-in activity is restricted to managed devices.
 #>
 
-function Test-Assessment-21892 {
+function Test-Assessment-21892{
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'High',
