@@ -1,43 +1,29 @@
-﻿<#
+<#
 .SYNOPSIS
-    Intune Windows Update policy is configured and assigned
+    Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned
 #>
 
-function Test-Assessment-24553 {
-    [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
-    	TenantType = ('Workforce'),
-    	TestId = 24553,
-    	Title = 'Windows Update policy is assigned and enforced.',
-    	UserImpact = 'Medium'
-    )]
+function Test-Assessment-24547 {
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = "Checking that the Intune Windows Update policy is configured and assigned"
+    $activity = "Checking the compliance policy for Android Enterprise Personally-Owned Work Profile is configured and assigned "
     Write-ZtProgress -Activity $activity
 
-    # Query 1: Retrieve all Windows Update Policies and their assignments
-    $windowsUpdatePolicy = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceConfigurations?$expand=assignments' -ApiVersion v1.0 | Where-Object {
-        $_.'@odata.type' -eq '#microsoft.graph.windowsUpdateForBusinessConfiguration'
-    }
-    #endregion Data Collection
+    # Query 1: Retrieve all Android Device WorkProfile Compliance Policies and their assignments
+    $androidDeviceWorkProfilePolicies = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicies?$filter=isOf(''microsoft.graph.androidWorkProfileCompliancePolicy'')&$expand=assignments' -ApiVersion beta
 
     #region Assessment Logic
-    $passed = $windowsUpdatePolicy.Count -ne 0 -and $windowsUpdatePolicy.Assignments.count -ne 0
+    $passed = $androidDeviceWorkProfilePolicies.Count -ne 0 -and $androidDeviceWorkProfilePolicies.Assignments.count -ne 0
 
     if ($passed) {
-        $testResultMarkdown = "Windows Update policy is assigned and enforced.`n`n%TestResult%"
+        $testResultMarkdown = "At least one compliance policy for Android Enterprise Personally-Owned Work Profile exists and is assigned.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "Windows Update policy is not assigned or enforced.`n`n%TestResult%"
+        $testResultMarkdown = "No compliance policy for Android Enterprise Personally-Owned Work Profile exists or none are assigned.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -45,11 +31,11 @@ function Test-Assessment-24553 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Intune Windows Update policy is configured and assigned"
+    $reportTitle = "Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned"
     $tableRows = ""
 
     # Generate markdown table rows for each policy
-    if ($windowsUpdatePolicy.Count -gt 0) {
+    if ($androidDeviceWorkProfilePolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
@@ -61,8 +47,8 @@ function Test-Assessment-24553 {
 
 '@
 
-        foreach ($policy in $windowsUpdatePolicy) {
-            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesWindowsMenu/~/windows10Update'
+        foreach ($policy in $androidDeviceWorkProfilePolicies) {
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/policies'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
             }
@@ -91,8 +77,8 @@ function Test-Assessment-24553 {
     #endregion Report Generation
 
     $params = @{
-        TestId             = '24553'
-        Title              = "Intune Windows Update policy is configured and assigned"
+        TestId             = '24547'
+        Title              = "Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned"
         Status             = $passed
         Result             = $testResultMarkdown
     }

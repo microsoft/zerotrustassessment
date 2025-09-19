@@ -45,6 +45,8 @@ function Test-Assessment-24569 {
     $macOSEndpointProtectionFileVaultEnabledPolicies = $macOSEndpointProtectionPolicies.Where{
         $_.FileVaultEnabled -eq $true
     }
+
+    $allPolicies = $macOSFileVaultEnabledPolicies + $macOSEndpointProtectionFileVaultEnabledPolicies
     #endregion Data Collection
 
     #region Assessment Logic
@@ -79,9 +81,9 @@ function Test-Assessment-24569 {
 '@
 
     # Generate markdown table rows for each policy
-    if (@($macOSFileVaultEnabledPolicies + $macOSEndpointProtectionPolicies).Count -gt 0) {
+    if ($allPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
-        foreach ($policy in @($macOSFileVaultEnabledPolicies + $macOSEndpointProtectionPolicies)) {
+        foreach ($policy in $allPolicies) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'

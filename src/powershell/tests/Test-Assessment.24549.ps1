@@ -83,9 +83,6 @@ function Test-Assessment-24549 {
          # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-    else {
-        $mdInfo = "`nNo Android App Protection policies were found.`n"
-    }
 
     # Replace the placeholder in the test result markdown with the generated details
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
