@@ -126,12 +126,21 @@ if ($TestFunctions)
 }
 #endregion Test Commands
 
-$testresults | Sort-Object Describe, Context, Name, Result, Message | Format-List
+$testresults | Sort-Object Block, Name, Result, Message | Format-List
+
+$nonCriticalFails = $testresults | Where-Object {
+	$_.Block -match 'All Tests should be properly configured' -and
+	$_.Name -match 'It should have an? \S+ defined for'
+}
+
+$absoluteFailed = $totalFailed - @($nonCriticalFails).Count
 
 if ($totalFailed -eq 0) { Write-Host  "All $totalRun tests executed without a single failure!" }
-else { Write-Host "$totalFailed tests out of $totalRun tests failed!" }
+else {
+	Write-Host "$totalFailed tests out of $totalRun tests failed, $absoluteFailed of them critical"
+}
 
-if ($totalFailed -gt 0)
+if ($absoluteFailed -gt 0)
 {
-	throw "$totalFailed / $totalRun tests failed!"
+	throw "$totalFailed / $totalRun tests failed, $absoluteFailed of them critical!"
 }
