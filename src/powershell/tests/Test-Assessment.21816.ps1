@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21816{
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21816,
+    	Title = 'All privileged role assignments are managed with PIM',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-%testId%{
+	[ZtTest(
+		Category = '%category%',
+		ImplementationCost = '%implementationCost%',
+		Pillar = 'Identity',
+		RiskLevel = '%risk%',
+		SfiPillar = "Protect identities and secrets",
+		TenantType = ('Workforce', 'External'),
+		TestId = %testid%,
+		Title = "%testTitle%",
+		UserImpact = '%userImpact%'
+	)]
     [CmdletBinding()]
     param()
 

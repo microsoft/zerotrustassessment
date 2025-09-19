@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
    Checks if workload identities are configured with risk-based policies
 #>
 
 function Test-Assessment-21883 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Accelerate response and remediation',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21883,
+    	Title = 'Workload Identities are configured with risk-based policies',
+    	UserImpact = 'High'
+    )]
     [CmdletBinding()]
     param()
 

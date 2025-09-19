@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     A Windows Defender Antivirus policy is created and assigned
 #>
 
 function Test-Assessment-24575 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24575,
+    	Title = 'A Windows Defender Antivirus policy is created and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

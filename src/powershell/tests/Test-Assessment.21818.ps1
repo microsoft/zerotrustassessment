@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21818 {
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce'),
+    	TestId = 21818,
+    	Title = 'Privileged role activations have monitoring and alerting configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

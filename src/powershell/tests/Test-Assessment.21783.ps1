@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21783 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21783,
+    	Title = 'Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing-resistant methods',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

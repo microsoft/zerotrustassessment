@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21954{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21954,
+    	Title = 'Restrict nonadministrator users from recovering the BitLocker keys for their owned devices',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

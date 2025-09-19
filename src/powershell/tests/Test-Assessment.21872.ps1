@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if MFA is required for device join and device registration using conditional access
 #>
 
 function Test-Assessment-21872 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21872,
+    	Title = 'Require multifactor authentication for device join and device registration using user action',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

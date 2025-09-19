@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21824{
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21824,
+    	Title = 'Guests don''t have long lived sign-in sessions',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

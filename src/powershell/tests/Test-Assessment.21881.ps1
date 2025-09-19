@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21881{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21881,
+    	Title = 'Azure subscriptions used by Identity Governance are secured consistently with Identity Governance roles',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Check if Temporary Access Pass is configured for one-time use only
 #>
 
 function Test-Assessment-21846{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21846,
+    	Title = 'Temporary access pass restricted to one-time use',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
