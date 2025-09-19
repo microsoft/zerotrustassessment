@@ -17,7 +17,10 @@ param (
 	$Exclude = "",
 
 	[string]
-	$ModuleName = 'ZeroTrustAssessmentV2'
+	$ModuleName = 'ZeroTrustAssessmentV2',
+
+	[switch]
+	$NoImport
 )
 
 Write-Host "Starting Tests"
@@ -34,16 +37,18 @@ foreach ($file in Get-ChildItem -Path "$PSScriptRoot\tools" -Recurse -Filter *.p
 	. $file.FullName
 }
 
-Write-Host "Importing Module"
-
 $global:__pester_data = @{ }
 
-Remove-Module $ModuleName -ErrorAction Ignore
-Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psd1"
-Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psm1" -Force # This allows testing internal commands
+if (-not $NoImport) {
+	Write-Host "Importing Module"
 
-# Need to import explicitly so we can use the configuration class
-Import-Module Pester -Global 3>$null
+	Remove-Module $ModuleName -ErrorAction Ignore
+	Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psd1" -Global
+	Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psm1" -Force -Global # This allows testing internal commands
+
+	# Need to import explicitly so we can use the configuration class
+	Import-Module Pester -Global 3>$null
+}
 
 Write-Host  "Creating test result folder"
 $null = New-Item -Path $PSScriptRoot -Name TestResults -ItemType Directory -Force

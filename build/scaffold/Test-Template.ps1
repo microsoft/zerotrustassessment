@@ -28,8 +28,5 @@ function Test-Assessment-%testId%{
     $passed = $result
 
 
-    Add-ZtTestResultDetail -TestId '%testId%' -Title "%testTitle%" `
-        -UserImpact %userImpact% -Risk %risk% -ImplementationCost %implementationCost% `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+    Add-ZtTestResultDetail -AppliesTo Identity -Tag Identity -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
 }

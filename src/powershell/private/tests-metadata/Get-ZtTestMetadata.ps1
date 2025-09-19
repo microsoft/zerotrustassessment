@@ -1,4 +1,4 @@
-﻿function Get-ZtTestMetadata {
+function Get-ZtTestMetadata {
 	<#
 	.SYNOPSIS
 		Reads the configured Test Metadata tracking information from commands.
@@ -19,6 +19,11 @@
 		The command object to process.
 		Must be a function definition.
 
+	.PARAMETER IncludeMetadata
+		Include PowerShell Metadata:
+		- Path to the file containing the test
+		- AST of the test code (the PowerShell Parser view of the test code)
+
 	.EXAMPLE
 		PS C:\> Get-ZtTestMetadata -Test 21770
 
@@ -33,7 +38,10 @@
 		$Path,
 
 		[System.Management.Automation.FunctionInfo[]]
-		$Command
+		$Command,
+
+		[switch]
+		$IncludeMetadata
 	)
 	begin {
 		#region Utility Functions
@@ -147,6 +155,7 @@
 
 		foreach ($commandItem in $commandAsts) {
 			$result = [PSCustomObject]@{
+				PSTypeName         = 'ZeroTrustAssessment.Test'
 				Command            = $commandItem.Name
 				TestId             = $commandItem.Ast.Name -replace '^Test-Assessment-'
 				Category           = $null
@@ -157,11 +166,16 @@
 				TenantType         = $null
 				Title              = $null
 				UserImpact         = $null
-				Path               = $commandItem.Path
-				Ast                = $commandItem.Ast
 			}
-			if ($result.Path -and (Test-Path -Path $result.Path)) {
-				$result.Path = (Get-Item -LiteralPath $result.Path).FullName
+			if ($IncludeMetadata) {
+				$extra = @{
+					Path = $commandItem.Path
+					Ast  = $commandItem.Ast
+				}
+				if ($extra.Path -and (Test-Path -Path $extra.Path)) {
+					$extra.Path = (Get-Item -LiteralPath $extra.Path).FullName
+				}
+				[PSFramework.Object.ObjectHost]::AddNoteProperty($result, $extra)
 			}
 
 			$testAttribute = $commandItem.Ast.Body.ParamBlock.Attributes.Where{ $_.TypeName.FullName -eq 'ZtTest' }
