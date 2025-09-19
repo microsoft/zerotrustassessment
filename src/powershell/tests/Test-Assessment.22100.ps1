@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-22100{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('External'),
+    	TestId = 22100,
+    	Title = 'Enable WAF for ciamlogin endpoints',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

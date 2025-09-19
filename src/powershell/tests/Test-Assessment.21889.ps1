@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21889{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = '',
+    	RiskLevel = 'Low',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21889,
+    	Title = 'Reduce the user-visible password surface area',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

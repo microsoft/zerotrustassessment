@@ -1,336 +1,344 @@
+#requires -Version 7.4
+#requires -Modules Refactor, PSFramework
 <#
 
 .SYNOPSIS
     Updates the tests recommendations from the Entra docs
+
+.DESCRIPTION
+    Updates the tests recommendations from the Entra docs
+
+	Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs-pr'
+	Assume the path to the Intune docs is in a parent directory to this repo with the name 'memdocs-pr'
 #>
+[CmdletBinding()]
+param (
+	[switch]
+	$NoImport
+)
 
-# Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs-pr'
+$ErrorActionPreference = 'Stop'
+trap {
+	Write-Warning "Script failed: $_"
+	throw $_
+}
 
-function Get-DocsRecommendations
-{
+if (-not $NoImport) {
+	Import-Module "$PSScriptRoot/../src/powershell/ZeroTrustAssessmentV2.psd1" -Force -Global
+}
+. "$PSScriptRoot/commands/Set-TestMetadata.ps1"
+
+
+#region Functions
+function Get-DocsRecommendations {
 	[CmdletBinding()]
 	param (
 		$recommendationsFolder
 	)
 
-    $recommendationsFolder = Resolve-Path $recommendationsFolder
-    Write-Host "Reading the recommendations from the $recommendationsFolder"
+	$recommendationsFolder = Resolve-Path $recommendationsFolder
+	Write-Host "Reading the recommendations from the $recommendationsFolder"
 
-    # Read all the .md files in the secure-recommendations folder
-    $recommendationsFiles = Get-ChildItem -Path $recommendationsFolder -Filter *.md
+	# Read all the .md files in the secure-recommendations folder
+	$recommendationsFiles = Get-ChildItem -Path $recommendationsFolder -Filter *.md
 
-    Write-Host "Found $($recommendationsFiles.Count) recommendation files."
-    # Create a hashtable to store the recommendations
-    $recommendations = @{}
+	Write-Host "Found $($recommendationsFiles.Count) recommendation files."
+	# Create a hashtable to store the recommendations
+	$recommendations = @{}
 
-    # Loop through each file and extract the recommendations
-    foreach ($file in $recommendationsFiles) {
+	# Loop through each file and extract the recommendations
+	foreach ($file in $recommendationsFiles) {
 
-        # Get the file name without the extension
-        $id = $file.Name -replace '\.md$'
+		# Get the file name without the extension
+		$id = $file.Name -replace '\.md$'
 
-        $recommendations[$id] = Get-Content -Path $file.FullName -Raw
-    }
+		$recommendations[$id] = Get-Content -Path $file.FullName -Raw
+	}
 
-    return $recommendations
+	return $recommendations
 }
-function Get-MarkDownContent
-{
+function Get-MarkDownContent {
 	[CmdletBinding()]
 	param (
 		$fileContent
 	)
 
-    $markdownContent = $fileContent # Default to the original content
+	$markdownContent = $fileContent # Default to the original content
 
-    # Check if the content starts with ---
-    if ($fileContent -match '(?ms)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)$') {
-        # Return everything after the second ---
-        $markdownContent = $Matches[2]
-    }
+	# Check if the content starts with ---
+	if ($fileContent -match '(?ms)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)$') {
+		# Return everything after the second ---
+		$markdownContent = $Matches[2]
+	}
 
-    # Fix relative links to include the full path
-    $markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
-    $markdownContent = $markdownContent.replace('](../../', '](https://learn.microsoft.com/en-us/entra/')
+	# Fix relative links to include the full path
+	$markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
+	$markdownContent = $markdownContent.replace('](../../', '](https://learn.microsoft.com/en-us/entra/')
 
-    $markdownContent = Update-MarkdownLinks -Content $markdownContent
+	$markdownContent = Update-MarkdownLinks -Content $markdownContent
 
-    return $markdownContent
+	return $markdownContent
 }
 
 function Update-MarkdownLinks {
-    [CmdletBinding()]
-    param(
-        [string]$Content
-    )
+	[CmdletBinding()]
+	param(
+		[string]$Content
+	)
 
-    # Regular expression to match markdown links starting with https://learn.microsoft.com
-    $pattern = '\[(.*?)\]\((https://learn\.microsoft\.com[^\)]+)\)'
+	# Regular expression to match markdown links starting with https://learn.microsoft.com
+	$pattern = '\[(.*?)\]\((https://learn\.microsoft\.com[^\)]+)\)'
 
-    # Replace matching links
-    $updatedContent = [regex]::Replace($Content, $pattern, {
-            param($match)
-            Update-SingleLink -match $match
-        })
+	# Replace matching links
+	$updatedContent = [regex]::Replace($Content, $pattern, {
+			param($match)
+			Update-SingleLink -match $match
+		})
 
-    return $updatedContent
+	return $updatedContent
 }
 
 function Update-SingleLink {
-    [CmdletBinding()]
-    param(
-        [System.Text.RegularExpressions.Match]$match
-    )
+	[CmdletBinding()]
+	param(
+		[System.Text.RegularExpressions.Match]$match
+	)
 
-    $linkText = $match.Groups[1].Value
-    $url = $match.Groups[2].Value
+	$linkText = $match.Groups[1].Value
+	$url = $match.Groups[2].Value
 
-    # Handle URLs with hash anchors
-    $hashIndex = $url.IndexOf('#')
-    $hashPart = ""
+	# Handle URLs with hash anchors
+	$hashIndex = $url.IndexOf('#')
+	$hashPart = ""
 
-    if ($hashIndex -ge 0) {
-        # Extract the hash part
-        $hashPart = $url.Substring($hashIndex)
-        # Remove the hash part from the URL for processing
-        $url = $url.Substring(0, $hashIndex)
-    }
+	if ($hashIndex -ge 0) {
+		# Extract the hash part
+		$hashPart = $url.Substring($hashIndex)
+		# Remove the hash part from the URL for processing
+		$url = $url.Substring(0, $hashIndex)
+	}
 
-    # Check if URL already has parameters
-    if ($url -match "\?") {
-        $appendChar = "&"
-    }
-    else {
-        $appendChar = "?"
-    }
+	# Check if URL already has parameters
+	if ($url -match "\?") {
+		$appendChar = "&"
+	}
+	else {
+		$appendChar = "?"
+	}
 
-    # Remove tracking parameter if it already exists (to avoid duplication)
-    $url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
+	# Remove tracking parameter if it already exists (to avoid duplication)
+	$url = $url -replace "\??wt\.mc_id=zerotrustrecommendations_automation_content_cnl_csasci", ""
 
-    # markdown extensions to remove
-    $mdExtensions = @('.md', '.yml')
+	# markdown extensions to remove
+	$mdExtensions = @('.md', '.yml')
 
-    # Remove any markdown extensions from the URL
-    foreach ($ext in $mdExtensions) {
-        if ($url.EndsWith($ext)) {
-            $url = $url.Substring(0, $url.Length - $ext.Length)
-        }
-    }
+	# Remove any markdown extensions from the URL
+	foreach ($ext in $mdExtensions) {
+		if ($url.EndsWith($ext)) {
+			$url = $url.Substring(0, $url.Length - $ext.Length)
+		}
+	}
 
-    # Create the new link with tracking parameter and add back the hash part if it existed
-    return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
+	# Create the new link with tracking parameter and add back the hash part if it existed
+	return "[$linkText]($url$($appendChar)wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci$hashPart)"
 }
 
 function Test-FolderMarkdownLinks {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$FolderPath,
-        [int]$TimeoutSeconds = 30,
-        [switch]$IncludeRelativeLinks
-    )
-
-    # Function to test a single URL
-    function Test-Url {
-        [CmdletBinding()]
-        param (
-            [string]$Url,
-            [int]$Timeout
-        )
-
-        try {
-            $request = [System.Net.WebRequest]::Create($Url)
-            $request.Method = "HEAD"
-            $request.Timeout = $Timeout * 1000
-            $request.AllowAutoRedirect = $true
-
-            try {
-                $response = $request.GetResponse()
-                $status = [int]$response.StatusCode
-                $response.Close()
-                return @{
-                    IsValid    = $true
-                    StatusCode = $status
-                    Error      = $null
-                }
-            }
-            catch [System.Net.WebException] {
-                $status = [int]$_.Exception.Response.StatusCode
-                return @{
-                    IsValid    = $false
-                    StatusCode = $status
-                    Error      = $_.Exception.Message
-                }
-            }
-        }
-        catch {
-            return @{
-                IsValid    = $false
-                StatusCode = 0
-                Error      = $_.Exception.Message
-            }
-        }
-    }
-
-    # Function to print a separator line
-    function Write-Separator
-{
 	[CmdletBinding()]
 	param (
-
+		[Parameter(Mandatory = $true)]
+		[string]$FolderPath,
+		[int]$TimeoutSeconds = 30,
+		[switch]$IncludeRelativeLinks
 	)
-        Write-Host ("-" * 80)
-    }
 
-    # Check if folder exists
-    if (-not (Test-Path $FolderPath)) {
-        throw "Folder not found: $FolderPath"
-    }
+	# Function to test a single URL
+	function Test-Url {
+		[CmdletBinding()]
+		param (
+			[string]$Url,
+			[int]$Timeout
+		)
 
-    $fileStats = @{
-        TotalFiles      = 0
-        FilesWithErrors = 0
-        TotalLinks      = 0
-        InvalidLinks    = 0
-    }
+		try {
+			$request = [System.Net.WebRequest]::Create($Url)
+			$request.Method = "HEAD"
+			$request.Timeout = $Timeout * 1000
+			$request.AllowAutoRedirect = $true
 
-    # Get all markdown files recursively
-    $mdFiles = Get-ChildItem -Path $FolderPath -Filter "*.md" -Recurse
+			try {
+				$response = $request.GetResponse()
+				$status = [int]$response.StatusCode
+				$response.Close()
+				return @{
+					IsValid    = $true
+					StatusCode = $status
+					Error      = $null
+				}
+			}
+			catch [System.Net.WebException] {
+				$status = [int]$_.Exception.Response.StatusCode
+				return @{
+					IsValid    = $false
+					StatusCode = $status
+					Error      = $_.Exception.Message
+				}
+			}
+		}
+		catch {
+			return @{
+				IsValid    = $false
+				StatusCode = 0
+				Error      = $_.Exception.Message
+			}
+		}
+	}
 
-    $fileStats.TotalFiles = $mdFiles.Count
-    Write-Host "Found $($mdFiles.Count) markdown files to process..."
-    Write-Separator
+	# Function to print a separator line
+	function Write-Separator {
+		[CmdletBinding()]
+		param ()
+		Write-Host ("-" * 80)
+	}
 
-    foreach ($file in $mdFiles) {
-        $content = Get-Content -Path $file.FullName -Raw
+	# Check if folder exists
+	if (-not (Test-Path $FolderPath)) {
+		throw "Folder not found: $FolderPath"
+	}
 
-        # Add null check before attempting regex match
-        if ($null -eq $content) {
-            Write-Warning "File content is null for $($file.FullName)"
-            continue
-        }
+	$fileStats = @{
+		TotalFiles      = 0
+		FilesWithErrors = 0
+		TotalLinks      = 0
+		InvalidLinks    = 0
+	}
+	$colorMap = @{
+		$true  = "Green"
+		$false = "Red"
+	}
 
-        # Regular expression to match markdown links
-        $pattern = '\[([^\]]*)\]\(([^\)]+)\)'
-        $markdownLinks = [regex]::Matches($content, $pattern)
-        $hasInvalidLinks = $false
-        $fileLinksCount = 0
-        $fileInvalidCount = 0
+	# Get all markdown files recursively
+	$mdFiles = Get-ChildItem -Path $FolderPath -Filter "*.md" -Recurse
 
-        if ($markdownLinks.Count -gt 0) {
-            Write-Host "Processing: $($file.Name)" -ForegroundColor Cyan
+	$fileStats.TotalFiles = $mdFiles.Count
+	Write-Host "Found $($mdFiles.Count) markdown files to process..."
+	Write-Separator
 
-            foreach ($link in $markdownLinks) {
-                $linkText = $link.Groups[1].Value
-                $url = $link.Groups[2].Value.Trim()
+	foreach ($file in $mdFiles) {
+		$content = Get-Content -Path $file.FullName -Raw
 
-                # Skip anchor links
-                if ($url.StartsWith("#")) {
-                    continue
-                }
+		# Add null check before attempting regex match
+		if ($null -eq $content) {
+			Write-Warning "File content is null for $($file.FullName)"
+			continue
+		}
 
-                # Skip relative links unless specifically included
-                if (-not $url.StartsWith("http") -and -not $IncludeRelativeLinks) {
-                    continue
-                }
+		# Regular expression to match markdown links
+		$pattern = '\[([^\]]*)\]\(([^\)]+)\)'
+		$markdownLinks = [regex]::Matches($content, $pattern)
+		$hasInvalidLinks = $false
+		$fileLinksCount = 0
+		$fileInvalidCount = 0
 
-                $fileLinksCount++
-                $fileStats.TotalLinks++
+		if ($markdownLinks.Count -gt 0) {
+			Write-Host "Processing: $($file.Name)" -ForegroundColor Cyan
 
-                $result = Test-Url -Url $url -Timeout $TimeoutSeconds
+			foreach ($link in $markdownLinks) {
+				$linkText = $link.Groups[1].Value
+				$url = $link.Groups[2].Value.Trim()
 
-                if (-not $result.IsValid) {
-                    $hasInvalidLinks = $true
-                    $fileInvalidCount++
-                    $fileStats.InvalidLinks++
+				# Skip anchor links
+				if ($url.StartsWith("#")) {
+					continue
+				}
 
-                    # Calculate line number
-                    $lineNumber = ($content.Substring(0, $link.Index).Split("`n")).Count
+				# Skip relative links unless specifically included
+				if (-not $url.StartsWith("http") -and -not $IncludeRelativeLinks) {
+					continue
+				}
 
-                    Write-Host "  Line $lineNumber - INVALID LINK" -ForegroundColor Red
-                    Write-Host "    Text: $linkText"
-                    Write-Host "    URL:  $url"
-                    Write-Host "    Error: $($result.Error) (Status: $($result.StatusCode))"
-                }
-            }
+				$fileLinksCount++
+				$fileStats.TotalLinks++
 
-            if ($fileLinksCount -gt 0) {
-                Write-Host "  Links checked: $fileLinksCount, Invalid: $fileInvalidCount" -ForegroundColor $(if ($fileInvalidCount -gt 0) {
-                        "Red"
-                    }
-                    else {
-                        "Green"
-                    })
-                Write-Separator
-            }
-        }
+				$result = Test-Url -Url $url -Timeout $TimeoutSeconds
 
-        if ($hasInvalidLinks) {
-            $fileStats.FilesWithErrors++
-        }
-    }
+				if (-not $result.IsValid) {
+					$hasInvalidLinks = $true
+					$fileInvalidCount++
+					$fileStats.InvalidLinks++
 
-    # Print final summary
-    Write-Host "`nVALIDATION SUMMARY" -ForegroundColor Cyan
-    Write-Separator
-    Write-Host "Total Files Processed: $($fileStats.TotalFiles)"
-    Write-Host "Files With Invalid Links: $($fileStats.FilesWithErrors)" -ForegroundColor $(if ($fileStats.FilesWithErrors -gt 0) {
-            "Red"
-        }
-        else {
-            "Green"
-        })
-    Write-Host "Total Links Checked: $($fileStats.TotalLinks)"
-    Write-Host "Invalid Links Found: $($fileStats.InvalidLinks)" -ForegroundColor $(if ($fileStats.InvalidLinks -gt 0) {
-            "Red"
-        }
-        else {
-            "Green"
-        })
-    Write-Separator
+					# Calculate line number
+					$lineNumber = ($content.Substring(0, $link.Index).Split("`n")).Count
+
+					Write-Host "  Line $lineNumber - INVALID LINK" -ForegroundColor Red
+					Write-Host "    Text: $linkText"
+					Write-Host "    URL:  $url"
+					Write-Host "    Error: $($result.Error) (Status: $($result.StatusCode))"
+				}
+			}
+
+			if ($fileLinksCount -gt 0) {
+				Write-Host "  Links checked: $fileLinksCount, Invalid: $fileInvalidCount" -ForegroundColor $colorMap[($fileInvalidCount -lt 1)]
+				Write-Separator
+			}
+		}
+
+		if ($hasInvalidLinks) {
+			$fileStats.FilesWithErrors++
+		}
+	}
+
+	# Print final summary
+	Write-Host "`nVALIDATION SUMMARY" -ForegroundColor Cyan
+	Write-Separator
+	Write-Host "Total Files Processed: $($fileStats.TotalFiles)"
+	Write-Host "Files With Invalid Links: $($fileStats.FilesWithErrors)" -ForegroundColor $colorMap[($fileStats.FilesWithErrors -lt 1)]
+	Write-Host "Total Links Checked: $($fileStats.TotalLinks)"
+	Write-Host "Invalid Links Found: $($fileStats.InvalidLinks)" -ForegroundColor $colorMap[($fileStats.InvalidLinks -lt 1)]
+	Write-Separator
 }
 
-function Get-FrontMatterList
-{
+function Get-FrontMatterList {
 	[CmdletBinding()]
 	param (
 		$content
 	)
-    $results = @{}
-    if ($content -match '^---\s*\n([\s\S]*?)\n---') {
-        $frontMatter = $Matches[1]
-        # Split the front matter into lines
-        $lines = $frontMatter -split '\r?\n'
-        foreach ($line in $lines) {
-            if ($line -match '^(.*?)\s*:\s*(.*)$') {
-                $key = $Matches[1].Trim()
-                $value = $Matches[2].Trim()
-                $results[$key] = $value
-            }
-        }
-    }
-    return $results
+	$results = @{}
+	if ($content -match '^---\s*\n([\s\S]*?)\n---') {
+		$frontMatter = $Matches[1]
+		# Split the front matter into lines
+		$lines = $frontMatter -split '\r?\n'
+		foreach ($line in $lines) {
+			if ($line -match '^(.*?)\s*:\s*(.*)$') {
+				$key = $Matches[1].Trim()
+				$value = $Matches[2].Trim()
+				$results[$key] = $value
+			}
+		}
+	}
+	return $results
 }
 
 function Remove-TrailingEmptyLines {
-    [CmdletBinding()]
-    param (
-        [string]$Content
-    )
+	[CmdletBinding()]
+	param (
+		[string]$Content
+	)
 
-    # Split content into lines, remove trailing empty lines, then join back
-    $lines = $Content -split '\r?\n'
-    for ($i = $lines.Length - 1; $i -ge 0; $i--) {
-        if ([string]::IsNullOrWhiteSpace($lines[$i])) {
-            $lines = $lines[0..($i - 1)]
-        }
-        else {
-            break
-        }
-    }
+	# Split content into lines, remove trailing empty lines, then join back
+	$lines = $Content -split '\r?\n'
+	for ($i = $lines.Length - 1; $i -ge 0; $i--) {
+		if ([string]::IsNullOrWhiteSpace($lines[$i])) {
+			$lines = $lines[0..($i - 1)]
+		}
+		else {
+			break
+		}
+	}
 
-    return ($lines -join "`n") + "`n"
+	return ($lines -join "`n") + "`n"
 }
+#endregion Functions
 
 $entraDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../entra-docs-pr" -ChildPath 'docs/includes/secure-recommendations'
 $intuneDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../memdocs-pr" -ChildPath 'intune/intune-service/protect/includes/secure-recommendations'
@@ -341,95 +349,106 @@ $intuneRecommendations = Get-DocsRecommendations -recommendationsFolder $intuneD
 $recommendations = $entraRecommendations + $intuneRecommendations
 
 # Update the recommendations in the tests
-$testFiles = Get-ChildItem -Path "$($PSScriptRoot)../../src/powershell/private/tests" -Filter *.md
-$testMetaPath = "$($PSScriptRoot)../../src/powershell/tests/TestMeta.json"
+$testFiles = Get-ChildItem -Path "$($PSScriptRoot)/../src/powershell/tests" -Filter *.md
 # Read the existing test metadata and merge with the new recommendations
-$testMeta = Get-Content $testMetaPath | ConvertFrom-Json -AsHashtable
 
 foreach ($file in $testFiles) {
-    # Split the name with . and get the second part
-    $testId = $file.BaseName.Split('.')[1]
-    $testId
+	# Split the name with . and get the second part
+	$testId = $file.BaseName.Split('.')[1]
+	$testId
 
-    # Create a hashtable to store the testid and docsTitle
-    if ($testId) {
-        if ($recommendations.ContainsKey($testId)) {
-            Write-Host "Checking $($file.BaseName)"
+	if (-not $testId) {
+		Write-Warning "Test ID not found for $($file.BaseName)"
+		continue
+	}
 
-            $content = Get-Content -Path $file.FullName -Raw
+	if (-not $recommendations.ContainsKey($testId)) {
+		Write-Warning "Recommendations not found for $($file.BaseName)"
+		continue
+	}
 
-            $docRawContent = $recommendations[$testId] # Includes front matter and markdown content
-            $frontMatter = Get-FrontMatterList -content $docRawContent
-            $docsTitle = $frontMatter['title']
+	# Create a hashtable to store the testid and docsTitle
+	Write-Host "Checking $($file.BaseName)"
 
-            $docsContent = Get-MarkDownContent $docRawContent
+	$content = Get-Content -Path $file.FullName -Raw
 
-            # Check if test with id exists in the hashtable
-            if (!$testMeta.ContainsKey($testId)) {
-                $testMetaItem = [ordered]@{}
-                $testMeta[$testId] = $testId
-            }
+	$docRawContent = $recommendations[$testId] # Includes front matter and markdown content
+	$frontMatter = Get-FrontMatterList -content $docRawContent
+	$docsTitle = $frontMatter['title']
 
-            $testMetaItem = $testMeta[$testId]
+	$docsContent = Get-MarkDownContent $docRawContent
 
-            $testMetaItem.TestId = $testId
-            $testMetaItem.Title = $docsTitle
-            $testMetaItem.Category = $frontMatter['# category']
-            $testMetaItem.ImplementationCost = $frontMatter['# implementationcost']
-            $testMetaItem.RiskLevel = $frontMatter['# risklevel']
-            $testMetaItem.UserImpact = $frontMatter['# userimpact']
-            $testMetaItem.SfiPillar = $frontMatter['# sfipillar']
-            $testMetaItem.Pillar = 'Identity' #$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
+	#region Update MetaData for Test
+	$testData = Get-ZtTest -Tests $testId
+	if (-not $testData) {
+		Write-Warning "The Test $testId could not be found! Make sure the code implementation exists and is correct. Also make sure the ZeroTrustAssessment module has been reimported since adding it."
+	}
+	else {
+		$update = @{
+			Test = $testId
+		}
+		if ($testData.TestId -ne $testId) {
+			$update.TestId = $testId
+		}
+		if ($testData.Title -ne $docsTitle) {
+			$update.Title = $docsTitle
+		}
+		if ($testData.Category -ne $frontMatter['# category']) {
+			$update.Category = $frontMatter['# category']
+		}
+		if ($testData.ImplementationCost -ne $frontMatter['# implementationcost']) {
+			$update.ImplementationCost = $frontMatter['# implementationcost']
+		}
+		if ($testData.RiskLevel -ne $frontMatter['# risklevel']) {
+			$update.RiskLevel = $frontMatter['# risklevel']
+		}
+		if ($testData.UserImpact -ne $frontMatter['# userimpact']) {
+			$update.UserImpact = $frontMatter['# userimpact']
+		}
+		if ($testData.SfiPillar -ne $frontMatter['# sfipillar']) {
+			$update.SfiPillar = $frontMatter['# sfipillar']
+		}
+		#$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
+		if (-not $testData.Pillar) {
+			$update.Pillar = 'Identity'
+		}
+		elseif ($testData.Pillar -ne 'Identity') {
+			Write-Verbose "[$testId] Pillar Update notice: Current Pillar set to '$($testData.Pillar)'. NOT reverting to 'Identity' for now, pending code update."
+		}
+		if ($update.Count -gt 1) {
+			try {
+				Write-Verbose "[$testId] Updating metadata: $($update.Keys.Where{$_ -ne 'Test'} -join ',')"
+				Set-TestMetadata @update -ErrorAction Stop
+			}
+			catch {
+				Write-Warning "[$testId] Failed to update metadata: $_"
+			}
+		}
+	}
+	#endregion Update MetaData for Test
 
-            Write-Host "$testId Title: $docsTitle"
-            # Find everything before <!--- Results ---> and replace it with the recommendations from the docs
-            $seperator = $content.IndexOf('<!--- Results --->')
-            $prevContent = $content.Substring(0, $seperator)
-            if ($seperator -gt 0) {
-                if ($docsContent -eq $prevContent) {
-                    Write-Host " → No change."
-                    continue
-                }
-                else {
-                    $content = $docsContent + $content.Substring($seperator)
-                }
-            }
-            else {
-                $content = $docsContent
-            }
+	Write-Host "$testId Title: $docsTitle"
+	# Find everything before <!--- Results ---> and replace it with the recommendations from the docs
+	$seperator = $content.IndexOf('<!--- Results --->')
+	$prevContent = $content.Substring(0, $seperator)
+	if ($seperator -gt 0) {
+		if ($docsContent -eq $prevContent) {
+			Write-Host " → No change."
+			continue
+		}
+		else {
+			$content = $docsContent + $content.Substring($seperator)
+		}
+	}
+	else {
+		$content = $docsContent
+	}
 
-            # Split the content into lines, start from the last line and remove
+	# Split the content into lines, start from the last line and remove
 
-            $cleanContent = Remove-TrailingEmptyLines -Content $content
+	$cleanContent = Remove-TrailingEmptyLines -Content $content
 
-            Set-Content -Path $file.FullName -Value $cleanContent
-        }
-        else {
-            Write-Warning "Recommendations not found for $($file.BaseName)"
-        }
-    }
-    else {
-        Write-Warning "Test ID not found for $($file.BaseName)"
-    }
+	Set-Content -Path $file.FullName -Value $cleanContent
 }
-
-
-# Sort the hashtable by TestId and convert to ordered dictionary
-$sortedTestMeta = [ordered]@{}
-$testMeta.Keys | Sort-Object | ForEach-Object {
-    $testId = $_
-    $testData = $testMeta[$testId]
-
-    # Create ordered hashtable with sorted attributes
-    $sortedAttributes = [ordered]@{}
-    $testData.Keys | Sort-Object | ForEach-Object {
-        $sortedAttributes[$_] = $testData[$_]
-    }
-
-    $sortedTestMeta[$testId] = $sortedAttributes
-}
-
-# Save the sorted hashtable to a json file
-$sortedTestMeta | ConvertTo-Json | Set-Content -Path $testMetaPath
 
 Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks

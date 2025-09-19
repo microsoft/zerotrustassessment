@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21835{
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21835,
+    	Title = 'Emergency account exists',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

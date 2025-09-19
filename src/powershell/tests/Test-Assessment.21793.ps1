@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21793 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21793,
+    	Title = 'Tenant restrictions v2 policy is configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

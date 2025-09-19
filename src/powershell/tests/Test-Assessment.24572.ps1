@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Device enrollment notification is configured and assigned
 #>
 
 function Test-Assessment-24572 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24572,
+    	Title = 'Device enrollment notification is configured and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

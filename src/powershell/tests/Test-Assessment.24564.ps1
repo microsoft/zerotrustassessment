@@ -1,4 +1,4 @@
-
+﻿
 <#
 .SYNOPSIS
 
@@ -7,6 +7,17 @@
 
 
 function Test-Assessment-24564 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24564,
+    	Title = 'Windows - Local Account Protection policy is configured and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

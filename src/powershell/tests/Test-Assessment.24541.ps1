@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     A compliance policy for Windows devices exists and is assigned
 #>
 
 function Test-Assessment-24541 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24541,
+    	Title = 'A compliance policy for Windows devices exists ',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

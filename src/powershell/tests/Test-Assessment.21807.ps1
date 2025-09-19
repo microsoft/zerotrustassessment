@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21807 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21807,
+    	Title = 'Creating new applications and service principals is restricted to privileged users',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

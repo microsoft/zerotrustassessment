@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-24543 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24543,
+    	Title = 'Compliance policy assignment for iOS/iPadOS devices',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
