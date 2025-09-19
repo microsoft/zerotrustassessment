@@ -15,13 +15,11 @@ function Get-DefaultLevel
 }
 
 # Import the CSV file
-$csv = Import-Csv -Path .\ado-tests.csv
+$csv = Import-Csv -Path "$PSScriptRoot\ado-tests.csv"
 
 # go through each row in the CSV file, check if the test exists in the ./src/private/tests directory ending with the same .id.ps1 format
 # if it does not exist, create the file with the test scaffold
-$createdTests = @()
-
-foreach ($row in $csv) {
+$createdTests = foreach ($row in $csv) {
     $testId = $row.ID
     $testTitle = $row.Title
     Write-Host "Processing test $testId - $testTitle"
@@ -33,25 +31,28 @@ foreach ($row in $csv) {
 
     # use wildcard for the Test-name prefix
     # Check if file name ends with .$testId.ps1 and if it does not exist, create the file
-    $testFile = "../../src/powershell/private/tests/*.$testId.ps1"
+    $testFile = "../../src/powershell/tests/*.$testId.ps1"
 
     if (-not (Test-Path $testFile)) {
         Write-Host "Creating test file $testFile"
-        $createdTests += "Test-Assessment-$testId"
-        $testContent = Get-Content -Path .\Test-Template.ps1
+
+        $testContent = Get-Content -Path "$PSScriptRoot\Test-Template.ps1"
         $testContent = $testContent -replace "%testid%", $testId
         $testContent = $testContent -replace "%testTitle%", $testTitle
         $testContent = $testContent -replace "%risk%", $risk
         $testContent = $testContent -replace "%userImpact%", $userImpact
         $testContent = $testContent -replace "%implementationCost%", $implementationCost
+        $testContent = $testContent -replace "%category%", $row.Categories
 
         $fileName = "Test-Assessment.$testId"
-        $testPsFile = "../../src/powershell/private/tests/$fileName.ps1"
-        $testContent | Out-File -FilePath $testPsFile
+        $testPsFile = "../../src/powershell/tests/$fileName.ps1"
+        $testContent | Set-Content -Path $testPsFile
 
-        $markdownFile = "../../src/powershell/private/tests/$fileName.md"
-        $markdownContent = Get-Content -Path .\Test-Template.md
-        $markdownContent | Out-File -FilePath $markdownFile
+        $markdownFile = "../../src/powershell/tests/$fileName.md"
+        $markdownContent = Get-Content -Path "$PSScriptRoot\Test-Template.md"
+        $markdownContent | Set-Content -Path $markdownFile
+
+		"Test-Assessment-$testId"
     }
 }
 

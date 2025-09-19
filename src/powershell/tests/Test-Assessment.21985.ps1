@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21985{
+    [ZtTest(
+    	Category = 'Credential management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21985,
+    	Title = 'Turn off Seamless SSO if there is no usage',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

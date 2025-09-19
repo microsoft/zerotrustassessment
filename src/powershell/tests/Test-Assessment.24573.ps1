@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Windows security baseline is configured and assigned
 #>
 
 function Test-Assessment-24573 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24573,
+    	Title = 'Windows - A security baseline is configured and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

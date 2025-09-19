@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21874 {
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21874,
+    	Title = 'Allow/Deny lists of domains to restrict external collaboration are configured',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

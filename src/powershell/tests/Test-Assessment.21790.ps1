@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21790 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21790,
+    	Title = 'Outbound cross-tenant access settings are configured',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

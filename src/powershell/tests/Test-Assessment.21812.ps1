@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21812 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21812,
+    	Title = 'Maximum number of Global Administrators doesn''t exceed eight users',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
