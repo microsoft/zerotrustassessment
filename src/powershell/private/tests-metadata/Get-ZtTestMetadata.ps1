@@ -1,4 +1,4 @@
-﻿function Get-ZtTestMetadata {
+function Get-ZtTestMetadata {
 	<#
 	.SYNOPSIS
 		Reads the configured Test Metadata tracking information from commands.
