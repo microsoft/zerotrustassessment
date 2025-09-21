@@ -46,7 +46,7 @@ function Test-Assessment-24569 {
         $_.FileVaultEnabled -eq $true
     }
 
-    $allPolicies = $macOSFileVaultEnabledPolicies + $macOSEndpointProtectionFileVaultEnabledPolicies
+    $allPolicies = $macOSFileVaultEnabledPolicies.Foreach{$_} + $macOSEndpointProtectionFileVaultEnabledPolicies.Foreach{$_}
     #endregion Data Collection
 
     #region Assessment Logic
