@@ -7,7 +7,7 @@ function Test-Assessment-24794 {
     [ZtTest(
     	Category = 'Devices',
     	ImplementationCost = 'Low',
-    	Pillar = 'Identity',
+    	Pillar = 'Devices',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
