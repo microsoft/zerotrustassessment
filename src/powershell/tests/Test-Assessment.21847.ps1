@@ -100,12 +100,6 @@ function Test-Assessment-21847 {
 
     $params = @{
         TestId             = '21847'
-        Title              = "Password protection for on-premises is enabled"
-        UserImpact         = 'Low'
-        Risk               = 'High'
-        ImplementationCost = 'Medium'
-        AppliesTo          = 'Identity'
-        Tag                = 'Identity'
         Status             = $passed
         Result             = $testResultMarkdown
     }
