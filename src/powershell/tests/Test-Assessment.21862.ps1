@@ -23,14 +23,12 @@ function Test-Assessment-21862{
     $activity = "Checking All risky workload identities are triaged"
     Write-ZtProgress -Activity $activity -Status "Getting risky service principals"
 
-    $riskyServicePrincipals = Invoke-ZtGraphRequest -RelativeUri "identityProtection/riskyServicePrincipals" -ApiVersion v1.0 -Filter "riskState eq 'atRisk'"
+    $untriagedRiskyPrincipals = Invoke-ZtGraphRequest -RelativeUri "identityProtection/riskyServicePrincipals" -ApiVersion v1.0 -Filter "riskState eq 'atRisk'"
 
     Write-ZtProgress -Activity $activity -Status "Getting service principal risk detections"
 
-    $servicePrincipalRiskDetections = (Get-Content C:\tmp\test1.json | ConvertFrom-Json).value
-    #"Invoke-ZtGraphRequest -RelativeUri "identityProtection/servicePrincipalRiskDetections" -ApiVersion v1.0 -Filter "riskState eq 'atRisk'""
+    $servicePrincipalRiskDetections = Invoke-ZtGraphRequest -RelativeUri "identityProtection/servicePrincipalRiskDetections" -ApiVersion v1.0 -Filter "riskState eq 'atRisk'"
 
-    $untriagedRiskyPrincipals = $riskyServicePrincipals | Where-Object { $_.riskState -eq 'atRisk' }
     $untriagedRiskDetections = $servicePrincipalRiskDetections | Where-Object { $_.riskState -eq 'atRisk' }
 
     $passed = ($untriagedRiskyPrincipals.Count -eq 0) -and ($untriagedRiskDetections.Count -eq 0)
@@ -44,22 +42,22 @@ function Test-Assessment-21862{
         $testResultMarkdown = "Found $riskySPCount untriaged risky service principals and $riskyDetectionCount untriaged risk detections ❌"
 
         if ($riskySPCount -gt 0) {
-            $testResultMarkdown += "`n`n**Untriaged Risky Service Principals:**"
+            $testResultMarkdown += "`n`n## Untriaged Risky Service Principals`n`n"
+            $testResultMarkdown += "| Service Principal | App ID | Type | Risk Level | Risk State | Last Updated |`n"
+            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($sp in $untriagedRiskyPrincipals) {
-                $testResultMarkdown += "`n- **$($sp.displayName)** (ID: $($sp.id))"
-                $testResultMarkdown += "`n  - Risk Level: $($sp.riskLevel)"
-                $testResultMarkdown += "`n  - Risk State: $($sp.riskState)"
-                $testResultMarkdown += "`n  - Last Updated: $($sp.riskLastUpdatedDateTime)"
+                $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($sp.id)/appId/$($sp.appId)"
+                $testResultMarkdown += "| [$($sp.displayName)]($portalLink) | $($sp.appId) | $($sp.servicePrincipalType) | $(Get-FormattedRiskLevel -RiskLevel $sp.riskLevel) | $($sp.riskState) | $($sp.riskLastUpdatedDateTime) |`n"
             }
         }
 
         if ($riskyDetectionCount -gt 0) {
-            $testResultMarkdown += "`n`n**Untriaged Risk Detections Events:**"
+            $testResultMarkdown += "`n`n## Untriaged Risk Detection Events`n`n"
+            $testResultMarkdown += "| Service Principal | App ID | Service Principal ID | Risk Level | Risk State | Risk Event Type | Detected |`n"
+            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($detection in $untriagedRiskDetections) {
-                $testResultMarkdown += "`n- **Service Principal:** $($detection.servicePrincipalDisplayName)"
-                $testResultMarkdown += "`n  - Risk Level: $($detection.riskLevel)"
-                $testResultMarkdown += "`n  - Risk Event Type: $($detection.riskEventType)"
-                $testResultMarkdown += "`n  - Detected: $($detection.detectedDateTime)"
+                $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($detection.servicePrincipalId)/appId/$($detection.appId)"
+                $testResultMarkdown += "| [$($detection.servicePrincipalDisplayName)]($portalLink) | $($detection.appId) | $($detection.servicePrincipalId) | $(Get-FormattedRiskLevel -RiskLevel $detection.riskLevel) | $($detection.riskState) | $($detection.riskEventType) | $($detection.detectedDateTime) |`n"
             }
         }
     }
