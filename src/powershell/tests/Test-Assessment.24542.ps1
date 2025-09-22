@@ -5,14 +5,14 @@
 
 function Test-Assessment-24542 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24542,
-    	Title = 'macOS Compliance policy is created and assigned',
+    	Title = 'Compliance policy for macOS devices',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

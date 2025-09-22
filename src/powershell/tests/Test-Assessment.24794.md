@@ -1,8 +1,9 @@
-If Terms and Conditions policies are not configured and assigned in Intune, users may access corporate resources without agreeing to required legal, security, or usage terms. This can expose the organization to compliance risks, legal liabilities, and potential misuse of resources. Enforcing Terms and Conditions ensures users acknowledge and accept company policies before accessing sensitive data or systems.
+If Terms and Conditions policies aren't configured and assigned in Intune, users might access corporate resources without agreeing to required legal, security, or usage terms. This omission can expose the organization to compliance risks, legal liabilities, and potential misuse of resources. 
+
+By enforcing Terms and Conditions, you ensure that users acknowledge and accept company policies before they access sensitive data or systems.
 
 **Remediation action**
 
-- [Terms and conditions for user access](https://learn.microsoft.com/mem/intune/enrollment/terms-and-conditions-create)
-
-<!--- Results --->
+- [Create terms and conditions policy](https://learn.microsoft.com/intune/intune-service/enrollment/terms-and-conditions-create?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
+

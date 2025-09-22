@@ -1,19 +1,19 @@
-<#
+﻿<#
 .SYNOPSIS
     Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned
 #>
 
 function Test-Assessment-24545 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24545,
-    	Title = 'Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned ',
-    	UserImpact = 'Medium'
+    	Title = 'Compliance policy assignment for Android Enterprise fully managed devices',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

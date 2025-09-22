@@ -8,14 +8,14 @@
 
 function Test-Assessment-24576 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'Low',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24576,
-    	Title = 'Intune Endpoint Analytics policy is created and Assigned ',
+    	Title = 'Intune Endpoint Analytics policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

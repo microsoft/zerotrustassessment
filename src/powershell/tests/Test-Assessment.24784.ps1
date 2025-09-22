@@ -1,20 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     A Microsoft Defender Antivirus policy is created and assigned in Intune for macOS
 #>
 
 function Test-Assessment-24784 {
         [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'Low',
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
-    	TenantType = ('Workforce'),
-    	TestId = 24784,
-    	Title = 'A Microsoft Defender Antivirus policy is created and assigned in Intune for macOS',
-    	UserImpact = 'Medium'
-    )]
+        	Category = 'Devices',
+        	ImplementationCost = 'Low',
+        	Pillar = 'Devices',
+        	RiskLevel = 'High',
+        	SfiPillar = 'Protect networks',
+        	TenantType = ('Workforce'),
+        	TestId = 24784,
+        	Title = 'macOS Defender Antivirus policy',
+        	UserImpact = 'Low'
+        )]
     [CmdletBinding()]
     param()
 

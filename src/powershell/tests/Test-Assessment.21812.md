@@ -1,9 +1,7 @@
-An excessive number of Global Administrator accounts creates an expanded attack surface that threat actors can exploit through various initial access vectors. Each additional privileged account represents a potential entry point for threat actors. This excess of global administrator accounts undermines the principle of least privilege.
+An excessive number of Global Administrator accounts creates an expanded attack surface that threat actors can exploit through various initial access vectors. Each extra privileged account represents a potential entry point for threat actors. An excess of Global Administrator accounts undermines the principle of least privilege. Microsoft recommends that organizations have no more than eight Global Administrators.
 
 **Remediation action**
 
-Review current Global Administrator assignments and reassign users/service principals to more specific administrative roles based on their actual responsibilities as per the best practices in the article:
-- [Best practices for Microsoft Entra roles](https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices) 
-
-<!--- Results --->
+- [Follow best practices for Microsoft Entra roles](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/best-practices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
+

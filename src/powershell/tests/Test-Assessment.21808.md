@@ -2,8 +2,7 @@ Device code flow is a cross-device authentication flow designed for input-constr
 
 **Remediation action**
 
-- Create a Conditional Access policy to [block device code flow](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#device-code-flow-policies).
-- [Learn more about device code flow](https://learn.microsoft.com/entra/identity/conditional-access/concept-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#device-code-flow)
+- [Deploy a Conditional Access policy to block device code flow](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#device-code-flow-policies).
 <!--- Results --->
 %TestResult%
 
