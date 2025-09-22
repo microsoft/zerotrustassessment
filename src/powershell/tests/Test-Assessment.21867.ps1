@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21867 {
+    [ZtTest(
+        Category = 'Application management',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce','External'),
+        TestId = 21867,
+        Title = 'Enterprise applications with high privilege permissions have at least two owners',
+        UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
@@ -81,35 +92,10 @@ function Test-Assessment-21867 {
 
         $passed = $result
 
-        $params = @{
-            TestId              = '21867'
-            Title              = "Enterprise applications with high privilege permissions have at least two owners"
-            UserImpact         = "Low"      # Application ownership assignments are administrative tasks that don't affect end users
-            Risk               = "High"      # Ownerless applications with high privileges present a wide exposure of risks
-            ImplementationCost = "Medium"    # Organizations need to establish ongoing governance programs to assign and maintain application owners
-            AppliesTo          = "Identity"
-            Tag                = "Identity"
-            Status             = $passed
-            Result             = $testResultMarkdown
-        }
-
-        Add-ZtTestResultDetail @params
+        Add-ZtTestResultDetail -TestId '21867' -Status $passed -Result $testResultMarkdown
 
     } catch {
-        $testResultMarkdown = "Error occurred while checking application owners: $($_.Exception.Message)"
-
-        $params = @{
-            TestId              = '21867'
-            Title              = "Enterprise applications with high privilege permissions have at least two owners"
-            UserImpact         = "Low"
-            Risk               = "High"
-            ImplementationCost = "Medium"
-            AppliesTo          = "Identity"
-            Tag                = "Identity"
-            Status             = $false
-            Result             = $testResultMarkdown
-        }
-
-        Add-ZtTestResultDetail @params
+        Write-PSFMessage -Level Error -Message "Error in Test-Assessment-21867: $($_.Exception.Message)"
+        Add-ZtTestResultDetail -TestId '21867' -Status $false -Result "Error occurred while checking application owners: $($_.Exception.Message)"
     }
 }
