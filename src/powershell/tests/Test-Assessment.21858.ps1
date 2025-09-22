@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21858 {
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21858,
+    	Title = 'Inactive guest identities are disabled or removed from the tenant',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

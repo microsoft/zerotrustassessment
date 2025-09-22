@@ -1,6 +1,6 @@
-...
+Threat actors increasingly rely on prompt bombing and real-time phishing proxies to coerce or trick users into approving fraudulent multifactor authentication (MFA) challenges. Without the Microsoft Authenticator “Report suspicious activity” capability enabled, a coerced denial or ignored prompt produces minimal actionable signal; the attacker can iterate until a fatigued user accepts. When reporting is enabled and targeted to users, any unexpected push or phone prompt can be actively flagged, immediately elevating the user to High User Risk and generating a high-fidelity risk detection (userReportedSuspiciousActivity) that downstream Conditional Access or response automation can block or require secure remediation. If disabled, threat actors who gain initial credentials via phishing can continuously attempt MFA approvals (harvested session replay or AiTM) without triggering rapid risk-based containment. This gap lets them escalate: (1) credential theft and session token interception; (2) iterative MFA fatigue attacks; (3) eventual push approval; (4) privilege escalation or persistence (adding methods, creating service principals); (5) lateral movement into sensitive workloads; (6) data exfiltration or destructive actions. Enabling and targeting this feature converts ambiguous user friction into a deterministic, high-signal containment control, shrinking attacker dwell time and strengthening the detection-to-response feedback loop using built-in risk pipelines. Leaving it off forfeits a low-noise human sensor that materially improves blast radius reduction.
 
 **Remediation action**
-
+- [Enable Settings](https://learn.microsoft.com/entra/identity/authentication/howto-mfa-mfasettings#report-suspicious-activity)
 <!--- Results --->
 %TestResult%

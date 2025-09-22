@@ -1,10 +1,21 @@
-
+﻿
 <#
 .SYNOPSIS
     Gets the authentication methods registered by all users.
 #>
 
 function Test-Assessment-21801 {
+    [ZtTest(
+    	Category = 'Credential management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21801,
+    	Title = 'Users have strong authentication methods configured',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param(
         $Database

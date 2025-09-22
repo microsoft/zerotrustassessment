@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     An app protection policy for iOS devices exists
 #>
 
 function Test-Assessment-24548 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24548,
+    	Title = 'App Protection Policy assigned on iOS/iPad devices',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

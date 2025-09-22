@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21775{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = '',
+    	RiskLevel = 'Low',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21775,
+    	Title = 'Tenant app management policy is configured',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

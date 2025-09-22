@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21984{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21984,
+    	Title = 'No Active low priority Entra recommendations found',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

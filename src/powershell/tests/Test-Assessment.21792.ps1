@@ -1,10 +1,21 @@
-
+﻿
 <#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21792 {
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21792,
+    	Title = 'Guests have restricted access to directory objects',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param(
         $Database

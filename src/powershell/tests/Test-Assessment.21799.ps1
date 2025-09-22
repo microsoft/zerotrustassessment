@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21799 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Accelerate response and remediation',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21799,
+    	Title = 'Restrict high risk sign-ins',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

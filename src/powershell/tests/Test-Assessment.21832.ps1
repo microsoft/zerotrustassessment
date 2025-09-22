@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21832{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21832,
+    	Title = 'All groups in Conditional Access policies belong to a restricted management administrative unit',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

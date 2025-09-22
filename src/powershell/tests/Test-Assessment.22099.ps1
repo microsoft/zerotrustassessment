@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-22099{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('External'),
+    	TestId = 22099,
+    	Title = 'Integrate Entra Sign-In logs with Azure Monitor',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

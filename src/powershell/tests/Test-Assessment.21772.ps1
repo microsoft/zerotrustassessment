@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21772 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21772,
+    	Title = 'Applications don''t have client secrets configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

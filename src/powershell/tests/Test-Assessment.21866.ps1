@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21866{
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21866,
+    	Title = 'All Microsoft Entra recommendations are addressed',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

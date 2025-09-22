@@ -28,158 +28,174 @@
 
 #>
 
-Function Add-ZtTestResultDetail {
-    [CmdletBinding()]
-    param(
-        # Brief description of what this test is checking.
-        # Markdown is supported.
-        [Parameter(Mandatory = $false)]
-        [string] $Description,
+function Add-ZtTestResultDetail {
+	[CmdletBinding()]
+	param(
+		# Brief description of what this test is checking.
+		# Markdown is supported.
+		[Parameter(Mandatory = $false)]
+		[string] $Description,
 
-        # The status of the test. True for passed, False for failed.
-        [bool] $Status,
+		# The status of the test. True for passed, False for failed.
+		[bool] $Status,
 
-        # Detailed information of the test result to provide additional context to the user.
-        # This can be a summary of the items that caused the test to fail (e.g. list of user names, conditional access policies, etc.).
-        # Markdown is supported.
-        # If the test result contains a placeholder %TestResult%, it will be replaced with the values from the $GraphResult
-        [Parameter(Mandatory = $false)]
-        [string] $Result,
+		# Detailed information of the test result to provide additional context to the user.
+		# This can be a summary of the items that caused the test to fail (e.g. list of user names, conditional access policies, etc.).
+		# Markdown is supported.
+		# If the test result contains a placeholder %TestResult%, it will be replaced with the values from the $GraphResult
+		[Parameter(Mandatory = $false)]
+		[string] $Result,
 
-        # Collection of Graph objects to display in the test results report.
-        # This will be inserted into the contents of Result parameter if the result contains a placeholder %TestResult%.
-        [Object[]] $GraphObjects,
+		# Collection of Graph objects to display in the test results report.
+		# This will be inserted into the contents of Result parameter if the result contains a placeholder %TestResult%.
+		[Object[]] $GraphObjects,
 
-        # The type of graph object, this will be used to show the right deeplink to the test results report.
-        [ValidateSet('AuthenticationMethod', 'AuthorizationPolicy', 'ConditionalAccess', 'ConsentPolicy',
-            'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole',
-            'External collaboration'
-        )]
-        [string] $GraphObjectType,
+		# The type of graph object, this will be used to show the right deeplink to the test results report.
+		[ValidateSet('AuthenticationMethod', 'AuthorizationPolicy', 'ConditionalAccess', 'ConsentPolicy',
+			'Devices', 'DiagnosticSettings', 'Domains', 'Groups', 'IdentityProtection', 'Users', 'UserRole',
+			'External collaboration'
+		)]
+		[string] $GraphObjectType,
 
-        # The unique id of the test.
-        [Parameter(Mandatory = $false)]
-        [string] $TestId,
+		# The unique id of the test.
+		[Parameter(Mandatory = $false)]
+		[string] $TestId,
 
-        # The short title of the test.
-        [Parameter(Mandatory = $false)]
-        [string] $Title,
+		# The short title of the test.
+		[Parameter(Mandatory = $false)]
+		[string] $Title,
 
-        # [ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
-        #     'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', "LicensedEntraIDPremium", 'NotSupported'
-        # )]
-        [string] $SkippedBecause,
+		# [ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
+		#     'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', "LicensedEntraIDPremium", 'NotSupported'
+		# )]
+		[string] $SkippedBecause,
 
-        [ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
-        [string] $UserImpact,
+		[ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
+		[string] $UserImpact,
 
-        [ValidateSet('High', 'Medium', 'Low')]
-        [string] $Risk,
+		[ValidateSet('High', 'Medium', 'Low')]
+		[string] $Risk,
 
-        [ValidateSet('High', 'Medium', 'Low')]
-        [string] $ImplementationCost,
+		[ValidateSet('High', 'Medium', 'Low')]
+		[string] $ImplementationCost,
 
-        [ValidateSet('Identity', 'Devices', 'Data')]
-        [string[]] $AppliesTo, #TODO Update this to specific product (Entra, Intune, etc)
+		[ValidateSet('Identity', 'Devices', 'Data')]
+		[string[]] $AppliesTo, #TODO Update this to specific product (Entra, Intune, etc)
 
-        [ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
-            'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity', 'Devices'
-            )]
-        [string[]] $Tag,
+		[ValidateSet('Credential', 'TenantPolicy', 'ExternalCollaboration', 'Application',
+			'User', 'PrivilegedIdentity', 'ConditionalAccess', 'Authentication', 'AccessControl', 'Identity', 'Devices'
+		)]
+		[string[]] $Tag,
 
-        # Optional. Custom status to return instead of the default status.
-        [Parameter(Mandatory = $false)]
-        [ValidateSet('Investigate')]
-        [string] $CustomStatus
-    )
+		# Optional. Custom status to return instead of the default status.
+		[Parameter(Mandatory = $false)]
+		[ValidateSet('Investigate')]
+		[string] $CustomStatus
+	)
 
-    $hasGraphResults = $GraphObjects -and $GraphObjectType
+	#region Resolve Test Item
+	$testMeta = Get-ZtTest -Current
+	# If test is executed outside of the module (e.g. solo test during dev), make sure the Test resolution still works anyway
+	if (-not $testMeta -and $TestId) {
+		$testMeta = Get-ZtTest -Tests $TestId
+	}
+	# Case: Completely new test, that the module cannot resolve yet
+	if (-not $testMeta) {
+		$testMeta = Get-ZtTestMetadata -Command (Get-PSCallStack)[1].InvocationInfo.MyCommand
+	}
+	#endregion Resolve Test Item
 
-    if ($SkippedBecause) {
-        $SkippedReason = Get-ZtSkippedReason $SkippedBecause
+	$actualTestId = $TestId
+	if (-not $actualTestId) {
+		$actualTestId = $testMeta.TestId
+	}
 
-        if (-not $Result) {
-            $Result = "Skipped. $SkippedReason"
-        }
-    }
+	$hasGraphResults = $GraphObjects -and $GraphObjectType
 
-    if (-not $Description) {
-        # Check if a markdown file exists for the cmdlet and parse the content
-		$markdownPath = Join-Path -Path $script:ModuleRoot -ChildPath "tests/Test-Assessment.$TestId.md"
-        if (Test-Path $markdownPath) {
-            # Read the content and split it into description and result with "<!--- Results --->" as the separator
-            $content = Get-Content $markdownPath -Raw
-            $splitContent = $content -split "<!--- Results --->"
-            $mdDescription = $splitContent[0]
-            $mdResult = $splitContent[1]
+	if ($SkippedBecause) {
+		$SkippedReason = Get-ZtSkippedReason -SkippedBecause $SkippedBecause
 
-            if (![string]::IsNullOrEmpty($Result)) {
-                # If a result was provided in the parameter insert it into the markdown content
-                if ($mdResult -match "%TestResult%") {
-                    $mdResult = $mdResult -replace "%TestResult%", $Result
-                }
-                else {
-                    $mdResult = $Result
-                }
-            }
+		if (-not $Result) {
+			$Result = "Skipped. $SkippedReason"
+		}
+	}
 
-            $Description = $mdDescription
-            $Result = $mdResult
-        }
-    }
+	if (-not $Description) {
+		# Check if a markdown file exists for the cmdlet and parse the content
+		$markdownPath = Join-Path -Path $script:ModuleRoot -ChildPath "tests/Test-Assessment.$actualTestId.md"
+		if (Test-Path $markdownPath) {
+			# Read the content and split it into description and result with "<!--- Results --->" as the separator
+			$content = Get-Content $markdownPath -Raw
+			$splitContent = $content -split "<!--- Results --->"
+			$mdDescription = $splitContent[0]
+			$mdResult = $splitContent[1]
 
-    if ($hasGraphResults) {
-        $graphResultMarkdown = Get-GraphObjectMarkdown -GraphObjects $GraphObjects -GraphObjectType $GraphObjectType
-        $Result = $Result -replace "%TestResult%", $graphResultMarkdown
-    }
+			if ($Result) {
+				# If a result was provided in the parameter insert it into the markdown content
+				if ($mdResult -match "%TestResult%") {
+					$mdResult = $mdResult -replace "%TestResult%", $Result
+				}
+				else {
+					$mdResult = $Result
+				}
+			}
 
-    # Check if the docs team have provided a title for the test and use it if available
-    $testMeta = $script:__ZtSession.TestMeta[$TestId]
-    $docsTitle = $Title # Default to the title provided in the parameter
+			$Description = $mdDescription
+			$Result = $mdResult
+		}
+	}
 
-    if ($null -ne $testMeta -and ![string]::IsNullOrEmpty($testMeta.Title)) {
-        Write-PSFMessage "Using title from docs" -Level Debug -Tag Test
-        $docsTitle = $testMeta.Title
-        if($testMeta.Category) {
-            $category = $testMeta.Category
-        }
-        if($testMeta.RiskLevel) {
-            $Risk = $testMeta.RiskLevel
-        }
-        if($testMeta.ImplementationCost) {
-            $ImplementationCost = $testMeta.ImplementationCost
-        }
-        if($testMeta.UserImpact) {
-            $UserImpact = $testMeta.UserImpact
-        }
-    }
+	if ($hasGraphResults) {
+		$graphResultMarkdown = Get-GraphObjectMarkdown -GraphObjects $GraphObjects -GraphObjectType $GraphObjectType
+		$Result = $Result -replace "%TestResult%", $graphResultMarkdown
+	}
 
-    $testInfo = @{
-        TestId                 = $TestId
-        TestTitle              = $docsTitle
-        TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause -CustomStatus $CustomStatus
-        TestCategory           = $category
-        TestTags               = $Tag
-        TestAppliesTo          = $AppliesTo
-        TestImpact             = $UserImpact
-        TestRisk               = $Risk
-        TestImplementationCost = $ImplementationCost
-        TestSfiPillar           = $testMeta.SfiPillar
-        TestPillar             = $testMeta.Pillar
-        TestDescription        = $Description
-        TestResult             = $Result
-        TestSkipped            = $SkippedBecause
-        SkippedReason          = $SkippedReason
-    }
+	# Check if the docs team have provided a title for the test and use it if available
 
-    Write-ZtProgress -Activity "Running tests" -Status $Title
-    Write-PSFMessage "Adding test result detail for $Title" -Tag Test
-    Write-PSFMessage "Result: $Result" -Level Debug -Tag Test
+	$docsTitle = $Title # Default to the title provided in the parameter
 
-    if ($script:__ZtSession -and $script:__ZtSession.TestResultDetail) {
-        if ($TestId) {
-            # Only set if we are running in the context of Maester
-            $script:__ZtSession.TestResultDetail[$TestId] = $testInfo
-        }
-    }
+	if ($testMeta.Title) {
+		$docsTitle = $testMeta.Title
+	}
+	if ($testMeta.Category) {
+		$category = $testMeta.Category
+	}
+	if ($testMeta.RiskLevel) {
+		$Risk = $testMeta.RiskLevel
+	}
+	if ($testMeta.ImplementationCost) {
+		$ImplementationCost = $testMeta.ImplementationCost
+	}
+	if ($testMeta.UserImpact) {
+		$UserImpact = $testMeta.UserImpact
+	}
+
+	$testInfo = @{
+		TestId                 = $actualTestId
+		TestTitle              = $docsTitle
+		TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause -CustomStatus $CustomStatus
+		TestCategory           = $category
+		TestTags               = $Tag
+		TestAppliesTo          = $AppliesTo
+		TestImpact             = $UserImpact
+		TestRisk               = $Risk
+		TestImplementationCost = $ImplementationCost
+		TestSfiPillar          = $testMeta.SfiPillar
+		TestPillar             = $testMeta.Pillar
+		TestDescription        = $Description
+		TestResult             = $Result
+		TestSkipped            = $SkippedBecause
+		SkippedReason          = $SkippedReason
+	}
+
+	Write-ZtProgress -Activity "Running tests" -Status $docsTitle
+	Write-PSFMessage "Adding test result detail for $docsTitle" -Tag Test
+	Write-PSFMessage "Result: $Result" -Level Debug -Tag Test
+
+	if ($script:__ZtSession -and $script:__ZtSession.TestResultDetail) {
+		if ($actualTestId) {
+			# Only set if we are running in the context of a current Test
+			$script:__ZtSession.TestResultDetail[$actualTestId] = $testInfo
+		}
+	}
 }

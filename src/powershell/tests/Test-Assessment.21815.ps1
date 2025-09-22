@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21815 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21815,
+    	Title = 'All privileged role assignments are activated just in time and not permanently active',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

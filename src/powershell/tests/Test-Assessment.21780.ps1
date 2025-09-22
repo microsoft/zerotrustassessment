@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21780{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = '',
+    	RiskLevel = 'Medium',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21780,
+    	Title = 'No usage of ADAL in the tenant',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

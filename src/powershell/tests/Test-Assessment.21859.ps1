@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21859{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21859,
+    	Title = 'GDAP admin least privilege',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

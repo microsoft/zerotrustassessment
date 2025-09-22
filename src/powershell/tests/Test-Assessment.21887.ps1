@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21887{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21887,
+    	Title = 'All registered redirect URIs must have proper DNS records and ownerships',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

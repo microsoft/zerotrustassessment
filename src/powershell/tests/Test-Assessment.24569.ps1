@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune macOS FileVault policy is created and Assigned
 #>
 
 function Test-Assessment-24569 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24569,
+    	Title = 'Intune macOS FileVault policy is created and Assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
