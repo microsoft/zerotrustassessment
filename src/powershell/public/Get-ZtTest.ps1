@@ -20,6 +20,10 @@
 		The test currently being processed.
 		Internal use only.
 
+	.PARAMETER Reload
+		Reload all the tests and their metadata.
+		Internal use only (only useful to developers working on new tests).
+
 	.EXAMPLE
 		PS C:\> Get-ZtTest
 
@@ -38,6 +42,7 @@
 		[string[]]
 		$Tests,
 
+		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		[AllowEmptyCollection()]
 		[AllowNull()]
 		[string[]]
@@ -49,9 +54,16 @@
 
 		[Parameter(DontShow = $true)]
 		[switch]
-		$Current
+		$Current,
+
+		[Parameter(DontShow = $true)]
+		[switch]
+		$Reload
 	)
 	begin {
+		if ($Reload) {
+			Update-ZtTestMetadata
+		}
 		if (-not $script:__ZtSession.TestMeta) {
 			$script:__ZtSession.TestMeta = foreach ($command in Get-Command Test-Assessment-* -Module $PSCmdlet.MyInvocation.MyCommand.Module.Name) {
 				Get-ZtTestMetadata -Command $command
