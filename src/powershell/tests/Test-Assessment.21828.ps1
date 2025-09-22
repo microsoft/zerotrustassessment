@@ -12,7 +12,7 @@ function Test-Assessment-21828 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21828,
-    	Title = 'Secure the MFA registration (My Security Info) page',
+    	Title = 'Authentication transfer is blocked',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

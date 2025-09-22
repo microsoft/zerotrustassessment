@@ -5,14 +5,14 @@
 
 function Test-Assessment-24569 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24569,
-    	Title = 'Intune macOS FileVault policy is created and Assigned',
+    	Title = 'macOS FireVault policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

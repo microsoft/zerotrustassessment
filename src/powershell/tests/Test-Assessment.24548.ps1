@@ -5,15 +5,15 @@
 
 function Test-Assessment-24548 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24548,
-    	Title = 'App Protection Policy assigned on iOS/iPad devices',
-    	UserImpact = 'Low'
+    	Title = 'App protection policy for iOS devices',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

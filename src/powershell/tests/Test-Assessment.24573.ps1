@@ -5,15 +5,15 @@
 
 function Test-Assessment-24573 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Medium',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24573,
-    	Title = 'Windows - A security baseline is configured and assigned',
-    	UserImpact = 'Low'
+    	Title = 'Windows security baselines',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

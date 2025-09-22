@@ -5,14 +5,14 @@
 
 function Test-Assessment-21835{
     [ZtTest(
-    	Category = 'Privileged access',
-    	ImplementationCost = 'Low',
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
-    	SfiPillar = 'Protect identities and secrets',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
     	TenantType = ('Workforce'),
     	TestId = 21835,
-    	Title = 'Emergency account exists',
+    	Title = 'Emergency access accounts are configured appropriately',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -8,9 +8,7 @@ From there, attackers can use legacy protocols to access other systems that are 
 
 **Remediation action**
 
-Deploy the following Conditional Access policy:
-
-- [Block legacy authentication](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-legacy-authentication?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Deploy a Conditional Access policy to Block legacy authentication](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-legacy-authentication?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

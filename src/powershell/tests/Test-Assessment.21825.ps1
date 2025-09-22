@@ -12,7 +12,7 @@ function Test-Assessment-21825{
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 21825,
-    	Title = 'Privileged user sessions don''t have long lived sign-in sessions',
+    	Title = 'Privileged users have short-lived sign-in sessions',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

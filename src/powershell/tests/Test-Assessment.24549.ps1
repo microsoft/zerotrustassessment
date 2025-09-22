@@ -5,14 +5,14 @@
 
 function Test-Assessment-24549 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24549,
-    	Title = 'An App protection policy for Android platform exists in Intune',
+    	Title = 'App protection policy for Android devices',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

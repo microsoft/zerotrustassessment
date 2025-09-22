@@ -5,14 +5,14 @@
 
 function Test-Assessment-21886 {
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Applications management',
     	ImplementationCost = 'Medium',
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21886,
-    	Title = 'Applications that use Microsoft Entra for authentication and support provisioning are configured',
+    	Title = 'Applications are configured for automatic user provisioning',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

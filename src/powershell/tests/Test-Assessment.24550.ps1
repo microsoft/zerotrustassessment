@@ -8,14 +8,14 @@
 
 function Test-Assessment-24550 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24550,
-    	Title = 'Windows - BitLocker Policy is created and assigned',
+    	Title = 'Windows BitLocker policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

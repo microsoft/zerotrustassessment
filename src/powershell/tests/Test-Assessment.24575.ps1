@@ -5,14 +5,14 @@
 
 function Test-Assessment-24575 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24575,
-    	Title = 'A Windows Defender Antivirus policy is created and assigned',
+    	Title = 'Microsoft Defender antivirus policy for Windows',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

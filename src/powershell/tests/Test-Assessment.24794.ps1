@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-24794 {
+    [ZtTest(
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = $null,
+    	TestId = 24794,
+    	Title = 'Intune Terms and Conditions',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
