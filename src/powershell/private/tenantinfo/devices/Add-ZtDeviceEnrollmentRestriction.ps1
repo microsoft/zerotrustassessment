@@ -4,126 +4,104 @@
     Add Windows enrollment restriction used in Devices config view.
 #>
 
-function Add-ZtDeviceEnrollmentRestriction
-{
-	[CmdletBinding()]
-	param (
+function Add-ZtDeviceEnrollmentRestriction {
+    [CmdletBinding()]
+    param ()
 
-	)
-
-    function Get-BlockAllow
-{
-	[CmdletBinding()]
-	param (
-		$blockAllowBoolean
-	)
-        switch($blockAllowBoolean) {
-            'true' { return 'Blocked' }
-            'false' { return 'Allowed' }
-            default { return '' }
+    function Get-BlockAllow {
+        [CmdletBinding()]
+        param (
+            $blockAllowBoolean
+        )
+        switch ($blockAllowBoolean) {
+            'true' {
+                return 'Blocked'
+            }
+            'false' {
+                return 'Allowed'
+            }
+            default {
+                return ''
+            }
         }
     }
 
-    function Get-RoleScopeTag
-{
-	[CmdletBinding()]
-	param (
-		$roleScopeTagIds
-	)
-        $scopeTags =  Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/roleScopeTags' -ApiVersion 'beta'
-        $roleScopeTagNames = @()
-        foreach($scopeTagId in $roleScopeTagIds) {
-            $scopeTag = $scopeTags | Where-Object { $_.id -eq $scopeTagId }
-            if($scopeTag){
-                $roleScopeTagNames += $scopeTag.displayName
-            }
-            else{
-                $roleScopeTagNames += $_
-            }
-        }
-        return $roleScopeTagNames -join ", "
-    }
-
-    function Get-GroupName
-{
-	[CmdletBinding()]
-	param (
-		$groupId
-	)
+    function Get-GroupName {
+        [CmdletBinding()]
+        param (
+            $groupId
+        )
         $result = $groupId
         $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId" -ErrorAction SilentlyContinue
-        if($group) {
+        if ($group) {
             $result = $group.displayName
         }
 
         return $result
     }
 
-    function Get-PlatformTypes
-{
-	[CmdletBinding()]
-	param (
+    function Get-PlatformTypes {
+        [CmdletBinding()]
+        param (
 
-	)
+        )
         return @(
             @{
-                Name = 'android'
+                Name        = 'android'
                 DisplayName = 'Android device administrator'
             },
             @{
-                Name = 'androidForWork'
+                Name        = 'androidForWork'
                 DisplayName = 'Android Enterprise (work profile)'
             },
             @{
-                Name = 'ios'
+                Name        = 'ios'
                 DisplayName = 'iOS/iPadOS'
             },
             @{
-                Name = 'mac'
+                Name        = 'mac'
                 DisplayName = 'macOS'
             },
             @{
-                Name = 'linux'
+                Name        = 'linux'
                 DisplayName = 'Android Enterprise (work profile)'
             },
             @{
-                Name = 'windows'
+                Name        = 'windows'
                 DisplayName = 'Windows'
             },
             @{
-                Name = 'windowsPhone'
+                Name        = 'windowsPhone'
                 DisplayName = 'Windows Phone'
             }
         )
     }
 
-    function Get-PlatformTypeName
-{
-	[CmdletBinding()]
-	param (
-		$platformTypeName
-	)
+    function Get-PlatformTypeName {
+        [CmdletBinding()]
+        param (
+            $platformTypeName
+        )
         $platformTypes = Get-PlatformTypes
         $platformName = $platformTypes | Where-Object { $_.Name -eq $platformTypeName }
-        if($platformName){
+        if ($platformName) {
             return $platformName.DisplayName
         }
-        else{
+        else {
             return $platformTypeName
         }
     }
 
-    function Get-AssignmentText
-{
-	[CmdletBinding()]
-	param (
-		$assignments
-	)
+    function Get-AssignmentText {
+        [CmdletBinding()]
+        param (
+            $assignments
+        )
         $text = @()
-        foreach($assignment in $assignments){
-            switch($assignment.target.'@odata.type'){
+        foreach ($assignment in $assignments) {
+            switch ($assignment.target.'@odata.type') {
                 '#microsoft.graph.allLicensedUsersAssignmentTarget' {
-                   $text += "All users"
+                    $text += "All users"
                 }
 
                 '#microsoft.graph.groupAssignmentTarget' {
@@ -142,7 +120,7 @@ function Add-ZtDeviceEnrollmentRestriction
     $platformRestrictions = $deviceEnrollmentConfigurations | Where-Object { $_.deviceEnrollmentConfigurationType -eq 'singlePlatformRestriction' }
 
     # Sort by Priority (descending) then by DisplayName (ascending)
-    $platformRestrictions = $platformRestrictions | Sort-Object @{Expression='priority';Descending=$true}, @{Expression='displayName';Ascending=$true}
+    $platformRestrictions = $platformRestrictions | Sort-Object @{Expression = 'priority'; Descending = $true }, @{Expression = 'displayName'; Ascending = $true }
 
     # Create the table data structure
     $tableData = @()
@@ -150,16 +128,16 @@ function Add-ZtDeviceEnrollmentRestriction
     foreach ($enrollmentRestriction in $platformRestrictions) {
 
         $tableData += [PSCustomObject]@{
-            Platform = Get-PlatformTypeName $enrollmentRestriction.platformType
-            Priority = $enrollmentRestriction.priority
-            Name = $enrollmentRestriction.displayName
-            MDM = Get-BlockAllow $enrollmentRestriction.platformRestriction.platformBlocked
-            MinVer = $enrollmentRestriction.platformRestriction.osMinimumVersion
-            MaxVer = $enrollmentRestriction.platformRestriction.osMaximumVersion
-            PersonallyOwned = Get-BlockAllow $enrollmentRestriction.platformRestriction.personalDeviceEnrollmentBlocked
+            Platform             = Get-PlatformTypeName $enrollmentRestriction.platformType
+            Priority             = $enrollmentRestriction.priority
+            Name                 = $enrollmentRestriction.displayName
+            MDM                  = Get-BlockAllow $enrollmentRestriction.platformRestriction.platformBlocked
+            MinVer               = $enrollmentRestriction.platformRestriction.osMinimumVersion
+            MaxVer               = $enrollmentRestriction.platformRestriction.osMaximumVersion
+            PersonallyOwned      = Get-BlockAllow $enrollmentRestriction.platformRestriction.personalDeviceEnrollmentBlocked
             BlockedManufacturers = $enrollmentRestriction.platformRestriction.blockedManufacturers | Join-String -Separator ', '
-            Scope = Get-RoleScopeTag $enrollmentRestriction.roleScopeTagIds
-            AssignedTo = Get-AssignmentText($enrollmentRestriction.assignments)
+            Scope                = Get-ZtRoleScopeTag $enrollmentRestriction.roleScopeTagIds
+            AssignedTo           = Get-AssignmentText($enrollmentRestriction.assignments)
         }
     }
 
@@ -172,43 +150,43 @@ function Add-ZtDeviceEnrollmentRestriction
 
         $defaultPlatforms = @(
             @{
-                Name = 'iosRestriction'
+                Name        = 'iosRestriction'
                 DisplayName = 'iOS/iPadOS'
             },
             @{
-                Name = 'windowsRestriction'
+                Name        = 'windowsRestriction'
                 DisplayName = 'Windows'
             },
             @{
-                Name = 'androidRestriction'
+                Name        = 'androidRestriction'
                 DisplayName = 'Android device administrator'
             },
             @{
-                Name = 'macOSRestriction'
+                Name        = 'macOSRestriction'
                 DisplayName = 'macOS'
             },
             @{
-                Name = 'androidForWorkRestriction'
+                Name        = 'androidForWorkRestriction'
                 DisplayName = 'Android Enterprise (work profile)'
             }
         )
 
-        foreach($defaultPlatform in $defaultPlatforms){
+        foreach ($defaultPlatform in $defaultPlatforms) {
             $propName = $defaultPlatform.Name
             $restriction = $defaultPlatformRestriction.$propName
             $json = $restriction | ConvertTo-Json
 
             $tableData += [PSCustomObject]@{
-                Platform = $defaultPlatform.DisplayName
-                Priority = 'Default'
-                Name = 'All users'
-                MDM = Get-BlockAllow $restriction.platformBlocked
-                MinVer = $restriction.osMinimumVersion
-                MaxVer = $restriction.osMaximumVersion
-                PersonallyOwned = Get-BlockAllow $restriction.personalDeviceEnrollmentBlocked
+                Platform             = $defaultPlatform.DisplayName
+                Priority             = 'Default'
+                Name                 = 'All users'
+                MDM                  = Get-BlockAllow $restriction.platformBlocked
+                MinVer               = $restriction.osMinimumVersion
+                MaxVer               = $restriction.osMaximumVersion
+                PersonallyOwned      = Get-BlockAllow $restriction.personalDeviceEnrollmentBlocked
                 BlockedManufacturers = $restriction.blockedManufacturers | Join-String -Separator ', '
-                Scope = ''
-                AssignedTo = 'All devices'
+                Scope                = ''
+                AssignedTo           = 'All devices'
             }
         }
     }

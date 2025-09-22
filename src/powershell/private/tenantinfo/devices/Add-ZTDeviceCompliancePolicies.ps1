@@ -58,6 +58,17 @@ function Add-ZTDeviceCompliancePolicies {
         }
     }
 
+    function Get-GracePeriodDays($scheduledActionConfigurations, $actionType){
+        $action = @($scheduledActionConfigurations).where{ $_.actionType -eq $actionType }
+        if ($action) {
+            $gracePeriod = [TimeSpan]::FromHours($action.gracePeriodHours).TotalDays
+            $gracePeriodDays = if( $gracePeriod -eq 0) { 'Immediately' } else { $gracePeriod }
+            return $gracePeriodDays
+        } else {
+            return ''
+        }
+    }
+
     function Get-PasswordRequiredType($passwordType) {
 
         switch ($passwordType) {
@@ -119,12 +130,12 @@ function Add-ZTDeviceCompliancePolicies {
             MaxDeviceThreatLevel                       = Get-DeviceThreatLevelLabel $Policy.DeviceThreatProtectionRequiredSecurityLevel
             RequireFirewall                            = ''
             MaxInactivityMin                           = $Policy.PasswordMinutesOfInactivityBeforeLock
-            ActionForNoncomplianceDaysPushNotification = ''
-            ActionForNoncomplianceDaysSendEmail        = ''
-            ActionForNoncomplianceDaysRemoteLock       = ''
-            ActionForNoncomplianceDaysBlock            = ''
-            ActionForNoncomplianceDaysRetire           = ''
-            Scope                                      = ''
+            ActionForNoncomplianceDaysPushNotification  = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'pushNotification'
+            ActionForNoncomplianceDaysSendEmail        = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'notification'
+            ActionForNoncomplianceDaysRemoteLock       = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'remoteLock'
+            ActionForNoncomplianceDaysBlock            = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'block'
+            ActionForNoncomplianceDaysRetire           = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'retire'
+            Scope                                      = Get-ZtRoleScopeTag $Policy.roleScopeTagIds
             IncludedGroups                             = ($Policy.assignments | Where-Object { $_.target.groupId -and $_.target.includeAllDevices -eq $false } | ForEach-Object { Get-GroupName $_.target.groupId }) -join ", "
             ExcludedGroups                             = ($Policy.assignments | Where-Object { $_.target.groupId -and $_.target.excludeAllDevices -eq $true } | ForEach-Object { Get-GroupName $_.target.groupId }) -join ", "
         }
@@ -182,11 +193,12 @@ function Add-ZTDeviceCompliancePolicies {
             '#microsoft.graph.windows10CompliancePolicy' {
                 $policyView = Get-CompliancePolicyView -Policy $policy -Platform 'Windows 10 and later'
                 $policyView.DefenderForEndPoint = Get-DefenderEndPointLabel $Policy.DeviceThreatProtectionRequiredSecurityLevel
-
                 $policyView.RequireFirewall = $policy.ActiveFirewallRequired -eq 'true' ? 'Yes' : ''
                 $policyView.MaxDeviceThreatLevel = 'Not Applicable'
                 $policyView.RootedJailbrokenDevices = 'Not Applicable'
-                $policyView.RequireFirewall = 'Not Applicable'
+
+
+
             }
             '#microsoft.graph.windows81CompliancePolicy' {
                 $policyView = Get-CompliancePolicyView -Policy $policy -Platform 'Windows 8.1 and later'
