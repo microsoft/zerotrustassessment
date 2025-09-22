@@ -1966,7 +1966,7 @@
     "Title": "Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned",
     "UserImpact": "Low"
   },
-  "24546": {
+  "24547": {
     "Category": "Device management",
     "ImplementationCost": "Low",
     "Pillar": "Devices",
@@ -1975,9 +1975,9 @@
     "TenantType": [
       "Workforce"
     ],
-    "TestId": "24546",
-    "Title": "Windows Automatic Enrollment is enabled ",
-    "UserImpact": "Medium"
+    "TestId": "24547",
+    "Title": "Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned",
+    "UserImpact": "Low"
   },
   "24548": {
     "Category": "Device management",

@@ -87,9 +87,6 @@ function Test-Assessment-24572 {
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-    else {
-        $mdInfo = "No device enrollment notification is configured or assigned in Intune.`n"
-    }
 
     # Replace the placeholder with the detailed information
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo

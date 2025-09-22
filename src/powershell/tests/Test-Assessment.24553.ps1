@@ -85,9 +85,6 @@ function Test-Assessment-24553 {
          # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-    else {
-        $mdInfo = "`nNo Windows Update for Business policy found.`n"
-    }
 
     # Replace the placeholder in the test result markdown with the generated details
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
