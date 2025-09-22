@@ -59,7 +59,5 @@ function Test-Assessment-21822{
     }
 
     Add-ZtTestResultDetail -TestId '21822' -Title "Guest access is limited to approved tenants" `
-        -UserImpact Medium -Risk Medium -ImplementationCost High `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+        -Status $passed -Result $testResultMarkdown
 }
