@@ -136,8 +136,8 @@ function Add-ZTDeviceCompliancePolicies {
             ActionForNoncomplianceDaysBlock            = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'block'
             ActionForNoncomplianceDaysRetire           = Get-GracePeriodDays -scheduledActionConfigurations $Policy.scheduledActionsForRule.scheduledActionConfigurations -actionType 'retire'
             Scope                                      = Get-ZtRoleScopeTag $Policy.roleScopeTagIds
-            IncludedGroups                             = ($Policy.assignments | Where-Object { $_.target.groupId -and $_.target.includeAllDevices -eq $false } | ForEach-Object { Get-GroupName $_.target.groupId }) -join ", "
-            ExcludedGroups                             = ($Policy.assignments | Where-Object { $_.target.groupId -and $_.target.excludeAllDevices -eq $true } | ForEach-Object { Get-GroupName $_.target.groupId }) -join ", "
+            IncludedGroups                             = ''
+            ExcludedGroups                             = ''
         }
     }
 

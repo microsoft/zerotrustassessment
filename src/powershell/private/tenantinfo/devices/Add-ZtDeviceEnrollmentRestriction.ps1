@@ -26,20 +26,6 @@ function Add-ZtDeviceEnrollmentRestriction {
         }
     }
 
-    function Get-GroupName {
-        [CmdletBinding()]
-        param (
-            $groupId
-        )
-        $result = $groupId
-        $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId" -ErrorAction SilentlyContinue
-        if ($group) {
-            $result = $group.displayName
-        }
-
-        return $result
-    }
-
     function Get-PlatformTypes {
         [CmdletBinding()]
         param (
@@ -92,26 +78,6 @@ function Add-ZtDeviceEnrollmentRestriction {
         }
     }
 
-    function Get-AssignmentText {
-        [CmdletBinding()]
-        param (
-            $assignments
-        )
-        $text = @()
-        foreach ($assignment in $assignments) {
-            switch ($assignment.target.'@odata.type') {
-                '#microsoft.graph.allLicensedUsersAssignmentTarget' {
-                    $text += "All users"
-                }
-
-                '#microsoft.graph.groupAssignmentTarget' {
-                    $text += Get-GroupName $assignment.target.groupId
-                }
-            }
-        }
-        return $text -join ", "
-    }
-
     $activity = "Getting Device enrollment restriction summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
@@ -137,14 +103,12 @@ function Add-ZtDeviceEnrollmentRestriction {
             PersonallyOwned      = Get-BlockAllow $enrollmentRestriction.platformRestriction.personalDeviceEnrollmentBlocked
             BlockedManufacturers = $enrollmentRestriction.platformRestriction.blockedManufacturers | Join-String -Separator ', '
             Scope                = Get-ZtRoleScopeTag $enrollmentRestriction.roleScopeTagIds
-            AssignedTo           = Get-AssignmentText($enrollmentRestriction.assignments)
+            AssignedTo           = Get-ZtAssignmentText $enrollmentRestriction.assignments
         }
     }
 
     # Get all the platform restriction with @odata.type #microsoft.graph.deviceEnrollmentPlatformRestrictionsConfiguration
     $defaultPlatformRestriction = $deviceEnrollmentConfigurations | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.deviceEnrollmentPlatformRestrictionsConfiguration' }
-
-    $defaultRestrictions = @()
 
     if ($defaultPlatformRestriction) {
 
@@ -174,7 +138,6 @@ function Add-ZtDeviceEnrollmentRestriction {
         foreach ($defaultPlatform in $defaultPlatforms) {
             $propName = $defaultPlatform.Name
             $restriction = $defaultPlatformRestriction.$propName
-            $json = $restriction | ConvertTo-Json
 
             $tableData += [PSCustomObject]@{
                 Platform             = $defaultPlatform.DisplayName
