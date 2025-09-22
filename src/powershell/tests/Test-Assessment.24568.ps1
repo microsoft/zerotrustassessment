@@ -15,7 +15,7 @@ function Test-Assessment-24568 {
     	SfiPillar = 'Protect engineering systems',
     	TenantType = ('Workforce'),
     	TestId = 24568,
-    	Title = 'Windows - Local Account Protection policy is configured and assigned',
+    	Title = 'macOS - Platform SSO is configured and assigned',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
