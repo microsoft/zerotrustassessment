@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-
+    Guest access is limited to approved tenants
 #>
 
 function Test-Assessment-21822{
