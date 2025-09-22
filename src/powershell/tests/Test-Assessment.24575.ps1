@@ -89,9 +89,6 @@ function Test-Assessment-24575 {
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-    else {
-        $mdInfo = "No relevant Windows Defender Antivirus policies are configured or assigned.`n"
-    }
 
     # Replace the placeholder with the detailed information
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo

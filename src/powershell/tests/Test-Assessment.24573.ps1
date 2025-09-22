@@ -87,9 +87,6 @@ function Test-Assessment-24573 {
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-    else {
-        $mdInfo = "No security baselines are configured or assigned to Windows devices in Intune.`n"
-    }
 
     # Replace the placeholder with the detailed information
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
