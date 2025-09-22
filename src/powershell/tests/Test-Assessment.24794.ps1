@@ -10,7 +10,7 @@ function Test-Assessment-24794 {
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
-    	TenantType = $null,
+    	TenantType = ('Workforce'),
     	TestId = 24794,
     	Title = 'Intune Terms and Conditions',
     	UserImpact = 'Low'

@@ -10,7 +10,7 @@ function Test-Assessment-24802 {
     	Pillar = 'Identity',
     	RiskLevel = 'Low',
     	SfiPillar = 'Protect tenants and isolate production',
-    	TenantType = $null,
+    	TenantType = ('Workforce'),
     	TestId = 24802,
     	Title = 'Device cleanup rules',
     	UserImpact = 'Low'

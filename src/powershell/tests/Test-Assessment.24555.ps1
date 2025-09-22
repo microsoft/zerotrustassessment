@@ -10,7 +10,7 @@ function Test-Assessment-24555 {
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
-    	TenantType = $null,
+    	TenantType = ('Workforce'),
     	TestId = 24555,
     	Title = 'Intune Scope Tags',
     	UserImpact = 'Low'
