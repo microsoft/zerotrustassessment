@@ -28,7 +28,7 @@ function Test-Assessment-21847 {
     # Q1: Check if tenant has on-premises sync
     $orgResponse = Invoke-ZtGraphRequest -RelativeUri "organization?`$select=id,displayName,onPremisesSyncEnabled,onPremisesLastSyncDateTime" -ApiVersion v1.0
 
-    if ($orgResponse.onPremisesSyncEnabled -ne $true)  {
+    if ($orgResponse.onPremisesSyncEnabled -ne $true) {
         $passed = $true
         $testResultMarkdown = "✅ **Pass**: This tenant is not synchronized to an on-premises environment.%TestResult%"
     }
@@ -48,19 +48,49 @@ function Test-Assessment-21847 {
             $enabledSetting = $settingValues.values | Where-Object { $_.name -eq "EnableBannedPasswordCheckOnPremises" }
             $modeSetting = $settingValues.values | Where-Object { $_.name -eq "BannedPasswordCheckOnPremisesMode" }
 
+            $isPasswordProtectionEnabled = $enabledSetting.value -eq $true
+            $passwordProtectionStatus = if ($isPasswordProtectionEnabled) {
+                "✅ Enabled"
+            }
+            else {
+                "❌ Disabled"
+            }
+
+            switch ($modeSetting.value) {
+                "Enforce" {
+                    $modeStatus = "✅ Enforce"
+                }
+                "Audit" {
+                    $modeStatus = "❌ Audit"
+                }
+                default {
+                    $modeStatus = "❌ Not Configured"
+                }
+            }
+
             $mdInfo = "`n## Password Protection Settings`n`n"
             $mdInfo += "| Setting | Value |`n"
             $mdInfo += "| :---- | :---- |`n"
-            $mdInfo += "| EnableBannedPasswordCheckOnPremises | $($enabledSetting.value) |`n"
-            $mdInfo += "| BannedPasswordCheckOnPremisesMode | $($modeSetting.value) |`n"
+            $mdInfo += "| Password Protection for Active Directory Domain Services | $passwordProtectionStatus |`n"
+            $mdInfo += "| Enabled Mode (Audit/Enforce) | $($modeStatus) |`n"
 
             if ($enabledSetting.value -eq $true -and $modeSetting.value -eq "Enforce") {
                 $passed = $true
-                $testResultMarkdown = "✅ **Pass**: Entra password protection is enabled and enforced.%TestResult%"
+                $testResultMarkdown = "✅ **Pass**: Entra password protection is enabled and enforced.`n%TestResult%"
             }
             else {
                 $passed = $false
-                $testResultMarkdown = "❌ **Fail**: Entra password protection is not enabled or not enforced.%TestResult%"
+                if ($enabledSetting.value -ne $true) {
+                    $testResultMarkdown = "`n❌ **Fail**: Password protection for on-premises is not enabled.`n%TestResult%"
+                }
+                else {
+                    if ($modeSetting.value -ne "Enforce") {
+                        $testResultMarkdown = "`n❌ **Fail**: Password protection for on-premises is not set to 'Enforce' mode.`n%TestResult%"
+                    }
+                    else {
+                        $testResultMarkdown = "`n❌ **Fail**: Entra password protection is not properly configured.`n%TestResult%"
+                    }
+                }
             }
         }
     }
@@ -70,14 +100,14 @@ function Test-Assessment-21847 {
 
     $params = @{
         TestId             = '21847'
-        Title             = "Password protection for on-premises is enabled"
-        UserImpact        = 'Low'
-        Risk              = 'High'
+        Title              = "Password protection for on-premises is enabled"
+        UserImpact         = 'Low'
+        Risk               = 'High'
         ImplementationCost = 'Medium'
-        AppliesTo         = 'Identity'
-        Tag               = 'Identity'
-        Status            = $passed
-        Result            = $testResultMarkdown
+        AppliesTo          = 'Identity'
+        Tag                = 'Identity'
+        Status             = $passed
+        Result             = $testResultMarkdown
     }
     Add-ZtTestResultDetail @params
 }
