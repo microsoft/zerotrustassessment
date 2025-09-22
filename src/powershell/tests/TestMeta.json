@@ -961,9 +961,9 @@
   },
   "21847": {
     "Category": "Access control",
-    "ImplementationCost": "Low",
+    "ImplementationCost": "Medium",
     "Pillar": "Identity",
-    "RiskLevel": "Medium",
+    "RiskLevel": "High",
     "SfiPillar": "Protect identities and secrets",
     "TenantType": [
       "Workforce"
