@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21804 {
+    [ZtTest(
+    	Category = 'Credential management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21804,
+    	Title = 'SMS and Voice Call authentication methods are disabled',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

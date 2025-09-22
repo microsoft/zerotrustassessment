@@ -1,8 +1,19 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if device code flow is restricted in the tenant using Conditional Access policies.
 #>
 function Test-Assessment-21808{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21808,
+    	Title = 'Restrict device code flow',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

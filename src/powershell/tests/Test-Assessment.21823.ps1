@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21823{
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21823,
+    	Title = 'Guest self-service sign-up via user flow is disabled',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

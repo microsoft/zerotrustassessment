@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21844{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21844,
+    	Title = 'Block legacy Azure AD PowerShell module',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

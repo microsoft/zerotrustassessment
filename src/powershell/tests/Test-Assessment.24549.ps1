@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     An app protection policy for Android devices exists
 #>
 
 function Test-Assessment-24549 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24549,
+    	Title = 'An App protection policy for Android platform exists in Intune',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 
@@ -71,9 +82,6 @@ function Test-Assessment-24549 {
 
          # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = "`nNo Android App Protection policies were found.`n"
     }
 
     # Replace the placeholder in the test result markdown with the generated details

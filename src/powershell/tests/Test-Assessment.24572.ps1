@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Device enrollment notification is configured and assigned
 #>
 
 function Test-Assessment-24572 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24572,
+    	Title = 'Device enrollment notification is configured and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
@@ -75,9 +86,6 @@ function Test-Assessment-24572 {
 
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = "No device enrollment notification is configured or assigned in Intune.`n"
     }
 
     # Replace the placeholder with the detailed information

@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-22659{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 22659,
+    	Title = 'All risky workload identity sign ins are triaged',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

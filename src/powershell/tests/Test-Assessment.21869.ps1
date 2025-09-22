@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21869{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21869,
+    	Title = 'Enterprise applications must require explicit assignment or scoped provisioning',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

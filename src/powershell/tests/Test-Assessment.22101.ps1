@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-22101{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('External'),
+    	TestId = 22101,
+    	Title = 'Disable ciamlogin endpoints when custom domain enabled',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

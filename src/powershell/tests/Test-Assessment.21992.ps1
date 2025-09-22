@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21992{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21992,
+    	Title = 'Application certificates must be rotated on a regular basis',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

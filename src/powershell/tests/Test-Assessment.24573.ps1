@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Windows security baseline is configured and assigned
 #>
 
 function Test-Assessment-24573 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24573,
+    	Title = 'Windows - A security baseline is configured and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
@@ -75,9 +86,6 @@ function Test-Assessment-24573 {
 
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = "No security baselines are configured or assigned to Windows devices in Intune.`n"
     }
 
     # Replace the placeholder with the detailed information

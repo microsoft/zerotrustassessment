@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     An app protection policy for iOS devices exists
 #>
 
 function Test-Assessment-24548 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24548,
+    	Title = 'App Protection Policy assigned on iOS/iPad devices',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
@@ -72,9 +83,6 @@ function Test-Assessment-24548 {
 
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = "No iOS App Protection policies were found.`n"
     }
 
     # Replace the placeholder in the test result markdown with the generated details

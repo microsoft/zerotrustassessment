@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21779{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = '',
+    	RiskLevel = 'Medium',
+    	SfiPillar = '',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21779,
+    	Title = 'Use recent versions of Microsoft Applications',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

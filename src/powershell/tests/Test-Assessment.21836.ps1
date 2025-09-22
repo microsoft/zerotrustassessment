@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21836{
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21836,
+    	Title = 'Workload Identities are not assigned privileged roles',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

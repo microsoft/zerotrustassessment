@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21892{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21892,
+    	Title = 'All sign-in activity comes from managed devices',
+    	UserImpact = 'High'
+    )]
     [CmdletBinding()]
     param()
 

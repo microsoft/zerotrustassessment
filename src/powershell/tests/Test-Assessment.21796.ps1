@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21796 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21796,
+    	Title = 'Block legacy authentication policy is configured',
+    	UserImpact = 'High'
+    )]
     [CmdletBinding()]
     param()
 

@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21798{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21798,
+    	Title = 'ID Protection notifications are enabled',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

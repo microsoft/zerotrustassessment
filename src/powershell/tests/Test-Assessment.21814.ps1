@@ -5,6 +5,17 @@
 #>
 
 function Test-Assessment-21814 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21814,
+    	Title = 'Privileged accounts are cloud native identities',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Test to check if App Instance Property Lock is configured for all multitenant applications.
 #>
 
 function Test-Assessment-21777 {
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21777,
+    	Title = 'App instance property lock is configured for all multitenant applications',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database
