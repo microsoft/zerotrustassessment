@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21791{
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21791,
+    	Title = 'Guests can’’t invite other guests',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

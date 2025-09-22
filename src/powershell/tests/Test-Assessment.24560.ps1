@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Windows Cloud LAPS policy is created and assigned
 #>
 
 function Test-Assessment-24560 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24560,
+    	Title = 'Windows Cloud LAPS policy is created and assigned ',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

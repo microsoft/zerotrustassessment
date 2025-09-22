@@ -1,4 +1,4 @@
-
+﻿
 <#
 .SYNOPSIS
 
@@ -7,6 +7,17 @@
 
 
 function Test-Assessment-24540 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24540,
+    	Title = 'Windows Firewall policy is created and assigned',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

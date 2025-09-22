@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21789{
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'Low',
+    	Pillar = '',
+    	RiskLevel = 'Medium',
+    	SfiPillar = '',
+    	TenantType = ('Workforce'),
+    	TestId = 21789,
+    	Title = 'Tenant creation events are triaged',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

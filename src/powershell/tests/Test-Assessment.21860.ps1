@@ -1,10 +1,21 @@
-
+﻿
 <#
 .SYNOPSIS
     Tests if all Entra Logs are configured with Diagnostic Settings.
 #>
 
 function Test-Assessment-21860 {
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21860,
+    	Title = 'Diagnostic settings are configured for all Microsoft Entra logs',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

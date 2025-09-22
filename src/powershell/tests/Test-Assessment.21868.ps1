@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21868 {
+    [ZtTest(
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21868,
+    	Title = 'Guests do not own apps in the tenant',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

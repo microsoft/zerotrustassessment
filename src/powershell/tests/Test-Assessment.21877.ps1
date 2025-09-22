@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 Tests if all guest users have assigned sponsors in the tenant.
 #>
 
 function Test-Assessment-21877 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21877,
+    	Title = 'All guests have a sponsor',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param(
         $Database

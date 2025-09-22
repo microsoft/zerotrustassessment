@@ -17,7 +17,10 @@ param (
 	$Exclude = "",
 
 	[string]
-	$ModuleName = 'ZeroTrustAssessmentV2'
+	$ModuleName = 'ZeroTrustAssessmentV2',
+
+	[switch]
+	$NoImport
 )
 
 Write-Host "Starting Tests"
@@ -34,16 +37,18 @@ foreach ($file in Get-ChildItem -Path "$PSScriptRoot\tools" -Recurse -Filter *.p
 	. $file.FullName
 }
 
-Write-Host "Importing Module"
-
 $global:__pester_data = @{ }
 
-Remove-Module $ModuleName -ErrorAction Ignore
-Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psd1"
-Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psm1" -Force # This allows testing internal commands
+if (-not $NoImport) {
+	Write-Host "Importing Module"
 
-# Need to import explicitly so we can use the configuration class
-Import-Module Pester -Global 3>$null
+	Remove-Module $ModuleName -ErrorAction Ignore
+	Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psd1" -Global
+	Import-Module "$($global:__testData.ModuleRoot)\$ModuleName.psm1" -Force -Global # This allows testing internal commands
+
+	# Need to import explicitly so we can use the configuration class
+	Import-Module Pester -Global 3>$null
+}
 
 Write-Host  "Creating test result folder"
 $null = New-Item -Path $PSScriptRoot -Name TestResults -ItemType Directory -Force
@@ -121,12 +126,21 @@ if ($TestFunctions)
 }
 #endregion Test Commands
 
-$testresults | Sort-Object Describe, Context, Name, Result, Message | Format-List
+$testresults | Sort-Object Block, Name, Result, Message | Format-List
+
+$nonCriticalFails = $testresults | Where-Object {
+	$_.Block -match 'All Tests should be properly configured' -and
+	$_.Name -match 'It should have an? \S+ defined for'
+}
+
+$absoluteFailed = $totalFailed - @($nonCriticalFails).Count
 
 if ($totalFailed -eq 0) { Write-Host  "All $totalRun tests executed without a single failure!" }
-else { Write-Host "$totalFailed tests out of $totalRun tests failed!" }
+else {
+	Write-Host "$totalFailed tests out of $totalRun tests failed, $absoluteFailed of them critical"
+}
 
-if ($totalFailed -gt 0)
+if ($absoluteFailed -gt 0)
 {
-	throw "$totalFailed / $totalRun tests failed!"
+	throw "$totalFailed / $totalRun tests failed, $absoluteFailed of them critical!"
 }

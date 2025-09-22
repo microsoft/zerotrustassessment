@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Tests if all enterprise applications with high privilege permissions have at least two owners.
 #>

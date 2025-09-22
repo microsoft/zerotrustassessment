@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21774 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21774,
+    	Title = 'Microsoft services applications don''t have credentials configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

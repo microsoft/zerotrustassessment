@@ -3,12 +3,7 @@
 $script:__ZtSession = @{
 	GraphCache   = @{}
 	GraphBaseUri = $null
-}
-
-$testMetaPath = "$script:ModuleRoot\tests\TestMeta.json"
-if (Test-Path $testMetaPath) {
-	# Read json and store in hashtable
-	$script:__ZtSession.TestMeta = Import-PSFJson -LiteralPath $testMetaPath -AsHashtable
+	TestMeta     = @()
 }
 
 # The Database Connection used by Invoke-DatabaseQuery. Established by Connect-Database, cleared by Disconnect-Database

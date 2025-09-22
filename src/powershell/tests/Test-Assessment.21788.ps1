@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21788 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21788,
+    	Title = 'Global Administrators don''t have standing access to Azure subscriptions',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
