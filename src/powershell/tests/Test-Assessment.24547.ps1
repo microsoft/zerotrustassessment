@@ -13,6 +13,7 @@ function Test-Assessment-24547 {
         TenantType = ('Workforce'),
         TestId = 24547,
         Title = 'Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
