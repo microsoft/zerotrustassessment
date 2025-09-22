@@ -65,8 +65,5 @@ function Test-Assessment-21862{
     $result = $passed
 
 
-    Add-ZtTestResultDetail -TestId '21862' -Title "All risky workload identities are triaged" `
-        -UserImpact Low -Risk Medium -ImplementationCost High `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown
+    Add-ZtTestResultDetail -Status $passed -Result $testResultMarkdown
 }
