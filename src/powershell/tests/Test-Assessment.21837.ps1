@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21837{
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21837,
+    	Title = 'Limit the maximum number of devices per user to 10',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

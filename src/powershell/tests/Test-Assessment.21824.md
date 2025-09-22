@@ -1,12 +1,9 @@
-Guest accounts with extended sign-in sessions increase the risk surface area that threat actors can exploit. When guest sessions persist beyond necessary timeframes, threat actors often attempt to gain initial access through credential stuffing, password spraying, or social engineering attacks. Once they gain access, they can maintain unauthorized access for extended periods without reauthentication challenges. These compromised and extended sessions:
-
-- Allow unauthorized access to Microsoft Entra artifacts, enabling threat actors to identify sensitive resources and map organizational structures.
-- Allow threat actors to persist within the network by using legitimate authentication tokens, making detection more challenging as the activity appears as typical user behavior.
-- Provides threat actors with a longer window of time to escalate privileges through techniques like accessing shared resources, discovering more credentials, or exploiting trust relationships between systems.
-
-Without proper session controls, threat actors can achieve lateral movement across the organization's infrastructure, accessing critical data and systems that extend far beyond the original guest account's intended scope of access. 
+Guest accounts with extended sign-in sessions to increase risk surface area that threat actors can exploit through multiple attack vectors. When guest sessions persist beyond necessary timeframes, threat actors who gain initial access through credential stuffing, password spraying, or social engineering attacks can maintain unauthorized access for extended periods without re-authentication challenges. Extended sessions increase risk by allowing unauthorized access to Microsoft Entra artifacts, enabling threat actors to perform reconnaissance activities within the environment, identifying sensitive resources and mapping organizational structures. Once established, these compromised sessions allow threat actors to persist within the network by leveraging legitimate authentication tokens, making detection significantly more challenging as the activity appears as normal user behavior. The extended session duration provides threat actors with a longer window of time to escalate privileges through techniques like accessing shared resources, discovering additional credentials, or exploiting trust relationships between systems. Without proper session controls, threat actors can achieve lateral movement across the organization's infrastructure, accessing critical data and systems that extend far beyond the original guest account's intended scope of access. 
 
 **Remediation action**
-- [Configure adaptive session lifetime policies](https://learn.microsoft.com/en-us/entra/identity/conditional-access/howto-conditional-access-session-lifetime?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) so sign-in frequency policies have shorter live sign-in sessions.<!--- Results --->
-%TestResult%
 
+Reconfigure sign-in frequency policies to have shorter live sign-in sessions. For more information, visit the article: 
+- [Configure adaptive session lifetime policies](https://learn.microsoft.com/entra/identity/conditional-access/howto-conditional-access-session-lifetime)
+
+<!--- Results --->
+%TestResult%

@@ -1,4 +1,15 @@
-function Test-Assessment-21830 {
+﻿function Test-Assessment-21830 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21830,
+    	Title = 'Conditional Access policies for Privileged Access Workstations are configured',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

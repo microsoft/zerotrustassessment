@@ -1,10 +1,21 @@
-
+﻿
 <#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21782 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21782,
+    	Title = 'Privileged accounts have phishing-resistant methods registered',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

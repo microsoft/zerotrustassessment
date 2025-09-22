@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Windows Hello for Business Policy is Configured and Assigned
 #>
 
 function Test-Assessment-24551 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24551,
+    	Title = 'Windows Hello for Business Policy is Configured and Assigned',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

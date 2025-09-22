@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Tests if workload identities are protected by location-based Conditional Access policies.
 #>

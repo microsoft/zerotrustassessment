@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21787 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21787,
+    	Title = 'Permissions to create new tenants are limited to the Tenant Creator role',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

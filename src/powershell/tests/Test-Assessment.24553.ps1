@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Windows Update policy is configured and assigned
 #>
 
 function Test-Assessment-24553 {
+    [ZtTest(
+    	Category = 'Device management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24553,
+    	Title = 'Windows Update policy is assigned and enforced.',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 
@@ -73,9 +84,6 @@ function Test-Assessment-24553 {
 
          # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = "`nNo Windows Update for Business policy found.`n"
     }
 
     # Replace the placeholder in the test result markdown with the generated details

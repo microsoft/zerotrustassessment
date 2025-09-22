@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21781 {
+    [ZtTest(
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce'),
+    	TestId = 21781,
+    	Title = 'Privileged users sign in with phishing-resistant methods',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose

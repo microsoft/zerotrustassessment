@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if policies to restrict access to high risk users are implemented correctly.
 #>
 
 function Test-Assessment-21797{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Accelerate response and remediation',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21797,
+    	Title = 'Restrict access to high risk users',
+    	UserImpact = 'High'
+    )]
     [CmdletBinding()]
     param()
 

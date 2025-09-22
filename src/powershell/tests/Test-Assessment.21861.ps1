@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if there are any untriaged high-risk users in Identity Protection.
 #>
 
 function Test-Assessment-21861 {
+    [ZtTest(
+    	Category = 'Monitoring',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21861,
+    	Title = 'All high-risk users are triaged',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

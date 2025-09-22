@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21803 {
+    [ZtTest(
+    	Category = 'Credential management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21803,
+    	Title = 'Migrate from legacy MFA and SSPR policies',
+    	UserImpact = 'Medium'
+    )]
     [CmdletBinding()]
     param()
 

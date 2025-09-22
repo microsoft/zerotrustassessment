@@ -51,10 +51,10 @@ PowerShellVersion = '7.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; }, 
-               @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.2.0'; }, 
-               @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.2.0'; }, 
-               @{ModuleName = 'PSFramework'; GUID = '8028b914-132b-431f-baa9-94a6952f21ff'; ModuleVersion = '1.13.406'; }, 
+RequiredModules = @(@{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
+               @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.2.0'; },
+               @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.2.0'; },
+               @{ModuleName = 'PSFramework'; GUID = '8028b914-132b-431f-baa9-94a6952f21ff'; ModuleVersion = '1.13.406'; },
                @{ModuleName = 'PwshSpectreConsole'; GUID = '8c5ca00d-7f0f-4179-98bf-bdaebceaebc0'; ModuleVersion = '2.3.0'; })
 
 # Assemblies that must be loaded prior to importing this module
@@ -67,13 +67,13 @@ RequiredAssemblies = 'lib\DuckDB.NET.Data.dll'
 # TypesToProcess = @()
 
 # Format files (.ps1xml) to be loaded when importing this module
-# FormatsToProcess = @()
+FormatsToProcess = @('ZeroTrustAssessmentV2.format.ps1xml')
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Connect-ZtAssessment', 'Get-ZtGraphScope', 'Invoke-ZtAssessment', 
+FunctionsToExport = 'Connect-ZtAssessment', 'Get-ZtGraphScope', 'Get-ZtTest', 'Invoke-ZtAssessment',
                'Invoke-ZtGraphRequest'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -134,4 +134,3 @@ PrivateData = @{
 # DefaultCommandPrefix = ''
 
 }
-

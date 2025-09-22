@@ -1,10 +1,21 @@
-
+﻿
 <#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21771 {
+    [ZtTest(
+    	Category = 'Application management',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21771,
+    	Title = 'Inactive applications don’’t have highly privileged built-in roles',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param(
         $Database

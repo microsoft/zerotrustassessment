@@ -56,8 +56,6 @@
     - 'ad', 'aad' → active directory, azure active directory, entra
 
     Performance Notes:
-    - Uses intelligent caching to avoid re-reading TestMeta.json on every completion
-    - Cache automatically invalidates when TestMeta.json is modified
     - Optimized search algorithms for fast completion even with large test sets
 
     This file is automatically loaded when the ZeroTrustAssessmentV2 module is imported.
@@ -67,9 +65,6 @@
 
 # Zero Trust Assessment Argument Completers
 
-# Simplified cache for TestMeta content
-$script:TestMetaCache = @{ Content = $null; LastModified = $null }
-
 # Helper function to paginate completion results
 function Get-PaginatedCompletions {
     [CmdletBinding()]
@@ -77,7 +72,8 @@ function Get-PaginatedCompletions {
         [Parameter(Mandatory)]
         [array]$CompletionResults,
 
-        [int]$PageSize = 10
+        [int]
+		$PageSize = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.TabExpansion.TestLimit' -FallBack 10)
     )
 
     if ($CompletionResults.Count -le $PageSize) {
@@ -116,24 +112,8 @@ function Get-ZtTestCompletion {
     param([string]$WordToComplete)
 
     try {
-        # Get test metadata from the known location
-        $testMetaPath = Join-Path -Path $script:ModuleRoot 'tests\TestMeta.json'
-
-        if (-not (Test-Path $testMetaPath)) { return @() }
-
-        # Check cache validity
-        $fileInfo = Get-Item $testMetaPath
-        if ($script:TestMetaCache.Content -and $script:TestMetaCache.LastModified -eq $fileInfo.LastWriteTime) {
-            $testMetaContent = $script:TestMetaCache.Content
-        } else {
-            # Read and cache content
-            $testMetaContent = Import-PSFJson -Path $testMetaPath
-            $script:TestMetaCache = @{ Content = $testMetaContent; LastModified = $fileInfo.LastWriteTime }
-        }
-
         # Generate completions with simplified matching logic
-        $completions = foreach ($testProperty in $testMetaContent.PSObject.Properties) {
-            $test = $testProperty.Value
+        $completions = foreach ($test in Get-ZtTest) {
             if ([string]::IsNullOrWhiteSpace($test.TestId) -or [string]::IsNullOrWhiteSpace($test.Title)) { continue }
 
             # Build search fields more robustly - always include Title, add others if they exist
@@ -150,7 +130,7 @@ function Get-ZtTestCompletion {
                 $priority = 1
             }
             # Exact TestId match
-            elseif ($test.TestId.StartsWith($WordToComplete, [StringComparison]::OrdinalIgnoreCase)) {
+            elseif ("$($test.TestId)".StartsWith($WordToComplete, [StringComparison]::OrdinalIgnoreCase)) {
                 $isMatch = $true
                 $priority = 1
             }
@@ -278,10 +258,16 @@ $ztTestsCompleterScript = {
 
 # Register argument completer for both--the cmdlet and its alias
 $commandNames = @(
+	'Get-ZtTest'
     'Invoke-ZtAssessment',
     'Invoke-ZeroTrustAssessment'
 )
 
 $commandNames | ForEach-Object {
     Register-ArgumentCompleter -CommandName $_ -ParameterName 'Tests' -ScriptBlock $ztTestsCompleterScript
+}
+
+#-> Test Pillars
+Register-PSFTeppScriptblock -Name 'ZeroTrustAssessment.Tests.Pillar' -ScriptBlock {
+	(Get-ZtTest).Pillar | Sort-Object -Unique | Remove-PSFNull
 }

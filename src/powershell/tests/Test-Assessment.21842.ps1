@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-21842{
+    [ZtTest(
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21842,
+    	Title = 'Block administrators from using SSPR',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
