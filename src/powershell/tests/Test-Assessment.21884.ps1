@@ -4,6 +4,17 @@
 #>
 
 function Test-Assessment-21884 {
+    [ZtTest(
+        Category = 'Conditional Access',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce','External'),
+        TestId = 21884,
+        Title = 'Workload identities based on known networks are configured',
+        UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 
@@ -26,21 +37,9 @@ function Test-Assessment-21884 {
         if ($ownedServicePrincipals.Count -eq 0) {
             Write-PSFMessage "No service principals found in tenant" -Level Warning
             $testResultMarkdown = "No service principals found in the tenant to evaluate. The test result is inconclusive as there are no workload identities to assess."
-            $passed = $false  # Change from null to false for inconclusive result
+            $passed = [bool]$false  # Change from null to false for inconclusive result
 
-            $params = @{
-                TestId              = '21884'
-                Title              = "Workload identities based on known networks are configured"
-                UserImpact         = "Low"
-                Risk               = "High"
-                ImplementationCost = "Medium"
-                AppliesTo          = "Identity"
-                Tag                = "Identity"
-                Status             = [bool]$false
-                Result             = $testResultMarkdown
-            }
-
-            Add-ZtTestResultDetail @params
+            Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
             return
         }
 
@@ -94,21 +93,9 @@ function Test-Assessment-21884 {
 
             if ($hasValidLocations) {
                 $testResultMarkdown = "Pass: All workload identities are protected by global service principal policies with location restrictions."
-                $passed = $true
+                $passed = [bool]$true
 
-                $params = @{
-                    TestId              = '21884'
-                    Title              = "Workload identities based on known networks are configured"
-                    UserImpact         = "Low"
-                    Risk               = "High"
-                    ImplementationCost = "Medium"
-                    AppliesTo          = "Identity"
-                    Tag                = "Identity"
-                    Status             = $passed
-                    Result             = $testResultMarkdown
-                }
-
-                Add-ZtTestResultDetail @params
+                Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
                 return
             }
         }
@@ -151,21 +138,9 @@ function Test-Assessment-21884 {
 
         if ($namedLocations.value.Count -eq 0) {
             $testResultMarkdown = "Fail: No named locations found. Cannot implement network-based restrictions without defined locations."
-            $passed = $false
+            $passed = [bool]$false
 
-            $params = @{
-                TestId              = '21884'
-                Title              = "Workload identities based on known networks are configured"
-                UserImpact         = "Low"
-                Risk               = "High"
-                ImplementationCost = "Medium"
-                AppliesTo          = "Identity"
-                Tag                = "Identity"
-                Status             = $passed
-                Result             = $testResultMarkdown
-            }
-
-            Add-ZtTestResultDetail @params
+            Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
             return
         }
 
@@ -238,40 +213,14 @@ function Test-Assessment-21884 {
             }
         }
 
-        $passed = $result
+        $passed = [bool]$result
 
     } catch {
         Write-PSFMessage -Level Error -Message "Error in Test-Assessment-21884: $($_.Exception.Message)"
-        $testResultMarkdown = "Error occurred while checking workload identity protections: $($_.Exception.Message)"
-
-        $params = @{
-            TestId              = '21884'
-            Title              = "Workload identities based on known networks are configured"
-            UserImpact         = "Low"      # Configuration changes affect only service principals and applications, not end users
-            Risk               = "High"      # Compromised workload identities can access tenant resources from any location
-            ImplementationCost = "Medium"    # Organizations need to identify and document legitimate source networks
-            AppliesTo          = "Identity"
-            Tag                = "Identity"
-            Status             = [bool]$false
-            Result             = $testResultMarkdown
-        }
-
-        Add-ZtTestResultDetail @params
+        Add-ZtTestResultDetail -TestId '21884' -Status $false -Result "Error occurred while checking workload identity protections: $($_.Exception.Message)"
         return
     }
 
     # Only execute this if we haven't hit an error
-    $params = @{
-        TestId              = '21884'
-        Title              = "Workload identities based on known networks are configured"
-        UserImpact         = "Low"      # Configuration changes affect only service principals and applications, not end users
-        Risk               = "High"      # Compromised workload identities can access tenant resources from any location
-        ImplementationCost = "Medium"    # Organizations need to identify and document legitimate source networks
-        AppliesTo          = "Identity"
-        Tag                = "Identity"
-        Status             = [bool]$passed
-        Result             = $testResultMarkdown
-    }
-
-    Add-ZtTestResultDetail @params
+    Add-ZtTestResultDetail -TestId '21884' -Status [bool]$passed -Result $testResultMarkdown
 }
