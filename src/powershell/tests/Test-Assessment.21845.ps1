@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-
+    Check if Temporary Access Pass is enabled and properly enforced with conditional access policies
 #>
 
 function Test-Assessment-21845{
@@ -8,7 +8,7 @@ function Test-Assessment-21845{
     	Category = 'Access control',
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21845,
@@ -21,15 +21,94 @@ function Test-Assessment-21845{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Temporary access pass is enabled"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    Write-ZtProgress -Activity $activity -Status "Getting Temporary Access Pass policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    try {
+        # Query 1: Get Temporary Access Pass authentication method configuration
+        $tapConfig = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass' -ApiVersion 'beta'
 
+        # Check if TAP is disabled - if so, fail immediately
+        if ($tapConfig.state -eq 'disabled') {
+            $passed = $false
+            $testResultMarkdown = "❌ Temporary Access Pass is disabled in the tenant."
+        }
+        else {
+            Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
 
-    Add-ZtTestResultDetail -TestId '21845' -Title "Temporary access pass is enabled" `
-        -UserImpact Low -Risk Low -ImplementationCost Low `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+            # Query 2: Get all enabled conditional access policies
+            $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies?$filter=state eq ''enabled''' -ApiVersion 'v1.0'
+
+            # Find policies targeting security information registration
+            $securityInfoPolicies = $allCAPolicies | Where-Object {
+                $_.conditions.applications.includeUserActions -contains 'urn:user:registersecurityinfo' -and
+                $_.grantControls.authenticationStrength -ne $null
+            }
+
+            Write-ZtProgress -Activity $activity -Status "Getting authentication strength policies"
+
+            # Query 3: Get authentication strength policies
+            $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies?$select=id,displayName,description,policyType,allowedCombinations' -ApiVersion 'v1.0'
+
+            # Check TAP configuration and conditional access enforcement
+            $tapEnabled = $tapConfig.state -eq 'enabled'
+            $targetsAllUsers = $tapConfig.includeTargets | Where-Object { $_.id -eq 'all_users' }
+            $hasConditionalAccessEnforcement = ($securityInfoPolicies | Measure-Object).Count -gt 0
+
+            # Check if authentication strength policies include TAP
+            $tapSupportedInAuthStrength = $false
+            $authStrengthWithTap = @()
+
+            if ($hasConditionalAccessEnforcement) {
+                # Get auth strength policies referenced in CA policies
+                $referencedAuthStrengthIds = $securityInfoPolicies.grantControls.authenticationStrength.id | Select-Object -Unique
+                $referencedAuthStrengthPolicies = $authStrengthPolicies | Where-Object { $_.id -in $referencedAuthStrengthIds }
+
+                # Check if any referenced auth strength policies support TAP
+                foreach ($policy in $referencedAuthStrengthPolicies) {
+                    $tapCombinations = $policy.allowedCombinations | Where-Object { $_ -like '*temporaryAccessPass*' }
+                    if ($tapCombinations) {
+                        $tapSupportedInAuthStrength = $true
+                        $authStrengthWithTap += $policy
+                    }
+                }
+            }
+
+        # Determine pass/fail status based on specification
+        if ($tapEnabled -and $targetsAllUsers -and $hasConditionalAccessEnforcement -and $tapSupportedInAuthStrength) {
+            $passed = $true
+            $testResultMarkdown = "✅ Temporary Access Pass is enabled, targeting all users, and enforced with conditional access policies."
+        }
+        elseif ($tapEnabled -and $targetsAllUsers -and $hasConditionalAccessEnforcement -and -not $tapSupportedInAuthStrength) {
+            $passed = $false
+            $testResultMarkdown = "❌ Temporary Access Pass is enabled but authentication strength policies don't include TAP methods."
+        }
+        elseif ($tapEnabled -and $targetsAllUsers -and -not $hasConditionalAccessEnforcement) {
+            $passed = $true
+            $testResultMarkdown = "✅ Temporary Access Pass is enabled but no conditional access enforcement for security info registration found. Consider adding conditional access policies for stronger security."
+        }
+        else {
+            $passed = $false
+            $testResultMarkdown = "❌ Temporary Access Pass is not properly configured or does not target all users."
+        }
+    }
+
+    # Add basic configuration summary
+    $testResultMarkdown += "`n`n**Configuration Summary:**`n"
+    $testResultMarkdown += "- TAP State: $($tapConfig.state)`n"
+    if ($tapConfig.state -eq 'enabled') {
+        $testResultMarkdown += "- Target Users: $(if ($targetsAllUsers) { 'All Users' } else { 'Limited Users' })`n"
+        $testResultMarkdown += "- Conditional Access Policies Found: $($securityInfoPolicies.Count)`n"
+        $testResultMarkdown += "- Authentication Strength Policies with TAP: $($authStrengthWithTap.Count)`n"
+    }    }
+    catch {
+        $passed = $false
+        $testResultMarkdown = "❌ Error querying Temporary Access Pass configuration: $($_.Exception.Message)"
+    }
+
+    $params = @{
+        TestId             = '21845'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
