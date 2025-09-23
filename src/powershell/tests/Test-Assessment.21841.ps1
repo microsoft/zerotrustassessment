@@ -26,7 +26,6 @@ function Test-Assessment-21841{
     $authMethodPolicy = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationMethodsPolicy" -ApiVersion 'beta'
 
     $result = $false
-    $testResultMarkdown = ""
 
     # Check if the policy and required properties exist
     if($authMethodPolicy -and $authMethodPolicy.PSObject.Properties['reportSuspiciousActivitySettings']) {
@@ -41,33 +40,28 @@ function Test-Assessment-21841{
             $targetAllUsers = $reportSettings.includeTarget.PSObject.Properties['id'] -and $reportSettings.includeTarget.id -eq "all_users"
         }
 
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AuthMethodsSettings'
         if($stateEnabled -and $targetAllUsers) {
             $result = $true
-            $testResultMarkdown += "Authenticator app report suspicious activity is enabled for all users."
+            $testResultMarkdown = "Authenticator app report suspicious activity is [enabled for all users]($portalLink)."
         }
         else {
             if(-not $stateEnabled) {
-                $testResultMarkdown = "Authenticator app report suspicious activity is not enabled."
+                $testResultMarkdown = "Authenticator app report suspicious activity is [not enabled]($portalLink)."
             }
             elseif(-not $targetAllUsers) {
-                $testResultMarkdown += "Authenticator app report suspicious activity is not configured for all users."
+                $testResultMarkdown = "Authenticator app report suspicious activity is [not configured for all users]($portalLink)."
             }
         }
     }
     else {
-        $testResultMarkdown += "Authentication methods policy or report suspicious activity settings are not available."
+        $testResultMarkdown = "Authenticator app report suspicious activity is [not enabled]($portalLink)."
     }
 
     $passed = $result
 
     $params = @{
         TestId             = '21841'
-        Title              = "Authenticator app report suspicious activity is enabled"
-        UserImpact         = 'Low'
-        Risk               = 'Low'
-        ImplementationCost = 'Low'
-        AppliesTo          = 'Identity'
-        Tag                = 'Identity'
         Status             = $passed
         Result             = $testResultMarkdown
     }
