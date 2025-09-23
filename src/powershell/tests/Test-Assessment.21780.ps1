@@ -26,10 +26,6 @@ function Test-Assessment-21780{
     # Find the entra recommendation specific to ADAL/MSAL Migration
     $adalRecommendations = Invoke-ZtGraphRequest -RelativeUri 'directory/recommendations?$filter=recommendationType eq ''adalToMsalMigration''' -ApiVersion beta
 
-    # **** using applicationCredentialExpiry Only for testing purpose, as no data available in adalToMsalMigration, must be replaced afterwards with adalToMsalMigration
-
-    #$adalRecommendations = Invoke-ZtGraphRequest -RelativeUri 'directory/recommendations?$filter=recommendationType eq ''applicationCredentialExpiry''' -ApiVersion beta
-
     $mdInfo = ""
 
     if ($adalRecommendations.Count -gt 0) {
