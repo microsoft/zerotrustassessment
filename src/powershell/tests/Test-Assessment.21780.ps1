@@ -3,7 +3,7 @@
 
 #>
 
-function Test-Assessment-21780{
+function Test-Assessment-21780 {
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'High',
@@ -24,34 +24,30 @@ function Test-Assessment-21780{
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Find the entra recommendation specific to ADAL/MSAL Migration
-    $adalRecommendations = Invoke-ZtGraphRequest -RelativeUri 'directory/recommendations?$filter=recommendationType eq ''adalToMsalMigration''' -ApiVersion beta
+    $adalRecommendations = Invoke-ZtGraphRequest -RelativeUri "directory/recommendations" -filter "recommendationType eq 'adalToMsalMigration'" -ApiVersion beta
 
     $mdInfo = ""
 
     if ($adalRecommendations.Count -gt 0) {
+        # Test Failed
         $passed = $false
-        $testResultMarkdown = "❌ **Fail**: ADAL Applications found in the tenant.%TestResult%"
+        $testResultMarkdown = "ADAL Applications found in the tenant.%TestResult%"
 
         # markdown table for found ADAL applications
         $mdInfo = "`n## ADAL Applications Found`n`n"
-        $mdInfo += "| App ID | App Display Name |`n"
-        $mdInfo += "| :---- | :---- |`n"
+        $mdInfo += "| Application |`n"
+        $mdInfo += "| :---- |`n"
 
         foreach ($recommendation in $adalRecommendations) {
-            $appId = $recommendation.subjectId
-            $displayName = $recommendation.displayName
-            $mdInfo += "| $appId | $displayName |`n"
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Branding/appId/{0}" -f $recommendation.subjectId
+            $mdInfo += "| [$(Get-SafeMarkdown($recommendation.displayName))]($portalLink) |`n"
         }
-
-        $mdInfo += "`n**Note**: Microsoft ended all support and security fixes for ADAL on June 30, 2023. These applications should be migrated to MSAL to ensure modern security protections.`n"
-         # Add remediation action only for failures
-        $mdInfo += "`n**Remediation action**`n`n"
-        $mdInfo += "* [Migrate ADAL applications to MSAL](https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration)`n"
 
     }
     else {
+        # Test passed
         $passed = $true
-        $testResultMarkdown = "✅ **Pass**: No ADAL applications found in the tenant.%TestResult%"
+        $testResultMarkdown = "No ADAL applications found in the tenant.%TestResult%"
     }
 
     # Replace the placeholder with the detailed information
