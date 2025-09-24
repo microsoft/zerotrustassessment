@@ -2,7 +2,7 @@ Microsoft ended all support and security fixes for ADAL on June 30, 2023. Each A
 
 **Remediation action**
 
-* [Migrate ADAL applications to MSAL](https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration)"
+* [Migrate ADAL applications to MSAL](https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration)
 
 <!--- Results --->
 %TestResult%
