@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-
+    Checks if Smart lockout duration is set to a minimum of 60 seconds.
 #>
 
 function Test-Assessment-21849{
@@ -21,15 +21,49 @@ function Test-Assessment-21849{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Smart lockout duration is set to a minimum of 60"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    Write-ZtProgress -Activity $activity -Status "Getting password rule settings"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    # Get the password rule settings
+    $groupSettings = Invoke-ZtGraphRequest -RelativeUri "Settings" -ApiVersion beta
+    $passwordRuleSettings = $groupSettings | Where-Object { $_.displayName -eq "Password Rule Settings" }
 
+    if ($null -eq $passwordRuleSettings) {
+        $passed = $false
+        $testResultMarkdown = "Password Rule Settings were not found in the tenant configuration."
+    }
+    else {
+        # Get the detailed settings for the Password Rule Settings group
+        Write-ZtProgress -Activity $activity -Status "Checking lockout duration setting"
 
-    Add-ZtTestResultDetail -TestId '21849' -Title "Smart lockout duration is set to a minimum of 60" `
-        -UserImpact Low -Risk Medium -ImplementationCost Low `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+        $lockoutDurationSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq "LockoutDurationInSeconds" }
+
+        if ($null -eq $lockoutDurationSetting) {
+            $passed = $false
+            $testResultMarkdown = "Lockout Duration In Seconds setting was not found in the Password Rule Settings."
+        }
+        else {
+            $lockoutDuration = [int]$lockoutDurationSetting.value
+
+            $mdInfo = "`n## Smart Lockout Settings`n`n"
+            $mdInfo += "| Setting | Value |`n"
+            $mdInfo += "| :---- | :---- |`n"
+            $mdInfo += "| Lockout Duration (seconds) | $lockoutDuration |`n"
+
+            if ($lockoutDuration -ge 60) {
+                $passed = $true
+                $testResultMarkdown = "Smart lockout duration is set to $lockoutDuration seconds, which meets the minimum requirement of 60 seconds.$mdInfo"
+            }
+            else {
+                $passed = $false
+                $testResultMarkdown = "Smart lockout duration is set to $lockoutDuration seconds, which is below the minimum requirement of 60 seconds.$mdInfo"
+            }
+        }
+    }
+
+    $params = @{
+        TestId = '21849'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
