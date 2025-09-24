@@ -23,10 +23,9 @@ function Test-Assessment-21884 {
     $activity = "Checking if workload identities are protected by location-based Conditional Access policies"
     Write-ZtProgress -Activity $activity -Status "Getting service principals"
 
-    try {
-        # Get current tenant ID for Q2 first as we'll need it for both SP and app queries
-        $tenant = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization"
-        $tenantId = $tenant.value.id
+    # Get current tenant ID for Q2 first as we'll need it for both SP and app queries
+    $tenant = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization"
+    $tenantId = $tenant.value.id
 
         # Q1: Get all service principals with credential information
         $servicePrincipals = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$select=id,appId,displayName,servicePrincipalType,passwordCredentials,keyCredentials,appOwnerOrganizationId&`$filter=servicePrincipalType eq 'Application'"
@@ -37,9 +36,13 @@ function Test-Assessment-21884 {
         if ($ownedServicePrincipals.Count -eq 0) {
             Write-PSFMessage "No service principals found in tenant" -Level Warning
             $testResultMarkdown = "No service principals found in the tenant to evaluate. The test result is inconclusive as there are no workload identities to assess."
-            $passed = [bool]$false  # Change from null to false for inconclusive result
-
-            Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
+            
+            $params = @{
+                TestId = '21884'
+                Status = [bool]$false
+                Result = $testResultMarkdown
+            }
+            Add-ZtTestResultDetail @params
             return
         }
 
@@ -93,9 +96,13 @@ function Test-Assessment-21884 {
 
             if ($hasValidLocations) {
                 $testResultMarkdown = "Pass: All workload identities are protected by global service principal policies with location restrictions."
-                $passed = [bool]$true
-
-                Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
+                
+                $params = @{
+                    TestId = '21884'
+                    Status = [bool]$true
+                    Result = $testResultMarkdown
+                }
+                Add-ZtTestResultDetail @params
                 return
             }
         }
@@ -138,9 +145,13 @@ function Test-Assessment-21884 {
 
         if ($namedLocations.value.Count -eq 0) {
             $testResultMarkdown = "Fail: No named locations found. Cannot implement network-based restrictions without defined locations."
-            $passed = [bool]$false
-
-            Add-ZtTestResultDetail -TestId '21884' -Status $passed -Result $testResultMarkdown
+            
+            $params = @{
+                TestId = '21884'
+                Status = [bool]$false
+                Result = $testResultMarkdown
+            }
+            Add-ZtTestResultDetail @params
             return
         }
 
@@ -213,14 +224,12 @@ function Test-Assessment-21884 {
             }
         }
 
-        $passed = [bool]$result
+    $passed = [bool]$result
 
-    } catch {
-        Write-PSFMessage -Level Error -Message "Error in Test-Assessment-21884: $($_.Exception.Message)"
-        Add-ZtTestResultDetail -TestId '21884' -Status $false -Result "Error occurred while checking workload identity protections: $($_.Exception.Message)"
-        return
+    $params = @{
+        TestId = '21884'
+        Status = $passed
+        Result = $testResultMarkdown
     }
-
-    # Only execute this if we haven't hit an error
-    Add-ZtTestResultDetail -TestId '21884' -Status [bool]$passed -Result $testResultMarkdown
+    Add-ZtTestResultDetail @params
 }
