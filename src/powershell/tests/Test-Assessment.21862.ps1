@@ -64,8 +64,5 @@ function Test-Assessment-21862{
         }
     }
 
-    $result = $passed
-
-
     Add-ZtTestResultDetail -Status $passed -Result $testResultMarkdown
 }
