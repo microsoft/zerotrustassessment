@@ -120,10 +120,10 @@ function Test-Assessment-21941{
     $portalTemplate = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}"
 
     if ($passed) {
-        $testResultMarkdown = "✅ **PASS**: Token protection policies are configured.`n`n"
+        $testResultMarkdown = "Token protection policies are configured.`n`n"
     }
     else {
-        $testResultMarkdown = "❌ **FAIL**: Token protection policy is not configured.`n`n"
+        $testResultMarkdown = "Token protection policy is not configured.`n`n"
     }
 
     # Build detailed markdown information
