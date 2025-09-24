@@ -43,7 +43,7 @@ function Test-Assessment-21862{
 
         if ($riskySPCount -gt 0) {
             $testResultMarkdown += "`n`n## Untriaged Risky Service Principals`n`n"
-            $testResultMarkdown += "| Service Principal | Type | Risk Level | Risk State | Last Updated |`n"
+            $testResultMarkdown += "| Service Principal | Type | Risk Level | Risk State | Risk Last Updated |`n"
             $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($sp in $untriagedRiskyPrincipals) {
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($sp.id)/appId/$($sp.appId)"
@@ -55,7 +55,7 @@ function Test-Assessment-21862{
 
         if ($riskyDetectionCount -gt 0) {
             $testResultMarkdown += "`n`n## Untriaged Risk Detection Events`n`n"
-            $testResultMarkdown += "| Service Principal | Risk Level | Risk State | Risk Event Type | Detected |`n"
+            $testResultMarkdown += "| Service Principal | Risk Level | Risk State | Risk Event Type | Risk Last Updated |`n"
             $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($detection in $untriagedRiskDetections) {
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($detection.servicePrincipalId)/appId/$($detection.appId)"
