@@ -5,14 +5,14 @@
 
 function Test-Assessment-24560 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24560,
-    	Title = 'Windows Cloud LAPS policy is created and assigned ',
+    	Title = 'Windows Cloud LAPS policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

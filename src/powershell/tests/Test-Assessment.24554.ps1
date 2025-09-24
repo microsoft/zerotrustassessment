@@ -8,14 +8,14 @@
 
 function Test-Assessment-24554 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24554,
-    	Title = 'iOS - Update policy is configured and assigned',
+    	Title = 'iOS update policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

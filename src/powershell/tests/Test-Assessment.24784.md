@@ -1,8 +1,9 @@
-If Microsoft Defender Antivirus policies are not properly configured and assigned to macOS devices in Intune, threat actors can exploit unprotected endpoints to execute malware, disable antivirus protections, and persist within the environment. Without enforced antivirus policies, macOS devices may operate with outdated definitions, disabled real-time protection, or misconfigured scan schedules, allowing attackers to bypass detection and escalate privileges. This enables lateral movement across the network, credential harvesting, and data exfiltration. The absence of antivirus enforcement undermines device compliance, increases exposure to zero-day threats, and can result in regulatory non-compliance. Attackers can leverage these gaps to maintain persistence and evade detection, especially in environments lacking centralized policy enforcement.
+If Microsoft Defender Antivirus policies aren't properly configured and assigned to macOS devices in Intune, attackers can exploit unprotected endpoints to execute malware, disable antivirus protections, and persist in the environment. Without enforced policies, devices might run outdated definitions, lack real-time protection, or have misconfigured scan schedules, increasing the risk of undetected threats and privilege escalation. This enables lateral movement across the network, credential harvesting, and data exfiltration. The absence of antivirus enforcement undermines device compliance, increases exposure of endpoints to zero-day threats, and can result in regulatory noncompliance. Attackers can use these gaps to maintain persistence and evade detection, especially in environments without centralized policy enforcement.
 
 **Remediation action**
 
-- [Configure and assign Defender Antivirus policies for macOS:](https://learn.microsoft.com/en-us/mem/intune/protect/antivirus-microsoft-defender-settings-macos)
-
-<!--- Results --->
+- [macOS Defender Antivirus settings](https://learn.microsoft.com/intune/intune-service/protect/antivirus-microsoft-defender-settings-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Antivirus policy for endpoint security in Intune](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-antivirus-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
+

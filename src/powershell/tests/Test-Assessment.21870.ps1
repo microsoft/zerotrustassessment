@@ -5,14 +5,14 @@
 
 function Test-Assessment-21870{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Credential management',
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21870,
-    	Title = 'Enable SSPR',
+    	Title = 'Enable self-service password reset',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -8,15 +8,15 @@
 
 function Test-Assessment-24552 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect engineering systems',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24552,
-    	Title = 'macOS - Firewall policy is created and assigned',
-    	UserImpact = 'High'
+    	Title = 'macOS Firewall Policy',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

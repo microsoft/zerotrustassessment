@@ -1,12 +1,9 @@
-Without properly configured and assigned security baselines in Intune, Windows devices remain vulnerable to a wide array of attack vectors that threat actors can exploit to establish persistence and escalate privileges. Threat actors can leverage default Windows configurations that lack hardened security settings to perform lateral movement through techniques such as credential dumping, privilege escalation through unpatched vulnerabilities, and exploitation of weak authentication mechanisms. The absence of security baselines enables threat actors to bypass security controls, maintain persistence through registry modifications, and exfiltrate sensitive data through unmonitored channels. Additionally, devices without security baselines fail to implement defense-in-depth strategies, allowing threat actors to progress through the kill chain more easily from initial access to data exfiltration, ultimately compromising organizational security posture and potentially violating compliance requirements. 
+Without properly configured and assigned Intune security baselines for Windows, devices remain vulnerable to a wide array of attack vectors that threat actors can exploit to gain persistence and escalate privileges. Adversaries can leverage default Windows configurations that lack hardened security settings to perform lateral movement using techniques like credential dumping, privilege escalation via unpatched vulnerabilities, and exploitation of weak authentication mechanisms. In the absence of enforced security baselines, threat actors can bypass critical security controls, maintain persistence through registry modifications, and exfiltrate sensitive data through unmonitored channels. By failing to implement a defense-in-depth strategy, devices are easier to exploit as attackers they progress through the kill chain—from initial access to data exfiltration—ultimately compromising the organization’s security posture and increasing the risk of compliance violations.
 
 **Remediation action**
 
-- [Configure Windows security baselines in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/security-baselines)
-
-- [Assign security baseline policies to device groups](https://learn.microsoft.com/en-us/mem/intune/protect/security-baselines-configure)
-
-- [Monitor security baseline compliance](https://learn.microsoft.com/en-us/mem/intune/protect/security-baselines-monitor)
-
-<!--- Results --->
+- [Use security baselines to help secure Windows devices](https://learn.microsoft.com/intune/intune-service/protect/security-baselines-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Monitor security baseline compliance](https://learn.microsoft.com/intune/intune-service/protect/security-baselines-monitor?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
+
