@@ -27,11 +27,10 @@ function Test-Assessment-21867 {
     # CSV Format: Type,Permission,Privilege,Reason
     # Source: Microsoft Identity Tools - https://github.com/AzureAD/MSIdentityTools/blob/main/assets/aadconsentgrantpermissiontable.csv
 
-    try {
-        Write-ZtProgress -Activity $activity -Status "Getting applications"
-        $applications = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/applications'
+    Write-ZtProgress -Activity $activity -Status "Getting applications"
+    $applications = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/applications'
 
-        $appsWithHighPriv = @()
+    $appsWithHighPriv = @()
 
         # Filter applications with high privilege permissions
         foreach ($app in $applications.value) {
@@ -92,10 +91,10 @@ function Test-Assessment-21867 {
 
         $passed = $result
 
-        Add-ZtTestResultDetail -TestId '21867' -Status $passed -Result $testResultMarkdown
-
-    } catch {
-        Write-PSFMessage -Level Error -Message "Error in Test-Assessment-21867: $($_.Exception.Message)"
-        Add-ZtTestResultDetail -TestId '21867' -Status $false -Result "Error occurred while checking application owners: $($_.Exception.Message)"
-    }
+        $params = @{
+            TestId             = '21867'
+            Status             = $passed
+            Result             = $testResultMarkdown
+        }
+        Add-ZtTestResultDetail @params
 }
