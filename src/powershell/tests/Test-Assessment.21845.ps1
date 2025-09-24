@@ -36,7 +36,7 @@ function Test-Assessment-21845{
             Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
 
             # Query 2: Get all enabled conditional access policies
-            $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies?$filter=state eq ''enabled''' -ApiVersion 'v1.0'
+            $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -Filter "state eq 'enabled'" -ApiVersion 'v1.0'
 
             # Find policies targeting security information registration
             $securityInfoPolicies = $allCAPolicies | Where-Object {
@@ -47,10 +47,10 @@ function Test-Assessment-21845{
             Write-ZtProgress -Activity $activity -Status "Getting authentication strength policies"
 
             # Query 3: Get authentication strength policies
-            $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies?$select=id,displayName,description,policyType,allowedCombinations' -ApiVersion 'v1.0'
+            $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -Select 'id,displayName,description,policyType,allowedCombinations' -ApiVersion 'v1.0'
 
             # Check TAP configuration and conditional access enforcement
-            $tapEnabled = $tapConfig.state -eq 'enabled'
+            $tapEnabled = $tapConfig.state -ne 'enabled'
             $targetsAllUsers = $tapConfig.includeTargets | Where-Object { $_.id -eq 'all_users' }
             $hasConditionalAccessEnforcement = ($securityInfoPolicies | Measure-Object).Count -gt 0
 
@@ -95,7 +95,7 @@ function Test-Assessment-21845{
     # Add basic configuration summary
     $testResultMarkdown += "`n`n**Configuration Summary:**`n"
     $testResultMarkdown += "- TAP State: $($tapConfig.state)`n"
-    if ($tapConfig.state -eq 'enabled') {
+    if ($tapConfig.state -ne 'enabled') {
         $testResultMarkdown += "- Target Users: $(if ($targetsAllUsers) { 'All Users' } else { 'Limited Users' })`n"
         $testResultMarkdown += "- Conditional Access Policies Found: $($securityInfoPolicies.Count)`n"
         $testResultMarkdown += "- Authentication Strength Policies with TAP: $($authStrengthWithTap.Count)`n"
