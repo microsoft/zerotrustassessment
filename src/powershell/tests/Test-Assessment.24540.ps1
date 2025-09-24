@@ -8,15 +8,15 @@
 
 function Test-Assessment-24540 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24540,
-    	Title = 'Windows Firewall policy is created and assigned',
-    	UserImpact = 'Low'
+    	Title = 'Windows Firewall policy',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

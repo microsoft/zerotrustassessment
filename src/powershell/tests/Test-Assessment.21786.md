@@ -2,9 +2,9 @@ A threat actor can intercept or extract authentication tokens from memory, local
 
 Token protection, also called token binding, helps prevent token theft by making sure a token is usable only from the intended device. Token protection uses cryptography so that without the client device key, no one can use the token.
 
-**Remediation action**   
-Create a Conditional Access policy to set up token protection.   
-- [Microsoft Entra Conditional Access: Token protection](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+**Remediation action**
+
+- [Deploy a Conditional Access policy to require token protection](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned
 #>

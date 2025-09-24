@@ -9,7 +9,7 @@ function Test-Assessment-21812 {
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
     	RiskLevel = 'Low',
-    	SfiPillar = 'Protect identities and secrets',
+    	SfiPillar = 'Protect engineering systems',
     	TenantType = ('Workforce'),
     	TestId = 21812,
     	Title = 'Maximum number of Global Administrators doesn''t exceed eight users',

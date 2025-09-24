@@ -107,8 +107,6 @@ export default function DevicesConfig() {
                             <TableHead>Block Days</TableHead>
                             <TableHead>Retire Days</TableHead>
                             <TableHead>Scope</TableHead>
-                            <TableHead>Included Groups</TableHead>
-                            <TableHead>Excluded Groups</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -135,8 +133,6 @@ export default function DevicesConfig() {
                                 <TableCell>{row.ActionForNoncomplianceDaysBlock}</TableCell>
                                 <TableCell>{row.ActionForNoncomplianceDaysRetire}</TableCell>
                                 <TableCell>{row.Scope}</TableCell>
-                                <TableCell>{row.IncludedGroups}</TableCell>
-                                <TableCell>{row.ExcludedGroups}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

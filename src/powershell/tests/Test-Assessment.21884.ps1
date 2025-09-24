@@ -5,14 +5,14 @@
 
 function Test-Assessment-21884{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'External collaboration',
     	ImplementationCost = 'Medium',
     	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 21884,
-    	Title = 'Workload identities based on known networks are configured',
+    	Title = 'Conditional Access policies for workload identities based on known networks are configured',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

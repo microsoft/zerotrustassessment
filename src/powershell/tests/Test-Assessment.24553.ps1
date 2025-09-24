@@ -5,14 +5,14 @@
 
 function Test-Assessment-24553 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Medium',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24553,
-    	Title = 'Windows Update policy is assigned and enforced.',
+    	Title = 'Windows Update policy for Windows devices',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

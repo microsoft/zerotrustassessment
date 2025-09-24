@@ -8,15 +8,15 @@
 
 function Test-Assessment-24546 {
     [ZtTest(
-    	Category = 'Device management',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24546,
-    	Title = 'Windows Automatic Enrollment is enabled ',
-    	UserImpact = 'Medium'
+    	Title = 'Windows Automatic Enrollment',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

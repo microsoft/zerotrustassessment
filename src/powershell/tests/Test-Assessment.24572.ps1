@@ -5,14 +5,14 @@
 
 function Test-Assessment-24572 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24572,
-    	Title = 'Device enrollment notification is configured and assigned',
+    	Title = 'Device enrollment notification',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

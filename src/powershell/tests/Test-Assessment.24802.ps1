@@ -1,9 +1,20 @@
-<#
+﻿<#
 .SYNOPSIS
 
 #>
 
 function Test-Assessment-24802 {
+    [ZtTest(
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect tenants and isolate production',
+    	TenantType = ('Workforce'),
+    	TestId = 24802,
+    	Title = 'Device cleanup rules',
+    	UserImpact = 'Low'
+    )]
     [CmdletBinding()]
     param()
 

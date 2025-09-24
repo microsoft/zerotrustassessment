@@ -8,14 +8,14 @@
 
 function Test-Assessment-24564 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Protect identities and secrets',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = '',
     	TenantType = ('Workforce'),
     	TestId = 24564,
-    	Title = 'Windows - Local Account Protection policy is configured and assigned',
+    	Title = 'Local Users and Group policy',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

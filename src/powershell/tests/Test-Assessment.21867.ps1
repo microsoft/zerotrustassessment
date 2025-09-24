@@ -5,15 +5,15 @@
 
 function Test-Assessment-21867 {
     [ZtTest(
-        Category = 'Application management',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce','External'),
-        TestId = 21867,
-        Title = 'Enterprise applications with high privilege permissions have at least two owners',
-        UserImpact = 'Low'
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21867,
+    	Title = 'Enterprise applications with high privilege Microsoft Graph API permissions have owners',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
