@@ -34,30 +34,32 @@ function Test-Assessment-21862{
     $passed = ($untriagedRiskyPrincipals.Count -eq 0) -and ($untriagedRiskDetections.Count -eq 0)
 
     if ($passed) {
-        $testResultMarkdown = "All risky workload identities have been triaged ✅"
+        $testResultMarkdown = "All risky workload identities have been triaged"
     }
     else {
         $riskySPCount = $untriagedRiskyPrincipals.Count
         $riskyDetectionCount = $untriagedRiskDetections.Count
-        $testResultMarkdown = "Found $riskySPCount untriaged risky service principals and $riskyDetectionCount untriaged risk detections ❌"
+        $testResultMarkdown = "Found $riskySPCount untriaged risky service principals and $riskyDetectionCount untriaged risk detections"
 
         if ($riskySPCount -gt 0) {
             $testResultMarkdown += "`n`n## Untriaged Risky Service Principals`n`n"
-            $testResultMarkdown += "| Service Principal | App ID | Type | Risk Level | Risk State | Last Updated |`n"
-            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
+            $testResultMarkdown += "| Service Principal | Type | Risk Level | Risk State | Last Updated |`n"
+            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($sp in $untriagedRiskyPrincipals) {
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($sp.id)/appId/$($sp.appId)"
-                $testResultMarkdown += "| [$($sp.displayName)]($portalLink) | $($sp.appId) | $($sp.servicePrincipalType) | $(Get-FormattedRiskLevel -RiskLevel $sp.riskLevel) | $($sp.riskState) | $($sp.riskLastUpdatedDateTime) |`n"
+                Write-Host $sp.riskState
+                Write-Host $(Get-RiskStateLabel -RiskState $sp.riskState)
+                $testResultMarkdown += "| [$($sp.displayName)]($portalLink) | $($sp.servicePrincipalType) | $(Get-FormattedRiskLevel -RiskLevel $sp.riskLevel) | $(Get-RiskStateLabel -RiskState $sp.riskState) | $($sp.riskLastUpdatedDateTime) |`n"
             }
         }
 
         if ($riskyDetectionCount -gt 0) {
             $testResultMarkdown += "`n`n## Untriaged Risk Detection Events`n`n"
-            $testResultMarkdown += "| Service Principal | App ID | Service Principal ID | Risk Level | Risk State | Risk Event Type | Detected |`n"
-            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
+            $testResultMarkdown += "| Service Principal | Risk Level | Risk State | Risk Event Type | Detected |`n"
+            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($detection in $untriagedRiskDetections) {
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($detection.servicePrincipalId)/appId/$($detection.appId)"
-                $testResultMarkdown += "| [$($detection.servicePrincipalDisplayName)]($portalLink) | $($detection.appId) | $($detection.servicePrincipalId) | $(Get-FormattedRiskLevel -RiskLevel $detection.riskLevel) | $($detection.riskState) | $($detection.riskEventType) | $($detection.detectedDateTime) |`n"
+                $testResultMarkdown += "| [$($detection.servicePrincipalDisplayName)]($portalLink) | $(Get-FormattedRiskLevel -RiskLevel $detection.riskLevel) | $(Get-RiskStateLabel -RiskState $detection.riskState) | $(Get-RiskEventTypeLabel -RiskEventType $detection.riskEventType) | $($detection.detectedDateTime) |`n"
             }
         }
     }
