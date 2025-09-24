@@ -21,35 +21,38 @@ function Test-Assessment-21850 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Smart lockout threshold isn't greater than 10"
-    Write-ZtProgress -Activity $activity -Status "Getting password rule settings"
+    Write-ZtProgress -Activity $activity -Status 'Getting password rule settings'
 
     # Get the Password Rule Settings template
-    $passwordRuleSettings = Invoke-ZtGraphRequest -RelativeUri "directorySettingTemplates/5cf42378-d67d-4f36-ba46-e8b86229381d" -ApiVersion beta
+    $allSettings = Invoke-ZtGraphRequest -RelativeUri 'settings' -ApiVersion beta
+
+    $passwordRuleSettings = $allSettings |  Where-Object { $_.displayName -eq "Password Rule Settings" }
 
     $mdInfo = ""
 
     if ($null -eq $passwordRuleSettings) {
-        # Test Failed - Template not found
+        # Test failed - Template not found
         $passed = $false
-        $testResultMarkdown = "Password Rule Settings template not found.%TestResult%"
+        $testResultMarkdown = "Password rule settings template not found.%TestResult%"
     }
     else {
-        # Find the LockoutThreshold setting
-        $lockoutThresholdSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq "LockoutThreshold" }
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/PasswordProtection/fromNav/'
 
+        # Get the lockout threshold setting
+        $lockoutThresholdSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq "LockoutThreshold" }
         if ($null -eq $lockoutThresholdSetting) {
-            # Test Failed - LockoutThreshold Setting not found
+            # Test failed - Lockout threshold setting not found
             $passed = $false
-            $testResultMarkdown = "LockoutThreshold setting not found in Password Rule Settings.%TestResult%"
+            $testResultMarkdown = "Lockout threshold setting not found in [password rule settings]($portalLink).%TestResult%"
         }
         else {
-            $lockoutThreshold = [int]$lockoutThresholdSetting.defaultValue
+            $lockoutThreshold = [int]$lockoutThresholdSetting.Value
 
             # Build info table
-            $mdInfo = "`n## Smart Lockout Configuration`n`n"
+            $mdInfo = "`n## Smart lockout configuration`n`n"
             $mdInfo += "| Setting | Value |`n"
             $mdInfo += "| :---- | :---- |`n"
-            $mdInfo += "| Lockout Threshold | $lockoutThreshold |`n"
+            $mdInfo += "| [Lockout threshold]($portalLink) | $(Get-SafeMarkdown($lockoutThreshold)) attempts|`n"
 
             if ($lockoutThreshold -gt 10) {
                 $passed = $true
