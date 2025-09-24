@@ -104,6 +104,189 @@ function Add-ZTDeviceAppProtectionPolicies {
         }
     }
 
+    function Get-LabelAllowBlockBlank {
+        param (
+            $isBlocked
+        )
+        switch ($isBlocked) {
+            'true' {
+                return "Block"
+            }
+            'false' {
+                return "Allow"
+            }
+            default {
+                return ""
+            }
+        }
+    }
+
+    function Get-ManagedAppDataTransferLevelLabel {
+        param (
+            $allowedOutboundDataTransferDestinations,
+            $disableProtectionOfManagedOutboundOpenInData,
+            $filterOpenInToOnlyManagedApps
+        )
+        switch ($allowedOutboundDataTransferDestinations) {
+            'allApps' {
+                return "All apps"
+            }
+            'none' {
+                return "None"
+            }
+            'managedApps' {
+                $result = "Policy managed apps"
+                if ($disableProtectionOfManagedOutboundOpenInData -eq $true) {
+                    $result += " with OS sharing"
+                }
+                elseif ($filterOpenInToOnlyManagedApps -eq $true) {
+                    $result += " with Open-In/Share filtering"
+                }
+                return $result
+            }
+            default {
+                return ''
+            }
+        }
+    }
+
+    function Get-ExemptedAppsString {
+        param (
+            $exemptedAppPackages
+        )
+        $exemptedApps = ""
+        if ($exemptedAppPackages -and $exemptedAppPackages.Count -gt 0) {
+            foreach ($app in $exemptedAppPackages) {
+                $exemptedApps += if ($exemptedApps) {
+                    ", "
+                }
+                else {
+                    ""
+                }
+                $exemptedApps += "$($app.Name):$($app.Value)"
+            }
+        }
+        return $exemptedApps
+    }
+
+    function Get-DialerRestrictionLevel {
+        param (
+            $dialerRestrictionLevel
+        )
+        switch ($dialerRestrictionLevel) {
+            'allApps' {
+                return 'Any dialer app'
+            }
+            'customApp' {
+                return 'A specific dialer app'
+            }
+            'blocked' {
+                return 'None, do not transfer this data between apps'
+            }
+            'managedApps' {
+                return 'Any policy-managed dialer app'
+            }
+            default {
+                return $dialerRestrictionLevel
+            }
+        }
+    }
+
+    function Get-AllowedDataStorageLocations {
+        param (
+            $allowedDataStorageLocations
+        )
+        $result = ""
+        if ($allowedDataStorageLocations -and $allowedDataStorageLocations.Count -gt 0) {
+            foreach ($location in $allowedDataStorageLocations) {
+                switch ($location) {
+                    'oneDriveForBusiness' {
+                        $name = 'OneDrive for Business'
+                    }
+                    'sharePoint' {
+                        $name = 'SharePoint'
+                    }
+                    'photoLibrary' {
+                        $name = 'Photo library'
+                    }
+                    'box' {
+                        $name = 'Box'
+                    }
+                    'localStorage' {
+                        $name = 'Local storage'
+                    }
+                    default {
+                        $name = $location
+                    }
+                }
+                $result += if ($result) {
+                    ', '
+                }
+                else {
+                    ''
+                }
+                $result += $name
+            }
+        }
+        return $result
+    }
+
+    function Get-AllowedInboundDataTransfer {
+        param (
+            $allowedInboundDataTransferSources,
+            $protectInboundDataFromUnknownSources
+        )
+        switch ($allowedInboundDataTransferSources) {
+            'none' {
+                return 'None'
+            }
+            'allApps' {
+                $result = 'All apps'
+                if ($protectInboundDataFromUnknownSources -eq $true) {
+                    $result += ' with incoming org data'
+                }
+                return $result
+            }
+            'managedApps' {
+                return 'Policy managed apps'
+            }
+            default {
+                return $allowedInboundDataTransferSources
+            }
+        }
+    }
+
+    #     private string GetDeviceComplianceAction(ManagedAppRemediationAction? appActionIfDeviceComplianceRequired)
+    # {
+    #     return appActionIfDeviceComplianceRequired switch
+    #     {
+    #         ManagedAppRemediationAction.Warn => "Warn",
+    #         ManagedAppRemediationAction.Block => "Block access",
+    #         ManagedAppRemediationAction.Wipe => "Wipe data",
+    #         _ => nameof(ManagedAppRemediationAction),
+    #     };
+    # }
+
+    function Get-DeviceComplianceAction {
+        param (
+            $appActionIfDeviceComplianceRequired
+        )
+        switch ($appActionIfDeviceComplianceRequired) {
+            'warn' {
+                return 'Warn'
+            }
+            'block' {
+                return 'Block access'
+            }
+            'wipe' {
+                return 'Wipe data'
+            }
+            default {
+                return $appActionIfDeviceComplianceRequired
+            }
+        }
+    }
+
     $activity = "Getting Device App protection policies"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
@@ -138,13 +321,13 @@ function Add-ZTDeviceAppProtectionPolicies {
             Name                                                   = $policy.displayName
             AppsPublic                                             = Get-AppGroupTypeString $policy.appGroupType
             AppsCustom                                             = ''
-            BackupOrgDataToICloudOrGoogle                          = ''
-            SendOrgDataToOtherApps                                 = ''
-            AppsToExempt                                           = ''
-            SaveCopiesOfOrgData                                    = ''
-            AllowUserToSaveCopiesToSelectedServices                = ''
-            DataProtectionTransferTelecommunicationDataTo          = ''
-            DataProtectionReceiveDataFromOtherApps                 = ''
+            BackupOrgDataToICloudOrGoogle                          = Get-LabelAllowBlockBlank $policy.dataBackupBlocked
+            SendOrgDataToOtherApps                                 = Get-ManagedAppDataTransferLevelLabel -allowedOutboundDataTransferDestinations $policy.allowedOutboundDataTransferDestinations -disableProtectionOfManagedOutboundOpenInData $policy.disableProtectionOfManagedOutboundOpenInData -filterOpenInToOnlyManagedApps $policy.filterOpenInToOnlyManagedApps
+            AppsToExempt                                           = Get-ExemptedAppsString $policy.exemptedAppPackages
+            SaveCopiesOfOrgData                                    = Get-LabelAllowBlockBlank $policy.saveAsBlocked
+            AllowUserToSaveCopiesToSelectedServices                = Get-AllowedDataStorageLocations $policy.allowedDataStorageLocations
+            DataProtectionTransferTelecommunicationDataTo          = Get-DialerRestrictionLevel $policy.dialerRestrictionLevel
+            DataProtectionReceiveDataFromOtherApps                 = Get-AllowedInboundDataTransfer -allowedInboundDataTransferSources $policy.allowedInboundDataTransferSources -protectInboundDataFromUnknownSources $policy.protectInboundDataFromUnknownSources
             DataProtectionOpenDataIntoOrgDocuments                 = ''
             DataProtectionAllowUsersToOpenDataFromSelectedServices = ''
             DataProtectionRestrictCutCopyBetweenOtherApps          = ''
@@ -159,7 +342,7 @@ function Add-ZTDeviceAppProtectionPolicies {
             ConditionalLaunchAppOfflineGracePeriodWipeData         = ''
             ConditionalLaunchAppDisabedAccount                     = ''
             ConditionalLaunchAppMinAppVersion                      = ''
-            ConditionalLaunchDeviceRootedJailbrokenDevices         = ''
+            ConditionalLaunchDeviceRootedJailbrokenDevices         = Get-DeviceComplianceAction $policy.appActionIfDeviceComplianceRequired
             ConditionalLaunchDevicePrimaryMtdService               = ''
             ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel     = ''
             ConditionalLaunchDeviceMinOsVersion                    = ''
