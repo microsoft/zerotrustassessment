@@ -141,7 +141,7 @@ function Test-Assessment-21941{
         $mdInfo += "### Token Protection Policy Summary`n`n"
         $mdInfo += "The table below lists all Conditional Access policies targeting Windows platforms and their token protection status.`n`n"
 
-        $mdInfo += "| Name | Policy State | Users | Applications | Token Protection |`n"
+        $mdInfo += "| Name | Policy State | Users | Applications | Status |`n"
         $mdInfo += "| :--- | :---: | :---: | :---: | :---: |`n"
 
         # Sort policies: passing first, then by display name
