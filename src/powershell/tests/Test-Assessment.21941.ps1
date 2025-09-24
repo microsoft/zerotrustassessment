@@ -27,8 +27,13 @@ function Test-Assessment-21941{
     $filter = "conditions/platforms/includePlatforms/any(p:p eq 'windows')"
     $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -ApiVersion 'beta' -Filter $filter
 
+    $policiesWithTokenProtection = $allCAPolicies | Where-Object {
+        $_.sessionControls -and
+        $_.sessionControls.secureSignInSession -and
+        ($_.sessionControls.secureSignInSession.PSObject.Properties.Name -contains 'isEnabled')
+    }
+
     $tokenProtectionPolicies = @()
-    $policyDetails = @()
 
     # Required application IDs for token protection
     $requiredAppIds = @(
@@ -38,21 +43,28 @@ function Test-Assessment-21941{
 
     # Loop through each policy to validate token protection requirements
     $allPolicyDetails = @()
-    foreach ($policy in $allCAPolicies) {
-       $policyDetails  += $policy
+    foreach ($policy in $policiesWithTokenProtection) {
 
         # Check if policy meets token protection criteria
         $meetsTokenProtectionCriteria = $true
         $failureReasons = @()
 
-        # Validate 1: users.includeUsers has value
+        # Validate 1: sessionControls.secureSignInSession.isEnabled is true
+        $hasSecureSignInSession = $policy.sessionControls.secureSignInSession.isEnabled -eq $true
+
+        if (-not $hasSecureSignInSession) {
+            $meetsTokenProtectionCriteria = $false
+            $failureReasons += "Secure sign-in session is not enabled"
+        }
+
+        # Validate 2: users.includeUsers has value
         $hasIncludeUsers = $policy.conditions.users.includeUsers -and $policy.conditions.users.includeUsers.Count -gt 0
         if (-not $hasIncludeUsers) {
             $meetsTokenProtectionCriteria = $false
             $failureReasons += "No users specified in includeUsers"
         }
 
-        # Validate 2: Applications include required app IDs or "All"
+        # Validate 3: Applications include required app IDs or "All"
         $hasRequiredApps = $false
         $includeAppsDisplay = "None"
         if ($policy.conditions.applications.includeApplications) {
@@ -63,7 +75,7 @@ function Test-Assessment-21941{
             else {
                 $hasOfficeApp = $policy.conditions.applications.includeApplications -contains $requiredAppIds[0]
                 $hasGraphApp = $policy.conditions.applications.includeApplications -contains $requiredAppIds[1]
-                if ($hasOfficeApp -or $hasGraphApp) {
+                if ($hasOfficeApp -and $hasGraphApp) {
                     $hasRequiredApps = $true
                     $includeAppsDisplay = "Selected"
                 } else {
@@ -77,22 +89,6 @@ function Test-Assessment-21941{
             $failureReasons += "Missing required applications (Office 365 Exchange Online and Microsoft Graph/SharePoint Online)"
         }
 
-        # Validate 3: sessionControls.secureSignInSession.isEnabled is true
-        $hasSecureSignInSession = $policy.sessionControls?.secureSignInSession?.isEnabled -eq $true
-
-        if (-not $hasSecureSignInSession) {
-            $meetsTokenProtectionCriteria = $false
-            if (-not $policy.sessionControls) {
-                $failureReasons += "Session controls are not configured"
-            }
-            elseif (-not $policy.sessionControls.secureSignInSession) {
-                $failureReasons += "Secure sign-in session control is not configured"
-            }
-            else {
-                $failureReasons += "Secure sign-in session is not enabled"
-            }
-        }
-
         # Create policy detail object
         $includeUsersDisplay = if ($policy.conditions.users.includeUsers -contains "All") { "All" } elseif ($hasIncludeUsers) { "Selected" } else { "None" }
 
@@ -103,6 +99,7 @@ function Test-Assessment-21941{
             IncludeUsers = $includeUsersDisplay
             IncludeApplications = $includeAppsDisplay
             TokenProtectionEnabled = $meetsTokenProtectionCriteria
+            SecureSignInEnabled = $hasSecureSignInSession
             FailureReasons = $failureReasons
             Policy = $policy
         }
@@ -132,17 +129,21 @@ function Test-Assessment-21941{
     if ($allCAPolicies.Count -eq 0) {
         $mdInfo += "No Conditional Access policies found targeting Windows platforms.`n`n"
     }
+    elseif ($filteredPolicies.Count -eq 0) {
+        $mdInfo += "No Conditional Access policies found with secure sign-in session controls.`n`n"
+    }
     else {
         $mdInfo += "**Analysis Summary:**`n"
         $mdInfo += "- Total Conditional Access policies analyzed: $($allCAPolicies.Count)`n"
+        $mdInfo += "- Policies with secure sign-in session controls: $($filteredPolicies.Count)`n"
         $mdInfo += "- Policies meeting token protection criteria: $($tokenProtectionPolicies.Count)`n"
         $mdInfo += "- Policies not meeting token protection criteria: $(($allPolicyDetails | Where-Object { -not $_.TokenProtectionEnabled }).Count)`n`n"
 
         $mdInfo += "### Token Protection Policy Summary`n`n"
-        $mdInfo += "The table below lists all Conditional Access policies targeting Windows platforms and their token protection status.`n`n"
+        $mdInfo += "The table below lists all Conditional Access policies with secure sign-in session controls and their token protection status.`n`n"
 
-        $mdInfo += "| Name | Policy State | Users | Applications | Status |`n"
-        $mdInfo += "| :--- | :---: | :---: | :---: | :---: |`n"
+        $mdInfo += "| Name | Policy State | Users | Applications | Secure Sign-In | Status |`n"
+        $mdInfo += "| :--- | :---: | :---: | :---: | :---: | :---: |`n"
 
         # Sort policies: passing first, then by display name
         $sortedPolicyDetails = $allPolicyDetails | Sort-Object -Property @{ Expression = { -not $_.TokenProtectionEnabled } }, DisplayName
@@ -151,9 +152,10 @@ function Test-Assessment-21941{
             $portalLink = $portalTemplate -f $policyDetail.PolicyId
             $policyName = "[$(Get-SafeMarkdown $policyDetail.DisplayName)]($portalLink)"
             $policyState = Get-ZtCaPolicyState -State $policyDetail.State
+            $secureSignInStatus = Get-ZtPassFail -Condition $policyDetail.SecureSignInEnabled -EmojiType 'Bubble'
             $tokenProtectionStatus = Get-ZtPassFail -Condition $policyDetail.TokenProtectionEnabled -IncludeText
 
-            $mdInfo += "| $policyName | $policyState | $($policyDetail.IncludeUsers) | $($policyDetail.IncludeApplications) | $tokenProtectionStatus |`n"
+            $mdInfo += "| $policyName | $policyState | $($policyDetail.IncludeUsers) | $($policyDetail.IncludeApplications) | $secureSignInStatus | $tokenProtectionStatus |`n"
         }
     }
 
