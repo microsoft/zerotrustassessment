@@ -16,27 +16,55 @@ function Test-Assessment-21884 {
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking if workload identities are protected by location-based Conditional Access policies"
     Write-ZtProgress -Activity $activity -Status "Getting service principals"
 
-    # Get current tenant ID for Q2 first as we'll need it for both SP and app queries
-    $tenant = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/organization"
-    $tenantId = $tenant.value.id
+    # Check if we have data in the database
+    $sqlCount = "SELECT COUNT(*) ItemCount FROM ServicePrincipal WHERE ID IS NOT NULL"
+    $resultCount = Invoke-DatabaseQuery -Database $Database -Sql $sqlCount
+    $hasData = $resultCount.ItemCount -gt 0
 
-        # Q1: Get all service principals with credential information
-        $servicePrincipals = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$select=id,appId,displayName,servicePrincipalType,passwordCredentials,keyCredentials,appOwnerOrganizationId&`$filter=servicePrincipalType eq 'Application'"
+    if (-not $hasData) {
+        $testResultMarkdown = "No service principals found in the tenant to evaluate. The test result is inconclusive as there are no workload identities to assess."
 
-        # Filter service principals owned by current tenant
-        $ownedServicePrincipals = $servicePrincipals.value | Where-Object { $_.appOwnerOrganizationId -eq $tenantId }
+        $params = @{
+            TestId = '21884'
+            Status = [bool]$false
+            Result = $testResultMarkdown
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    # Get current tenant ID from context
+    $tenantId = (Get-MgContext).TenantId
+
+    # Q1: Get all service principals with credential information from database
+    $sqlServicePrincipals = @"
+    SELECT
+        id,
+        appId,
+        displayName,
+        servicePrincipalType,
+        passwordCredentials,
+        keyCredentials,
+        appOwnerOrganizationId
+    FROM ServicePrincipal
+    WHERE servicePrincipalType = 'Application'
+        AND cast(appOwnerOrganizationId as varchar) = '$tenantId'
+"@
+
+    $ownedServicePrincipals = Invoke-DatabaseQuery -Database $Database -Sql $sqlServicePrincipals
 
         if ($ownedServicePrincipals.Count -eq 0) {
-            Write-PSFMessage "No service principals found in tenant" -Level Warning
             $testResultMarkdown = "No service principals found in the tenant to evaluate. The test result is inconclusive as there are no workload identities to assess."
-            
+
             $params = @{
                 TestId = '21884'
                 Status = [bool]$false
@@ -51,18 +79,31 @@ function Test-Assessment-21884 {
             $hasCreds = $false
 
             # Check direct credentials
-            if (($sp.passwordCredentials.Count -gt 0) -or ($sp.keyCredentials.Count -gt 0)) {
+            $hasPassword = ($sp.passwordCredentials -ne '[]') -and ($sp.passwordCredentials -ne $null)
+            $hasCertificate = ($sp.keyCredentials -ne '[]') -and ($sp.keyCredentials -ne $null)
+            if ($hasPassword -or $hasCertificate) {
                 $hasCreds = $true
             } else {
-                # Q3: Check associated application for credentials
-                try {
-                    $app = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/applications/$($sp.appId)?`$select=id,appId,displayName,passwordCredentials,keyCredentials,signInAudience"
-                    if ($app.signInAudience -eq 'AzureADMyOrg' -and
-                        (($app.passwordCredentials.Count -gt 0) -or ($app.keyCredentials.Count -gt 0))) {
+                # Q3: Check associated application for credentials from database
+                $sqlApp = @"
+                SELECT
+                    id,
+                    appId,
+                    displayName,
+                    passwordCredentials,
+                    keyCredentials,
+                    signInAudience
+                FROM Application
+                WHERE appId = '$($sp.appId)'
+"@
+                $app = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
+                if ($app -and $app.Count -gt 0) {
+                    $appRecord = $app[0]
+                    $appHasPassword = ($appRecord.passwordCredentials -ne '[]') -and ($appRecord.passwordCredentials -ne $null)
+                    $appHasCertificate = ($appRecord.keyCredentials -ne '[]') -and ($appRecord.keyCredentials -ne $null)
+                    if ($appRecord.signInAudience -eq 'AzureADMyOrg' -and ($appHasPassword -or $appHasCertificate)) {
                         $hasCreds = $true
                     }
-                } catch {
-                    Write-PSFMessage "Failed to get application details for $($sp.appId): $($_.Exception.Message)" -Level Warning
                 }
             }
 
@@ -71,11 +112,12 @@ function Test-Assessment-21884 {
             }
         }
 
-        # Q4: Get CA policies targeting workload identities
-        $policies = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies?`$filter=conditions/clientApplications/includeServicePrincipals/any(x:x eq 'ServicePrincipalsAndManagedIdentities')"
+        # Q4: Get CA policies targeting workload identities from Graph API
+        # (Conditional Access policies are not stored in the database, so we still need to use Graph API)
+        $policies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -Filter "conditions/clientApplications/includeServicePrincipals/any(x:x eq 'ServicePrincipalsAndManagedIdentities')" -ApiVersion v1.0
 
         # Check for a global policy that covers all service principals
-        $allSpPolicy = $policies.value | Where-Object {
+        $allSpPolicy = $policies | Where-Object {
             $_.state -eq "enabled" -and
             $_.conditions.clientApplications.includeServicePrincipals -contains "ServicePrincipalsInMyTenant" -and
             (-not $_.conditions.clientApplications.excludeServicePrincipals)
@@ -85,7 +127,7 @@ function Test-Assessment-21884 {
             # Verify location conditions in the global policy
             $hasValidLocations = $false
             foreach ($policy in $allSpPolicy) {
-                $policyDetails = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies/$($policy.id)"
+                $policyDetails = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies/$($policy.id)" -ApiVersion v1.0
 
                 if ($policyDetails.conditions.locations.includeLocations -or
                     $policyDetails.conditions.locations.excludeLocations) {
@@ -96,7 +138,7 @@ function Test-Assessment-21884 {
 
             if ($hasValidLocations) {
                 $testResultMarkdown = "Pass: All workload identities are protected by global service principal policies with location restrictions."
-                
+
                 $params = @{
                     TestId = '21884'
                     Status = [bool]$true
@@ -107,18 +149,18 @@ function Test-Assessment-21884 {
             }
         }
 
-        if ($servicePrincipalsWithCreds.Count -gt 0 -and $policies.value.Count -eq 0) {
-            $testResultMarkdown = "Fail: No Conditional Access policies found that protect workload identities.`n`n"
-            $testResultMarkdown += "The following service principals have credentials but no network restrictions:`n`n"
-            $testResultMarkdown += "| Service Principal | App ID | Credential Types |`n"
-            $testResultMarkdown += "|------------------|---------|-----------------|`n"
+        if ($servicePrincipalsWithCreds.Count -gt 0 -and $policies.Count -eq 0) {
+            $testResultMarkdown = "**Fail**: No Conditional Access policies found that protect workload identities.`n`n"
+            $testResultMarkdown += "## Unprotected Service Principals`n`n"
+            $testResultMarkdown += "| Service Principal Display Name | Service Principal App ID | Credential Type | Applied Policy Names | Location Restrictions |`n"
+            $testResultMarkdown += "|-------------------------------|--------------------------|-----------------|---------------------|---------------------|`n"
 
             foreach ($sp in $servicePrincipalsWithCreds) {
                 $credTypes = @()
-                if ($sp.passwordCredentials.Count -gt 0) { $credTypes += "Password" }
-                if ($sp.keyCredentials.Count -gt 0) { $credTypes += "Certificate" }
+                if (($sp.passwordCredentials -ne '[]') -and ($sp.passwordCredentials -ne $null)) { $credTypes += "Password" }
+                if (($sp.keyCredentials -ne '[]') -and ($sp.keyCredentials -ne $null)) { $credTypes += "Certificate" }
 
-                $testResultMarkdown += "| $($sp.displayName) | $($sp.appId) | $($credTypes -join ', ') |`n"
+                $testResultMarkdown += "| $($sp.displayName) | $($sp.appId) | $($credTypes -join ', ') | None | None |`n"
             }
 
             $passed = $false
@@ -139,13 +181,13 @@ function Test-Assessment-21884 {
             return
         }
 
-        # Q6: Get named locations
-        $namedLocations = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations"
-        $validLocationIds = $namedLocations.value.id
+        # Q6: Get named locations from Graph API (not stored in database)
+        $namedLocations = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/namedLocations" -ApiVersion v1.0
+        $validLocationIds = $namedLocations.id
 
-        if ($namedLocations.value.Count -eq 0) {
+        if ($namedLocations.Count -eq 0) {
             $testResultMarkdown = "Fail: No named locations found. Cannot implement network-based restrictions without defined locations."
-            
+
             $params = @{
                 TestId = '21884'
                 Status = [bool]$false
@@ -156,71 +198,139 @@ function Test-Assessment-21884 {
         }
 
         $unprotectedSPs = @()
+        $protectedSPs = @()
 
         foreach ($sp in $servicePrincipalsWithCreds) {
+            $credTypes = @()
+            if (($sp.passwordCredentials -ne '[]') -and ($sp.passwordCredentials -ne $null)) { $credTypes += "Password" }
+            if (($sp.keyCredentials -ne '[]') -and ($sp.keyCredentials -ne $null)) { $credTypes += "Certificate" }
+
+            $appliedPolicies = @()
+            $locationRestrictions = @()
             $isProtected = $false
 
-            # Check each policy
-            foreach ($policy in $policies.value) {
-                # Q5: Check location conditions
-                $policyDetails = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies/$($policy.id)"
+            # Check each policy for this SP
+            foreach ($policy in $policies) {
+                # Q5: Get detailed policy information
+                $policyDetails = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies/$($policy.id)" -ApiVersion v1.0
 
                 if ($policyDetails.state -eq "enabled") {
-                    # Check if policy includes all service principals without exclusions
+                    $policyApplies = $false
+                    $hasLocationRestriction = $false
+                    $locationDetails = ""
+
+                    # Check if policy applies to this service principal
                     if ($policyDetails.conditions.clientApplications.includeServicePrincipals -contains "ServicePrincipalsInMyTenant" -and
                         (-not $policyDetails.conditions.clientApplications.excludeServicePrincipals)) {
-                        $isProtected = $true
-                        break
+                        $policyApplies = $true
+                        # Special callout for global policy
+                        $appliedPolicies += "$($policyDetails.displayName) (Global - covers ServicePrincipalsInMyTenant)"
+                    } elseif ($policyDetails.conditions.clientApplications.includeServicePrincipals -contains $sp.id) {
+                        $policyApplies = $true
+                        $appliedPolicies += $policyDetails.displayName
                     }
 
-                    # Check location conditions
-                    $hasLocationRestriction = $false
-                    if ($policyDetails.conditions.locations.includeLocations) {
-                        $hasLocationRestriction = $true
-                        # Verify locations exist
-                        $locationIds = $policyDetails.conditions.locations.includeLocations
-                        if (-not ($locationIds | Where-Object { $validLocationIds -contains $_ })) {
-                            $hasLocationRestriction = $false
-                        }
-                    }
-                    if ($policyDetails.conditions.locations.excludeLocations) {
-                        $hasLocationRestriction = $true
-                        # Verify locations exist
-                        $locationIds = $policyDetails.conditions.locations.excludeLocations
-                        if (-not ($locationIds | Where-Object { $validLocationIds -contains $_ })) {
-                            $hasLocationRestriction = $false
-                        }
-                    }
+                    # Check location conditions if policy applies
+                    if ($policyApplies) {
+                        if ($policyDetails.conditions.locations.includeLocations -or $policyDetails.conditions.locations.excludeLocations) {
+                            $hasLocationRestriction = $true
 
-                    if ($hasLocationRestriction) {
-                        $isProtected = $true
-                        break
+                            # Build location details
+                            $locationParts = @()
+                            if ($policyDetails.conditions.locations.includeLocations) {
+                                $includeLocations = $policyDetails.conditions.locations.includeLocations
+                                if ($includeLocations -contains "All") {
+                                    $locationParts += "Include: All Locations"
+                                } else {
+                                    $locationNames = @()
+                                    foreach ($locId in $includeLocations) {
+                                        $location = $namedLocations | Where-Object { $_.id -eq $locId }
+                                        if ($location) {
+                                            $locationNames += $location.displayName
+                                        } else {
+                                            $locationNames += $locId
+                                        }
+                                    }
+                                    $locationParts += "Include: $($locationNames -join ', ')"
+                                }
+                            }
+                            if ($policyDetails.conditions.locations.excludeLocations) {
+                                $excludeLocations = $policyDetails.conditions.locations.excludeLocations
+                                if ($excludeLocations -contains "All") {
+                                    $locationParts += "Exclude: All Locations"
+                                } else {
+                                    $locationNames = @()
+                                    foreach ($locId in $excludeLocations) {
+                                        $location = $namedLocations | Where-Object { $_.id -eq $locId }
+                                        if ($location) {
+                                            $locationNames += $location.displayName
+                                        } else {
+                                            $locationNames += $locId
+                                        }
+                                    }
+                                    $locationParts += "Exclude: $($locationNames -join ', ')"
+                                }
+                            }
+                            $locationDetails = $locationParts -join '; '
+                            $locationRestrictions += $locationDetails
+                        }
+
+                        if ($hasLocationRestriction) {
+                            $isProtected = $true
+                        }
                     }
                 }
             }
 
-            if (-not $isProtected) {
-                $credTypes = @()
-                if ($sp.passwordCredentials.Count -gt 0) { $credTypes += "Password" }
-                if ($sp.keyCredentials.Count -gt 0) { $credTypes += "Certificate" }
+            # Build SP information object
+            $spInfo = @{
+                DisplayName = $sp.displayName
+                AppId = $sp.appId
+                CredentialTypes = $credTypes -join ', '
+                AppliedPolicies = if ($appliedPolicies.Count -gt 0) { $appliedPolicies -join '; ' } else { "None" }
+                LocationRestrictions = if ($locationRestrictions.Count -gt 0) { $locationRestrictions -join '; ' } else { "None" }
+                IsProtected = $isProtected
+            }
 
-                $unprotectedSPs += @{
-                    DisplayName = $sp.displayName
-                    AppId = $sp.appId
-                    CredentialTypes = $credTypes -join ", "
-                }
+            if ($isProtected) {
+                $protectedSPs += $spInfo
+            } else {
+                $unprotectedSPs += $spInfo
             }
         }
 
         $result = $unprotectedSPs.Count -eq 0
+
         if ($result) {
-            $testResultMarkdown = "Pass: All workload identities with credentials are protected by location-based Conditional Access policies."
+            $testResultMarkdown = "**Pass**: All workload identities with credentials are protected by location-based Conditional Access policies.`n`n"
+
+            if ($protectedSPs.Count -gt 0) {
+                $testResultMarkdown += "## Protected Service Principals`n`n"
+                $testResultMarkdown += "| Service Principal Display Name | Service Principal App ID | Credential Type | Applied Policy Names | Location Restrictions |`n"
+                $testResultMarkdown += "|-------------------------------|--------------------------|-----------------|---------------------|---------------------|`n"
+                foreach ($sp in $protectedSPs) {
+                    $testResultMarkdown += "| $($sp.DisplayName) | $($sp.AppId) | $($sp.CredentialTypes) | $($sp.AppliedPolicies) | $($sp.LocationRestrictions) |`n"
+                }
+            }
         } else {
-            $testResultMarkdown = "Fail: Found workload identities with credentials that lack network-based access restrictions.`n`n"
-            $testResultMarkdown += "| Service Principal | App ID | Credential Types |`n"
-            $testResultMarkdown += "|------------------|---------|-----------------|`n"
-            foreach ($sp in $unprotectedSPs) {
-                $testResultMarkdown += "| $($sp.DisplayName) | $($sp.AppId) | $($sp.CredentialTypes) |`n"
+            $testResultMarkdown = "**Fail**: Found workload identities with credentials that lack network-based access restrictions.`n`n"
+
+            if ($unprotectedSPs.Count -gt 0) {
+                $testResultMarkdown += "## Unprotected Service Principals`n`n"
+                $testResultMarkdown += "| Service Principal Display Name | Service Principal App ID | Credential Type | Applied Policy Names | Location Restrictions |`n"
+                $testResultMarkdown += "|-------------------------------|--------------------------|-----------------|---------------------|---------------------|`n"
+                foreach ($sp in $unprotectedSPs) {
+                    $testResultMarkdown += "| $($sp.DisplayName) | $($sp.AppId) | $($sp.CredentialTypes) | $($sp.AppliedPolicies) | $($sp.LocationRestrictions) |`n"
+                }
+            }
+
+            if ($protectedSPs.Count -gt 0) {
+                $testResultMarkdown += "`n## Protected Service Principals (for reference)`n`n"
+                $testResultMarkdown += "| Service Principal Display Name | Service Principal App ID | Credential Type | Applied Policy Names | Location Restrictions |`n"
+                $testResultMarkdown += "|-------------------------------|--------------------------|-----------------|---------------------|---------------------|`n"
+                foreach ($sp in $protectedSPs) {
+                    $testResultMarkdown += "| $($sp.DisplayName) | $($sp.AppId) | $($sp.CredentialTypes) | $($sp.AppliedPolicies) | $($sp.LocationRestrictions) |`n"
+                }
             }
         }
 
