@@ -20,26 +20,26 @@ function Test-Assessment-21849{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Smart lockout duration is set to a minimum of 60"
-    Write-ZtProgress -Activity $activity -Status "Getting password rule settings"
+    $activity = 'Checking Smart lockout duration is set to a minimum of 60'
+    Write-ZtProgress -Activity $activity -Status 'Getting password rule settings'
 
     # Get the password rule settings
-    $groupSettings = Invoke-ZtGraphRequest -RelativeUri "Settings" -ApiVersion beta
-    $passwordRuleSettings = $groupSettings | Where-Object { $_.displayName -eq "Password Rule Settings" }
+    $groupSettings = Invoke-ZtGraphRequest -RelativeUri 'Settings' -ApiVersion beta
+    $passwordRuleSettings = $groupSettings | Where-Object { $_.displayName -eq 'Password Rule Settings' }
 
     if ($null -eq $passwordRuleSettings) {
         $passed = $false
-        $testResultMarkdown = "Password Rule Settings were not found in the tenant configuration."
+        $testResultMarkdown = 'Password Rule Settings were not found in the tenant configuration.'
     }
     else {
         # Get the detailed settings for the Password Rule Settings group
-        Write-ZtProgress -Activity $activity -Status "Checking lockout duration setting"
+        Write-ZtProgress -Activity $activity -Status 'Checking lockout duration setting'
 
-        $lockoutDurationSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq "LockoutDurationInSeconds" }
+        $lockoutDurationSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq 'LockoutDurationInSeconds' }
 
         if ($null -eq $lockoutDurationSetting) {
             $passed = $false
-            $testResultMarkdown = "Lockout Duration In Seconds setting was not found in the Password Rule Settings."
+            $testResultMarkdown = 'Lockout Duration In Seconds setting was not found in the Password Rule Settings.'
         }
         else {
             $lockoutDuration = [int]$lockoutDurationSetting.value
