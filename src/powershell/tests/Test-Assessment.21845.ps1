@@ -20,20 +20,20 @@ function Test-Assessment-21845{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Temporary access pass is enabled"
-    Write-ZtProgress -Activity $activity -Status "Getting Temporary Access Pass policy"
+    $activity = 'Checking Temporary access pass is enabled'
+    Write-ZtProgress -Activity $activity -Status 'Getting Temporary Access Pass policy'
 
     try {
         # Query 1: Get Temporary Access Pass authentication method configuration
         $tapConfig = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass' -ApiVersion 'beta'
 
         # Check if TAP is disabled - if so, fail immediately
-        if ($tapConfig.state -eq 'disabled') {
+        if ($tapConfig.state -ne 'enabled') {
             $passed = $false
-            $testResultMarkdown = "❌ Temporary Access Pass is disabled in the tenant."
+            $testResultMarkdown = '❌ Temporary Access Pass is disabled in the tenant.'
         }
         else {
-            Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
+            Write-ZtProgress -Activity $activity -Status 'Getting conditional access policies'
 
             # Query 2: Get all enabled conditional access policies
             $allCAPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -Filter "state eq 'enabled'" -ApiVersion 'v1.0'
@@ -44,13 +44,13 @@ function Test-Assessment-21845{
                 $_.grantControls.authenticationStrength -ne $null
             }
 
-            Write-ZtProgress -Activity $activity -Status "Getting authentication strength policies"
+            Write-ZtProgress -Activity $activity -Status 'Getting authentication strength policies'
 
             # Query 3: Get authentication strength policies
             $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -Select 'id,displayName,description,policyType,allowedCombinations' -ApiVersion 'v1.0'
 
             # Check TAP configuration and conditional access enforcement
-            $tapEnabled = $tapConfig.state -ne 'enabled'
+            $tapEnabled = $tapConfig.state -eq 'enabled'
             $targetsAllUsers = $tapConfig.includeTargets | Where-Object { $_.id -eq 'all_users' }
             $hasConditionalAccessEnforcement = ($securityInfoPolicies | Measure-Object).Count -gt 0
 
@@ -83,8 +83,8 @@ function Test-Assessment-21845{
             $testResultMarkdown = "❌ Temporary Access Pass is enabled but authentication strength policies don't include TAP methods."
         }
         elseif ($tapEnabled -and $targetsAllUsers -and -not $hasConditionalAccessEnforcement) {
-            $passed = $true
-            $testResultMarkdown = "✅ Temporary Access Pass is enabled but no conditional access enforcement for security info registration found. Consider adding conditional access policies for stronger security."
+            $passed = $false
+            $testResultMarkdown = "❌ Temporary Access Pass is enabled but no conditional access enforcement for security info registration found. Consider adding conditional access policies for stronger security."
         }
         else {
             $passed = $false
