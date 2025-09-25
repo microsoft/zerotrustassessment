@@ -25,7 +25,7 @@ function Test-Assessment-21845{
 
     try {
         # Query 1: Get Temporary Access Pass authentication method configuration
-        $tapConfig = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass' -ApiVersion 'beta'
+        $tapConfig = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass' -ApiVersion beta
 
         # Check if TAP is disabled - if so, fail immediately
         if ($tapConfig.state -ne 'enabled') {
@@ -76,30 +76,36 @@ function Test-Assessment-21845{
         # Determine pass/fail status based on specification
         if ($tapEnabled -and $targetsAllUsers -and $hasConditionalAccessEnforcement -and $tapSupportedInAuthStrength) {
             $passed = $true
-            $testResultMarkdown = "✅ Temporary Access Pass is enabled, targeting all users, and enforced with conditional access policies."
+            $testResultMarkdown = 'Temporary Access Pass is enabled, targeting all users, and enforced with conditional access policies.'
         }
         elseif ($tapEnabled -and $targetsAllUsers -and $hasConditionalAccessEnforcement -and -not $tapSupportedInAuthStrength) {
             $passed = $false
-            $testResultMarkdown = "❌ Temporary Access Pass is enabled but authentication strength policies don't include TAP methods."
+            $testResultMarkdown = 'Temporary Access Pass is enabled but authentication strength policies don''t include TAP methods.'
         }
         elseif ($tapEnabled -and $targetsAllUsers -and -not $hasConditionalAccessEnforcement) {
             $passed = $false
-            $testResultMarkdown = "❌ Temporary Access Pass is enabled but no conditional access enforcement for security info registration found. Consider adding conditional access policies for stronger security."
+            $testResultMarkdown = 'Temporary Access Pass is enabled but no conditional access enforcement for security info registration found. Consider adding conditional access policies for stronger security.'
         }
         else {
             $passed = $false
-            $testResultMarkdown = "❌ Temporary Access Pass is not properly configured or does not target all users."
+            $testResultMarkdown = 'Temporary Access Pass is not properly configured or does not target all users.'
         }
     }
 
-    # Add basic configuration summary
-    $testResultMarkdown += "`n`n**Configuration Summary:**`n"
-    $testResultMarkdown += "- TAP State: $($tapConfig.state)`n"
-    if ($tapConfig.state -ne 'enabled') {
-        $testResultMarkdown += "- Target Users: $(if ($targetsAllUsers) { 'All Users' } else { 'Limited Users' })`n"
-        $testResultMarkdown += "- Conditional Access Policies Found: $($securityInfoPolicies.Count)`n"
-        $testResultMarkdown += "- Authentication Strength Policies with TAP: $($authStrengthWithTap.Count)`n"
-    }    }
+    $testResultMarkdown += "`n`n**Configuration summary**`n`n"
+
+    # Temporary Access Pass status
+    $tapStatus = if ($tapConfig.state -eq 'enabled') { 'Enabled ✅' } else { 'Disabled ❌' }
+    $testResultMarkdown += "[Temporary Access Pass](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/AdminAuthMethods/fromNav/Identity): $tapStatus`n`n"
+
+    # Conditional Access policy for Security info registration
+    $caStatus = if ($hasConditionalAccessEnforcement) { 'Enabled ✅' } else { 'Not enabled ❌' }
+    $testResultMarkdown += "[Conditional Access policy for Security info registration](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies/fromNav/Identity): $caStatus`n`n"
+
+    # Authentication strength policy for Temporary Access Pass
+    $authStrengthStatus = if ($tapSupportedInAuthStrength) { 'Enabled ✅' } else { 'Not enabled ❌' }
+    $testResultMarkdown += "[Authentication strength policy for Temporary Access Pass](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/AuthenticationStrength.ReactView/fromNav/Identity): $authStrengthStatus`n"
+}
     catch {
         $passed = $false
         $testResultMarkdown = "❌ Error querying Temporary Access Pass configuration: $($_.Exception.Message)"
