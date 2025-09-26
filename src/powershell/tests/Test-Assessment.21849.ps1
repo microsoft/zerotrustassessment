@@ -51,11 +51,11 @@ function Test-Assessment-21849{
 
             if ($lockoutDuration -ge 60) {
                 $passed = $true
-                $testResultMarkdown = "Smart lockout duration is set to $lockoutDuration seconds, which meets the minimum requirement of 60 seconds.$mdInfo"
+                $testResultMarkdown = "Smart Lockout duration is configured to 60 seconds or higher.$mdInfo"
             }
             else {
                 $passed = $false
-                $testResultMarkdown = "Smart lockout duration is set to $lockoutDuration seconds, which is below the minimum requirement of 60 seconds.$mdInfo"
+                $testResultMarkdown = "Smart Lockout duration is configured below 60 seconds.$mdInfo"
             }
         }
     }
