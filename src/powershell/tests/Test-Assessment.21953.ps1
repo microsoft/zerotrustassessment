@@ -20,10 +20,10 @@ function Test-Assessment-21953{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Local Admin Password Solution is deployed"
-    Write-ZtProgress -Activity $activity -Status "Getting LAPS settings"
+    $activity = 'Checking Local Admin Password Solution is deployed'
+    Write-ZtProgress -Activity $activity -Status 'Getting LAPS settings'
 
-    $lapsSettings = Invoke-ZtGraphRequest -RelativeUri 'policies/deviceRegistrationPolicy' -ApiVersion 'v1.0'
+    $lapsSettings = Invoke-ZtGraphRequest -RelativeUri 'policies/deviceRegistrationPolicy' -ApiVersion beta
 
     $passed = $true
     $testResultMarkdown = ""
