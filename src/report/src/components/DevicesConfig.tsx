@@ -83,60 +83,142 @@ export default function DevicesConfig() {
                 Device compliance policies define the rules and settings that devices must meet to be considered compliant. These policies help ensure that devices accessing organizational resources meet minimum security requirements.
             </p>
             {compliancePolicies && compliancePolicies.length > 0 ? (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Platform</TableHead>
-                            <TableHead>Policy Name</TableHead>
-                            <TableHead>Defender ATP</TableHead>
-                            <TableHead>Min OS Version</TableHead>
-                            <TableHead>Max OS Version</TableHead>
-                            <TableHead>Require Password</TableHead>
-                            <TableHead>Min Password Length</TableHead>
-                            <TableHead>Password Type</TableHead>
-                            <TableHead>Password Expiry Days</TableHead>
-                            <TableHead>Previous Passwords Blocked</TableHead>
-                            <TableHead>Max Inactivity Min</TableHead>
-                            <TableHead>Require Encryption</TableHead>
-                            <TableHead>Rooted/Jailbroken</TableHead>
-                            <TableHead>Max Threat Level</TableHead>
-                            <TableHead>Require Firewall</TableHead>
-                            <TableHead>Push Notification Days</TableHead>
-                            <TableHead>Send Email Days</TableHead>
-                            <TableHead>Remote Lock Days</TableHead>
-                            <TableHead>Block Days</TableHead>
-                            <TableHead>Retire Days</TableHead>
-                            <TableHead>Scope</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {compliancePolicies.map((row, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell>{row.Platform}</TableCell>
-                                <TableCell>{row.PolicyName}</TableCell>
-                                <TableCell>{row.DefenderForEndPoint}</TableCell>
-                                <TableCell>{row.MinOsVersion}</TableCell>
-                                <TableCell>{row.MaxOsVersion}</TableCell>
-                                <TableCell>{row.RequirePswd}</TableCell>
-                                <TableCell>{row.MinPswdLength}</TableCell>
-                                <TableCell>{row.PasswordType}</TableCell>
-                                <TableCell>{row.PswdExpiryDays}</TableCell>
-                                <TableCell>{row.CountOfPreviousPswdToBlock}</TableCell>
-                                <TableCell>{row.MaxInactivityMin}</TableCell>
-                                <TableCell>{row.RequireEncryption}</TableCell>
-                                <TableCell>{row.RootedJailbrokenDevices}</TableCell>
-                                <TableCell>{row.MaxDeviceThreatLevel}</TableCell>
-                                <TableCell>{row.RequireFirewall}</TableCell>
-                                <TableCell>{row.ActionForNoncomplianceDaysPushNotification}</TableCell>
-                                <TableCell>{row.ActionForNoncomplianceDaysSendEmail}</TableCell>
-                                <TableCell>{row.ActionForNoncomplianceDaysRemoteLock}</TableCell>
-                                <TableCell>{row.ActionForNoncomplianceDaysBlock}</TableCell>
-                                <TableCell>{row.ActionForNoncomplianceDaysRetire}</TableCell>
-                                <TableCell>{row.Scope}</TableCell>
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="font-semibold">Setting</TableHead>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableHead key={idx} className="min-w-[150px]">
+                                        {policy.PolicyName}
+                                    </TableHead>
+                                ))}
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">Platform</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.Platform}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Defender ATP</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DefenderForEndPoint}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Min OS Version</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.MinOsVersion}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max OS Version</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.MaxOsVersion}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Require Password</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.RequirePswd}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Min Password Length</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.MinPswdLength}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Password Type</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.PasswordType}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Password Expiry Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.PswdExpiryDays}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Previous Passwords Blocked</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.CountOfPreviousPswdToBlock}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max Inactivity Min</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.MaxInactivityMin}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Require Encryption</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.RequireEncryption}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Rooted/Jailbroken</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.RootedJailbrokenDevices}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max Threat Level</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.MaxDeviceThreatLevel}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Require Firewall</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.RequireFirewall}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Push Notification Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ActionForNoncomplianceDaysPushNotification}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Send Email Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ActionForNoncomplianceDaysSendEmail}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Remote Lock Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ActionForNoncomplianceDaysRemoteLock}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Block Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ActionForNoncomplianceDaysBlock}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Retire Days</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ActionForNoncomplianceDaysRetire}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Scope</TableCell>
+                                {compliancePolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.Scope}</TableCell>
+                                ))}
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </div>
             ) : (
                 <p>No device compliance policies found.</p>
             )}
@@ -146,84 +228,214 @@ export default function DevicesConfig() {
                 App protection policies (APP) are rules that ensure an organization's data remains safe or contained in a managed app. A policy can be a rule that is enforced when the user attempts to access or move "corporate" data, or a set of actions that are prohibited or monitored when the user is inside the app. A managed app is an app that has app protection policies applied to it, and can be managed by Intune.
             </p>
             {appProtectionPolicies && appProtectionPolicies.length > 0 ? (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Platform</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Public Apps</TableHead>
-                            <TableHead>Custom Apps</TableHead>
-                            <TableHead>Backup to Cloud</TableHead>
-                            <TableHead>Send Data to Other Apps</TableHead>
-                            <TableHead>Apps to Exempt</TableHead>
-                            <TableHead>Save Copies</TableHead>
-                            <TableHead>Allow Save to Selected Services</TableHead>
-                            <TableHead>Transfer Telecom Data To</TableHead>
-                            <TableHead>Receive Data From Other Apps</TableHead>
-                            <TableHead>Open Data in Org Documents</TableHead>
-                            <TableHead>Allow Open from Selected Services</TableHead>
-                            <TableHead>Restrict Cut/Copy Between Apps</TableHead>
-                            <TableHead>Cut/Copy Character Limit</TableHead>
-                            <TableHead>Encrypt Org Data</TableHead>
-                            <TableHead>Sync with Native Apps</TableHead>
-                            <TableHead>Printing</TableHead>
-                            <TableHead>Restrict Web Content Transfer</TableHead>
-                            <TableHead>Org Data Notifications</TableHead>
-                            <TableHead>Max PIN Attempts</TableHead>
-                            <TableHead>Offline Grace Period Block</TableHead>
-                            <TableHead>Offline Grace Period Wipe</TableHead>
-                            <TableHead>Disabled Account</TableHead>
-                            <TableHead>Min App Version</TableHead>
-                            <TableHead>Rooted/Jailbroken Devices</TableHead>
-                            <TableHead>Primary MTD Service</TableHead>
-                            <TableHead>Max Device Threat Level</TableHead>
-                            <TableHead>Min OS Version</TableHead>
-                            <TableHead>Max OS Version</TableHead>
-                            <TableHead>Scope</TableHead>
-                            <TableHead>Included Groups</TableHead>
-                            <TableHead>Excluded Groups</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {appProtectionPolicies.map((row, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell>{row.Platform}</TableCell>
-                                <TableCell>{row.Name}</TableCell>
-                                <TableCell>{row.AppsPublic}</TableCell>
-                                <TableCell>{row.AppsCustom}</TableCell>
-                                <TableCell>{row.BackupOrgDataToICloudOrGoogle}</TableCell>
-                                <TableCell>{row.SendOrgDataToOtherApps}</TableCell>
-                                <TableCell>{row.AppsToExempt}</TableCell>
-                                <TableCell>{row.SaveCopiesOfOrgData}</TableCell>
-                                <TableCell>{row.AllowUserToSaveCopiesToSelectedServices}</TableCell>
-                                <TableCell>{row.DataProtectionTransferTelecommunicationDataTo}</TableCell>
-                                <TableCell>{row.DataProtectionReceiveDataFromOtherApps}</TableCell>
-                                <TableCell>{row.DataProtectionOpenDataIntoOrgDocuments}</TableCell>
-                                <TableCell>{row.DataProtectionAllowUsersToOpenDataFromSelectedServices}</TableCell>
-                                <TableCell>{row.DataProtectionRestrictCutCopyBetweenOtherApps}</TableCell>
-                                <TableCell>{row.DataProtectionCutCopyCharacterLimitForAnyApp}</TableCell>
-                                <TableCell>{row.DataProtectionEncryptOrgData}</TableCell>
-                                <TableCell>{row.DataProtectionSyncPolicyManagedAppDataWithNativeApps}</TableCell>
-                                <TableCell>{row.DataProtectionPrintingOrgData}</TableCell>
-                                <TableCell>{row.DataProtectionRestrictWebContentTransferWithOtherApps}</TableCell>
-                                <TableCell>{row.DataProtectionOrgDataNotifications}</TableCell>
-                                <TableCell>{row.ConditionalLaunchAppMaxPinAttempts}</TableCell>
-                                <TableCell>{row.ConditionalLaunchAppOfflineGracePeriodBlockAccess}</TableCell>
-                                <TableCell>{row.ConditionalLaunchAppOfflineGracePeriodWipeData}</TableCell>
-                                <TableCell>{row.ConditionalLaunchAppDisabedAccount}</TableCell>
-                                <TableCell>{row.ConditionalLaunchAppMinAppVersion}</TableCell>
-                                <TableCell>{row.ConditionalLaunchDeviceRootedJailbrokenDevices}</TableCell>
-                                <TableCell>{row.ConditionalLaunchDevicePrimaryMtdService}</TableCell>
-                                <TableCell>{row.ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel}</TableCell>
-                                <TableCell>{row.ConditionalLaunchDeviceMinOsVersion}</TableCell>
-                                <TableCell>{row.ConditionalLaunchDeviceMaxOsVersion}</TableCell>
-                                <TableCell>{row.Scope}</TableCell>
-                                <TableCell>{row.IncludedGroups}</TableCell>
-                                <TableCell>{row.ExcludedGroups}</TableCell>
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="font-semibold">Setting</TableHead>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableHead key={idx} className="min-w-[150px]">
+                                        {policy.Name}
+                                    </TableHead>
+                                ))}
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">Platform</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.Platform}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Public Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.AppsPublic}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Custom Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.AppsCustom}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Backup to Cloud</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.BackupOrgDataToICloudOrGoogle}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Send Data to Other Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.SendOrgDataToOtherApps}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Apps to Exempt</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.AppsToExempt}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Save Copies</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.SaveCopiesOfOrgData}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Allow Save to Selected Services</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.AllowUserToSaveCopiesToSelectedServices}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Transfer Telecom Data To</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionTransferTelecommunicationDataTo}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Receive Data From Other Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionReceiveDataFromOtherApps}</TableCell>
+                                ))}
+                            </TableRow>
+                            {/* <TableRow>
+                                <TableCell className="font-medium">Open Data in Org Documents</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionOpenDataIntoOrgDocuments}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Allow Open from Selected Services</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionAllowUsersToOpenDataFromSelectedServices}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Restrict Cut/Copy Between Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionRestrictCutCopyBetweenOtherApps}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Cut/Copy Character Limit</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionCutCopyCharacterLimitForAnyApp}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Encrypt Org Data</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionEncryptOrgData}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Sync with Native Apps</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionSyncPolicyManagedAppDataWithNativeApps}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Printing</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionPrintingOrgData}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Restrict Web Content Transfer</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionRestrictWebContentTransferWithOtherApps}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Org Data Notifications</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.DataProtectionOrgDataNotifications}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max PIN Attempts</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchAppMaxPinAttempts}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Offline Grace Period Block</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchAppOfflineGracePeriodBlockAccess}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Offline Grace Period Wipe</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchAppOfflineGracePeriodWipeData}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Disabled Account</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchAppDisabedAccount}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Min App Version</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchAppMinAppVersion}</TableCell>
+                                ))}
+                            </TableRow> */}
+                            <TableRow>
+                                <TableCell className="font-medium">Rooted/Jailbroken Devices</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchDeviceRootedJailbrokenDevices}</TableCell>
+                                ))}
+                            </TableRow>
+                            {/* <TableRow>
+                                <TableCell className="font-medium">Primary MTD Service</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchDevicePrimaryMtdService}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max Device Threat Level</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Min OS Version</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchDeviceMinOsVersion}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Max OS Version</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ConditionalLaunchDeviceMaxOsVersion}</TableCell>
+                                ))}
+                            </TableRow> */}
+                            <TableRow>
+                                <TableCell className="font-medium">Scope</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.Scope}</TableCell>
+                                ))}
+                            </TableRow>
+                            {/* <TableRow>
+                                <TableCell className="font-medium">Included Groups</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.IncludedGroups}</TableCell>
+                                ))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-medium">Excluded Groups</TableCell>
+                                {appProtectionPolicies.map((policy, idx) => (
+                                    <TableCell key={idx}>{policy.ExcludedGroups}</TableCell>
+                                ))}
+                            </TableRow> */}
+                        </TableBody>
+                    </Table>
+                </div>
             ) : (
                 <p>No app protection policies found.</p>
             )}
