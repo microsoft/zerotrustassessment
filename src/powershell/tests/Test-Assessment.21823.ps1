@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-
+    Guest self-service sign-up via user flow is disabled
 #>
 
 function Test-Assessment-21823{
@@ -18,18 +18,38 @@ function Test-Assessment-21823{
     [CmdletBinding()]
     param()
 
+    #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Guest self-service sign up via user flow is disabled"
+    $activity = "Checking Guest self-service sign-up via user flow is disabled"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    $result = $false
-    $testResultMarkdown = "Planned for future release."
-    $passed = $result
+    $authFlowPolicy = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationFlowsPolicy" -ApiVersion v1.0
+    #endregion Data Collection
 
+    #region Assessment Logic
+    $passed = $authFlowPolicy.selfServiceSignUp.isEnabled -eq $false
 
-    Add-ZtTestResultDetail -TestId '21823' -Title "Guest self-service sign up via user flow is disabled" `
-        -UserImpact Medium -Risk Medium -ImplementationCost Medium `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown -SkippedBecause UnderConstruction
+    if ($passed) {
+        $testResultMarkdown = "Guest self-service sign up via user flow is disabled.`n"
+    }
+    else {
+        $testResultMarkdown = "Guest self-service sign up via user flow is enabled.`n"
+    }
+
+    #endregion Assessment Logic
+
+    #region Report Generation
+    $activity = "Checking Guest self-service sign-up via user flow is disabled"
+    Write-ZtProgress -Activity $activity -Status "Getting policy"
+
+    #endregion Report Generation
+
+    $params = @{
+        TestId = '21823'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
 }
