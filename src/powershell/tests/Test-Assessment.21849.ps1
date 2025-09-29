@@ -27,9 +27,20 @@ function Test-Assessment-21849{
     $groupSettings = Invoke-ZtGraphRequest -RelativeUri 'Settings' -ApiVersion beta
     $passwordRuleSettings = $groupSettings | Where-Object { $_.displayName -eq 'Password Rule Settings' }
 
+    $passed = $true
+    $testResultMarkdown = ""
+
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/~/PasswordProtection/fromNav/'
+
     if ($null -eq $passwordRuleSettings) {
-        $passed = $false
-        $testResultMarkdown = 'Password Rule Settings were not found in the tenant configuration.'
+        $passed = $true
+
+        $mdInfo = "`n## Smart Lockout Settings`n`n"
+        $mdInfo += "| Setting | Value |`n"
+        $mdInfo += "| :---- | :---- |`n"
+        $mdInfo += "| [Lockout Duration (seconds)]($portalLink) | 60 (Default) |`n"
+
+        $testResultMarkdown = "Smart Lockout duration is configured to 60 seconds or higher.$mdInfo"
     }
     else {
         # Get the detailed settings for the Password Rule Settings group
@@ -38,8 +49,14 @@ function Test-Assessment-21849{
         $lockoutDurationSetting = $passwordRuleSettings.values | Where-Object { $_.name -eq 'LockoutDurationInSeconds' }
 
         if ($null -eq $lockoutDurationSetting) {
-            $passed = $false
-            $testResultMarkdown = 'Lockout Duration In Seconds setting was not found in the Password Rule Settings.'
+            $passed = $true
+
+            $mdInfo = "`n## Smart Lockout Settings`n`n"
+            $mdInfo += "| Setting | Value |`n"
+            $mdInfo += "| :---- | :---- |`n"
+            $mdInfo += "| [Lockout Duration (seconds)]($portalLink) | 60 (Default) |`n"
+
+            $testResultMarkdown = "Smart Lockout duration is configured to 60 seconds or higher.$mdInfo"
         }
         else {
             $lockoutDuration = [int]$lockoutDurationSetting.value
@@ -47,7 +64,7 @@ function Test-Assessment-21849{
             $mdInfo = "`n## Smart Lockout Settings`n`n"
             $mdInfo += "| Setting | Value |`n"
             $mdInfo += "| :---- | :---- |`n"
-            $mdInfo += "| Lockout Duration (seconds) | $lockoutDuration |`n"
+            $mdInfo += "| [Lockout Duration (seconds)]($portalLink) | $lockoutDuration |`n"
 
             if ($lockoutDuration -ge 60) {
                 $passed = $true
