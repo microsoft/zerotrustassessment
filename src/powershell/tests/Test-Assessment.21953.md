@@ -1,6 +1,7 @@
-...
+Without Local Admin Password Solution (LAPS) deployed, threat actors can exploit static local administrator passwords to establish initial access through credential stuffing or password spraying attacks targeting common default passwords. Once threat actors compromise a single device with a shared local administrator credential, they gain the ability to move laterally across the environment using pass-the-hash attacks, where hashes of compromised local administrator accounts are reused to authenticate to other systems sharing the same password. This enables lateral traversal attacks where threat actors can systematically compromise additional devices within the network using the same local administrator credentials. The compromised local administrator access provides threat actors with system-level privileges, allowing them to disable security controls, install persistent backdoors, exfiltrate sensitive data, and establish command and control channels. Without automated password rotation and centralized management, organizations cannot detect or respond to unauthorized use of local administrator accounts, providing threat actors with extended dwell time to achieve their objectives while remaining undetected.
 
 **Remediation action**
+- [Configure Windows Local Administrator Password Solution in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/devices/howto-manage-local-admin-passwords)
 
 <!--- Results --->
 %TestResult%
