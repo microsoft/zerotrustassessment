@@ -35,28 +35,35 @@ function Test-Assessment-21844{
 
     if (-not $servicePrincipal -or $servicePrincipal.Count -eq 0) {
         $passed = $false
-        $testResultMarkdown = 'Azure AD PowerShell has not been blocked by the organization.'
+        $summaryLines = @(
+            '**Summary**',
+            '',
+            '- Azure AD PowerShell (Enterprise App not found in tenant)',
+            '- Sign in disabled: N/A'
+        )
     }
     else {
         $sp = $servicePrincipal[0]
-
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}' -f $sp.id, $sp.appId
         $servicePrincipalMarkdown = "[Azure AD PowerShell]($portalLink)"
 
+        $summaryLines = @('**Summary**', '', "- $servicePrincipalMarkdown")
         if ($sp.accountEnabled -eq $false) {
             $passed = $true
-            $testResultMarkdown = "$servicePrincipalMarkdown is blocked in the tenant by turning off user sign in to the Azure Active Directory PowerShell Enterprise Application."
+            $summaryLines += '- Sign in disabled: Yes'
         }
         elseif ($sp.appRoleAssignmentRequired -eq $true) {
             $passed = $false
             $investigateStatus = $true
-            $testResultMarkdown = "App role assignment is required for $servicePrincipalMarkdown. Review assignments and confirm that the app is inaccessible to users."
+            $summaryLines += '- Sign in disabled: No'
+            $summaryLines += '- User assignment required: Yes'
         }
         else {
             $passed = $false
-            $testResultMarkdown = "$servicePrincipalMarkdown has not been blocked by the organization."
+            $summaryLines += '- Sign in disabled: No'
         }
     }
+    $testResultMarkdown = $summaryLines -join "`n"
 
     $params = @{
         TestId             = '21844'
