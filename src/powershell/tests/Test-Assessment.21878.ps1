@@ -58,7 +58,7 @@ function Test-Assessment-21878 {
         param($policy)
         $catalogName = [uri]::EscapeDataString($policy.CatalogName)
         $entitlementName = [uri]::EscapeDataString($policy.DisplayName)
-        return "https://portal.azure.com/#view/Microsoft_Azure_ELMAdmin/EntitlementMenuBlade/~/policies/entitlementId/$($policy.AccessPackageId)/catalogId/$($policy.CatalogId)/catalogName/$catalogName/entitlementName/$entitlementName"
+        return 'https://portal.azure.com/#view/Microsoft_Azure_ELMAdmin/EntitlementMenuBlade/~/policies/entitlementId/{0}/catalogId/{1}/catalogName/{2}/entitlementName/{3}' -f $policy.AccessPackageId, $policy.CatalogId, $catalogName, $entitlementName
     }
 
     $passed = ($nonMatchingPolicies | Measure-Object).Count -eq 0
@@ -74,25 +74,27 @@ function Test-Assessment-21878 {
         $testResultMarkdown += "`nNo entitlement management policies were found with expiration dates configured."
     } else {
         $testResultMarkdown += "`n### Entitlement Management Assignment Policies with Expiration Dates`n"
-        $testResultMarkdown += "| Name | Expiration Type | Duration | End DateTime |`n"
-        $testResultMarkdown += "| :--- | :--- | :--- | :--- |`n"
+        $testResultMarkdown += '| Name | Expiration Type | Duration | End DateTime |' + "`n"
+        $testResultMarkdown += '| :--- | :--- | :--- | :--- |' + "`n"
         foreach ($item in $matchingPolicies) {
             $duration = if ($item.Duration) { $item.Duration } else { '' }
             $endDateTime = if ($item.EndDateTime) { $item.EndDateTime } else { '' }
             $portalLink = Get-PolicyPortalLink $item
-            $testResultMarkdown += "| [$(Get-SafeMarkdown $item.DisplayName)]($portalLink) | $($item.ExpirationType) | $duration | $endDateTime |`n"
+            $testResultMarkdown += '| [{0}]({1}) | {2} | {3} | {4} |' -f (Get-SafeMarkdown $item.DisplayName), $portalLink, $item.ExpirationType, $duration, $endDateTime
+            $testResultMarkdown += "`n"
         }
     }
 
     if ($nonMatchingPolicies.Count -gt 0) {
         $testResultMarkdown += "`n#### Policies missing expiration:`n"
-        $testResultMarkdown += "| Name | Expiration Type | Duration | End DateTime |`n"
-        $testResultMarkdown += "| :--- | :--- | :--- | :--- |`n"
+        $testResultMarkdown += '| Name | Expiration Type | Duration | End DateTime |' + "`n"
+        $testResultMarkdown += '| :--- | :--- | :--- | :--- |' + "`n"
         foreach ($item in $nonMatchingPolicies) {
             $duration = if ($item.Duration) { $item.Duration } else { '' }
             $endDateTime = if ($item.EndDateTime) { $item.EndDateTime } else { '' }
             $portalLink = Get-PolicyPortalLink $item
-            $testResultMarkdown += "| [$(Get-SafeMarkdown $item.DisplayName)]($portalLink) | $($item.ExpirationType) | $duration | $endDateTime |`n"
+            $testResultMarkdown += '| [{0}]({1}) | {2} | {3} | {4} |' -f (Get-SafeMarkdown $item.DisplayName), $portalLink, $item.ExpirationType, $duration, $endDateTime
+            $testResultMarkdown += "`n"
         }
     }
 
