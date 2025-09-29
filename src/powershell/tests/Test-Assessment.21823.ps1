@@ -31,10 +31,10 @@ function Test-Assessment-21823{
     $passed = $authFlowPolicy.selfServiceSignUp.isEnabled -eq $false
 
     if ($passed) {
-        $testResultMarkdown = "Guest self-service sign up via user flow is disabled.`n"
+        $testResultMarkdown = "[Guest self-service sign up via user flow](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade/~/Settings/menuId/ExternalIdentitiesGettingStarted) is disabled.`n"
     }
     else {
-        $testResultMarkdown = "Guest self-service sign up via user flow is enabled.`n"
+        $testResultMarkdown = "[Guest self-service sign up via user flow](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade/~/Settings/menuId/ExternalIdentitiesGettingStarted) is enabled.`n"
     }
 
     #endregion Assessment Logic
