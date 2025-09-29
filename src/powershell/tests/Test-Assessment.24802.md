@@ -1,4 +1,4 @@
-If device cleanup rules aren't configured in Intune, stale, or inactive devices might remain in the tenant indefinitely, leading to cluttered device lists and inaccurate reports. 
+If device cleanup rules aren't configured in Intune, stale, or inactive devices might remain in the tenant indefinitely, leading to cluttered device lists and inaccurate reports.
 
 Device clean-up rules help automate the removal of inactive devices, improving hygiene and reducing administrative overhead.
 

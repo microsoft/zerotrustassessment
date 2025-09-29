@@ -5,14 +5,15 @@
 
 function Test-Assessment-24547 {
     [ZtTest(
-        Category = 'Device management',
-        ImplementationCost = 'Low',
-        Pillar = 'Devices',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect engineering systems',
-        TenantType = ('Workforce'),
-        TestId = 24547,
-        Title = 'Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24547,
+    	Title = 'Compliance policy assignment for Android Enterprise personally owned devices',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

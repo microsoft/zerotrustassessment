@@ -1,18 +1,18 @@
-<#
+﻿<#
 .SYNOPSIS
     Deploy Attack Surface Reduction Policies (ASR) policies for Windows devices
 #>
 
 function Test-Assessment-24574 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24574,
-    	Title = 'Deploy Attack Surface Reduction Policies (ASR) policies for Windows devices',
+    	Title = 'Attack surface reduction policies for Windows',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
