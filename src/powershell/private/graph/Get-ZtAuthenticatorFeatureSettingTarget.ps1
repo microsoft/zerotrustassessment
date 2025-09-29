@@ -31,7 +31,7 @@ function Get-ZtAuthenticatorFeatureSettingTarget {
     }
     else {
         if ($Target.targetType -eq 'group') {
-            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$($Target.id)" -ApiVersion 'v1.0'
+            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$($Target.id)" -ApiVersion beta
             "Group: $($group.displayName)"
         }
     }
