@@ -31,50 +31,42 @@ function Test-Assessment-21844{
 
     Write-ZtProgress -Activity $activity -Status 'Evaluating service principal configuration'
 
+    $investigateStatus = $false
+
     if (-not $servicePrincipal -or $servicePrincipal.Count -eq 0) {
-        # Service principal doesn't exist - this means the app has never been consented to
-        $passed = $true
-        $testResultMarkdown = 'Azure AD PowerShell Enterprise Application does not exist in the tenant, indicating it has never been consented to or used.'
-        $detailsMarkdown = "| Property | Value |`n| :--- | :--- |`n| Service Principal Exists | No |`n| Status | Not consented to in tenant |"
+        $passed = $false
+        $testResultMarkdown = 'Azure AD PowerShell has not been blocked by the organization.'
     }
     else {
-        $sp = $servicePrincipal[0]  # Get the first (and should be only) result
+        $sp = $servicePrincipal[0]
+
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}' -f $sp.id, $sp.appId
+        $servicePrincipalMarkdown = "[Azure AD PowerShell]($portalLink)"
 
         if ($sp.accountEnabled -eq $false) {
-            # Service principal exists but is disabled - PASS
             $passed = $true
-            $testResultMarkdown = 'Azure AD PowerShell is blocked in the tenant by turning off user sign in to the Azure Active Directory PowerShell Enterprise Application.'
+            $testResultMarkdown = "$servicePrincipalMarkdown is blocked in the tenant by turning off user sign in to the Azure Active Directory PowerShell Enterprise Application."
         }
         elseif ($sp.appRoleAssignmentRequired -eq $true) {
-            # Service principal exists, enabled, but requires role assignment - INVESTIGATE
             $passed = $false
-            $testResultMarkdown = "**Investigation Required**: App role assignment is required for Azure AD PowerShell. Review assignments and confirm that the app is inaccessible to users."
+            $investigateStatus = $true
+            $testResultMarkdown = "App role assignment is required for $servicePrincipalMarkdown. Review assignments and confirm that the app is inaccessible to users."
         }
         else {
-            # Service principal exists and is enabled without role assignment requirement - FAIL
             $passed = $false
-            $testResultMarkdown = 'Azure AD PowerShell has not been blocked by the organization.'
+            $testResultMarkdown = "$servicePrincipalMarkdown has not been blocked by the organization."
         }
-
-        # Build details table
-        $detailsMarkdown = @"
-| Property | Value |
-| :--- | :--- |
-| Service Principal Object ID | $($sp.id) |
-| Service Principal App ID | $($sp.appId) |
-| Display Name | $(Get-SafeMarkdown($sp.displayName)) |
-| Account Enabled | $($sp.accountEnabled) |
-| App Role Assignment Required | $($sp.appRoleAssignmentRequired) |
-"@
     }
-
-    # Append details to the result markdown
-    $testResultMarkdown += "`n`n## Details`n`n$detailsMarkdown"
 
     $params = @{
         TestId             = '21844'
         Status             = $passed
         Result             = $testResultMarkdown
+    }
+
+    # Add investigate status if needed
+    if ($investigateStatus -eq $true) {
+        $params.CustomStatus = 'Investigate'
     }
 
     Add-ZtTestResultDetail @params
