@@ -1,9 +1,9 @@
-﻿<#
+<#
 .SYNOPSIS
-    Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned
+    Corporate Wi-Fi network on Fully managed Android devices is securely managed
 #>
 
-function Test-Assessment-24547 {
+function Test-Assessment-24840 {
     [ZtTest(
     	Category = 'Devices',
     	ImplementationCost = 'Low',
@@ -11,8 +11,8 @@ function Test-Assessment-24547 {
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
-    	TestId = 24547,
-    	Title = 'Compliance policy assignment for Android Enterprise personally owned devices',
+    	TestId = 24840,
+    	Title = 'Corporate Wi-Fi network on Fully managed Android devices is securely managed  ',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -21,20 +21,21 @@ function Test-Assessment-24547 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = "Checking the compliance policy for Android Enterprise Personally-Owned Work Profile is configured and assigned "
+    $activity = "Checking that Corporate Wi-Fi network on Fully managed Android devices is securely managed "
     Write-ZtProgress -Activity $activity
 
-    # Query 1: Retrieve all Android Device WorkProfile Compliance Policies and their assignments
-    $androidDeviceWorkProfilePolicies = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicies?$filter=isOf(''microsoft.graph.androidWorkProfileCompliancePolicy'')&$expand=assignments' -ApiVersion beta
-
+    # Query 1: All android Wi-Fi configuration profiles
+    $androidWifiConfProfilesUri = "deviceManagement/deviceConfigurations?`$filter=isof('microsoft.graph.androidDeviceOwnerEnterpriseWiFiConfiguration')&`$expand=assignments"
+    $androidWifiConfProfiles = Invoke-ZtGraphRequest -RelativeUri $androidWifiConfProfilesUri -ApiVersion beta
+    $compliantAndroidWifiConfProfiles = $androidWifiConfProfiles.Where{$_.WifiSecurityType -eq 'wpaEnterprise'}
     #region Assessment Logic
-    $passed = $androidDeviceWorkProfilePolicies.Count -ne 0 -and $androidDeviceWorkProfilePolicies.Assignments.count -ne 0
+    $passed = $compliantAndroidWifiConfProfiles.Count -gt 0 -and $compliantAndroidWifiConfProfiles.Assignments.count -gt 0
 
     if ($passed) {
-        $testResultMarkdown = "At least one compliance policy for Android Enterprise Personally-Owned Work Profile exists and is assigned.`n`n%TestResult%"
+        $testResultMarkdown = "At least one Enterprise Wi-Fi profile for android exists and is assigned.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No compliance policy for Android Enterprise Personally-Owned Work Profile exists or none are assigned.`n`n%TestResult%"
+        $testResultMarkdown = "No Enterprise Wi-Fi profile for android exists or none are assigned.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -42,11 +43,11 @@ function Test-Assessment-24547 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned"
+    $reportTitle = "Android WiFi Configuration Profiles"
     $tableRows = ""
 
     # Generate markdown table rows for each policy
-    if ($androidDeviceWorkProfilePolicies.Count -gt 0) {
+    if ($compliantAndroidWifiConfProfiles.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
@@ -58,8 +59,8 @@ function Test-Assessment-24547 {
 
 '@
 
-        foreach ($policy in $androidDeviceWorkProfilePolicies) {
-            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/policies'
+        foreach ($policy in $compliantAndroidWifiConfProfiles) {
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesandroidMenu/~/configuration'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
             }
@@ -88,8 +89,8 @@ function Test-Assessment-24547 {
     #endregion Report Generation
 
     $params = @{
-        TestId             = '24547'
-        Title              = "Compliance Policy for Android Enterprise Personally-Owned Work Profile is configured and assigned"
+        TestId             = '24840'
+        Title              = "Corporate Wi-Fi network on Fully managed Android devices is securely managed "
         Status             = $passed
         Result             = $testResultMarkdown
     }

@@ -1,4 +1,4 @@
-If compliance policies aren't assigned to Android Enterprise personally owned devices in Intune, there's a risk that noncompliant devices could access corporate resources, bypass security controls, and introduce vulnerabilities. Without enforced compliance, devices might lack critical security configurations like passcode requirements, encryption, or OS version controls. Without these configurations, there's increased risk of data leakage and unauthorized access. This gap weakens the organization’s security posture and makes it harder to detect and remediate threats. 
+If compliance policies aren't assigned to Android Enterprise personally owned devices in Intune, there's a risk that noncompliant devices could access corporate resources, bypass security controls, and introduce vulnerabilities. Without enforced compliance, devices might lack critical security configurations like passcode requirements, encryption, or OS version controls. Without these configurations, there's increased risk of data leakage and unauthorized access. This gap weakens the organization’s security posture and makes it harder to detect and remediate threats.
 
 **Remediation action**
 

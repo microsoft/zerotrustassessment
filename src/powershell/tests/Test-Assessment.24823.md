@@ -1,11 +1,10 @@
-Customizing Company Portal branding and end-user support settings in Intune ensure users have a branded experience and clear support contacts when accessing the portal. If these settings are not configured, users may encounter a generic interface and lack direct support information, which can reduce trust and increase support overhead.
+If the Intune Company Portal branding isn't configured to represent your organizations details, users might encounter a generic interface and lack direct support information, which can reduce trust and increase support overhead.
+
+Customizing Company Portal branding and end-user support settings in Intune ensures users have a branded experience and clear support contacts when accessing the portal.
 
 **Remediation action**
 
-- [Customize and configure the Company Portal](https://learn.microsoft.com/microsoft-365/solutions/apps-config-step-1?view=o365-worldwide) 
-
+- [Configure the Intune Company Portal](https://learn.microsoft.com/intune/intune-service/apps/company-portal-app?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 
-
-  

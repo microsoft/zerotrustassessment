@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Unmanaged and unprotected Apps are restricted from Accessing Corporate Data
 #>
@@ -12,7 +12,7 @@ function Test-Assessment-24827 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24827,
-    	Title = 'Unmanaged and unprotected Apps are restricted from Accessing Corporate Data ',
+    	Title = 'Unmanaged and unprotected Apps are restricted from Accessing Corporate Data',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
