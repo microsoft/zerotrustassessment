@@ -77,7 +77,8 @@ function Test-Assessment-21878{
         $duration = if ($item.Duration) { $item.Duration } else { '' }
         $endDateTime = if ($item.EndDateTime) { $item.EndDateTime } else { '' }
         $criteriaIcon = if ($item.MeetsCriteria) { '✅' } else { '❌' }
-        $mdInfo += "| $($item.PolicyId) | $(Get-SafeMarkdown $item.DisplayName) | $($item.ExpirationType) | $duration | $endDateTime | $criteriaIcon |`n"
+        $mdInfo += '| {0} | {1} | {2} | {3} | {4} | {5} |' -f $item.PolicyId, (Get-SafeMarkdown $item.DisplayName), $item.ExpirationType, $duration, $endDateTime, $criteriaIcon
+        $mdInfo += "`n"
     }
     $mdInfo += "`n[Configure expiration settings for access package policies](https://learn.microsoft.com/entra/id-governance/entitlement-management-access-package-lifecycle)"
 
