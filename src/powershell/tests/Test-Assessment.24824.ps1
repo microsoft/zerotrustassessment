@@ -1,19 +1,19 @@
-<#
+﻿<#
 .SYNOPSIS
     Non-compliant Devices are Restricted from Accessing Corporate Data
 #>
 
 function Test-Assessment-24824 {
     [ZtTest(
-        Category = 'Devices',
-        ImplementationCost = 'Low',
-        Pillar = 'Devices',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect tenants and isolate production systems',
-        TenantType = ('Workforce'),
-        TestId = 24824,
-        Title = 'Non-compliant Devices are Restricted from Accessing Corporate Data  ',
-        UserImpact = 'Low'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24824,
+    	Title = '',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

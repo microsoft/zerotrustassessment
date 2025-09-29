@@ -8,15 +8,15 @@
 
 function Test-Assessment-24823 {
     [ZtTest(
-        Category = 'Device management',
-        ImplementationCost = 'High',
-        Pillar = 'Devices',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect engineering systems',
-        TenantType = ('Workforce'),
-        TestId = 24823,
-        Title = 'Company Portal branding and end-user support settings are customized',
-        UserImpact = 'Low'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24823,
+    	Title = 'Company Portal branding and customization',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
