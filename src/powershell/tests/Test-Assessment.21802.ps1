@@ -18,13 +18,14 @@ function Test-Assessment-21802 {
     [CmdletBinding()]
     param()
 
+
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Authenticator app shows sign-in context'
     Write-ZtProgress -Activity $activity -Status 'Getting authentication method policy'
 
     # Query Microsoft Authenticator authentication method configuration
-    $authenticatorConfig = Invoke-ZtGraphRequest -RelativeUri 'authenticationMethodsPolicy/authenticationMethodConfigurations/MicrosoftAuthenticator' -ApiVersion beta
+    $authenticatorConfig = Invoke-ZtGraphRequest -RelativeUri 'authenticationMethodsPolicy/authenticationMethodConfigurations/MicrosoftAuthenticator' -ApiVersion 'beta'
     function Test-AuthenticatorFeatureSetting {
         [CmdletBinding()]
         param(
@@ -63,17 +64,17 @@ function Test-Assessment-21802 {
 ## {0}
 
 
-Feature settings:
+Feature Settings:
 
-$appEmoji **Application name**
+$appEmoji **Application Name**
 - Status: $((Get-Culture).TextInfo.ToTitleCase($authenticatorConfig.featureSettings.displayAppInformationRequiredState.state.ToLower()))
-- Include target: $(if ($authenticatorConfig.featureSettings.displayAppInformationRequiredState.includeTarget -is [array]) { ($authenticatorConfig.featureSettings.displayAppInformationRequiredState.includeTarget | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', ' } else { Get-ZtAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.includeTarget })
-- Exclude target: $(if ($authenticatorConfig.featureSettings.displayAppInformationRequiredState.excludeTarget -is [array]) { ($authenticatorConfig.featureSettings.displayAppInformationRequiredState.excludeTarget | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', ' } else { Get-ZtAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.excludeTarget })
+- Include Target: $(Get-ztAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.includeTarget)
+- Exclude Target: $(Get-ztAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayAppInformationRequiredState.excludeTarget)
 
-$locationEmoji **Geographic location**
+$locationEmoji **Geographic Location**
 - Status: $((Get-Culture).TextInfo.ToTitleCase($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.state.ToLower()))
-- Include target: $(if ($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.includeTarget -is [array]) { ($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.includeTarget | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', ' } else { Get-ZtAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.includeTarget })
-- Exclude target: $(if ($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.excludeTarget -is [array]) { ($authenticatorConfig.featureSettings.displayLocationInformationRequiredState.excludeTarget | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', ' } else { Get-ZtAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.excludeTarget })
+- Include Target: $(Get-ztAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.includeTarget)
+- Exclude Target: $(Get-ztAuthenticatorFeatureSettingTarget -Target $authenticatorConfig.featureSettings.displayLocationInformationRequiredState.excludeTarget)
 
 "@
 
@@ -84,9 +85,9 @@ $locationEmoji **Geographic location**
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
     $params = @{
-        TestId             = '21802'
-        Status             = $passed
-        Result             = $testResultMarkdown
+        TestId = '21802'
+        Status = $passed
+        Result = $testResultMarkdown
     }
     Add-ZtTestResultDetail @params
 
