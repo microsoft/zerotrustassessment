@@ -3,10 +3,10 @@ Without enforced SSO policies, macOS endpoints may rely on insecure or inconsist
 **Remediation action**
 
 macOS SSO guide:
-- [Platform SSO configuration guide for macOS devices using Microsoft Intune](https://learn.microsoft.com/mem/intune/configuration/device-profile-create-macos)
+- [Platform SSO configuration guide for macOS devices using Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/platform-sso-macos)
 
 Overview of macOS SSO: 
-- [Single sign-on (SSO) overview and options for Apple devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/use-enterprise-sso-plug-in-ios-ipados-macos?pivots=macos  )
+- [Single sign-on (SSO) overview and options for Apple devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/use-enterprise-sso-plug-in-ios-ipados-macos?pivots=macos)
 
 <!--- Results --->
 %TestResult%
