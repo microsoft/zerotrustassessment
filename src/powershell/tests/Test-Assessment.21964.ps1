@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-
+    Checks Enable protected actions to secure Conditional Access policy creation and changes
 #>
 
 function Test-Assessment-21964 {
