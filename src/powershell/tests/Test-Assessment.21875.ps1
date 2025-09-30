@@ -29,22 +29,23 @@ function Test-Assessment-21875{
 
     $targetScopes = @('specificConnectedOrganizationUsers', 'allConfiguredConnectedOrganizationUsers', 'allExternalUsers')
     $results = $response | Where-Object { $_.allowedTargetScope -in $targetScopes }
-
-    # Map to expected property names and determine per-policy status
-    $results = $results | ForEach-Object {
-        $status = switch ($_.allowedTargetScope) {
-            'allExternalUsers' { '❌ Fail' }
-            'allConfiguredConnectedOrganizationUsers' { '⚠️ Investigate' }
-            'specificConnectedOrganizationUsers' { '✅ Pass' }
-            default { '❓ Unknown' }
-        }
-        [PSCustomObject]@{
-            AccessPackageName = $_.accessPackage.displayName
-            AssignmentPolicyName = $_.displayName
-            allowedTargetScope = $_.allowedTargetScope
-            Status = $status
+    if($results) {
+            # Map to expected property names and determine per-policy status
+        $results = $results | ForEach-Object {
+            $status = switch ($_.allowedTargetScope) {
+                'allExternalUsers' { '❌ Fail' }
+                'allConfiguredConnectedOrganizationUsers' { '⚠️ Investigate' }
+                'specificConnectedOrganizationUsers' { '✅ Pass' }
+            }
+            [PSCustomObject]@{
+                AccessPackageName = $_.accessPackage.displayName
+                AssignmentPolicyName = $_.displayName
+                allowedTargetScope = $_.allowedTargetScope
+                Status = $status
+            }
         }
     }
+
 
     $testResultMarkdown = ''
 
