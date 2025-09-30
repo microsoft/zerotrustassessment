@@ -29,7 +29,6 @@ function Test-Assessment-21842{
 
     $passed = $false
     $userMessage = ""
-    $details = ""
 
     if ($null -ne $allowedToUseSspr -and $allowedToUseSspr -eq $false) {
         $passed = $true
@@ -43,5 +42,10 @@ function Test-Assessment-21842{
 $userMessage
 "@
 
-    Add-ZtTestResultDetail -TestId '21842' -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId = '21842'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
