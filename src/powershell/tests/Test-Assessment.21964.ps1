@@ -152,7 +152,7 @@ function Test-Assessment-21964 {
             }
         }
     }
-    $passed = $query3 -and $query6 -or $query5
+    $passed = ($query3 -and $query6) -or $query5
     $params = @{
         Status = $passed
         Result = $testResultMarkdown
