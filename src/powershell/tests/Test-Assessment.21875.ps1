@@ -30,7 +30,7 @@ function Test-Assessment-21875{
     $targetScopes = @('specificConnectedOrganizationUsers', 'allConfiguredConnectedOrganizationUsers', 'allExternalUsers')
     $results = $response | Where-Object { $_.allowedTargetScope -in $targetScopes }
     if($results) {
-            # Map to expected property names and determine per-policy status
+        # Map to expected property names and determine per-policy status
         $results = $results | ForEach-Object {
             $status = switch ($_.allowedTargetScope) {
                 'allExternalUsers' { '❌ Fail' }
