@@ -36,7 +36,7 @@ function Test-Assessment-21964 {
     foreach ($action in $protectedActions) {
         #Write-ZtProgress -Activity $activity -Status "Checking protected action: $action"
 
-        $actionResult = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/resourceNamespaces/microsoft.directory/resourceActions/$action" -ApiVersion beta -Select "authenticationContextId,isAuthenticationContextSettable,name"
+        $actionResult = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/resourceNamespaces/microsoft.directory/resourceActions/$action" -ApiVersion beta -Select "authenticationContextId,isAuthenticationContextSettable,name,description"
         $protectedActionResults += $actionResult
     }
 
@@ -49,8 +49,8 @@ function Test-Assessment-21964 {
         $unprotectedCount = $unprotectedActions.Count
         $testResultMarkdown = "Found $unprotectedCount protected actions without authentication context configured `n`n"
         $testResultMarkdown += "## Unprotected Actions`n`n"
-        $testResultMarkdown += "| Permission | Conditional Access Authentication Context |`n"
-        $testResultMarkdown += "| :--- | :--- |`n"
+        $testResultMarkdown += "| Permission | Description | Conditional Access Authentication Context |`n"
+        $testResultMarkdown += "| :--- | :--- | :--- |`n"
 
         foreach ($action in $unprotectedActions) {
             if ($action.authenticationContextId) {
@@ -59,7 +59,7 @@ function Test-Assessment-21964 {
             else {
                 $authenticationContextId = '❌'
             }
-            $testResultMarkdown += "| $($action.name) | $authenticationContextId |`n"
+            $testResultMarkdown += "| $($action.name) | $($action.description) | $authenticationContextId |`n"
         }
         Add-ZtTestResultDetail -TestId '21964' -Title "Enable protected actions to secure Conditional Access policy creation and changes" `
             -UserImpact Low -Risk Low -ImplementationCost Low `
@@ -92,7 +92,8 @@ function Test-Assessment-21964 {
         $testResultMarkdown += "| :--- | :--- |`n"
 
         foreach ($action in $unprotectedActions) {
-            $testResultMarkdown += "| $($action.displayName) | $(Get-FormattedPolicyState -PolicyState $action.state)| `n"
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($action.id)"
+            $testResultMarkdown += "| [$(Get-SafeMarkdown $action.DisplayName)]($portalLink) | $(Get-FormattedPolicyState -PolicyState $action.state)| `n"
         }
         Add-ZtTestResultDetail -TestId '21964' -Title "Enable protected actions to secure Conditional Access policy creation and changes" `
             -UserImpact Low -Risk Low -ImplementationCost Low `
@@ -127,8 +128,8 @@ function Test-Assessment-21964 {
             $query5 = $false
             $signInFrequency = '❌'
         }
-
-        $testResultMarkdown += "| $($policyDetails.displayName) | $(Get-FormattedPolicyState -PolicyState $policyDetails.state) | $authStrength | $devices | $signInFrequency |`n"
+        $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
+        $testResultMarkdown += "| [$(Get-SafeMarkdown $policyDetails.displayName)]($portalLink) | $(Get-FormattedPolicyState -PolicyState $policyDetails.state) | $authStrength | $devices | $signInFrequency |`n"
     }
 
     # Q6: Check allowedCombinations for Passwordless MFA and Phishing-resistant MFA methods
