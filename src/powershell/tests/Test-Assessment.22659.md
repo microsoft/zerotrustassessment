@@ -16,4 +16,3 @@ Microsoft Entra ID Protection continuously generates risky workload identity det
 - [Dismiss workload identity risks when determined to be false positives](https://learn.microsoft.com/graph/api/riskyserviceprincipal-dismiss?view=graph-rest-1.0&preserve-view=true&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Confirm compromised workload identities when risks are validated](https://learn.microsoft.com/graph/api/riskyserviceprincipal-confirmcompromised?view=graph-rest-1.0&preserve-view=true&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
-
