@@ -20,11 +20,11 @@ function Test-Assessment-21842{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Block administrators from using SSPR"
-    Write-ZtProgress -Activity $activity -Status "Getting policy"
+    $activity = 'Checking Block administrators from using SSPR'
+    Write-ZtProgress -Activity $activity -Status 'Getting policy'
 
     # Query the authorization policy for allowedToUseSspr
-    $authorizationPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/authorizationPolicy' -ApiVersion 'v1.0'
+    $authorizationPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/authorizationPolicy' -ApiVersion beta
     $allowedToUseSspr = $authorizationPolicy.allowedToUseSspr
 
     $passed = $false
@@ -43,8 +43,5 @@ function Test-Assessment-21842{
 $userMessage
 "@
 
-    Add-ZtTestResultDetail -TestId '21842' -Title "Block administrators from using SSPR" `
-        -UserImpact Low -Risk Low -ImplementationCost Low `
-        -AppliesTo Identity -Tag Identity `
-        -Status $passed -Result $testResultMarkdown
+    Add-ZtTestResultDetail -TestId '21842' -Status $passed -Result $testResultMarkdown
 }
