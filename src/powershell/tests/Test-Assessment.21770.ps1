@@ -21,6 +21,13 @@ function Test-Assessment-21770 {
         $Database
     )
 
+    # Import shared cmdlets
+    . "$PSScriptRoot/../private/tests-shared/Add-DelegatePermissions.ps1"
+    . "$PSScriptRoot/../private/tests-shared/Add-AppPermissions.ps1"
+    . "$PSScriptRoot/../private/tests-shared/GraphRisk.ps1"
+    . "$PSScriptRoot/../private/tests-shared/Get-AppList.ps1"
+
+
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
@@ -53,8 +60,8 @@ function Test-Assessment-21770 {
     $otherApps = @()
 
     foreach($item in $results) {
-        $item = Add-DelegatePermissions $item
-        $item = Add-AppPermissions $item
+        $item = Add-DelegatePermissions -item $item -Database $Database
+        $item = Add-AppPermissions -item $item -Database $Database
         $item = Add-GraphRisk $item
         if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $item.IsRisky) {
             $inactiveRiskyApps += $item
@@ -86,105 +93,4 @@ function Test-Assessment-21770 {
         -UserImpact Low -Risk High -ImplementationCost Low `
         -AppliesTo Identity -Tag Application `
         -Status $passed -Result $testResultMarkdown
-}
-
-function Add-DelegatePermissions
-{
-	[CmdletBinding()]
-	param (
-		$item
-	)
-    $sql = @"
-    select sp.id, sp.oauth2PermissionGrants.scope as permissionName,
-    from main.ServicePrincipal sp
-    where sp.oauth2PermissionGrants.scope is not null
-    and sp.id == '{0}'
-"@
-    $sql = $sql -f $item.id
-    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
-    $item.DelegatePermissions = @()
-    if($results.permissionName) {
-        $perms = $results.permissionName.trim() -replace """", ""
-        $item.DelegatePermissions = $perms -split " " | Where-Object { ![string]::IsNullOrEmpty($_)}
-    }
-    return $item
-}
-
-function Add-AppPermissions
-{
-	[CmdletBinding()]
-	param (
-		$item
-	)
-    $sql = @"
-    select distinct spAppRole.*
-    from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
-        from main.ServicePrincipal sp) sp
-        left join
-            (select unnest(main.ServicePrincipal.appRoles).id as id, unnest(main.ServicePrincipal.appRoles)."value" permissionName
-            from main.ServicePrincipal) spAppRole
-            on sp.appRoleId = spAppRole.id
-    where permissionName is not null and sp.id == '{0}'
-"@
-    $sql = $sql -f $item.id
-    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
-    $item.AppPermissions = $results.permissionName
-    return $item
-}
-
-function Add-GraphRisk
-{
-	[CmdletBinding()]
-	param (
-		$item
-	)
-    $item.Risk = Get-GraphRisk -delegatePermissions $item.DelegatePermissions -applicationPermissions $item.AppPermissions
-    $item.IsRisky = $item.Risk -eq "High"
-    return $item
-}
-
-function Get-AppList
-{
-	[CmdletBinding()]
-	param (
-		$Apps,
-
-		$Icon
-	)
-    $mdInfo = ""
-    foreach ($item in $apps) {
-        $tenant = $item.publisherName
-        $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($item.id)/appId/$($item.appId)"
-        $risk = $item.Risk
-        $delPerm = $item.DelegatePermissions -join ", "
-        $appPerm = $item.AppPermissions -join ", "
-        $mdInfo += "| $($Icon) | [$(Get-SafeMarkdown($item.displayName))]($portalLink) | $risk | $delPerm | $appPerm | $(Get-SafeMarkdown($tenant)) | $(Get-FormattedDate($item.lastSignInDateTime)) | `n"
-    }
-    return $mdInfo
-}
-
-function Get-GraphRisk
-{
-	[CmdletBinding()]
-	param (
-		$delegatePermissions,
-
-		$applicationPermissions
-	)
-    $finalRisk = "Unranked"
-    foreach($permission in $applicationPermissions){
-        $risk = Get-GraphPermissionRisk -Permission $permission -PermissionType "Application"
-        switch($risk){
-            "High" { return $risk }
-            "Medium" { $finalRisk = $risk }
-        }
-    }
-    foreach($permission in $delegatePermissions){
-        $risk = Get-GraphPermissionRisk -Permission $permission -PermissionType "Delegated"
-        switch($risk){
-            "High" { return $risk }
-            "Medium" { $finalRisk = $risk }
-        }
-    }
-    return $finalRisk
 }
