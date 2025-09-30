@@ -27,7 +27,7 @@ function Test-Assessment-24870 {
     # Query 1: All macOS Wi-Fi configuration profiles
     $macOSWifiConfProfilesUri = "deviceManagement/deviceConfigurations?`$filter=isof('microsoft.graph.macOSWiFiConfiguration')&`$expand=assignments"
     $macOSWifiConfProfiles = Invoke-ZtGraphRequest -RelativeUri $macOSWifiConfProfilesUri -ApiVersion beta
-    $compliantMacOSWifiConfProfiles = $macOSWifiConfProfiles.Where{$_.WifiSecurityType -eq 'wpaPersonal'}
+    $compliantMacOSWifiConfProfiles = $macOSWifiConfProfiles.Where{$_.WifiSecurityType -eq 'wpaEnterprise'}
     #region Assessment Logic
     $passed = $compliantMacOSWifiConfProfiles.Count -gt 0 -and $compliantMacOSWifiConfProfiles.Assignments.count -gt 0
 
