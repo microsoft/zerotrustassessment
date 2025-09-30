@@ -52,9 +52,13 @@ function Test-Assessment-21839{
         $mdInfo += "- **Key restriction policy** :`n"
         if ($null -ne $keyRestrictions.isEnforced) {
             $mdInfo += "  - **Enforce key restrictions** : $($keyRestrictions.isEnforced)`n"
+        }else{
+            $mdInfo += "  - **Enforce key restrictions** : Not configured`n"
         }
         if ($null -ne $keyRestrictions.EnforcementType) {
             $mdInfo += "  - **Restrict specific keys** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
+        }else{
+            $mdInfo += "  - **Restrict specific keys** : Not configured`n"
         }
     }
 
