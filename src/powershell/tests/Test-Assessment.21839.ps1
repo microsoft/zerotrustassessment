@@ -40,29 +40,21 @@ function Test-Assessment-21839{
     # Build details section for markdown (bulleted list)
     $mdInfo = "`n## [Passkey authentication method details]($portalLink)`n"
     $mdInfo += "- **Status** : $((Get-Culture).TextInfo.ToTitleCase($state.ToLower()))`n"
-    $mdInfo += "- **includeTargets** : "
+    $mdInfo += "- **Include Targets** : "
     if ($includeTargets) {
         $mdInfo += ($includeTargets | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', '
     } else {
         $mdInfo += 'None'
     }
     $mdInfo += "`n"
-    if ($null -ne $isAttestationEnforced) {
-        $mdInfo += "- **isAttestationEnforced** : $isAttestationEnforced`n"
-    }
+    $mdInfo += "- **Enforce attestation** : $isAttestationEnforced`n"
     if ($null -ne $keyRestrictions) {
-        $mdInfo += "- **keyRestrictions** :`n"
-        if ($null -ne $keyRestrictions.Enforced) {
-            $mdInfo += "  - **isEnforced** : $($keyRestrictions.Enforced)`n"
+        $mdInfo += "- **Key restriction policy** :`n"
+        if ($null -ne $keyRestrictions.isEnforced) {
+            $mdInfo += "  - **Enforce key restrictions** : $($keyRestrictions.isEnforced)`n"
         }
         if ($null -ne $keyRestrictions.EnforcementType) {
-            $mdInfo += "  - **enforcementType** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
-        }
-        if ($keyRestrictions.AaGuids -and $keyRestrictions.AaGuids.Count -gt 0) {
-            $mdInfo += "  - **aaGuids** :`n"
-            foreach ($aaguid in $keyRestrictions.AaGuids) {
-                $mdInfo += "    - $aaguid`n"
-            }
+            $mdInfo += "  - **Restrict specific keys** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
         }
     }
 
