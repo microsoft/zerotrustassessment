@@ -58,7 +58,7 @@ function Test-Assessment-21896 {
 
     if ($resultsPassCreds.Count -eq 0 -and $resultsKeyCreds.Count -eq 0) {
         $passed = $true
-        $testResultMarkdown = "Service principals don't have credentials associated with them."
+        $testResultMarkdown = 'Service principals don''t have credentials associated with them.'
     }
     else {
         $passed = $false
@@ -68,7 +68,7 @@ function Test-Assessment-21896 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Service Principals with credentials configured in the tenant"
+    $reportTitle = 'Service Principals with credentials configured in the tenant'
     $tableRows = ""
 
     if ($resultsPassCreds.Count -gt 0 -or $resultsKeyCreds.Count -gt 0) {
