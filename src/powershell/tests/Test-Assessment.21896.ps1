@@ -13,7 +13,7 @@ function Test-Assessment-21896 {
         SfiPillar = 'Protect identities and secrets',
         TenantType = ('Workforce', 'External'),
         TestId = 21896,
-        Title = 'Service principals don''t have certificates or credentials associated with them',
+        Title = "Service principals don't have certificates or credentials associated with them",
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -58,7 +58,7 @@ function Test-Assessment-21896 {
 
     if ($resultsPassCreds.Count -eq 0 -and $resultsKeyCreds.Count -eq 0) {
         $passed = $true
-        $testResultMarkdown = 'Service principals don''t have credentials associated with them.'
+        $testResultMarkdown = "Service principals don't have credentials associated with them."
     }
     else {
         $passed = $false
