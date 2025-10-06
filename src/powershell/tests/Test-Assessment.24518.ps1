@@ -38,7 +38,7 @@ function Test-Assessment-24518 {
         $permClass = @()
         foreach ($perm in $allPerms) {
             # Match by Permission name
-            $row = $permissionClassifications #| Where-Object { $_.Permission -eq $perm.type }
+            $row = $permissionClassifications | Where-Object { $_.Type -eq $perm.type }
             if ($row) { $permClass += $row.Privilege }
         }
         if ($permClass -and ($permClass -notcontains 'High')) {
@@ -56,6 +56,13 @@ function Test-Assessment-24518 {
         if ($ownerCount -lt 2) { $allHaveOwners = $false }
         $isMultiTenant = $app.signInAudience -eq 'AzureADMultipleOrgs'
         $perms = ($app.requiredResourceAccess | ForEach-Object { $_.resourceAccess } | Where-Object { $_ } | ForEach-Object { $_.id }) -join ', '
+        # Recalculate classification for this app
+        $permClass = @()
+        $allPerms = $app.requiredResourceAccess | ForEach-Object { $_.resourceAccess } | Where-Object { $_ }
+        foreach ($perm in $allPerms) {
+            $row = $permissionClassifications | Where-Object { $_.Type -eq $perm.type }
+            if ($row) { $permClass += $row.Privilege }
+        }
         $class = ($permClass -join ', ')
         $tableRows += "| $($app.displayName) | $isMultiTenant | $perms | $class | $ownerCount |`n"
     }
