@@ -61,8 +61,8 @@ function Test-Assessment-24518 {
         }
     }
 
-    $tableHeader = "| App name | Multi-tenant | Permission names | Classification | Owner count |`n"
-    $tableHeader += "| :------ | :---------- | :---------------- | :------------- | :----------- |`n"
+    $tableHeader =  "| App name | Multi-tenant | Permission  | Classification | Owner count |`n"
+    $tableHeader += "| :-------- | :------------ | :---------- | :------------- | :----------- |`n"
     $tableRows = ''
     $allHaveOwners = $true
 
