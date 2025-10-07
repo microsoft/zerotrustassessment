@@ -150,7 +150,7 @@ store the assessment report. For example, the following command produces the rep
 `C:/MyAssessment01/ZeroTrustAssessmentReport.html`
 
 ```powershell
-Invoke-ZtAssessment --Path C:/MyAssessment01
+Invoke-ZtAssessment -Path C:/MyAssessment01
 ```
 
 ## Review assessment results
