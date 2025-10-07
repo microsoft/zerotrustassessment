@@ -119,9 +119,12 @@ function Test-Assessment-24518 {
         $permList = if ($permDisplay) { ($permDisplay | Sort-Object -Unique) -join '<br>'} else { 'None' }
         $classList = if ($classDisplay) { ($classDisplay | Sort-Object -Unique) -join '<br>'} else { 'Unknown' }
 
+        # Build clickable Entra portal link for the application
+        $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
+        $appLink = "[$($app.displayName)]($entraLink)"
 
+        $tableRows += "| $appLink | $isMultiTenant | $permList | $classList | $ownerCount |`n"
 
-        $tableRows += "| $($app.displayName) | $isMultiTenant | $permList | $classList | $ownerCount |`n"
     }
 
     if ($allHaveOwners) {
