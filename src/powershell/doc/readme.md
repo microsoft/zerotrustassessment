@@ -147,10 +147,10 @@ assessment completes, the report is automatically opened in the default browser.
 
 You can use the `-Path` parameter to provide a custom location to
 store the assessment report. For example, the following command produces the report in the folder
-`C:/MyAssessment01/ZeroTrustAssessmentReport.html`
+`C:\MyAssessment01\ZeroTrustAssessmentReport.html`
 
 ```powershell
-Invoke-ZtAssessment -Path C:/MyAssessment01
+Invoke-ZtAssessment -Path C:\MyAssessment01
 ```
 
 ## Review assessment results
