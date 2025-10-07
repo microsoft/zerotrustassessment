@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Corporate Wi-Fi network on iOS devices is securely managed
 #>
@@ -9,10 +9,10 @@ function Test-Assessment-24839 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and isolate production systems',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24839,
-    	Title = 'Corporate Wi-Fi network on iOS devices is securely managed ',
+    	Title = 'Secure Wi-Fi profiles protect iOS devices from unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -1,10 +1,13 @@
-If Windows Automatic Enrollment isn't enabled, unmanaged devices can become an entry point for attackers. Threat actors might use these devices to access corporate data, bypass compliance policies, and introduce vulnerabilities into the environment. Without automatic enrollment, devices can remain unmanaged yet establish a Microsoft Entra Join trust, which creates risk in the security posture. Unmanaged devices communicating with Microsoft Entra can expose weaknesses in the operating system or misconfigured applications that attackers can exploit.
+If Windows automatic enrollment isn't enabled, unmanaged devices can become an entry point for attackers. Threat actors might use these devices to access corporate data, bypass compliance policies, and introduce vulnerabilities into the environment. Devices joined to Microsoft Entra without Intune enrollment create gaps in visibility and control. These unmanaged endpoints can expose weaknesses in the operating system or misconfigured applications that attackers can exploit.
 
-Enabling automatic enrollment closes these gaps by ensuring every device is brought under management as soon as it joins the network. Automatic enrollment enforces compliance, reduces risk, and strengthens the organization’s Zero Trust model by guaranteeing all devices are secured from the start.
+Enforcing automatic enrollment ensures Windows devices are managed from the start, enabling consistent policy enforcement and visibility into compliance. This supports Zero Trust by ensuring all devices are verified, monitored, and governed by security controls.
 
 **Remediation action**
 
-- [Set up automatic enrollment for Windows devices](https://learn.microsoft.com/intune/intune-service/enrollment/windows-enroll?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+Enable automatic enrollment for Windows devices using Intune and Microsoft Entra to ensure all domain-joined or Entra-joined devices are managed:  
+- [Enable Windows automatic enrollment](https://learn.microsoft.com/intune/intune-service/enrollment/windows-enroll?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-windows-automatic-enrollment)
+
+For more information, see:  
 - [Deployment guide - Enrollment for Windows](https://learn.microsoft.com/intune/intune-service/fundamentals/deployment-guide-enroll?tabs=work-profile%2Ccorporate-owned-apple%2Cautomatic-enrollment&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enrollment-for-windows)
 <!--- Results --->
 %TestResult%

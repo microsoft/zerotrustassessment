@@ -5,8 +5,9 @@ Ensuring that Local Users and Groups policies are enforced on managed Windows de
 
 **Remediation action**
 
-- [Account protection policy for endpoint security in Intune](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-account-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+Configure and deploy a **Local user group membership** profile from Intune account protection policy to restrict and manage local account usage on Windows devices:  
+- Create an [Account protection policy for endpoint security in Intune](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-account-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#account-protection-profiles)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 <!--- Results --->
 %TestResult%
 

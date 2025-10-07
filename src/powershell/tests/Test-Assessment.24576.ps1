@@ -15,7 +15,7 @@ function Test-Assessment-24576 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24576,
-    	Title = 'Intune Endpoint Analytics policy',
+    	Title = 'Endpoint Analytics is enabled to help identify risks on Windows devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

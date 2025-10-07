@@ -15,7 +15,7 @@ function Test-Assessment-24540 {
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24540,
-    	Title = 'Windows Firewall policy',
+    	Title = 'Windows Firewall policies protect against unauthorized network access',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

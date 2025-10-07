@@ -15,7 +15,7 @@ function Test-Assessment-24690 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24690,
-    	Title = 'macOS update policy',
+    	Title = 'Update policies for macOS are enforced to reduce risk from unpatched vulnerabilities',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -12,7 +12,7 @@ function Test-Assessment-24572 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24572,
-    	Title = 'Device enrollment notification',
+    	Title = 'Device enrollment notifications are enforced to ensure user awareness and secure onboarding',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

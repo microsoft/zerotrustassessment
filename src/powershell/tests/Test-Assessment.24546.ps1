@@ -15,7 +15,7 @@ function Test-Assessment-24546 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24546,
-    	Title = 'Windows Automatic Enrollment',
+    	Title = 'Windows automatic device enrollment is enforced to eliminate risks from unmanaged endpoints',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

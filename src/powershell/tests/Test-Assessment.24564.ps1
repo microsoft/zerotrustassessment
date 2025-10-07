@@ -15,7 +15,7 @@ function Test-Assessment-24564 {
     	SfiPillar = '',
     	TenantType = ('Workforce'),
     	TestId = 24564,
-    	Title = 'Local Users and Group policy',
+    	Title = 'Local account usage on Windows is restricted to reduce unauthorized access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

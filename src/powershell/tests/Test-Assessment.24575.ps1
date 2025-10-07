@@ -12,7 +12,7 @@ function Test-Assessment-24575 {
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24575,
-    	Title = 'Microsoft Defender antivirus policy for Windows',
+    	Title = 'Defender Antivirus policies protect Windows devices from malware',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

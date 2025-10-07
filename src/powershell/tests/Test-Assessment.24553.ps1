@@ -12,7 +12,7 @@ function Test-Assessment-24553 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24553,
-    	Title = 'Windows Update policy for Windows devices',
+    	Title = 'Windows Update policies are enforced to reduce risk from unpatched vulnerabilities',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

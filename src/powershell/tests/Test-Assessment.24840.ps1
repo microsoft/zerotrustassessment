@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Corporate Wi-Fi network on Fully managed Android devices is securely managed
 #>
@@ -9,10 +9,10 @@ function Test-Assessment-24840 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and isolate production systems',
+    	SfiPillar = '',
     	TenantType = ('Workforce'),
     	TestId = 24840,
-    	Title = 'Corporate Wi-Fi network on Fully managed Android devices is securely managed  ',
+    	Title = 'Secure Wi-Fi profiles protect Android devices from unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

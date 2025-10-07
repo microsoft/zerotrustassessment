@@ -15,7 +15,7 @@ function Test-Assessment-24823 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24823,
-    	Title = 'Company Portal branding and customization',
+    	Title = 'Company Portal branding and support settings enhance user experience and trust',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

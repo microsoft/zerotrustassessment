@@ -9,7 +9,7 @@ function flexible enough to work with different policy types and structures.
 
 .PARAMETER Policies
 An array of policy objects to filter. Each policy should contain settings that can be navigated using
-the paths specified in RequiredSettings.
+the paths specified in RequiredSettings. Can be null or empty, in which case an empty array is returned.
 
 .PARAMETER RequiredSettings
 A hashtable where each key is a setting definition ID and the value is a configuration object containing:
@@ -67,7 +67,7 @@ Filters policies that contain both required settings, each located in different 
 function Get-FilteredPoliciesBySetting {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
+        # Remove mandatory to allow null values to be passed through from calling functions
         [array]$Policies,
 
         [Parameter(Mandatory)]
@@ -104,6 +104,12 @@ function Get-FilteredPoliciesBySetting {
             $current = $current."$segment"
         }
         return $current
+    }
+
+    # Handle null or empty Policies parameter
+    if ($null -eq $Policies -or $Policies.Count -eq 0) {
+        Write-Verbose "Policies parameter is null or empty. Returning empty array."
+        return @()
     }
 
     $filteredPolicies = @()
