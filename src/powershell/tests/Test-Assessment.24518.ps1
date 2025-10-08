@@ -85,7 +85,7 @@ function Test-Assessment-24518 {
 
             # Use cached Service Principal details to minimize calls
             if (-not $spCache.ContainsKey($resourceAppId)) {
-                $spResponse = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=appId eq '$resourceAppId'" -ApiVersion v1.0
+                $spResponse = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "appId eq '$resourceAppId'" -ApiVersion v1.0
                 $spObj = $spResponse | Select-Object -First 1
                 $spCache[$resourceAppId] = $spObj
             }
