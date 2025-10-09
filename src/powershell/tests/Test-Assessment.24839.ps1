@@ -47,25 +47,31 @@ function Test-Assessment-24839 {
     $tableRows = ""
 
     # Generate markdown table rows for each policy
-    if ($compliantIosWifiConfProfiles.Count -gt 0) {
+    if ($iOSWifiConfProfiles.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
 ## {0}
 
-| Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| Policy Name | Wi-Fi type | Status | Assignment |
+| :---------- | :----- | :--------- | :--------- |
 {1}
 
 '@
-
-        foreach ($policy in $compliantIosWifiConfProfiles) {
+        foreach ($policy in $iOSWifiConfProfiles) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesIosMenu/~/configuration'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
             }
             else {
                 '❌ Not Assigned'
+            }
+
+            $wifiType = if ($policy.wiFiSecurityType -in @('wpa2Enterprise','wpaEnterprise')) {
+                'Enterprise'
+            }
+            else {
+                'Basic'
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
@@ -75,9 +81,7 @@ function Test-Assessment-24839 {
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
-            $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
-"@
+            $tableRows += "| [$policyName]($portalLink) | $wifiType | $status | $assignmentTarget |`n"
         }
 
          # Format the template by replacing placeholders with values
