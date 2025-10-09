@@ -21,23 +21,36 @@ function Test-Assessment-24553 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = "Checking that the Intune Windows Update policy is configured and assigned"
+    $activity = 'Checking that the Intune Windows Update policy is configured and assigned'
     Write-ZtProgress -Activity $activity
 
-    # Query 1: Retrieve all Windows Update Policies and their assignments
+    # Retrieve all Windows Update Policies and their assignments
     $windowsUpdatePolicy = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceConfigurations?$expand=assignments' -ApiVersion v1.0 | Where-Object {
         $_.'@odata.type' -eq '#microsoft.graph.windowsUpdateForBusinessConfiguration'
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $windowsUpdatePolicy.Count -ne 0 -and $windowsUpdatePolicy.Assignments.count -ne 0
+    # Check if at least one policy has assignments
+    $hasAssignments = $false
+    foreach ($policy in $windowsUpdatePolicy) {
+        if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+            $hasAssignments = $true
+            break
+        }
+    }
+
+    $passed = $windowsUpdatePolicy.Count -gt 0 -and $hasAssignments
 
     if ($passed) {
         $testResultMarkdown = "Windows Update policy is assigned and enforced.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "Windows Update policy is not assigned or enforced.`n`n%TestResult%"
+        if ($windowsUpdatePolicy.Count -eq 0) {
+            $testResultMarkdown = "No Windows Update policies found.`n`n%TestResult%"
+        } else {
+            $testResultMarkdown = "Windows Update policy is not assigned or enforced.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
@@ -49,6 +62,7 @@ function Test-Assessment-24553 {
     $tableRows = ""
 
     # Generate markdown table rows for each policy
+    $mdInfo = ""
     if ($windowsUpdatePolicy.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
@@ -56,18 +70,19 @@ function Test-Assessment-24553 {
 ## {0}
 
 | Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| :---------- | :------------- | :--------- |
 {1}
 
 '@
 
+        $tableRows = ""
         foreach ($policy in $windowsUpdatePolicy) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesWindowsMenu/~/windows10Update'
-            $status = if ($policy.assignments.count -gt 0) {
-                '✅ Assigned'
+            $status = if ($policy.assignments -and $policy.assignments.count -gt 0) {
+                '✅&nbsp;Assigned'
             }
             else {
-                '❌ Not Assigned'
+                '❌&nbsp;Not&nbsp;Assigned'
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
@@ -77,9 +92,7 @@ function Test-Assessment-24553 {
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
-            $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
          # Format the template by replacing placeholders with values

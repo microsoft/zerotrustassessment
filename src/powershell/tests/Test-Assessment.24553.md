@@ -5,7 +5,6 @@ Enforcing Windows Update policies ensures timely patching of security flaws to h
 **Remediation action**
 
 - [Manage Windows software updates in Intune](https://learn.microsoft.com/intune/intune-service/protect/windows-update-for-business-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- Understand Intune [Windows quality updates policy](https://learn.microsoft.com/intune/intune-service/protect/windows-quality-update-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Understand Intune Windows quality updates policy](https://learn.microsoft.com/intune/intune-service/protect/windows-quality-update-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
-
