@@ -25,7 +25,7 @@ function Test-Assessment-24553 {
     Write-ZtProgress -Activity $activity
 
     # Retrieve all Windows Update Policies and their assignments
-    $windowsUpdatePolicy = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceConfigurations?$expand=assignments' -ApiVersion v1.0 | Where-Object {
+    $windowsUpdatePolicy = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceConfigurations?$expand=assignments' -ApiVersion beta | Where-Object {
         $_.'@odata.type' -eq '#microsoft.graph.windowsUpdateForBusinessConfiguration'
     }
     #endregion Data Collection
@@ -58,7 +58,7 @@ function Test-Assessment-24553 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Intune Windows Update policy is configured and assigned"
+    $reportTitle = 'Intune Windows Update policy is configured and assigned'
     $tableRows = ""
 
     # Generate markdown table rows for each policy
@@ -86,7 +86,7 @@ function Test-Assessment-24553 {
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
-            $assignmentTarget = "None"
+            $assignmentTarget = 'None'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
@@ -105,7 +105,7 @@ function Test-Assessment-24553 {
 
     $params = @{
         TestId             = '24553'
-        Title              = "Intune Windows Update policy is configured and assigned"
+        Title              = 'Intune Windows Update policy is configured and assigned'
         Status             = $passed
         Result             = $testResultMarkdown
     }
