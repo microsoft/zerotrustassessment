@@ -106,8 +106,8 @@ function Test-Assessment-24574 {
         $formatTemplate = @'
 ## {0}
 
-| Policy Name | Status | Assignment | Execution of Potentially obfuscated scripts | Win32 API calls from Office macros |
-| :---------- | :----- | :--------- | :------------------------------------------ | :--------------------------------- |
+| Policy Name |  Execution of Potentially obfuscated scripts | Win32 API calls from Office macros | Status | Assignment |
+| :---------- |  :------------------------------------------ | :--------------------------------- | :----- | :--------- |
 {1}
 
 '@
