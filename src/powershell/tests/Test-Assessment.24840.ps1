@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Corporate Wi-Fi network on Fully managed Android devices is securely managed
+    Corporate Wi-Fi network on fully managed Android devices is securely managed
 #>
 
 function Test-Assessment-24840 {
@@ -21,7 +21,7 @@ function Test-Assessment-24840 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = 'Checking that Corporate Wi-Fi network on Fully managed Android devices is securely managed'
+    $activity = 'Checking that Corporate Wi-Fi network on fully managed Android devices is securely managed'
     Write-ZtProgress -Activity $activity
 
     # Query 1: All android Wi-Fi configuration profiles
@@ -43,7 +43,7 @@ function Test-Assessment-24840 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = 'Android WiFi Configuration Profiles'
+    $reportTitle = 'Android Wi-Fi Configuration Profiles'
     $tableRows = ""
 
     # Generate markdown table rows for each policy
@@ -53,7 +53,7 @@ function Test-Assessment-24840 {
 
 ## {0}
 
-| Policy Name | WiFi Security Type | Status | Assignment |
+| Policy Name | Wi-Fi Security Type | Status | Assignment |
 | :---------- | :---------------- | :----- | :--------- |
 {1}
 
