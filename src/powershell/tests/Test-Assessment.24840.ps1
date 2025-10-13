@@ -53,8 +53,8 @@ function Test-Assessment-24840 {
 
 ## {0}
 
-| Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| Policy Name | WiFi Security Type | Status | Assignment |
+| :---------- | :---------------- | :----- | :--------- |
 {1}
 
 '@
@@ -69,6 +69,7 @@ function Test-Assessment-24840 {
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
+            $wifiSecurityType = Get-SafeMarkdown -Text $policy.WifiSecurityType
             $assignmentTarget = "None"
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
@@ -76,7 +77,7 @@ function Test-Assessment-24840 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
+| [$policyName]($portalLink) | $wifiSecurityType | $status | $assignmentTarget |
 "@
         }
 
