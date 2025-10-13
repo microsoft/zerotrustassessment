@@ -7,8 +7,7 @@
 
 ## Overview
 
-This feature allows administrators to hide the Microsoft Defender Antivirus interface and prevent users from interacting with or modifying its settings.
-It ensures consistent security enforcement by preventing users from pausing scans or changing protection settings that could weaken endpoint defenses.
+This feature allows administrators to hide the Microsoft Defender Antivirus interface from users, including notifications and the Virus & threat protection tile in the Windows Security app. It can be configured using Group Policy by enabling "headless UI mode" or via PowerShell with `Set-MpPreference -UILockdown $true`. Preventing user interaction helps reduce the risk of users pausing scans, disabling protections, or misinterpreting security alerts. It also ensures that antivirus settings remain consistent and enforced across endpoints. If not deployed, users may inadvertently interfere with protection mechanisms, weakening the organization's security posture. This supports the **Assume breach** principle of Zero Trust by minimizing the chance of user-driven configuration changes that could be exploited during an attack.
 
 ## Reference
 https://learn.microsoft.com/en-us/defender-endpoint/prevent-end-user-interaction-microsoft-defender-antivirus
