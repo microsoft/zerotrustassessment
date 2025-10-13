@@ -21,12 +21,12 @@ function Test-Assessment-24840 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = "Checking that Corporate Wi-Fi network on Fully managed Android devices is securely managed "
+    $activity = 'Checking that Corporate Wi-Fi network on Fully managed Android devices is securely managed'
     Write-ZtProgress -Activity $activity
 
     # Query 1: All android Wi-Fi configuration profiles
-    $androidWifiConfProfilesUri = "deviceManagement/deviceConfigurations?`$filter=isof('microsoft.graph.androidDeviceOwnerEnterpriseWiFiConfiguration')&`$expand=assignments"
-    $androidWifiConfProfiles = Invoke-ZtGraphRequest -RelativeUri $androidWifiConfProfilesUri -ApiVersion beta
+    $androidWifiConfProfilesUri = "deviceManagement/deviceConfigurations?`$expand=assignments"
+    $androidWifiConfProfiles = Invoke-ZtGraphRequest -RelativeUri $androidWifiConfProfilesUri -Filter "isof('microsoft.graph.androidDeviceOwnerEnterpriseWiFiConfiguration')" -ApiVersion beta
     $compliantAndroidWifiConfProfiles = $androidWifiConfProfiles.Where{$_.WifiSecurityType -eq 'wpaEnterprise'}
     #region Assessment Logic
     $passed = $compliantAndroidWifiConfProfiles.Count -gt 0 -and $compliantAndroidWifiConfProfiles.Assignments.count -gt 0
@@ -43,7 +43,7 @@ function Test-Assessment-24840 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Android WiFi Configuration Profiles"
+    $reportTitle = 'Android WiFi Configuration Profiles'
     $tableRows = ""
 
     # Generate markdown table rows for each policy
@@ -53,8 +53,8 @@ function Test-Assessment-24840 {
 
 ## {0}
 
-| Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| Policy Name | WiFi Security Type | Status | Assignment |
+| :---------- | :---------------- | :----- | :--------- |
 {1}
 
 '@
@@ -69,6 +69,7 @@ function Test-Assessment-24840 {
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
+            $wifiSecurityType = Get-SafeMarkdown -Text $policy.WifiSecurityType
             $assignmentTarget = "None"
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
@@ -76,7 +77,7 @@ function Test-Assessment-24840 {
             }
 
             $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
+| [$policyName]($portalLink) | $wifiSecurityType | $status | $assignmentTarget |
 "@
         }
 
@@ -90,7 +91,6 @@ function Test-Assessment-24840 {
 
     $params = @{
         TestId             = '24840'
-        Title              = "Corporate Wi-Fi network on Fully managed Android devices is securely managed "
         Status             = $passed
         Result             = $testResultMarkdown
     }
