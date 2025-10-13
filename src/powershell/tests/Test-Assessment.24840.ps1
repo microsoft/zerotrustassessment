@@ -43,7 +43,7 @@ function Test-Assessment-24840 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Android WiFi Configuration Profiles"
+    $reportTitle = 'Android WiFi Configuration Profiles'
     $tableRows = ""
 
     # Generate markdown table rows for each policy
