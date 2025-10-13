@@ -53,7 +53,7 @@ function Test-Assessment-24839 {
 
 ## {0}
 
-| Policy Name | Wi-Fi type | Status | Assignment |
+| Policy Name | Wi-Fi Security Type | Status | Assignment |
 | :---------- | :----- | :--------- | :--------- |
 {1}
 
