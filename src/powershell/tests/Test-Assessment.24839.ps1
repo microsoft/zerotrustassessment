@@ -67,12 +67,7 @@ function Test-Assessment-24839 {
                 '❌ Not Assigned'
             }
 
-            $wifiType = if ($policy.wiFiSecurityType -in @('wpa2Enterprise','wpaEnterprise')) {
-                'Enterprise'
-            }
-            else {
-                'Basic'
-            }
+            $wifiType = Get-WifiSecurityType -SecurityType $policy.wiFiSecurityType
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
             $assignmentTarget = "None"
