@@ -23,19 +23,9 @@ function Test-Assessment-21867 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking if enterprise applications with high privilege permissions have owners'
-    Write-ZtProgress -Activity $activity -Status 'Getting data'
+    Write-ZtProgress -Activity $activity -Status 'Getting applications with resource access from database'
 
-    # Import shared GraphRisk functions
-    . "$PSScriptRoot/../private/tests-shared/GraphRisk.ps1"
-
-    # Load permission classification from CSV
-    $csvPath = Join-Path -Path $PSScriptRoot -ChildPath '..\assets\aadconsentgrantpermissiontable.csv'
-    $permissionClassification = Import-Csv -Path $csvPath
-    $highPrivPermissions = $permissionClassification | Where-Object { $_.Privilege -eq 'High' }
-
-    Write-ZtProgress -Activity $activity -Status 'Getting all applications from database'
-
-    # Q1: Get all enterprise applications from database
+    # Q1: Get only applications that have requiredResourceAccess (filter at database level to avoid loading all apps)
     $sqlApplications = @"
 SELECT
     id,
@@ -45,28 +35,30 @@ SELECT
     signInAudience,
     publisherDomain
 FROM Application
+WHERE requiredResourceAccess IS NOT NULL
+    AND requiredResourceAccess != '[]'
+    AND len(requiredResourceAccess) > 0
 ORDER BY displayName
 "@
 
-    $allApplications = Invoke-DatabaseQuery -Database $Database -Sql $sqlApplications
+    $applicationsWithPermissions = Invoke-DatabaseQuery -Database $Database -Sql $sqlApplications
 
-    Write-ZtProgress -Activity $activity -Status 'Client-side filtering: applications with high privilege permissions using CSV classification'
+    Write-ZtProgress -Activity $activity -Status 'Filtering applications with high privilege permissions'
 
     $highPrivApps = @()
 
-    # Client-side filtering: Check each application for high privilege permissions per requiredResourceAccess property
-    foreach ($app in $allApplications) {
+    # Filter applications that have high privilege permissions
+    foreach ($app in $applicationsWithPermissions) {
         $delegatePermissions = @()
         $applicationPermissions = @()
-        if ($app.requiredResourceAccess -and $app.requiredResourceAccess -ne '[]') {
-            try {
-                $resourceAccess = $null
-                if ($app.requiredResourceAccess -is [System.Collections.IEnumerable] -and $app.requiredResourceAccess -isnot [string]) {
-                    $resourceAccess = $app.requiredResourceAccess
-                } else {
-                    $resourceAccess = $app.requiredResourceAccess | ConvertFrom-Json
-                }
-                foreach ($resource in $resourceAccess) {
+        try {
+            $resourceAccess = $null
+            if ($app.requiredResourceAccess -is [System.Collections.IEnumerable] -and $app.requiredResourceAccess -isnot [string]) {
+                $resourceAccess = $app.requiredResourceAccess
+            } else {
+                $resourceAccess = $app.requiredResourceAccess | ConvertFrom-Json
+            }
+            foreach ($resource in $resourceAccess) {
                     if ($resource.resourceAccess) {
                         foreach ($permission in $resource.resourceAccess) {
                             $permType = if ($permission.type -eq 'Role') { 'Application' } else { 'Delegated' }
@@ -96,10 +88,9 @@ ORDER BY displayName
                         }
                     }
                 }
-            } catch {
-                Write-PSFMessage "Failed to parse requiredResourceAccess for app $($app.displayName): $($_.Exception.Message)" -Level Verbose
-                continue
-            }
+        } catch {
+            Write-PSFMessage "Failed to parse requiredResourceAccess for app $($app.displayName): $($_.Exception.Message)" -Level Verbose
+            continue
         }
         $app.DelegatePermissions = $delegatePermissions
         $app.AppPermissions = $applicationPermissions
