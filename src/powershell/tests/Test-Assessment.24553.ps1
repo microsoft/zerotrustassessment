@@ -73,10 +73,10 @@ function Test-Assessment-24553 {
         foreach ($policy in $windowsUpdatePolicy) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesWindowsMenu/~/windows10Update'
             $status = if ($policy.assignments -and $policy.assignments.count -gt 0) {
-                '✅&nbsp;Assigned'
+                '✅ Assigned'
             }
             else {
-                '❌&nbsp;Not&nbsp;Assigned'
+                '❌ Not Assigned'
             }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
