@@ -1,5 +1,4 @@
-﻿
-<#
+﻿<#
 .SYNOPSIS
     Test macOS Firewall Policy is created and assigned
 #>
@@ -56,8 +55,9 @@ function Test-PolicyAssignment {
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Retrieve all macOS policies
-    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$select=id,name,description,platforms,technologies&`$expand=settings,assignments"
-    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta
+    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$expand=settings,assignments"
+    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta -Verbose
+
     if($macOSPolicies ) {
         $macOSPolicies = $macOSPolicies | Where-Object { $_.settings.settingInstance.SettingDefinitionID -eq 'com.apple.security.firewall_com.apple.security.firewall' }
     }
@@ -76,16 +76,21 @@ function Test-PolicyAssignment {
         }
 
         # Check if any of the policy's setting IDs match our valid setting IDs
+        $hasValidSetting = $false
         foreach ($settingId in $policySettingIds) {
             if ($validSettingIds -contains $settingId) {
+                $hasValidSetting = $true
                 [PSFramework.Object.ObjectHost]::AddNoteProperty($macOSPolicy,'FirewallSettings', $true)
+                break
             }
             else{
                 [PSFramework.Object.ObjectHost]::AddNoteProperty($macOSPolicy,'FirewallSettings', $false)
             }
         }
 
+        if ($hasValidSetting) {
             $macOSFirewallPolicies += $macOSPolicy
+        }
     }
     #endregion Data Collection
 
@@ -111,7 +116,7 @@ function Test-PolicyAssignment {
     $reportTitle = "macOS Firewall Policies"
     $tableRows = ""
 
-    if ($macOSPolicies.Count -gt 0) {
+    if ($macOSFirewallPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
@@ -123,7 +128,7 @@ function Test-PolicyAssignment {
 
 '@
 
-        foreach ($policy in $macOSPolicies) {
+        foreach ($policy in $macOSFirewallPolicies) {
 
                 $policyName = $policy.Name
                 $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
@@ -154,6 +159,9 @@ function Test-PolicyAssignment {
 
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
+    }
+    else {
+        $mdInfo = ''
     }
 
     # Replace the placeholder with the detailed information
