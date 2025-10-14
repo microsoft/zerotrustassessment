@@ -4,8 +4,8 @@ Enforcing WHfB disrupts this attack chain by requiring strong, multifactor authe
 
 **Remediation action**
 
-- [Configure Windows Hello for Business on devices when they enroll with Intune](https://learn.microsoft.com/intune/intune-service/protect/compliance-policy-create-windows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-<!--- Results --->
+Deploy Windows Hello for Business in Intune to enforce strong, multifactor authentication:  
+- [Configure a tenant-wide Windows Hello for Business policy](https://learn.microsoft.com/intune/intune-service/protect/windows-hello?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-windows-hello-for-business-policy-for-device-enrollment) that applies at the time a device enrolls with Intune.
+- After enrollment, [configure Account protection profiles](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-account-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#account-protection-profiles) and [assign](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups) different configurations for Windows Hello for Business to different groups of users and devices. <!--- Results --->
 %TestResult%
 

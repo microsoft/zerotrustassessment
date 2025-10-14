@@ -12,7 +12,7 @@ function Test-Assessment-24551 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24551,
-    	Title = 'Windows Hello for Business policy',
+    	Title = 'Authentication on Windows uses Windows Hello for Business',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

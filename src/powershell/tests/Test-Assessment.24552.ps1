@@ -15,7 +15,7 @@ function Test-Assessment-24552 {
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24552,
-    	Title = 'macOS Firewall Policy',
+    	Title = 'macOS Firewall policies protect against unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -1,8 +1,14 @@
-If app protection policies for iOS devices aren't configured and assigned, threat actors can exploit unmanaged or insufficiently protected mobile applications to exfiltrate corporate data, escalate privileges, or persist within the environment. Without app protection policies, sensitive data accessed via corporate apps on iOS devices is vulnerable to data leakage through copy and paste, backup, or unencrypted storage. Threat actors might use compromised or noncompliant devices to bypass controls, move laterally, or introduce malicious payloads, which can undermine the organization’s data protection and compliance posture. This gap in mobile application management can break the chain of defense, making it difficult to detect and remediate data loss or unauthorized access before significant damage occurs.
+Without app protection policies, corporate data accessed on iOS/iPadOS devices is vulnerable to leakage through unmanaged or personal apps. Users can unintentionally copy sensitive information into unsecured apps, store data outside corporate boundaries, or bypass authentication controls. This risk is especially high on BYOD devices, where personal and work contexts coexist, increasing the likelihood of data exfiltration or unauthorized access.
 
+App protection policies ensure corporate data remains secure within approved apps, even on personal devices. These policies enforce encryption, restrict data sharing, and require authentication, reducing the risk of data leakage and aligning with Zero Trust principles of data protection and conditional access.
+ 
 **Remediation action**
 
-- [Create and assign Intune app protection policies](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Review the iOS app protection settings you can manage with Intune](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy-settings-ios?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+Deploy Intune app protection policies that encrypt corporate data, restrict sharing, and require authentication in approved iOS/iPadOS apps:  
+- [Deploy Intune app protection policies](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policies?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-an-iosipados-or-android-app-protection-policy)
+- [Review the iOS app protection settings reference](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy-settings-ios?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+
+For more information, see:  
+- [Learn about using app protection policies](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
 

@@ -12,7 +12,7 @@ function Test-Assessment-24548 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24548,
-    	Title = 'App protection policy for iOS devices',
+    	Title = 'Data on iOS/iPadOS is protected by app protection policies',
     	UserImpact = 'High'
     )]
     [CmdletBinding()]

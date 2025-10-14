@@ -12,7 +12,7 @@ function Test-Assessment-24573 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24573,
-    	Title = 'Windows security baselines',
+    	Title = 'Security baselines are applied to Windows devices to strengthen security posture',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

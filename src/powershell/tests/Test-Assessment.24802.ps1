@@ -12,7 +12,7 @@ function Test-Assessment-24802 {
     	SfiPillar = 'Protect tenants and isolate production',
     	TenantType = ('Workforce'),
     	TestId = 24802,
-    	Title = 'Device cleanup rules',
+    	Title = 'Device cleanup rules maintain tenant hygiene by hiding inactive devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

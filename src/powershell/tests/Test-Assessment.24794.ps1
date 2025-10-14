@@ -12,7 +12,7 @@ function Test-Assessment-24794 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24794,
-    	Title = 'Intune Terms and Conditions',
+    	Title = 'Terms and Conditions policies protect access to sensitive data',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

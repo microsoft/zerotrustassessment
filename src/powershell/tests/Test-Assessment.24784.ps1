@@ -12,7 +12,7 @@ function Test-Assessment-24784 {
         	SfiPillar = 'Protect networks',
         	TenantType = ('Workforce'),
         	TestId = 24784,
-        	Title = 'macOS Defender Antivirus policy',
+        	Title = 'Defender Antivirus policies protect macOS devices from malware',
         	UserImpact = 'Low'
         )]
     [CmdletBinding()]

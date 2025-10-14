@@ -6,7 +6,7 @@
 
 As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
 
-Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) and __Intune Security Recommendations (Coming Soon)__ guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entra/security) and [Intune Security Recommendations](https://aka.ms/intune/security) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
 
 Manually checking a tenant's configuration against the published guidance can be time consuming and error-prone. The Zero Trust Assessment PowerShell module was built to help with this activity.
 
@@ -26,9 +26,12 @@ _This initial release is limited to Microsoft Entra and Microsoft Intune._
 - Global Administrator role
   - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
 
+- Uninstall previous versions
+  - If you have installed previous versions of the Zero Trust Assessment, [uninstall](#how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment) before continuing.
+  
 ## Install the PowerShell modules
 
-Follow these steps to install the assessment and connect to Microsoft Graph and your tenant.
+Follow these steps to install the assessment and connect to Microsoft Graph and your tenant. 
 
 ### Open PowerShell 7
 
@@ -147,10 +150,10 @@ assessment completes, the report is automatically opened in the default browser.
 
 You can use the `-Path` parameter to provide a custom location to
 store the assessment report. For example, the following command produces the report in the folder
-`C:/MyAssessment01/ZeroTrustAssessmentReport.html`
+`C:\MyAssessment01\ZeroTrustAssessmentReport.html`
 
 ```powershell
-Invoke-ZtAssessment --Path C:/MyAssessment01
+Invoke-ZtAssessment -Path C:\MyAssessment01
 ```
 
 ## Review assessment results
@@ -201,6 +204,17 @@ The other tabs are in progress. Feel free to share feedback on the
 report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
 
 ## FAQs
+
+### How can I uninstall previous versions of the Zero Trust Assessment?
+
+Run the following commands to ensure all versions of the past modules are uninstalled.
+
+Next restart PowerShell and follow the instructions in this page to install the latest version.
+
+```powershell
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+```
 
 ### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
 

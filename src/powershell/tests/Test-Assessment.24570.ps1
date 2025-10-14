@@ -97,10 +97,10 @@ function Test-Assessment-24570 {
             $userName = Get-SafeMarkdown -Text $member.displayName
             $userPrincipalName = Get-SafeMarkdown -Text $member.userPrincipalName
             $enabled = if ($member.accountEnabled) {
-                '❌Yes'
+                '❌ Yes'
             }
             else {
-                '✅No'
+                '✅ No'
             }
             $userType = Get-SafeMarkdown -Text $member.userType
 

@@ -12,7 +12,7 @@ function Test-Assessment-24827 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24827,
-    	Title = 'Unmanaged and unprotected Apps are restricted from Accessing Corporate Data',
+    	Title = 'Conditional Access policies block access from unmanaged apps',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
