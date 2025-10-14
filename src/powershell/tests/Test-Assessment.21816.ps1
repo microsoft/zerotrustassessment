@@ -37,19 +37,19 @@ function Test-Assessment-21816 {
 
     # Query 2: Check for eligible Global Administrators (PIM usage confirmation)
     Write-ZtProgress -Activity $activity -Status 'Checking eligible Global Administrators'
-    $eligibleGAs = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleEligibilitySchedules?`$filter=roleDefinitionId eq '$globalAdminRoleId'&`$expand=principal" -ApiVersion beta
+    $eligibleGAs = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleEligibilitySchedules' -Filter "roleDefinitionId eq '$globalAdminRoleId'" -ApiVersion beta
     Write-PSFMessage "Found $($eligibleGAs.Count) eligible GA assignments" -Level Verbose
 
     $eligibleGAUsers = 0
     foreach ($eligibleGA in $eligibleGAs) {
-        # Get principal information separately since we can't use expand
-        $principal = Invoke-ZtGraphRequest -RelativeUri "directoryObjects/$($eligibleGA.principalId)" -ApiVersion v1.0
+        # Get principal information separately
+        $principal = Invoke-ZtGraphRequest -RelativeUri "directoryObjects/$($eligibleGA.principalId)" -ApiVersion beta
 
         if ($principal.'@odata.type' -eq '#microsoft.graph.user') {
             $eligibleGAUsers++
         } elseif ($principal.'@odata.type' -eq '#microsoft.graph.group') {
             # Get group members for eligible GA groups
-            $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($principal.id)/members" -Select 'userPrincipalName,displayName,id' -ApiVersion v1.0
+            $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($principal.id)/members" -Select 'userPrincipalName,displayName,id' -ApiVersion beta
             $eligibleGAUsers += $groupMembers.Count
         }
     }
@@ -99,14 +99,14 @@ function Test-Assessment-21816 {
 
     # Query 3: Handle Global Administrator role separately
     Write-ZtProgress -Activity $activity -Status 'Checking Global Administrator assignments'
-    $gaDirectoryRole = Invoke-ZtGraphRequest -RelativeUri "directoryRoles?`$filter=roleTemplateId eq '$globalAdminRoleId'" -ApiVersion beta
+    $gaDirectoryRole = Invoke-ZtGraphRequest -RelativeUri 'directoryRoles' -Filter "roleTemplateId eq '$globalAdminRoleId'" -ApiVersion beta
 
     if ($gaDirectoryRole) {
-        $gaMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($gaDirectoryRole.id)/members?`$select=userPrincipalName,displayName,id" -ApiVersion beta
+        $gaMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($gaDirectoryRole.id)/members" -Select 'userPrincipalName,displayName,id' -ApiVersion beta
 
         foreach ($member in $gaMembers) {
             # Check if GA assignment is managed by PIM
-            $pimAssignment = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleAssignmentScheduleInstances?`$filter=principalId eq '$($member.id)' and roleDefinitionId eq '$globalAdminRoleId'" -ApiVersion beta
+            $pimAssignment = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignmentScheduleInstances' -Filter "principalId eq '$($member.id)' and roleDefinitionId eq '$globalAdminRoleId'" -ApiVersion beta
 
             if (-not $pimAssignment -or ($pimAssignment.assignmentType -eq 'Assigned' -and $null -eq $pimAssignment.endDateTime)) {
                 # Permanent GA assignment found
@@ -126,7 +126,7 @@ function Test-Assessment-21816 {
                 } elseif ($member.'@odata.type' -eq '#microsoft.graph.group') {
                     $permanentGAGroupList += $memberInfo
                     # Get group members - only users
-                    $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members?`$select=userPrincipalName,displayName,id,onPremisesSyncEnabled" -ApiVersion v1.0
+                    $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -Select 'userPrincipalName,displayName,id,onPremisesSyncEnabled' -ApiVersion beta
                     foreach ($groupMember in $groupMembers) {
                         # Only process users, skip service principals
                         if ($groupMember.'@odata.type' -eq '#microsoft.graph.user') {
