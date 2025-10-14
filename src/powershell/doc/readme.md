@@ -26,9 +26,12 @@ _This initial release is limited to Microsoft Entra and Microsoft Intune._
 - Global Administrator role
   - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
 
+- Uninstall previous versions
+  - If you have installed previous versions of the Zero Trust Assessment, [uninstall](#how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment) before continuing.
+  
 ## Install the PowerShell modules
 
-Follow these steps to install the assessment and connect to Microsoft Graph and your tenant.
+Follow these steps to install the assessment and connect to Microsoft Graph and your tenant. 
 
 ### Open PowerShell 7
 
