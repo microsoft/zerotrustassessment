@@ -202,6 +202,17 @@ report. If you have any feedback or issues, reach out to your account contact th
 
 ## FAQs
 
+### How can I uninstall previous versions of the Zero Trust Assessment?
+
+Run the following commands to ensure all versions of the past modules are uninstalled.
+
+Next restart PowerShell and follow the instructions in this page to install the latest version.
+
+```powershell
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+```
+
 ### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
 
 - The [List roleAssignmentScheduleRequests](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignmentschedulerequests?view=graph-rest-1.0&tabs=http) Graph API call requires this permission RoleEligibilitySchedule.ReadWrite.Directory.
