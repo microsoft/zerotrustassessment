@@ -21,13 +21,6 @@ function Test-Assessment-21770 {
         $Database
     )
 
-    # Import shared cmdlets
-    . "$PSScriptRoot/../private/tests-shared/Add-DelegatePermissions.ps1"
-    . "$PSScriptRoot/../private/tests-shared/Add-AppPermissions.ps1"
-    . "$PSScriptRoot/../private/tests-shared/GraphRisk.ps1"
-    . "$PSScriptRoot/../private/tests-shared/Get-AppList.ps1"
-
-
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $sql = @"
