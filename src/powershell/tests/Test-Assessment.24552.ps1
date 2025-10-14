@@ -56,8 +56,11 @@ function Test-PolicyAssignment {
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Retrieve all macOS policies
-    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement') and (templateReference/TemplateFamily eq 'endpointSecurityFirewall')&`$select=id,name,description,platforms,technologies&`$expand=settings,assignments"
+    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?&`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$select=id,name,description,platforms,technologies&`$expand=settings,assignments"
     $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta
+    if($macOSPolicies ) {
+        $macOSPolicies = $macOSPolicies | Where-Object { $_.settings.settingInstance.SettingDefinitionID -eq 'com.apple.security.firewall_com.apple.security.firewall' }
+    }
 
     # Filter policies to include only those related to firewall settings
     $macOSFirewallPolicies = @()
@@ -73,21 +76,16 @@ function Test-PolicyAssignment {
         }
 
         # Check if any of the policy's setting IDs match our valid setting IDs
-        $hasValidSetting = $false
         foreach ($settingId in $policySettingIds) {
             if ($validSettingIds -contains $settingId) {
-                $hasValidSetting = $true
                 [PSFramework.Object.ObjectHost]::AddNoteProperty($macOSPolicy,'FirewallSettings', $true)
-                break
             }
             else{
                 [PSFramework.Object.ObjectHost]::AddNoteProperty($macOSPolicy,'FirewallSettings', $false)
             }
         }
 
-        if ($hasValidSetting) {
             $macOSFirewallPolicies += $macOSPolicy
-        }
     }
     #endregion Data Collection
 
@@ -156,9 +154,6 @@ function Test-PolicyAssignment {
 
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-    }
-    else {
-        $mdInfo = 'No macOS firewall policies found in this tenant.`n'
     }
 
     # Replace the placeholder with the detailed information
