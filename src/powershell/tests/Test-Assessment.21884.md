@@ -6,4 +6,3 @@ When workload identities operate without network-based Conditional Access restri
 - [Create named locations](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-assignment-network?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Follow best practices for securing workload identities](https://learn.microsoft.com/en-us/entra/workload-id/workload-identities-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
-
