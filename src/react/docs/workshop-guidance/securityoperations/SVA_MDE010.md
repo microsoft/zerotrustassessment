@@ -1,8 +1,8 @@
 # Turn on Tamper Protection
 
-**Implementation Effort:** **Medium** – While enabling tamper protection is technically simple, deploying it across a diverse environment requires coordination with endpoint management, policy testing, and ensuring compatibility with existing security tools and processes.
+**Implementation Effort:** **Low**- Turning on tamper protection is a targeted action that can be done via the Microsoft Defender portal, Intune, or directly on individual devices
 
-**User Impact:** **High** – Tamper protection restricts local changes to security settings, which can impact developers, IT staff, or power users who rely on local configuration changes. Clear communication and support are needed to manage expectations and avoid disruption.
+**User Impact:** **Low** – The change is managed by administrators and does not require any action or notification to end users
 
 ## Overview
 

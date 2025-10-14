@@ -1,19 +1,20 @@
+
 # Configure Interactive and Long-Term Data Retention in Microsoft Sentinel
 
-**Implementation Effort:** Medium  
-Setting up data retention requires IT and Security Operations teams to define policies per table or across multiple tables, and coordinate with compliance and cost management stakeholders.
+**Implementation Effort:** Medium – Customer IT and Security Operations teams need to drive configuration projects across multiple tables and connectors, including optional onboarding to the data lake.
 
-**User Impact:** Low  
-This configuration is handled by administrators and does not require action or awareness from end users.
+**User Impact:** Low – All actions are performed by administrators; end users are not affected or required to take action.
 
 ## Overview
-
-This feature allows organizations to manage how long data is retained in Microsoft Sentinel by configuring **interactive** (frequently accessed) and **long-term** (archived) retention policies. Interactive retention keeps data readily available for active investigation, while long-term retention stores older data at a lower cost for compliance or historical analysis. You can configure retention per table or across multiple tables in your Log Analytics workspace.
-
-Failing to configure appropriate retention settings can lead to increased storage costs, loss of critical historical data, or non-compliance with regulatory requirements. This capability supports the **"Assume Breach"** principle of Zero Trust by ensuring historical data is available for extended threat hunting and forensic analysis, even long after an incident occurs.
+Microsoft Sentinel allows organizations to configure data retention across two tiers: the **analytics tier** for interactive use (real-time alerting, hunting, dashboards) and the **data lake tier** for long-term, low-cost storage (up to 12 years). This setup helps balance performance, cost, and compliance needs. Administrators can manage retention settings per table, switch tiers, and use connectors to mirror or isolate data. If not configured properly, organizations risk losing valuable historical data or incurring unnecessary costs. This capability supports the Zero Trust principle of **Assume breach** by enabling deep visibility and long-term threat detection through scalable analytics and secure data storage.
 
 ## Reference
-
-- [Configure interactive and long-term data retention in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/configure-data-retention-archive)  
-- [Log retention plans in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/log-plans)  
+- [Configure interactive and long-term data retention in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/configure-data-retention-archive)
+- [Manage data tiers and retention in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/manage-data-overview)
+- [Configure table settings in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/manage-table-tiers-retention)
+- [Log retention tiers in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/log-plans)
+- [Set up connectors for the Microsoft Sentinel data lake](https://learn.microsoft.com/en-us/azure/sentinel/datalake/sentinel-lake-connectors)
 - [Manage data retention in a Log Analytics workspace](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure)
+- [Connect Data Sources to Microsoft Sentinel Using Data Connectors](https://learn.microsoft.com/en-us/azure/sentinel/configure-data-connector)
+- [Microsoft Sentinel data lake overview](https://learn.microsoft.com/en-us/azure/sentinel/datalake/sentinel-lake-overview)
+- [Onboarding to Microsoft Sentinel data lake](https://learn.microsoft.com/en-us/azure/sentinel/datalake/sentinel-lake-onboarding)

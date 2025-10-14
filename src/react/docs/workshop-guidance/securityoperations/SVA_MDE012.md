@@ -10,6 +10,8 @@ End users are not notified or required to take any action; changes are enforced 
 
 This configuration ensures that users cannot override Microsoft Defender Antivirus settings on their local devices. By default, when antivirus settings are deployed using Group Policy, local changes are blocked. However, administrators can explicitly configure override permissions for specific settings if needed (e.g., for security researchers). To enforce strict control, administrators should ensure all override policies are set to **Disabled**. This prevents users from using the Windows Security app, local Group Policy, or PowerShell to modify antivirus behavior.
 
+Preventing local changes helps maintain consistent security configurations across all endpoints and reduces the risk of users weakening protection by altering exclusions, scan schedules, or real-time monitoring.
+
 This setting supports the **Zero Trust principle of "Use least privilege access"** by ensuring that only authorized administrators can change security configurations, reducing the risk of misconfiguration or intentional tampering by end users. If not implemented, users could weaken endpoint protection by disabling real-time scanning or cloud-delivered protection, increasing the risk of malware infections.
 
 ## Reference
