@@ -157,7 +157,7 @@ const config = {
                 to: 'https://aka.ms/zero-trust-partner-kit',
               },
               {
-                label: 'Zero Trust Asssessment Checks',
+                label: 'Zero Trust Assessment Checks',
                 to: '/docs/intro',
               },
               {
