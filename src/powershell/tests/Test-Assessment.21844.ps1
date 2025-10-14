@@ -24,7 +24,7 @@ function Test-Assessment-21844{
     Write-ZtProgress -Activity $activity -Status 'Querying Azure AD PowerShell service principal'
 
     # Azure AD PowerShell App ID
-    $azureADPowerShellAppId = '1b730954-1685-4b74-9bfd-dac224a7b892'
+    $azureADPowerShellAppId = '1b730954-1685-4b74-9bfd-dac224a7b894'
 
     # Query for the Azure AD PowerShell service principal
     $servicePrincipal = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -ApiVersion 'v1.0' -Filter "appId eq '$azureADPowerShellAppId'" -Select "id,appId,displayName,servicePrincipalType,accountEnabled,appOwnerOrganizationId,appRoleAssignmentRequired"
