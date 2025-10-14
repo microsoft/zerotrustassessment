@@ -57,21 +57,15 @@ function Test-Assessment-24553 {
     #region Report Generation
     # Build the detailed sections of the markdown
 
-    # Define variables to insert into the format string
-    $reportTitle = 'Intune Windows Update policy is configured and assigned'
-    $tableRows = ""
-
     # Generate markdown table rows for each policy
     $mdInfo = ""
     if ($windowsUpdatePolicy.Count -gt 0) {
-        # Create a here-string with format placeholders {0}, {1}, etc.
+        # Create a here-string with format placeholder
         $formatTemplate = @'
-
-## {0}
 
 | Policy Name | Status | Assignment |
 | :---------- | :------------- | :--------- |
-{1}
+{0}
 
 '@
 
@@ -95,8 +89,8 @@ function Test-Assessment-24553 {
             $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
-         # Format the template by replacing placeholders with values
-        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
+         # Format the template by replacing placeholder with table rows
+        $mdInfo = $formatTemplate -f $tableRows
     }
 
     # Replace the placeholder in the test result markdown with the generated details
@@ -105,7 +99,6 @@ function Test-Assessment-24553 {
 
     $params = @{
         TestId             = '24553'
-        Title              = 'Intune Windows Update policy is configured and assigned'
         Status             = $passed
         Result             = $testResultMarkdown
     }
