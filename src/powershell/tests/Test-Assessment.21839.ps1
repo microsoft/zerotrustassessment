@@ -39,7 +39,12 @@ function Test-Assessment-21839{
 
     # Build details section for markdown (bulleted list)
     $mdInfo = "`n## [Passkey authentication method details]($portalLink)`n"
-    $mdInfo += "- **Status** : $((Get-Culture).TextInfo.ToTitleCase($state.ToLower()))`n"
+    $statusDisplay = if ($state -eq 'enabled') {
+        "Enabled ✅"
+    } else {
+        "Disabled ❌"
+    }
+    $mdInfo += "- **Status** : $statusDisplay`n"
     $mdInfo += "- **Include targets** : "
     if ($includeTargets) {
         $mdInfo += ($includeTargets | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', '
