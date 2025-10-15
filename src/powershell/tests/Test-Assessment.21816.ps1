@@ -194,11 +194,15 @@ function Test-Assessment-21816 {
         $mdInfo += "| :----------- | :------------------ | :-------- | :-------------- |`n"
 
         foreach ($user in $nonPIMPrivilegedUsers) {
-            $mdInfo += "| $($user.displayName) | $($user.userPrincipalName) | $($user.roleName) | $($user.assignmentType) |`n"
+            $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/$($user.id)/hidePreviewBanner~/true"
+            $displayNameLink = "[$($user.displayName)]($userLink)"
+            $mdInfo += "| $displayNameLink | $($user.userPrincipalName) | $($user.roleName) | $($user.assignmentType) |`n"
         }
 
         foreach ($group in $nonPIMPrivilegedGroups) {
-            $mdInfo += "| $($group.displayName) | N/A (Group) | $($group.roleName) | $($group.assignmentType) |`n"
+            $groupLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupDetailsMenuBlade/~/RolesAndAdministrators/groupId/$($group.id)/menuId/"
+            $displayNameLink = "[$($group.displayName)]($groupLink)"
+            $mdInfo += "| $displayNameLink | N/A (Group) | $($group.roleName) | $($group.assignmentType) |`n"
         }
     }
 
@@ -209,7 +213,9 @@ function Test-Assessment-21816 {
 
         foreach ($user in $permanentGAUserList) {
             $syncStatus = if ($null -ne $user.onPremisesSyncEnabled) { $user.onPremisesSyncEnabled } else { 'N/A' }
-            $mdInfo += "| $($user.displayName) | $($user.userPrincipalName) | $($user.assignmentType) | $syncStatus |`n"
+            $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/$($user.id)/hidePreviewBanner~/true"
+            $displayNameLink = "[$($user.displayName)]($userLink)"
+            $mdInfo += "| $displayNameLink | $($user.userPrincipalName) | $($user.assignmentType) | $syncStatus |`n"
         }
     }
 
