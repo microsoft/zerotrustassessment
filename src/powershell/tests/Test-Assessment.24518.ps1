@@ -29,19 +29,16 @@ function Test-Assessment-24518 {
     $applications = Invoke-ZtGraphRequest -RelativeUri 'applications' -ApiVersion beta
 
     if (-not $applications) {
-        Write-PSFMessage "⚠️ No applications found." -Level Warning
         return
     }
 
     # Load permission classification CSV
     $classificationPath = Join-Path $PSScriptRoot '../assets/aadconsentgrantpermissiontable.csv'
     if (-not (Test-Path $classificationPath)) {
-        Write-PSFMessage "❌ Classification CSV not found at $classificationPath" -Level Error
         return
     }
 
     $permissionClassifications = Import-Csv $classificationPath
-    Write-PSFMessage "✅ Loaded $($permissionClassifications.Count) permission classifications" -Level VeryVerbose
 
     # Cache service principals to avoid redundant Graph calls
     $spCache = @{}
@@ -67,8 +64,6 @@ function Test-Assessment-24518 {
     $allHaveOwners = $true
 
     foreach ($app in $filteredApps) {
-
-        Write-PSFMessage "🔹 Processing app: $($app.displayName)" -Level Verbose
 
         $owners = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/owners" -ApiVersion beta
         $ownerCount = ($owners | Measure-Object).Count
@@ -146,5 +141,4 @@ function Test-Assessment-24518 {
     }
 
     Add-ZtTestResultDetail @params
-    Write-PSFMessage '🟩 Completed Test-Assessment-24518' -Tag Test -Level VeryVerbose
 }
