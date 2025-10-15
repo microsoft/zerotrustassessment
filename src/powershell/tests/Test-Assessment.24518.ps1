@@ -111,8 +111,8 @@ function Test-Assessment-24518 {
             }
         }
 
-        $permList = if ($permDisplay) { ($permDisplay | Sort-Object -Unique) -join ", "} else { 'None' }
-        $classList = if ($classDisplay) { ($classDisplay | Sort-Object -Unique) -join ", "} else { 'Unknown' }
+        $permList = if ($permDisplay) { ($permDisplay | Sort-Object -Unique) -join ', '} else { 'None' }
+        $classList = if ($classDisplay) { ($classDisplay | Sort-Object -Unique) -join ', '} else { 'Unknown' }
 
         # Build clickable Entra portal link for the application
         $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
@@ -124,7 +124,7 @@ function Test-Assessment-24518 {
 
     if ($allHaveOwners) {
         $passed = $true
-        $testResultMarkdown = "All enterprise applications have at least two owners."
+        $testResultMarkdown = 'All enterprise applications have at least two owners.'
     } else {
         $passed = $false
         $mdInfo = ''
