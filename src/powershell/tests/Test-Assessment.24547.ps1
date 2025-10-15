@@ -12,7 +12,7 @@ function Test-Assessment-24547 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24547,
-    	Title = 'Compliance policy assignment for Android Enterprise personally owned devices',
+    	Title = 'Compliance policies protect personally owned Android devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -12,7 +12,7 @@ function Test-Assessment-24560 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24560,
-    	Title = 'Windows Cloud LAPS policy',
+    	Title = 'Local administrator credentials on Windows are protected by Windows LAPS',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

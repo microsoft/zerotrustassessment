@@ -12,7 +12,7 @@ function Test-Assessment-24541 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24541,
-    	Title = 'Compliance policy for Windows devices',
+    	Title = 'Compliance policies protect Windows devices',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

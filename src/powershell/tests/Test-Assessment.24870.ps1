@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Corporate Wi-Fi Network on macOS Devices is Securely Managed
 #>
@@ -9,10 +9,10 @@ function Test-Assessment-24870 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and isolate production systems',
+    	SfiPillar = '',
     	TenantType = ('Workforce'),
     	TestId = 24870,
-    	Title = 'Corporate Wi-Fi Network on macOS Devices is Securely Managed  ',
+    	Title = 'Secure Wi-Fi profiles are configured to protect macOS connectivity and devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

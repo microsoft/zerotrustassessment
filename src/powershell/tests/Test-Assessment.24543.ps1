@@ -12,7 +12,7 @@ function Test-Assessment-24543 {
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24543,
-    	Title = 'Compliance policy assignment for iOS/iPadOS devices',
+    	Title = 'Compliance policies protect iOS/iPadOS devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

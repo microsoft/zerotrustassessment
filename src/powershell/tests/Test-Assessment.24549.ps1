@@ -12,7 +12,7 @@ function Test-Assessment-24549 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24549,
-    	Title = 'App protection policy for Android devices',
+    	Title = 'Data on Android is protected by app protection policies',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

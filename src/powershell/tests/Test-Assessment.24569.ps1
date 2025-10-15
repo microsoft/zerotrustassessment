@@ -12,7 +12,7 @@ function Test-Assessment-24569 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24569,
-    	Title = 'macOS FireVault policy',
+    	Title = 'FileVault encryption protects data on macOS devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

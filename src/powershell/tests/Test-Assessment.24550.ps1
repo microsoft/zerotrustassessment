@@ -15,7 +15,7 @@ function Test-Assessment-24550 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24550,
-    	Title = 'Windows BitLocker policy',
+    	Title = 'Data on Windows is protected by BitLocker encryption',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

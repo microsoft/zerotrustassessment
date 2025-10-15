@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Corporate Wi-Fi network on iOS devices is securely managed
 #>
@@ -9,10 +9,10 @@ function Test-Assessment-24839 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and isolate production systems',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24839,
-    	Title = 'Corporate Wi-Fi network on iOS devices is securely managed ',
+    	Title = 'Secure Wi-Fi profiles protect iOS devices from unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -47,19 +47,18 @@ function Test-Assessment-24839 {
     $tableRows = ""
 
     # Generate markdown table rows for each policy
-    if ($compliantIosWifiConfProfiles.Count -gt 0) {
+    if ($iOSWifiConfProfiles.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
 ## {0}
 
-| Policy Name | Status | Assignment |
-| :---------- | :----- | :--------- |
+| Policy Name | Wi-Fi Security Type | Status | Assignment |
+| :---------- | :----- | :--------- | :--------- |
 {1}
 
 '@
-
-        foreach ($policy in $compliantIosWifiConfProfiles) {
+        foreach ($policy in $iOSWifiConfProfiles) {
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesIosMenu/~/configuration'
             $status = if ($policy.assignments.count -gt 0) {
                 '✅ Assigned'
@@ -68,6 +67,8 @@ function Test-Assessment-24839 {
                 '❌ Not Assigned'
             }
 
+            $wifiType = Get-WifiSecurityType -SecurityType $policy.wiFiSecurityType
+
             $policyName = Get-SafeMarkdown -Text $policy.displayName
             $assignmentTarget = "None"
 
@@ -75,9 +76,7 @@ function Test-Assessment-24839 {
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
-            $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |
-"@
+            $tableRows += "| [$policyName]($portalLink) | $wifiType | $status | $assignmentTarget |`n"
         }
 
          # Format the template by replacing placeholders with values

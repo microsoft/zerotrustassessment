@@ -12,7 +12,7 @@ function Test-Assessment-24574 {
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24574,
-    	Title = 'Attack surface reduction policies for Windows',
+    	Title = 'Attack Surface Reduction rules are applied to Windows devices to prevent exploitation of vulnerable system components',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -30,66 +30,83 @@ function Test-Assessment-24574 {
         $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_policy_config_defender_attacksurfacereductionrules'
     }
 
-    $requiredSettings = @{
-        'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts' = @{
-            ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts_warn')
-            ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
-            SettingIdPath  = 'settingDefinitionId'
-            ValuePath      = 'ChoiceSettingValue.Value'
-            Description    = 'block execution of potentially obfuscated scripts = Warn'
+    # Initialize variables for filtered policies
+    $warnObfuscated = @()
+    $blockObfuscated = @()
+    $blockWin32CallsFromMacros = @()
+    $warnWin32CallsFromMacros = @()
+
+    # Only proceed with filtering if we have ASR policies
+    if ($win10MdmSenseASRPolicies -and $win10MdmSenseASRPolicies.Count -gt 0) {
+        $requiredSettings = @{
+            'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts' = @{
+                ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts_warn')
+                ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
+                SettingIdPath  = 'settingDefinitionId'
+                ValuePath      = 'ChoiceSettingValue.Value'
+                Description    = 'block execution of potentially obfuscated scripts = Warn'
+            }
         }
-    }
 
-    $warnObfuscated = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
+        $warnObfuscated = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
 
-    $requiredSettings = @{
-        'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts' = @{
-            ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts_block')
-            ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
-            SettingIdPath  = 'settingDefinitionId'
-            ValuePath      = 'ChoiceSettingValue.Value'
-            Description    = 'block execution of potentially obfuscated scripts = Block'
+        $requiredSettings = @{
+            'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts' = @{
+                ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts_block')
+                ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
+                SettingIdPath  = 'settingDefinitionId'
+                ValuePath      = 'ChoiceSettingValue.Value'
+                Description    = 'block execution of potentially obfuscated scripts = Block'
+            }
         }
-    }
 
-    $blockObfuscated = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
+        $blockObfuscated = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
 
-    $requiredSettings = @{
-        'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros' = @{
-            ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros_block')
-            ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
-            SettingIdPath  = 'settingDefinitionId'
-            ValuePath      = 'ChoiceSettingValue.Value'
-            Description    = 'block execution of potentially obfuscated scripts = Block'
+        $requiredSettings = @{
+            'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros' = @{
+                ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros_block')
+                ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
+                SettingIdPath  = 'settingDefinitionId'
+                ValuePath      = 'ChoiceSettingValue.Value'
+                Description    = 'block execution of potentially obfuscated scripts = Block'
+            }
         }
-    }
 
-    $blockWin32CallsFromMacros = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
+        $blockWin32CallsFromMacros = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
 
-    $requiredSettings = @{
-        'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros' = @{
-            ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros_warn')
-            ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
-            SettingIdPath  = 'settingDefinitionId'
-            ValuePath      = 'ChoiceSettingValue.Value'
-            Description    = 'block execution of potentially obfuscated scripts = Warn'
+        $requiredSettings = @{
+            'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros' = @{
+                ExpectedValues = @('device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockwin32apicallsfromofficemacros_warn')
+                ContainerPath  = 'settings.settingInstance.groupSettingCollectionValue.children'
+                SettingIdPath  = 'settingDefinitionId'
+                ValuePath      = 'ChoiceSettingValue.Value'
+                Description    = 'block execution of potentially obfuscated scripts = Warn'
+            }
         }
-    }
 
-    $warnWin32CallsFromMacros = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
+        $warnWin32CallsFromMacros = Get-FilteredPoliciesBySetting -Policies $win10MdmSenseASRPolicies -RequiredSettings $requiredSettings
+    }
     #endregion Data Collection
 
     #region Assessment Logic
     # The two required ASR settings must be configured to at least 'Warn' and assigned to a group, but can be done in separate policies
     Write-ZtProgress -Activity $activity -Status "Checking ASR Policies"
-    $passed = ($warnObfuscated.Where{$_.assignments.count -gt 0}.count -gt 0 -or $blockObfuscated.Where{$_.assignments.count -gt 0}.count -gt 0) -and
-            ($blockWin32CallsFromMacros.Where{$_.assignments.count -gt 0}.count -gt 0 -or $warnWin32CallsFromMacros.Where{$_.assignments.count -gt 0}.count -gt 0)
 
-    if ($passed) {
-        $testResultMarkdown = "ASR policies are configured and assigned to Windows devices in Intune.`n`n%TestResult%"
+    # Check if no ASR policies are found at all
+    if ($win10MdmSenseASRPolicies.Count -eq 0) {
+        $passed = $false
+        $testResultMarkdown = "No Attack Surface Reduction policies found for Windows devices in Intune.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No ASR policies are configured or assigned, leaving endpoints vulnerable.`n`n%TestResult%"
+        $passed = ($warnObfuscated.Where{$_.assignments.count -gt 0}.count -gt 0 -or $blockObfuscated.Where{$_.assignments.count -gt 0}.count -gt 0) -and
+                ($blockWin32CallsFromMacros.Where{$_.assignments.count -gt 0}.count -gt 0 -or $warnWin32CallsFromMacros.Where{$_.assignments.count -gt 0}.count -gt 0)
+
+        if ($passed) {
+            $testResultMarkdown = "ASR policies are configured and assigned to Windows devices in Intune.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "ASR policies found but are not properly configured or assigned, leaving endpoints vulnerable.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
@@ -97,23 +114,22 @@ function Test-Assessment-24574 {
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = 'Attack Surface Reduction Policies for Windows devices'
     $formatTemplate = ''
+
     # Generate markdown table rows for each policy
     if ($win10MdmSenseASRPolicies.Count -gt 0) {
-        # Create a here-string with format placeholders {0}, {1}, etc.
+        # Create a here-string with format placeholders
         $tableRows = ""
         $formatTemplate = @'
-## {0}
 
-| Policy Name | Status | Assignment | Execution of Potentially obfuscated scripts | Win32 API calls from Office macros |
-| :---------- | :----- | :--------- | :------------------------------------------ | :--------------------------------- |
-{1}
+| Policy name |  Execution of potentially obfuscated scripts | Win32 API calls from Office macros | Status | Assignment |
+| :---------- |  :------------------------------------------ | :--------------------------------- | :----- | :--------- |
+{0}
 
 '@
 
         foreach ($policy in $win10MdmSenseASRPolicies) {
-            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/accountprotection'
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/asr'
             $status = if ($policy.assignments.count -gt 0) {
                 '🟢 Assigned'
             }
@@ -158,12 +174,21 @@ function Test-Assessment-24574 {
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
-            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget | $executionOfPotentiallyObfuscatedScripts | $win32ApiCallsFromMacros |`n"
+            $tableRows += "| [$policyName]($portalLink) | $executionOfPotentiallyObfuscatedScripts | $win32ApiCallsFromMacros | $status | $assignmentTarget | `n"
         }
-    }
 
-    # Format the template by replacing placeholders with values
-    $mdInfo = $formatTemplate -f $reportTitle, $tableRows
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $tableRows
+    }
+    else {
+        # No ASR policies found
+        $mdInfo = @"
+**Required ASR Rules:**
+- Block execution of potentially obfuscated scripts
+- Block Win32 API calls from Office macros
+
+"@
+    }
 
     # Replace the placeholder in the test result markdown with the generated details
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
@@ -171,7 +196,6 @@ function Test-Assessment-24574 {
 
     $params = @{
         TestId             = '24574'
-        Title              = "Deploy Attack Surface Reduction Policies (ASR) policies for Windows devices"
         Status             = $passed
         Result             = $testResultMarkdown
     }

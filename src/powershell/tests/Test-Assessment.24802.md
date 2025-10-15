@@ -1,11 +1,15 @@
-If device cleanup rules aren't configured in Intune, stale, or inactive devices might remain in the tenant indefinitely, leading to cluttered device lists and inaccurate reports.
+If device cleanup rules aren't configured in Intune, stale or inactive devices can remain visible in the tenant indefinitely. This leads to cluttered device lists, inaccurate reporting, and reduced visibility into the active device landscape. Unused devices might retain access credentials or tokens, increasing the risk of unauthorized access or misinformed policy decisions. 
 
-Device clean-up rules help automate the removal of inactive devices, improving hygiene and reducing administrative overhead.
+Device cleanup rules automatically hide inactive devices from admin views and reports, improving tenant hygiene and reducing administrative burden. This supports Zero Trust by maintaining an accurate and trustworthy device inventory while preserving historical data for audit or investigation.
 
 **Remediation action**
 
-- [Remove devices by using wipe, retire, or manually unenrolling the device](https://learn.microsoft.com/intune/intune-service/remote-actions/devices-wipe?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Automatically hide devices with cleanup rules](https://learn.microsoft.com/intune/intune-service/remote-actions/devices-wipe?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#automatically-hide-devices-with-cleanup-rules)
-- [Using Intune device cleanup rules](https://techcommunity.microsoft.com/blog/devicemanagementmicrosoft/using-intune-device-cleanup-rules-updated-version/3760854) *on the Microsoft Tech Community blog*<!--- Results --->
+Configure Intune device cleanup rules to automatically hide inactive devices from the tenant:  
+- [Create a device cleanup rule](https://learn.microsoft.com/intune/intune-service/fundamentals/device-cleanup-rules?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-to-create-a-device-cleanup-rule)
+
+For more information, see:  
+- [Using Intune device cleanup rules](https://techcommunity.microsoft.com/blog/devicemanagementmicrosoft/using-intune-device-cleanup-rules-updated-version/3760854) *on the Microsoft Tech Community blog*
+
+<!--- Results --->
 %TestResult%
 
