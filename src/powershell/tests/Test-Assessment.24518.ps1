@@ -129,14 +129,14 @@ function Test-Assessment-24518 {
 
     if ($allHaveOwners) {
         $passed = $true
-        $testResultMarkdown = "✅ All enterprise applications have at least two owners."
+        $testResultMarkdown = "All enterprise applications have at least two owners."
     } else {
         $passed = $false
         $mdInfo = ''
         if ($tableRows) {
             $mdInfo = "`n## Enterprise Application Ownership`n`n" + $tableHeader + $tableRows
         }
-        $testResultMarkdown = "❌ Not all enterprise applications have at least two owners.`n$mdInfo"
+        $testResultMarkdown = "Not all enterprise applications have at least two owners.`n$mdInfo"
     }
 
     $params = @{
