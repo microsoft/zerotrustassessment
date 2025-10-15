@@ -33,7 +33,10 @@ function Test-Assessment-21840{
 
     # Build details section for markdown (bulleted list)
     $mdInfo = "`n## [Security key attestation policy details]($portalLink)`n"
-    $mdInfo += "- **Enforce attestation** : $isAttestationEnforced`n"
+
+    # Add visual indicator for attestation enforcement
+    $attestationStatus = if ($isAttestationEnforced -eq $true) { "True ✅" } else { "False ❌" }
+    $mdInfo += "- **Enforce attestation** : $attestationStatus`n"
     if ($null -ne $keyRestrictions) {
         $mdInfo += "- **Key restriction policy** :`n"
         if ($null -ne $keyRestrictions.isEnforced) {
@@ -45,6 +48,14 @@ function Test-Assessment-21840{
             $mdInfo += "  - **Restrict specific keys** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
         }else{
             $mdInfo += "  - **Restrict specific keys** : Not configured`n"
+        }
+
+        # Add aaGuids if present
+        if ($null -ne $keyRestrictions.aaGuids -and $keyRestrictions.aaGuids.Count -gt 0) {
+            $mdInfo += "  - **AAGUID** :`n"
+            foreach ($guid in $keyRestrictions.aaGuids) {
+                $mdInfo += "    - $guid`n"
+            }
         }
     }
 
