@@ -3,14 +3,14 @@
     Checks if local administrators are managed on Microsoft Entra joined devices.
 #>
 
-function Test-Assessment-21955{
+function Test-Assessment-21955 {
     [ZtTest(
         Category = 'Access control',
         ImplementationCost = 'Low',
         Pillar = 'Identity',
         RiskLevel = 'High',
         SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce','External'),
+        TenantType = ('Workforce', 'External'),
         TestId = 21955,
         Title = 'Manage the local administrators on Microsoft Entra joined devices',
         UserImpact = 'Low'
@@ -30,37 +30,25 @@ function Test-Assessment-21955{
 
     $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview'
 
+    $portalLinkMd = "[Global administrator role is added as local administrator on the device during Microsoft Entra join?]($portalLink)`n`n"
 
-    # Build details section for markdown (bulleted list)
-    $mdInfo = "`n## [Local administrator settings details]($portalLink)`n"
-
-    if($null -ne $enableGlobalAdmins)
-    {
-        if($enableGlobalAdmins -eq $true)
-        {
-            $mdInfo += "- **Global administrator role is added as local administrator on the device during Microsoft Entra join** : **Yes** ✅`n"
-        }
-        else{
-            $mdInfo += "- **Global administrator role is added as local administrator on the device during Microsoft Entra join** : **No** ❌`n"
-        }
-    }
-    else{
-        $mdInfo += "- **Global administrator role is added as local administrator on the device during Microsoft Entra join** : Not configured`n"
-    }
-
-    # Pass/fail logic
-    if ($enableGlobalAdmins -eq $true) {
+    if ($enableGlobalAdmins) {
         $passed = $true
-        $testResultMarkdown = "Local administrators on Microsoft Entra joined devices are managed by the organization.$mdInfo"
-    } else {
+        $testResultMarkdown = "Local administrators on Microsoft Entra joined devices are managed by the organization.`n`n"
+        $testResultMarkdown += $portalLinkMd
+        $testResultMarkdown += "- **Yes** → ✅"
+    }
+    else {
         $passed = $false
-        $testResultMarkdown = "Local administrators on Microsoft Entra joined devices are not managed by the organization.$mdInfo"
+        $testResultMarkdown = "Local administrators on Microsoft Entra joined devices are not managed by the organization.`n`n"
+        $testResultMarkdown += $portalLinkMd
+        $testResultMarkdown += "- **No** → ❌"
     }
 
     $params = @{
-        TestId             = '21955'
-        Status             = $passed
-        Result             = $testResultMarkdown
+        TestId = '21955'
+        Status = $passed
+        Result = $testResultMarkdown
     }
 
     Add-ZtTestResultDetail @params
