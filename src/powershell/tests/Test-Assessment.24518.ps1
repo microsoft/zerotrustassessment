@@ -18,15 +18,23 @@ function Test-Assessment-24518 {
     )]
 
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking enterprise application ownership'
     Write-ZtProgress -Activity $activity -Status 'Getting all applications'
 
-    # Get all applications
-    $applications = Invoke-ZtGraphRequest -RelativeUri 'applications' -ApiVersion beta
+    # Get all applications from database
+    $sqlApp = @"
+SELECT id, displayName, signInAudience, requiredResourceAccess, owners
+FROM Application
+ORDER BY displayName
+"@
+
+    $applications = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
 
     if (-not $applications) {
         return
@@ -65,8 +73,14 @@ function Test-Assessment-24518 {
 
     foreach ($app in $filteredApps) {
 
-        $owners = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/owners" -ApiVersion beta
-        $ownerCount = ($owners | Measure-Object).Count
+        # Get owner count from database field
+        # The owners field is a JSON array, so we need to parse it
+        $ownerCount = 0
+        if ($app.owners -and $app.owners -ne '[]') {
+            # Parse JSON array and count owners
+            $ownersList = $app.owners | ConvertFrom-Json
+            $ownerCount = ($ownersList | Measure-Object).Count
+        }
         if ($ownerCount -lt 2) { $allHaveOwners = $false }
 
         $isMultiTenant = $app.signInAudience -eq 'AzureADMultipleOrgs'
@@ -116,7 +130,8 @@ function Test-Assessment-24518 {
 
         # Build clickable Entra portal link for the application
         $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
-        $appLink = "[$($app.displayName)]($entraLink)"
+        $safeDisplayName = Get-SafeMarkdown -Text $app.displayName
+        $appLink = "[$safeDisplayName]($entraLink)"
 
         $tableRows += "| $appLink | $isMultiTenant | $permList | $classList | $ownerCount |`n"
 
