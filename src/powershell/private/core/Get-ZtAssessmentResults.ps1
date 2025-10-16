@@ -74,7 +74,7 @@ function Get-ZtAssessmentResults {
 		LatestVersion     = Get-ModuleLatestVersion
 		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.Value.values
 		Tests             = @($tests) # Use @() to ensure it's an array
-		TenantInfo        = $script:__ZtSession.TenantInfo
+		TenantInfo        = Get-ZtTenantInfo
 		EndOfJson         = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
 	}
 

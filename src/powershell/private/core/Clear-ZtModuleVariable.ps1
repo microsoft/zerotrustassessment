@@ -18,6 +18,6 @@ function Clear-ZtModuleVariable {
     $script:__ZtSession.GraphBaseUri = $null
     $script:__ZtSession.TestResultDetail.Value.Clear()
     $script:__ZtSession.TestStatistics.Value.Clear()
-    $script:__ZtSession.TenantInfo = @{}
+    $script:__ZtSession.TenantInfo.Value.Clear()
     $script:__ZtSession.SignInLogDuration = $null
 }
