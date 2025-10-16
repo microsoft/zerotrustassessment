@@ -181,8 +181,6 @@ function Test-Assessment-21813{
         $gaRatioPercentage = 0
     }
 
-    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles'
-
     # Build details section for markdown
     $mdInfo = ''
 
