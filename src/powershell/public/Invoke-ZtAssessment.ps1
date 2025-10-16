@@ -36,6 +36,14 @@ Path to a configuration file. Parameters specified on the command line will over
 .PARAMETER Interactive
 If specified, prompts the user interactively for input values using a text-based user interface.
 
+.PARAMETER ExportThrottleLimit
+Maximum number of data collectors processed in parallel.
+Raising this number may improve performance, but risk hitting throttling limits.
+
+.PARAMETER TestThrottleLimit
+Maximum number of tests processed in parallel.
+Raising this number may improve performance, but risk hitting throttling limits.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -144,7 +152,13 @@ function Invoke-ZtAssessment {
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices')]
 		[string]
-		$Pillar = 'All'
+		$Pillar = 'All',
+
+		[int]
+		$ExportThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
+
+		[int]
+		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5)
 	)
 
 	#region Utility Functions
@@ -312,7 +326,7 @@ function Invoke-ZtAssessment {
 			if ($deleteFolder -eq "y") {
 				Write-Host "🗑️ " -NoNewline -ForegroundColor Red
 				Write-Host "Cleaning up existing files..." -ForegroundColor White
-				Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop | Out-Null
+				Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop -ProgressAction SilentlyContinue | Out-Null
 				Write-Host "✅ " -NoNewline -ForegroundColor Green
 				Write-Host "Folder cleaned successfully" -ForegroundColor Green
 				Write-Host
@@ -366,18 +380,18 @@ function Invoke-ZtAssessment {
 	# Collect data
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
 	Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
-	$db = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
 
 	# Run the tests
 	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $db -Tests $Tests -Pillar $Pillar
+	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
 	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
-	Invoke-ZtTenantInfo -Database $db -Pillar $Pillar
+	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
 	Write-PSFMessage -Message "Stage 4: Generating Test-Results" -Tag stage
 	$assessmentResults = Get-ZtAssessmentResults
 
-	Disconnect-Database -Db $db
+	Disconnect-Database -Database $database
 
 	Write-PSFMessage -Message "Stage 5: Writing Assessment report data" -Tag stage
 	$assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10

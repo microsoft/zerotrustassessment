@@ -1,9 +1,12 @@
-﻿## Initialize Module Variables
+﻿# Initialize Module Variables
 ## Update Clear-ModuleVariable function in private/Clear-ModuleVariable.ps1 if you add new variables here
 $script:__ZtSession = @{
-	GraphCache   = @{}
+	GraphCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.GraphCache" -Dictionary -PassThru
 	GraphBaseUri = $null
 	TestMeta     = @()
+	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
+	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
+	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 }
 
 # The Database Connection used by Invoke-DatabaseQuery. Established by Connect-Database, cleared by Disconnect-Database

@@ -76,14 +76,14 @@
 	if ($cacheBlocked) { $DisableCache = $true }
 	$results = $null
 	$isBatch = $uri.AbsoluteUri.EndsWith('$batch')
-	$isInCache = $script:__ZtSession.GraphCache.ContainsKey($Uri.AbsoluteUri)
+	$isInCache = $script:__ZtSession.GraphCache.Value.ContainsKey($Uri.AbsoluteUri)
 	$cacheKey = $Uri.AbsoluteUri
 	$isMethodGet = $Method -eq 'GET'
 
 	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isInCache -and $isMethodGet) {
 		# Don't read from cache for batch requests.
 		Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
-		$results = $script:__ZtSession.GraphCache[$cacheKey]
+		$results = $script:__ZtSession.GraphCache.Value[$cacheKey]
 		if ($results) {
 			return $results
 		}
@@ -111,7 +111,7 @@
 
 	if (-not $isBatch -and -not $DisableCache) {
 		# Update cache
-		$script:__ZtSession.GraphCache[$cacheKey] = $results
+		$script:__ZtSession.GraphCache.Value[$cacheKey] = $results
 	}
 	$results
 }
