@@ -1,14 +1,4 @@
-Threat actors increasingly target workload identities (applications, service principals, and managed identities) because they lack human factors and often use long-lived credentials. A compromise often looks like the following path:
-
-1. Credential abuse or key theft.
-1. Non-interactive sign-ins to cloud resources.
-1. Lateral movement via app permissions.
-1. Persistence through new secrets or role assignments.
-
-Microsoft Entra ID Protection continuously generates risky workload identity detections and flags sign-in events with risk state and detail. Risky workload identity sign-ins that aren’t triaged (confirmed compromised, dismissed, or marked safe), detection fatigue, and a large alert backlog can be challenging for IT admins to manage. This heavy workload can let repeated malicious access, privilege escalation, and token replay to continue to go unnoticed. To make the workload manageable, address risky workload identity sign-ins in two parts:
-
-- Close the loop: Triage sign-ins and record an authoritative decision on each risky event.
-- Drive containment: Disable the service principal, rotate credentials, or revoke sessions.
+Threat actors increasingly target workload identities (applications, service principals, and managed identities) because they lack human factors and often use long-lived credentials. A compromise typically starts with credential abuse or key theft, followed by non-interactive sign-ins to cloud resources, lateral movement via app permissions, and persistence through new secrets or role assignments. Microsoft Entra ID Protection continuously generates risky workload identity detections and flags sign-in events with risk state and detail. If risky workload identity sign-ins aren’t triaged (confirmed compromised, dismissed as benign, or marked safe), detection fatigue and alert backlog allow repeated malicious access, privilege escalation, and token replay to continue unnoticed. Triaging sign-ins closes the loop by recording an authoritative decision on each risky event and driving containment actions such as disabling the service principal, rotating credentials, or revoking sessions.
 
 **Remediation action**
 

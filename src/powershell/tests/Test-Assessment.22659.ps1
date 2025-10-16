@@ -41,18 +41,6 @@ function Test-Assessment-22659{
     }
 
     $result = $riskDetections.Count -eq 0
-    $details = [System.Collections.ArrayList]::new()
-
-    if ($riskDetections) {
-        foreach ($detection in $riskDetections) {
-            [void]$details.Add("Service Principal: $($detection.servicePrincipalDisplayName)")
-            [void]$details.Add("- App ID: $($detection.appId)")
-            [void]$details.Add("- Risk State: $($detection.riskState)")
-            [void]$details.Add("- Risk Level: $($detection.riskLevel)")
-            [void]$details.Add("- Last Updated: $($detection.riskLastUpdatedDateTime)")
-            [void]$details.Add("")
-        }
-    }
 
     $testResultMarkdown = ''
     if ($result) {
@@ -64,10 +52,42 @@ function Test-Assessment-22659{
         $testResultMarkdown = @"
 ❌ Found risky workload identities sign-ins that require triage.
 
-$($details -join "`n")
+%TestResult%
 
 "@
     }
+
+    # Create detailed table information if there are risky detections
+    $mdInfo = ''
+    if ($riskDetections) {
+        $tableRows = ''
+        $reportTitle = "Risky Workload Identity Sign-ins"
+
+        # Create a here-string with format placeholders {0}, {1}, etc.
+        $formatTemplate = @'
+
+## {0}
+
+
+| Service Principal | App ID | Risk State | Risk Level | Last Updated |
+| :---------------- | :----- | :--------- | :--------- | :----------- |
+{1}
+
+'@
+
+        foreach ($detection in $riskDetections) {
+            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}' -f $detection.servicePrincipalId, $detection.appId
+            $tableRows += @"
+| [$(Get-SafeMarkdown($detection.servicePrincipalDisplayName))]($portalLink) | $($detection.appId) | $($detection.riskState) | $($detection.riskLevel) | $(Get-FormattedDate($detection.riskLastUpdatedDateTime)) |`n
+"@
+        }
+
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
+    }
+
+    # Replace the placeholder with the detailed information
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
     $passed = $result
     Add-ZtTestResultDetail `
