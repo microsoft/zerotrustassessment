@@ -3,17 +3,17 @@
     Checks if Passkey (FIDO2) authentication method is enabled and configured for users in the tenant.
 #>
 
-function Test-Assessment-21839{
+function Test-Assessment-21839 {
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Identity',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce','External'),
-    	TestId = 21839,
-    	Title = 'Passkey authentication method enabled',
-    	UserImpact = 'Low'
+        Category = 'Access control',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce', 'External'),
+        TestId = 21839,
+        Title = 'Passkey authentication method enabled',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
@@ -39,49 +39,56 @@ function Test-Assessment-21839{
 
     # Build details section for markdown (bulleted list)
     $mdInfo = "`n## [Passkey authentication method details]($portalLink)`n"
-    $statusDisplay = if ($state -eq 'enabled') {
+    $isEnabled = $state -eq 'enabled'
+    $statusDisplay = if ($isEnabled) {
         "Enabled ✅"
-    } else {
+    }
+    else {
         "Disabled ❌"
     }
     $mdInfo += "- **Status** : $statusDisplay`n"
-    $mdInfo += "- **Include targets** : "
-    if ($includeTargets) {
-        $mdInfo += ($includeTargets | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', '
-    } else {
-        $mdInfo += 'None'
-    }
-    $mdInfo += "`n"
-    $mdInfo += "- **Enforce attestation** : $isAttestationEnforced`n"
-    if ($null -ne $keyRestrictions) {
-        $mdInfo += "- **Key restriction policy** :`n"
-        if ($null -ne $keyRestrictions.isEnforced) {
-            $mdInfo += "  - **Enforce key restrictions** : $($keyRestrictions.isEnforced)`n"
-        }else{
-            $mdInfo += "  - **Enforce key restrictions** : Not configured`n"
+
+    if ($isEnabled) {
+        # Don't show details of passkey configuration if it is disabled.
+        $mdInfo += "- **Include targets** : "
+        if ($includeTargets) {
+            $mdInfo += ($includeTargets | ForEach-Object { Get-ZtAuthenticatorFeatureSettingTarget -Target $_ }) -join ', '
         }
-        if ($null -ne $keyRestrictions.EnforcementType) {
-            $mdInfo += "  - **Restrict specific keys** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
-        }else{
-            $mdInfo += "  - **Restrict specific keys** : Not configured`n"
+        else {
+            $mdInfo += 'None'
+        }
+        $mdInfo += "`n"
+        $mdInfo += "- **Enforce attestation** : $isAttestationEnforced`n"
+        if ($null -ne $keyRestrictions) {
+            $mdInfo += "- **Key restriction policy** :`n"
+            if ($null -ne $keyRestrictions.isEnforced) {
+                $mdInfo += "  - **Enforce key restrictions** : $($keyRestrictions.isEnforced)`n"
+            }
+            else {
+                $mdInfo += "  - **Enforce key restrictions** : Not configured`n"
+            }
+            if ($null -ne $keyRestrictions.EnforcementType) {
+                $mdInfo += "  - **Restrict specific keys** : $((Get-Culture).TextInfo.ToTitleCase($keyRestrictions.EnforcementType.ToLower()))`n"
+            }
+            else {
+                $mdInfo += "  - **Restrict specific keys** : Not configured`n"
+            }
         }
     }
 
-    if($fido2Enabled -and $hasIncludeTargets)
-    {
+    if ($fido2Enabled -and $hasIncludeTargets) {
         $passed = $true
         $testResultMarkdown = "Passkey authentication method is enabled and configured for users in your tenant.$mdInfo"
     }
-    else
-    {
+    else {
         $passed = $false
         $testResultMarkdown = "Passkey authentication method is not enabled or not configured for any users in your tenant.$mdInfo"
     }
 
     $params = @{
-        TestId             = '21839'
-        Status             = $passed
-        Result             = $testResultMarkdown
+        TestId = '21839'
+        Status = $passed
+        Result = $testResultMarkdown
     }
 
     Add-ZtTestResultDetail @params
