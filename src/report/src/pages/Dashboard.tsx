@@ -1,8 +1,13 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
 
-import {MonitorSmartphone, Users, User, UserCog} from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor } from "lucide-react";
 
 import {
+    Bar,
+    BarChart,
+    Cell,
+    Label,
+    LabelList,
     // Area,
     // AreaChart,
     // Bar,
@@ -12,9 +17,16 @@ import {
     // LabelList,
     // Line,
     // LineChart,
+    Pie,
+    PieChart,
     PolarAngleAxis,
     RadialBar,
     RadialBarChart,
+    Rectangle,
+    ReferenceLine,
+    ResponsiveContainer,
+    XAxis,
+    YAxis,
     // Rectangle,
     // ReferenceLine,
     // XAxis,
@@ -31,6 +43,8 @@ import {
 } from "@/components/ui/card"
 import {
     ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
     // ChartTooltip,
     // ChartTooltipContent,
 } from "@/components/ui/chart"
@@ -40,6 +54,7 @@ import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { WindowsJoinSankey } from "@/components/overview/windowsJoin-sankey";
+import { Separator } from "@/components/ui/separator";
 
 export default function Dashboard() {
 
@@ -89,7 +104,7 @@ export default function Dashboard() {
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2 flex-row">
-                        <Users className="pr-2 size-8" />
+                            <Users className="pr-2 size-8" />
                             <CardTitle className="text-2xl tabular-nums">
                                 All users auth methods
                             </CardTitle>
@@ -118,40 +133,7 @@ export default function Dashboard() {
                             </CardDescription>
                         </CardFooter>
                     </Card>
-                                        <Card
-                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
-                    >
-                        <CardHeader className="space-y-0 pb-2 flex-row">
-                        <Users className="pr-2 size-8" />
-                            <CardTitle className="text-2xl tabular-nums">
-                                Windows devices
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ChartContainer
-                                config={{
-                                    steps: {
-                                        label: "Steps",
-                                        color: "hsl(var(--chart-1))",
-                                    },
-                                }}
-                            >
-                                {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
-                                    <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
-                                ) : (
-                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                        No data available
-                                    </div>
-                                )}
-                            </ChartContainer>
-                        </CardContent>
-                        <CardFooter className="flex-col items-start gap-1">
-                            <CardDescription>
-                                {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.description || "No description available"}
-                            </CardDescription>
-                        </CardFooter>
-                    </Card>
-                    {/* <Card
+                    {<Card
                         className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2">
@@ -273,7 +255,7 @@ export default function Dashboard() {
                                 <span className="font-medium text-foreground">13,305</span> phishing attempts.
                             </CardDescription>
                         </CardFooter>
-                    </Card> */}
+                    </Card>}
                     {/* <Card
                         className="flex flex-col lg:max-w-md" x-chunk="charts-01-chunk-1"
                     >
@@ -397,7 +379,7 @@ export default function Dashboard() {
                     </Card> */}
                 </div>
                 <div className="grid w-full flex-1 gap-6 lg:max-w-[20rem]">
-                <Card
+                    <Card
                         className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2 flex-row">
@@ -426,7 +408,7 @@ export default function Dashboard() {
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                            {reportData.TenantInfo?.OverviewCaMfaAllUsers?.description || "No description available"}
+                                {reportData.TenantInfo?.OverviewCaMfaAllUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>
@@ -436,7 +418,7 @@ export default function Dashboard() {
                         <CardHeader className="space-y-0 pb-2 flex-row">
                             <MonitorSmartphone className="pr-2 size-8" />
                             <CardTitle className="text-2xl tabular-nums ">
-                                Device compliance
+                                Device sign-ins
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -459,11 +441,11 @@ export default function Dashboard() {
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
-                            {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.description || "No description available"}
+                                {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>
-                    {/* <Card
+                    {<Card
                         className="max-w-xs" x-chunk="charts-01-chunk-2"
                     >
                         <CardHeader>
@@ -576,8 +558,8 @@ export default function Dashboard() {
                                 </ChartContainer>
                             </div>
                         </CardContent>
-                    </Card> */}
-                    {/* <Card
+                    </Card>}
+                    {<Card
                         className="max-w-xs" x-chunk="charts-01-chunk-3"
                     >
                         <CardHeader className="p-4 pb-0">
@@ -660,117 +642,10 @@ export default function Dashboard() {
                                 </BarChart>
                             </ChartContainer>
                         </CardContent>
-                    </Card> */}
-                    {/* <Card
-                        className="max-w-xs" x-chunk="charts-01-chunk-4"
-                    >
-                        <CardContent className="flex gap-4 p-4 pb-2">
-                            <ChartContainer
-                                config={{
-                                    move: {
-                                        label: "MFA",
-                                        color: "hsl(var(--chart-1))",
-                                    },
-                                    stand: {
-                                        label: "MDM",
-                                        color: "hsl(var(--chart-2))",
-                                    },
-                                    exercise: {
-                                        label: "MAM",
-                                        color: "hsl(var(--chart-3))",
-                                    },
-                                }}
-                                className="h-[140px] w-full"
-                            >
-                                <BarChart
-                                    margin={{
-                                        left: 0,
-                                        right: 0,
-                                        top: 0,
-                                        bottom: 10,
-                                    }}
-                                    data={[
-                                        {
-                                            activity: "MFA",
-                                            value: (2500 / 3500) * 100,
-                                            label: "2.5k/3.5k sign-ins",
-                                            fill: "var(--color-stand)",
-                                        },
-                                        {
-                                            activity: "MDM",
-                                            value: (1200 / 3500) * 100,
-                                            label: "1.2k/3.5k",
-                                            fill: "var(--color-exercise)",
-                                        },
-                                        {
-                                            activity: "Defend",
-                                            value: (2000 / 3500) * 100,
-                                            label: "2k/3.5k",
-                                            fill: "var(--color-move)",
-                                        },
-                                    ]}
-                                    layout="vertical"
-                                    barSize={32}
-                                    barGap={2}
-                                >
-                                    <XAxis type="number" dataKey="value" hide />
-                                    <YAxis
-                                        dataKey="activity"
-                                        type="category"
-                                        tickLine={false}
-                                        tickMargin={4}
-                                        axisLine={false}
-                                        className="capitalize"
-                                    />
-                                    <Bar dataKey="value" radius={5}>
-                                        <LabelList
-                                            position="insideLeft"
-                                            dataKey="label"
-                                            fill="white"
-                                            offset={8}
-                                            fontSize={12}
-                                        />
-                                    </Bar>
-                                </BarChart>
-                            </ChartContainer>
-                        </CardContent>
-                        <CardFooter className="flex flex-row border-t p-4">
-                            <div className="flex w-full items-center gap-2">
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">MFA</div>
-                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        71
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            %
-                                        </span>
-                                    </div>
-                                </div>
-                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">MDM</div>
-                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        34
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            %
-                                        </span>
-                                    </div>
-                                </div>
-                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-xs text-muted-foreground">Defender</div>
-                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                        57%
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            %
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardFooter>
-                    </Card> */}
+                    </Card>}
                 </div>
                 <div className="grid w-full flex-1 gap-6">
-                    <Card
+                    <Card /** Test summary chart   */
                         className="max-w-xs" x-chunk="charts-01-chunk-5"
                     >
                         <CardContent className="flex gap-4 p-4">
@@ -1055,6 +930,284 @@ export default function Dashboard() {
                             </ChartContainer>
                         </CardContent>
                     </Card> */}
+                </div>
+            </div>
+
+            {/* Devices Section */}
+            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
+                {/* <PageHeader>
+                    <PageHeaderHeading>Devices</PageHeaderHeading>
+                </PageHeader> */}
+
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {/* Device summary chart */}
+                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 0) > 0 && (
+                        <Card>
+                            <CardHeader className="space-y-0 pb-2">
+                                <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex gap-4 p-4 pb-2">
+                                <ChartContainer
+                                    config={{
+                                        move: {
+                                            label: "MFA",
+                                            color: "hsl(var(--chart-1))",
+                                        },
+                                        stand: {
+                                            label: "MDM",
+                                            color: "hsl(var(--chart-2))",
+                                        },
+                                        exercise: {
+                                            label: "MAM",
+                                            color: "hsl(var(--chart-3))",
+                                        },
+                                    }}
+                                    className="h-[180px] w-full"
+                                >
+                                    <BarChart
+                                        margin={{
+                                            left: 0,
+                                            right: 0,
+                                            top: 0,
+                                            bottom: 10,
+                                        }}
+                                        data={[
+                                            {
+                                                activity: "Windows",
+                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0,
+                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0}`,
+                                                fill: "hsl(var(--chart-1))",
+                                            },
+                                            {
+                                                activity: "macOS",
+                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0,
+                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0}`,
+                                                fill: "hsl(var(--chart-2))",
+                                            },
+                                            {
+                                                activity: "iOS",
+                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0,
+                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0}`,
+                                                fill: "hsl(var(--chart-3))",
+                                            },
+                                            {
+                                                activity: "Android",
+                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0,
+                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0}`,
+                                                fill: "hsl(var(--chart-5))",
+                                            },
+                                        ]}
+                                        layout="vertical"
+                                        barSize={32}
+                                        barGap={2}
+                                    >
+                                        <XAxis type="number" dataKey="value" hide />
+                                        <YAxis
+                                            dataKey="activity"
+                                            type="category"
+                                            tickLine={false}
+                                            tickMargin={4}
+                                            axisLine={false}
+                                            className="capitalize"
+                                        />
+                                        <Bar dataKey="value" radius={5}>
+                                            <LabelList
+                                                position="insideLeft"
+                                                dataKey="label"
+                                                fill="white"
+                                                offset={8}
+                                                fontSize={12}
+                                            />
+                                        </Bar>
+                                    </BarChart>
+                                </ChartContainer>
+                            </CardContent>
+                            <CardFooter className="flex flex-row border-t p-4">
+                                <div className="flex w-full items-center gap-2">
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Desktops</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.desktopCount || 0) /
+                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 1)) * 100)}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Mobiles</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.mobileCount || 0) /
+                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 1)) * 100)}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    )}
+
+                    {/* Windows devices chart */}
+                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
+                    <Card className="lg:max-w-md">
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                            <Monitor className="pr-2 size-8" />
+                            <CardTitle className="text-2xl tabular-nums">
+                                Windows devices
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
+                                    <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex flex-row border-t p-4">
+                            <div className="flex w-full items-center gap-2">
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-xs text-muted-foreground">Entra joined</div>
+                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                        {(() => {
+                                            const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                            const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
+                                            const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                            return Math.round((entraJoined / (total || 1)) * 100);
+                                        })()}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            %
+                                        </span>
+                                    </div>
+                                </div>
+                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
+                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                        {(() => {
+                                            const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                            const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
+                                            const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                            return Math.round((entraHybrid / (total || 1)) * 100);
+                                        })()}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            %
+                                        </span>
+                                    </div>
+                                </div>
+                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-xs text-muted-foreground">Entra registered</div>
+                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                        {(() => {
+                                            const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                            const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
+                                            const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                            return Math.round((entraRegistered / (total || 1)) * 100);
+                                        })()}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            %
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardFooter>
+                    </Card>
+                    )}
+                    {/* Device compliance chart */}
+                    {(reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
+                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
+                            <Card>
+                                <CardHeader className="space-y-0 pb-2 flex-row">
+                                    <MonitorSmartphone className="pr-2 size-8" />
+                                    <CardTitle className="text-2xl tabular-nums ">
+                                        Device compliance
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex pb-2">
+                                    <ChartContainer
+                                        config={{
+                                            compliant: {
+                                                label: "Compliant",
+                                                color: "hsl(142, 76%, 36%)",
+                                            },
+                                            nonCompliant: {
+                                                label: "Non-compliant",
+                                                color: "hsl(0, 84%, 60%)",
+                                            },
+                                        }}
+                                        className="mx-auto aspect-square w-full"
+                                    >
+                                        <PieChart>
+                                            <Pie
+                                                data={[
+                                                    {
+                                                        name: "Compliant",
+                                                        value: reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount,
+                                                        fill: "var(--color-compliant)",
+                                                    },
+                                                    {
+                                                        name: "Non-compliant",
+                                                        value: reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount,
+                                                        fill: "var(--color-nonCompliant)",
+                                                    },
+                                                ]}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={40}
+                                                outerRadius={80}
+                                                paddingAngle={2}
+                                                dataKey="value"
+                                            >
+                                                <Cell fill="var(--color-compliant)" />
+                                                <Cell fill="var(--color-nonCompliant)" />
+                                            </Pie>
+                                            <ChartTooltip content={<ChartTooltipContent />} />
+                                        </PieChart>
+                                    </ChartContainer>
+                                </CardContent>
+                                <CardFooter className="flex flex-row border-t p-4">
+                                    <div className="flex w-full items-center gap-2">
+                                        <div className="grid flex-1 auto-rows-min gap-0.5">
+                                            <div className="text-xs text-muted-foreground">Compliant</div>
+                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                                {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount /
+                                                    (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
+                                                        reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount)) * 100)}
+                                                <span className="text-sm font-normal text-muted-foreground">
+                                                    %
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                        <div className="grid flex-1 auto-rows-min gap-0.5">
+                                            <div className="text-xs text-muted-foreground">Non-compliant</div>
+                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                                {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount /
+                                                    (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
+                                                        reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount)) * 100)}
+                                                <span className="text-sm font-normal text-muted-foreground">
+                                                    %
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardFooter>
+                            </Card>
+                        )}
                 </div>
             </div>
         </>

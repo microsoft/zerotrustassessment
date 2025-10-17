@@ -115,12 +115,13 @@ order by operatingSystem, trustType, isCompliant
             }
         )
 
-        # Remove nodes where value is null
-        $nodes = $nodes | Where-Object { $null -ne $_.value }
-
         @{
             "description" = "Windows devices by join type and compliance status."
             "nodes"       = $nodes
+            "totalDevices" = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+            "entrajoined" = $entraJoined
+            "entrahybridjoined" = $hybridJoined
+            "entrareigstered" = $entraRegistered
         }
     }
 
@@ -130,6 +131,13 @@ order by operatingSystem, trustType, isCompliant
     $windowsJoinSummary = Get-WindowsJoinSummary -Database $Database
     $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
     $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
+
+    # Append Desktop, Mobile and Total count
+    $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
+    $managedDevicesMobileCount  = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
+    $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
+    $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
+    $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value ($managedDevicesDesktopCount + $managedDevicesMobileCount)
 
     $deviceOverview = [PSCustomObject]@{
         WindowsJoinSummary = $windowsJoinSummary
