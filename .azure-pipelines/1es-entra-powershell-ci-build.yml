@@ -1,0 +1,79 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+name: $(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+trigger:
+  branches:
+    include:
+      - main
+pr: none
+parameters:
+  - name: Pack
+    type: boolean
+    default: true
+  - name: Sign
+    type: boolean
+    default: true
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/heads/main
+variables:
+  - group: OData-ESRP-CodeSigning
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: MSSecurity-1ES-Build-Agents-Pool
+      image: MSSecurity-1ES-Windows-2022
+      os: windows
+    sdl:
+      sourceAnalysisPool:
+        name: MSSecurity-1ES-Build-Agents-Pool
+        image: MSSecurity-1ES-Windows-2022
+        os: windows
+      credscan:
+        suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+        outputFormat: pre
+        debugMode: false
+        batchSize: 16
+      psscriptanalyzer:
+        break: false
+        enabled: true
+    stages:
+    - stage: build
+      jobs:
+      - job: EntraPowerShellCIBuild
+        displayName: Entra PowerShell CI Build
+        timeoutInMinutes: 840
+        steps:
+          - template: .azure-pipelines/common-templates/install-tools.yml@self
+          - template: .azure-pipelines/common-templates/security-pre-checks.yml@self
+
+          - template: .azure-pipelines/generation-templates/generate_adapter-1es.yml@self
+            parameters:
+              Sign: ${{ parameters.Sign }}
+
+          - ${{ if and(eq(parameters.Pack, true), eq(parameters.Sign, true)) }}:
+              - template: .azure-pipelines/common-templates/esrp/codesign-nuget.yml@self
+                parameters:
+                  FolderPath: "$(Build.ArtifactStagingDirectory)"
+                  Pattern: "Microsoft.Entra.*.nupkg"
+              - task: 1ES.PublishBuildArtifacts@1
+                displayName: Publish Module Artifacts
+                inputs:
+                  PathtoPublish: $(Build.ArtifactStagingDirectory)
+                  ArtifactName: drop
+              - task: 1ES.PublishNuget@1
+                displayName: Publish NuGet to preview feed
+                inputs:
+                  useDotNetTask: false
+                  packagesToPush: $(Build.ArtifactStagingDirectory)/**/Microsoft.Entra.*.nupkg
+                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
+                  publishVstsFeed: $(PROJECT_NAME)/$(PREVIEW_FEED_NAME)
+                  nuGetFeedType: internal
+                  allowPackageConflicts: true
+
+          - template: .azure-pipelines/common-templates/security-post-checks.yml@self
