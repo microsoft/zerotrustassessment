@@ -128,6 +128,7 @@ as
 	$database = Connect-Database -Path $dbPath -PassThru
 
 	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
+	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
 	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
 	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
 	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn'

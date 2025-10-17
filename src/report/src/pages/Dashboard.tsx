@@ -39,6 +39,7 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
+import { WindowsJoinSankey } from "@/components/overview/windowsJoin-sankey";
 
 export default function Dashboard() {
 
@@ -114,6 +115,39 @@ export default function Dashboard() {
                         <CardFooter className="flex-col items-start gap-1">
                             <CardDescription>
                                 {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.description || "No description available"}
+                            </CardDescription>
+                        </CardFooter>
+                    </Card>
+                                        <Card
+                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                    >
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                        <Users className="pr-2 size-8" />
+                            <CardTitle className="text-2xl tabular-nums">
+                                Windows devices
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    steps: {
+                                        label: "Steps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                            >
+                                {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
+                                    <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                        No data available
+                                    </div>
+                                )}
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                                {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.description || "No description available"}
                             </CardDescription>
                         </CardFooter>
                     </Card>

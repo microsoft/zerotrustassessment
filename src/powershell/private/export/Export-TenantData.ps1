@@ -73,6 +73,10 @@ function Export-TenantData {
 		-EntityUri 'beta/users' -ProgressActivity 'Users' `
 		-QueryString $userQueryString -ShowCount
 
+	Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
+		-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
+		-QueryString '$top=999' -ShowCount
+
 	Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
 		-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
 		-QueryString '$expand=owners&$top=999' -ShowCount
