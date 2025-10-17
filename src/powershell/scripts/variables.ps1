@@ -10,6 +10,12 @@ $script:__ZtSession = @{
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru
 }
 
+$script:__ZtThrottling = Set-PSFDynamicContentObject -Name "ZtAssessment.Throttles" -Dictionary -PassThru
+## Intune API Limits: 1000 / 20 seconds
+if (-not $script:__ZtThrottling.Value['deviceManagement']) {
+	$script:__ZtThrottling.Value['deviceManagement'] = New-PSFThrottle -Interval 20s -Limit 1000
+}
+
 # The Database Connection used by Invoke-DatabaseQuery. Established by Connect-Database, cleared by Disconnect-Database
 $script:_DatabaseConnection = $null
 

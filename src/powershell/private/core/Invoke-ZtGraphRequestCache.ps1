@@ -92,6 +92,15 @@
 	Write-PSFMessage "Invoking Graph: $($Uri.AbsoluteUri)" -Level Debug -Tag Graph
 	Write-PSFMessage ([string]::IsNullOrEmpty($Body)) -Level Debug -Tag Graph
 
+	# Throttling
+	$relativeUrl = ($Uri.LocalPath -split '/',2)[1]
+	$urlBase = $relativeUrl.Trim("/").Split("/")[0]
+	foreach ($urlPath in "$Uri", $relativeUrl, $urlBase) {
+		if ($script:__ZtThrottling.Value[$urlPath]) {
+			$script:__ZtThrottling.Value[$urlPath].GetSlot()
+			break
+		}
+	}
 
 	if (-not $isMethodGet) {
 		Invoke-MgGraphRequest -Method $Method -Uri $Uri -Headers $Headers -OutputType $OutputType -Body $Body
