@@ -56,7 +56,7 @@ function Test-PolicyAssignment {
 
     # Retrieve all macOS policies
     $macOSPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$expand=settings,assignments"
-    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta -Verbose
+    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta
 
     if($macOSPolicies ) {
         $macOSPolicies = $macOSPolicies | Where-Object { $_.settings.settingInstance.SettingDefinitionID -eq 'com.apple.security.firewall_com.apple.security.firewall' }
