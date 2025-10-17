@@ -50,20 +50,6 @@ ORDER BY displayName
 
     $applications = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
 
-    # ==> If no applications with < 2 owners found, test passes
-    if (-not $applications -or $applications.Count -eq 0) {
-        $passed = $true
-        $testResultMarkdown = 'All enterprise applications have at least two owners.'
-
-        $params = @{
-            TestId = '24518'
-            Status = $passed
-            Result = $testResultMarkdown
-        }
-        Add-ZtTestResultDetail @params
-        return
-    }
-
     # Load permission classification CSV
     $classificationPath = Join-Path $PSScriptRoot '../assets/aadconsentgrantpermissiontable.csv'
     if (-not (Test-Path $classificationPath)) {
@@ -75,23 +61,31 @@ ORDER BY displayName
     # Filter by permission classification (exclude High privilege apps)
     # SQL already filtered for < 2 owners
     $filteredApps = @()
-    foreach ($app in $applications) {
-        # Check permissions
-        $allPerms = $app.requiredResourceAccess | ForEach-Object { $_.resourceAccess } | Where-Object { $_ }
-        $permClass = @()
 
-        foreach ($perm in $allPerms) {
-            $row = $permissionClassifications | Where-Object { $_.Type -eq $perm.type }
-            if ($row) { $permClass += $row.Privilege }
-        }
+    if ($applications -and $applications.Count -gt 0) {
+        foreach ($app in $applications) {
+            # Check if app has any High privilege permissions
+            $hasHighPrivilege = $false
 
-        # Only include apps without High privilege permissions
-        if ($permClass -and ($permClass -notcontains 'High')) {
-            $filteredApps += $app
+            foreach ($req in $app.requiredResourceAccess) {
+                foreach ($perm in $req.resourceAccess) {
+                    $classification = $permissionClassifications | Where-Object { $_.Type -eq $perm.type -and $_.Privilege -eq 'High' }
+                    if ($classification) {
+                        $hasHighPrivilege = $true
+                        break
+                    }
+                }
+                if ($hasHighPrivilege) { break }
+            }
+
+            # Only include apps without High privilege permissions
+            if (-not $hasHighPrivilege) {
+                $filteredApps += $app
+            }
         }
     }
 
-    # ==> If no apps with insufficient owners and non-High permissions, test passes
+    # ==> If no problematic apps found, test passes
     if ($filteredApps.Count -eq 0) {
         $passed = $true
         $testResultMarkdown = 'All enterprise applications have at least two owners.'
@@ -119,61 +113,49 @@ ORDER BY displayName
         $ownerCount = 0
         if ($app.owners -and $app.owners -ne '[]') {
             $ownersList = $app.owners | ConvertFrom-Json
-            $ownerCount = ($ownersList | Measure-Object).Count
+            $ownerCount = $ownersList.Count
         }
 
         $isMultiTenant = $app.signInAudience -eq 'AzureADMultipleOrgs'
 
-        $permDisplay = @()
-        $classDisplay = @()
+        # Collect unique permissions and classifications
+        $permissionSet = @{}
+        $classificationSet = @{}
 
         foreach ($req in $app.requiredResourceAccess) {
-            $resourceAppId = $req.resourceAppId
-            if (-not $resourceAppId) { continue }
-
-            # Use cached Service Principal details to minimize calls
-            if (-not $spCache.ContainsKey($resourceAppId)) {
-                $spResponse = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "appId eq '$resourceAppId'" -ApiVersion v1.0
-                $spObj = $spResponse | Select-Object -First 1
-                $spCache[$resourceAppId] = $spObj
+            # Cache service principal lookup
+            if (-not $spCache.ContainsKey($req.resourceAppId)) {
+                $spResponse = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "appId eq '$($req.resourceAppId)'" -ApiVersion v1.0
+                $spCache[$req.resourceAppId] = $spResponse | Select-Object -First 1
             }
 
-            $spObj = $spCache[$resourceAppId]
+            $spObj = $spCache[$req.resourceAppId]
             if (-not $spObj) { continue }
 
-            # Match and classify permissions
+            # Process each permission
             foreach ($perm in $req.resourceAccess) {
-                $permId = $perm.id
-                $permType = $perm.type
+                # Get permission name
+                $permDef = @($spObj.oauth2PermissionScopes + $spObj.appRoles) | Where-Object { $_.id -eq $perm.id }
+                $permName = if ($permDef) { $permDef.displayName ?? $permDef.value } else { $perm.id }
+                $permissionSet[$permName] = $true
 
-                # Get permission name from Graph response (oauth2PermissionScopes or appRoles)
-                $permDef = @($spObj.oauth2PermissionScopes + $spObj.appRoles) | Where-Object { $_.id -eq $permId }
-                $permName = if ($permDef) {
-                                if ($permDef.displayName) { $permDef.displayName } else { $permDef.value }
-                            } else {
-                                $permId
+                # Get classification
+                $classRow = $permissionClassifications | Where-Object { $_.Type -eq $perm.type }
+                if ($classRow) {
+                    $classRow.Privilege | ForEach-Object { $classificationSet[$_] = $true }
                 }
-
-
-                # Find classification for this permission type
-                $classRow = $permissionClassifications | Where-Object { $_.Type -eq $permType }
-                $classification = if ($classRow) { ($classRow.Privilege | Sort-Object -Unique) -join ', ' } else { 'Unknown' }
-
-                $permDisplay += $permName
-                $classDisplay += $classification
             }
         }
 
-        $permList = if ($permDisplay) { ($permDisplay | Sort-Object -Unique) -join ', '} else { 'None' }
-        $classList = if ($classDisplay) { ($classDisplay | Sort-Object -Unique) -join ', '} else { 'Unknown' }
+        $permList = if ($permissionSet.Count -gt 0) { ($permissionSet.Keys | Sort-Object) -join ', ' } else { 'None' }
+        $classList = if ($classificationSet.Count -gt 0) { ($classificationSet.Keys | Sort-Object) -join ', ' } else { 'Unknown' }
 
-        # Build clickable Entra portal link for the application
+        # Build clickable Entra portal link
         $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
         $safeDisplayName = Get-SafeMarkdown -Text $app.displayName
         $appLink = "[$safeDisplayName]($entraLink)"
 
         $tableRows += "| $appLink | $isMultiTenant | $permList | $classList | $ownerCount |`n"
-
     }
 
     # If we have filtered apps, it means there are apps with < 2 owners (test fails)
