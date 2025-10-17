@@ -52,7 +52,7 @@ extends:
           - template: .azure-pipelines/common-templates/install-tools.yml@self
           - template: .azure-pipelines/common-templates/security-pre-checks.yml@self
 
-          - template: .azure-pipelines/generation-templates/generate_adapter-1es.yml@self
+          - template: .azure-pipelines/generation-templates/generate-build-1es.yml@self
             parameters:
               Sign: ${{ parameters.Sign }}
 

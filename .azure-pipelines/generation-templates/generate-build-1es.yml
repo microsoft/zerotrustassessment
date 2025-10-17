@@ -22,7 +22,7 @@ steps:
   inputs:
     targetType: inline
     script: |
-      ./build/Build-PSModule.ps1
+      ./build/powershell/Build-PSModule.ps1
     pwsh: true
 - ${{ if eq(parameters.Sign, true) }}:
   - template: ../common-templates/esrp/codesign.yml
@@ -35,14 +35,7 @@ steps:
       targetType: "inline"
       pwsh: true
       script: ./build/ValidateAuthenticodeSignature.ps1
-- task: powershell@2
-  displayName: 'Create Module Files Entra'
-  inputs:
-    targetType: inline
-    script: |
-      . ./build/common-functions.ps1
-      Create-ModuleFolder
-    pwsh: true
+# Module files are created by Build-PSModule.ps1 - no separate step needed
 - task: 1ES.PublishBuildArtifacts@1
   displayName: 'Publish Module Files'
   inputs:
