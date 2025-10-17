@@ -25,18 +25,42 @@ function Test-Assessment-24518 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking enterprise application ownership'
-    Write-ZtProgress -Activity $activity -Status 'Getting all applications'
+    Write-ZtProgress -Activity $activity -Status 'Getting applications with insufficient owners'
 
-    # Get all applications from database
+    # Get applications from database that:
+    # 1. Have requiredResourceAccess (permissions)
+    # 2. Have fewer than 2 owners
     $sqlApp = @"
-SELECT id, displayName, signInAudience, requiredResourceAccess, owners
+SELECT
+    id,
+    displayName,
+    signInAudience,
+    requiredResourceAccess,
+    owners
 FROM Application
+WHERE requiredResourceAccess IS NOT NULL
+    AND requiredResourceAccess != '[]'
+    AND (
+        owners IS NULL
+        OR owners = '[]'
+        OR json_array_length(owners) < 2
+    )
 ORDER BY displayName
 "@
 
     $applications = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
 
-    if (-not $applications) {
+    # ==> If no applications with < 2 owners found, test passes
+    if (-not $applications -or $applications.Count -eq 0) {
+        $passed = $true
+        $testResultMarkdown = 'All enterprise applications have at least two owners.'
+
+        $params = @{
+            TestId = '24518'
+            Status = $passed
+            Result = $testResultMarkdown
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -48,11 +72,11 @@ ORDER BY displayName
 
     $permissionClassifications = Import-Csv $classificationPath
 
-    # Cache service principals to avoid redundant Graph calls
-    $spCache = @{}
-
+    # Filter by permission classification (exclude High privilege apps)
+    # SQL already filtered for < 2 owners
     $filteredApps = @()
     foreach ($app in $applications) {
+        # Check permissions
         $allPerms = $app.requiredResourceAccess | ForEach-Object { $_.resourceAccess } | Where-Object { $_ }
         $permClass = @()
 
@@ -61,27 +85,42 @@ ORDER BY displayName
             if ($row) { $permClass += $row.Privilege }
         }
 
+        # Only include apps without High privilege permissions
         if ($permClass -and ($permClass -notcontains 'High')) {
             $filteredApps += $app
         }
     }
 
+    # ==> If no apps with insufficient owners and non-High permissions, test passes
+    if ($filteredApps.Count -eq 0) {
+        $passed = $true
+        $testResultMarkdown = 'All enterprise applications have at least two owners.'
+
+        $params = @{
+            TestId = '24518'
+            Status = $passed
+            Result = $testResultMarkdown
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    # Build report table for apps that failed the check
     $tableHeader =  "| App name | Multi-tenant | Permission  | Classification | Owner count |`n"
     $tableHeader += "| :-------- | :------------ | :---------- | :------------- | :----------- |`n"
     $tableRows = ''
-    $allHaveOwners = $true
+
+    # Cache service principals to avoid redundant Graph calls
+    $spCache = @{}
 
     foreach ($app in $filteredApps) {
 
         # Get owner count from database field
-        # The owners field is a JSON array, so we need to parse it
         $ownerCount = 0
         if ($app.owners -and $app.owners -ne '[]') {
-            # Parse JSON array and count owners
             $ownersList = $app.owners | ConvertFrom-Json
             $ownerCount = ($ownersList | Measure-Object).Count
         }
-        if ($ownerCount -lt 2) { $allHaveOwners = $false }
 
         $isMultiTenant = $app.signInAudience -eq 'AzureADMultipleOrgs'
 
@@ -137,17 +176,10 @@ ORDER BY displayName
 
     }
 
-    if ($allHaveOwners) {
-        $passed = $true
-        $testResultMarkdown = 'All enterprise applications have at least two owners.'
-    } else {
-        $passed = $false
-        $mdInfo = ''
-        if ($tableRows) {
-            $mdInfo = "`n## Enterprise Application Ownership`n`n" + $tableHeader + $tableRows
-        }
-        $testResultMarkdown = "Not all enterprise applications have at least two owners.`n$mdInfo"
-    }
+    # If we have filtered apps, it means there are apps with < 2 owners (test fails)
+    $passed = $false
+    $mdInfo = "`n## Enterprise Application Ownership`n`n" + $tableHeader + $tableRows
+    $testResultMarkdown = "Not all enterprise applications have at least two owners.`n$mdInfo"
 
     $params = @{
         TestId = '24518'
