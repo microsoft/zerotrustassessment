@@ -24,6 +24,61 @@ function Test-Assessment-21784{
     [CmdletBinding()]
     param()
 
+    # Helper function to render policy table
+    function Get-PolicyTable {
+        param(
+            [array]$Policies,
+            [array]$PhishingResistantPolicies,
+            [string]$TableTitle,
+            [switch]$ShowIssues
+        )
+
+        if (-not $Policies -or $Policies.Count -eq 0) {
+            return ""
+        }
+
+        $tableMarkdown = "## $TableTitle`n`n"
+        $tableMarkdown += "| Policy | Authentication strength | Included Users | Excluded Users |`n"
+        $tableMarkdown += "| :---------- | :---------------------- | :------------- | :------------- |`n"
+
+        foreach ($policy in $Policies) {
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
+            $authStrengthLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/AuthStrengths/menuId//fromNav/Identity"
+
+            # Get authentication strength name
+            $strengthPolicy = $PhishingResistantPolicies | Where-Object { $_.id -eq $policy.grantControls.authenticationStrength.id }
+            $authStrengthName = if ($strengthPolicy) {
+                "[$(Get-SafeMarkdown($strengthPolicy.displayName))]($authStrengthLink)"
+            } else {
+                "None"
+            }
+
+            # Format included users
+            $includedUsers = if ($policy.conditions.users.includeUsers -contains 'All') {
+                "All Users"
+            } elseif ($policy.conditions.users.includeUsers.Count -gt 0) {
+                "$($policy.conditions.users.includeUsers.Count) users"
+            } else {
+                "None"
+            }
+
+            # Format excluded users with warning if showing issues
+            $excludedUsers = if ($policy.conditions.users.excludeUsers.Count -gt 0) {
+                if ($ShowIssues) {
+                    "⚠️ $($policy.conditions.users.excludeUsers.Count) users"
+                } else {
+                    "$($policy.conditions.users.excludeUsers.Count) users"
+                }
+            } else {
+                "None"
+            }
+
+            $tableMarkdown += "| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | $authStrengthName | $includedUsers | $excludedUsers |`n"
+        }
+        $tableMarkdown += "`n"
+        return $tableMarkdown
+    }
+
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking phishing-resistant authentication methods'
@@ -103,35 +158,9 @@ function Test-Assessment-21784{
 ✅ All users are protected by Conditional Access policies requiring phishing-resistant authentication methods.
 
 "@
-        # Add policy details in table format
+        # Add policy details using helper function
         if ($relevantPolicies) {
-            $testResultMarkdown += "## Phishing-resistant authentication policies`n`n"
-            $testResultMarkdown += "| Policy Display Name | Policy ID | Authentication Strength ID | Included Users | Excluded Users |`n"
-            $testResultMarkdown += "| :------------------ | :-------- | :-------------------------- | :------------- | :------------- |`n"
-
-            foreach ($policy in $relevantPolicies) {
-                $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
-                $authStrengthId = if ($policy.grantControls.authenticationStrength.id) { $policy.grantControls.authenticationStrength.id } else { "None" }
-
-                # Format included users
-                $includedUsers = if ($policy.conditions.users.includeUsers -contains 'All') {
-                    "All Users"
-                } elseif ($policy.conditions.users.includeUsers.Count -gt 0) {
-                    "$($policy.conditions.users.includeUsers.Count) users"
-                } else {
-                    "None"
-                }
-
-                # Format excluded users
-                $excludedUsers = if ($policy.conditions.users.excludeUsers.Count -gt 0) {
-                    "$($policy.conditions.users.excludeUsers.Count) users"
-                } else {
-                    "None"
-                }
-
-                $testResultMarkdown += "| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | $($policy.id) | $authStrengthId | $includedUsers | $excludedUsers |`n"
-            }
-            $testResultMarkdown += "`n"
+            $testResultMarkdown += Get-PolicyTable -Policies $relevantPolicies -PhishingResistantPolicies $phishingResistantPolicies -TableTitle 'Conditional Access Policies with Phishing-Resistant Authentication'
         }
     } else {
         $failReason = if (-not $relevantPolicies) {
@@ -148,39 +177,13 @@ function Test-Assessment-21784{
 "@
         # Add policy details even for failures
         if ($relevantPolicies) {
-            $testResultMarkdown += "## Phishing-resistant authentication policies (with issues)`n`n"
-            $testResultMarkdown += "| Policy Display Name | Policy ID | Authentication Strength ID | Included Users | Excluded Users |`n"
-            $testResultMarkdown += "| :------------------ | :-------- | :-------------------------- | :------------- | :------------- |`n"
-
-            foreach ($policy in $relevantPolicies) {
-                $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
-                $authStrengthId = if ($policy.grantControls.authenticationStrength.id) { $policy.grantControls.authenticationStrength.id } else { "None" }
-
-                # Format included users
-                $includedUsers = if ($policy.conditions.users.includeUsers -contains 'All') {
-                    "All Users"
-                } elseif ($policy.conditions.users.includeUsers.Count -gt 0) {
-                    "$($policy.conditions.users.includeUsers.Count) users"
-                } else {
-                    "None"
-                }
-
-                # Format excluded users with warning if present
-                $excludedUsers = if ($policy.conditions.users.excludeUsers.Count -gt 0) {
-                    "⚠️ $($policy.conditions.users.excludeUsers.Count) users"
-                } else {
-                    "None"
-                }
-
-                $testResultMarkdown += "| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | $($policy.id) | $authStrengthId | $includedUsers | $excludedUsers |`n"
-            }
-            $testResultMarkdown += "`n"
+            $testResultMarkdown += Get-PolicyTable -Policies $relevantPolicies -PhishingResistantPolicies $phishingResistantPolicies -TableTitle "Conditional Access Policies with Phishing-Resistant Authentication (Issues Found)" -ShowIssues
         } else {
             # Show available authentication strength policies even if none are applied to all users
             if ($phishingResistantPolicies) {
-                $testResultMarkdown += "## Available phishing-resistant authentication strength policies`n`n"
-                $testResultMarkdown += "| Authentication Strength | Allowed Methods |`n"
-                $testResultMarkdown += "| :---------------------- | :-------------- |`n"
+                $testResultMarkdown += "## Available Authentication Strength Policies`n`n"
+                $testResultMarkdown += "| Authentication Strength Policy | Allowed Methods |`n"
+                $testResultMarkdown += "| :----------------------------- | :-------------- |`n"
 
                 foreach ($strengthPolicy in $phishingResistantPolicies) {
                     $allowedMethods = $strengthPolicy.allowedCombinations -join ', '
@@ -194,16 +197,9 @@ function Test-Assessment-21784{
 
         $params = @{
         TestId             = '21784'
-        Title              = 'All user sign in activity uses phishing-resistant authentication methods'
         Status             = $passed
         Result             = $testResultMarkdown
-        GraphObjectType    = 'ConditionalAccess'
-        GraphObjects       = $relevantPolicies
-        UserImpact         = 'Low'
-        Risk               = 'Medium'
-        ImplementationCost = 'Medium'
-        AppliesTo          = 'Identity'
-        Tag                = @('Identity')
+
     }
     Add-ZtTestResultDetail @params
     Write-PSFMessage '🟦 End' -Tag Test -Level VeryVerbose
