@@ -1,12 +1,9 @@
-import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone, Building2, Globe, ShieldCheck } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck } from "lucide-react";
 
 import {
     Bar,
     BarChart,
     Cell,
-    Label,
     LabelList,
     // Area,
     // AreaChart,
@@ -22,8 +19,6 @@ import {
     PolarAngleAxis,
     RadialBar,
     RadialBarChart,
-    Rectangle,
-    ReferenceLine,
 
     XAxis,
     YAxis,
@@ -1033,12 +1028,12 @@ export default function Dashboard() {
                                                 data={[
                                                     {
                                                         name: "Compliant",
-                                                        value: reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount,
+                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0,
                                                         fill: "var(--color-compliant)",
                                                     },
                                                     {
                                                         name: "Non-compliant",
-                                                        value: reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount,
+                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0,
                                                         fill: "var(--color-nonCompliant)",
                                                     },
                                                 ]}
@@ -1060,13 +1055,16 @@ export default function Dashboard() {
                                     <div className="flex w-full items-center gap-2">
                                         <div className="grid flex-1 auto-rows-min gap-0.5">
                                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }}></div>
+                                                <div className="w-3 h-3 rounded-sm bg-green-600"></div>
                                                 Compliant
                                             </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount /
-                                                    (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
-                                                        reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount)) * 100)}
+                                                {(() => {
+                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
+                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
+                                                    const total = compliant + nonCompliant;
+                                                    return total > 0 ? Math.round((compliant / total) * 100) : 0;
+                                                })()}
                                                 <span className="text-sm font-normal text-muted-foreground">
                                                     %
                                                 </span>
@@ -1075,13 +1073,16 @@ export default function Dashboard() {
                                         <Separator orientation="vertical" className="mx-2 h-10 w-px" />
                                         <div className="grid flex-1 auto-rows-min gap-0.5">
                                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(0, 84%, 60%)' }}></div>
+                                                <div className="w-3 h-3 rounded-sm bg-red-500"></div>
                                                 Non-compliant
                                             </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount /
-                                                    (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
-                                                        reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount)) * 100)}
+                                                {(() => {
+                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
+                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
+                                                    const total = compliant + nonCompliant;
+                                                    return total > 0 ? Math.round((nonCompliant / total) * 100) : 0;
+                                                })()}
                                                 <span className="text-sm font-normal text-muted-foreground">
                                                     %
                                                 </span>
@@ -1128,7 +1129,7 @@ export default function Dashboard() {
                                             {(() => {
                                                 const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
                                                 const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
                                                 return Math.round((entraJoined / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1143,7 +1144,7 @@ export default function Dashboard() {
                                             {(() => {
                                                 const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
                                                 const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
                                                 return Math.round((entraHybrid / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1158,7 +1159,7 @@ export default function Dashboard() {
                                             {(() => {
                                                 const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
                                                 const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
                                                 return Math.round((entraRegistered / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
