@@ -888,15 +888,15 @@ export default function Dashboard() {
             </div>
 
             {/* Devices Section */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-6">
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
                 {/* <PageHeader>
                     <PageHeaderHeading>Devices</PageHeaderHeading>
                 </PageHeader> */}
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                     {/* Device summary chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 && (
-                        <Card>
+                        <Card className="w-full">
                             <CardHeader className="space-y-0 pb-2">
                                 <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
                             </CardHeader>
@@ -1004,95 +1004,17 @@ export default function Dashboard() {
                         </Card>
                     )}
 
-                    {/* Windows devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
-                        <Card className="lg:max-w-md">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <Monitor className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    Windows devices
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ChartContainer
-                                    config={{
-                                        steps: {
-                                            label: "Steps",
-                                            color: "hsl(var(--chart-1))",
-                                        },
-                                    }}
-                                >
-                                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
-                                        <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                            No data available
-                                        </div>
-                                    )}
-                                </ChartContainer>
-                            </CardContent>
-                            <CardFooter className="flex flex-row border-t p-4">
-                                <div className="flex w-full items-center gap-2">
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra joined</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
-                                                const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
-                                                return Math.round((entraJoined / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
-                                                const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
-                                                return Math.round((entraHybrid / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra registered</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
-                                                const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
-                                                return Math.round((entraRegistered / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    )}
-
                     {/* Device compliance chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
                         (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
-                            <Card>
+                            <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
                                     <MonitorSmartphone className="pr-2 size-8" />
                                     <CardTitle className="text-2xl tabular-nums ">
                                         Device compliance
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="flex pb-2">
+                                <CardContent className="flex pb-2 h-[200px]">
                                     <ChartContainer
                                         config={{
                                             compliant: {
@@ -1163,6 +1085,86 @@ export default function Dashboard() {
                                 </CardFooter>
                             </Card>
                         )}
+
+                                            {/* Windows devices chart */}
+                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
+                        <Card className="w-full lg:col-span-2">
+                            <CardHeader className="space-y-0 pb-2 flex-row">
+                                <Monitor className="pr-2 size-8" />
+                                <CardTitle className="text-2xl tabular-nums">
+                                    Windows devices
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ChartContainer
+                                    config={{
+                                        steps: {
+                                            label: "Steps",
+                                            color: "hsl(var(--chart-1))",
+                                        },
+                                    }}
+                                    className="h-[350px] w-full"
+                                >
+                                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
+                                        <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                            No data available
+                                        </div>
+                                    )}
+                                </ChartContainer>
+                            </CardContent>
+                            <CardFooter className="flex flex-row border-t p-4">
+                                <div className="flex w-full items-center gap-2">
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Entra joined</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                return Math.round((entraJoined / (total || 1)) * 100);
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                return Math.round((entraHybrid / (total || 1)) * 100);
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Entra registered</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
+                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + n.value, 0);
+                                                return Math.round((entraRegistered / (total || 1)) * 100);
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    )}
+
                 </div>
             </div>
         </>
