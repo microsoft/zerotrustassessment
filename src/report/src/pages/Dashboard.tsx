@@ -67,8 +67,8 @@ export default function Dashboard() {
             </PageHeader>
 
             {/* Tenant overview Section */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
-                <div className="grid gap-6 lg:grid-cols-3">
+            <div className="w-full flex max-w-7xl flex-col gap-6 mt-12">
+                <div className="grid w-full gap-6 lg:grid-cols-3">
                     {/* Column 1: Tenant Information */}
                     <Card>
                         <CardHeader className="pb-3">
