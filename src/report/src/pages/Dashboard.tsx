@@ -1,6 +1,6 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
 
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone, Building2, Globe } from "lucide-react";
 
 import {
     Bar,
@@ -24,7 +24,7 @@ import {
     RadialBarChart,
     Rectangle,
     ReferenceLine,
-    ResponsiveContainer,
+
     XAxis,
     YAxis,
     // Rectangle,
@@ -68,14 +68,45 @@ export default function Dashboard() {
 
             {/* Tenant overview Section */}
             <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
-                <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Column 1: Tenant Metrics */}
+                <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Column 1: Tenant Information */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-xl">Tenant Metrics</CardTitle>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2">
+                                <Building2 className="size-5" />
+                                Tenant Information
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-4 grid-cols-3 grid-rows-2">
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm text-muted-foreground">Tenant Name</span>
+                                    <span className="font-medium">
+                                        {reportData.TenantName || 'Not Available'}
+                                    </span>
+                                </div>
+                                <Separator />
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm text-muted-foreground">Tenant ID</span>
+                                    <span className="font-mono text-sm">
+                                        {reportData.TenantId || 'Not Available'}
+                                    </span>
+                                </div>
+                                <Separator />
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-sm text-muted-foreground">Primary Domain</span>
+                                    <span className="font-medium">
+                                        {reportData.Domain || 'Not Available'}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Column 2: Tenant Metrics */}
+                    <Card >
+                        <CardContent>
+                            <div className="grid gap-4 grid-cols-2 grid-rows-3">
                                 {/* Users Metric */}
                                 <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                                     <Avatar className="size-8.5 rounded-sm">
@@ -151,13 +182,25 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                {/* Empty cell for 3x2 layout completion */}
-                                <div></div>
+                                {/* Assessment Date Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <Globe className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Last Scan</span>
+                                        <span className="text-sm font-medium">
+                                            {reportData.ExecutedAt ? new Date(reportData.ExecutedAt).toLocaleDateString() : 'Not Available'}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Column 2: Assessment Results */}
+                    {/* Column 3: Assessment Results */}
                     <Card /** Test summary chart   */
                         className="max-w-xs" x-chunk="charts-01-chunk-5"
                     >
