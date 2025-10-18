@@ -102,12 +102,6 @@ as
 	}
 	#endregion Utility Function
 
-	# Nothing to do if the Pillar is Devices (for now)
-	if ($Pillar -eq 'Devices') {
-		Write-PSFMessage 'Skipping data export for Device pillar.' -Tag Import
-		return
-	}
-
 	$activity = "Creating database"
 	Write-ZtProgress -Activity $activity -Status "Starting"
 
@@ -127,21 +121,27 @@ as
 
 	$database = Connect-Database -Path $dbPath -PassThru
 
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'SignIn'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentSchedule'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequest'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequestGroup'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment'
-	Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails'
+	if ($Pillar -in ('All', 'Identity')) {
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'SignIn'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentSchedule'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequest'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequestGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails'
 
-	New-ViewRole -Database $database
+		New-ViewRole -Database $database
+	}
+
+	if ($Pillar -in ('All', 'Devices')) {
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
+	}
+
 	$database
 }

@@ -297,6 +297,7 @@ export default function Dashboard() {
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
 
                     <div className="grid w-full gap-6 lg:col-span-1">
+                        {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
                         >
@@ -330,6 +331,9 @@ export default function Dashboard() {
                                 </CardDescription>
                             </CardFooter>
                         </Card>
+                        ) : null}
+
+                        {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
                         >
@@ -363,7 +367,8 @@ export default function Dashboard() {
                                 </CardDescription>
                             </CardFooter>
                         </Card>
-                        {<Card
+                        ) : null}
+                        {/* {<Card
                             className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                         >
                             <CardHeader className="space-y-0 pb-2">
@@ -485,7 +490,7 @@ export default function Dashboard() {
                                     <span className="font-medium text-foreground">13,305</span> phishing attempts.
                                 </CardDescription>
                             </CardFooter>
-                        </Card>}
+                        </Card>} */}
                         {/* <Card
                         className="flex flex-col lg:max-w-md" x-chunk="charts-01-chunk-1"
                     >
@@ -609,6 +614,7 @@ export default function Dashboard() {
                     </Card> */}
                     </div>
                     <div className="grid w-full gap-6 lg:col-span-1">
+                        {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
                         <Card
                             className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                         >
@@ -642,6 +648,9 @@ export default function Dashboard() {
                                 </CardDescription>
                             </CardFooter>
                         </Card>
+                        ) : null}
+
+                        {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
                         <Card
                             className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                         >
@@ -675,7 +684,8 @@ export default function Dashboard() {
                                 </CardDescription>
                             </CardFooter>
                         </Card>
-                        {<Card
+                        ) : null}
+                        {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >
                             <CardHeader>
@@ -788,8 +798,8 @@ export default function Dashboard() {
                                     </ChartContainer>
                                 </div>
                             </CardContent>
-                        </Card>}
-                        {<Card
+                        </Card>} */}
+                        {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-3"
                         >
                             <CardHeader className="p-4 pb-0">
@@ -872,20 +882,20 @@ export default function Dashboard() {
                                     </BarChart>
                                 </ChartContainer>
                             </CardContent>
-                        </Card>}
+                        </Card>} */}
                     </div>
                 </div>
             </div>
 
             {/* Devices Section */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
+            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-6">
                 {/* <PageHeader>
                     <PageHeaderHeading>Devices</PageHeaderHeading>
                 </PageHeader> */}
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
                     {/* Device summary chart */}
-                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 0) > 0 && (
+                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 && (
                         <Card>
                             <CardHeader className="space-y-0 pb-2">
                                 <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
@@ -972,7 +982,7 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Desktops</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.desktopCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 1)) * 100)}
+                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 %
                                             </span>
@@ -983,7 +993,7 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Mobiles</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.mobileCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalDeviceCount || 1)) * 100)}
+                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 %
                                             </span>
@@ -1071,6 +1081,7 @@ export default function Dashboard() {
                             </CardFooter>
                         </Card>
                     )}
+
                     {/* Device compliance chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
                         (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (

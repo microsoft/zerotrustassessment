@@ -31,12 +31,6 @@ function Export-TenantData {
 		$Pillar = 'All'
 	)
 
-	# Nothing to do if the Pillar is Device (for now)
-	if ($Pillar -eq 'Devices') {
-		Write-PSFMessage 'Skipping data export for Device pillar.'
-		return
-	}
-
 	#region Helper Functions
 	function Get-ZtiAuditQueryString {
 		[CmdletBinding()]
@@ -64,79 +58,86 @@ function Export-TenantData {
 	# TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
 	$EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
 
-	$userQueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
-	if ($EntraIDPlan -ne 'Free') {
-		#Add premium fields
-		$userQueryString += ', signInActivity'
+	if ($Pillar -in ('All', 'Identity')) {
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'AuthenticationMethod' `
+			-EntityUri 'beta/authentication/methods' -ProgressActivity 'Authentication Methods' `
+			-QueryString '$top=999' -ShowCount
+
+		$userQueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
+		if ($EntraIDPlan -ne 'Free') {
+			#Add premium fields
+			$userQueryString += ', signInActivity'
+		}
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'User' `
+			-EntityUri 'beta/users' -ProgressActivity 'Users' `
+			-QueryString $userQueryString -ShowCount
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
+			-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
+			-QueryString '$expand=owners&$top=999' -ShowCount
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
+			-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
+			-QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
+			-ShowCount
+
+		if ((Get-MgContext).Environment -eq 'Global') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
+				-EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+		}
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
+			-EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
+
+
+		# Active role assignments
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
+			-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
+			-QueryString "`$expand=principal"
+
+		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+			# API requires PIM license
+			# Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
+				-EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
+				-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
+
+			# Filter for currently valid, eligible role assignments
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
+				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
+				-QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
+
+			# Export role management policy assignments for PIM activation alert configuration
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
+				-EntityUri 'beta/policies/roleManagementPolicyAssignments' -ProgressActivity 'Role Management Policy Assignments' `
+				-QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
+		}
+
+		if ($EntraIDPlan -ne 'Free') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
+				-EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
+		}
+
+		## Download all privileged user details based on roles and role assignments
+		Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
+			-InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
+
+		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+			# Export eligible privileged groups
+			Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
+				-InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
+		}
+
+		if ($EntraIDPlan -ne 'Free') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
+				-EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
+				-QueryString (Get-ZtiAuditQueryString -PastDays $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
+		}
 	}
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'User' `
-		-EntityUri 'beta/users' -ProgressActivity 'Users' `
-		-QueryString $userQueryString -ShowCount
 
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
-		-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
-		-QueryString '$top=999' -ShowCount
-
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
-		-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
-		-QueryString '$expand=owners&$top=999' -ShowCount
-
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
-		-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
-		-QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
-		-ShowCount
-
-	if ((Get-MgContext).Environment -eq 'Global') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
-			-EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+	if ($Pillar -in ('All', 'Devices')) {
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
+			-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
+			-QueryString '$top=999' -ShowCount
 	}
-
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
-		-EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
-
-
-	# Active role assignments
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
-		-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
-		-QueryString "`$expand=principal"
-
-	if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
-		# API requires PIM license
-		# Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
-			-EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
-			-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
-
-		# Filter for currently valid, eligible role assignments
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
-			-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
-			-QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
-
-		# Export role management policy assignments for PIM activation alert configuration
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
-			-EntityUri 'beta/policies/roleManagementPolicyAssignments' -ProgressActivity 'Role Management Policy Assignments' `
-			-QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
-	}
-
-	if ($EntraIDPlan -ne 'Free') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
-			-EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
-	}
-
-	## Download all privileged user details based on roles and role assignments
-	Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
-		-InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
-
-	if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
-		# Export eligible privileged groups
-		Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
-			-InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
-	}
-
-	if ($EntraIDPlan -ne 'Free') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
-			-EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
-			-QueryString (Get-ZtiAuditQueryString -PastDays $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
-	}
-	#Export-Entra -Path $OutputFolder -Type Config
 }
