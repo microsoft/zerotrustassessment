@@ -74,25 +74,23 @@ export default function Dashboard() {
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2">
                                 <Building2 className="size-5" />
-                                Tenant Information
+                                Tenant
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
                                 <div className="flex flex-col gap-1">
-                                    <span className="text-sm text-muted-foreground">Tenant Name</span>
+                                    <span className="text-sm text-muted-foreground">Name</span>
                                     <span className="font-medium">
                                         {reportData.TenantName || 'Not Available'}
                                     </span>
                                 </div>
-                                <Separator />
-                                <div className="flex flex-col gap-1">
+                                {/* <div className="flex flex-col gap-1">
                                     <span className="text-sm text-muted-foreground">Tenant ID</span>
                                     <span className="font-mono text-sm">
                                         {reportData.TenantId || 'Not Available'}
                                     </span>
-                                </div>
-                                <Separator />
+                                </div> */}
                                 <div className="flex flex-col gap-1">
                                     <span className="text-sm text-muted-foreground">Primary Domain</span>
                                     <span className="font-medium">
@@ -104,8 +102,7 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Column 2: Tenant Metrics */}
-                    <Card >
-                        <CardContent>
+
                             <div className="grid gap-4 grid-cols-2 grid-rows-3">
                                 {/* Users Metric */}
                                 <div className="flex items-center gap-3 rounded-md border px-4 py-3">
@@ -183,7 +180,7 @@ export default function Dashboard() {
                                 </div>
 
                                 {/* Assessment Date Metric */}
-                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                {/* <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                                     <Avatar className="size-8.5 rounded-sm">
                                         <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
                                             <Globe className="size-5" />
@@ -195,10 +192,9 @@ export default function Dashboard() {
                                             {reportData.ExecutedAt ? new Date(reportData.ExecutedAt).toLocaleDateString() : 'Not Available'}
                                         </span>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
-                        </CardContent>
-                    </Card>
+
 
                     {/* Column 3: Assessment Results */}
                     <Card /** Test summary chart   */
