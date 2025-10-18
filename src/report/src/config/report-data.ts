@@ -26,6 +26,7 @@ export interface TenantInfo {
   ConfigDeviceCompliancePolicies: ConfigDeviceCompliancePolicies[] | null;
   ConfigDeviceAppProtectionPolicies: ConfigDeviceAppProtectionPolicies[] | null;
   DeviceOverview: DeviceOverview | null;
+  TenantOverview: TenantOverview | null;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -128,6 +129,13 @@ export interface SankeyDataNode {
   target: string;
 }
 
+export interface TenantOverview {
+  UserCount: number;
+  GroupCount: number;
+  ApplicationCount: number;
+  DeviceCount: number;
+  ManagedDeviceCount: number;
+}
 export interface DeviceOverview {
   WindowsJoinSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
@@ -3791,6 +3799,13 @@ export const reportData: ZeroTrustAssessmentReport = {
         }
       ],
       "description": "Strongest authentication method registered by all users."
+    },
+    "TenantOverview": {
+      "UserCount": 71,
+      "GroupCount": 89,
+      "ApplicationCount": 120,
+      "DeviceCount": 20,
+      "ManagedDeviceCount": 0
     },
     "DeviceOverview": {
       "WindowsJoinSummary": {

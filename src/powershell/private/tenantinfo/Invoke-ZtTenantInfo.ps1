@@ -15,6 +15,8 @@ function Invoke-ZtTenantInfo {
         $Pillar = 'All'
     )
 
+    Add-ZtTenantOverview # Always run (shown on dashboard)
+
     # Only run if Pillar is All or Identity
     if ($Pillar -in ('All','Identity')) {
         Add-ZtOverviewCaMfa -Database $Database

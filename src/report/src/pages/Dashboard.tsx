@@ -1,6 +1,6 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
 
-import { MonitorSmartphone, Users, User, UserCog, Monitor } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone } from "lucide-react";
 
 import {
     Bar,
@@ -41,6 +41,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
     ChartContainer,
     ChartTooltip,
@@ -64,11 +65,199 @@ export default function Dashboard() {
             <PageHeader>
                 <PageHeaderHeading>Overview</PageHeaderHeading>
             </PageHeader>
-            <div className="chart-wrapper mx-auto flex max-w-7xl flex-col flex-wrap items-start justify-center gap-6 sm:flex-row">
 
-                <div className="grid w-full gap-6 sm:grid-cols-2 lg:max-w-[20rem] lg:grid-cols-1 xl:max-w-[25rem]">
+            {/* Tenant overview Section */}
+            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Column 1: Tenant Metrics */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Tenant Metrics</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4 grid-cols-3 grid-rows-2">
+                                {/* Users Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <Users className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Users</span>
+                                        <span className="text-lg font-medium">
+                                            {reportData.TenantInfo?.TenantOverview?.UserCount?.toLocaleString() || '0'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Groups Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <Layers3 className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Groups</span>
+                                        <span className="text-lg font-medium">
+                                            {reportData.TenantInfo?.TenantOverview?.GroupCount?.toLocaleString() || '0'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Applications Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <Monitor className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Apps</span>
+                                        <span className="text-lg font-medium">
+                                            {reportData.TenantInfo?.TenantOverview?.ApplicationCount?.toLocaleString() || '0'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Devices Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <MonitorSmartphone className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Devices</span>
+                                        <span className="text-lg font-medium">
+                                            {reportData.TenantInfo?.TenantOverview?.DeviceCount?.toLocaleString() || '0'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Managed Devices Metric */}
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
+                                            <Smartphone className="size-5" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Managed</span>
+                                        <span className="text-lg font-medium">
+                                            {reportData.TenantInfo?.TenantOverview?.ManagedDeviceCount?.toLocaleString() || '0'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Empty cell for 3x2 layout completion */}
+                                <div></div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Column 2: Assessment Results */}
+                    <Card /** Test summary chart   */
+                        className="max-w-xs" x-chunk="charts-01-chunk-5"
+                    >
+                        <CardContent className="flex gap-4 p-4">
+                            <div className="grid items-center gap-2">
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">Identity</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.IdentityPassed}/{reportData.TestResultSummary.IdentityTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            checks
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">Devices</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.DevicesPassed}/{reportData.TestResultSummary.DevicesTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            checks
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">Data</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.DataPassed}/{reportData.TestResultSummary.DataTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            checks
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <ChartContainer
+                                config={{
+                                    move: {
+                                        label: "Identity",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                    exercise: {
+                                        label: "Devices",
+                                        color: "hsl(var(--chart-2))",
+                                    },
+                                    stand: {
+                                        label: "Data",
+                                        color: "hsl(var(--chart-3))",
+                                    },
+                                }}
+                                className="mx-auto aspect-square w-full max-w-[80%]"
+                            >
+                                <RadialBarChart
+                                    margin={{
+                                        left: -10,
+                                        right: -10,
+                                        top: -10,
+                                        bottom: -10,
+                                    }}
+                                    data={[
+                                        {
+                                            activity: "data",
+                                            value: (reportData.TestResultSummary.DataPassed / reportData.TestResultSummary.DataTotal) * 100,
+                                            fill: "var(--color-stand)",
+                                        },
+                                        {
+                                            activity: "devices",
+                                            value: (reportData.TestResultSummary.DevicesPassed / reportData.TestResultSummary.DevicesTotal) * 100,
+                                            fill: "var(--color-exercise)",
+                                        },
+                                        {
+                                            activity: "identity",
+                                            value: (reportData.TestResultSummary.IdentityPassed / reportData.TestResultSummary.IdentityTotal) * 100,
+                                            fill: "var(--color-move)",
+                                        },
+                                    ]}
+                                    innerRadius="20%"
+                                    barSize={24}
+                                    startAngle={90}
+                                    endAngle={450}
+                                >
+                                    <PolarAngleAxis
+                                        type="number"
+                                        domain={[0, 100]}
+                                        dataKey="value"
+                                        tick={false}
+                                    />
+                                    <RadialBar dataKey="value" background cornerRadius={5} />
+                                </RadialBarChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Identity summary */}
+            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+
+                <div className="grid w-full gap-6 lg:col-span-1">
                     <Card
-                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                        className="w-full" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2 flex-row">
                             <UserCog className="pr-2 size-8" />
@@ -101,7 +290,7 @@ export default function Dashboard() {
                         </CardFooter>
                     </Card>
                     <Card
-                        className="lg:max-w-md" x-chunk="charts-01-chunk-0"
+                        className="w-full" x-chunk="charts-01-chunk-0"
                     >
                         <CardHeader className="space-y-0 pb-2 flex-row">
                             <Users className="pr-2 size-8" />
@@ -378,7 +567,7 @@ export default function Dashboard() {
                         </CardContent>
                     </Card> */}
                 </div>
-                <div className="grid w-full flex-1 gap-6 lg:max-w-[20rem]">
+                <div className="grid w-full gap-6 lg:col-span-1">
                     <Card
                         className="lmax-w-xs" x-chunk="charts-01-chunk-0"
                     >
@@ -644,292 +833,6 @@ export default function Dashboard() {
                         </CardContent>
                     </Card>}
                 </div>
-                <div className="grid w-full flex-1 gap-6">
-                    <Card /** Test summary chart   */
-                        className="max-w-xs" x-chunk="charts-01-chunk-5"
-                    >
-                        <CardContent className="flex gap-4 p-4">
-                            <div className="grid items-center gap-2">
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Identity</div>
-                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        {reportData.TestResultSummary.IdentityPassed}/{reportData.TestResultSummary.IdentityTotal}
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            checks
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Devices</div>
-                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        {reportData.TestResultSummary.DevicesPassed}/{reportData.TestResultSummary.DevicesTotal}
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            checks
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                    <div className="text-sm text-muted-foreground">Data</div>
-                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
-                                        {reportData.TestResultSummary.DataPassed}/{reportData.TestResultSummary.DataTotal}
-                                        <span className="text-sm font-normal text-muted-foreground">
-                                            checks
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <ChartContainer
-                                config={{
-                                    move: {
-                                        label: "Identity",
-                                        color: "hsl(var(--chart-1))",
-                                    },
-                                    exercise: {
-                                        label: "Devices",
-                                        color: "hsl(var(--chart-2))",
-                                    },
-                                    stand: {
-                                        label: "Data",
-                                        color: "hsl(var(--chart-3))",
-                                    },
-                                }}
-                                className="mx-auto aspect-square w-full max-w-[80%]"
-                            >
-                                <RadialBarChart
-                                    margin={{
-                                        left: -10,
-                                        right: -10,
-                                        top: -10,
-                                        bottom: -10,
-                                    }}
-                                    data={[
-                                        {
-                                            activity: "data",
-                                            value: (reportData.TestResultSummary.DataPassed / reportData.TestResultSummary.DataTotal) * 100,
-                                            fill: "var(--color-stand)",
-                                        },
-                                        {
-                                            activity: "devices",
-                                            value: (reportData.TestResultSummary.DevicesPassed / reportData.TestResultSummary.DevicesTotal) * 100,
-                                            fill: "var(--color-exercise)",
-                                        },
-                                        {
-                                            activity: "identity",
-                                            value: (reportData.TestResultSummary.IdentityPassed / reportData.TestResultSummary.IdentityTotal) * 100,
-                                            fill: "var(--color-move)",
-                                        },
-                                    ]}
-                                    innerRadius="20%"
-                                    barSize={24}
-                                    startAngle={90}
-                                    endAngle={450}
-                                >
-                                    <PolarAngleAxis
-                                        type="number"
-                                        domain={[0, 100]}
-                                        dataKey="value"
-                                        tick={false}
-                                    />
-                                    <RadialBar dataKey="value" background cornerRadius={5} />
-                                </RadialBarChart>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card>
-                    {/* <Card
-                        className="max-w-xs" x-chunk="charts-01-chunk-6"
-                    >
-                        <CardHeader className="p-4 pb-0">
-                            <CardTitle>Devices</CardTitle>
-                            <CardDescription>
-                                Snapshot of devices in the tenant.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-2">
-                            <div className="flex items-baseline gap-2 text-3xl font-bold tabular-nums leading-none">
-                                14
-                                <span className="text-sm font-normal text-muted-foreground">
-                                    Windows
-                                </span>
-                            </div>
-                            <div className="flex items-baseline gap-2 text-3xl font-bold tabular-nums leading-none">
-                                14
-                                <span className="text-sm font-normal text-muted-foreground">
-                                    Windows
-                                </span>
-                            </div>
-                            <ChartContainer
-                                config={{
-                                    calories: {
-                                        label: "Calories",
-                                        color: "hsl(var(--chart-1))",
-                                    },
-                                }}
-                                className="ml-auto w-[64px]"
-                            >
-                                <BarChart
-                                    accessibilityLayer
-                                    margin={{
-                                        left: 0,
-                                        right: 0,
-                                        top: 0,
-                                        bottom: 0,
-                                    }}
-                                    data={[
-                                        {
-                                            date: "2024-01-01",
-                                            calories: 354,
-                                        },
-                                        {
-                                            date: "2024-01-02",
-                                            calories: 514,
-                                        },
-                                        {
-                                            date: "2024-01-03",
-                                            calories: 345,
-                                        },
-                                        {
-                                            date: "2024-01-04",
-                                            calories: 734,
-                                        },
-                                        {
-                                            date: "2024-01-05",
-                                            calories: 645,
-                                        },
-                                        {
-                                            date: "2024-01-06",
-                                            calories: 456,
-                                        },
-                                        {
-                                            date: "2024-01-07",
-                                            calories: 345,
-                                        },
-                                    ]}
-                                >
-                                    <Bar
-                                        dataKey="calories"
-                                        fill="var(--color-calories)"
-                                        radius={2}
-                                        fillOpacity={0.2}
-                                        activeIndex={6}
-                                        activeBar={<Rectangle fillOpacity={0.8} />}
-                                    />
-                                    <XAxis
-                                        dataKey="date"
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickMargin={4}
-                                        hide
-                                    />
-                                </BarChart>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card> */}
-                    {/* <Card
-                        className="max-w-xs" x-chunk="charts-01-chunk-7"
-                    >
-                        <CardHeader className="space-y-0 pb-0">
-                            <CardDescription>Untrusted devices signing in</CardDescription>
-                            <CardTitle className="flex items-baseline gap-1 text-4xl tabular-nums">
-                                120
-                                <span className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
-                                    daily avg
-                                </span>
-
-                                <span className="font-sans text-sm font-normal tracking-normal text-muted-foreground">
-
-                                </span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <ChartContainer
-                                config={{
-                                    time: {
-                                        label: "Time",
-                                        color: "hsl(var(--chart-2))",
-                                    },
-                                }}
-                            >
-                                <AreaChart
-                                    accessibilityLayer
-                                    data={[
-                                        {
-                                            date: "2024-01-01",
-                                            time: 8.5,
-                                        },
-                                        {
-                                            date: "2024-01-02",
-                                            time: 7.2,
-                                        },
-                                        {
-                                            date: "2024-01-03",
-                                            time: 8.1,
-                                        },
-                                        {
-                                            date: "2024-01-04",
-                                            time: 6.2,
-                                        },
-                                        {
-                                            date: "2024-01-05",
-                                            time: 5.2,
-                                        },
-                                        {
-                                            date: "2024-01-06",
-                                            time: 8.1,
-                                        },
-                                        {
-                                            date: "2024-01-07",
-                                            time: 7.0,
-                                        },
-                                    ]}
-                                    margin={{
-                                        left: 0,
-                                        right: 0,
-                                        top: 0,
-                                        bottom: 0,
-                                    }}
-                                >
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis domain={["dataMin - 5", "dataMax + 2"]} hide />
-                                    <defs>
-                                        <linearGradient id="fillTime" x1="0" y1="0" x2="0" y2="1">
-                                            <stop
-                                                offset="5%"
-                                                stopColor="var(--color-time)"
-                                                stopOpacity={0.8}
-                                            />
-                                            <stop
-                                                offset="95%"
-                                                stopColor="var(--color-time)"
-                                                stopOpacity={0.1}
-                                            />
-                                        </linearGradient>
-                                    </defs>
-                                    <Area
-                                        dataKey="time"
-                                        type="natural"
-                                        fill="url(#fillTime)"
-                                        fillOpacity={0.4}
-                                        stroke="var(--color-time)"
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
-                                        formatter={(value) => (
-                                            <div className="flex min-w-[120px] items-center text-xs text-muted-foreground">
-                                                Time in bed
-                                                <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                                                    {value}
-                                                    <span className="font-normal text-muted-foreground">
-                                                        hr
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    />
-                                </AreaChart>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card> */}
                 </div>
             </div>
 
