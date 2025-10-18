@@ -293,7 +293,7 @@ export default function Dashboard() {
             </div>
 
             {/* Identity summary */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-12">
+            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-6">
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
 
                     <div className="grid w-full gap-6 lg:col-span-1">
