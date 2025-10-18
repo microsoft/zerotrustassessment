@@ -62,10 +62,6 @@ export default function Dashboard() {
 
     return (
         <>
-            <PageHeader>
-                <PageHeaderHeading>Overview</PageHeaderHeading>
-            </PageHeader>
-
             {/* Tenant overview Section */}
             <div className="w-full flex max-w-7xl flex-col gap-6 mt-12">
                 <div className="grid w-full gap-6 lg:grid-cols-3">
@@ -107,8 +103,8 @@ export default function Dashboard() {
                         {/* Users Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                                    <Users className="size-5" />
+                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                    <User className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-0.5">
@@ -122,8 +118,8 @@ export default function Dashboard() {
                         {/* Groups Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                                    <Layers3 className="size-5" />
+                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                    <Users className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-0.5">
@@ -137,8 +133,8 @@ export default function Dashboard() {
                         {/* Applications Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                                    <Monitor className="size-5" />
+                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                    <Layers3 className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-0.5">
@@ -152,8 +148,8 @@ export default function Dashboard() {
                         {/* Devices Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                                    <MonitorSmartphone className="size-5" />
+                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                    <MonitorSmartphone className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-0.5">
@@ -167,8 +163,8 @@ export default function Dashboard() {
                         {/* Managed Devices Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                                    <Smartphone className="size-5" />
+                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                    <MonitorSmartphone className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-0.5">
@@ -206,9 +202,9 @@ export default function Dashboard() {
                                 Assessment
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex gap-4">
-                            <div className="grid items-center gap-2">
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                        <CardContent className="flex gap-6">
+                            <div className="flex flex-col gap-2">
+                                <div className="grid auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Identity</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
                                         {reportData.TestResultSummary.IdentityPassed}/{reportData.TestResultSummary.IdentityTotal}
@@ -217,7 +213,7 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                <div className="grid auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Devices</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
                                         {reportData.TestResultSummary.DevicesPassed}/{reportData.TestResultSummary.DevicesTotal}
