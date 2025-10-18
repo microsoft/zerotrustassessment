@@ -198,7 +198,7 @@ export default function Dashboard() {
 
                     {/* Column 3: Assessment Results */}
                     <Card /** Test summary chart   */
-                        className="max-w-xs" x-chunk="charts-01-chunk-5"
+                        x-chunk="charts-01-chunk-5"
                     >
                         <CardContent className="flex gap-4 p-4">
                             <div className="grid items-center gap-2">
