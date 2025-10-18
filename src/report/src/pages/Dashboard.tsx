@@ -1,6 +1,6 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
 
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone, Building2, Globe } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Smartphone, Building2, Globe, ShieldCheck } from "lucide-react";
 
 import {
     Bar,
@@ -198,7 +198,7 @@ export default function Dashboard() {
                     >
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2">
-                                <Building2 className="size-5" />
+                                <ShieldCheck className="size-5" />
                                 Assessment
                             </CardTitle>
                         </CardHeader>
