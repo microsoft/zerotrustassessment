@@ -1059,7 +1059,10 @@ export default function Dashboard() {
                                 <CardFooter className="flex flex-row border-t p-4">
                                     <div className="flex w-full items-center gap-2">
                                         <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="text-xs text-muted-foreground">Compliant</div>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }}></div>
+                                                Compliant
+                                            </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                                 {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount /
                                                     (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
@@ -1071,7 +1074,10 @@ export default function Dashboard() {
                                         </div>
                                         <Separator orientation="vertical" className="mx-2 h-10 w-px" />
                                         <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="text-xs text-muted-foreground">Non-compliant</div>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(0, 84%, 60%)' }}></div>
+                                                Non-compliant
+                                            </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                                 {Math.round((reportData.TenantInfo.DeviceOverview.DeviceCompliance.nonCompliantDeviceCount /
                                                     (reportData.TenantInfo.DeviceOverview.DeviceCompliance.compliantDeviceCount +
