@@ -1028,9 +1028,9 @@ export default function Dashboard() {
                                                 color: "hsl(0, 84%, 60%)",
                                             },
                                         }}
-                                        className="mx-auto aspect-square w-full"
+                                        className="mx-auto aspect-square w-full max-h-full"
                                     >
-                                        <PieChart>
+                                        <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                                             <Pie
                                                 data={[
                                                     {
@@ -1046,8 +1046,8 @@ export default function Dashboard() {
                                                 ]}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius={40}
-                                                outerRadius={80}
+                                                innerRadius={50}
+                                                outerRadius={100}
                                                 paddingAngle={2}
                                                 dataKey="value"
                                             >
@@ -1122,9 +1122,9 @@ export default function Dashboard() {
                                                 color: "hsl(280, 85%, 60%)",
                                             },
                                         }}
-                                        className="mx-auto aspect-square w-full"
+                                        className="mx-auto aspect-square w-full max-h-full"
                                     >
-                                        <PieChart>
+                                        <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                                             <Pie
                                                 data={[
                                                     {
@@ -1140,8 +1140,8 @@ export default function Dashboard() {
                                                 ]}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius={40}
-                                                outerRadius={80}
+                                                innerRadius={50}
+                                                outerRadius={100}
                                                 paddingAngle={2}
                                                 dataKey="value"
                                             >
