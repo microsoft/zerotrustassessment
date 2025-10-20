@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck, Laptop, CircleCheckBig, Briefcase } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck, CircleCheckBig, Briefcase } from "lucide-react";
 
 import {
     Bar,
@@ -1002,7 +1002,8 @@ export default function Dashboard() {
                     )}
 
                     {/* Device compliance chart */}
-                    {(reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
+                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 &&
+                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
                         (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
                             <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
@@ -1096,7 +1097,8 @@ export default function Dashboard() {
                         )}
 
                     {/* Corporate vs Personal chart */}
-                    {(reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0) +
+                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 &&
+                        (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0) +
                         (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0) > 0 && (
                             <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
