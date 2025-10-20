@@ -888,14 +888,15 @@ export default function Dashboard() {
                     <PageHeaderHeading>Devices</PageHeaderHeading>
                 </PageHeader> */}
 
-                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                     {/* Device summary chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 && (
                         <Card className="w-full">
-                            <CardHeader className="space-y-0 pb-2">
+                            <CardHeader className="space-y-0 pb-2 flex-row">
+                                <MonitorSmartphone className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
                             </CardHeader>
-                            <CardContent className="flex gap-4 p-4 pb-2">
+                            <CardContent className="flex pb-4 h-[250px]">
                                 <ChartContainer
                                     config={{
                                         move: {
@@ -911,7 +912,7 @@ export default function Dashboard() {
                                             color: "hsl(var(--chart-3))",
                                         },
                                     }}
-                                    className="h-[180px] w-full"
+                                    className="h-[250px] w-full"
                                 >
                                     <BarChart
                                         margin={{
@@ -945,6 +946,12 @@ export default function Dashboard() {
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0}`,
                                                 fill: "hsl(var(--chart-5))",
                                             },
+                                            {
+                                                activity: "Linux",
+                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0,
+                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0}`,
+                                                fill: "hsl(var(--chart-4))",
+                                            },
                                         ]}
                                         layout="vertical"
                                         barSize={32}
@@ -957,7 +964,7 @@ export default function Dashboard() {
                                             tickLine={false}
                                             tickMargin={4}
                                             axisLine={false}
-                                            className="capitalize"
+                                            className=""
                                         />
                                         <Bar dataKey="value" radius={5}>
                                             <LabelList
@@ -1009,7 +1016,7 @@ export default function Dashboard() {
                                         Device compliance
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="flex pb-2 h-[200px]">
+                                <CardContent className="flex pb-2 h-[250px]">
                                     <ChartContainer
                                         config={{
                                             compliant: {
@@ -1093,9 +1100,103 @@ export default function Dashboard() {
                             </Card>
                         )}
 
+                    {/* Corporate vs Personal chart */}
+                    {(reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0) +
+                        (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0) > 0 && (
+                            <Card className="w-full">
+                                <CardHeader className="space-y-0 pb-2 flex-row">
+                                    <MonitorSmartphone className="pr-2 size-8" />
+                                    <CardTitle className="text-2xl tabular-nums ">
+                                        Device ownership
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex pb-2 h-[250px]">
+                                    <ChartContainer
+                                        config={{
+                                            corporate: {
+                                                label: "Corporate",
+                                                color: "hsl(217, 91%, 60%)",
+                                            },
+                                            personal: {
+                                                label: "Personal",
+                                                color: "hsl(280, 85%, 60%)",
+                                            },
+                                        }}
+                                        className="mx-auto aspect-square w-full"
+                                    >
+                                        <PieChart>
+                                            <Pie
+                                                data={[
+                                                    {
+                                                        name: "Corporate",
+                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0,
+                                                        fill: "var(--color-corporate)",
+                                                    },
+                                                    {
+                                                        name: "Personal",
+                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0,
+                                                        fill: "var(--color-personal)",
+                                                    },
+                                                ]}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={40}
+                                                outerRadius={80}
+                                                paddingAngle={2}
+                                                dataKey="value"
+                                            >
+                                                <Cell fill="var(--color-corporate)" />
+                                                <Cell fill="var(--color-personal)" />
+                                            </Pie>
+                                            <ChartTooltip content={<ChartTooltipContent />} />
+                                        </PieChart>
+                                    </ChartContainer>
+                                </CardContent>
+                                <CardFooter className="flex flex-row border-t p-4">
+                                    <div className="flex w-full items-center gap-2">
+                                        <div className="grid flex-1 auto-rows-min gap-0.5">
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
+                                                Corporate
+                                            </div>
+                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                                {(() => {
+                                                    const corporate = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0;
+                                                    const personal = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0;
+                                                    const total = corporate + personal;
+                                                    return total > 0 ? Math.round((corporate / total) * 100) : 0;
+                                                })()}
+                                                <span className="text-sm font-normal text-muted-foreground">
+                                                    %
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                        <div className="grid flex-1 auto-rows-min gap-0.5">
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <div className="w-3 h-3 rounded-sm bg-purple-500"></div>
+                                                Personal
+                                            </div>
+                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                                {(() => {
+                                                    const corporate = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0;
+                                                    const personal = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0;
+                                                    const total = corporate + personal;
+                                                    return total > 0 ? Math.round((personal / total) * 100) : 0;
+                                                })()}
+                                                <span className="text-sm font-normal text-muted-foreground">
+                                                    %
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardFooter>
+                            </Card>
+                        )}
+
                                             {/* Windows devices chart */}
                     {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
-                        <Card className="w-full lg:col-span-2">
+                        <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <Monitor className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">

@@ -10,6 +10,30 @@ function Add-ZtDeviceOverview {
         $Database
     )
 
+    function Get-DeviceOwnership {
+        [CmdletBinding()]
+        param(
+            $Database
+        )
+        $sql = @"
+select deviceOwnership, count(*) count
+from Device
+where accountEnabled and "isManaged"
+group by deviceOwnership
+order by deviceOwnership
+"@
+
+        $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+
+        $corporate = ($results | Where-Object { $_.deviceOwnership -eq 'Company' } | Select-Object -ExpandProperty count) ?? 0
+        $personal = ($results | Where-Object { $_.deviceOwnership -eq 'Personal' } | Select-Object -ExpandProperty count) ?? 0
+
+        @{
+            "corporateCount" = $corporate
+            "personalCount" = $personal
+        }
+    }
+
     function Get-WindowsJoinSummary {
         [CmdletBinding()]
         param(
@@ -129,6 +153,7 @@ order by operatingSystem, trustType, isCompliant
     Write-ZtProgress -Activity $activity -Status "Processing"
 
     $windowsJoinSummary = Get-WindowsJoinSummary -Database $Database
+    $deviceOwnership = Get-DeviceOwnership -Database $Database
     $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
     $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
 
@@ -143,6 +168,7 @@ order by operatingSystem, trustType, isCompliant
         WindowsJoinSummary = $windowsJoinSummary
         ManagedDevices     = $managedDevices
         DeviceCompliance   = $deviceCompliance
+        DeviceOwnership    = $deviceOwnership
     }
 
     Add-ZtTenantInfo -Name "DeviceOverview" -Value $deviceOverview

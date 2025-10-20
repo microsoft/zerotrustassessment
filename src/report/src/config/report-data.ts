@@ -142,6 +142,12 @@ export interface DeviceOverview {
   WindowsJoinSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
+  DeviceOwnership: DeviceOwnership | null;
+}
+
+export interface DeviceOwnership {
+  corporateCount: number;
+  personalCount: number;
 }
 
 export interface ManagedDevices {
@@ -1050,6 +1056,10 @@ export const reportData: ZeroTrustAssessmentReport = {
         "nonCompliantDeviceCount": 106,
         "errorDeviceCount": 0,
         "conflictDeviceCount": 0
+      },
+      "DeviceOwnership": {
+        "corporateCount": 120,
+        "personalCount": 20
       }
     },
     "ConfigDeviceEnrollmentRestriction": [
