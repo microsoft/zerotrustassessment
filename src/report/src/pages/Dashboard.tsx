@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck, Laptop, CircleCheckBig, Briefcase } from "lucide-react";
 
 import {
     Bar,
@@ -899,55 +899,46 @@ export default function Dashboard() {
                             <CardContent className="flex pb-4 h-[250px]">
                                 <ChartContainer
                                     config={{
-                                        move: {
-                                            label: "MFA",
-                                            color: "hsl(var(--chart-1))",
-                                        },
-                                        stand: {
-                                            label: "MDM",
-                                            color: "hsl(var(--chart-2))",
-                                        },
-                                        exercise: {
-                                            label: "MAM",
-                                            color: "hsl(var(--chart-3))",
+                                        value: {
+                                            label: "Devices",
                                         },
                                     }}
                                     className="h-[250px] w-full"
                                 >
                                     <BarChart
                                         margin={{
-                                            left: 0,
+                                            left: 12,
                                             right: 0,
                                             top: 0,
                                             bottom: 10,
                                         }}
                                         data={[
                                             {
-                                                activity: "Windows",
+                                                dataKey: "Windows",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0}`,
                                                 fill: "hsl(var(--chart-1))",
                                             },
                                             {
-                                                activity: "macOS",
+                                                dataKey: "macOS",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0}`,
                                                 fill: "hsl(var(--chart-2))",
                                             },
                                             {
-                                                activity: "iOS",
+                                                dataKey: "iOS",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0}`,
                                                 fill: "hsl(var(--chart-3))",
                                             },
                                             {
-                                                activity: "Android",
+                                                dataKey: "Android",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0}`,
                                                 fill: "hsl(var(--chart-5))",
                                             },
                                             {
-                                                activity: "Linux",
+                                                dataKey: "Linux",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0}`,
                                                 fill: "hsl(var(--chart-4))",
@@ -959,12 +950,16 @@ export default function Dashboard() {
                                     >
                                         <XAxis type="number" dataKey="value" hide />
                                         <YAxis
-                                            dataKey="activity"
+                                            dataKey="dataKey"
                                             type="category"
                                             tickLine={false}
                                             tickMargin={4}
                                             axisLine={false}
                                             className=""
+                                        />
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent/>}
                                         />
                                         <Bar dataKey="value" radius={5}>
                                             <LabelList
@@ -1011,7 +1006,7 @@ export default function Dashboard() {
                         (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
                             <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
-                                    <MonitorSmartphone className="pr-2 size-8" />
+                                    <CircleCheckBig className="pr-2 size-8" />
                                     <CardTitle className="text-2xl tabular-nums ">
                                         Device compliance
                                     </CardTitle>
@@ -1105,7 +1100,7 @@ export default function Dashboard() {
                         (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0) > 0 && (
                             <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
-                                    <MonitorSmartphone className="pr-2 size-8" />
+                                    <Briefcase className="pr-2 size-8" />
                                     <CardTitle className="text-2xl tabular-nums ">
                                         Device ownership
                                     </CardTitle>
