@@ -1,0 +1,70 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#devices",
+    "value": [
+        {
+            "isZtModelRow": true,
+            "approximateLastSignInDateTime": null,
+            "isManaged": null,
+            "alternativeNames": null,
+            "alternativeSecurityIds": [
+                {
+                    "identityProvider": null,
+                    "type": null,
+                    "key": null
+                }
+            ],
+            "accountEnabled": null,
+            "systemLabels": [],
+            "deviceMetadata": null,
+            "domainName": null,
+            "managementType": null,
+            "deviceOwnership": null,
+            "onPremisesSyncEnabled": null,
+            "trustType": null,
+            "registrationDateTime": null,
+            "enrollmentType": null,
+            "enrollmentProfileName": null,
+            "mdmAppId": null,
+            "isRooted": null,
+            "deviceId": null,
+            "createdDateTime": null,
+            "operatingSystem": null,
+            "isCompliant": null,
+            "onPremisesLastSyncDateTime": null,
+            "hostnames": [
+            ],
+            "extensionAttributes": {
+                "extensionAttribute6": null,
+                "extensionAttribute7": null,
+                "extensionAttribute1": null,
+                "extensionAttribute9": null,
+                "extensionAttribute2": null,
+                "extensionAttribute13": null,
+                "extensionAttribute4": null,
+                "extensionAttribute5": null,
+                "extensionAttribute10": null,
+                "extensionAttribute3": null,
+                "extensionAttribute8": null,
+                "extensionAttribute11": null,
+                "extensionAttribute14": null,
+                "extensionAttribute15": null,
+                "extensionAttribute12": null
+            },
+            "manufacturer": null,
+            "displayName": null,
+            "isManagementRestricted": null,
+            "operatingSystemVersion": null,
+            "complianceExpirationDateTime": null,
+            "profileType": null,
+            "externalSourceName": null,
+            "deletedDateTime": null,
+            "physicalIds": [
+            ],
+            "model": null,
+            "id": null,
+            "deviceCategory": null,
+            "deviceVersion": null,
+            "sourceType": null
+        }
+    ]
+}

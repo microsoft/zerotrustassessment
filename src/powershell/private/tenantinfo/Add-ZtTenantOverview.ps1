@@ -16,13 +16,17 @@ function Add-ZtTenantOverview {
     $groupCount = Invoke-ZtGraphRequest -RelativeUri 'groups/$count'
     $applicationCount = Invoke-ZtGraphRequest -RelativeUri 'applications/$count'
     $deviceCount = Invoke-ZtGraphRequest -RelativeUri 'devices/$count'
-    $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+
+    $IntunePlan = Get-ZtLicenseInformation -Product Intune
+    if ($null -ne $IntunePlan) {
+        $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+    }
 
     $tenantOverview = [PSCustomObject]@{
-        UserCount        = $userCount -as [int] ?? 0
-        GroupCount       = $groupCount -as [int] ?? 0
-        ApplicationCount = $applicationCount -as [int] ?? 0
-        DeviceCount      = $deviceCount -as [int] ?? 0
+        UserCount          = $userCount -as [int] ?? 0
+        GroupCount         = $groupCount -as [int] ?? 0
+        ApplicationCount   = $applicationCount -as [int] ?? 0
+        DeviceCount        = $deviceCount -as [int] ?? 0
         ManagedDeviceCount = $managedDevices.enrolledDeviceCount -as [int] ?? 0
     }
 
