@@ -214,11 +214,20 @@ Uninstall-Module ZeroTrustAssessment -Force -AllVersions
 Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
 ```
 
-### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
+### Could not load file or assembly Microsoft.Graph.Authentication
 
-- The [List roleAssignmentScheduleRequests](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignmentschedulerequests?view=graph-rest-1.0&tabs=http) Graph API call requires this permission RoleEligibilitySchedule.ReadWrite.Directory.
+This error happens when you have conflicting versions of Microsoft Graph PowerShell installed.
 
-- You can run this report as a Global Reader to ensure that no changes are made.
+To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
+
+After uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment by running 
+
+```powershell
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+```
+
+Then restart your PowerShell terminal and start the install process of the Zero Trust Assessment. The Zero Trust assessment will install the correct version of the Microsoft Graph PowerShell automatically.
 
 ### How can I know what the script is doing?
 
