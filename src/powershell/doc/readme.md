@@ -220,14 +220,26 @@ This error happens when you have conflicting versions of Microsoft Graph PowerSh
 
 To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
 
-After uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment by running 
+When uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment, restart PowerShell and then try a fresh install. 
+
+This is the order of running the cmdlets.
 
 ```powershell
+Install-Module Uninstall-Graph
 Uninstall-Module ZeroTrustAssessment -Force -AllVersions
 Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Uninstall-Graph
+```
+Close all open PowerShell windows.
+
+Start a new PowerShell session.
+
+```powershell
+Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
+Install-Module Az.Accounts -Scope CurrentUser
 ```
 
-Then restart your PowerShell terminal and start the install process of the Zero Trust Assessment. The Zero Trust assessment will install the correct version of the Microsoft Graph PowerShell automatically.
+Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
 
 ### How can I know what the script is doing?
 
