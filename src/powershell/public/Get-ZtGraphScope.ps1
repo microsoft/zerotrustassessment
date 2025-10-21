@@ -36,8 +36,6 @@ Function Get-ZtGraphScope {
         'Policy.Read.PermissionGrant'
         'PrivilegedAccess.Read.AzureAD'
         'Reports.Read.All'
-        'RoleEligibilitySchedule.Read.Directory'
-        'RoleEligibilitySchedule.ReadWrite.Directory'
         'RoleManagement.Read.All'
         'UserAuthenticationMethod.Read.All'
     )

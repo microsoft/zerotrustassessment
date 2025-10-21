@@ -87,7 +87,6 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - PrivilegedAccess.Read.AzureAD
 - Reports.Read.All
 - RoleEligibilitySchedule.Read.Directory
-- RoleEligibilitySchedule.ReadWrite.Directory
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
 
