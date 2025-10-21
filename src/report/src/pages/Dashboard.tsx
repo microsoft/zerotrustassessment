@@ -98,7 +98,7 @@ export default function Dashboard() {
                         {/* Users Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                <AvatarFallback className="text-blue-600 shrink-0 rounded-sm">
                                     <User className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
@@ -113,7 +113,7 @@ export default function Dashboard() {
                         {/* Groups Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                <AvatarFallback className="text-purple-600 shrink-0 rounded-sm">
                                     <Users className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
@@ -128,7 +128,7 @@ export default function Dashboard() {
                         {/* Applications Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                <AvatarFallback className="text-emerald-600 shrink-0 rounded-sm">
                                     <Layers3 className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
@@ -143,7 +143,7 @@ export default function Dashboard() {
                         {/* Devices Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                <AvatarFallback className="text-orange-600 shrink-0 rounded-sm">
                                     <MonitorSmartphone className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
@@ -158,7 +158,7 @@ export default function Dashboard() {
                         {/* Managed Devices Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-primary shrink-0 rounded-sm">
+                                <AvatarFallback className="text-amber-600 shrink-0 rounded-sm">
                                     <MonitorSmartphone className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
