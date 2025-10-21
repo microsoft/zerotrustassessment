@@ -40,7 +40,6 @@ function Export-TenantData {
 		)
 
 		# Get the date range to query by subtracting the number of days from today set to midnight
-		$dateFilter = $null
 		$statusFilter = "status/errorcode eq 0"
 
 		$dateStart = (Get-Date -Hour 0 -Minute 0 -Second 0).AddDays(-$pastDays)
@@ -86,7 +85,6 @@ function Export-TenantData {
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
 			-EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
 
-
 		# Active role assignments
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
 			-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
@@ -94,15 +92,15 @@ function Export-TenantData {
 
 		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
 			# API requires PIM license
-			# Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
-			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
-				-EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
+			# Filter for permanently assigned/active (ignore PIM eligible users that have temporarily actived)
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentScheduleInstance' `
+				-EntityUri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ProgressActivity 'Role Assignment Instance' `
 				-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
 
 			# Filter for currently valid, eligible role assignments
-			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
-				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
-				-QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleInstance' `
+				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ProgressActivity 'Role Eligibility Instance' `
+				-QueryString "`$expand=principal"
 
 			# Export role management policy assignments for PIM activation alert configuration
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
@@ -121,8 +119,11 @@ function Export-TenantData {
 
 		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
 			# Export eligible privileged groups
+			Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Assigned Privileged Groups' `
+				-InputEntityName 'RoleAssignmentScheduleInstance' -EntityName 'RoleAssignmentScheduleInstanceGroup'
+
 			Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
-				-InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
+				-InputEntityName 'RoleEligibilityScheduleInstance' -EntityName 'RoleEligibilityScheduleInstanceGroup'
 		}
 
 		if ($EntraIDPlan -ne 'Free') {

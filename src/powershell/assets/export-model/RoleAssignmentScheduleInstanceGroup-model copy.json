@@ -16,7 +16,8 @@
       "preferredLanguage": null,
       "surname": null,
       "userPrincipalName": null,
-      "privilegedGroupId": null
+      "privilegedGroupId": null,
+      "roleDefinitionId": null
     }
   ]
 }

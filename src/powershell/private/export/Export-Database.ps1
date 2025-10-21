@@ -62,6 +62,20 @@ function Export-Database {
     from main."$TableName" r
         left join main."RoleDefinition" rd on r."roleDefinitionId" = rd.id
 
+	union all
+
+    select
+        rd2.isPrivileged,
+        cast(r2."roleDefinitionId" as varchar)           as roleDefinitionId,
+        cast(r2.displayName as varchar)        as principalDisplayName,
+        rd2.displayName                                  as roleDisplayName,
+        cast(r2.userPrincipalName as varchar)  as userPrincipalName,
+        cast(r2."@odata.type" as varchar)      as "@odata.type",
+        cast(r2.Id as varchar)                  as principalId,
+        '$PrivilegeType'                        as privilegeType
+    from main."$($TableName)Group" r2
+        left join main."RoleDefinition" rd2 on r2."roleDefinitionId" = rd2.id
+
 "@
 
 		if ($AddUnion) {
@@ -85,18 +99,18 @@ as
 
 "@
 
-		$RoleAssignmentScheduleCountSql = 'select count(*) as RoleAssignmentScheduleCount from RoleAssignmentSchedule where id is not null'
-		$result = Invoke-DatabaseQuery -Database $Database -Sql $RoleAssignmentScheduleCountSql
-		if ($result.RoleAssignmentScheduleCount -gt 0) {
+		$EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+
+		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
 			# Is P2 tenant, don't read RoleAssignment because it contains PIM Eligible temporary users and has no way to filter it out.
-			$sql += Get-RoleSelectSql -TableName 'RoleAssignmentSchedule' -PrivilegeType 'Permanent' -AddUnion
+			$sql += Get-RoleSelectSql -TableName 'RoleAssignmentScheduleInstance' -PrivilegeType 'Permanent' -AddUnion
 		}
 		else {
 			# Is Free or P1 tenant so we only have the RoleAssignment table to go on.
 			$sql += Get-RoleSelectSql -TableName "RoleAssignment" -PrivilegeType 'Permanent' -AddUnion
 		}
-		# Now read RoleEligibilityScheduleRequest to get PIM Eligible users
-		$sql += Get-RoleSelectSql -TableName "RoleEligibilityScheduleRequest" -PrivilegeType 'Eligible'
+		# Now read RoleEligibilityScheduleInstance to get PIM Eligible users
+		$sql += Get-RoleSelectSql -TableName "RoleEligibilityScheduleInstance" -PrivilegeType 'Eligible'
 
 		Invoke-DatabaseQuery -Database $Database -Sql $sql -NonQuery
 	}
@@ -130,9 +144,10 @@ as
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentSchedule'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequest'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleRequestGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup'
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment'
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails'
 
