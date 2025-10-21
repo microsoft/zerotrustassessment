@@ -79,7 +79,7 @@ function Get-ZtRoleMember {
 			}
 		}
 
-		$dirAssignments = Invoke-ZtGraphRequest @params -DisableCache
+		$dirAssignments = Invoke-ZtGraphRequest @params
 
 		$assignments = @()
 		if ($dirAssignments.id.Count -eq 0) {
