@@ -1046,6 +1046,7 @@ export default function Dashboard() {
                                                 outerRadius={100}
                                                 paddingAngle={2}
                                                 dataKey="value"
+                                                cornerRadius={5}
                                             >
                                                 <Cell fill="var(--color-compliant)" />
                                                 <Cell fill="var(--color-nonCompliant)" />
@@ -1141,6 +1142,7 @@ export default function Dashboard() {
                                                 outerRadius={100}
                                                 paddingAngle={2}
                                                 dataKey="value"
+                                                cornerRadius={5}
                                             >
                                                 <Cell fill="var(--color-corporate)" />
                                                 <Cell fill="var(--color-personal)" />
