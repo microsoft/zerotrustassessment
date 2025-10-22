@@ -1,10 +1,116 @@
 <#
 .SYNOPSIS
-    Common functions for testing enterprise application ownership.
+    Common functions for testing enterprise application ownership and permissions.
 
 .DESCRIPTION
-    This common function contains shared functions used by application ownership tests (24518, 21867, etc.)
-    to check if applications have sufficient owners based on permission privilege levels.
+    Functions used by application ownership tests (21770, 24518, 21867, etc.)
+    to check applications with permissions, owners, and risk classifications.
+#>
+
+<#
+.SYNOPSIS
+    Get all applications with permissions, classified by risk level.
+
+.DESCRIPTION
+    This function queries ServicePrincipal objects with their associated Application data,
+    enriches them with permission details and risk classifications.
+    Used by tests 21770, 24518, and 21867.
+#>
+
+function Get-ApplicationsWithPermissions {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        $Database
+    )
+
+    # Query ServicePrincipal objects with permissions (same SQL as Test-21770)
+    # LEFT JOIN with Application to get owners and other app properties
+    $sql = @"
+select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
+spsi.lastSignInActivity.lastSignInDateTime,
+app.owners, app.signInAudience, app.publisherDomain
+from main.ServicePrincipal sp
+    left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
+    left join main.Application app on app.appId = sp.appId
+where sp.id in
+    (
+        select sp.id
+        from main.ServicePrincipal sp
+        where sp.oauth2PermissionGrants.scope is not null
+    )
+    or sp.id in
+    (
+        select distinct sp.id,
+        from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
+            from main.ServicePrincipal sp) sp
+            left join
+                (select unnest(main.ServicePrincipal.appRoles).id as id, unnest(main.ServicePrincipal.appRoles)."value" permissionName
+                from main.ServicePrincipal) spAppRole
+                on sp.appRoleId = spAppRole.id
+        where permissionName is not null
+    )
+order by spsi.lastSignInActivity.lastSignInDateTime
+"@
+
+    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+
+    Write-PSFMessage "Found $($results.Count) service principals with permissions from database" -Level Verbose
+
+    if (-not $results -or $results.Count -eq 0) {
+        return @()
+    }
+
+    # Enrich each app with permissions and risk classification (using Test-21770 pattern)
+    $enrichedApps = @()
+
+    foreach ($item in $results) {
+        try {
+            # Add delegate permissions
+            $item = Add-DelegatePermissions -item $item -Database $Database
+
+            # Add application permissions
+            $item = Add-AppPermissions -item $item -Database $Database
+
+            # Add risk classification
+            $item = Add-GraphRisk $item
+
+            # Add owner count from Application.owners field
+            $ownerCount = 0
+            if ($item.owners) {
+                if ($item.owners -is [System.Collections.ICollection]) {
+                    $ownerCount = $item.owners.Count
+                } else {
+                    try {
+                        $ownersList = $item.owners | ConvertFrom-Json
+                        $ownerCount = $ownersList.Count
+                    } catch {
+                        $ownerCount = 0
+                    }
+                }
+            }
+            $item | Add-Member -MemberType NoteProperty -Name 'OwnerCount' -Value $ownerCount -Force
+
+            $enrichedApps += $item
+        }
+        catch {
+            Write-PSFMessage "Error processing app $($item.displayName): $_" -Level Warning -ErrorRecord $_ -Tag Test
+            continue
+        }
+    }
+
+    Write-PSFMessage "Enriched $($enrichedApps.Count) applications with permissions and risk data" -Level Verbose
+
+    return $enrichedApps
+}
+
+<#
+.SYNOPSIS
+    Get applications with insufficient owners based on privilege level.
+
+.DESCRIPTION
+    Filters applications from Get-ApplicationsWithPermissions based on owner count and privilege level.
+    Used by tests 24518 and 21867.
 #>
 
 function Get-ApplicationsWithInsufficientOwners {
@@ -18,105 +124,13 @@ function Get-ApplicationsWithInsufficientOwners {
         [string]$PrivilegeLevel
     )
 
-    # Get applications from database that have permissions and < 2 owners (filtered at SQL level)
-    $sqlApp = @"
-SELECT
-    id,
-    appId,
-    displayName,
-    signInAudience,
-    requiredResourceAccess,
-    publisherDomain,
-    owners
-FROM Application
-WHERE requiredResourceAccess IS NOT NULL
-    AND requiredResourceAccess != '[]'
-    AND (
-        owners IS NULL
-        OR owners = '[]'
-        OR json_array_length(owners) < 2
-    )
-ORDER BY displayName
-"@
+    # Get all apps with permissions
+    $allApps = Get-ApplicationsWithPermissions -Database $Database
 
-    $applications = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
-
-    Write-PSFMessage "Found $($applications.Count) applications with < 2 owners from database" -Level Verbose
-
-    if (-not $applications -or $applications.Count -eq 0) {
-        return @()
-    }
-
-    # Filter by permission classification using Get-GraphPermissionRisk (same logic as Test-21770)
+    # Filter by privilege level and owner count
     $filteredApps = @()
 
-    foreach ($app in $applications) {
-        try {
-            # DuckDB returns complex types (like requiredResourceAccess) as .NET objects, not JSON strings
-            # So we can use them directly without conversion
-            $requiredResourceAccess = if ($app.requiredResourceAccess) {
-                $app.requiredResourceAccess
-            } else {
-                @()
-            }
-
-            # Build delegate and application permission arrays from requiredResourceAccess
-            $delegatePermissions = @()
-            $applicationPermissions = @()
-
-            foreach ($req in $requiredResourceAccess) {
-                # DuckDB returns dictionaries, so access properties using dictionary syntax
-                $resourceAppId = if ($req -is [System.Collections.IDictionary]) { $req['resourceAppId'] } else { $req.resourceAppId }
-                $resourceAccess = if ($req -is [System.Collections.IDictionary]) { $req['resourceAccess'] } else { $req.resourceAccess }
-
-                foreach ($perm in $resourceAccess) {
-                    $permId = if ($perm -is [System.Collections.IDictionary]) { $perm['id'] } else { $perm.id }
-                    $permType = if ($perm -is [System.Collections.IDictionary]) { $perm['type'] } else { $perm.type }
-
-                    if ($permType -eq 'Role') {
-                    # Application permission - query appRoles from ServicePrincipal
-                    $appRoleSql = @"
-SELECT DISTINCT appRole."value" as permissionName
-FROM (
-    SELECT unnest(appRoles) as appRole
-    FROM ServicePrincipal
-    WHERE appId = '$resourceAppId'
-) roles
-WHERE appRole.id = '$permId'
-"@
-                    $appRoleResult = Invoke-DatabaseQuery -Database $Database -Sql $appRoleSql | Select-Object -First 1
-                    if ($appRoleResult -and $appRoleResult.permissionName) {
-                        $applicationPermissions += $appRoleResult.permissionName
-                    }
-                } else {
-                    # Delegated permission (Scope) - query oauth2PermissionScopes from Application.api
-                    $scopeSql = @"
-SELECT DISTINCT scope."value" as permissionName
-FROM (
-    SELECT unnest(api.oauth2PermissionScopes) as scope
-    FROM Application
-    WHERE appId = '$resourceAppId'
-    AND api IS NOT NULL
-    AND api.oauth2PermissionScopes IS NOT NULL
-) scopes
-WHERE scope.id = '$permId'
-"@
-                    $scopeResult = Invoke-DatabaseQuery -Database $Database -Sql $scopeSql | Select-Object -First 1
-                    if ($scopeResult -and $scopeResult.permissionName) {
-                        $delegatePermissions += $scopeResult.permissionName
-                    }
-                }
-            }
-        }
-
-        # Add permissions to app object
-        $app | Add-Member -MemberType NoteProperty -Name 'DelegatePermissions' -Value $delegatePermissions -Force
-        $app | Add-Member -MemberType NoteProperty -Name 'AppPermissions' -Value $applicationPermissions -Force
-
-        # Use Get-GraphRisk to determine risk level (same as Test-21770)
-        $app.Risk = Get-GraphRisk -delegatePermissions $delegatePermissions -applicationPermissions $applicationPermissions
-        $app.IsRisky = $app.Risk -eq "High" -or $app.Risk -eq "Medium" -or $app.Risk -eq "Low"
-
+    foreach ($app in $allApps) {
         # Filter based on privilege level
         $matchesPrivilege = switch ($PrivilegeLevel) {
             'High' { $app.Risk -eq 'High' }
@@ -129,36 +143,13 @@ WHERE scope.id = '$permId'
             continue
         }
 
-        # Get owner count from database field
-        # DuckDB returns owners as a .NET List object, not JSON
-        $ownerCount = 0
-        if ($app.owners) {
-            if ($app.owners -is [System.Collections.ICollection]) {
-                $ownerCount = $app.owners.Count
-            } else {
-                # Fallback: if it's somehow a string, parse it
-                try {
-                    $ownersList = $app.owners | ConvertFrom-Json
-                    $ownerCount = $ownersList.Count
-                } catch {
-                    $ownerCount = 0
-                }
-            }
-        }
-        $app | Add-Member -MemberType NoteProperty -Name 'OwnerCount' -Value $ownerCount -Force
-
         # Only include apps with < 2 owners
         if ($app.OwnerCount -lt 2) {
             $filteredApps += $app
         }
-        }
-        catch {
-            Write-PSFMessage "Error processing app $($app.displayName): $_" -Level Warning -ErrorRecord $_ -Tag Test
-            continue
-        }
     }
 
-    Write-PSFMessage "Filtered to $($filteredApps.Count) applications matching privilege level '$PrivilegeLevel'" -Level Verbose
+    Write-PSFMessage "Filtered to $($filteredApps.Count) applications with < 2 owners matching privilege level '$PrivilegeLevel'" -Level Verbose
 
     return $filteredApps
 }
@@ -187,33 +178,19 @@ function Build-ApplicationOwnershipReport {
     foreach ($app in $Applications) {
         $isMultiTenant = $app.signInAudience -eq 'AzureADMultipleOrgs'
 
-        # Collect unique permissions and their risk classifications using Get-GraphPermissionRisk
-        $permissionSet = @{}
-        $classificationSet = @{}
+        # Collect all unique permissions for display
+        $allPermissions = @()
+        if ($app.DelegatePermissions) { $allPermissions += $app.DelegatePermissions }
+        if ($app.AppPermissions) { $allPermissions += $app.AppPermissions }
 
-        # Use the permissions already resolved in Get-ApplicationsWithInsufficientOwners
-        if ($app.DelegatePermissions) {
-            foreach ($permName in $app.DelegatePermissions) {
-                $permissionSet[$permName] = $true
-                $risk = Get-GraphPermissionRisk -Permission $permName -PermissionType 'Delegated'
-                if ($risk -and $risk -ne 'Unranked') {
-                    $classificationSet[$risk] = $true
-                }
-            }
+        $permList = if ($allPermissions.Count -gt 0) {
+            ($allPermissions | Select-Object -Unique | Sort-Object) -join ', '
+        } else {
+            'None'
         }
 
-        if ($app.AppPermissions) {
-            foreach ($permName in $app.AppPermissions) {
-                $permissionSet[$permName] = $true
-                $risk = Get-GraphPermissionRisk -Permission $permName -PermissionType 'Application'
-                if ($risk -and $risk -ne 'Unranked') {
-                    $classificationSet[$risk] = $true
-                }
-            }
-        }
-
-        $permList = if ($permissionSet.Count -gt 0) { ($permissionSet.Keys | Sort-Object) -join ', ' } else { 'None' }
-        $classList = if ($classificationSet.Count -gt 0) { ($classificationSet.Keys | Sort-Object) -join ', ' } else { $app.Risk ?? 'Unknown' }
+        # Use the overall app Risk (already calculated by Get-GraphRisk)
+        $classList = $app.Risk ?? 'Unranked'
 
         # Build clickable Entra portal link
         $entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
