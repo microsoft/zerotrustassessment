@@ -111,10 +111,7 @@ Filters policies that contain either of two different settings, each located in 
     function Get-FilteredPoliciesBySetting {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory)]
             [array]$Policies,
-
-            [Parameter(Mandatory)]
             [hashtable]$RequiredSettings
         )
 

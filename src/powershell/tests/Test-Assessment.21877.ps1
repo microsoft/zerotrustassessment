@@ -21,6 +21,10 @@ function Test-Assessment-21877 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ((Get-MgContext).Environment -ne 'Global') {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
 
     $activity = "Checking All guests have a sponsor"
     Write-ZtProgress -Activity $activity -Status "Getting guest users"

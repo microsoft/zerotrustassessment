@@ -3,23 +3,28 @@
 
 #>
 
-function Test-Assessment-21875{
+function Test-Assessment-21875 {
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce','External'),
-    	TestId = 21875,
-    	Title = 'Tenant has all external organizations allowed to collaborate as connected organization',
-    	UserImpact = 'Medium'
+        Category = 'Access control',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce', 'External'),
+        TestId = 21875,
+        Title = 'Tenant has all external organizations allowed to collaborate as connected organization',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    if( -not (Get-ZtLicense EntraIDP2) ) {
+    if ((Get-MgContext).Environment -ne 'Global') {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
+
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
         return
     }
@@ -33,19 +38,25 @@ function Test-Assessment-21875{
 
     $targetScopes = @('specificConnectedOrganizationUsers', 'allConfiguredConnectedOrganizationUsers', 'allExternalUsers')
     $results = $response | Where-Object { $_.allowedTargetScope -in $targetScopes }
-    if($results) {
+    if ($results) {
         # Map to expected property names and determine per-policy status
         $results = $results | ForEach-Object {
             $status = switch ($_.allowedTargetScope) {
-                'allExternalUsers' { '❌ Fail' }
-                'allConfiguredConnectedOrganizationUsers' { '⚠️ Investigate' }
-                'specificConnectedOrganizationUsers' { '✅ Pass' }
+                'allExternalUsers' {
+                    '❌ Fail'
+                }
+                'allConfiguredConnectedOrganizationUsers' {
+                    '⚠️ Investigate'
+                }
+                'specificConnectedOrganizationUsers' {
+                    '✅ Pass'
+                }
             }
             [PSCustomObject]@{
-                AccessPackageName = $_.accessPackage.displayName
+                AccessPackageName    = $_.accessPackage.displayName
                 AssignmentPolicyName = $_.displayName
-                allowedTargetScope = $_.allowedTargetScope
-                Status = $status
+                allowedTargetScope   = $_.allowedTargetScope
+                Status               = $status
             }
         }
     }
@@ -57,14 +68,17 @@ function Test-Assessment-21875{
     if ($results.Count -eq 0) {
         $testResultMarkdown = 'No assignment policies found that target external users.'
         $testPassed = $true
-    } elseif (($results | Where-Object { $_.allowedTargetScope -eq 'allExternalUsers' }).Count -gt 0) {
+    }
+    elseif (($results | Where-Object { $_.allowedTargetScope -eq 'allExternalUsers' }).Count -gt 0) {
         $testResultMarkdown = 'Assignment policies without connected organization restrictions were found.'
         $testPassed = $false
-    } elseif (($results | Where-Object { $_.allowedTargetScope -eq 'allConfiguredConnectedOrganizationUsers' }).Count -gt 0) {
+    }
+    elseif (($results | Where-Object { $_.allowedTargetScope -eq 'allConfiguredConnectedOrganizationUsers' }).Count -gt 0) {
         $testResultMarkdown = 'Assignment policies that allow any connected organization were found.'
         $testPassed = $true
         $customStatus = 'Investigate'
-    } elseif (($results | Where-Object { $_.allowedTargetScope -eq 'specificConnectedOrganizationUsers' }).Count -eq $results.Count) {
+    }
+    elseif (($results | Where-Object { $_.allowedTargetScope -eq 'specificConnectedOrganizationUsers' }).Count -eq $results.Count) {
         $testResultMarkdown = 'All assignment policies targeting external users are restricted to specific connected organizations.'
         $testPassed = $true
     }
