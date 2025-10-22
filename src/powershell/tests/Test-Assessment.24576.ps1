@@ -47,6 +47,11 @@ function Test-PolicyAssignment {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking Intune Endpoint Analytics policy is created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

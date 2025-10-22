@@ -46,6 +46,11 @@ function Test-Assessment-24550 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking Windows BitLocker policy is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

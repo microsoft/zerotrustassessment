@@ -34,14 +34,33 @@ function Connect-ZtAssessment
 
         # The environment to connect to. Default is Global.
         [ValidateSet('China', 'Germany', 'Global', 'USGov', 'USGovDoD')]
-        [string]$Environment = 'Global'
+        [string]$Environment = 'Global',
+
+        # Force re-authentication even if already connected and avoids using Graph Powershell's cached authentication tokens.
+        [switch]$Force
     )
 
     Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
     Write-PSFMessage 'Connecting to Microsoft Graph'
     try
     {
-        Connect-MgGraph -Scopes (Get-ZtGraphScope) -NoWelcome -UseDeviceCode:$UseDeviceCode -Environment $Environment
+        $params = @{
+            Scopes       = (Get-ZtGraphScope)
+            NoWelcome    = $true
+            Environment  = $Environment
+        }
+
+        if ($UseDeviceCode) {
+            $params['UseDeviceCode'] = $true
+        }
+
+        # If force use -ContextScope Process to force re-authentication
+        if ($Force) {
+            $params['ContextScope'] = 'Process'
+        }
+
+        Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
+        Connect-MgGraph @params
     }
     catch [Management.Automation.CommandNotFoundException]
     {

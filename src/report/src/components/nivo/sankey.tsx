@@ -28,6 +28,11 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
                 fontSize: '12px',
                 padding: '8px 12px'
             }
+        },
+        labels: {
+            text: {
+                fontSize: 12
+            }
         }
     };
 

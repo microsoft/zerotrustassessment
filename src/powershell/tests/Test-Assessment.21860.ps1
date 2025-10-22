@@ -39,8 +39,9 @@ function Test-Assessment-21860 {
     $passed = $false
 
     if (!$accessToken) {
-        $skipped = 'NotConnectedAzure'
         Write-PSFMessage "Azure authentication token not found." -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
     }
     else {
         $azAccessToken = ($accessToken.Token)
@@ -101,6 +102,5 @@ function Test-Assessment-21860 {
     Add-ZtTestResultDetail -TestId '21860' -Title 'Diagnostic settings are configured for all Microsoft Entra logs' `
         -UserImpact Low -Risk High -ImplementationCost Medium `
         -AppliesTo Identity -Tag Application `
-        -Status $passed -Result $testResultMarkdown `
-        -SkippedBecause $skipped
+        -Status $passed -Result $testResultMarkdown
 }

@@ -30,6 +30,29 @@ function Test-ZtContext {
             }
             $validContext = $false
         }
+
+        # Check if user has Global Reader or Global Administrator role activated (for delegated auth)
+        $authType = (Get-MgContext).AuthType
+        if ($authType -eq 'Delegated' -and $validContext) {
+            try {
+                $userId = (Get-MgContext).Account
+
+                # Get user's app role assignments to check for activated directory roles
+                $roleAssignments = Invoke-ZtGraphRequest -RelativeUri "me/transitiveMemberOf/microsoft.graph.directoryRole" -DisableCache
+
+                # Check if user has either Global Reader or Global Administrator role assigned
+                $hasRequiredRole = $roleAssignments | Where-Object {
+                    $_.displayName -in @('Global Reader', 'Global Administrator')
+                }
+
+                if (-not $hasRequiredRole) {
+                    $message = "The currently logged in user does not have the Global Reader or Global Administrator role activated. Please ensure you have one of these roles assigned and activated."
+                    $validContext = $false
+                }
+            } catch {
+                Write-Warning "Unable to verify user roles: $($_.Exception.Message)"
+            }
+        }
     }
 
     if (!$validContext) {

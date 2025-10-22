@@ -86,8 +86,6 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - Policy.Read.PermissionGrant
 - PrivilegedAccess.Read.AzureAD
 - Reports.Read.All
-- RoleEligibilitySchedule.Read.Directory
-- RoleEligibilitySchedule.ReadWrite.Directory
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
 
@@ -216,11 +214,32 @@ Uninstall-Module ZeroTrustAssessment -Force -AllVersions
 Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
 ```
 
-### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
+### Could not load file or assembly Microsoft.Graph.Authentication
 
-- The [List roleAssignmentScheduleRequests](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignmentschedulerequests?view=graph-rest-1.0&tabs=http) Graph API call requires this permission RoleEligibilitySchedule.ReadWrite.Directory.
+This error happens when you have conflicting versions of Microsoft Graph PowerShell installed.
 
-- You can run this report as a Global Reader to ensure that no changes are made.
+To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
+
+When uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment, restart PowerShell and then try a fresh install. 
+
+This is the order of running the cmdlets.
+
+```powershell
+Install-Module Uninstall-Graph
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Uninstall-Graph
+```
+Close all open PowerShell windows.
+
+Start a new PowerShell session.
+
+```powershell
+Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
+Install-Module Az.Accounts -Scope CurrentUser
+```
+
+Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
 
 ### How can I know what the script is doing?
 

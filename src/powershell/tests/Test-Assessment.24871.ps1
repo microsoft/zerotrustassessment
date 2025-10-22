@@ -5,21 +5,26 @@
 
 function Test-Assessment-24871 {
     [ZtTest(
-    	Category = 'Devices',
-    	ImplementationCost = 'Low',
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = '',
-    	TenantType = ('Workforce'),
-    	TestId = 24871,
-    	Title = 'Automatic enrollment to Defender is enabled on Android to support threat protection',
-    	UserImpact = 'Low'
+        Category = 'Devices',
+        ImplementationCost = 'Low',
+        Pillar = 'Devices',
+        RiskLevel = 'High',
+        SfiPillar = '',
+        TenantType = ('Workforce'),
+        TestId = 24871,
+        Title = 'Automatic enrollment to Defender is enabled on Android to support threat protection',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if ( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Automatic Enrollment to Defender is enabled for Android Devices"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

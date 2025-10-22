@@ -27,22 +27,22 @@ export const mainMenu: NavItemWithChildren[] = [
         title: 'Devices',
         to: 'devices',
     },
-    {
-        title: 'Apps',
-        to: 'apps',
-    },
-    {
-        title: 'Network',
-        to: 'network',
-    },
-    {
-        title: 'Infrastructure',
-        to: 'infrastructure',
-    },
-    {
-        title: 'Data',
-        to: 'data',
-    },
+    // {
+    //     title: 'Apps',
+    //     to: 'apps',
+    // },
+    // {
+    //     title: 'Network',
+    //     to: 'network',
+    // },
+    // {
+    //     title: 'Infrastructure',
+    //     to: 'infrastructure',
+    // },
+    // {
+    //     title: 'Data',
+    //     to: 'data',
+    // },
     // {
     //     title: 'Dropdown',
     //     items: [

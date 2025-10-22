@@ -20,6 +20,11 @@ function Test-Assessment-24551 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking that the Windows Hello for Business Policy is Configured and Assigned"
     Write-ZtProgress -Activity $activity

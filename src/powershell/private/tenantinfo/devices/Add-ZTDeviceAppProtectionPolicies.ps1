@@ -4,7 +4,7 @@
     Add App protection policies.
 #>
 
-function Add-ZTDeviceAppProtectionPolicies {
+function Add-ZtDeviceAppProtectionPolicies {
 
     function Get-AppGroupTypeString($appGroupType) {
         switch ($appGroupType) {

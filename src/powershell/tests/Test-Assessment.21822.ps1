@@ -26,11 +26,14 @@ function Test-Assessment-21822 {
     $result = Invoke-ZtGraphRequest -RelativeUri "legacy/policies" -ApiVersion beta
     $b2BManagementPolicyObject = $result | Where-Object -FilterScript { $_.Type -eq "B2BManagementPolicy" }
     $b2BManagementPolicyDefinition = $b2BManagementPolicyObject.definition
-    $b2BManagementPolicy = ( $b2BManagementPolicyDefinition | ConvertFrom-Json).B2BManagementPolicy
-    $allowedDomains = $b2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.AllowedDomains
-    $allBlockedDomains = $b2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.BlockedDomains
 
-    $passed = $allowedDomains.Count -gt 0
+    $passed = $false
+    if ($b2BManagementPolicyDefinition) {
+        $b2BManagementPolicy = ($b2BManagementPolicyDefinition | ConvertFrom-Json).B2BManagementPolicy
+        $allowedDomains = $b2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.AllowedDomains
+        $allBlockedDomains = $b2BManagementPolicy.InvitationsAllowedAndBlockedDomainsPolicy.BlockedDomains
+        $passed = $allowedDomains.Count -gt 0
+    }
 
     if ($passed) {
         $testResultMarkdown = "Guest access is limited to approved tenants.`n"

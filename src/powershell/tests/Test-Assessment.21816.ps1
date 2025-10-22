@@ -19,6 +19,10 @@ function Test-Assessment-21816 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     #region Data Collection
     $activity = 'Checking Microsoft Entra privileged role assignments are managed with PIM'
