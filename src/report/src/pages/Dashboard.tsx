@@ -44,6 +44,12 @@ import {
     // ChartTooltip,
     // ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 // import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
@@ -51,12 +57,13 @@ import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { WindowsJoinSankey } from "@/components/overview/windowsJoin-sankey";
 import { Separator } from "@/components/ui/separator";
+import { formatNumber, metricDescriptions } from "@/lib/format-utils";
 
 export default function Dashboard() {
 
 
     return (
-        <>
+        <TooltipProvider delayDuration={200}>
             {/* Tenant overview Section */}
             <div className="w-full flex max-w-7xl flex-col gap-6 mt-12">
                 <div className="grid w-full gap-6 lg:grid-cols-3">
@@ -96,94 +103,154 @@ export default function Dashboard() {
 
                     <div className="grid gap-4 grid-cols-2 grid-rows-3">
                         {/* Users Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-blue-600 shrink-0 rounded-sm">
-                                    <User className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Users</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.UserCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-blue-600 shrink-0 rounded-sm">
+                                            <User className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Users</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.UserCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.UserCount?.toLocaleString() || '0'} Users</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.users}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Guests Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-indigo-600 shrink-0 rounded-sm">
-                                    <Luggage className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Guests</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.GuestCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-indigo-600 shrink-0 rounded-sm">
+                                            <Luggage className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Guests</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.GuestCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.GuestCount?.toLocaleString() || '0'} Guests</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.guests}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Groups Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-purple-600 shrink-0 rounded-sm">
-                                    <Users className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Groups</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.GroupCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-purple-600 shrink-0 rounded-sm">
+                                            <Users className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Groups</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.GroupCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.GroupCount?.toLocaleString() || '0'} Groups</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.groups}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Applications Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-rose-600 shrink-0 rounded-sm">
-                                    <Layers3 className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Apps</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.ApplicationCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-rose-600 shrink-0 rounded-sm">
+                                            <Layers3 className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Apps</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.ApplicationCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.ApplicationCount?.toLocaleString() || '0'} Applications</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.apps}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Devices Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-orange-600 shrink-0 rounded-sm">
-                                    <MonitorSmartphone className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Devices</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.DeviceCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-orange-600 shrink-0 rounded-sm">
+                                            <MonitorSmartphone className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Devices</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.DeviceCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.DeviceCount?.toLocaleString() || '0'} Devices</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.devices}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Managed Devices Metric */}
-                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
-                            <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-emerald-600 shrink-0 rounded-sm">
-                                    <MonitorSmartphone className="size-8" />
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col gap-0.5">
-                                <span className="text-muted-foreground text-sm font-medium">Managed</span>
-                                <span className="text-lg font-medium">
-                                    {reportData.TenantInfo?.TenantOverview?.ManagedDeviceCount?.toLocaleString() || '0'}
-                                </span>
-                            </div>
-                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                                    <Avatar className="size-8.5 rounded-sm">
+                                        <AvatarFallback className="text-emerald-600 shrink-0 rounded-sm">
+                                            <MonitorSmartphone className="size-8" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-muted-foreground text-sm font-medium">Managed</span>
+                                        <span className="text-lg font-medium">
+                                            {formatNumber(reportData.TenantInfo?.TenantOverview?.ManagedDeviceCount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="space-y-1">
+                                    <p className="font-semibold">{reportData.TenantInfo?.TenantOverview?.ManagedDeviceCount?.toLocaleString() || '0'} Managed Devices</p>
+                                    <p className="text-xs text-muted-foreground">{metricDescriptions.managed}</p>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
 
                         {/* Assessment Date Metric */}
                         {/* <div className="flex items-center gap-3 rounded-md border px-4 py-3">
@@ -1289,7 +1356,7 @@ export default function Dashboard() {
 
                 </div>
             </div>
-        </>
+        </TooltipProvider>
     )
 }
 
