@@ -30,7 +30,7 @@ order by deviceOwnership
 
         @{
             "corporateCount" = $corporate
-            "personalCount" = $personal
+            "personalCount"  = $personal
         }
     }
 
@@ -140,12 +140,12 @@ order by operatingSystem, trustType, isCompliant
         )
 
         @{
-            "description" = "Windows devices by join type and compliance status."
-            "nodes"       = $nodes
-            "totalDevices" = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
-            "entrajoined" = $entraJoined
+            "description"       = "Windows devices by join type and compliance status."
+            "nodes"             = $nodes
+            "totalDevices"      = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+            "entrajoined"       = $entraJoined
             "entrahybridjoined" = $hybridJoined
-            "entrareigstered" = $entraRegistered
+            "entrareigstered"   = $entraRegistered
         }
     }
 
@@ -159,10 +159,17 @@ order by operatingSystem, trustType, isCompliant
 
     # Append Desktop, Mobile and Total count
     $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
-    $managedDevicesMobileCount  = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
-    $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
-    $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
-    $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value ($managedDevicesDesktopCount + $managedDevicesMobileCount)
+    $managedDevicesMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
+    $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
+
+    if ($totalCount -gt 0) {
+        $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
+        $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
+        $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $totalCount
+    }
+    else {
+        $managedDevices = $null
+    }
 
     $deviceOverview = [PSCustomObject]@{
         WindowsJoinSummary = $windowsJoinSummary

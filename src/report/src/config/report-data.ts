@@ -147,14 +147,14 @@ export interface DeviceOverview {
 }
 
 export interface DeviceOwnership {
-  corporateCount: number;
-  personalCount: number;
+  corporateCount: number | null;
+  personalCount: number | null;
 }
 
 export interface ManagedDevices {
   "@odata.context": string;
   id: string;
-  totalCount: number;
+  totalCount: number | null;
   desktopCount: number;
   mobileCount: number;
   enrolledDeviceCount: number;

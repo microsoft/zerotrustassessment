@@ -972,7 +972,7 @@ export default function Dashboard() {
 
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                     {/* Device summary chart */}
-                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 && (
+                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices ? (
                         <Card className="w-full">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />
@@ -1081,7 +1081,7 @@ export default function Dashboard() {
                                 </div>
                             </CardFooter>
                         </Card>
-                    )}
+                    ) : null}
 
                     {/* Device compliance chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 &&
