@@ -11,8 +11,14 @@ function Add-ZtTenantOverview {
     $activity = "Getting tenant overview"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
-    # Get total count of users in the tenant
-    $userCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count'
+    # Get count of users (excluding guests)
+    $userCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -QueryParameters @{
+        '$filter' = "userType ne 'Guest'"
+    }
+    # Get count of guest users
+    $guestCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -QueryParameters @{
+        '$filter' = "userType eq 'Guest'"
+    }
     $groupCount = Invoke-ZtGraphRequest -RelativeUri 'groups/$count'
     $applicationCount = Invoke-ZtGraphRequest -RelativeUri 'applications/$count'
     $deviceCount = Invoke-ZtGraphRequest -RelativeUri 'devices/$count'
@@ -24,6 +30,7 @@ function Add-ZtTenantOverview {
 
     $tenantOverview = [PSCustomObject]@{
         UserCount          = $userCount -as [int] ?? 0
+        GuestCount         = $guestCount -as [int] ?? 0
         GroupCount         = $groupCount -as [int] ?? 0
         ApplicationCount   = $applicationCount -as [int] ?? 0
         DeviceCount        = $deviceCount -as [int] ?? 0

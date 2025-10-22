@@ -133,6 +133,7 @@ export interface SankeyDataNode {
 
 export interface TenantOverview {
   UserCount: number;
+  GuestCount: number;
   GroupCount: number;
   ApplicationCount: number;
   DeviceCount: number;
@@ -857,6 +858,7 @@ export const reportData: ZeroTrustAssessmentReport = {
     },
     "TenantOverview": {
       "UserCount": 71,
+      "GuestCount": 12,
       "GroupCount": 89,
       "ApplicationCount": 120,
       "DeviceCount": 20,

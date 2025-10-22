@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Monitor, Layers3, Building2, ShieldCheck, CircleCheckBig, Briefcase } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Luggage, Monitor, Layers3, Building2, ShieldCheck, CircleCheckBig, Briefcase } from "lucide-react";
 
 import {
     Bar,
@@ -110,6 +110,21 @@ export default function Dashboard() {
                             </div>
                         </div>
 
+                        {/* Guests Metric */}
+                        <div className="flex items-center gap-3 rounded-md border px-4 py-3">
+                            <Avatar className="size-8.5 rounded-sm">
+                                <AvatarFallback className="text-indigo-600 shrink-0 rounded-sm">
+                                    <Luggage className="size-8" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-muted-foreground text-sm font-medium">Guests</span>
+                                <span className="text-lg font-medium">
+                                    {reportData.TenantInfo?.TenantOverview?.GuestCount?.toLocaleString() || '0'}
+                                </span>
+                            </div>
+                        </div>
+
                         {/* Groups Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
@@ -128,7 +143,7 @@ export default function Dashboard() {
                         {/* Applications Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-emerald-600 shrink-0 rounded-sm">
+                                <AvatarFallback className="text-rose-600 shrink-0 rounded-sm">
                                     <Layers3 className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
@@ -158,7 +173,7 @@ export default function Dashboard() {
                         {/* Managed Devices Metric */}
                         <div className="flex items-center gap-3 rounded-md border px-4 py-3">
                             <Avatar className="size-8.5 rounded-sm">
-                                <AvatarFallback className="text-amber-600 shrink-0 rounded-sm">
+                                <AvatarFallback className="text-emerald-600 shrink-0 rounded-sm">
                                     <MonitorSmartphone className="size-8" />
                                 </AvatarFallback>
                             </Avatar>
