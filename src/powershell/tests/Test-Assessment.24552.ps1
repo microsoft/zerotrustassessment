@@ -46,6 +46,11 @@ function Test-PolicyAssignment {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking macOS Firewall Policy is Created and Assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

@@ -115,8 +115,7 @@ function Get-ZtRoleMember {
 		$RoleId = $Role | ForEach-Object { (Get-ZtRoleInfo -RoleName $_) }
 	}
 
-	$EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
-	$pim = $EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance"
+	$pim = Get-ZtLicense EntraIDP2
 
 	foreach ($directoryRoleId in $RoleId) {
 		$assignments = @()
@@ -132,7 +131,7 @@ function Get-ZtRoleMember {
 				$assignments += Get-UsersInRole -Uri $uri -RoleId $directoryRoleId -RoleAssignmentType Active
 			}
 		}
-		if ($Eligible) {
+		if ($pim -and $Eligible) { # Only call if tenant is a P2
 			$uri = 'roleManagement/directory/roleEligibilityScheduleInstances'
 			$assignments += Get-UsersInRole -Uri $uri -RoleId $directoryRoleId -RoleAssignmentType Eligible
 		}

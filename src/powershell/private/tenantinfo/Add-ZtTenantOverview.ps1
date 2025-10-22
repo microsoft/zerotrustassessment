@@ -17,8 +17,8 @@ function Add-ZtTenantOverview {
     $applicationCount = Invoke-ZtGraphRequest -RelativeUri 'applications/$count'
     $deviceCount = Invoke-ZtGraphRequest -RelativeUri 'devices/$count'
 
-    $IntunePlan = Get-ZtLicenseInformation -Product Intune
-    if ($null -ne $IntunePlan) {
+
+    if (Get-ZtLicense Intune) {
         $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
     }
 

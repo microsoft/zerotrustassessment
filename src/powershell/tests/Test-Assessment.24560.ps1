@@ -20,6 +20,11 @@ function Test-Assessment-24560 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking that the Windows Cloud LAPS policy is created and assigned"
     Write-ZtProgress -Activity $activity

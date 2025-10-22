@@ -25,7 +25,7 @@ function Get-ZtLicenseInformation {
             "EntraID" {
                 Write-PSFMessage "Retrieving license information for Entra ID" -Level Debug -Tag License
                 $AvailablePlans = Invoke-ZtGraphRequest -ApiVersion beta -RelativeUri 'organization' | Select-Object -ExpandProperty assignedPlans | Where-Object  { $_.service -eq "AADPremiumService" -and $_.capabilityStatus -ne 'Deleted' } | Select-Object -ExpandProperty servicePlanId
-                if ( "eec0eb4f-6444-4f95-aba0-50c24d67f998" -in $AvailablePlans ) {
+                if ( "41781fb2-bc02-4b7c-bd55-b576c07bb09d" -in $AvailablePlans ) {
                     $LicenseType = "P2"
                 } elseif ( "e866a266-3cff-43a3-acca-0c90a7e00c8b" -in $AvailablePlans ) {
                     $LicenseType = "Governance"

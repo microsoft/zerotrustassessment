@@ -20,6 +20,11 @@ function Test-Assessment-24569 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking that the Intune macOS FileVault policy is created and Assigned"
     Write-ZtProgress -Activity $activity

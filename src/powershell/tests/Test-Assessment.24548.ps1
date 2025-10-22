@@ -20,6 +20,11 @@ function Test-Assessment-24548 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking that an app protection policy for iOS devices exists"
     Write-ZtProgress -Activity $activity

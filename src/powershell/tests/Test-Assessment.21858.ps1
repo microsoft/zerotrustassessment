@@ -21,6 +21,10 @@ function Test-Assessment-21858 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Inactive guest identities are removed from the tenant"
     Write-ZtProgress -Activity $activity -Status "Querying enabled guest users"

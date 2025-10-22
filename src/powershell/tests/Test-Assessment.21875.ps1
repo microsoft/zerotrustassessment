@@ -19,6 +19,10 @@ function Test-Assessment-21875{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     $activity = 'Checking entitlement management assignment policies for external users'
     Write-ZtProgress -Activity $activity -Status 'Querying assignment policies via Microsoft Graph API'

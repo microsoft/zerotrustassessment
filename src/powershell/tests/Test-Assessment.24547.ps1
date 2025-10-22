@@ -20,6 +20,11 @@ function Test-Assessment-24547 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking the compliance policy for Android Enterprise Personally-Owned Work Profile is configured and assigned "
     Write-ZtProgress -Activity $activity

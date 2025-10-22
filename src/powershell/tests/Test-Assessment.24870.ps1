@@ -20,6 +20,11 @@ function Test-Assessment-24870 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     #region Data Collection
     $activity = "Checking that Corporate Wi-Fi Network on macOS Devices is Securely Managed "
     Write-ZtProgress -Activity $activity

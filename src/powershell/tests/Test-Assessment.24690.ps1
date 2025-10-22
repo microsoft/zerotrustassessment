@@ -49,6 +49,11 @@ function Test-Assessment-24690 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking macOS update policy is configured and assigned "
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

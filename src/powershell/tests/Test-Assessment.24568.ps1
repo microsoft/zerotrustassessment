@@ -209,6 +209,11 @@ Filters policies that contain either of two different settings, each located in 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking macOS Platform SSO is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

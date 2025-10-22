@@ -46,6 +46,11 @@ function Test-Assessment-24823 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
+
     $activity = "Checking Company Portal branding and end-user support settings are customized"
     Write-ZtProgress -Activity $activity -Status "Getting branding profiles"
 
