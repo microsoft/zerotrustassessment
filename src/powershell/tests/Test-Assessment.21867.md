@@ -6,4 +6,3 @@ When applications lack owners, security teams can't effectively conduct applicat
 
 - [Assign owners to applications](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/assign-app-owners?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
-
