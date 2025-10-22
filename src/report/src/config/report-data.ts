@@ -810,11 +810,11 @@ export const reportData: ZeroTrustAssessmentReport = {
         "managedDeviceModelsAndManufacturers": null,
         "lastModifiedDateTime": "2025-10-20T21:07:52.4781572Z",
         "deviceOperatingSystemSummary": {
-          "androidCount": 0,
-          "iosCount": 0,
-          "macOSCount": 0,
+          "androidCount": 300,
+          "iosCount": 340,
+          "macOSCount": 10,
           "windowsMobileCount": 0,
-          "windowsCount": 0,
+          "windowsCount": 1000,
           "unknownCount": 0,
           "androidDedicatedCount": 0,
           "androidDeviceAdminCount": 0,
@@ -824,7 +824,7 @@ export const reportData: ZeroTrustAssessmentReport = {
           "configMgrDeviceCount": 0,
           "aospUserlessCount": 0,
           "aospUserAssociatedCount": 0,
-          "linuxCount": 0,
+          "linuxCount": 20,
           "chromeOSCount": 0
         },
         "deviceExchangeAccessStateSummary": {
@@ -834,9 +834,9 @@ export const reportData: ZeroTrustAssessmentReport = {
           "unknownDeviceCount": 0,
           "unavailableDeviceCount": 0
         },
-        "desktopCount": 0,
-        "mobileCount": 0,
-        "totalCount": 0
+        "desktopCount": 20,
+        "mobileCount": 30,
+        "totalCount": 50
       },
       "DeviceCompliance": {
         "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicyDeviceStateSummary/$entity",
@@ -845,21 +845,21 @@ export const reportData: ZeroTrustAssessmentReport = {
         "id": "afaac8a4-5f74-40f5-a213-51af45bedc36",
         "unknownDeviceCount": 0,
         "notApplicableDeviceCount": 0,
-        "compliantDeviceCount": 0,
+        "compliantDeviceCount": 10,
         "remediatedDeviceCount": 0,
-        "nonCompliantDeviceCount": 0,
+        "nonCompliantDeviceCount": 10,
         "errorDeviceCount": 0,
         "conflictDeviceCount": 0
       },
       "DeviceOwnership": {
-        "corporateCount": 0,
-        "personalCount": 0
+        "corporateCount": 20,
+        "personalCount": 10
       }
     },
     "TenantOverview": {
-      "UserCount": 71,
+      "UserCount": 71000,
       "GuestCount": 12,
-      "GroupCount": 89,
+      "GroupCount": 1890,
       "ApplicationCount": 120,
       "DeviceCount": 20,
       "ManagedDeviceCount": 0
