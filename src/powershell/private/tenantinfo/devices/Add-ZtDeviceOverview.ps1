@@ -149,11 +149,146 @@ order by operatingSystem, trustType, isCompliant
         }
     }
 
-    $activity = "Getting device summary"
+    function Get-MobileSummary {
+        [CmdletBinding()]
+        param(
+            $Database
+        )
+        $sql = @"
+select operatingSystem, deviceOwnership, isCompliant, count(*) count
+from Device
+where operatingSystem != 'Windows' and isCompliant is not null
+group by operatingSystem, deviceOwnership, isCompliant
+order by operatingSystem, deviceOwnership, isCompliant
+"@
+
+        # Example output:
+        # operatingSystem       deviceOwnership     isCompliant   cnt
+        # Android               Company             false          19
+        # Android               Company             true           83
+        # AndroidEnterprise     Personal            false         455
+        # AndroidForWork        Company             true           12
+        # IPhone                Company             false          34
+        # iOS                   Company             true           56
+
+        $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+
+        # Get Android devices
+        $androidCompanyDevices = $results | Where-Object { $_.operatingSystem -like 'Android*' -and $_.deviceOwnership -eq 'Company' }
+        $androidPersonalDevices = $results | Where-Object { $_.operatingSystem -like 'Android*' -and $_.deviceOwnership -eq 'Personal' }
+
+        # Get iOS devices
+        $iosCompanyDevices = $results | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone') -and $_.deviceOwnership -eq 'Company' }
+        $iosPersonalDevices = $results | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone') -and $_.deviceOwnership -eq 'Personal' }
+
+        $androidCompany = ($androidCompanyDevices | Measure-Object -Property count -Sum).Sum ?? 0
+        $androidPersonal = ($androidPersonalDevices | Measure-Object -Property count -Sum).Sum ?? 0
+
+        $iosCompany = ($iosCompanyDevices | Measure-Object -Property count -Sum).Sum ?? 0
+        $iosPersonal = ($iosPersonalDevices | Measure-Object -Property count -Sum).Sum ?? 0
+
+        $androidCompanyCompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+        $androidPersonalCompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+        $iosCompanyCompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+        $iosPersonalCompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+
+        $androidCompanyNoncompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+        $androidPersonalNoncompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+        $iosCompanyNoncompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+        $iosPersonalNoncompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+
+        $androidTotal = $androidCompany + $androidPersonal
+        $iosTotal = $iosCompany + $iosPersonal
+
+        $nodes = @(
+            # Level 1: Mobile devices to platforms
+            @{
+                "source" = "Mobile devices"
+                "target" = "Android"
+                "value"  = $androidTotal
+            },
+            @{
+                "source" = "Mobile devices"
+                "target" = "iOS"
+                "value"  = $iosTotal
+            },
+            # Level 2: Platforms to ownership types
+            @{
+                "source" = "Android"
+                "target" = "Android (Company)"
+                "value"  = $androidCompany
+            },
+            @{
+                "source" = "Android"
+                "target" = "Android (Personal)"
+                "value"  = $androidPersonal
+            },
+            @{
+                "source" = "iOS"
+                "target" = "iOS (Company)"
+                "value"  = $iosCompany
+            },
+            @{
+                "source" = "iOS"
+                "target" = "iOS (Personal)"
+                "value"  = $iosPersonal
+            },
+            # Level 3: Ownership types to compliance status
+            @{
+                "source" = "Android (Company)"
+                "target" = "Compliant"
+                "value"  = $androidCompanyCompliant
+            },
+            @{
+                "source" = "Android (Company)"
+                "target" = "Non-compliant"
+                "value"  = $androidCompanyNoncompliant
+            },
+            @{
+                "source" = "Android (Personal)"
+                "target" = "Compliant"
+                "value"  = $androidPersonalCompliant
+            },
+            @{
+                "source" = "Android (Personal)"
+                "target" = "Non-compliant"
+                "value"  = $androidPersonalNoncompliant
+            },
+            @{
+                "source" = "iOS (Company)"
+                "target" = "Compliant"
+                "value"  = $iosCompanyCompliant
+            },
+            @{
+                "source" = "iOS (Company)"
+                "target" = "Non-compliant"
+                "value"  = $iosCompanyNoncompliant
+            },
+            @{
+                "source" = "iOS (Personal)"
+                "target" = "Compliant"
+                "value"  = $iosPersonalCompliant
+            },
+            @{
+                "source" = "iOS (Personal)"
+                "target" = "Non-compliant"
+                "value"  = $iosPersonalNoncompliant
+            }
+        )
+
+        @{
+            "description"       = "Mobile devices by compliance status."
+            "nodes"             = $nodes
+            "totalDevices"      = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+        }
+    }
+
+    $activity = "Getting mobile device summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
     $windowsJoinSummary = Get-WindowsJoinSummary -Database $Database
     $deviceOwnership = Get-DeviceOwnership -Database $Database
+    $mobileSummary = Get-MobileSummary -Database $Database
     $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
     $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
 
@@ -174,6 +309,7 @@ order by operatingSystem, trustType, isCompliant
     $deviceOverview = [PSCustomObject]@{
         WindowsJoinSummary = $windowsJoinSummary
         ManagedDevices     = $managedDevices
+        MobileSummary      = $mobileSummary
         DeviceCompliance   = $deviceCompliance
         DeviceOwnership    = $deviceOwnership
     }

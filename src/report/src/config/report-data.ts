@@ -141,6 +141,7 @@ export interface TenantOverview {
 }
 export interface DeviceOverview {
   WindowsJoinSummary: SankeyData | null;
+  MobileSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
   DeviceOwnership: DeviceOwnership | null;
@@ -800,6 +801,82 @@ export const reportData: ZeroTrustAssessmentReport = {
         "totalDevices": 11.0,
         "entrajoined": 8.0,
         "entrareigstered": 3.0
+      },
+      "MobileSummary": {
+        "nodes": [
+          {
+            "source": "Mobile devices",
+            "target": "Android",
+            "value": 40
+          },
+          {
+            "source": "Mobile devices",
+            "target": "iOS",
+            "value": 53
+          },
+          {
+            "source": "Android",
+            "target": "Android (Company)",
+            "value": 20
+          },
+          {
+            "source": "Android",
+            "target": "Android (Personal)",
+            "value": 20
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Company)",
+            "value": 28
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Personal)",
+            "value": 25
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Compliant",
+            "value": 15
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Non-compliant",
+            "value": 5
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Compliant",
+            "value": 8
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Non-compliant",
+            "value": 12
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Compliant",
+            "value": 25
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Non-compliant",
+            "value": 3
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Compliant",
+            "value": 18
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Non-compliant",
+            "value": 7
+          }
+        ],
+        "description": "Mobile devices by compliance status.",
+        "totalDevices": 93
       },
       "ManagedDevices": {
         "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.managedDeviceOverview",
