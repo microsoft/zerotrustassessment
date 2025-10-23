@@ -19,6 +19,10 @@ function Test-Assessment-21929{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     $activity = 'Checking entitlement management packages for external users have proper controls'
     Write-ZtProgress -Activity $activity -Status 'Getting assignment policies'
@@ -52,13 +56,16 @@ function Test-Assessment-21929{
                            $requestorSettings.enableOnBehalfRequestorsToRemoveAccess -eq $true -or
                            $requestorSettings.enableOnBehalfRequestorsToUpdateAccess -eq $true
 
-        # Check if policy applies to external users using allowedTargetScope property
-        $appliesToExternal = Test-ZtExternalUserScope -TargetScope $policy.allowedTargetScope
+        if($allowsSelfService){
+            # Check if policy applies to external users using allowedTargetScope property
+            $appliesToExternal = Test-ZtExternalUserScope -TargetScope $policy.allowedTargetScope
 
-        # Include policy if it allows requests AND applies to external users
-        if ($allowsSelfService -and $appliesToExternal) {
-            $externalUserPolicies += $policy
+            # Include policy if it allows requests AND applies to external users
+            if ($appliesToExternal) {
+                $externalUserPolicies += $policy
+            }
         }
+
     }
 
     Write-PSFMessage "Found $($externalUserPolicies.Count) assignment policies that apply to external users" -Level Verbose
@@ -129,8 +136,8 @@ function Test-Assessment-21929{
 
         # Sort to show non-compliant policies first, then by access package and policy name
         foreach ($policyData in ($allPoliciesData | Sort-Object HasControls, AccessPackageName, AssignmentPolicyName)) {
-            $packageName = Get-SafeMarkdown -Text $policyData.AccessPackageName
-            $policyName = Get-SafeMarkdown -Text $policyData.AssignmentPolicyName
+            $packageName = $policyData.AccessPackageName
+            $policyName = $policyData.AssignmentPolicyName
 
             $expirationStatus = if ($policyData.HasExpiration) { 'Yes' } else { 'No' }
             $reviewStatus = if ($policyData.HasAccessReview) { 'Yes' } else { 'No' }
