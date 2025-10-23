@@ -38,12 +38,12 @@ export const MobileSankey = ({ data }: { data: SankeyDataNode[] }) => {
                     "nodeColor": "hsl(210, 100%, 55%)"
                 },
                 {
-                    "id": "Non-compliant",
-                    "nodeColor": "hsl(0, 100%, 50%)"
-                },
-                {
                     "id": "Compliant",
                     "nodeColor": "hsl(99, 70%, 50%)"
+                },
+                {
+                    "id": "Non-compliant",
+                    "nodeColor": "hsl(0, 100%, 50%)"
                 },
             ],
             "links": data

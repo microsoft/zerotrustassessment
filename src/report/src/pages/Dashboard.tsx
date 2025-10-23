@@ -1356,7 +1356,7 @@ export default function Dashboard() {
                     )}
 
                     {/* Mobile devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo.DeviceOverview.MobileSummary.nodes.length > 0 && (
+                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo?.DeviceOverview?.ManagedDevices && (
                         <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />

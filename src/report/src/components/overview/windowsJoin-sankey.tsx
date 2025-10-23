@@ -18,12 +18,16 @@ export const WindowsJoinSankey = ({ data }: { data: SankeyDataNode[] }) => {
                     "nodeColor": "hsl(12, 76%, 61%)"
                 },
                 {
+                    "id": "Entra registered",
+                    "nodeColor": "hsl(12, 76%, 61%)"
+                },
+                {
                     "id": "Entra hybrid joined",
                     "nodeColor": "hsl(12, 76%, 61%)"
                 },
                 {
-                    "id": "Entra registered",
-                    "nodeColor": "hsl(12, 76%, 61%)"
+                    "id": "Compliant",
+                    "nodeColor": "hsl(99, 70%, 50%)"
                 },
                 {
                     "id": "Non-compliant",
@@ -31,12 +35,9 @@ export const WindowsJoinSankey = ({ data }: { data: SankeyDataNode[] }) => {
                 },
                 {
                     "id": "Unmanaged",
-                    "nodeColor": "hsl(99, 70%, 50%)"
+                    "nodeColor": "hsl(220, 10%, 60%)"
                 },
-                {
-                    "id": "Compliant",
-                    "nodeColor": "hsl(99, 70%, 50%)"
-                },
+
             ],
             "links": data
         }} />

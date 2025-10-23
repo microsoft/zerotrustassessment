@@ -72,9 +72,9 @@ order by operatingSystem, trustType, isCompliant
         $registeredNoncompliant = ($results | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
 
         # now get unmanaged where isCompliant is null
-        $entraJoinedUnmanaged = ($results | Where-Object { $_.trustType -eq 'AzureAd' -and $null -eq $_.isCompliant } | Measure-Object -Property count -Sum).Sum
-        $hybridJoinedUnmanaged = ($results | Where-Object { $_.trustType -eq 'ServerAd' -and $null -eq $_.isCompliant } | Measure-Object -Property count -Sum).Sum
-        $registeredUnmanaged = ($results | Where-Object { $_.trustType -eq 'Workplace' -and $null -eq $_.isCompliant } | Measure-Object -Property count -Sum).Sum
+        $entraJoinedUnmanaged = ($results | Where-Object { $_.trustType -eq 'AzureAd' } | Measure-Object -Property count -Sum).Sum - ($entraJoinedCompliant + $entraJoinedNoncompliant)
+        $hybridJoinedUnmanaged = ($results | Where-Object { $_.trustType -eq 'ServerAd' } | Measure-Object -Property count -Sum).Sum - ($hybridJoinedCompliant + $hybridJoinedNoncompliant)
+        $registeredUnmanaged = ($results | Where-Object { $_.trustType -eq 'Workplace' } | Measure-Object -Property count -Sum).Sum - ($registeredCompliant + $registeredNoncompliant)
 
         $nodes = @(
             @{
@@ -84,13 +84,13 @@ order by operatingSystem, trustType, isCompliant
             },
             @{
                 "source" = "Windows"
-                "target" = "Entra hybrid joined"
-                "value"  = $hybridJoined
+                "target" = "Entra registered"
+                "value"  = $entraRegistered
             },
             @{
                 "source" = "Windows"
-                "target" = "Entra registered"
-                "value"  = $entraRegistered
+                "target" = "Entra hybrid joined"
+                "value"  = $hybridJoined
             },
             @{
                 "source" = "Entra joined"
@@ -277,9 +277,9 @@ order by operatingSystem, deviceOwnership, isCompliant
         )
 
         @{
-            "description"       = "Mobile devices by compliance status."
-            "nodes"             = $nodes
-            "totalDevices"      = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+            "description"  = "Mobile devices by compliance status."
+            "nodes"        = $nodes
+            "totalDevices" = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
         }
     }
 
