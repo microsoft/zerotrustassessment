@@ -20,15 +20,15 @@ function Test-Assessment-21929{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking entitlement management packages for external users have proper controls"
-    Write-ZtProgress -Activity $activity -Status "Getting assignment policies"
+    $activity = 'Checking entitlement management packages for external users have proper controls'
+    Write-ZtProgress -Activity $activity -Status 'Getting assignment policies'
 
     # Query 1: Get all assignment policies with expanded access package information
     $assignmentPolicies = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/entitlementManagement/assignmentPolicies' -QueryParameters @{'$expand' = 'accessPackage'} -ApiVersion v1.0
 
     # Handle case where no policies exist or API returns null
     if ($null -eq $assignmentPolicies -or $assignmentPolicies.Count -eq 0) {
-        Write-PSFMessage "No assignment policies found in the tenant" -Level Verbose
+        Write-PSFMessage 'No assignment policies found in the tenant' -Level Verbose
         $assignmentPolicies = @()
     }
 
@@ -69,7 +69,7 @@ function Test-Assessment-21929{
 
     foreach ($policy in $externalUserPolicies) {
         # Check expiration configuration - handle null expiration object
-        $hasExpiration = $null -ne $policy.expiration -and $policy.expiration.type -ne "noExpiration"
+        $hasExpiration = $null -ne $policy.expiration -and $policy.expiration.type -ne 'noExpiration'
 
         # Check access review configuration
         # Review settings must be enabled AND have a schedule with recurrence pattern configured
@@ -112,7 +112,7 @@ function Test-Assessment-21929{
     $passed = $policiesWithoutControls.Count -eq 0
 
     # Build report markdown
-    $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/elmEntitlement"
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/elmEntitlement'
 
     if ($passed) {
         $testResultMarkdown = "All access package assignment policies for external users include expiration or access reviews.`n`n%PolicyDetails%"
@@ -132,9 +132,9 @@ function Test-Assessment-21929{
             $packageName = Get-SafeMarkdown -Text $policyData.AccessPackageName
             $policyName = Get-SafeMarkdown -Text $policyData.AssignmentPolicyName
 
-            $expirationStatus = if ($policyData.HasExpiration) { "Yes" } else { "No" }
-            $reviewStatus = if ($policyData.HasAccessReview) { "Yes" } else { "No" }
-            $overallStatus = if ($policyData.HasControls) { "✅ Compliant" } else { "❌ Non-compliant" }
+            $expirationStatus = if ($policyData.HasExpiration) { 'Yes' } else { 'No' }
+            $reviewStatus = if ($policyData.HasAccessReview) { 'Yes' } else { 'No' }
+            $overallStatus = if ($policyData.HasControls) { '✅ Compliant' } else { '❌ Non-compliant' }
 
             $mdInfo += "| $packageName | $policyName | $expirationStatus | $reviewStatus | $overallStatus |`n"
         }
