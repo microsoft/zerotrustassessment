@@ -5,14 +5,14 @@
 
 function Test-Assessment-21831{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Privileged access',
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 21831,
-    	Title = 'Conditional Access protected actions are enabled',
+    	Title = 'Protected actions are enabled for high-impact management tasks',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

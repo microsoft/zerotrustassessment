@@ -11,12 +11,12 @@ function Test-Assessment-24552 {
     	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24552,
     	Title = 'macOS Firewall policies protect against unauthorized network access',
-    	UserImpact = 'Low'
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

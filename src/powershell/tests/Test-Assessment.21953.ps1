@@ -5,7 +5,7 @@
 
 function Test-Assessment-21953{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Devices',
     	ImplementationCost = 'Medium',
     	Pillar = 'Identity',
     	RiskLevel = 'High',
