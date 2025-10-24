@@ -38,7 +38,6 @@
                 # Add the group id property to the member object
                 $member | Add-Member -MemberType NoteProperty -Name privilegedGroupId -Value $groupId -Force # Need to force to overwrite if it was cached user.
                 # Add the RoleDefinitionId property
-                Write-Host "Adding Role Definition Id: $($_.roleDefinitionId) to member $($member.displayName)"
                 $member | Add-Member -MemberType NoteProperty -Name roleDefinitionId -Value $_.roleDefinitionId -Force
                 $results.value += $member
             }
