@@ -10,6 +10,11 @@
         switch($risk){
             "High" { return $risk }
             "Medium" { $finalRisk = $risk }
+            "Low" {
+                if ($finalRisk -eq "Unranked") {
+                    $finalRisk = $risk
+                }
+            }
         }
     }
     foreach($permission in $delegatePermissions){
@@ -17,6 +22,11 @@
         switch($risk){
             "High" { return $risk }
             "Medium" { $finalRisk = $risk }
+            "Low" {
+                if ($finalRisk -eq "Unranked") {
+                    $finalRisk = $risk
+                }
+            }
         }
     }
     return $finalRisk

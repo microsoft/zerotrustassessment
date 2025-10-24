@@ -23,39 +23,16 @@ function Test-Assessment-21770 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $sql = @"
-    select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
-    spsi.lastSignInActivity.lastSignInDateTime
-    from main.ServicePrincipal sp
-        left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
-    where sp.id in
-        (
-            select sp.id
-            from main.ServicePrincipal sp
-            where sp.oauth2PermissionGrants.scope is not null
-        )
-        or sp.id in
-        (
-            select distinct sp.id,
-            from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
-                from main.ServicePrincipal sp) sp
-                left join
-                    (select unnest(main.ServicePrincipal.appRoles).id as id, unnest(main.ServicePrincipal.appRoles)."value" permissionName
-                    from main.ServicePrincipal) spAppRole
-                    on sp.appRoleId = spAppRole.id
-            where permissionName is not null
-        )
-    order by spsi.lastSignInActivity.lastSignInDateTime
-"@
+    # Get all applications with permissions using common function
+    $results = Get-ApplicationsWithPermissions -Database $Database
 
-    $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    # Filter to only show High and Unranked risk apps (exclude Medium and Low)
+    $results = $results | Where-Object { $_.Risk -in @('High', 'Unranked') }
+
     $inactiveRiskyApps = @()
     $otherApps = @()
 
     foreach($item in $results) {
-        $item = Add-DelegatePermissions -item $item -Database $Database
-        $item = Add-AppPermissions -item $item -Database $Database
-        $item = Add-GraphRisk $item
         if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $item.IsRisky) {
             $inactiveRiskyApps += $item
         }
@@ -82,8 +59,11 @@ function Test-Assessment-21770 {
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21770' -Title 'Inactive applications don''t have highly privileged permissions' `
-        -UserImpact Low -Risk High -ImplementationCost Low `
-        -AppliesTo Identity -Tag Application `
-        -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId = '21770'
+        Title = 'Inactive applications don''t have highly privileged permissions'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
