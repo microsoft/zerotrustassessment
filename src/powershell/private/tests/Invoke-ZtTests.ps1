@@ -1,21 +1,44 @@
-﻿<#
-.SYNOPSIS
-    Runs all the Zero Trust Assessment tests.
-#>
+﻿function Invoke-ZtTests {
+	<#
+	.SYNOPSIS
+		Runs all the Zero Trust Assessment tests.
 
-function Invoke-ZtTests {
+	.DESCRIPTION
+		Runs all the Zero Trust Assessment tests.
+
+	.PARAMETER Database
+		The Database object where the cached tenant data is stored
+
+	.PARAMETER Tests
+		The IDs of the specific test(s) to run. If not specified, all tests will be run.
+
+	.PARAMETER Pillar
+		The Zero Trust pillar to assess.
+		Defaults to: All.
+
+	.PARAMETER ThrottleLimit
+		Maximum number of tests processed in parallel.
+		Defaults to: 5
+
+	.EXAMPLE
+		PS C:\> Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
+
+		Executes all tests specified.
+	#>
 	[CmdletBinding()]
 	param (
+		[DuckDB.NET.Data.DuckDBConnection]
 		$Database,
 
-		# The IDs of the specific test(s) to run. If not specified, all tests will be run.
 		[string[]]
 		$Tests,
 
-		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices')]
 		[string]
-		$Pillar = 'All'
+		$Pillar = 'All',
+
+		[int]
+		$ThrottleLimit = 5
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -31,29 +54,17 @@ function Invoke-ZtTests {
 
 	$testsToRun = Get-ZtTest -Tests $Tests -Pillar $Pillar -TenantType $tenantTypeMapping[$TenantType]
 
-	foreach ($test in $testsToRun) {
-		# Check if the function exists and what parameters it has
-		$command = Get-Command $test.Command -ErrorAction SilentlyContinue
-		if (-not $command) {
-			Write-PSFMessage -Level Warning -Message "Test command for test '{0}' not found" -StringValues $test.TestID -Target $test
+	try {
+		$workflow = Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
+		Wait-ZtTest -Workflow $workflow
+	}
+	finally {
+		if ($workflow) {
+			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
+			Disable-PSFConsoleInterrupt
+			$workflow | Stop-PSFRunspaceWorkflow
+			$workflow | Remove-PSFRunspaceWorkflow
 		}
-
-		$dbParam = @{}
-		if ($command.Parameters.ContainsKey("Database") -and $Database) {
-			$dbParam.Database = $Database
-		}
-
-		try {
-			# Set Current Test for "Add-ZtTestResultDetail to pick up"
-			$script:__ztCurrentTest = $test
-			& $command @dbParam
-		}
-		catch {
-			Write-PSFMessage -Level Warning -Message "Error executing test '{0}'" -StringValues $test.TestID -Target $test -ErrorRecord $_
-		}
-		finally {
-			# Reset marker in an assured way, to prevent confusion about the current test being executed
-			$script:__ztCurrentTest = $null
-		}
+		Enable-PSFConsoleInterrupt
 	}
 }

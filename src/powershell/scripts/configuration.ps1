@@ -1,3 +1,5 @@
 ﻿Set-PSFConfig -Module ZeroTrustAssessment -Name 'Logging.Database.IncludeQueryResults' -Value $false -Initialize -Validation bool -Description 'Include the individual results from queries against the internal database in the logs. Significantly increases logsize and includes sensitive data.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Graph.DisableCache' -Value $false -Initialize -Validation bool -Description 'Global toggle to disable caching. Caching improves performance of some requests, but potentially consumes a lot of memory, which might lead to swapping and cratering code performance.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'TabExpansion.TestLimit' -Value 10 -Initialize -Validation integer -Description 'Maximum number of tests offered via tab exansion'
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Export' -Value 5 -Initialize -Validation integer -Description 'Maximum number of data collectors processed in parallel'
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 5 -Initialize -Validation integer -Description 'Maximum number of tests processed in parallel'
