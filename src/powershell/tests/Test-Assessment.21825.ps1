@@ -36,11 +36,11 @@ function Test-Assessment-21825{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Privileged user sessions don't have long lived sign-in sessions"
-    Write-ZtProgress -Activity $activity -Status "Getting privileged role definitions"
+    $activity = 'Checking Privileged user sessions don''t have long lived sign-in sessions'
+    Write-ZtProgress -Activity $activity -Status 'Getting privileged role definitions'
 
     # Query 1 (Q1): Get privileged role definitions
-    $privilegedRoles = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleDefinitions?`$filter=isPrivileged eq true" -ApiVersion beta
+    $privilegedRoles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -Filter 'isPrivileged eq true' -ApiVersion beta
 
     if ($null -eq $privilegedRoles -or $privilegedRoles.Count -eq 0) {
         $testResultMarkdown = "## Privileged Roles Not Found`n`n"
@@ -53,7 +53,7 @@ function Test-Assessment-21825{
     $testResultMarkdown = "## Privileged User Sign-In Sessions`n`n"
     $testResultMarkdown += "**Total Privileged Roles Found:** $($privilegedRoles.Count)`n`n"
 
-    Write-ZtProgress -Activity $activity -Status "Getting Conditional Access policies"
+    Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
 
     # Query 2 (Q2): Get enabled CA policies targeting directory roles
     $caPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -ApiVersion beta
