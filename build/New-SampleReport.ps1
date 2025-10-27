@@ -107,44 +107,53 @@ if ($null -eq $jsonContent.TenantInfo) {
 
 # Set Tenant Overview with sample data
 $jsonContent.TenantInfo.TenantOverview = @{
-    UserCount = 1250
-    GuestCount = 85
-    GroupCount = 340
-    ApplicationCount = 156
-    DeviceCount = 765
+    UserCount          = 1250
+    GuestCount         = 85
+    GroupCount         = 340
+    ApplicationCount   = 156
+    DeviceCount        = 765
     ManagedDeviceCount = 733
 }
 
-# Set Device Overview with Windows Sankey data (healthy compliance numbers)
+# Set Device Overview with Desktop Devices Sankey data (Windows + macOS, healthy compliance numbers)
 $jsonContent.TenantInfo.DeviceOverview = @{
-    WindowsJoinSummary = @{
+    DesktopDevicesSummary = @{
         entrahybridjoined = 200
-        entrajoined = 285
-        entrareigstered = 100
-        totalDevices = 585
-        description = "Windows devices by join type and compliance status."
-        nodes = @(
+        entrajoined       = 285
+        entrareigstered   = 100
+        totalDevices      = 660
+        description       = "Desktop devices (Windows and macOS) by join type and compliance status."
+        nodes             = @(
+            # Level 1: Desktop devices to OS
+            @{ source = "Desktop devices"; target = "Windows"; value = 585 },
+            @{ source = "Desktop devices"; target = "macOS"; value = 75 },
+            # Level 2: Windows to join types
             @{ source = "Windows"; target = "Entra joined"; value = 285 },
             @{ source = "Windows"; target = "Entra registered"; value = 100 },
             @{ source = "Windows"; target = "Entra hybrid joined"; value = 200 },
-            # Entra joined devices - high compliance (80% compliant)
-            @{ source = "Entra joined"; target = "Compliant"; value = 228 },
+            # Level 3: Windows join types to compliance
+            # Entra joined devices - 60% compliant (reduced from 80%)
+            @{ source = "Entra joined"; target = "Compliant"; value = 171 },
             @{ source = "Entra joined"; target = "Non-compliant"; value = 42 },
-            @{ source = "Entra joined"; target = "Unmanaged"; value = 15 },
-            # Entra hybrid joined devices - all unmanaged
-            @{ source = "Entra hybrid joined"; target = "Compliant"; value = 0 },
-            @{ source = "Entra hybrid joined"; target = "Non-compliant"; value = 0 },
-            @{ source = "Entra hybrid joined"; target = "Unmanaged"; value = 200 },
+            @{ source = "Entra joined"; target = "Unmanaged"; value = 72 },
+            # Entra hybrid joined devices - split between compliant and non-compliant
+            @{ source = "Entra hybrid joined"; target = "Compliant"; value = 50 },
+            @{ source = "Entra hybrid joined"; target = "Non-compliant"; value = 23 },
+            @{ source = "Entra hybrid joined"; target = "Unmanaged"; value = 127 },
             # Entra registered devices - split between compliant and non-compliant (60% compliant)
             @{ source = "Entra registered"; target = "Compliant"; value = 60 },
             @{ source = "Entra registered"; target = "Non-compliant"; value = 40 },
-            @{ source = "Entra registered"; target = "Unmanaged"; value = 0 }
+            @{ source = "Entra registered"; target = "Unmanaged"; value = 0 },
+            # Level 2: macOS directly to compliance (no join types) - 75% compliant
+            @{ source = "macOS"; target = "Compliant"; value = 56 },
+            @{ source = "macOS"; target = "Non-compliant"; value = 15 },
+            @{ source = "macOS"; target = "Unmanaged"; value = 4 }
         )
     }
-    MobileSummary = @{
+    MobileSummary         = @{
         totalDevices = 180
-        description = "Mobile devices by compliance status."
-        nodes = @(
+        description  = "Mobile devices by compliance status."
+        nodes        = @(
             @{ source = "Mobile devices"; target = "Android"; value = 105 },
             @{ source = "Mobile devices"; target = "iOS"; value = 75 },
             # Android breakdown
@@ -162,58 +171,58 @@ $jsonContent.TenantInfo.DeviceOverview = @{
             # iOS Company compliance (90% compliant)
             @{ source = "iOS (Company)"; target = "Compliant"; value = 52 },
             @{ source = "iOS (Company)"; target = "Non-compliant"; value = 6 },
-            # iOS Personal compliance (35% compliant)
-            @{ source = "iOS (Personal)"; target = "Compliant"; value = 6 },
-            @{ source = "iOS (Personal)"; target = "Non-compliant"; value = 11 }
+            # iOS Personal compliance (65% compliant)
+            @{ source = "iOS (Personal)"; target = "Compliant"; value = 11 },
+            @{ source = "iOS (Personal)"; target = "Non-compliant"; value = 6 }
         )
     }
-    ManagedDevices = @{
-        enrolledDeviceCount = 733
-        mdmEnrolledCount = 585
-        dualEnrolledDeviceCount = 148
-        lastModifiedDateTime = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK")
-        deviceOperatingSystemSummary = @{
-            androidCount = 105
-            iosCount = 75
-            macOSCount = 28
-            windowsMobileCount = 0
-            windowsCount = 525
-            unknownCount = 0
-            androidDedicatedCount = 35
-            androidDeviceAdminCount = 0
-            androidFullyManagedCount = 0
-            androidWorkProfileCount = 50
+    ManagedDevices        = @{
+        enrolledDeviceCount              = 733
+        mdmEnrolledCount                 = 585
+        dualEnrolledDeviceCount          = 148
+        lastModifiedDateTime             = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK")
+        deviceOperatingSystemSummary     = @{
+            androidCount                     = 105
+            iosCount                         = 75
+            macOSCount                       = 75
+            windowsMobileCount               = 0
+            windowsCount                     = 525
+            unknownCount                     = 0
+            androidDedicatedCount            = 35
+            androidDeviceAdminCount          = 0
+            androidFullyManagedCount         = 0
+            androidWorkProfileCount          = 50
             androidCorporateWorkProfileCount = 20
-            configMgrDeviceCount = 0
-            aospUserlessCount = 0
-            aospUserAssociatedCount = 0
-            linuxCount = 0
-            chromeOSCount = 0
+            configMgrDeviceCount             = 0
+            aospUserlessCount                = 0
+            aospUserAssociatedCount          = 0
+            linuxCount                       = 0
+            chromeOSCount                    = 0
         }
         deviceExchangeAccessStateSummary = @{
-            allowedDeviceCount = 690
-            blockedDeviceCount = 12
+            allowedDeviceCount     = 690
+            blockedDeviceCount     = 12
             quarantinedDeviceCount = 5
-            unknownDeviceCount = 8
+            unknownDeviceCount     = 8
             unavailableDeviceCount = 18
         }
-        desktopCount = 553
-        mobileCount = 180
-        totalCount = 733
+        desktopCount                     = 553
+        mobileCount                      = 180
+        totalCount                       = 733
     }
-    DeviceCompliance = @{
-        compliantDeviceCount = 387
-        nonCompliantDeviceCount = 106
-        errorDeviceCount = 8
-        inGracePeriodCount = 15
-        unknownDeviceCount = 5
+    DeviceCompliance      = @{
+        compliantDeviceCount     = 387
+        nonCompliantDeviceCount  = 106
+        errorDeviceCount         = 8
+        inGracePeriodCount       = 15
+        unknownDeviceCount       = 5
         notApplicableDeviceCount = 4
-        configManagerCount = 0
-        remediatedDeviceCount = 0
-        conflictDeviceCount = 0
+        configManagerCount       = 0
+        remediatedDeviceCount    = 0
+        conflictDeviceCount      = 0
     }
-    DeviceOwnership = @{
-        personalCount = 98
+    DeviceOwnership       = @{
+        personalCount  = 98
         corporateCount = 427
     }
 }
@@ -221,7 +230,7 @@ $jsonContent.TenantInfo.DeviceOverview = @{
 # Set Authentication Methods Overview for All Users
 $jsonContent.TenantInfo.OverviewAuthMethodsAllUsers = @{
     description = "Strongest authentication method registered by all users."
-    nodes = @(
+    nodes       = @(
         @{ source = "Users"; target = "Single factor"; value = 85 },
         @{ source = "Users"; target = "Phishable"; value = 980 },
         @{ source = "Users"; target = "Phish resistant"; value = 185 },
@@ -235,7 +244,7 @@ $jsonContent.TenantInfo.OverviewAuthMethodsAllUsers = @{
 # Set Authentication Methods Overview for Privileged Users
 $jsonContent.TenantInfo.OverviewAuthMethodsPrivilegedUsers = @{
     description = "Strongest authentication method registered by privileged users."
-    nodes = @(
+    nodes       = @(
         @{ source = "Users"; target = "Single factor"; value = 2 },
         @{ source = "Users"; target = "Phishable"; value = 28 },
         @{ source = "Users"; target = "Phish resistant"; value = 15 },
@@ -249,7 +258,7 @@ $jsonContent.TenantInfo.OverviewAuthMethodsPrivilegedUsers = @{
 # Set Conditional Access MFA Overview
 $jsonContent.TenantInfo.OverviewCaMfaAllUsers = @{
     description = "Over the past 30 days, 68.5% of sign-ins were protected by conditional access policies enforcing multifactor."
-    nodes = @(
+    nodes       = @(
         @{ source = "User sign in"; target = "No CA applied"; value = 394 },
         @{ source = "User sign in"; target = "CA applied"; value = 856 },
         @{ source = "CA applied"; target = "No MFA"; value = 146 },
@@ -261,7 +270,7 @@ $jsonContent.TenantInfo.OverviewCaMfaAllUsers = @{
 # Set Conditional Access Devices Overview
 $jsonContent.TenantInfo.OverviewCaDevicesAllUsers = @{
     description = "Over the past 30 days, 71.2% of sign-ins were from compliant devices."
-    nodes = @(
+    nodes       = @(
         @{ source = "User sign in"; target = "Unmanaged"; value = 500 },
         @{ source = "User sign in"; target = "Managed"; value = 1150 },
         @{ source = "Managed"; target = "Non-compliant"; value = 260 },
