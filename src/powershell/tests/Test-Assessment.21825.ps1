@@ -56,7 +56,7 @@ function Test-Assessment-21825{
     Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
 
     # Query 2 (Q2): Get enabled CA policies targeting directory roles
-    $caPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -ApiVersion beta
+    $caPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
 
     # Filter to enabled policies that include roles
     $roleScopedPolicies = @($caPolicies | Where-Object {
