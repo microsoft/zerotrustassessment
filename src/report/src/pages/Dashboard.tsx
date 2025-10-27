@@ -55,7 +55,7 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
-import { WindowsJoinSankey } from "@/components/overview/windowsJoin-sankey";
+import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber, metricDescriptions } from "@/lib/format-utils";
@@ -1276,13 +1276,13 @@ export default function Dashboard() {
                             </Card>
                         )}
 
-                                            {/* Windows devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
+                                            {/* Desktop devices chart */}
+                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes && reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes.length > 0 && (
                         <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <Monitor className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">
-                                    Windows devices
+                                    Desktop devices
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -1295,8 +1295,8 @@ export default function Dashboard() {
                                     }}
                                     className="h-[350px] w-full"
                                 >
-                                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
-                                        <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
+                                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes ? (
+                                        <DesktopDevicesSankey data={reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes} />
                                     ) : (
                                         <div className="flex items-center justify-center h-32 text-muted-foreground">
                                             No data available
@@ -1310,9 +1310,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra joined</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraJoined / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1325,9 +1327,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraHybrid / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1340,9 +1344,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra registered</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraRegistered / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">

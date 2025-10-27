@@ -140,7 +140,7 @@ export interface TenantOverview {
   ManagedDeviceCount: number;
 }
 export interface DeviceOverview {
-  WindowsJoinSummary: SankeyData | null;
+  DesktopDevicesSummary: SankeyData | null;
   MobileSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
@@ -733,8 +733,18 @@ export const reportData: ZeroTrustAssessmentReport = {
       }
     ],
     "DeviceOverview": {
-      "WindowsJoinSummary": {
+      "DesktopDevicesSummary": {
         "nodes": [
+          {
+            "source": "Desktop devices",
+            "target": "Windows",
+            "value": 11.0
+          },
+          {
+            "source": "Desktop devices",
+            "target": "macOS",
+            "value": 2.0
+          },
           {
             "source": "Windows",
             "target": "Entra joined",
@@ -749,6 +759,21 @@ export const reportData: ZeroTrustAssessmentReport = {
             "source": "Windows",
             "target": "Entra registered",
             "value": 3.0
+          },
+          {
+            "source": "macOS",
+            "target": "Compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Non-compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Unmanaged",
+            "value": null
           },
           {
             "source": "Entra joined",
@@ -797,10 +822,10 @@ export const reportData: ZeroTrustAssessmentReport = {
           }
         ],
         "entrahybridjoined": 0,
-        "description": "Windows devices by join type and compliance status.",
-        "totalDevices": 11.0,
-        "entrajoined": 8.0,
-        "entrareigstered": 3.0
+        "description": "Desktop devices (Windows and macOS) by join type and compliance status.",
+        "totalDevices": 13.0,
+        "entrajoined": 9.0,
+        "entrareigstered": 4.0
       },
       "MobileSummary": {
         "nodes": [
