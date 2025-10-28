@@ -9,7 +9,7 @@ function Test-Assessment-24840 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24840,
     	Title = 'Secure Wi-Fi profiles protect Android devices from unauthorized network access',

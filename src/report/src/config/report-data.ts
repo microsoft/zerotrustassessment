@@ -140,21 +140,22 @@ export interface TenantOverview {
   ManagedDeviceCount: number;
 }
 export interface DeviceOverview {
-  WindowsJoinSummary: SankeyData | null;
+  DesktopDevicesSummary: SankeyData | null;
+  MobileSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
   DeviceOwnership: DeviceOwnership | null;
 }
 
 export interface DeviceOwnership {
-  corporateCount: number;
-  personalCount: number;
+  corporateCount: number | null;
+  personalCount: number | null;
 }
 
 export interface ManagedDevices {
   "@odata.context": string;
   id: string;
-  totalCount: number;
+  totalCount: number | null;
   desktopCount: number;
   mobileCount: number;
   enrolledDeviceCount: number;
@@ -732,8 +733,18 @@ export const reportData: ZeroTrustAssessmentReport = {
       }
     ],
     "DeviceOverview": {
-      "WindowsJoinSummary": {
+      "DesktopDevicesSummary": {
         "nodes": [
+          {
+            "source": "Desktop devices",
+            "target": "Windows",
+            "value": 11.0
+          },
+          {
+            "source": "Desktop devices",
+            "target": "macOS",
+            "value": 2.0
+          },
           {
             "source": "Windows",
             "target": "Entra joined",
@@ -748,6 +759,21 @@ export const reportData: ZeroTrustAssessmentReport = {
             "source": "Windows",
             "target": "Entra registered",
             "value": 3.0
+          },
+          {
+            "source": "macOS",
+            "target": "Compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Non-compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Unmanaged",
+            "value": null
           },
           {
             "source": "Entra joined",
@@ -796,10 +822,86 @@ export const reportData: ZeroTrustAssessmentReport = {
           }
         ],
         "entrahybridjoined": 0,
-        "description": "Windows devices by join type and compliance status.",
-        "totalDevices": 11.0,
-        "entrajoined": 8.0,
-        "entrareigstered": 3.0
+        "description": "Desktop devices (Windows and macOS) by join type and compliance status.",
+        "totalDevices": 13.0,
+        "entrajoined": 9.0,
+        "entrareigstered": 4.0
+      },
+      "MobileSummary": {
+        "nodes": [
+          {
+            "source": "Mobile devices",
+            "target": "Android",
+            "value": 40
+          },
+          {
+            "source": "Mobile devices",
+            "target": "iOS",
+            "value": 53
+          },
+          {
+            "source": "Android",
+            "target": "Android (Company)",
+            "value": 20
+          },
+          {
+            "source": "Android",
+            "target": "Android (Personal)",
+            "value": 20
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Company)",
+            "value": 28
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Personal)",
+            "value": 25
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Compliant",
+            "value": 15
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Non-compliant",
+            "value": 5
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Compliant",
+            "value": 8
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Non-compliant",
+            "value": 12
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Compliant",
+            "value": 25
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Non-compliant",
+            "value": 3
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Compliant",
+            "value": 18
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Non-compliant",
+            "value": 7
+          }
+        ],
+        "description": "Mobile devices by compliance status.",
+        "totalDevices": 93
       },
       "ManagedDevices": {
         "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.managedDeviceOverview",
@@ -810,11 +912,11 @@ export const reportData: ZeroTrustAssessmentReport = {
         "managedDeviceModelsAndManufacturers": null,
         "lastModifiedDateTime": "2025-10-20T21:07:52.4781572Z",
         "deviceOperatingSystemSummary": {
-          "androidCount": 0,
-          "iosCount": 0,
-          "macOSCount": 0,
+          "androidCount": 300,
+          "iosCount": 340,
+          "macOSCount": 10,
           "windowsMobileCount": 0,
-          "windowsCount": 0,
+          "windowsCount": 1000,
           "unknownCount": 0,
           "androidDedicatedCount": 0,
           "androidDeviceAdminCount": 0,
@@ -824,7 +926,7 @@ export const reportData: ZeroTrustAssessmentReport = {
           "configMgrDeviceCount": 0,
           "aospUserlessCount": 0,
           "aospUserAssociatedCount": 0,
-          "linuxCount": 0,
+          "linuxCount": 20,
           "chromeOSCount": 0
         },
         "deviceExchangeAccessStateSummary": {
@@ -834,9 +936,9 @@ export const reportData: ZeroTrustAssessmentReport = {
           "unknownDeviceCount": 0,
           "unavailableDeviceCount": 0
         },
-        "desktopCount": 0,
-        "mobileCount": 0,
-        "totalCount": 0
+        "desktopCount": 20,
+        "mobileCount": 30,
+        "totalCount": 50
       },
       "DeviceCompliance": {
         "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicyDeviceStateSummary/$entity",
@@ -845,21 +947,21 @@ export const reportData: ZeroTrustAssessmentReport = {
         "id": "afaac8a4-5f74-40f5-a213-51af45bedc36",
         "unknownDeviceCount": 0,
         "notApplicableDeviceCount": 0,
-        "compliantDeviceCount": 0,
+        "compliantDeviceCount": 10,
         "remediatedDeviceCount": 0,
-        "nonCompliantDeviceCount": 0,
+        "nonCompliantDeviceCount": 10,
         "errorDeviceCount": 0,
         "conflictDeviceCount": 0
       },
       "DeviceOwnership": {
-        "corporateCount": 0,
-        "personalCount": 0
+        "corporateCount": 20,
+        "personalCount": 10
       }
     },
     "TenantOverview": {
-      "UserCount": 71,
+      "UserCount": 71000,
       "GuestCount": 12,
-      "GroupCount": 89,
+      "GroupCount": 1890,
       "ApplicationCount": 120,
       "DeviceCount": 20,
       "ManagedDeviceCount": 0

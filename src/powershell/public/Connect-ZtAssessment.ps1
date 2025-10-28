@@ -36,8 +36,8 @@ function Connect-ZtAssessment
         [ValidateSet('China', 'Germany', 'Global', 'USGov', 'USGovDoD')]
         [string]$Environment = 'Global',
 
-        # Force re-authentication even if already connected and avoids using Graph Powershell's cached authentication tokens.
-        [switch]$Force
+        # Uses Graph Powershell's cached authentication tokens.
+        [switch]$UseTokenCache
     )
 
     Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
@@ -55,12 +55,13 @@ function Connect-ZtAssessment
         }
 
         # If force use -ContextScope Process to force re-authentication
-        if ($Force) {
+        if (!$UseTokenCache) {
             $params['ContextScope'] = 'Process'
         }
 
         Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
         Connect-MgGraph @params
+        $tenantId = (Get-MgContext).TenantId
     }
     catch [Management.Automation.CommandNotFoundException]
     {
@@ -79,7 +80,7 @@ function Connect-ZtAssessment
         elseif($Environment -in 'USGov', 'USGovDoD') {
             $azEnvironment = 'AzureUSGovernment'
         }
-        Connect-AzAccount -UseDeviceAuthentication:$UseDeviceCode -Environment $azEnvironment
+        Connect-AzAccount -UseDeviceAuthentication:$UseDeviceCode -Environment $azEnvironment -Tenant $tenantId
     }
     catch [Management.Automation.CommandNotFoundException]
     {

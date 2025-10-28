@@ -16,7 +16,7 @@ function Test-Assessment-24690 {
     	TenantType = ('Workforce'),
     	TestId = 24690,
     	Title = 'Update policies for macOS are enforced to reduce risk from unpatched vulnerabilities',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

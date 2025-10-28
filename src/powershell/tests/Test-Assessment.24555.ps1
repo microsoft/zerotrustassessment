@@ -8,7 +8,7 @@ function Test-Assessment-24555 {
     	Category = 'Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24555,

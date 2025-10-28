@@ -5,14 +5,14 @@
 
 function Test-Assessment-21850 {
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Credential management',
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21850,
-    	Title = 'Smart lockout threshold isn''t greater than 10',
+    	Title = 'Smart lockout threshold set to 10 or less',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
