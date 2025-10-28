@@ -5,7 +5,7 @@
 
 function Test-Assessment-24541 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',

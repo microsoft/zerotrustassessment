@@ -5,7 +5,7 @@
 
 function Test-Assessment-24569 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
