@@ -5,7 +5,7 @@
 
 function Test-Assessment-24545 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -13,7 +13,7 @@ function Test-Assessment-24545 {
     	TenantType = ('Workforce'),
     	TestId = 24545,
     	Title = 'Compliance policies protect fully managed and corporate-owned Android devices',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

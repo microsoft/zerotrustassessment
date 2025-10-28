@@ -1,10 +1,10 @@
-Without configured domain allow/deny lists for external collaboration, organizations lack essential domain-level access controls that act as the frontline defense in their security model. Domain allow/deny lists operate at the tenant level and take precedence over Cross-Tenant Access Policies (XTAP), blocking invitations from domains on the deny list regardless of cross-tenant access settings. While XTAP enables granular controls for specific trusted tenants, domain restrictions are critical for preventing invitations from unknown or unverified domains that haven't been explicitly allowed.
+Limiting guest access to a known and approved list of tenants helps to prevent threat actors from exploiting unrestricted guest access to establish initial access through compromised external accounts or by creating accounts in untrusted tenants. Threat actors who gain access through an unrestricted domain can discover internal resources, users, and applications to perform additional attacks. 
 
-Without these restrictions, internal users can invite external accounts from any domain—including potentially compromised or attacker-controlled domains. Threat actors can register domains that appear legitimate to conduct social engineering attacks, tricking users into sending collaboration invitations that circumvent XTAP's targeted protections. Once granted access, these external guest accounts can be used for reconnaissance, mapping internal resources, user relationships, and collaboration patterns.
-
-These invited accounts provide persistent access that appears legitimate in audit logs and security monitoring systems. Attackers can maintain a long-term presence to collect data, access shared resources, documents, and applications configured for external collaboration, and potentially exfiltrate data through authorized channels without triggering alerts.
+Organizations should take inventory and configure an allowlist or blocklist to control B2B collaboration invitations from specific organizations. Without these controls, threat actors might use social engineering techniques to obtain invitations from legitimate internal users. 
 
 **Remediation action**
-- [Configure domain-based allow or deny lists](https://learn.microsoft.com/en-us/entra/external-id/allow-deny-list?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#set-the-allow-or-blocklist-policy-in-the-portal)<!--- Results --->
+
+- Learn how to [set up a list of approved domains](https://learn.microsoft.com/entra/external-id/allow-deny-list?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#add-an-allowlist).
+<!--- Results --->
 %TestResult%
 

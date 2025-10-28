@@ -5,7 +5,7 @@
 
 function Test-Assessment-24549 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Data',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -13,7 +13,7 @@ function Test-Assessment-24549 {
     	TenantType = ('Workforce'),
     	TestId = 24549,
     	Title = 'Data on Android is protected by app protection policies',
-    	UserImpact = 'Medium'
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

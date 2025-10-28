@@ -33,6 +33,33 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
+        accessorKey: "TestCategory",
+        meta: { label: "Category" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Category
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const category = row.getValue("TestCategory") as string;
+            if (!category) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+            return (
+                <div className="flex items-center">
+                    <span>{category}</span>
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "TestSfiPillar",
         meta: { label: "SFI Pillar" },
         header: ({ column }) => {

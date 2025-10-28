@@ -8,10 +8,10 @@
 
 function Test-Assessment-24823 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24823,

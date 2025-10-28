@@ -5,15 +5,15 @@
 
 function Test-Assessment-21839 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 21839,
-        Title = 'Passkey authentication method enabled',
-        UserImpact = 'Low'
+    	Category = 'Credential management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21839,
+    	Title = 'Passkey authentication method enabled',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

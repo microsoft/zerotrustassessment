@@ -1,0 +1,367 @@
+﻿<#
+.SYNOPSIS
+    Creates an anonymized sample report from an existing Zero Trust Assessment JSON report.
+
+.DESCRIPTION
+    This script takes an existing Zero Trust Assessment JSON report and:
+    - Anonymizes sensitive data (tenant domain, name, ID, user emails, etc.)
+    - Populates the overview dashboard data to display all charts
+    - Generates an HTML report from the anonymized JSON
+
+.PARAMETER InputJsonPath
+    Path to the existing Zero Trust Assessment JSON report.
+    Example: /Users/merill/GitHub/zerotrustassessment/ZeroTrustReport/pora/2025-10-27-Full/zt-export/ZeroTrustAssessmentReport.json
+
+.PARAMETER OutputHtmlPath
+    Path where the generated HTML report should be saved.
+    Example: /Users/merill/GitHub/zerotrustassessment/SampleReport.html
+
+.EXAMPLE
+    .\New-SampleReport.ps1 -InputJsonPath "C:\Reports\ZeroTrustAssessmentReport.json" -OutputHtmlPath "C:\Reports\SampleReport.html"
+
+.EXAMPLE
+    .\New-SampleReport.ps1 -InputJsonPath "/Users/merill/GitHub/zerotrustassessment/ZeroTrustReport/pora/2025-10-27-Full/zt-export/ZeroTrustAssessmentReport.json" -OutputHtmlPath "/Users/merill/GitHub/zerotrustassessment/SampleReport.html"
+#>
+
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateScript({ Test-Path $_ -PathType Leaf })]
+    [string]$InputJsonPath,
+
+    [Parameter(Mandatory = $true)]
+    [string]$OutputHtmlPath
+)
+
+# Set up paths
+$moduleRootPath = Join-Path $PSScriptRoot "..\src\powershell"
+
+Write-Host "Loading Get-HtmlReport function..." -ForegroundColor Cyan
+
+# Set the module root variable that Get-HtmlReport expects
+$script:ModuleRoot = $moduleRootPath
+
+# Create a fixed version of Get-HtmlReport that properly serializes JSON
+function Get-HtmlReport {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [psobject] $AssessmentResults,
+
+        [Parameter(Mandatory = $false)]
+        [string] $Path
+    )
+
+    # Convert to JSON properly with sufficient depth
+    $json = $AssessmentResults | ConvertTo-Json -Depth 100 -Compress
+
+    $htmlFilePath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.html'
+    $templateHtml = Get-Content -Path $htmlFilePath -Raw
+
+    # Insert the test results json into the template
+    $startMarker = 'reportData={'
+    $endMarker = 'EndOfJson:"EndOfJson"}'
+    $insertLocationStart = $templateHtml.IndexOf($startMarker)
+    $insertLocationEnd = $templateHtml.IndexOf($endMarker) + $endMarker.Length
+
+    $outputHtml = $templateHtml.Substring(0, $insertLocationStart)
+    $outputHtml += "reportData= $json"
+    $outputHtml += $templateHtml.Substring($insertLocationEnd)
+
+    return $outputHtml
+}
+
+Write-Host "Loading JSON report from: $InputJsonPath" -ForegroundColor Cyan
+
+# Load the JSON report
+$jsonContent = Get-Content -Path $InputJsonPath -Raw | ConvertFrom-Json -Depth 100
+
+Write-Host "Anonymizing report data..." -ForegroundColor Cyan
+
+# Anonymize tenant information
+$jsonContent.TenantId = "00000000-0000-0000-0000-000000000000"
+$jsonContent.TenantName = "Contoso"
+$jsonContent.Domain = "contoso.com"
+$jsonContent.Account = "admin@contoso.com"
+
+# Populate overview dashboard data with sample values
+Write-Host "Populating overview dashboard data..." -ForegroundColor Cyan
+
+# Ensure we have meaningful test result summaries for the dashboard
+if ($null -eq $jsonContent.TestResultSummary) {
+    $jsonContent | Add-Member -NotePropertyName "TestResultSummary" -NotePropertyValue @{}
+}
+
+# Set sample data for test results summary
+$jsonContent.TestResultSummary.IdentityPassed = 45
+$jsonContent.TestResultSummary.IdentityTotal = 90
+$jsonContent.TestResultSummary.DevicesPassed = 28
+$jsonContent.TestResultSummary.DevicesTotal = 36
+$jsonContent.TestResultSummary.DataPassed = 15
+$jsonContent.TestResultSummary.DataTotal = 25
+
+# Ensure TenantInfo exists
+if ($null -eq $jsonContent.TenantInfo) {
+    $jsonContent | Add-Member -NotePropertyName "TenantInfo" -NotePropertyValue @{}
+}
+
+# Set Tenant Overview with sample data
+$jsonContent.TenantInfo.TenantOverview = @{
+    UserCount          = 1250
+    GuestCount         = 85
+    GroupCount         = 340
+    ApplicationCount   = 156
+    DeviceCount        = 765
+    ManagedDeviceCount = 733
+}
+
+# Set Device Overview with Desktop Devices Sankey data (Windows + macOS, healthy compliance numbers)
+$jsonContent.TenantInfo.DeviceOverview = @{
+    DesktopDevicesSummary = @{
+        entrahybridjoined = 200
+        entrajoined       = 285
+        entrareigstered   = 100
+        totalDevices      = 660
+        description       = "Desktop devices (Windows and macOS) by join type and compliance status."
+        nodes             = @(
+            # Level 1: Desktop devices to OS
+            @{ source = "Desktop devices"; target = "Windows"; value = 585 },
+            @{ source = "Desktop devices"; target = "macOS"; value = 75 },
+            # Level 2: Windows to join types
+            @{ source = "Windows"; target = "Entra joined"; value = 285 },
+            @{ source = "Windows"; target = "Entra registered"; value = 100 },
+            @{ source = "Windows"; target = "Entra hybrid joined"; value = 200 },
+            # Level 3: Windows join types to compliance
+            # Entra joined devices - 60% compliant (reduced from 80%)
+            @{ source = "Entra joined"; target = "Compliant"; value = 171 },
+            @{ source = "Entra joined"; target = "Non-compliant"; value = 42 },
+            @{ source = "Entra joined"; target = "Unmanaged"; value = 72 },
+            # Entra hybrid joined devices - split between compliant and non-compliant
+            @{ source = "Entra hybrid joined"; target = "Compliant"; value = 50 },
+            @{ source = "Entra hybrid joined"; target = "Non-compliant"; value = 23 },
+            @{ source = "Entra hybrid joined"; target = "Unmanaged"; value = 127 },
+            # Entra registered devices - split between compliant and non-compliant (60% compliant)
+            @{ source = "Entra registered"; target = "Compliant"; value = 60 },
+            @{ source = "Entra registered"; target = "Non-compliant"; value = 40 },
+            @{ source = "Entra registered"; target = "Unmanaged"; value = 0 },
+            # Level 2: macOS directly to compliance (no join types) - 75% compliant
+            @{ source = "macOS"; target = "Compliant"; value = 56 },
+            @{ source = "macOS"; target = "Non-compliant"; value = 15 },
+            @{ source = "macOS"; target = "Unmanaged"; value = 4 }
+        )
+    }
+    MobileSummary         = @{
+        totalDevices = 180
+        description  = "Mobile devices by compliance status."
+        nodes        = @(
+            @{ source = "Mobile devices"; target = "Android"; value = 105 },
+            @{ source = "Mobile devices"; target = "iOS"; value = 75 },
+            # Android breakdown
+            @{ source = "Android"; target = "Android (Company)"; value = 72 },
+            @{ source = "Android"; target = "Android (Personal)"; value = 33 },
+            # iOS breakdown
+            @{ source = "iOS"; target = "iOS (Company)"; value = 58 },
+            @{ source = "iOS"; target = "iOS (Personal)"; value = 17 },
+            # Android Company compliance (83% compliant)
+            @{ source = "Android (Company)"; target = "Compliant"; value = 60 },
+            @{ source = "Android (Company)"; target = "Non-compliant"; value = 12 },
+            # Android Personal compliance (30% compliant)
+            @{ source = "Android (Personal)"; target = "Compliant"; value = 10 },
+            @{ source = "Android (Personal)"; target = "Non-compliant"; value = 23 },
+            # iOS Company compliance (90% compliant)
+            @{ source = "iOS (Company)"; target = "Compliant"; value = 52 },
+            @{ source = "iOS (Company)"; target = "Non-compliant"; value = 6 },
+            # iOS Personal compliance (65% compliant)
+            @{ source = "iOS (Personal)"; target = "Compliant"; value = 11 },
+            @{ source = "iOS (Personal)"; target = "Non-compliant"; value = 6 }
+        )
+    }
+    ManagedDevices        = @{
+        enrolledDeviceCount              = 733
+        mdmEnrolledCount                 = 585
+        dualEnrolledDeviceCount          = 148
+        lastModifiedDateTime             = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK")
+        deviceOperatingSystemSummary     = @{
+            androidCount                     = 105
+            iosCount                         = 75
+            macOSCount                       = 75
+            windowsMobileCount               = 0
+            windowsCount                     = 525
+            unknownCount                     = 0
+            androidDedicatedCount            = 35
+            androidDeviceAdminCount          = 0
+            androidFullyManagedCount         = 0
+            androidWorkProfileCount          = 50
+            androidCorporateWorkProfileCount = 20
+            configMgrDeviceCount             = 0
+            aospUserlessCount                = 0
+            aospUserAssociatedCount          = 0
+            linuxCount                       = 0
+            chromeOSCount                    = 0
+        }
+        deviceExchangeAccessStateSummary = @{
+            allowedDeviceCount     = 690
+            blockedDeviceCount     = 12
+            quarantinedDeviceCount = 5
+            unknownDeviceCount     = 8
+            unavailableDeviceCount = 18
+        }
+        desktopCount                     = 553
+        mobileCount                      = 180
+        totalCount                       = 733
+    }
+    DeviceCompliance      = @{
+        compliantDeviceCount     = 387
+        nonCompliantDeviceCount  = 106
+        errorDeviceCount         = 8
+        inGracePeriodCount       = 15
+        unknownDeviceCount       = 5
+        notApplicableDeviceCount = 4
+        configManagerCount       = 0
+        remediatedDeviceCount    = 0
+        conflictDeviceCount      = 0
+    }
+    DeviceOwnership       = @{
+        personalCount  = 98
+        corporateCount = 427
+    }
+}
+
+# Set Authentication Methods Overview for All Users
+$jsonContent.TenantInfo.OverviewAuthMethodsAllUsers = @{
+    description = "Strongest authentication method registered by all users."
+    nodes       = @(
+        @{ source = "Users"; target = "Single factor"; value = 85 },
+        @{ source = "Users"; target = "Phishable"; value = 980 },
+        @{ source = "Users"; target = "Phish resistant"; value = 185 },
+        @{ source = "Phishable"; target = "Phone"; value = 420 },
+        @{ source = "Phishable"; target = "Authenticator"; value = 560 },
+        @{ source = "Phish resistant"; target = "Passkey"; value = 125 },
+        @{ source = "Phish resistant"; target = "WHfB"; value = 60 }
+    )
+}
+
+# Set Authentication Methods Overview for Privileged Users
+$jsonContent.TenantInfo.OverviewAuthMethodsPrivilegedUsers = @{
+    description = "Strongest authentication method registered by privileged users."
+    nodes       = @(
+        @{ source = "Users"; target = "Single factor"; value = 2 },
+        @{ source = "Users"; target = "Phishable"; value = 28 },
+        @{ source = "Users"; target = "Phish resistant"; value = 15 },
+        @{ source = "Phishable"; target = "Phone"; value = 8 },
+        @{ source = "Phishable"; target = "Authenticator"; value = 20 },
+        @{ source = "Phish resistant"; target = "Passkey"; value = 12 },
+        @{ source = "Phish resistant"; target = "WHfB"; value = 3 }
+    )
+}
+
+# Set Conditional Access MFA Overview
+$jsonContent.TenantInfo.OverviewCaMfaAllUsers = @{
+    description = "Over the past 30 days, 68.5% of sign-ins were protected by conditional access policies enforcing multifactor."
+    nodes       = @(
+        @{ source = "User sign in"; target = "No CA applied"; value = 394 },
+        @{ source = "User sign in"; target = "CA applied"; value = 856 },
+        @{ source = "CA applied"; target = "No MFA"; value = 146 },
+        @{ source = "CA applied"; target = "MFA"; value = 710 }
+
+    )
+}
+
+# Set Conditional Access Devices Overview
+$jsonContent.TenantInfo.OverviewCaDevicesAllUsers = @{
+    description = "Over the past 30 days, 71.2% of sign-ins were from compliant devices."
+    nodes       = @(
+        @{ source = "User sign in"; target = "Unmanaged"; value = 500 },
+        @{ source = "User sign in"; target = "Managed"; value = 1150 },
+        @{ source = "Managed"; target = "Non-compliant"; value = 260 },
+        @{ source = "Managed"; target = "Compliant"; value = 890 }
+
+
+    )
+}
+
+Write-Host "Anonymizing user information in test results..." -ForegroundColor Cyan
+
+# Anonymize user information within test results
+$sampleUserNames = @(
+    "Alex Johnson", "Jordan Smith", "Taylor Brown", "Casey Davis",
+    "Morgan Wilson", "Riley Martinez", "Cameron Anderson", "Avery Thomas",
+    "Quinn Garcia", "Jamie Rodriguez", "Dakota Lee", "Skylar White",
+    "Reese Harris", "Peyton Clark", "Charlie Lewis", "Finley Robinson"
+)
+
+$sampleEmails = @(
+    "alex@contoso.com", "jordan@contoso.com", "taylor@contoso.com", "casey@contoso.com",
+    "morgan@contoso.com", "riley@contoso.com", "cameron@contoso.com", "avery@contoso.com",
+    "quinn@contoso.com", "jamie@contoso.com", "dakota@contoso.com", "skylar@contoso.com",
+    "reese@contoso.com", "peyton@contoso.com", "charlie@contoso.com", "finley@contoso.com"
+)
+
+# Function to anonymize a GUID
+function New-AnonymousGuid {
+    param([string]$originalGuid)
+
+    # Create a deterministic but anonymous GUID based on hash of original
+    $hash = [System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($originalGuid))
+    $guid = [System.Guid]::new($hash)
+    return $guid.ToString()
+}
+
+# Process each test to anonymize user data
+$userCounter = 0
+$userMapping = @{}
+
+# foreach ($test in $jsonContent.Tests) {
+#     if ($null -ne $test.TestResult -and $test.TestResult -match '@') {
+#         # Replace email addresses with contoso.com emails
+#         $test.TestResult = $test.TestResult -replace '[\w\.-]+@[\w\.-]+\.\w+', {
+#             $email = $_.Value
+#             if (-not $userMapping.ContainsKey($email)) {
+#                 $userMapping[$email] = $sampleEmails[$userCounter % $sampleEmails.Count]
+#                 $userCounter++
+#             }
+#             $userMapping[$email]
+#         }
+
+#         # Replace domain references
+#         $test.TestResult = $test.TestResult -replace 'elapora\.com', 'contoso.com'
+#         $test.TestResult = $test.TestResult -replace 'Pora Inc\.', 'Contoso'
+
+#         # Replace user names (common patterns)
+#         $test.TestResult = $test.TestResult -replace '\[([\w\s\.]+)\]\(https://entra\.microsoft\.com', {
+#             $matches[0] -replace $matches[1], ($sampleUserNames[$userCounter % $sampleUserNames.Count])
+#         }
+
+#         # Replace GUIDs in URLs and text
+#         $test.TestResult = $test.TestResult -replace '\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b', {
+#             New-AnonymousGuid -originalGuid $_.Value
+#         }
+#     }
+# }
+
+Write-Host "Generating HTML report..." -ForegroundColor Cyan
+
+# Get the directory for the output path to use as temp location
+$outputDir = Split-Path -Path $OutputHtmlPath -Parent
+if ([string]::IsNullOrEmpty($outputDir)) {
+    $outputDir = Get-Location
+}
+
+# Ensure output directory exists
+if (-not (Test-Path $outputDir)) {
+    New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
+}
+
+# Generate HTML report using Get-HtmlReport
+$htmlContent = Get-HtmlReport -AssessmentResults $jsonContent -Path $outputDir
+
+# Save the HTML report
+$htmlContent | Out-File -FilePath $OutputHtmlPath -Encoding utf8 -Force
+
+Write-Host "Sample report generated successfully!" -ForegroundColor Green
+Write-Host "Output: $OutputHtmlPath" -ForegroundColor Green
+
+# Optionally save the anonymized JSON as well
+$anonymizedJsonPath = $OutputHtmlPath -replace '\.html$', '.json'
+$jsonContent | ConvertTo-Json -Depth 100 | Out-File -FilePath $anonymizedJsonPath -Encoding utf8 -Force
+Write-Host "Anonymized JSON saved to: $anonymizedJsonPath" -ForegroundColor Green

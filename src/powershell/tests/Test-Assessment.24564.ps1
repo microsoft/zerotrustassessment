@@ -8,11 +8,11 @@
 
 function Test-Assessment-24564 {
     [ZtTest(
-    	Category = 'Protect identities and secrets',
+    	Category = 'Secure Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24564,
     	Title = 'Local account usage on Windows is restricted to reduce unauthorized access',

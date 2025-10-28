@@ -8,7 +8,7 @@
 
 function Test-Assessment-24554 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Secure Devices',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -16,7 +16,7 @@ function Test-Assessment-24554 {
     	TenantType = ('Workforce'),
     	TestId = 24554,
     	Title = 'Update policies for iOS/iPadOS are enforced to reduce risk from unpatched vulnerabilities',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

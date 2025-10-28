@@ -12,7 +12,7 @@ function Test-Assessment-21802 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21802,
-    	Title = 'Authenticator app shows sign-in context',
+    	Title = 'Microsoft Authenticator app shows sign-in context',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

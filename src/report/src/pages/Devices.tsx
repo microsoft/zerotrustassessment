@@ -29,7 +29,17 @@ export default function Devices() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="mb-3">Assessment results</CardTitle>
-                            <CardDescription>Review the checks below for the assessment of your Intune and devices related configuration.
+                            <CardDescription>
+                                The results presented below are based on the security principles detailed in the{" "}
+                                <a
+                                    href="https://learn.microsoft.com/intune/intune-service/protect/zero-trust-configure-security"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary font-medium underline underline-offset-4 hover:underline"
+                                >
+                                    Configuring Microsoft Intune for increased security
+                                </a>
+                                {" "}guide.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="gap-4 px-4 pb-4 pt-1">
