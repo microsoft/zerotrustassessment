@@ -1,9 +1,8 @@
-This cybersecurity best practice focuses on controlling device proliferation by establishing a reasonable limit on the number of devices each user can register within your Microsoft Entra ID tenant. Limiting device registration helps maintain security posture while allowing legitimate business flexibility. By default, Microsoft Entra ID allows users to have up to 50 devices. Limiting this number to 10 reduces the potential attack surface and simplifies device management.
+Controlling device proliferation is important. Set a reasonable limit on the number of devices each user can register in your Microsoft Entra ID tenant. Limiting device registration maintains security while allowing business flexibility. Microsoft Entra ID lets users register up to 50 devices by default. Reducing this number to 10 minimizes the attack surface and simplifies device management.
 
 **Remediation action**
 
-- [Configure the maximum number of devices per user (userDeviceQuota) in the Microsoft Entra admin center](https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview)
-
+- Learn how to [limit the maximum number of devices per user](https://learn.microsoft.com/entra/identity/devices/manage-device-identities?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-device-settings).
 <!--- Results --->
 %TestResult%
 
