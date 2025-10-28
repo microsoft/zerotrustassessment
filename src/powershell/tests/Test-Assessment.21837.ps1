@@ -35,7 +35,7 @@ function Test-Assessment-21837{
     # Evaluate compliance
     $passed = $false
     $customStatus = $null
-    $entraDeviceSettingsLink = "https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview"
+    $entraDeviceSettingsLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview'
 
     if ($null -eq $userQuota) {
         $testResultMarkdown = '**Policy not found.** Unable to retrieve maximum device quota.'
@@ -57,19 +57,19 @@ function Test-Assessment-21837{
         Write-ZtProgress -Activity $activity -Status 'Querying database for users exceeding device quota'
 
         # Query to count registered devices per user from the database
-        $sql = @"
+        $sql = @'
 SELECT
     unnest(d.registeredOwners).id as userId,
     u.displayName as userDisplayName,
     COUNT(*) as deviceCount
 FROM Device d
-LEFT JOIN [User] u ON unnest(d.registeredOwners).id = u.id
+LEFT JOIN "User" u ON unnest(d.registeredOwners).id = u.id
 WHERE unnest(d.registeredOwners).id IS NOT NULL
 GROUP BY unnest(d.registeredOwners).id, u.displayName
-HAVING COUNT(*) > $userQuota
+HAVING COUNT(*) > {0}
 ORDER BY deviceCount DESC
 LIMIT 101
-"@
+'@ -f $userQuota
 
         $exceeding = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
