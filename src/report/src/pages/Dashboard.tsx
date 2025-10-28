@@ -55,7 +55,8 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
-import { WindowsJoinSankey } from "@/components/overview/windowsJoin-sankey";
+import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
+import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber, metricDescriptions } from "@/lib/format-utils";
 
@@ -972,7 +973,7 @@ export default function Dashboard() {
 
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                     {/* Device summary chart */}
-                    {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 && (
+                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices ? (
                         <Card className="w-full">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />
@@ -1081,7 +1082,7 @@ export default function Dashboard() {
                                 </div>
                             </CardFooter>
                         </Card>
-                    )}
+                    ) : null}
 
                     {/* Device compliance chart */}
                     {(reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 0) > 0 &&
@@ -1275,13 +1276,13 @@ export default function Dashboard() {
                             </Card>
                         )}
 
-                                            {/* Windows devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes && reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes.length > 0 && (
+                                            {/* Desktop devices chart */}
+                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes && reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes.length > 0 && (
                         <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <Monitor className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">
-                                    Windows devices
+                                    Desktop devices
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -1294,8 +1295,8 @@ export default function Dashboard() {
                                     }}
                                     className="h-[350px] w-full"
                                 >
-                                    {reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes ? (
-                                        <WindowsJoinSankey data={reportData.TenantInfo.DeviceOverview.WindowsJoinSummary.nodes} />
+                                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes ? (
+                                        <DesktopDevicesSankey data={reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes} />
                                     ) : (
                                         <div className="flex items-center justify-center h-32 text-muted-foreground">
                                             No data available
@@ -1309,9 +1310,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra joined</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraJoined / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1324,9 +1327,11 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraHybrid / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
@@ -1339,14 +1344,92 @@ export default function Dashboard() {
                                         <div className="text-xs text-muted-foreground">Entra registered</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                             {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.WindowsJoinSummary?.nodes || [];
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
                                                 const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
-                                                const total = nodes.filter(n => n.source === "Windows").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
+                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
+                                                const total = windowsDevices + macOSDevices;
                                                 return Math.round((entraRegistered / (total || 1)) * 100);
                                             })()}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 %
                                             </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    )}
+
+                    {/* Mobile devices chart */}
+                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo?.DeviceOverview?.ManagedDevices && (
+                        <Card className="w-full lg:col-span-3">
+                            <CardHeader className="space-y-0 pb-2 flex-row">
+                                <MonitorSmartphone className="pr-2 size-8" />
+                                <CardTitle className="text-2xl tabular-nums">
+                                    Mobile devices
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ChartContainer
+                                    config={{
+                                        steps: {
+                                            label: "Steps",
+                                            color: "hsl(var(--chart-1))",
+                                        },
+                                    }}
+                                    className="h-[350px] w-full"
+                                >
+                                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes ? (
+                                        <MobileSankey data={reportData.TenantInfo.DeviceOverview.MobileSummary.nodes} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
+                                            No data available
+                                        </div>
+                                    )}
+                                </ChartContainer>
+                            </CardContent>
+                            <CardFooter className="flex flex-row border-t p-4">
+                                <div className="flex w-full items-center gap-2">
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Android compliant</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
+                                                const androidCompliant = nodes.filter(n => n.source?.includes("Android") && n.target === "Compliant").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const androidTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "Android")?.value || 0;
+                                                return androidTotal > 0 ? Math.round((androidCompliant / androidTotal) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">iOS compliant</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
+                                                const iosCompliant = nodes.filter(n => n.source?.includes("iOS") && n.target === "Compliant").reduce((sum, n) => sum + (n.value || 0), 0);
+                                                const iosTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "iOS")?.value || 0;
+                                                return iosTotal > 0 ? Math.round((iosCompliant / iosTotal) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Total devices</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
+                                                const androidTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "Android")?.value || 0;
+                                                const iosTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "iOS")?.value || 0;
+                                                return androidTotal + iosTotal;
+                                            })()}
                                         </div>
                                     </div>
                                 </div>

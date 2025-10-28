@@ -1,19 +1,19 @@
-<#
+﻿<#
 .SYNOPSIS
     A macOS Cloud LAPS Policy is Created and Assigned
 #>
 
 function Test-Assessment-24561 {
     [ZtTest(
-        Category = 'Devices',
-        ImplementationCost = 'Low',
-        Pillar = 'Devices',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect tenants and isolate production',
-        TenantType = ('Workforce'),
-        TestId = 24561,
-        Title = 'A macOS Cloud LAPS Policy is Created and Assigned',
-        UserImpact = 'Low'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 24561,
+    	Title = 'Local administrator credentials on macOS are protected during enrollment by macOS LAPS',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

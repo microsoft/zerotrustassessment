@@ -1,8 +1,8 @@
 Without app protection policies, corporate data accessed on Android devices is vulnerable to leakage through unmanaged or malicious apps. Users can unintentionally copy sensitive information into personal apps, store data insecurely, or bypass authentication controls. This risk is amplified on devices that aren't fully managed, where corporate and personal contexts coexist, increasing the likelihood of data exfiltration or unauthorized access.
 
-Enforcing app protection policies ensures that corporate data is only accessible through trusted apps and remains protected even on personal or BYOD Android devices. 
+Enforcing app protection policies ensures that corporate data is only accessible through trusted apps and remains protected even on personal or BYOD Android devices.
 
-These policies enforce encryption, restrict data sharing, and require authentication, reducing the risk of data leakage and aligning with Zero Trust principles of data protection and conditional access
+These policies enforce encryption, restrict data sharing, and require authentication, reducing the risk of data leakage and aligning with Zero Trust principles of data protection and Conditional Access.
 
 **Remediation action**
 

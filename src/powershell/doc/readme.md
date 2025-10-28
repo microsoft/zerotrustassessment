@@ -101,13 +101,9 @@ When prompted, sign into Microsoft Graph as a Global Administrator.
 
 The assessment first connects to Microsoft Graph and then to Azure. A second window will open to perform the Azure sign in.
 
-![Microsoft Entra sign in page](media/image1.png)
-
 When prompted, review and accept the requested permissions.
 
 The next time you connect, you won't be required to reconsent to the permissions.
-
-![Graph permissions](media/image2.png)
 
 ### Sign into Azure
 
@@ -115,11 +111,7 @@ When prompted, sign into Azure as a Global Administrator.
 
 The Azure sign in is required to check for export of Audit and sign in logs. If you don't have Azure, you can close the window without signing in and ignore the warning. The test that relies on Azure will be skipped.
 
-![Microsoft Azure sign in page](media/image3.png)
-
 If you have multiple subscriptions, select a tenant and subscription when prompted.
-
-![Azure subscription selection in console](media/image4.png)
 
 ## Run the assessment
 
@@ -160,7 +152,7 @@ After the assessment completes, you are redirected to the **Overview** tab of th
 
 ![Screenshot of Results](media/image5.png)
 
-The **Identity** tab displays the list of checks that were run against the tenant and provide recommendations on addressing the tenant configuration information.
+The **Identity** and **Devices** tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
 
 ![Screenshot of test results](media/image6.png)
 

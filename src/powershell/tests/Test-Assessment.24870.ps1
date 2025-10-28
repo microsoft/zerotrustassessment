@@ -9,7 +9,7 @@ function Test-Assessment-24870 {
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24870,
     	Title = 'Secure Wi-Fi profiles are configured to protect macOS connectivity and devices',

@@ -2,7 +2,7 @@ Microsoft recommends that organizations have two cloud-only emergency access acc
 
 **Remediation action**
 
-Create accounts following the [emergency access account recommendations](https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- Create accounts following the [emergency access account recommendations](https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
 
