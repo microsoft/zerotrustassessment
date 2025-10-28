@@ -5,15 +5,15 @@
 
 function Test-Assessment-21879{
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce','External'),
-    	TestId = 21879,
-    	Title = 'All entitlement management policies that apply to External users require approval',
-    	UserImpact = 'Medium'
+        Category = 'Access control',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce','External'),
+        TestId = 21879,
+        Title = 'All entitlement management policies that apply to External users require approval',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
@@ -21,45 +21,44 @@ function Test-Assessment-21879{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking All entitlement management policies that apply to external users require approval'
-    Write-ZtProgress -Activity $activity -Status 'Getting access packages and assignment policies'
+    Write-ZtProgress -Activity $activity -Status 'Getting assignment policies'
 
     try {
-        # Query access packages with expanded assignment policies
-        $accessPackages = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/entitlementManagement/accessPackages' -ApiVersion beta -QueryParameters @{
-            '$expand' = 'accessPackageAssignmentPolicies'
-        }
+        # Query assignment policies directly with expanded access package information (more efficient than expanding from access packages)
+        $assignmentPolicies = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/entitlementManagement/assignmentPolicies' -QueryParameters @{'$expand' = 'accessPackage'} -ApiVersion v1.0
 
-        if (-not $accessPackages -or $accessPackages.Count -eq 0) {
-            $testResultMarkdown = 'No access packages found in the tenant.'
+        # Handle case where no policies exist or API returns null
+        if ($null -eq $assignmentPolicies -or $assignmentPolicies.Count -eq 0) {
+            Write-PSFMessage 'No assignment policies found in the tenant' -Level Verbose
+            $testResultMarkdown = 'No access package assignment policies found in the tenant.'
             $passed = $true
         }
         else {
             Write-ZtProgress -Activity $activity -Status 'Filtering policies for external users'
 
-            # Filter to find policies that apply to external users
+            # Client-side filter for policies that apply to external users
             $externalUserPolicies = @()
-            $externalScopeTypes = @('SpecificConnectedOrganizationSubjects', 'AllConfiguredConnectedOrganizationSubjects', 'AllExternalSubjects')
 
-            foreach ($package in $accessPackages) {
-                if ($package.accessPackageAssignmentPolicies) {
-                    foreach ($policy in $package.accessPackageAssignmentPolicies) {
-                        # Check if policy is enabled and applies to external users
-                        if ($policy.requestorSettings.acceptRequests -eq $true -and
-                            $policy.requestorSettings.allowedRequestors) {
+            foreach ($policy in $assignmentPolicies) {
+                # Skip if requestorSettings is null or missing
+                if ($null -eq $policy.requestorSettings) {
+                    Write-PSFMessage "Skipping policy $($policy.id) - no requestorSettings" -Level Debug
+                    continue
+                }
 
-                            foreach ($requestor in $policy.requestorSettings.allowedRequestors) {
-                                if ($requestor.scopeType -in $externalScopeTypes) {
-                                    $externalUserPolicies += @{
-                                        AccessPackageId = $package.id
-                                        AccessPackageName = $package.displayName
-                                        PolicyId = $policy.id
-                                        PolicyName = $policy.displayName
-                                        ScopeType = $requestor.scopeType
-                                        IsApprovalRequired = $policy.requestorSettings.approvalSettings.isApprovalRequired
-                                    }
-                                    break # Only need to add the policy once per package
-                                }
-                            }
+                # Check if policy accepts requests
+                if ($policy.requestorSettings.acceptRequests -eq $true) {
+                    # Use the existing Test-ZtExternalUserScope function to check if policy applies to external users
+                    $appliesToExternal = Test-ZtExternalUserScope -TargetScope $policy.allowedTargetScope
+
+                    if ($appliesToExternal) {
+                        $externalUserPolicies += [PSCustomObject]@{
+                            AccessPackageId = $policy.accessPackage.id
+                            AccessPackageName = $policy.accessPackage.displayName
+                            AssignmentPolicyId = $policy.id
+                            AssignmentPolicyName = $policy.displayName
+                            AssignmentPolicyScopeType = $policy.allowedTargetScope
+                            IsApprovalRequired = [bool]($policy.requestorSettings.approvalSettings.isApprovalRequired)
                         }
                     }
                 }
@@ -72,52 +71,31 @@ function Test-Assessment-21879{
                 $passed = $true
             }
             else {
-                # Check if any policies don't require approval
+                # Pass/Fail Logic: If there is at least one result where isApprovalRequired == "false", fail the test. Else pass the test
                 $policiesWithoutApproval = $externalUserPolicies | Where-Object { $_.IsApprovalRequired -eq $false }
 
                 if ($policiesWithoutApproval.Count -eq 0) {
+                    # PASS: No policies without approval
                     $passed = $true
-                    $testResultMarkdown = 'All access package assignment policies for external users require approval.'
-
-                    # Add summary details
-                    $testResultMarkdown += "`n`n## Summary`n`n"
-                    $testResultMarkdown += "- Total access packages: $($accessPackages.Count)`n"
-                    $testResultMarkdown += "- Policies applying to external users: $($externalUserPolicies.Count)`n"
-                    $testResultMarkdown += "- Policies requiring approval: $($externalUserPolicies.Count)`n"
+                    $testResultMarkdown = 'All access package assignment policies for external users require approval'
                 }
                 else {
+                    # FAIL: At least one policy without approval
                     $passed = $false
-                    $testResultMarkdown = 'Access package assignment policies for external users without approval are found in the tenant.`n`n'
-
-                    # Add details table for policies without approval
-                    $testResultMarkdown += '## Policies without approval requirement`n`n'
-                    $testResultMarkdown += '| Access Package | Assignment Policy | Scope Type | Approval Required |`n'
-                    $testResultMarkdown += '| :--- | :--- | :--- | :--- |`n'
-
-                    foreach ($policy in $policiesWithoutApproval) {
-                        $packageLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/elmEntitlementManagement/menuId/AccessPackages'
-                        $testResultMarkdown += "| [$(Get-SafeMarkdown($policy.AccessPackageName))]($packageLink) | $(Get-SafeMarkdown($policy.PolicyName)) | $($policy.ScopeType) | $($policy.IsApprovalRequired) |`n"
-                    }
-
-                    # Add summary
-                    $testResultMarkdown += '`n## Summary`n`n'
-                    $testResultMarkdown += "- Total access packages: $($accessPackages.Count)`n"
-                    $testResultMarkdown += "- Policies applying to external users: $($externalUserPolicies.Count)`n"
-                    $testResultMarkdown += "- Policies requiring approval: $(($externalUserPolicies | Where-Object { $_.IsApprovalRequired -eq $true }).Count)`n"
-                    $testResultMarkdown += "- Policies **not** requiring approval: $($policiesWithoutApproval.Count)`n"
+                    $testResultMarkdown = 'Access package assignment policies for external users without approval are found in the tenant'
                 }
 
-                # Add detailed information for all external user policies
-                if ($externalUserPolicies.Count -gt 0) {
-                    $testResultMarkdown += '`n`n## Details`n`n'
-                    $testResultMarkdown += 'For each policy found that applies to external users:`n`n'
-                    $testResultMarkdown += '| Access Package ID | Access Package Name | Assignment Policy ID | Assignment Policy Name | Assignment Policy ScopeType | Assignment Policy isApprovalRequired |`n'
-                    $testResultMarkdown += '| :--- | :--- | :--- | :--- | :--- | :--- |`n'
+                # Details: For each policy found
+                $testResultMarkdown += "`n`n## Details`n`n"
+                $testResultMarkdown += "Assignment policies that apply to external users:`n`n"
+                $testResultMarkdown += '| Access package ID | Access package name | Assignment policy ID | Assignment policy Name | Assignment policy scopeType | Assignment policy isApprovalRequired |`n'
+                $testResultMarkdown += '|:---|:---|:---|:---|:---|:---|`n'
 
-                    foreach ($policy in $externalUserPolicies) {
-                        $packageLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/elmEntitlementManagement/menuId/AccessPackages'
-                        $testResultMarkdown += "| $($policy.AccessPackageId) | [$(Get-SafeMarkdown($policy.AccessPackageName))]($packageLink) | $($policy.PolicyId) | $(Get-SafeMarkdown($policy.PolicyName)) | $($policy.ScopeType) | $($policy.IsApprovalRequired) |`n"
-                    }
+                foreach ($policy in $externalUserPolicies) {
+                    $packageLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ERM/DashboardBlade/~/elmEntitlementManagement/menuId/AccessPackages"
+                    $approvalStatus = if ($policy.IsApprovalRequired) { 'true' } else { 'false' }
+
+                    $testResultMarkdown += "| ``$($policy.AccessPackageId)`` | [$(Get-SafeMarkdown $policy.AccessPackageName)]($packageLink) | ``$($policy.AssignmentPolicyId)`` | $(Get-SafeMarkdown $policy.AssignmentPolicyName) | $($policy.AssignmentPolicyScopeType) | **$approvalStatus** |`n"
                 }
             }
         }
