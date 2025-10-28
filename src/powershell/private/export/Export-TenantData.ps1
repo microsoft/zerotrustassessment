@@ -136,6 +136,6 @@ function Export-TenantData {
 	if ($Pillar -in ('All', 'Devices')) {
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
 			-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
-			-QueryString '$top=999' -ShowCount
+			-QueryString '$top=999&$expand=registeredOwners($select=id,displayName)' -ShowCount
 	}
 }
