@@ -28,10 +28,11 @@ function Test-Assessment-21954{
 
     # Check if BitLocker key access is restricted
     $passed = $authPolicy.defaultUserRolePermissions.allowedToReadBitlockerKeysForOwnedDevice -eq $false
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview'
     $testResultMarkdown = if ($passed) {
-        'Non-administrator users are restricted from recovering BitLocker keys for their owned devices'
+        "[Non-administrator users are restricted from recovering BitLocker keys for their owned devices]($portalLink)"
     } else {
-        'Non-administrator users can recover BitLocker keys for their owned devices'
+        "[Non-administrator users can recover BitLocker keys for their owned devices]($portalLink)"
     }
 
     $params = @{
