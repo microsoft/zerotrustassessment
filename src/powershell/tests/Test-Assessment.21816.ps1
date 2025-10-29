@@ -36,7 +36,7 @@ function Test-Assessment-21816 {
 
     # Query 1: Find all privileged directory roles
     Write-ZtProgress -Activity $activity -Status 'Getting privileged directory roles'
-    $privilegedRoles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -Filter 'isPrivileged eq true' -ApiVersion beta
+    $privilegedRoles = Get-ZtRole -IncludePrivilegedRoles
     Write-PSFMessage "Found $($privilegedRoles.Count) privileged roles" -Level Verbose
 
     # Query 2: Check for eligible Global Administrators (PIM usage confirmation)

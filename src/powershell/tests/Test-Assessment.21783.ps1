@@ -26,7 +26,7 @@ function Test-Assessment-21783 {
     # TODO: Check for report-only and exclude from pass state. Include CA state in the CA outpu
     # -Include a pass / partial / fail next to each CA policy to show which ones have phish resistant for roles.
 
-    $roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
+    $roles = Get-ZtRole
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
     $asp = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -ApiVersion beta
 

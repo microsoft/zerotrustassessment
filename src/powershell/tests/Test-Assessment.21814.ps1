@@ -24,11 +24,10 @@ function Test-Assessment-21814 {
     $activity = "Checking cloud only roles"
     Write-ZtProgress -Activity $activity -Status "Getting roles"
 
-    $roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
-
+    $roles = Get-ZTRole -IncludePrivilegedRoles
     # Get all privileged roles
     # TODO: Remove filter for GA and Global Reader, limiting during testing time.
-    $privilegedRoles = $roles | Where-Object { $_.isPrivileged -and $_.displayName -in @('Global Administrator', 'Global Reader') }
+    $privilegedRoles = $roles | Where-Object { $_.displayName -in @('Global Administrator', 'Global Reader') }
 
     foreach ($role in $privilegedRoles) {
         Write-ZtProgress -Activity $activity -Status "Getting members in role $($role.displayName)"
