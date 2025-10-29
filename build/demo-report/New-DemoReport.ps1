@@ -337,18 +337,21 @@ if ($userMappings.Count -gt 0) {
 
             # Replace each user's display name and UPN from the mapping
             foreach ($mapping in $userMappings) {
-                # Replace display names (case-insensitive)
-                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalDisplayName)) {
-                    $test.TestResult = $test.TestResult -replace [regex]::Escape($mapping.OriginalDisplayName), $mapping.DemoDisplayName
-                }
 
                 # Replace UPNs (case-insensitive)
                 if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalUserPrincipalName)) {
                     $test.TestResult = $test.TestResult -replace [regex]::Escape($mapping.OriginalUserPrincipalName), $mapping.DemoUserPrincipalName
                 }
 
+                # Replace display names (case-insensitive)
+                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalDisplayName)) {
+                    $test.TestResult = $test.TestResult -replace [regex]::Escape($mapping.OriginalDisplayName), $mapping.DemoDisplayName
+                }
+
                 # Catch all for domain
-                $test.TestResult = $test.TestResult -replace [regex]::Escape("elapora.com"), "contoso.com"
+                $test.TestResult = $test.TestResult -replace [regex]::Escape("@elapora.com"), "@contoso.com"
+                $test.TestResult = $test.TestResult -replace [regex]::Escape("erill"), "anson"
+                $test.TestResult = $test.TestResult -replace [regex]::Escape("pora.onmicrosoft.com"), "contoso.onmicrosoft.com"
             }
 
             if ($originalResult -ne $test.TestResult) {
