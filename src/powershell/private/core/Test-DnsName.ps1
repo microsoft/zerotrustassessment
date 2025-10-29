@@ -28,7 +28,7 @@ function Test-DnsName {
 		$resolution -as [bool]
 	}
 	catch {
-		Write-PSFMessage -Level Warning -Message "Error resolving domain {0}" -StringValues $Name -ErrorRecord $_ -Target $Name
+		Write-PSFMessage -Level Verbose -Message "Error resolving domain {0}" -StringValues $Name -ErrorRecord $_ -Target $Name
 		$false
 	}
 }
