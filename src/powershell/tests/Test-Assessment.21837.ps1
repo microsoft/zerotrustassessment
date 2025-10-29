@@ -16,10 +16,7 @@ function Test-Assessment-21837{
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param(
-        # Database connection for internal user queries
-        $Database
-    )
+    param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -50,49 +47,6 @@ function Test-Assessment-21837{
     }
     else {
         $testResultMarkdown = "[Maximum number of devices per user]($entraDeviceSettingsLink) is set to $userQuota. Consider reducing to 10 or fewer."
-    }
-
-
-    # Query database for device count per user and display top 100 users (regardless of test result)
-    Write-ZtProgress -Activity $activity -Status 'Querying database for user device counts'
-
-    # Query to count registered devices per user from the database
-    $sql = @"
-SELECT
-    owner.userPrincipalName as userId,
-    owner.displayName as userDisplayName,
-    COUNT(*) as deviceCount
-FROM (
-    SELECT unnest(d.registeredOwners) as owner
-    FROM Device d
-    WHERE d.accountEnabled = true
-) owners
-GROUP BY owner.userPrincipalName, owner.displayName
-ORDER BY deviceCount DESC, userDisplayName ASC
-LIMIT 100
-"@
-
-    $allUsers = Invoke-DatabaseQuery -Database $Database -Sql $sql
-
-    # Build markdown summary for top 100 users with device counts
-    if ($allUsers.Count -gt 0) {
-        $mdUsers = @"
-
-
-## Top 100 users by device count
-
-| User | Device count |
-| :--- | :----------- |
-
-"@
-        foreach ($user in $allUsers) {
-            $userName = if ($user.userDisplayName) { $user.userDisplayName } else { $user.userId }
-            $mdUsers += "| $userName | $($user.deviceCount) |`n"
-        }
-        $testResultMarkdown += $mdUsers
-    }
-    else {
-        $testResultMarkdown += "`n`n_No device ownership data found in the database._"
     }
 
     $params = @{
