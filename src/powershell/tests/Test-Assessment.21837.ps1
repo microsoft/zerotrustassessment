@@ -34,10 +34,9 @@ function Test-Assessment-21837{
     $customStatus = $null
     $entraDeviceSettingsLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview'
 
-    if ($null -eq $userQuota) {
-        $testResultMarkdown = "Policy not found. Unable to retrieve maximum device quota. [View device settings]($entraDeviceSettingsLink)"
-    }
-    elseif ($userQuota -le 10) {
+
+    if ($null -eq $userQuota -or $userQuota -le 10) {
+        #default is 10
         $passed = $true
         $testResultMarkdown = "[Maximum number of devices per user]($entraDeviceSettingsLink) is set to $userQuota"
     }
