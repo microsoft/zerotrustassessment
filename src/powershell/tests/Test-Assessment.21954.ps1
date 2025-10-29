@@ -12,7 +12,7 @@ function Test-Assessment-21954{
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21954,
-    	Title = 'Restrict nonadministrator users from recovering the BitLocker keys for their owned devices',
+    	Title = 'Restrict non-administrator users from recovering the BitLocker keys for their owned devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -20,7 +20,7 @@ function Test-Assessment-21954{
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Restrict nonadministrator users from recovering the BitLocker keys for their owned devices'
+    $activity = 'Checking Restrict non-administrator users from recovering the BitLocker keys for their owned devices'
     Write-ZtProgress -Activity $activity -Status 'Getting authorization policy'
 
     # Query the MS Graph API for authorization policy
