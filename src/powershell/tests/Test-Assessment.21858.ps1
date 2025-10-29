@@ -89,7 +89,7 @@ function Test-Assessment-21858 {
     }
     else {
         $passed = $true   # Test passes if no enabled guests
-        $testResultMarkdown = "✅ No enabled guest users found in the tenant."
+        $testResultMarkdown = "✅ No guest users found in the tenant."
     }
 
     # Build the detailed sections of the markdown

@@ -140,8 +140,8 @@ function Test-Assessment-21825{
             }
             $testResultMarkdown += "`n"
         } else {
-            $testResultMarkdown += "**Status:** ❌ No enabled CA policies assigned`n`n"
-            $testResultMarkdown += "*No enabled Conditional Access policies target this privileged role.*`n`n"
+            $testResultMarkdown += "**Status:** ❌ No CA policies assigned`n`n"
+            $testResultMarkdown += "*No Conditional Access policies target this privileged role.*`n`n"
             $allRolesCovered = $false
         }
     }

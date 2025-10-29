@@ -78,7 +78,7 @@ function Test-Assessment-21808{
     }
     else {
         if ($deviceCodeFlowPolicies.Count -eq 0) {
-            $testResultMarkdown += "No enabled Conditional Access policies found that target device code flow authentication.%TestResult%"
+            $testResultMarkdown += "No Conditional Access policies found that target device code flow authentication.%TestResult%"
         } else {
             $testResultMarkdown += "Device code flow policies exist but none are configured to block device code flow.%TestResult%"
         }
@@ -141,7 +141,7 @@ function Test-Assessment-21808{
             $mdInfo += "| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | Enabled | $targetUsers | $targetResources | $grantControls |`n"
         }
     } else {
-        $mdInfo += "No enabled Conditional Access policies targeting device code flow authentication were found.`n"
+        $mdInfo += "No Conditional Access policies targeting device code flow authentication were found.`n"
     }
 
     # If the test failed and there are inactive policies, show them
