@@ -23,8 +23,8 @@ function Test-Assessment-21869 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
-    $activity = "Checking enterprise applications assignment and provisioning requirements"
-    Write-ZtProgress -Activity $activity -Status "Getting service principals without assignment requirements"
+    $activity = 'Checking enterprise applications assignment and provisioning requirements'
+    Write-ZtProgress -Activity $activity -Status 'Getting service principals without assignment requirements'
 
     # Query 1: Get service principals that don't require assignment
     $sql = @"
@@ -52,7 +52,7 @@ ORDER BY LOWER(displayName) ASC
         $params = @{
             TestId             = '21869'
             Status             = $true
-            Result             = "All enterprise applications have explicit assignment requirements."
+            Result             = 'All enterprise applications have explicit assignment requirements.'
         }
         Add-ZtTestResultDetail @params
         return
@@ -103,7 +103,7 @@ ORDER BY LOWER(displayName) ASC
                 try {
                     $schema = Invoke-ZtGraphRequest -RelativeUri $schemaUri -ApiVersion beta
 
-                    $scopingInfo = "Scoping configured"
+                    $scopingInfo = 'Scoping configured'
                     $hasScopingFilter = $true
 
                     # Check if ALL objectMappings have a scope configured
@@ -117,16 +117,16 @@ ORDER BY LOWER(displayName) ASC
 
                                 if ($mappingWithoutScope) {
                                     $hasScopingFilter = $false
-                                    $scopingInfo = "No scoping configured"
+                                    $scopingInfo = 'No scoping configured'
                                     Write-PSFMessage "Found objectMapping without scope in rule: $($rule.name)" -Level Verbose
                                     break  # Exit early - we found a mapping without scope
                                 }
                             }
                         }
                     } else {
-                        Write-PSFMessage "No synchronization rules found in schema" -Level Verbose
+                        Write-PSFMessage 'No synchronization rules found in schema' -Level Verbose
                         $hasScopingFilter = $false
-                        $scopingInfo = "No synchronization rules found"
+                        $scopingInfo = 'No synchronization rules found'
                     }
 
                     # Only track jobs WITHOUT proper scoping
@@ -143,7 +143,7 @@ ORDER BY LOWER(displayName) ASC
                     $jobsWithoutScoping += @{
                         JobId = $job.id
                         JobName = $job.templateId
-                        Scoping = "Error retrieving scoping information"
+                        Scoping = 'Error retrieving scoping information'
                     }
                 }
             }
@@ -179,10 +179,10 @@ ORDER BY LOWER(displayName) ASC
 
     if ($totalIssues -eq 0) {
         $passed = $true
-        $testResultMarkdown = "All enterprise applications require explicit assignment or have scoped provisioning controls."
+        $testResultMarkdown = 'All enterprise applications require explicit assignment or have scoped provisioning controls.'
     } else {
         $passed = $false
-        $testResultMarkdown = "Found enterprise applications that lack both assignment requirements and provisioning scoping."
+        $testResultMarkdown = 'Found enterprise applications that lack both assignment requirements and provisioning scoping.'
     }
     #endregion Assessment Logic
 
@@ -194,7 +194,7 @@ ORDER BY LOWER(displayName) ASC
         # Applications without provisioning jobs
         if ($appsWithoutProvisioningJobs.Count -gt 0) {
             $mdInfo += "`n## Applications without provisioning jobs ($($appsWithoutProvisioningJobs.Count))`n`n"
-            $mdInfo += "| Display Name | Reason |`n"
+            $mdInfo += "| Display name | Reason |`n"
             $mdInfo += "| :----------- | :----- |`n"
 
             foreach ($app in $appsWithoutProvisioningJobs) {
@@ -220,9 +220,9 @@ ORDER BY LOWER(displayName) ASC
                 $displayNameLink = "[$displayName]($spLink)"
 
                 $mdInfo += "### $displayNameLink`n`n"
-                $mdInfo += "**Display Name:** $displayNameLink`n`n"
+                $mdInfo += "**Display name:** $displayNameLink`n`n"
                 $mdInfo += "**Provisioning jobs:**`n`n"
-                $mdInfo += "| Job ID | Job Name | Job Scoping |`n"
+                $mdInfo += "| Job id | Job name | Job scoping |`n"
                 $mdInfo += "| :----- | :------- | :---------- |`n"
 
                 foreach ($job in $app.Jobs) {
