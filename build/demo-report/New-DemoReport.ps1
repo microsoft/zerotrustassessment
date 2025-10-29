@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Creates an anonymized sample report from an existing Zero Trust Assessment JSON report.
+    Creates an anonymized demo report from an existing Zero Trust Assessment JSON report.
 
 .DESCRIPTION
     This script takes an existing Zero Trust Assessment JSON report and:
@@ -17,10 +17,10 @@
     Example: /Users/merill/GitHub/zerotrustassessment/SampleReport.html
 
 .EXAMPLE
-    .\New-SampleReport.ps1 -InputJsonPath "C:\Reports\ZeroTrustAssessmentReport.json" -OutputHtmlPath "C:\Reports\SampleReport.html"
+    .\New-DemoReport.ps1 -InputJsonPath "C:\Reports\ZeroTrustAssessmentReport.json" -OutputHtmlPath "C:\Reports\DemoReport.html"
 
 .EXAMPLE
-    .\New-SampleReport.ps1 -InputJsonPath "/Users/merill/GitHub/zerotrustassessment/ZeroTrustReport/pora/2025-10-27-Full/zt-export/ZeroTrustAssessmentReport.json" -OutputHtmlPath "/Users/merill/GitHub/zerotrustassessment/SampleReport.html"
+    .\New-DemoReport.ps1 -InputJsonPath "/Users/merill/GitHub/zerotrustassessment/ZeroTrustReport/pora/2025-10-27-Full/zt-export/ZeroTrustAssessmentReport.json" -OutputHtmlPath "/Users/merill/GitHub/zerotrustassessment/SampleReport.html"
 #>
 
 [CmdletBinding()]
@@ -79,7 +79,7 @@ $jsonContent = Get-Content -Path $InputJsonPath -Raw | ConvertFrom-Json -Depth 1
 Write-Host "Anonymizing report data..." -ForegroundColor Cyan
 
 # Anonymize tenant information
-$jsonContent.TenantId = "00000000-0000-0000-0000-000000000000"
+$jsonContent.TenantId = "aaaabbbb-0000-cccc-1111-dddd2222eeee"
 $jsonContent.TenantName = "Contoso"
 $jsonContent.Domain = "contoso.com"
 $jsonContent.Account = "admin@contoso.com"
@@ -97,8 +97,6 @@ $jsonContent.TestResultSummary.IdentityPassed = 45
 $jsonContent.TestResultSummary.IdentityTotal = 90
 $jsonContent.TestResultSummary.DevicesPassed = 28
 $jsonContent.TestResultSummary.DevicesTotal = 36
-$jsonContent.TestResultSummary.DataPassed = 15
-$jsonContent.TestResultSummary.DataTotal = 25
 
 # Ensure TenantInfo exists
 if ($null -eq $jsonContent.TenantInfo) {
