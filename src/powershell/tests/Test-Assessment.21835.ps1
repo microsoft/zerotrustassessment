@@ -254,7 +254,6 @@ function Test-Assessment-21835 {
     #endregion
 
     Add-ZtTestResultDetail -TestId '21835' `
-        -Title 'Emergency access accounts are configured appropriately' `
         -Status $passed `
         -Result $testResultMarkdown
 }
