@@ -45,11 +45,11 @@ function Test-Assessment-21775{
 
     # Step 1: Validate policy exists
     if (-not $policy) {
-        $testResultMarkdown = '❌ **Fail**: Tenant app management policy could not be retrieved or does not exist.`n`n%TestResult%'
+        $testResultMarkdown = '❌ Tenant app management policy could not be retrieved or does not exist.`n`n%TestResult%'
     }
     # Step 2: Validate policy is enabled
     elseif (-not $policy.isEnabled) {
-        $testResultMarkdown = '❌ **Fail**: Tenant app management policy exists but is not enabled.`n`n%TestResult%'
+        $testResultMarkdown = '❌ Tenant app management policy exists but is not enabled.`n`n%TestResult%'
     }
     # Step 3: Validate credential restrictions are configured and enabled
     else {
@@ -85,16 +85,16 @@ function Test-Assessment-21775{
         # Determine pass/fail status
         if ($hasCredentialRestrictions) {
             $passed = $true
-            $testResultMarkdown = '✅ **Pass**: Tenant app management policy is properly configured with active credential restrictions.`n`n%TestResult%'
+            $testResultMarkdown = '✅ Tenant app management policy is properly configured with active credential restrictions.`n`n%TestResult%'
         }
         elseif ($configurationIssues.Count -gt 0) {
-            $testResultMarkdown = '❌ **Fail**: Tenant app management policy is enabled but credential restrictions are not enabled.`n`n%TestResult%'
+            $testResultMarkdown = '❌ Tenant app management policy is enabled but credential restrictions are not enabled.`n`n%TestResult%'
         }
         elseif (-not $policy.applicationRestrictions -and -not $policy.servicePrincipalRestrictions) {
-            $testResultMarkdown = '❌ **Fail**: Tenant app management policy is enabled but no application or service principal restrictions are configured.`n`n%TestResult%'
+            $testResultMarkdown = '❌ Tenant app management policy is enabled but no application or service principal restrictions are configured.`n`n%TestResult%'
         }
         else {
-            $testResultMarkdown = '❌ **Fail**: Tenant app management policy is enabled but lacks active credential restrictions.`n`n%TestResult%'
+            $testResultMarkdown = '❌ Tenant app management policy is enabled but lacks active credential restrictions.`n`n%TestResult%'
         }
     }
 
@@ -102,21 +102,21 @@ function Test-Assessment-21775{
     $mdInfo = ''
 
     if (-not $policy) {
-        $mdInfo += "`n`n## Assessment Results`n`n"
-        $mdInfo += "❌ **Policy Status**: Tenant app management policy could not be retrieved or does not exist.`n`n"
-        $mdInfo += "**Next Steps**: Ensure that the tenant has the appropriate licensing and permissions to configure app management policies.`n"
+        $mdInfo += "`n`n## Assessment results`n`n"
+        $mdInfo += "❌ **Policy status**: Tenant app management policy could not be retrieved or does not exist.`n`n"
+        $mdInfo += "**Next steps**: Ensure that the tenant has the appropriate licensing and permissions to configure app management policies.`n"
     }
     else {
-        $mdInfo += "`n`n## Policy Configuration Assessment`n`n"
+        $mdInfo += "`n`n## Policy configuration assessment`n`n"
 
         # Policy basic information
         $mdInfo += "| Property | Status | Value |`n"
         $mdInfo += "| :------- | :----- | :---- |`n"
         $policyStatus = if ($policy.isEnabled) { '✅ Yes' } else { '❌ No' }
-        $mdInfo += "| Policy Enabled | $policyStatus | $($policy.isEnabled) |`n"
+        $mdInfo += "| Policy enabled | $policyStatus | $($policy.isEnabled) |`n"
 
         # Configuration details
-        $mdInfo += "`n### Configuration Details`n`n"
+        $mdInfo += "`n### Configuration details`n`n"
 
         # Helper function to build restriction tables
         $buildRestrictionTable = {
@@ -127,25 +127,25 @@ function Test-Assessment-21775{
 
             if ($restrictions.passwordCredentials -and $restrictions.passwordCredentials.Count -gt 0) {
                 if (-not $hasRestrictions) {
-                    $tableInfo += "| Credential Type | Restriction Type | State | Status |`n"
+                    $tableInfo += "| Credential type | Restriction type | State | Status |`n"
                     $tableInfo += "| :-------------- | :--------------- | :---- | :----- |`n"
                     $hasRestrictions = $true
                 }
                 foreach ($pwdCred in $restrictions.passwordCredentials) {
                     $status = if ($pwdCred.state -eq 'enabled') { '✅ Active' } else { '⚠️ Configured but inactive' }
-                    $tableInfo += "| Password Credentials | $($pwdCred.restrictionType) | $($pwdCred.state) | $status |`n"
+                    $tableInfo += "| Password credentials | $($pwdCred.restrictionType) | $($pwdCred.state) | $status |`n"
                 }
             }
 
             if ($restrictions.keyCredentials -and $restrictions.keyCredentials.Count -gt 0) {
                 if (-not $hasRestrictions) {
-                    $tableInfo += "| Credential Type | Restriction Type | State | Status |`n"
+                    $tableInfo += "| Credential type | Restriction type | State | Status |`n"
                     $tableInfo += "| :-------------- | :--------------- | :---- | :----- |`n"
                     $hasRestrictions = $true
                 }
                 foreach ($keyCred in $restrictions.keyCredentials) {
                     $status = if ($keyCred.state -eq 'enabled') { '✅ Active' } else { '⚠️ Configured but inactive' }
-                    $tableInfo += "| Key Credentials | $($keyCred.restrictionType) | $($keyCred.state) | $status |`n"
+                    $tableInfo += "| Key credentials | $($keyCred.restrictionType) | $($keyCred.state) | $status |`n"
                 }
             }
 
@@ -154,7 +154,7 @@ function Test-Assessment-21775{
 
         # Application Restrictions
         if ($policy.applicationRestrictions) {
-            $mdInfo += "**Application Restrictions**: ✅ Configured`n`n"
+            $mdInfo += "**Application restrictions**: ✅ Configured`n`n"
             $appResult = & $buildRestrictionTable $policy.applicationRestrictions 'Application'
             if ($appResult.HasRestrictions) {
                 $mdInfo += $appResult.TableInfo + "`n"
@@ -164,12 +164,12 @@ function Test-Assessment-21775{
             }
         }
         else {
-            $mdInfo += "**Application Restrictions**: ❌ Not configured`n`n"
+            $mdInfo += "**Application restrictions**: ❌ Not configured`n`n"
         }
 
         # Service Principal Restrictions
         if ($policy.servicePrincipalRestrictions) {
-            $mdInfo += "**Service Principal Restrictions**: ✅ Configured`n`n"
+            $mdInfo += "**Service principal restrictions**: ✅ Configured`n`n"
             $spResult = & $buildRestrictionTable $policy.servicePrincipalRestrictions 'Service Principal'
             if ($spResult.HasRestrictions) {
                 $mdInfo += $spResult.TableInfo + "`n"
@@ -179,26 +179,26 @@ function Test-Assessment-21775{
             }
         }
         else {
-            $mdInfo += "**Service Principal Restrictions**: ❌ Not configured`n`n"
+            $mdInfo += "**Service principal restrictions**: ❌ Not configured`n`n"
         }
 
         # Summary of active restrictions
         if ($credentialRestrictionDetails.Count -gt 0) {
-            $mdInfo += "### ✅ Active Credential Restrictions`n`n"
+            $mdInfo += "### ✅ Active credential restrictions`n`n"
             $credentialRestrictionDetails | ForEach-Object { $mdInfo += "- $_`n" }
             $mdInfo += "`n"
         }
 
         # Configuration issues
         if ($configurationIssues.Count -gt 0) {
-            $mdInfo += "### ⚠️ Configuration Issues Found`n`n"
+            $mdInfo += "### ⚠️ Configuration issues found`n`n"
             $configurationIssues | ForEach-Object { $mdInfo += "- $_`n" }
             $mdInfo += "`n"
         }
 
         # If no restrictions are configured at all
         if (-not $policy.applicationRestrictions -and -not $policy.servicePrincipalRestrictions) {
-            $mdInfo += "### ❌ No Restrictions Configured`n`n"
+            $mdInfo += "### ❌ No restrictions configured`n`n"
             $mdInfo += "- Neither application restrictions nor service principal restrictions are configured`n"
             $mdInfo += "- Policy is enabled but provides no credential management controls`n`n"
         }
