@@ -49,7 +49,7 @@ function Test-Assessment-21889{
     # Check Microsoft Authenticator configuration
     $authEnabled = $authenticatorConfig.state -eq 'enabled'
     $authHasTargets = $authenticatorConfig.includeTargets.Count -gt 0
-    $authMode = $authenticatorConfig.featureSettings.authenticationMode
+    $authMode = $authenticatorConfig.includeTargets.authenticationMode
     # Handle null or empty authMode
     if ([string]::IsNullOrEmpty($authMode)) {
         $authMode = 'Not configured'
