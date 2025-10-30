@@ -124,10 +124,10 @@ function Test-Assessment-21820 {
     #region Assessment Logic
     if ($rolesWithIssues.Count -eq 0) {
         $passed = $true
-        $testResultMarkdown = "Activation alerts are configured for privileged role assignments."
+        $testResultMarkdown = 'Activation alerts are configured for privileged role assignments.'
     } else {
         $passed = $false
-        $testResultMarkdown = "Activation alerts are missing or improperly configured for privileged roles."
+        $testResultMarkdown = 'Activation alerts are missing or improperly configured for privileged roles.'
     }
     #endregion Assessment Logic
 
@@ -146,8 +146,8 @@ function Test-Assessment-21820 {
             $displayName = $role.displayName
             $displayNameLink = "[$displayName]($roleLink)"
 
-            $defaultRecipientsStatus = if ($roleIssue.IsDefaultRecipientsEnabled -eq $true) { "Enabled" } else { "Disabled" }
-            $recipients = if ([string]::IsNullOrEmpty($roleIssue.NotificationRecipients)) { "-" } else { $roleIssue.NotificationRecipients }
+            $defaultRecipientsStatus = if ($roleIssue.IsDefaultRecipientsEnabled -eq $true) { 'Enabled' } else { 'Disabled' }
+            $recipients = $roleIssue.NotificationRecipients
 
             $mdInfo += "| $displayNameLink | $defaultRecipientsStatus | $recipients |`n"
         }
