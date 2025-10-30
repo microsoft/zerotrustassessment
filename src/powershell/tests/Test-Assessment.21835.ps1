@@ -28,11 +28,11 @@ function Test-Assessment-21835 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking emergency access accounts configuration"
-    Write-ZtProgress -Activity $activity -Status "Starting assessment"
+    $activity = 'Checking emergency access accounts configuration'
+    Write-ZtProgress -Activity $activity -Status 'Starting assessment'
 
     #region Step 1: Find permanent Global Administrator users
-    Write-ZtProgress -Activity $activity -Status "Finding Global Administrator role members"
+    Write-ZtProgress -Activity $activity -Status 'Finding Global Administrator role members'
 
     # Use Get-ZtRoleMember to get all permanent (Active) Global Administrators
     # This handles both direct assignments and group-based assignments automatically
@@ -44,7 +44,7 @@ function Test-Assessment-21835 {
     #endregion
 
     #region Step 2: Find cloud-only GAs with phishing-resistant auth methods
-    Write-ZtProgress -Activity $activity -Status "Analyzing authentication methods"
+    Write-ZtProgress -Activity $activity -Status 'Analyzing authentication methods'
 
     $emergencyAccountCandidates = @()
 
@@ -96,7 +96,7 @@ function Test-Assessment-21835 {
     #endregion
 
     #region Step 3 & 4: Get CA policies and check if candidates are excluded from all
-    Write-ZtProgress -Activity $activity -Status "Analyzing Conditional Access policies"
+    Write-ZtProgress -Activity $activity -Status 'Analyzing Conditional Access policies'
 
     # Use Get-ZtConditionalAccessPolicy helper function
     $allCAPolicies = Get-ZtConditionalAccessPolicy
@@ -188,30 +188,26 @@ function Test-Assessment-21835 {
     #endregion
 
     #region Step 5: Evaluate results and generate report
-    Write-ZtProgress -Activity $activity -Status "Generating results"
+    Write-ZtProgress -Activity $activity -Status 'Generating results'
 
     $accountCount = $emergencyAccessAccounts.Count
     Write-PSFMessage "Total emergency access accounts identified: $accountCount" -Level Verbose
 
     # Determine pass/fail status
     $passed = $false
-    $status = 'Fail'
-    $testResultMarkdown = ""
+    $testResultMarkdown = ''
 
     if ($accountCount -lt 2) {
         $passed = $false
-        $status = 'Fail'
-        $testResultMarkdown = "**Fail:** Fewer than two emergency access accounts were identified based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions.`n`n"
+        $testResultMarkdown = "Fewer than two emergency access accounts were identified based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions.`n`n"
     }
     elseif ($accountCount -ge 2 -and $accountCount -le 4) {
         $passed = $true
-        $status = 'Pass'
-        $testResultMarkdown = "**Pass:** Emergency access accounts appear to be configured as per Microsoft guidance based on cloud-only state, registered phishing-resistant credentials and CA policy exclusions.`n`n"
+        $testResultMarkdown = "Emergency access accounts appear to be configured as per Microsoft guidance based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions.`n`n"
     }
     else {
         $passed = $false
-        $status = 'Investigate'
-        $testResultMarkdown = "**Investigate:** $accountCount emergency access accounts appear to be configured based on cloud-only state, registered phishing-resistant credentials and CA policy exclusions. Review these accounts to determine whether this volume is excessive for your organization.`n`n"
+        $testResultMarkdown = "$accountCount emergency access accounts appear to be configured based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions. Review these accounts to determine whether this volume is excessive for your organization.`n`n"
     }
 
     # Add summary information
@@ -223,12 +219,12 @@ function Test-Assessment-21835 {
 
     # Add details table
     if ($emergencyAccessAccounts.Count -gt 0) {
-        $testResultMarkdown += "## Emergency Access Accounts`n`n"
-        $testResultMarkdown += "| Display Name | UPN | Synced from On-Premises | Authentication Methods | CA Policies Targeting |`n"
+        $testResultMarkdown += "## Emergency access accounts`n`n"
+        $testResultMarkdown += "| Display name | UPN | Synced from on-premises | Authentication methods | CA policies targeting |`n"
         $testResultMarkdown += "| :----------- | :-- | :---------------------- | :--------------------- | :-------------------- |`n"
 
         foreach ($account in $emergencyAccessAccounts) {
-            $syncStatus = if ($null -eq $account.OnPremisesSyncEnabled) { "No" } else { if ($account.OnPremisesSyncEnabled) { "Yes" } else { "No" } }
+            $syncStatus = if ($null -eq $account.OnPremisesSyncEnabled) { 'No' } else { if ($account.OnPremisesSyncEnabled) { 'Yes' } else { 'No' } }
             $authMethodDisplay = ($account.AuthenticationMethods | ForEach-Object {
                 $_ -replace '#microsoft.graph.', '' -replace 'AuthenticationMethod', ''
             }) -join ', '
@@ -242,9 +238,9 @@ function Test-Assessment-21835 {
 
     # Add candidates that didn't qualify
     if ($emergencyAccountCandidates.Count -gt $emergencyAccessAccounts.Count) {
-        $testResultMarkdown += "## Accounts Not Excluded from All CA Policies`n`n"
+        $testResultMarkdown += "## Accounts not excluded from all CA policies`n`n"
         $testResultMarkdown += "These accounts have the correct authentication configuration but are targeted by one or more CA policies:`n`n"
-        $testResultMarkdown += "| Display Name | UPN | CA Policies Targeting |`n"
+        $testResultMarkdown += "| Display name | UPN | CA policies targeting |`n"
         $testResultMarkdown += "| :----------- | :-- | :-------------------- |`n"
 
         $targetedCandidates = $emergencyAccountCandidates | Where-Object { -not $_.ExcludedFromAllCA }
