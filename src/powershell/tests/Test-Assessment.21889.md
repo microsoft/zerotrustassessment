@@ -2,9 +2,9 @@ Organizations with extensive user-facing password surfaces expose multiple entry
 
 **Remediation action**
 
-[Enable passwordless authentication methods](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-plan-prerequisites-phishing-resistant-passwordless-authentication)
+ * [Enable passwordless authentication methods](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-plan-prerequisites-phishing-resistant-passwordless-authentication)
 
-[Deploy FIDO2 security keys](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-passkey-fido2)
+ * [Deploy FIDO2 security keys](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-passkey-fido2)
 
 <!--- Results --->
 %TestResult%
