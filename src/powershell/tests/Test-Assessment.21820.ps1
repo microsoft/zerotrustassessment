@@ -5,15 +5,15 @@
 
 function Test-Assessment-21820 {
     [ZtTest(
-    	Category = 'Privileged access',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Identity',
-    	RiskLevel = 'Low',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce'),
-    	TestId = 21820,
-    	Title = 'Activation alert for all privileged role assignments',
-    	UserImpact = 'Low'
+        Category = 'Privileged access',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'Low',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce'),
+        TestId = 21820,
+        Title = 'Activation alert for all privileged role assignments',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(
@@ -21,6 +21,11 @@ function Test-Assessment-21820 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     #region Data Collection
     $activity = 'Checking activation alerts for privileged role assignments'
@@ -71,10 +76,10 @@ function Test-Assessment-21820 {
             Write-PSFMessage "No PIM policy assignment found for role: $($role.displayName)" -Level Warning
 
             $rolesWithIssues += @{
-                Role = $role
-                Issue = 'No PIM policy assignment found'
+                Role                       = $role
+                Issue                      = 'No PIM policy assignment found'
                 IsDefaultRecipientsEnabled = 'N/A'
-                NotificationRecipients = 'N/A'
+                NotificationRecipients     = 'N/A'
             }
             continue
         }
@@ -100,9 +105,9 @@ function Test-Assessment-21820 {
                 Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients enabled but no recipients configured" -Level Warning
 
                 $rolesWithIssues += @{
-                    Role = $role
+                    Role                       = $role
                     IsDefaultRecipientsEnabled = $isDefaultRecipientsEnabled
-                    NotificationRecipients = 'N/A'
+                    NotificationRecipients     = 'N/A'
                 }
 
                 $exitLoop = $true
@@ -111,7 +116,8 @@ function Test-Assessment-21820 {
                 Write-PSFMessage "Alert properly configured for role: $($role.displayName)" -Level Verbose
             }
 
-        } catch {
+        }
+        catch {
             Write-PSFMessage "Error retrieving notification rule for policy $policyId (role: $($role.displayName)): $_" -Level Warning
         }
 
@@ -125,7 +131,8 @@ function Test-Assessment-21820 {
     if ($rolesWithIssues.Count -eq 0) {
         $passed = $true
         $testResultMarkdown = 'Activation alerts are configured for privileged role assignments.'
-    } else {
+    }
+    else {
         $passed = $false
         $testResultMarkdown = 'Activation alerts are missing or improperly configured for privileged roles.'
     }
@@ -146,12 +153,17 @@ function Test-Assessment-21820 {
             $displayName = $role.displayName
             $displayNameLink = "[$displayName]($roleLink)"
 
-            $defaultRecipientsStatus = if ($roleIssue.IsDefaultRecipientsEnabled -eq $true) { 'Enabled' } else { 'Disabled' }
+            $defaultRecipientsStatus = if ($roleIssue.IsDefaultRecipientsEnabled -eq $true) {
+                'Enabled'
+            }
+            else {
+                'Disabled'
+            }
             $recipients = $roleIssue.NotificationRecipients
 
             $mdInfo += "| $displayNameLink | $defaultRecipientsStatus | $recipients |`n"
         }
-        $mdInfo += "`n"
+        $mdInfo += "`n`n*Not all misconfigured roles may be listed. For performance reasons, this assessment stops at the first detected issue.*`n"
     }
 
     # Append details to the test result
