@@ -93,9 +93,9 @@ if ($null -eq $jsonContent.TestResultSummary) {
 }
 
 # Set sample data for test results summary
-$jsonContent.TestResultSummary.IdentityPassed = 45
-$jsonContent.TestResultSummary.IdentityTotal = 90
-$jsonContent.TestResultSummary.DevicesPassed = 28
+$jsonContent.TestResultSummary.IdentityPassed = 85
+$jsonContent.TestResultSummary.IdentityTotal = 100
+$jsonContent.TestResultSummary.DevicesPassed = 25
 $jsonContent.TestResultSummary.DevicesTotal = 36
 
 # Ensure TenantInfo exists
