@@ -22,6 +22,11 @@ function Test-Assessment-21819 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
+
     #region Data Collection
     $activity = 'Checking activation alerts for privileged role assignments'
     Write-ZtProgress -Activity $activity -Status 'Getting Global Administrator role definition'
@@ -76,7 +81,7 @@ function Test-Assessment-21819 {
             $testResultMarkdown = "Activation alerts are configured for Global Administrator role.`n`n"
         }
         else {
-             Write-PSFMessage "Alert misconfigured - no recipients configured" -Level Warning
+            Write-PSFMessage "Alert misconfigured - no recipients configured" -Level Warning
             $passed = $false
             $testResultMarkdown = "Activation alerts are missing or improperly configured for Global Administrator role.`n`n"
         }
@@ -91,8 +96,21 @@ function Test-Assessment-21819 {
 
     $roleLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles"
     $displayNameLink = "[$($globalAdminRole.displayName)]($roleLink)"
-    $defaultRecipientsStatus = if ($isDefaultRecipientsEnabled -eq $true) { '✅ Enabled' } elseif ($isDefaultRecipientsEnabled -eq $false) { '❌ Disabled' } else { 'N/A' }
-    $recipientsDisplay = if ([string]::IsNullOrEmpty($recipients)) { '-' } else { $recipients }
+    $defaultRecipientsStatus = if ($isDefaultRecipientsEnabled -eq $true) {
+        '✅ Enabled'
+    }
+    elseif ($isDefaultRecipientsEnabled -eq $false) {
+        '❌ Disabled'
+    }
+    else {
+        'N/A'
+    }
+    $recipientsDisplay = if ([string]::IsNullOrEmpty($recipients)) {
+        '-'
+    }
+    else {
+        $recipients
+    }
 
     $testResultMarkdown += "| $displayNameLink | $defaultRecipientsStatus | $recipientsDisplay |`n"
     #endregion Report Generation
