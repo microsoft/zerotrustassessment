@@ -13,15 +13,15 @@
 
 function Test-Assessment-21835 {
     [ZtTest(
-        Category = 'Application management',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect engineering systems',
-        TenantType = ('Workforce'),
-        TestId = 21835,
-        Title = 'Emergency access accounts are configured appropriately',
-        UserImpact = 'Low'
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 21835,
+    	Title = 'Emergency access accounts are configured appropriately',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

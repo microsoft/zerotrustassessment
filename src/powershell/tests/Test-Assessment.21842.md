@@ -1,11 +1,10 @@
-## Risk Explanation
+Self-Service Password Reset (SSPR) for administrators allows password changes to happen without strong secondary authentication factors or administrative oversight. Threat actors who compromise administrative credentials can use this capability to bypass other security controls and maintain persistent access to the environment.
 
-When administrators retain access to Self-Service Password Reset (SSPR), threat actors who compromise administrative credentials can leverage this capability to bypass additional security controls and maintain persistent access to the environment. An administrative account with SSPR enabled creates a privileged pathway that allows password changes without requiring secondary authentication factors or administrative oversight, enabling lateral movement across critical systems. If threat actors obtain initial access to an administrative account through credential stuffing, phishing, or password spraying attacks, they can immediately reset the compromised account's password to prevent legitimate administrators from regaining control while establishing persistence through additional backdoor accounts or privileged role assignments. This autonomy in password management eliminates the security checkpoint that centralized password reset procedures provide, allowing threat actors to operate undetected while they escalate privileges, exfiltrate sensitive data, and deploy additional malicious payloads across the organization's infrastructure.
+Once compromised, attackers can immediately reset the password to lock out legitimate administrators. They can then establish persistence, escalate privileges, and deploy malicious payloads undetected.
 
-## Remediation Resources
+**Remediation action**
 
-- Disable SSPR for administrators by updating the authorization policy.
-- Administrator reset policy differences: [Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-sspr-policy#administrator-reset-policy-differences)
-
+- [Disable SSPR for administrators by updating the authorization policy](https://learn.microsoft.com/entra/identity/authentication/concept-sspr-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#administrator-reset-policy-differences)  
 <!--- Results --->
 %TestResult%
+

@@ -1,8 +1,9 @@
-For service principals that are owned by your organization authenticate using credentials defined in the app registration object.
-
-For service principals that are not owned by your organization that have credentials, if the credentials added are still valid use cases. If not, remove credentials from service principal to reduce security risk.
+Service principals without proper authentication credentials (certificates or client secrets) create security vulnerabilities that allow threat actors to impersonate these identities. This can lead to unauthorized access, lateral movement within your environment, privilege escalation, and persistent access that's difficult to detect and remediate. 
 
 **Remediation action**
-[Add and manage appcredentials in Microsoft Entra ID- Microsoft identity platform |Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-credentials?tabs=certificate)
+
+- For your organization's service principals: [Add certificates or client secrets to the app registration](https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- For external service principals: Review and remove any unnecessary credentials to reduce security risk
 <!--- Results --->
 %TestResult%
+

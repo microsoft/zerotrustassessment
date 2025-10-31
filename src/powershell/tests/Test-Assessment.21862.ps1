@@ -5,11 +5,11 @@
 
 function Test-Assessment-21862{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Monitoring',
     	ImplementationCost = 'High',
     	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
     	TenantType = ('Workforce','External'),
     	TestId = 21862,
     	Title = 'All risky workload identities are triaged',

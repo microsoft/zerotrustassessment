@@ -5,14 +5,14 @@
 
 function Test-Assessment-21846{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Credential management',
     	ImplementationCost = 'Low',
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21846,
-    	Title = 'Temporary access pass restricted to one-time use',
+    	Title = 'Restrict Temporary Access Pass to Single Use',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

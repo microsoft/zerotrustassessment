@@ -8,15 +8,15 @@
 
 function Test-Assessment-24568 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Tenant',
+    	ImplementationCost = 'Medium',
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24568,
-    	Title = 'macOS - Platform SSO is configured and assigned',
-    	UserImpact = 'Low'
+    	Title = 'Platform SSO is configured to strengthen authentication on macOS devices',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

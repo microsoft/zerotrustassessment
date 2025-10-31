@@ -5,14 +5,14 @@
 
 function Test-Assessment-24870 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect networks',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24870,
-    	Title = 'Secure Wi-Fi profiles are configured to protect macOS connectivity and devices',
+    	Title = 'Secure Wi-Fi profiles protect macOS devices from unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

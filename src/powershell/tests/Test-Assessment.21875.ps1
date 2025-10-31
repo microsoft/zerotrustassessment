@@ -5,15 +5,15 @@
 
 function Test-Assessment-21875 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 21875,
-        Title = 'Tenant has all external organizations allowed to collaborate as connected organization',
-        UserImpact = 'Medium'
+    	Category = 'External collaboration',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21875,
+    	Title = 'All entitlement management assignment policies that apply to external users require connected organizations',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

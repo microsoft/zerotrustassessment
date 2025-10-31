@@ -5,15 +5,15 @@
 
 function Test-Assessment-21878 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce','External'),
-        TestId = 21878,
-        Title = 'All entitlement management policies have an expiration date',
-        UserImpact = 'Medium'
+    	Category = 'Identity governance',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21878,
+    	Title = 'All entitlement management policies have an expiration date',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

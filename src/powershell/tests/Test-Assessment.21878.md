@@ -1,4 +1,7 @@
-Without expiration dates, entitlement management policies create persistent access that threat actors can exploit for initial access. When user assignments lack time bounds, compromised credentials maintain access indefinitely, allowing threat actors to establish persistence within the environment. Threat actors can leverage these perpetual assignments to conduct credential access attacks against additional resources. Once threat actors gain initial access through compromised accounts with non-expiring assignments, they can perform privilege escalation by requesting additional access packages or extending existing permissions through the same entitlement management system.Without automatic expiration, threat actors can establish long-term persistence, potentially remaining undetected for extended periods while conducting data exfiltration or further reconnaissance activities.
-Risk Level: Medium - Creates persistent access that can be exploited but requires initial compromise
-User Impact: Medium - Users must request access renewals when assignments expire
-Implementation Cost: Medium - Organizations need to establish access review processes and renewal workflows
+Entitlement management policies without expiration dates create persistent access that threat actors can exploit. When user assignments lack time bounds, compromised credentials maintain indefinite access, enabling attackers to establish persistence, escalate privileges through additional access packages, and conduct long-term malicious activities while remaining undetected. 
+
+**Remediation action**
+
+- [Configure expiration settings for access packages](https://learn.microsoft.com/entra/id-governance/entitlement-management-access-package-lifecycle-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#specify-a-lifecycle)<!--- Results --->
+%TestResult%
+

@@ -5,14 +5,14 @@
 
 function Test-Assessment-24871 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24871,
-    	Title = 'Automatic enrollment to Defender is enabled on Android to support threat protection',
+    	Title = 'Defender for Endpoint automatic enrollment is enforced to reduce risk from unmanaged Android threats',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

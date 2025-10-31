@@ -6,15 +6,15 @@
 
 function Test-Assessment-21896 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 21896,
-        Title = "Service principals don't have certificates or credentials associated with them",
-        UserImpact = 'Low'
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21896,
+    	Title = 'Service principals don''t have certificates or credentials associated with them',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
