@@ -47,23 +47,6 @@ Install the `ZeroTrustAssessmentV2` module using the following command.
 Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
 ```
 
-### Install Az.Accounts module
-
-Install the Az.Accounts module by running the following command.
-
-```powershell
-Install-Module Az.Accounts -Scope CurrentUser
-```
-
-### Updating the modules
-
-If you have previously installed the modules, run the following instead to ensure you have the latest versions of the modules.
-
-```powershell
-Update-Module ZeroTrustAssessmentV2 -Force -Scope CurrentUser 
-Update-Module Az.Accounts -Force -Scope CurrentUser 
-```
-
 ## Connect to Microsoft Graph and Azure
 
 To run this assessment, you must connect to Microsoft Graph and
@@ -228,7 +211,6 @@ Start a new PowerShell session.
 
 ```powershell
 Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
-Install-Module Az.Accounts -Scope CurrentUser
 ```
 
 Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
