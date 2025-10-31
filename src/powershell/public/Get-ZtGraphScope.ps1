@@ -29,6 +29,7 @@ Function Get-ZtGraphScope {
         'DeviceManagementServiceConfig.Read.All'
         'Directory.Read.All'
         'DirectoryRecommendations.Read.All'
+        'EntitlementManagement.Read.All',
         'IdentityRiskEvent.Read.All'
         'IdentityRiskyUser.Read.All'
         'Policy.Read.All'
