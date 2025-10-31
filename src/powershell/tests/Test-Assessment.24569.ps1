@@ -5,7 +5,7 @@
 
 function Test-Assessment-24569 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Device',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -13,7 +13,7 @@ function Test-Assessment-24569 {
     	TenantType = ('Workforce'),
     	TestId = 24569,
     	Title = 'FileVault encryption protects data on macOS devices',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

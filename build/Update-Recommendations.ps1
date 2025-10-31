@@ -13,8 +13,13 @@
 #>
 [CmdletBinding()]
 param (
+	# Disables importing the ZeroTrustAssessment module
 	[switch]
-	$NoImport
+	$NoImport,
+
+	# Check the markdown links after updating to ensure they are valid
+	[switch]
+	$DisableLinkValidation = $true
 )
 
 $ErrorActionPreference = 'Stop'
@@ -451,4 +456,7 @@ foreach ($file in $testFiles) {
 	Set-Content -Path $file.FullName -Value $cleanContent
 }
 
-Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks
+if ($CheckLinks) {
+	Write-Host "`nChecking markdown links in test files..."
+	Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks
+}

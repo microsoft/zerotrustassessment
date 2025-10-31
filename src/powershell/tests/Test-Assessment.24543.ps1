@@ -5,7 +5,7 @@
 
 function Test-Assessment-24543 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -13,7 +13,7 @@ function Test-Assessment-24543 {
     	TenantType = ('Workforce'),
     	TestId = 24543,
     	Title = 'Compliance policies protect iOS/iPadOS devices',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

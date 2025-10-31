@@ -5,7 +5,7 @@
 
 function Test-Assessment-24824 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -40,7 +40,7 @@ function Test-Assessment-24824 {
         $testResultMarkdown = "At least one enabled conditional access policy with device compliance exists for each platform (Windows, macOS, iOS, Android), or a policy exists with no platform section (applies to all).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No enabled conditional access policy with device compliance exists for one or more platforms, and no policy applies to all platforms.`n`n%TestResult%"
+        $testResultMarkdown = "No conditional access policy with device compliance exists for one or more platforms, and no policy applies to all platforms.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 

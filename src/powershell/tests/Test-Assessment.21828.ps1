@@ -76,7 +76,7 @@ function Test-Assessment-21828 {
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "No enabled Conditional Access policies targeting authentication transfer.`n"
+        $mdInfo = "No Conditional Access policies targeting authentication transfer.`n"
     }
 
     # Replace the placeholder with the detailed information

@@ -76,7 +76,7 @@ function Test-Assessment-21786 {
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "No enabled Conditional Access policies targeting token protection.`n"
+        $mdInfo = "No Conditional Access policies targeting token protection.`n"
     }
 
     # Replace the placeholder with the detailed information

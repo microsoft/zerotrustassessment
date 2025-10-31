@@ -15,15 +15,15 @@
 
 function Test-Assessment-21775{
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Low',
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21775,
-    	Title = 'Tenant app management policy is configured',
-    	UserImpact = 'Medium'
+    	Title = 'Enforce standards for app secrets and certificates',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

@@ -25,7 +25,7 @@
     $enabledCAPolicies = $allCAPolicies | Where-Object { $_.state -eq 'enabled' }
 
     # Get all role definitions
-    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion 'beta'
+    $allRoleDefinitions = Get-ZtRole
 
     # Filter for privileged roles on client side
     $privilegedRoles = $allRoleDefinitions | Where-Object { $_.isPrivileged -eq $true }

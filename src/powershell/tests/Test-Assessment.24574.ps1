@@ -5,15 +5,15 @@
 
 function Test-Assessment-24574 {
     [ZtTest(
-    	Category = 'Devices',
-    	ImplementationCost = 'Low',
+    	Category = 'Device',
+    	ImplementationCost = 'Medium',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24574,
     	Title = 'Attack Surface Reduction rules are applied to Windows devices to prevent exploitation of vulnerable system components',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

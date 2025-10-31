@@ -5,7 +5,7 @@
 
 function Test-Assessment-24572 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'Medium',
@@ -13,7 +13,7 @@ function Test-Assessment-24572 {
     	TenantType = ('Workforce'),
     	TestId = 24572,
     	Title = 'Device enrollment notifications are enforced to ensure user awareness and secure onboarding',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

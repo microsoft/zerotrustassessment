@@ -5,7 +5,7 @@
 
 function Test-Assessment-24827 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
     	Pillar = 'Devices',
     	RiskLevel = 'High',
@@ -38,7 +38,7 @@ function Test-Assessment-24827 {
         $testResultMarkdown = "At least one enabled conditional access policy with Application Protection exists for iOS and Android. The platforms could be part of same or different policy with the required grant control.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No enabled conditional access policy with Application Protection exists for iOS and Android or both.`n`n%TestResult%"
+        $testResultMarkdown = "No conditional access policy with Application Protection exists for iOS and Android or both.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 

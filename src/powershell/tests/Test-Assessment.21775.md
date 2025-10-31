@@ -11,5 +11,7 @@ To configure application authentication method policies to restrict long-lived c
 
 2. **Enforce secret and certificate standards using application management policies**: https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/tutorial-enforce-secret-standards
 
+- [Learn how to enforce secret and certificate standards using application management policies](https://learn.microsoft.com/entra/identity/enterprise-apps/tutorial-enforce-secret-standards?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
