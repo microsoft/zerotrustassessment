@@ -21,63 +21,33 @@ function Test-Assessment-21836{
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Workload identities assigned privileged roles"
-    Write-ZtProgress -Activity $activity -Status "Getting privileged roles"
+    Write-ZtProgress -Activity $activity -Status "Getting workload identities with privileged roles"
 
-    # Query 1 (Q1): Get all privileged roles
-    $privilegedRoles = Get-ZtRole -IncludePrivilegedRoles
+    # Get workload identities with privileged roles in a single query
+    $sql = @"
+SELECT principalId, principalDisplayName, userPrincipalName, roleDisplayName, roleDefinitionId, privilegeType, isPrivileged, "@odata.type"
+FROM vwRole
+WHERE isPrivileged = 1 AND "@odata.type" in ('#microsoft.graph.servicePrincipal', '#microsoft.graph.managedIdentity')
+"@
 
-    if ($null -eq $privilegedRoles -or $privilegedRoles.Count -eq 0) {
-        $testResultMarkdown = "## Privileged Roles Not Found`n`n"
-        $testResultMarkdown += "*Could not find any privileged roles in the tenant.*`n`n"
-
-        Add-ZtTestResultDetail -Status $false -Result $testResultMarkdown
-        return
-    }
-
-    Write-ZtProgress -Activity $activity -Status "Getting role assignments for workload identities"
-
-    # Query 2 (Q2): Get role assignments from database
-    $roleAssignments = Invoke-DatabaseQuery -Database $Database -Sql "SELECT principal, roleDefinitionId FROM RoleAssignment"
-
-    # Filter to workload identities (ServicePrincipal/ManagedIdentity) with privileged roles
-    $privilegedRoleIds = $privilegedRoles.id
-    $workloadIdentitiesWithPrivilegedRoles = @($roleAssignments | Where-Object {
-        # Check if principal is a workload identity (ServicePrincipal includes both SP and Managed Identities)
-        $isWorkloadIdentity = ($_.principal.'@odata.type' -eq '#microsoft.graph.servicePrincipal' -or $_.principal.'@odata.type' -eq '#microsoft.graph.managedIdentity')
-
-        # Check if role is privileged
-        $isPrivilegedRole = $privilegedRoleIds -contains $_.roleDefinitionId
-
-        # Return only workload identities with privileged roles
-        $isWorkloadIdentity -and $isPrivilegedRole
-    })
+    $workloadIdentitiesWithPrivilegedRoles = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
 
     if ($workloadIdentitiesWithPrivilegedRoles.Count -gt 0) {
         $testResultMarkdown += "**Found workload identities assigned to privileged roles.**`n"
-        $testResultMarkdown += "| Service Principal Name | Service Principal ID | Privileged Roles |`n"
+        $testResultMarkdown += "| Service Principal Name | Privileged Role | Assignment Type |`n"
         $testResultMarkdown += "| :--- | :--- | :--- |`n"
 
-        # Group assignments by service principal
-        $groupedByPrincipal = $workloadIdentitiesWithPrivilegedRoles | Group-Object -Property { $_.principal.id }
+        # Sort by principal display name
+        $sortedAssignments = $workloadIdentitiesWithPrivilegedRoles | Sort-Object -Property principalDisplayName
 
-        foreach ($principalGroup in $groupedByPrincipal) {
-            $firstAssignment = $principalGroup.Group[0]
-            $principalName = $firstAssignment.principal.displayName
-            $principalId = $firstAssignment.principal.id
+        foreach ($assignment in $sortedAssignments) {
+            $principalName = $assignment.principalDisplayName
+            $principalId = $assignment.principalId
+            $roleName = $assignment.roleDisplayName
+            $assignmentType = $assignment.privilegeType
 
-            # Collect all role names for this service principal
-            $roleNames = @()
-            foreach ($assignment in $principalGroup.Group) {
-                $role = $privilegedRoles | Where-Object { $_.id -eq $assignment.roleDefinitionId }
-                $roleName = if ($role) { $role.displayName } else { $assignment.roleDefinitionId }
-                $roleNames += $roleName
-            }
-
-            # Join role names with comma
-            $rolesDisplay = $roleNames -join ', '
-
-            $spLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}/preferredSingleSignOnMode~/null/servicePrincipalType/Application/fromNav/' -f $principalId, $firstAssignment.principal.appId
-            $testResultMarkdown += "| [$(Get-SafeMarkdown $principalName)]($spLink) | $principalId | $rolesDisplay |`n"
+            $spLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}' -f $principalId
+            $testResultMarkdown += "| [$(Get-SafeMarkdown $principalName)]($spLink) | $roleName | $assignmentType |`n"
         }
         $testResultMarkdown += "`n"
 
