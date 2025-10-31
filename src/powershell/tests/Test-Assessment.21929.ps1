@@ -92,7 +92,7 @@ function Test-Assessment-21929{
 
         # Skip policies with missing access package information
         if ($null -eq $policy.accessPackage) {
-            Write-PSFMessage "Skipping policy $($policy.id) - no accessPackage information" -Level Warning
+            Write-PSFMessage "Skipping policy $($policy.id) - no accessPackage information" -Level Verbose
             continue
         }
 

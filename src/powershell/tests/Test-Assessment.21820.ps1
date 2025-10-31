@@ -73,7 +73,7 @@ function Test-Assessment-21820 {
         $policyId = $policyIdByRoleId[$role.id.Guid]
 
         if (-not $policyId) {
-            Write-PSFMessage "No PIM policy assignment found for role: $($role.displayName)" -Level Warning
+            Write-PSFMessage "No PIM policy assignment found for role: $($role.displayName)" -Level Verbose
 
             $rolesWithIssues += @{
                 Role                       = $role
@@ -89,36 +89,30 @@ function Test-Assessment-21820 {
         # Query 3: Get activation notification rules for this policy
         $notificationRuleUri = "policies/roleManagementPolicies/$policyId/rules/Notification_Requestor_EndUser_Assignment"
 
-        try {
-            $notificationRule = Invoke-ZtGraphRequest -RelativeUri $notificationRuleUri -ApiVersion beta
+        $notificationRule = Invoke-ZtGraphRequest -RelativeUri $notificationRuleUri -ApiVersion beta
 
-            $isDefaultRecipientsEnabled = $notificationRule.isDefaultRecipientsEnabled
-            $notificationRecipients = $notificationRule.notificationRecipients
+        $isDefaultRecipientsEnabled = $notificationRule.isDefaultRecipientsEnabled
+        $notificationRecipients = $notificationRule.notificationRecipients
 
-            Write-PSFMessage "Role: $($role.displayName) - isDefaultRecipientsEnabled: $isDefaultRecipientsEnabled, Recipients: $($notificationRecipients -join ', ')" -Level Verbose
+        Write-PSFMessage "Role: $($role.displayName) - isDefaultRecipientsEnabled: $isDefaultRecipientsEnabled, Recipients: $($notificationRecipients -join ', ')" -Level Verbose
 
-            # Check if alert is properly configured
-            # Fail if: (isDefaultRecipientsEnabled is true AND notificationRecipients is empty) OR (isDefaultRecipientsEnabled is false AND no custom recipients)
-            if (($isDefaultRecipientsEnabled -eq $true -and ([string]::IsNullOrEmpty($notificationRecipients) -or $notificationRecipients.Count -eq 0))) {
+        # Check if alert is properly configured
+        # Fail if: (isDefaultRecipientsEnabled is true AND notificationRecipients is empty) OR (isDefaultRecipientsEnabled is false AND no custom recipients)
+        if (($isDefaultRecipientsEnabled -eq $true -and ([string]::IsNullOrEmpty($notificationRecipients) -or $notificationRecipients.Count -eq 0))) {
 
-                $passed = $false
-                Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients enabled but no recipients configured" -Level Warning
+            $passed = $false
+            Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients enabled but no recipients configured" -Level Verbose
 
-                $rolesWithIssues += @{
-                    Role                       = $role
-                    IsDefaultRecipientsEnabled = $isDefaultRecipientsEnabled
-                    NotificationRecipients     = 'N/A'
-                }
-
-                $exitLoop = $true
-            }
-            else {
-                Write-PSFMessage "Alert properly configured for role: $($role.displayName)" -Level Verbose
+            $rolesWithIssues += @{
+                Role                       = $role
+                IsDefaultRecipientsEnabled = $isDefaultRecipientsEnabled
+                NotificationRecipients     = 'N/A'
             }
 
+            $exitLoop = $true
         }
-        catch {
-            Write-PSFMessage "Error retrieving notification rule for policy $policyId (role: $($role.displayName)): $_" -Level Warning
+        else {
+            Write-PSFMessage "Alert properly configured for role: $($role.displayName)" -Level Verbose
         }
 
         if ($exitLoop) {

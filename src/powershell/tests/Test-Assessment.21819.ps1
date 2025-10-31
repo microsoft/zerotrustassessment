@@ -56,8 +56,9 @@ function Test-Assessment-21819 {
     $filter = "scopeId eq '/' and scopeType eq 'DirectoryRole' and roleDefinitionId eq '$($globalAdminRole.id)'"
     $policyAssignments = Invoke-ZtGraphRequest -RelativeUri 'policies/roleManagementPolicyAssignments' -Filter $filter -ApiVersion beta
 
+    $passed = $false
     if (-not $policyAssignments) {
-        Write-PSFMessage "No PIM policy assignment found for Global Administrator role" -Level Warning
+        Write-PSFMessage "No PIM policy assignment found for Global Administrator role" -Level Verbose
         $isDefaultRecipientsEnabled = 'N/A'
         $recipients = 'N/A'
     }
@@ -75,19 +76,16 @@ function Test-Assessment-21819 {
 
         Write-PSFMessage "isDefaultRecipientsEnabled: $isDefaultRecipientsEnabled, Recipients: $($notificationRecipients -join ', ')" -Level Verbose
 
-        if ($notificationRecipients -and $isDefaultRecipientsEnabled) {
-            Write-PSFMessage "Alert properly configured" -Level Verbose
-            $passed = $true
-            $testResultMarkdown = "Activation alerts are configured for Global Administrator role.`n`n"
-        }
-        else {
-            Write-PSFMessage "Alert misconfigured - no recipients configured" -Level Warning
-            $passed = $false
-            $testResultMarkdown = "Activation alerts are missing or improperly configured for Global Administrator role.`n`n"
-        }
+        $passed = $notificationRecipients -or $isDefaultRecipientsEnabled
     }
     #endregion Data Collection
 
+    if ($passed) {
+        $testResultMarkdown = "Activation alerts are configured for Global Administrator role.`n`n"
+    }
+    else {
+        $testResultMarkdown = "Activation alerts are missing or improperly configured for Global Administrator role.`n`n"
+    }
 
     #region Report Generation
     # Always show the table with configuration details

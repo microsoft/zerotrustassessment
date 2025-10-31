@@ -7,23 +7,23 @@
 
 #>
 
-function Test-Assessment-22659{
+function Test-Assessment-22659 {
     [ZtTest(
-    	Category = 'Monitoring',
-    	ImplementationCost = 'High',
-    	Pillar = 'Identity',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce','External'),
-    	TestId = 22659,
-    	Title = 'All risky workload identity sign-ins are triaged',
-    	UserImpact = 'Low'
+        Category = 'Monitoring',
+        ImplementationCost = 'High',
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce', 'External'),
+        TestId = 22659,
+        Title = 'All risky workload identity sign-ins are triaged',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    if( -not (Get-ZtLicense EntraWorkloadID) ) {
+    if ( -not (Get-ZtLicense EntraWorkloadID) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraWorkloadID
         return
     }
@@ -33,15 +33,9 @@ function Test-Assessment-22659{
 
     # Get risky service principal sign-in detections
     $riskDetections = @()
-    try {
-        $response = Invoke-ZtGraphRequest -RelativeUri 'identityProtection/servicePrincipalRiskDetections' -ApiVersion 'beta'
-        $riskDetections = $response.value | Where-Object {
-            $_.activity -eq 'signIn' -and $_.riskState -eq 'atRisk'
-        }
-    }
-    catch {
-        Write-PSFMessage 'Failed to get service principal risk detections' -Level Warning -ErrorRecord $_
-        return $false
+    $response = Invoke-ZtGraphRequest -RelativeUri 'identityProtection/servicePrincipalRiskDetections' -ApiVersion 'beta'
+    $riskDetections = $response.value | Where-Object {
+        $_.activity -eq 'signIn' -and $_.riskState -eq 'atRisk'
     }
 
     $result = $riskDetections.Count -eq 0

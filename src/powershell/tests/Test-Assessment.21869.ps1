@@ -139,7 +139,7 @@ ORDER BY LOWER(displayName) ASC
                     }
 
                 } catch {
-                    Write-PSFMessage "Error checking schema for job $($job.id): $_" -Level Warning
+                    Write-PSFMessage "Error checking schema for job $($job.id): $_" -Level Verbose
                     $jobsWithoutScoping += @{
                         JobId = $job.id
                         JobName = $job.templateId
@@ -162,7 +162,7 @@ ORDER BY LOWER(displayName) ASC
             }
 
         } catch {
-            Write-PSFMessage "Error checking provisioning jobs for $($sp.displayName): $_" -Level Warning
+            Write-PSFMessage "Error checking provisioning jobs for $($sp.displayName): $_" -Level Verbose
             # If we can't check provisioning, treat as no provisioning
             $appsWithoutProvisioningJobs += @{
                 ServicePrincipal = $sp

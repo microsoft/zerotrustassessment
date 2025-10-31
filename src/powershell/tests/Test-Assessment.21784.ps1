@@ -9,17 +9,17 @@ Pass/Fail Hook:
 - Fails if no policies found or policies have coverage gaps due to exclusions
 #>
 
-function Test-Assessment-21784{
+function Test-Assessment-21784 {
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Medium',
-    	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce','External'),
-    	TestId = 21784,
-    	Title = 'All user sign in activity uses phishing-resistant authentication methods',
-    	UserImpact = 'Low'
+        Category = 'Access control',
+        ImplementationCost = 'Medium',
+        Pillar = 'Identity',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce', 'External'),
+        TestId = 21784,
+        Title = 'All user sign in activity uses phishing-resistant authentication methods',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
@@ -49,16 +49,19 @@ function Test-Assessment-21784{
             $strengthPolicy = $PhishingResistantPolicies | Where-Object { $_.id -eq $policy.grantControls.authenticationStrength.id }
             $authStrengthName = if ($strengthPolicy) {
                 "[$(Get-SafeMarkdown($strengthPolicy.displayName))]($authStrengthLink)"
-            } else {
+            }
+            else {
                 "None"
             }
 
             # Format included users
             $includedUsers = if ($policy.conditions.users.includeUsers -contains 'All') {
                 "All Users"
-            } elseif ($policy.conditions.users.includeUsers.Count -gt 0) {
+            }
+            elseif ($policy.conditions.users.includeUsers.Count -gt 0) {
                 "$($policy.conditions.users.includeUsers.Count) users"
-            } else {
+            }
+            else {
                 "None"
             }
 
@@ -66,10 +69,12 @@ function Test-Assessment-21784{
             $excludedUsers = if ($policy.conditions.users.excludeUsers.Count -gt 0) {
                 if ($ShowIssues) {
                     "⚠️ $($policy.conditions.users.excludeUsers.Count) users"
-                } else {
+                }
+                else {
                     "$($policy.conditions.users.excludeUsers.Count) users"
                 }
-            } else {
+            }
+            else {
                 "None"
             }
 
@@ -85,26 +90,15 @@ function Test-Assessment-21784{
 
     # Get enabled Conditional Access policies
     $policies = @()
-    try {
-        Write-ZtProgress -Activity $activity -Status 'Getting policies'
-        $enabledPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -Filter "state eq 'enabled'" -ApiVersion beta
-        $policies = $enabledPolicies
-    }
-    catch {
-        Write-PSFMessage 'Failed to get CA policies' -Level Warning -ErrorRecord $_
-        return $false
-    }
+
+    Write-ZtProgress -Activity $activity -Status 'Getting policies'
+    $enabledPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -Filter "state eq 'enabled'" -ApiVersion beta
+    $policies = $enabledPolicies
 
     # Get authentication strength policies
     $strengthPolicies = @()
-    try {
-        $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/authenticationStrength/policies' -ApiVersion beta
-        $strengthPolicies = $authStrengthPolicies
-    }
-    catch {
-        Write-PSFMessage 'Failed to get auth strength policies' -Level Warning -ErrorRecord $_
-        return $false
-    }
+    $authStrengthPolicies = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/authenticationStrength/policies' -ApiVersion beta
+    $strengthPolicies = $authStrengthPolicies
 
     # Define phishing-resistant methods
     $phishingResistantMethods = @(
@@ -162,10 +156,12 @@ function Test-Assessment-21784{
         if ($relevantPolicies) {
             $testResultMarkdown += Get-PolicyTable -Policies $relevantPolicies -PhishingResistantPolicies $phishingResistantPolicies -TableTitle 'Conditional Access Policies with Phishing-Resistant Authentication'
         }
-    } else {
+    }
+    else {
         $failReason = if (-not $relevantPolicies) {
             'No Conditional Access policies found that require phishing-resistant authentication for all users'
-        } else {
+        }
+        else {
             'Found policies with user exclusions that create coverage gaps'
         }
 
@@ -178,7 +174,8 @@ function Test-Assessment-21784{
         # Add policy details even for failures
         if ($relevantPolicies) {
             $testResultMarkdown += Get-PolicyTable -Policies $relevantPolicies -PhishingResistantPolicies $phishingResistantPolicies -TableTitle "Conditional Access Policies with Phishing-Resistant Authentication (Issues Found)" -ShowIssues
-        } else {
+        }
+        else {
             # Show available authentication strength policies even if none are applied to all users
             if ($phishingResistantPolicies) {
                 $testResultMarkdown += "## Available Authentication Strength Policies`n`n"
@@ -193,12 +190,12 @@ function Test-Assessment-21784{
             }
         }
     }
-        $passed = $result
+    $passed = $result
 
-        $params = @{
-        TestId             = '21784'
-        Status             = $passed
-        Result             = $testResultMarkdown
+    $params = @{
+        TestId = '21784'
+        Status = $passed
+        Result = $testResultMarkdown
 
     }
     Add-ZtTestResultDetail @params

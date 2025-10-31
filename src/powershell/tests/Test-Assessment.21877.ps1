@@ -75,7 +75,7 @@ WHERE userType = 'Guest'
             }
         }
         catch {
-            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Warning
+            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Verbose
             # Treat as guest without sponsor if API call fails
             $guestsWithoutSponsors.Add($guest)
         }
