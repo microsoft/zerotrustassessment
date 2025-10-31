@@ -12,17 +12,14 @@ function Add-ZtTenantOverview {
     Write-ZtProgress -Activity $activity -Status "Processing"
 
     # Get count of users (excluding guests)
-    $userCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -QueryParameters @{
-        '$filter' = "userType ne 'Guest'"
-    }
-    # Get count of guest users
-    $guestCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -QueryParameters @{
-        '$filter' = "userType eq 'Guest'"
-    }
-    $groupCount = Invoke-ZtGraphRequest -RelativeUri 'groups/$count'
-    $applicationCount = Invoke-ZtGraphRequest -RelativeUri 'applications/$count'
-    $deviceCount = Invoke-ZtGraphRequest -RelativeUri 'devices/$count'
 
+    $userCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -Filter "userType ne 'Guest'" -OutputType PSObject
+    # Get count of guest users
+    $guestCount = Invoke-ZtGraphRequest -RelativeUri 'users/$count' -Filter "userType eq 'Guest'" -OutputType PSObject
+
+    $groupCount = Invoke-ZtGraphRequest -RelativeUri 'groups/$count' -OutputType PSObject
+    $applicationCount = Invoke-ZtGraphRequest -RelativeUri 'applications/$count' -OutputType PSObject
+    $deviceCount = Invoke-ZtGraphRequest -RelativeUri 'devices/$count' -OutputType PSObject
 
     if (Get-ZtLicense Intune) {
         $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'

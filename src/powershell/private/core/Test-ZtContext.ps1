@@ -47,6 +47,8 @@ function Test-ZtContext {
 
                 if (-not $hasRequiredRole) {
                     $message = "The currently logged in user does not have the Global Reader or Global Administrator role activated. Please ensure you have one of these roles assigned and activated."
+                    # Also disconnect the context to avoid using cache
+                    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
                     $validContext = $false
                 }
             } catch {
