@@ -58,6 +58,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - CrossTenantInformation.ReadBasic.All
 - DeviceManagementApps.Read.All
 - DeviceManagementConfiguration.Read.All
+- DeviceManagementManagedDevices.Read.All
 - DeviceManagementRBAC.Read.All
 - DeviceManagementServiceConfig.Read.All
 - Directory.Read.All
