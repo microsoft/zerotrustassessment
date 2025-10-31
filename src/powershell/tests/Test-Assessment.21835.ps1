@@ -34,10 +34,23 @@ function Test-Assessment-21835 {
     #region Step 1: Find permanent Global Administrator users
     Write-ZtProgress -Activity $activity -Status 'Finding Global Administrator role members'
 
-    # Use Get-ZtRoleMember to get all permanent (Active) Global Administrators
-    # This handles both direct assignments and group-based assignments automatically
-    $permanentGAUsers = Get-ZtRoleMember -Role GlobalAdministrator -MemberStatus Active |
-        Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' }
+    # Global Administrator role template ID: 62e90394-69f5-4237-9190-012177145e10
+    $sql = @"
+SELECT
+    vr.principalId as id,
+    vr.principalDisplayName as displayName,
+    vr.userPrincipalName,
+    vr.privilegeType,
+    u.onPremisesSyncEnabled,
+    vr."@odata.type"
+FROM vwRole vr
+LEFT JOIN "User" u ON vr.principalId = u.id
+WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
+    AND vr.privilegeType = 'Permanent'
+    AND vr."@odata.type" = '#microsoft.graph.user'
+"@
+
+    $permanentGAUsers = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
 
     Write-PSFMessage "Total permanent GA users: $($permanentGAUsers.Count)" -Level Verbose
 
