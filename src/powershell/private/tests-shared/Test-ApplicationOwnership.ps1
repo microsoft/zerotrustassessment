@@ -1,7 +1,7 @@
 function Get-OwnershipReport {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [array]$Applications,
 
         [Parameter(Mandatory = $true)]

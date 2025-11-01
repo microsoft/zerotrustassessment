@@ -21,6 +21,10 @@ function Test-Assessment-21815 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     $activity = "Checking All privileged role assignments are activated just in time and not permanently active"
     Write-ZtProgress -Activity $activity -Status "Getting privileged role assignments"
