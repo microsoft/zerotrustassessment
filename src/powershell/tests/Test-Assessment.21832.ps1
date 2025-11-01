@@ -19,6 +19,10 @@ function Test-Assessment-21832{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking All groups in Conditional Access policies belong to a restricted management administrative unit"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

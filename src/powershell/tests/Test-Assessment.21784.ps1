@@ -86,6 +86,11 @@ function Test-Assessment-21784 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
+
     $activity = 'Checking phishing-resistant authentication methods'
 
     # Get enabled Conditional Access policies

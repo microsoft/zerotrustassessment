@@ -21,6 +21,10 @@ function Test-Assessment-21884 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = 'Checking if workload identities are protected by location-based Conditional Access policies'
     Write-ZtProgress -Activity $activity -Status 'Getting service principals'

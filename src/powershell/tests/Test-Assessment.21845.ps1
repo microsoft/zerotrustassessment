@@ -19,6 +19,10 @@ function Test-Assessment-21845{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = 'Checking Temporary access pass is enabled'
     Write-ZtProgress -Activity $activity -Status 'Getting Temporary Access Pass policy'

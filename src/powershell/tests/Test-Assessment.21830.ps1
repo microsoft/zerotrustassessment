@@ -14,6 +14,10 @@
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Highly privileged roles are only activated in a PAW/SAW device"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

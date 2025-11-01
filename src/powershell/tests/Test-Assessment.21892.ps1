@@ -19,6 +19,10 @@ function Test-Assessment-21892 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking that all sign-in activity comes from managed devices"
     Write-ZtProgress -Activity $activity -Status "Getting Conditional Access policies"

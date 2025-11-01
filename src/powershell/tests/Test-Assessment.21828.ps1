@@ -19,6 +19,10 @@ function Test-Assessment-21828 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Authentication transfer is blocked"
     Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"

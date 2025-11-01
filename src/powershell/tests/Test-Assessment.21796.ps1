@@ -19,6 +19,10 @@ function Test-Assessment-21796 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking blocking of legacy authentication"
     Write-ZtProgress -Activity $activity -Status "Getting CA policies"

@@ -19,22 +19,31 @@ function Get-AssignedCAPoliciesForRole {
     return $assignedPolicies
 }
 
-function Test-Assessment-21825{
+function Test-Assessment-21825 {
     [ZtTest(
-    	Category = 'Access control',
-    	ImplementationCost = 'Low',
-    	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce'),
-    	TestId = 21825,
-    	Title = 'Privileged users have short-lived sign-in sessions',
-    	UserImpact = 'Medium'
+        Category = 'Access control',
+        ImplementationCost = 'Low',
+        Pillar = 'Identity',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce'),
+        TestId = 21825,
+        Title = 'Privileged users have short-lived sign-in sessions',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
+
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = 'Checking Privileged user sessions don''t have long lived sign-in sessions'
     Write-ZtProgress -Activity $activity -Status 'Getting privileged role definitions'
@@ -60,32 +69,33 @@ function Test-Assessment-21825{
 
     # Filter to enabled policies that include roles
     $roleScopedPolicies = @($caPolicies | Where-Object {
-        $null -ne $_.conditions.users.includeRoles -and
-        $_.conditions.users.includeRoles.Count -gt 0
-    })
+            $null -ne $_.conditions.users.includeRoles -and
+            $_.conditions.users.includeRoles.Count -gt 0
+        })
 
     $testResultMarkdown += "**CA Policies Targeting Roles:** $($roleScopedPolicies.Count)`n`n"
 
     # Query 3 (Q3): Analyze session control configuration for sign-in frequency
     $policiesWithSessionControls = @($roleScopedPolicies | Where-Object {
-        $null -ne $_.sessionControls -and
-        $null -ne $_.sessionControls.signInFrequency
-    })
+            $null -ne $_.sessionControls -and
+            $null -ne $_.sessionControls.signInFrequency
+        })
 
     # Recommended: Sign-in frequency should be 4 hours or less for privileged users
     $recommendedMaxHours = 4
-    if( -not (Get-ZtLicense EntraIDP2) ) {
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
         $recommendedMaxHours = 24
     }
     $testResultMarkdown += "**Recommended Sign In Session Hours:** $recommendedMaxHours`n`n"
     $policiesWithCompliantFreq = @($policiesWithSessionControls | Where-Object {
-        $freq = $_.sessionControls.signInFrequency
-        if ($freq.type -eq 'hours') {
-            $freq.value -le $recommendedMaxHours
-        } else {
-            $false  # Days are not recommended for privileged users
-        }
-    })
+            $freq = $_.sessionControls.signInFrequency
+            if ($freq.type -eq 'hours') {
+                $freq.value -le $recommendedMaxHours
+            }
+            else {
+                $false  # Days are not recommended for privileged users
+            }
+        })
 
     $testResultMarkdown += "**Policies with Compliant Frequency (≤$recommendedMaxHours hours):** $($policiesWithCompliantFreq.Count)`n`n"
 
@@ -106,13 +116,18 @@ function Test-Assessment-21825{
         if ($enabledPolicies.Count -gt 0) {
             # Check if at least one compliant enabled policy covers this role
             $compliantForRole = @($enabledPolicies | Where-Object {
-                $null -ne $_.sessionControls -and
-                $null -ne $_.sessionControls.signInFrequency -and
-                $_.sessionControls.signInFrequency.type -eq 'hours' -and
-                $_.sessionControls.signInFrequency.value -le $recommendedMaxHours
-            })
+                    $null -ne $_.sessionControls -and
+                    $null -ne $_.sessionControls.signInFrequency -and
+                    $_.sessionControls.signInFrequency.type -eq 'hours' -and
+                    $_.sessionControls.signInFrequency.value -le $recommendedMaxHours
+                })
 
-            $roleStatus = if ($compliantForRole.Count -gt 0) { '✅ Covered' } else { '❌ Not Covered'; $allRolesCovered = $false }
+            $roleStatus = if ($compliantForRole.Count -gt 0) {
+                '✅ Covered'
+            }
+            else {
+                '❌ Not Covered'; $allRolesCovered = $false
+            }
             $testResultMarkdown += "**Status:** $roleStatus`n`n"
 
             $testResultMarkdown += "| Policy Name | Sign-In Frequency | Compliant |`n"
@@ -128,9 +143,11 @@ function Test-Assessment-21825{
 
                     if ($freq.type -eq 'hours' -and $freq.value -le $recommendedMaxHours) {
                         $isCompliant = '✅'
-                    } elseif ($freq.type -eq 'hours') {
+                    }
+                    elseif ($freq.type -eq 'hours') {
                         $isCompliant = "⚠️ ($($freq.value)h > $($recommendedMaxHours)h)"
-                    } else {
+                    }
+                    else {
                         $isCompliant = '❌ (Days not recommended)'
                     }
                 }
@@ -139,7 +156,8 @@ function Test-Assessment-21825{
                 $testResultMarkdown += "| [$($policy.displayName)]($policyLink) | $freqValue | $isCompliant |`n"
             }
             $testResultMarkdown += "`n"
-        } else {
+        }
+        else {
             $testResultMarkdown += "**Status:** ❌ No CA policies assigned`n`n"
             $testResultMarkdown += "*No Conditional Access policies target this privileged role.*`n`n"
             $allRolesCovered = $false
@@ -151,7 +169,8 @@ function Test-Assessment-21825{
 
     if ($passed) {
         $testResultMarkdown += "✅ **All privileged roles are covered by enabled policies enforcing short-lived sessions (≤$recommendedMaxHours hours).**`n"
-    } else {
+    }
+    else {
         $testResultMarkdown += "❌ **Not all privileged roles are covered by compliant sign-in frequency controls.**`n"
         $testResultMarkdown += "`n**Recommendation:** Configure Conditional Access policies to enforce sign-in frequency of $recommendedMaxHours hours or less for ALL privileged roles.`n"
     }

@@ -19,6 +19,10 @@ function Test-Assessment-21941{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Token protection policies are configured"
     Write-ZtProgress -Activity $activity -Status "Getting Conditional Access policies"

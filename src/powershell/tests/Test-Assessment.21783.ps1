@@ -20,6 +20,11 @@ function Test-Assessment-21783 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
+
     $activity = "Checking phishing resistant authentication for privileged roles"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 

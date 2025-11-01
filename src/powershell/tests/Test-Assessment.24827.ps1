@@ -19,6 +19,10 @@ function Test-Assessment-24827 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that unmanaged and unprotected Apps are restricted from Accessing Corporate Data"

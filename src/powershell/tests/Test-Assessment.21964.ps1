@@ -137,6 +137,10 @@ function Test-Assessment-21964 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = 'Checking Enable protected actions to secure Conditional Access policy creation and changes'
     $testResultMarkdown = ""
