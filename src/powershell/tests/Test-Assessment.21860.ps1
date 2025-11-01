@@ -48,7 +48,20 @@ function Test-Assessment-21860 {
 
         $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
         $azDiagUri = $resourceManagementUrl + 'providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
-        $result = Invoke-WebRequest -Uri $azDiagUri -Authentication Bearer -Token $azAccessToken
+
+        try {
+            $result = Invoke-WebRequest -Uri $azDiagUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+        }
+        catch {
+            if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like "*403*" -or $_.Exception.Message -like "*Forbidden*") {
+                Write-PSFMessage "The signed in user does not have access to the Azure subscription to check for log archiving." -Level Verbose
+                Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+                return
+            }
+            else {
+                throw
+            }
+        }
 
         $diagnosticSettings = $result.Content | ConvertFrom-Json
         $enabledLogs = $diagnosticSettings.value.properties.logs | Where-Object { $_.enabled } | Select-Object -ExpandProperty category -Unique
