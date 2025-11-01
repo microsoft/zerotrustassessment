@@ -33,9 +33,6 @@ The IDs of the specific test(s) to run. If not specified, all tests will be run.
 .PARAMETER ConfigurationFile
 Path to a configuration file. Parameters specified on the command line will override values from the configuration file.
 
-.PARAMETER Interactive
-If specified, prompts the user interactively for input values using a text-based user interface.
-
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -58,11 +55,6 @@ Run the Zero Trust Assessment using settings from a configuration file.
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json" -Days 14 -ShowLog
 
 Run the Zero Trust Assessment using settings from a configuration file, but override the Days parameter to 14 and enable ShowLog.
-
-.EXAMPLE
-Invoke-ZtAssessment -Interactive
-
-Run the Zero Trust Assessment with an interactive text-based user interface to configure all parameters.
 
 .EXAMPLE
 Invoke-ZeroTrustAssessment -Pillar Identity
@@ -135,11 +127,6 @@ function Invoke-ZtAssessment {
 			})]
 		[string]
 		$ConfigurationFile,
-
-		# If specified, prompts the user interactively for input values.
-		[Parameter(ParameterSetName = 'Interactive', Mandatory)]
-		[switch]
-		$Interactive,
 
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices')]
@@ -227,54 +214,54 @@ function Invoke-ZtAssessment {
 		}
 	}
 
-	# Handle interactive parameter collection
-	if ($Interactive) {
-		try {
-			Write-Host "🎮 " -NoNewline -ForegroundColor Magenta
-			Write-Host "Starting interactive parameter collection..." -ForegroundColor White
-			Write-Host
-			$tempConfigFile = New-ZtInteractiveConfig
+	# # Handle interactive parameter collection
+	# if ($Interactive) {
+	# 	try {
+	# 		Write-Host "🎮 " -NoNewline -ForegroundColor Magenta
+	# 		Write-Host "Starting interactive parameter collection..." -ForegroundColor White
+	# 		Write-Host
+	# 		$tempConfigFile = New-ZtInteractiveConfig
 
-			# Check if user cancelled the configuration creation
-			if ($null -eq $tempConfigFile -or -not $tempConfigFile) {
-				Write-Host "⏹️ " -NoNewline -ForegroundColor Yellow
-				Write-Host "Interactive configuration cancelled by user. Exiting." -ForegroundColor Yellow
-				return
-			}
+	# 		# Check if user cancelled the configuration creation
+	# 		if ($null -eq $tempConfigFile -or -not $tempConfigFile) {
+	# 			Write-Host "⏹️ " -NoNewline -ForegroundColor Yellow
+	# 			Write-Host "Interactive configuration cancelled by user. Exiting." -ForegroundColor Yellow
+	# 			return
+	# 		}
 
-			# Verify the file exists before trying to read it (only if tempConfigFile is not null)
-			if (-not (Test-Path $tempConfigFile.FullName -ErrorAction SilentlyContinue)) {
-				Write-Host "❌ " -NoNewline -ForegroundColor Red
-				Write-Host "Configuration file was not created. Exiting." -ForegroundColor Red
-				return
-			}
+	# 		# Verify the file exists before trying to read it (only if tempConfigFile is not null)
+	# 		if (-not (Test-Path $tempConfigFile.FullName -ErrorAction SilentlyContinue)) {
+	# 			Write-Host "❌ " -NoNewline -ForegroundColor Red
+	# 			Write-Host "Configuration file was not created. Exiting." -ForegroundColor Red
+	# 			return
+	# 		}
 
-			# Import the configuration data from JSON
-			$config = Import-PSFJson -Path $tempConfigFile.FullName
+	# 		# Import the configuration data from JSON
+	# 		$config = Import-PSFJson -Path $tempConfigFile.FullName
 
-			# Assign interactive parameter values to variables
-			$Path = $config.Path
-			$Days = $config.Days
-			$MaximumSignInLogQueryTime = $config.MaximumSignInLogQueryTime
-			$ShowLog = $config.ShowLog
-			$ExportLog = $config.ExportLog
-			$DisableTelemetry = $config.DisableTelemetry
-			$Resume = $config.Resume
+	# 		# Assign interactive parameter values to variables
+	# 		$Path = $config.Path
+	# 		$Days = $config.Days
+	# 		$MaximumSignInLogQueryTime = $config.MaximumSignInLogQueryTime
+	# 		$ShowLog = $config.ShowLog
+	# 		$ExportLog = $config.ExportLog
+	# 		$DisableTelemetry = $config.DisableTelemetry
+	# 		$Resume = $config.Resume
 
-			if ($config.PSObject.Properties.Name -contains 'Tests' -and $config.Tests.Count -gt 0) {
-				$Tests = $config.Tests
-			}
+	# 		if ($config.PSObject.Properties.Name -contains 'Tests' -and $config.Tests.Count -gt 0) {
+	# 			$Tests = $config.Tests
+	# 		}
 
-			Write-Host "✅ " -NoNewline -ForegroundColor Green
-			Write-Host "Interactive configuration complete. Starting assessment..." -ForegroundColor Green
-			Write-Host
-		}
-		catch {
-			Write-Host "❌ " -NoNewline -ForegroundColor Red
-			Write-Host "Failed to collect interactive parameters: $($_.Exception.Message)" -ForegroundColor Red
-			return
-		}
-	}
+	# 		Write-Host "✅ " -NoNewline -ForegroundColor Green
+	# 		Write-Host "Interactive configuration complete. Starting assessment..." -ForegroundColor Green
+	# 		Write-Host
+	# 	}
+	# 	catch {
+	# 		Write-Host "❌ " -NoNewline -ForegroundColor Red
+	# 		Write-Host "Failed to collect interactive parameters: $($_.Exception.Message)" -ForegroundColor Red
+	# 		return
+	# 	}
+	# }
 
 	#$ExportLog = $true # Always create support package during public preview TODO: Remove this line after public preview
 
