@@ -21,15 +21,16 @@ function Get-AssignedCAPoliciesForRole {
 
 function Test-Assessment-21825 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Low',
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce'),
-        TestId = 21825,
-        Title = 'Privileged users have short-lived sign-in sessions',
-        UserImpact = 'Medium'
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21825,
+    	Title = 'Privileged users have short-lived sign-in sessions',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

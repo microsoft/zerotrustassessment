@@ -89,6 +89,51 @@ export const columns: ColumnDef<Test>[] = [
         },
     },
     {
+        accessorKey: "TestMinimumLicense",
+        meta: { label: "Minimum License" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Min. License
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const licensesValue = row.getValue("TestMinimumLicense");
+
+            // Handle null or undefined
+            if (!licensesValue) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+
+            // Ensure we have an array
+            const licenses = Array.isArray(licensesValue) ? licensesValue : [licensesValue];
+
+            if (licenses.length === 0) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex items-center gap-1 flex-wrap">
+                    {licenses.map((license, index) => (
+                        <span key={index} className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-md">
+                            {license}
+                        </span>
+                    ))}
+                </div>
+            )
+        },
+    },
+    {
         accessorKey: "TestImpact",
         meta: { label: "User Impact" },
         header: ({ column }) => {

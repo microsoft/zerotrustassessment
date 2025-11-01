@@ -9,15 +9,16 @@
 
 function Test-Assessment-22659 {
     [ZtTest(
-        Category = 'Monitoring',
-        ImplementationCost = 'High',
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 22659,
-        Title = 'All risky workload identity sign-ins are triaged',
-        UserImpact = 'Low'
+    	Category = 'Monitoring',
+    	ImplementationCost = 'High',
+    	MinimumLicense = ('P2'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 22659,
+    	Title = 'All risky workload identity sign-ins are triaged',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

@@ -160,6 +160,7 @@ function Get-ZtTestMetadata {
 				TestId             = $commandItem.Ast.Name -replace '^Test-Assessment-'
 				Category           = $null
 				ImplementationCost = $null
+				MinimumLicense     = $null
 				Pillar             = $null
 				RiskLevel          = $null
 				SfiPillar          = $null

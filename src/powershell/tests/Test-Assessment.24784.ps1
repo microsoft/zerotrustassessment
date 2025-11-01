@@ -7,6 +7,7 @@ function Test-Assessment-24784 {
         [ZtTest(
         	Category = 'Device',
         	ImplementationCost = 'Low',
+        	MinimumLicense = ('Intune'),
         	Pillar = 'Devices',
         	RiskLevel = 'High',
         	SfiPillar = 'Protect networks',

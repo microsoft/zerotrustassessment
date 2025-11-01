@@ -7,6 +7,7 @@ function Test-Assessment-21813{
     [ZtTest(
     	Category = 'Privileged access',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

@@ -7,6 +7,7 @@ function Test-Assessment-21861 {
     [ZtTest(
     	Category = 'Monitoring',
     	ImplementationCost = 'High',
+    	MinimumLicense = ('P2'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Monitor and detect cyberthreats',

@@ -77,6 +77,8 @@ export function DataTable<TData extends Test, TValue>({
         TestId: false,
         // Hide TestSfiPillar by default since we have toggle filters
         TestSfiPillar: false,
+        // Hide TestMinimumLicense by default
+        TestMinimumLicense: false,
         // Category visible for Devices, hidden for Identity
         TestCategory: pillar === "Devices" ? true : false,
         // Optionally specify other columns here (true => visible, false => hidden)

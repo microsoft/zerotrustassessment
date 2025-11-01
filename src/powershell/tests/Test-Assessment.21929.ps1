@@ -7,6 +7,7 @@ function Test-Assessment-21929{
     [ZtTest(
     	Category = 'Identity governance',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P2','Governance'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',

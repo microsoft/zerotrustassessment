@@ -183,6 +183,7 @@ function Add-ZtTestResultDetail {
 		TestImplementationCost = $ImplementationCost
 		TestSfiPillar          = $testMeta.SfiPillar
 		TestPillar             = $testMeta.Pillar
+		TestMinimumLicense     = $testMeta.MinimumLicense
 		TestDescription        = $Description
 		TestResult             = $Result
 		TestSkipped            = $SkippedBecause

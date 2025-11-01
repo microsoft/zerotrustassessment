@@ -7,6 +7,7 @@ function Test-Assessment-21772 {
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

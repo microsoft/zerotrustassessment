@@ -7,6 +7,7 @@ function Test-Assessment-24570 {
     [ZtTest(
     	Category = 'Hybrid infrastructure',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

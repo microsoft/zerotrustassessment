@@ -7,6 +7,7 @@ function Test-Assessment-21885 {
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'High',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect engineering systems',

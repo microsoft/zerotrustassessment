@@ -10,6 +10,7 @@ function Test-Assessment-24576 {
     [ZtTest(
     	Category = 'Tenant',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'Low',
     	SfiPillar = 'Protect tenants and isolate production systems',

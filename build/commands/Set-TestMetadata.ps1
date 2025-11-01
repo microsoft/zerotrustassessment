@@ -20,6 +20,9 @@ function Set-TestMetadata {
 	.PARAMETER ImplementationCost
 		How high is the cost to implement the finding this test reports?
 
+	.PARAMETER MinimumLicense
+		What minimum license(s) are required for this test?
+
 	.PARAMETER Pillar
 		What pillar does the test belong to?
 
@@ -55,14 +58,15 @@ function Set-TestMetadata {
 		[string]
 		$Category,
 
-		[ValidateSet('Low', 'Medium', 'High')]
-		[string]
-		$ImplementationCost,
+	[ValidateSet('Low', 'Medium', 'High')]
+	[string]
+	$ImplementationCost,
 
-		[string]
-		$Pillar,
+	[string[]]
+	$MinimumLicense,
 
-		[ValidateSet('Low', 'Medium', 'High')]
+	[string]
+	$Pillar,		[ValidateSet('Low', 'Medium', 'High')]
 		[string]
 		$RiskLevel,
 
@@ -204,6 +208,7 @@ function Set-TestMetadata {
 		$properties = [ordered]@{
 			Category           = 'string'
 			ImplementationCost = 'string'
+			MinimumLicense     = 'string[]'
 			Pillar             = 'string'
 			RiskLevel          = 'string'
 			SfiPillar          = 'string'

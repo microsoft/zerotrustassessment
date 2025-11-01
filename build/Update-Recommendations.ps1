@@ -413,6 +413,16 @@ foreach ($file in $testFiles) {
 		if ($testData.SfiPillar -ne $frontMatter['# sfipillar']) {
 			$update.SfiPillar = $frontMatter['# sfipillar']
 		}
+		# Process minimumlicense - split by comma and trim spaces
+		if ($frontMatter['# minimumlicense']) {
+			$minimumLicenseArray = $frontMatter['# minimumlicense'] -split ',' | ForEach-Object { $_.Trim() }
+			# Compare arrays - convert both to sorted strings for comparison
+			$currentLicenses = ($testData.MinimumLicense | Sort-Object) -join ','
+			$newLicenses = ($minimumLicenseArray | Sort-Object) -join ','
+			if ($currentLicenses -ne $newLicenses) {
+				$update.MinimumLicense = $minimumLicenseArray
+			}
+		}
 		#$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
 		if (-not $testData.Pillar) {
 			$update.Pillar = 'Identity'

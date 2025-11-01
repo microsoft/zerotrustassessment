@@ -7,6 +7,7 @@ function Test-Assessment-21858 {
     [ZtTest(
     	Category = 'External collaboration',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
