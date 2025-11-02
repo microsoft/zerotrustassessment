@@ -5,16 +5,16 @@
 
 function Test-Assessment-21858 {
     [ZtTest(
-    	Category = 'External collaboration',
-    	ImplementationCost = 'Medium',
-    	MinimumLicense = ('Free'),
-    	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect tenants and isolate production systems',
-    	TenantType = ('Workforce','External'),
-    	TestId = 21858,
-    	Title = 'Inactive guest identities are disabled or removed from the tenant',
-    	UserImpact = 'Low'
+        Category = 'External collaboration',
+        ImplementationCost = 'Medium',
+        MinimumLicense = ('Free'),
+        Pillar = 'Identity',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect tenants and isolate production systems',
+        TenantType = ('Workforce', 'External'),
+        TestId = 21858,
+        Title = 'Inactive guest identities are disabled or removed from the tenant',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(
@@ -22,7 +22,7 @@ function Test-Assessment-21858 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    if( -not (Get-ZtLicense EntraIDP1) ) {
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
         return
     }
@@ -31,7 +31,11 @@ function Test-Assessment-21858 {
     Write-ZtProgress -Activity $activity -Status "Querying enabled guest users"
 
     $sql = @"
-    SELECT id, displayName, userPrincipalName, accountEnabled, createdDateTime, externalUserState, signInActivity
+    SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
+    date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) daysSinceLastSignIn,
+    date_diff('day', createdDateTime, today()) daysSinceCreated,
+    strftime(createdDateTime, '%Y-%m-%d') fmtCreatedDateTime,
+    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') fmtLastSignInDateTime,
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
@@ -39,32 +43,22 @@ function Test-Assessment-21858 {
     $enabledGuestUsers = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
     if ($enabledGuestUsers) {
-        $currentDate = Get-Date
         $inactiveGuests = @()
 
         foreach ($guest in $enabledGuestUsers) {
             $inactivityThresholdDays = 90
             $daysSinceLastActivity = $null
-            $lastActivityDate = $null
             $activitySource = ""
 
             # Check if signInActivity property exists
-            if ($guest.signInActivity.lastSignInDateTime -and $null -ne $guest.signInActivity.lastSignInDateTime) {
-                # Use lastSignInDateTime from signInActivity
-                $lastActivityDate = [DateTime]::Parse($guest.signInActivity.lastSignInDateTime)
-                $daysSinceLastActivity = ($currentDate - $lastActivityDate).Days
-                $activitySource = "last sign-in"
-            }
-            elseif ($guest.signInActivity.lastSuccessfulSignInDateTime -and $null -ne $guest.signInActivity.lastSuccessfulSignInDateTime) {
+            if ([string]::IsNullOrEmpty($guest.signInActivity) -eq $false) {
                 # Evaluate lastSuccessfulSignInDateTime if lastSignInDateTime is not available
-                $lastActivityDate = [DateTime]::Parse($guest.signInActivity.lastSuccessfulSignInDateTime)
-                $daysSinceLastActivity = ($currentDate - $lastActivityDate).Days
+                $daysSinceLastActivity = $guest.daysSinceLastSignIn
                 $activitySource = "last successful sign-in"
             }
             else {
                 # signInActivity is null, calculate days since creation using createdDateTime
-                $lastActivityDate = [DateTime]::Parse($guest.createdDateTime)
-                $daysSinceLastActivity = ($currentDate - $lastActivityDate).Days
+                $daysSinceLastActivity = $guest.daysSinceCreated
                 $activitySource = "creation date (no sign-in activity)"
             }
 
@@ -73,7 +67,8 @@ function Test-Assessment-21858 {
                 $inactiveGuests += [PSCustomObject]@{
                     Guest                 = $guest
                     DaysSinceLastActivity = $daysSinceLastActivity
-                    LastActivityDate      = $lastActivityDate
+                    LastSignInDate        = $guest.fmtLastSignInDateTime
+                    CreatedDate           = $guest.fmtCreatedDateTime
                     ActivitySource        = $activitySource
                 }
             }
@@ -116,8 +111,8 @@ function Test-Assessment-21858 {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $inactiveGuest.guest.id
             $displayName = Get-SafeMarkdown $inactiveGuest.guest.displayName
             $userPrincipalName = $inactiveGuest.guest.userPrincipalName
-            $lastSignInDateTime = Get-FormattedDate $inactiveGuest.guest.signInActivity.lastSignInDateTime
-            $createdDateTime = Get-FormattedDate $inactiveGuest.guest.createdDateTime
+            $lastSignInDateTime = $inactiveGuest.LastSignInDate
+            $createdDateTime = $inactiveGuest.CreatedDate
             $tableRows += @"
 | [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |`n
 "@
