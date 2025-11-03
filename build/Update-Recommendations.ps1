@@ -29,7 +29,7 @@ trap {
 }
 
 if (-not $NoImport) {
-	Import-Module "$PSScriptRoot/../src/powershell/ZeroTrustAssessmentV2.psd1" -Force -Global
+	Import-Module "$PSScriptRoot/../src/powershell/ZeroTrustAssessment.psd1" -Force -Global
 }
 . "$PSScriptRoot/commands/Set-TestMetadata.ps1"
 

@@ -13,7 +13,7 @@ $modules = @(
 )
 
 # Automatically add missing dependencies
-$data = Import-PowerShellDataFile -Path "$PSScriptRoot\..\..\src\powershell\ZeroTrustAssessmentV2.psd1"
+$data = Import-PowerShellDataFile -Path "$PSScriptRoot\..\..\src\powershell\ZeroTrustAssessment.psd1"
 foreach ($dependency in $data.RequiredModules) {
 	if ($dependency -is [string]) {
 		if ($modules -contains $dependency) {

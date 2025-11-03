@@ -24,7 +24,7 @@ function Get-ZtAssessmentResults {
 
 		)
 		if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
-			return (Find-Module -Name ZeroTrustAssessmentV2).Version -as [string]
+			return (Find-Module -Name ZeroTrustAssessment).Version -as [string]
 		}
 
 		return 'Unknown'

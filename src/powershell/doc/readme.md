@@ -39,12 +39,12 @@ Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open Po
 
 *When prompted to install modules from an untrusted repository, choose `Yes to All`.*
 
-### Install Zero Trust Assessment V2 module
+### Install Zero Trust Assessment module
 
-Install the `ZeroTrustAssessmentV2` module using the following command.
+Install the `ZeroTrustAssessment` module using the following command.
 
 ```powershell
-Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
+Install-Module ZeroTrustAssessment -Scope CurrentUser
 ```
 
 ## Connect to Microsoft Graph and Azure
@@ -212,7 +212,7 @@ Close all open PowerShell windows.
 Start a new PowerShell session.
 
 ```powershell
-Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
+Install-Module ZeroTrustAssessment -Scope CurrentUser
 ```
 
 Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.

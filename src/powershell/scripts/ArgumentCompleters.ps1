@@ -58,7 +58,7 @@
     Performance Notes:
     - Optimized search algorithms for fast completion even with large test sets
 
-    This file is automatically loaded when the ZeroTrustAssessmentV2 module is imported.
+    This file is automatically loaded when the ZeroTrustAssessment module is imported.
     The completion functionality is registered for both Invoke-ZtAssessment and
     Invoke-ZeroTrustAssessment cmdlets.
 #>
