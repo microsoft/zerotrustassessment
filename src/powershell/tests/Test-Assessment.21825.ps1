@@ -10,7 +10,7 @@ function Get-AssignedCAPoliciesForRole {
     param(
         [Parameter(Mandatory = $true)]
         [string]$RoleId,
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [array]$CAPolicies
     )
 

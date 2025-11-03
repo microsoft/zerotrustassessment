@@ -22,7 +22,7 @@ function Get-ZtLicense {
     )
 
     process {
-        $skus = Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" | Select-Object -ExpandProperty servicePlans | Select-Object -ExpandProperty servicePlanId
+        $skus = Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" | Select-Object -ExpandProperty servicePlans | Where-Object { $_.capabilityStatus -ne 'Deleted' } | Select-Object -ExpandProperty servicePlanId
         switch ($Product) {
             'EntraIDP1' {
                 return '41781fb2-bc02-4b7c-bd55-b576c07bb09d' -in $skus
