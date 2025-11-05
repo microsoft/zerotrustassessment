@@ -129,3 +129,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Sonner toast icon alignment */
+[data-sonner-toast] {
+  align-items: flex-start !important;
+}
+
+[data-sonner-toast] [data-icon] {
+  margin-top: 2px !important;
+}

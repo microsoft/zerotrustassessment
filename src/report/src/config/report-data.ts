@@ -8,6 +8,7 @@ export interface ZeroTrustAssessmentReport {
   Account: string;
   CurrentVersion: string;
   LatestVersion: string;
+  IsDemo?: boolean;
   Tests: Test[];
   TenantInfo: TenantInfo | null;
   TestResultSummary: TestResultSummaryData;

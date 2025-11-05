@@ -84,6 +84,8 @@ $jsonContent.TenantName = "Contoso"
 $jsonContent.Domain = "contoso.com"
 $jsonContent.Account = "admin@contoso.com"
 
+$jsonContent | Add-Member -NotePropertyName "IsDemo" -NotePropertyValue 'true' -Force
+
 # Populate overview dashboard data with sample values
 Write-Host "Populating overview dashboard data..." -ForegroundColor Cyan
 
@@ -292,16 +294,6 @@ else {
     Write-Host "Loaded $($userMappings.Count) user mappings" -ForegroundColor Cyan
 }
 
-# Function to anonymize a GUID
-function New-AnonymousGuid {
-    param([string]$originalGuid)
-
-    # Create a deterministic but anonymous GUID based on hash of original
-    $hash = [System.Security.Cryptography.MD5]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($originalGuid))
-    $guid = [System.Guid]::new($hash)
-    return $guid.ToString()
-}
-
 # Process each test to anonymize user data in TestDescription and TestResult
 if ($userMappings.Count -gt 0) {
     $replacementCount = 0
@@ -396,4 +388,3 @@ Write-Host "Output: $OutputHtmlPath" -ForegroundColor Green
 # Optionally save the anonymized JSON as well
 $anonymizedJsonPath = $OutputHtmlPath -replace '\.html$', '.json'
 $jsonContent | ConvertTo-Json -Depth 100 | Out-File -FilePath $anonymizedJsonPath -Encoding utf8 -Force
-Write-Host "Anonymized JSON saved to: $anonymizedJsonPath" -ForegroundColor Green
