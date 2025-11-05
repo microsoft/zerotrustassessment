@@ -236,7 +236,6 @@ export const reportData: ZeroTrustAssessmentReport = {
   "Account": "merill@elapora.com",
   "CurrentVersion": "0.18.0",
   "LatestVersion": "0.18.0",
-  "IsDemo": true,
   "TestResultSummary": {
     "IdentityPassed": 0,
     "IdentityTotal": 0,
