@@ -22,7 +22,14 @@ These tools help IT proactively detect and resolve issues, reducing support cost
 If not implemented, organizations risk delayed detection of performance issues, higher support costs, and reduced end-user productivity due to unresolved device problems.
 
 * * *
+### **Video Walkthrough**
 
+
+https://github.com/user-attachments/assets/ddd0f7c3-7929-4b26-bc75-2649016121b0
+
+
+
+* * *
 ### **Reference**
 
 - [What is Microsoft Intune Advanced Analytics](https://learn.microsoft.com/en-us/intune/analytics/advanced-endpoint-analytics)
