@@ -24,8 +24,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 * * *
 ### **Video Walkthrough**
 
-<video controls width="640">
-  <source src="
+!VIDEO[text to display](https://github.com/user-attachments/assets/8b41ec73-771c-4ef6-b7ad-2e9f3ded145e" type="video/mp4](https://github.com/user-attachments/assets/8b41ec73-771c-4ef6-b7ad-2e9f3ded145e" type="video/mp4)
 
 "https://github.com/user-attachments/assets/8b41ec73-771c-4ef6-b7ad-2e9f3ded145e" type="video/mp4">
 </video>
