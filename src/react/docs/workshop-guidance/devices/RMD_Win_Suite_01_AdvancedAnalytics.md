@@ -24,11 +24,12 @@ If not implemented, organizations risk delayed detection of performance issues, 
 * * *
 ### **Video Walkthrough**
 
-<video controls width="720" style="max-width: 100%;">
-  https://github.com/user-attachments/assets/4dd5f501-3799-4ef8-83da-16e90ad4d167
-  Your browser does not support the video tag. 
-  https://github.com/user-attachments/assets/4dd5f501-3799-4ef8-83da-16e90ad4d167Watch the video</a>.
-</video>
+<figure style="margin:0">
+  <video controls playsinline width="960" style="max-width:100%; border-radius: 8px;">
+    https://github.com/user-attachments/assets/4dd5f501-3799-4ef8-83da-16e90ad4d167
+  </video>
+  <figcaption>Video Walkthrough</figcaption>
+</figure>
 
 
 
