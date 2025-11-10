@@ -301,7 +301,7 @@ node_modules/
 *.dsw
 *.dsp
 
-# Visual Studio 6 technical files 
+# Visual Studio 6 technical files
 *.ncb
 *.aps
 
@@ -404,3 +404,6 @@ FodyWeavers.xsd
 /output
 ZeroTrustReport
 /src/report/dist
+/src/powershell/export
+ZeroTrustReport
+/code-tests/TestResults
