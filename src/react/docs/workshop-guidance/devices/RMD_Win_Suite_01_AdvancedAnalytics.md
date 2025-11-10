@@ -24,15 +24,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 * * *
 ### **Video Walkthrough**
 
-<figure style="margin:0">
-  <video controls playsinline width="960" style="max-width:100%; border-radius: 8px;">
 https://github.com/user-attachments/assets/d895a5d0-17f8-4990-aca0-0473a096ce26
-
-  </video>
-  <figcaption>Video Walkthrough</figcaption>
-</figure>
-
-
 
 * * *
 ### **Reference**
