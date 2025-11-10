@@ -26,7 +26,6 @@ If not implemented, organizations risk delayed detection of performance issues, 
 
 <video controls width="640">
   <source src="https://github.com/user-attachments/assets/d895a5d0-17f8-4990-aca0-0473a096ce26" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
 
 * * *
