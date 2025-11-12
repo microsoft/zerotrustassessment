@@ -36,7 +36,7 @@ function Test-Assessment-21812 {
     $passed = $false
     $testResultMarkdown = ""
 
-if ($globalAdmins.Count -gt 8) {
+if ($globalAdmins.Count -gt 5) {
         $passed = $false
     }
     else {
