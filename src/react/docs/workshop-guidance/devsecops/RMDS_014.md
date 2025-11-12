@@ -1,4 +1,4 @@
-# 014: Create process toperiodically reviewunused/stalecredentials​
+# 014: Create process to periodically review unused/stale credentials​
 
 ## Overview
 
