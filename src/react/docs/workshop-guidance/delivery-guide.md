@@ -64,5 +64,4 @@ Below are the estimated delivery times for each section of the pillar workshops:
 
 |Network|Infrastructure|Security Operations|
 |---|---|---|
-| • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hours <hr /> **• Total: 4 hours** | • Governance & Compliance: 0.5-1 hour <br/> • Servers: 1 hour <br/> • Containers: 1 hour <br/> • Storage: 0.5-1 hour <br/> • Databases: 0.5-1 hour <br/> • APIs: 0.5 hour <br/> • Infrastructure Services: 0.5 hour <hr /> **• Total: 4-6 hours** | • MDI: 1 hour <br/> • MDO: 1 hour <br/> • MDE: 1.5 hours <br/> • Sentinel & XDR: 1.5 hours <hr /> **• Total: 6 hours**|
-
+| • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hours <hr /> **• Total: 4 hours** | • Governance & Compliance: 0.5-1 hour <br/> • Servers: 1 hour <br/> • Containers: 1 hour <br/> • Storage: 0.5-1 hour <br/> • Databases: 0.5-1 hour <br/> • APIs: 0.5 hour <br/> • Infrastructure Services: 0.5 hour <hr /> **• Total: 4-6 hours** | • MDI: 0.5 hour <br/> • MDO: 0.5 hour <br/> • MDE: 1 hour <br/> • MDA: 0.5 hour <br/> • Sentinel & XDR: 1 hour <hr /> **• Total: 3.5 hours**|
