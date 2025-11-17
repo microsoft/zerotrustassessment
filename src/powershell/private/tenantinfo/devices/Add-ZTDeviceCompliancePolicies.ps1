@@ -4,7 +4,7 @@
     Add Device compliance policies.
 #>
 
-function Add-ZTDeviceCompliancePolicies {
+function Add-ZtDeviceCompliancePolicies {
 
     function Get-DefenderEndPointLabel($advancedThreatProtectionRequiredSecurityLevel) {
         switch ($advancedThreatProtectionRequiredSecurityLevel) {

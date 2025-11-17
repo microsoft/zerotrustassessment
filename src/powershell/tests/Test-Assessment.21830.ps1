@@ -2,6 +2,7 @@
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'High',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect engineering systems',
@@ -14,6 +15,10 @@
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Highly privileged roles are only activated in a PAW/SAW device"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
@@ -25,7 +30,7 @@
     $enabledCAPolicies = $allCAPolicies | Where-Object { $_.state -eq 'enabled' }
 
     # Get all role definitions
-    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion 'beta'
+    $allRoleDefinitions = Get-ZtRole
 
     # Filter for privileged roles on client side
     $privilegedRoles = $allRoleDefinitions | Where-Object { $_.isPrivileged -eq $true }

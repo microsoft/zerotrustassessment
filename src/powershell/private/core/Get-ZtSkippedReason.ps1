@@ -18,8 +18,9 @@ function Get-ZtSkippedReason {
         "NotLicensedEntraIDP2" { "This test is for tenants that are licensed for Entra ID P2. See [Entra ID licensing](https://learn.microsoft.com/entra/fundamentals/licensing)"; break}
         "NotLicensedEntraIDGovernance" { "This test is for tenants that are licensed for Entra ID Governance. See [Entra ID Governance licensing](https://learn.microsoft.com/entra/fundamentals/licensing#microsoft-entra-id-governance)"; break}
         "NotLicensedEntraWorkloadID" { "This test is for tenants that are licensed for Entra Workload ID. See [Entra Workload ID licensing](https://learn.microsoft.com/entra/workload-id/workload-identities-faqs)"; break}
-        "LicensedEntraIDPremium" { "This test is for tenants that are not licensed for any Entra ID Premium license. See [Entra ID licensing](https://learn.microsoft.com/entra/fundamentals/licensing)"; break}
+        "NotLicensedIntune" { "This test is for tenants that are licensed for Microsoft Intune. See [Microsoft Intune licensing](https://learn.microsoft.com/intune/intune-service/fundamentals/licenses)"; break}
         "NotSupported" { "This test relies on capabilities not currently available (e.g., cmdlets that are not available on all platforms, Resolve-DnsName)"; break}
+        "NoAzureAccess" { "The signed in user does not have access to the Azure subscription to perform this test."; break}
         default { $SkippedBecause; break}
     }
 }

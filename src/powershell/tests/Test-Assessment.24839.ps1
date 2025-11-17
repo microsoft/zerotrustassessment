@@ -5,8 +5,9 @@
 
 function Test-Assessment-24839 {
     [ZtTest(
-    	Category = 'Devices',
-    	ImplementationCost = 'Low',
+    	Category = 'Data',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
@@ -19,6 +20,11 @@ function Test-Assessment-24839 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that Corporate Wi-Fi network on iOS devices is securely managed"

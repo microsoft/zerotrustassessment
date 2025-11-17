@@ -8,8 +8,9 @@
 
 function Test-Assessment-24576 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'Low',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -46,6 +47,11 @@ function Test-PolicyAssignment {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Intune Endpoint Analytics policy is created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

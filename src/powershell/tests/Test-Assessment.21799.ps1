@@ -7,6 +7,7 @@ function Test-Assessment-21799 {
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P2'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Accelerate response and remediation',
@@ -19,6 +20,10 @@ function Test-Assessment-21799 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     $activity = "Checking Block high risk sign-ins"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

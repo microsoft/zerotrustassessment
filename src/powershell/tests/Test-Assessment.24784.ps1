@@ -5,8 +5,9 @@
 
 function Test-Assessment-24784 {
         [ZtTest(
-        	Category = 'Devices',
+        	Category = 'Device',
         	ImplementationCost = 'Low',
+        	MinimumLicense = ('Intune'),
         	Pillar = 'Devices',
         	RiskLevel = 'High',
         	SfiPillar = 'Protect networks',
@@ -20,6 +21,11 @@ function Test-Assessment-24784 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking that a Microsoft Defender Antivirus policy is created and assigned in Intune for macOS"
     Write-ZtProgress -Activity $activity -Status "Getting compliance policies"

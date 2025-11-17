@@ -1,15 +1,9 @@
-When Microsoft Entra Connect Sync uses a user account instead of a service principal to connect to the cloud, threat actors who compromise the connector user accounts can maintain persistent access to identity synchronization infrastructure. Legacy service account authentication relies on username and a randomly generated password that can be more compromised through credential theft, or password attacks. Once compromised, threat actors can exploit these accounts to manipulate identity synchronization processes, potentially creating backdoor accounts, escalating privileges, or disrupting the entire hybrid identity infrastructure. Service principal authentication with certificate-based credentials provides stronger authentication mechanisms, making it significantly harder for threat actors to establish persistence in the identity infrastructure.
+Microsoft Entra Connect Sync using user accounts instead of service principals creates security vulnerabilities. Legacy user account authentication with passwords is more susceptible to credential theft and password attacks than service principal authentication with certificates. Compromised connector accounts allow threat actors to manipulate identity synchronization, create backdoor accounts, escalate privileges, or disrupt hybrid identity infrastructure.  
 
 **Remediation action**
 
-Configure application identity for Entra Connect:
-- [Microsoft Entra Connect: Accounts and permissions](https://learn.microsoft.com/entra/identity/hybrid/connect/reference-connect-accounts-permissions)
-
-Remove legacy Directory Synchronization Accounts:
-- [Directory Synchronization Accounts](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference#directory-synchronization-accounts)
-
+- [Configure service principal authentication for Entra Connect](https://learn.microsoft.com/entra/identity/hybrid/connect/authenticate-application-id?tabs=default&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#onboard-to-application-based-authentication)
+- [Remove legacy Directory Synchronization Accounts](https://learn.microsoft.com/entra/identity/hybrid/connect/authenticate-application-id?tabs=default&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#remove-a-legacy-service-account)
 <!--- Results --->
 %TestResult%
 
- 
- 

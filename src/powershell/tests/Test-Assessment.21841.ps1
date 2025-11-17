@@ -5,14 +5,15 @@
 
 function Test-Assessment-21841{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Credential management',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
-    	RiskLevel = 'Low',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21841,
-    	Title = 'Authenticator app report suspicious activity is enabled',
+    	Title = 'Microsoft Authenticator app report suspicious activity setting is enabled',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

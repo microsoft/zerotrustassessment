@@ -17,7 +17,7 @@ param (
 	$Exclude = "",
 
 	[string]
-	$ModuleName = 'ZeroTrustAssessmentV2',
+	$ModuleName = 'ZeroTrustAssessment',
 
 	[switch]
 	$NoImport

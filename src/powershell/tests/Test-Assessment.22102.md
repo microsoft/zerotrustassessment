@@ -1,6 +1,0 @@
-...
-
-**Remediation action**
-
-<!--- Results --->
-%TestResult%

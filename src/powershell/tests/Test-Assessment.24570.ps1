@@ -5,15 +5,16 @@
 
 function Test-Assessment-24570 {
     [ZtTest(
-        Category = 'Identity',
-        ImplementationCost = 'Medium',
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect tenants and isolate production systems',
-        TenantType = ('Workforce'),
-        TestId = 24570,
-        Title = 'Entra Connect Sync is configured with Service Principal Credentials',
-        UserImpact = 'Medium'
+    	Category = 'Hybrid infrastructure',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 24570,
+    	Title = 'Entra Connect Sync is configured with Service Principal Credentials',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

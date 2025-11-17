@@ -1,7 +1,10 @@
-When smart lockout threshold is set to 10 or below, threat actors can exploit this configuration by conducting reconnaissance to identify valid user accounts without triggering lockout protections. Through credential stuffing attacks using compromised credentials from data breaches, attackers can systematically test account credentials while staying below the lockout threshold. This allows threat actors to establish initial access to user accounts without detection. Once initial access is gained, attackers can move laterally through the environment by leveraging the compromised account to access resources and escalate privileges. The persistence mechanism is strengthened because the account remains functional and unlocked, enabling continued access for data exfiltration or deployment of additional tools. A threshold of 10 or below provides insufficient protection against automated password spray attacks that distribute authentication attempts across multiple accounts, making it easier for threat actors to compromise accounts while evading detection mechanisms.
+When the smart lockout threshold is set to more than 10, threat actors can exploit the configuration to conduct reconnaissance, identify valid user accounts without triggering lockout protections, and establish initial access without detection. Once attackers gain initial access, they can move laterally through the environment by using the compromised account to access resources and escalate privileges.
+
+Smart lockout helps lock out bad actors who try to guess your users' passwords or use brute force methods to get in. Smart lockout recognizes sign-ins that come from valid users and treats them differently than ones of attackers and other unknown sources. A threshold of more than 10 provides insufficient protection against automated password spray attacks, making it easier for threat actors to compromise accounts while evading detection mechanisms. 
 
 **Remediation action**
-* [Configure smart lockout](https://learn.microsoft.com/en-us/entra/identity/authentication/howto-password-smart-lockout)
 
+- [Set Microsoft Entra smart lockout threshold to 10 or less](https://learn.microsoft.com/entra/identity/authentication/howto-password-smart-lockout?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
+

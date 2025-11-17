@@ -6,6 +6,7 @@ function Test-Assessment-21808{
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
@@ -18,6 +19,10 @@ function Test-Assessment-21808{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Restrict device code flow"
     Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
@@ -78,7 +83,7 @@ function Test-Assessment-21808{
     }
     else {
         if ($deviceCodeFlowPolicies.Count -eq 0) {
-            $testResultMarkdown += "No enabled Conditional Access policies found that target device code flow authentication.%TestResult%"
+            $testResultMarkdown += "No Conditional Access policies found that target device code flow authentication.%TestResult%"
         } else {
             $testResultMarkdown += "Device code flow policies exist but none are configured to block device code flow.%TestResult%"
         }
@@ -141,7 +146,7 @@ function Test-Assessment-21808{
             $mdInfo += "| [$(Get-SafeMarkdown($policy.displayName))]($portalLink) | Enabled | $targetUsers | $targetResources | $grantControls |`n"
         }
     } else {
-        $mdInfo += "No enabled Conditional Access policies targeting device code flow authentication were found.`n"
+        $mdInfo += "No Conditional Access policies targeting device code flow authentication were found.`n"
     }
 
     # If the test failed and there are inactive policies, show them

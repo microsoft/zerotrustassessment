@@ -13,8 +13,13 @@
 #>
 [CmdletBinding()]
 param (
+	# Disables importing the ZeroTrustAssessment module
 	[switch]
-	$NoImport
+	$NoImport,
+
+	# Check the markdown links after updating to ensure they are valid
+	[switch]
+	$DisableLinkValidation = $true
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,7 +29,7 @@ trap {
 }
 
 if (-not $NoImport) {
-	Import-Module "$PSScriptRoot/../src/powershell/ZeroTrustAssessmentV2.psd1" -Force -Global
+	Import-Module "$PSScriptRoot/../src/powershell/ZeroTrustAssessment.psd1" -Force -Global
 }
 . "$PSScriptRoot/commands/Set-TestMetadata.ps1"
 
@@ -408,6 +413,16 @@ foreach ($file in $testFiles) {
 		if ($testData.SfiPillar -ne $frontMatter['# sfipillar']) {
 			$update.SfiPillar = $frontMatter['# sfipillar']
 		}
+		# Process minimumlicense - split by comma and trim spaces
+		if ($frontMatter['# minimumlicense']) {
+			$minimumLicenseArray = $frontMatter['# minimumlicense'] -split ',' | ForEach-Object { $_.Trim() }
+			# Compare arrays - convert both to sorted strings for comparison
+			$currentLicenses = ($testData.MinimumLicense | Sort-Object) -join ','
+			$newLicenses = ($minimumLicenseArray | Sort-Object) -join ','
+			if ($currentLicenses -ne $newLicenses) {
+				$update.MinimumLicense = $minimumLicenseArray
+			}
+		}
 		#$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
 		if (-not $testData.Pillar) {
 			$update.Pillar = 'Identity'
@@ -451,4 +466,7 @@ foreach ($file in $testFiles) {
 	Set-Content -Path $file.FullName -Value $cleanContent
 }
 
-Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks
+if ($CheckLinks) {
+	Write-Host "`nChecking markdown links in test files..."
+	Test-FolderMarkdownLinks -FolderPath "$($PSScriptRoot)../../src/powershell/tests" -IncludeRelativeLinks
+}

@@ -6,13 +6,14 @@
 function Test-Assessment-21874 {
     [ZtTest(
     	Category = 'External collaboration',
-    	ImplementationCost = 'Medium',
+    	ImplementationCost = 'High',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 21874,
-    	Title = 'Allow/Deny lists of domains to restrict external collaboration are configured',
+    	Title = 'Guest access is limited to approved tenants',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

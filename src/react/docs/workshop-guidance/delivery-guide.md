@@ -6,12 +6,15 @@ sidebar_position: 1
 
 ## Overview
 The Zero Trust Workshop helps customers to develop an actionable and orderly strategy for implementing a secure Zero Trust posture. There are two parts to the Zero Trust Workshop. The first is assessing the customer's current environment with programmatic checks that will help to identify gaps and areas for improvement. The second is helping the customer to identify projects and initiatives that they need to implement to further advance their adoption of capabilities to transform their environment.
-There are currently three different workshops available for the following pillars: 
-- Identity 
-- Devices  
-- Data
+There are currently six different workshops available for the following pillars: 
+- Identity (Recently Updated)
+- Devices  (Recently Updated)
+- Data (Recently Updated)
+- Network (New)
+- Infrastructure (New)
+- Security Operations (New)
 
-Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data (and any future modules as they become available).  
+Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, and Security Operations (and any future modules as they become available).
 
 ## Purpose
 This document is for use by the delivery expert that plans on delivering the Zero Trust Pillar Workshops to customers. It aims to provide delivery experts with a comprehensive overview of the tasks that will be required to successfully deliver the Zero Trust Pillar Workshops to customers. It is structured chronologically following the standard and typical flow of a workshop delivery.
@@ -38,7 +41,11 @@ Recommendations for the customer stakeholders that should attend each of the pil
 
 |Identity|Devices|Data|
 |---|---|---|
-| • Identity and Access Management (IAM) team <br/> • Security Operations team <br/> • Devices/Endpoint team <br/> • Enterprise Application Developers <br/> • CISO (if possible) <br/> • IT Director (if possible)| • MDM Admin (Architect, Ops) <br/> • Security (Architect, Ops) <br/> • Conditional Access Admin (Security, Identity, MDM) <br/> • Governance and Risk <br/> • CISO (if possible) <br/> • IT Director (if possible) | • Information Protection architects and officers <br/> • Compliance officers and administrators <br/> • Data Platform administrators focused on data security (Exchange, SharePoint, etc.) <br/> • CISO (if possible) <br/> • IT Director or Lead Architect (if possible)|
+| • Identity and Access Management (IAM) team <br/> • Security Operations team <br/> • Devices/Endpoint team <br/> • ID Governance (IGA) team <br/> • Enterprise Application Developers <br/> • CISO (if possible) <br/> • IT Director (if possible)| • MDM Admin (Architect, Ops) <br/> • Security (Architect, Ops) <br/> • Conditional Access Admin (Security, Identity, MDM) <br/> • Governance and Risk <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Information Protection architects and officers <br/> • Compliance officers and administrators <br/> • Data Platform administrators focused on data security (Exchange, SharePoint, etc.) <br/> • CISO (if possible) <br/> • IT Director or Lead Architect (if possible)|
+
+|Network|Infrastructure|Security Operations|
+|---|---|---|
+| • Identity and Access Management (IAM) team <br/> • Network Operations team <br/>  • Security Operations team <br/> • Devices/Endpoint team <br/> • Applications / workloads stakeholders <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Infrastructure Security team <br/> • Security Operations team <br/> • Endpoint Security team <br/> • Compliance and Policy team <br/> • Application Development team <br/> • Network Administration team <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Security Team Decision Makers (IT Manager, SecOps Manager, etc.) <br/> • Security Team Specialists (Security Architect, Security Analyst, IR Manager, Security Engineer IT Admin, etc.) <br/> • CISO (if possible) <br/> • IT Director (if possible)|
 
 ## Engagement Model
 
@@ -53,5 +60,8 @@ Recommendations for the customer stakeholders that should attend each of the pil
 Below are the estimated delivery times for each section of the pillar workshops:
 |Identity|Devices|Data|
 |---|---|---|
-| • Apps: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Devices: 0.5 hour <br/> • Operations: 1 hour <hr /> **• Total: 4 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect You Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours**|
+| • Application Access, AuthN, and AuthZ Controls: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Identity Governance: 1.5 hours <br/> • Operations: 1 hour <hr /> **• Total: 5 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect You Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours**|
 
+|Network|Infrastructure|Security Operations|
+|---|---|---|
+| • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hours <hr /> **• Total: 4 hours** | • Governance & Compliance: 0.5-1 hour <br/> • Servers: 1 hour <br/> • Containers: 1 hour <br/> • Storage: 0.5-1 hour <br/> • Databases: 0.5-1 hour <br/> • APIs: 0.5 hour <br/> • Infrastructure Services: 0.5 hour <hr /> **• Total: 4-6 hours** | • MDI: 0.5 hour <br/> • MDO: 0.5 hour <br/> • MDE: 1 hour <br/> • MDA: 0.5 hour <br/> • Sentinel & XDR: 1 hour <hr /> **• Total: 3.5 hours**|

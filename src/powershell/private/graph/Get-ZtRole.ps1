@@ -17,7 +17,8 @@
 	#>
 	[CmdletBinding()]
 	param(
-		[switch]$CisaHighlyPrivilegedRoles
+		[switch]$CisaHighlyPrivilegedRoles,
+		[switch]$IncludePrivilegedRoles
 	)
 
 	#https://github.com/cisagov/ScubaGear/blob/main/PowerShell/ScubaGear/baselines/aad.md#highly-privileged-roles
@@ -34,11 +35,13 @@
 
 	Write-PSFMessage -Message "Getting directory role definitions."
 
-	$roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion v1.0
+	$roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
 
 	if ($CisaHighlyPrivilegedRoles) {
 		return $roles | Where-Object id -in $highlyPrivilegedRoles
 	}
-
+	elseif ($IncludePrivilegedRoles) {
+		return $roles | Where-Object { $_.isPrivileged -eq $true }
+	}
 	return $roles
 }

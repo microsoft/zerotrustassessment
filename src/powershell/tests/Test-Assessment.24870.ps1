@@ -5,20 +5,26 @@
 
 function Test-Assessment-24870 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24870,
-    	Title = 'Secure Wi-Fi profiles are configured to protect macOS connectivity and devices',
+    	Title = 'Secure Wi-Fi profiles protect macOS devices from unauthorized network access',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that Corporate Wi-Fi Network on macOS Devices is Securely Managed "
