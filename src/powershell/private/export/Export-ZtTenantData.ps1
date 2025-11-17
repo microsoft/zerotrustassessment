@@ -9,7 +9,7 @@ This function connects to the tenant and downloads the data to a local folder.
 The folder to output the report to. If not specified, the report will be output to the current directory.
 #>
 
-function Export-TenantData {
+function Export-ZtTenantData {
 	[CmdletBinding()]
 	param (
 		# The folder to output the report to.
@@ -28,14 +28,11 @@ function Export-TenantData {
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices')]
 		[string]
-		$Pillar = 'All'
-	)
+		$Pillar = 'All',
 
-	# Nothing to do if the Pillar is Device (for now)
-	if ($Pillar -eq 'Devices') {
-		Write-PSFMessage 'Skipping data export for Device pillar.'
-		return
-	}
+		[int]
+		$ThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5)
+	)
 
 	#region Helper Functions
 	function Get-ZtiAuditQueryString {
@@ -62,11 +59,69 @@ function Export-TenantData {
 	#endregion Helper Functions
 
 	# TODO: Log tenant id and name to config and if it is different from the current tenant context error out.
-	$EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
+	$entraIDPlan = Get-ZtLicenseInformation -Product EntraID
+	$azureEnvironment = (Get-MgContext).Environment
+
+	# Data that may be inserted into configured exports with placeholders
+	$configVariables = [PSFramework.Object.PsfHashtable]@{
+		AuditQueryString = Get-ZtiAuditQueryString -PastDays $Days
+		MaximumSignInLogQueryTime = $MaximumSignInLogQueryTime
+	}
+	# If they key does not exist, pass through the original key, rather than return nothing
+	$configVariables.SetCalculator({
+		Write-PSFMessage -Level Warning -Message "Unexpected Export Variable: %$_%. This is likely a bug, please report this here: https://github.com/microsoft/zerotrustassessment/issues"
+		"%$_%"
+	})
+
+	$exportConfig = Import-PSFPowerShellDataFile -Path "$script:ModuleRoot\assets\export-tenant.config.psd1" -Psd1Mode Safe
+	$includedExports = @()
+	$applicableExports = foreach ($exportCfg in $exportConfig) {
+		if ($Pillar -notcontains 'All' -and $Pillar -notcontains $exportCfg.Pillar) { continue }
+		if ($exportCfg.Environment -and $exportCfg.Environment -notcontains $azureEnvironment) { continue }
+		if ($exportCfg.IncludePlan -and $entraIDPlan -notin $exportCfg.IncludePlan) { continue }
+		if ($exportCfg.ExcludePlan -and $entraIDPlan -in $exportCfg.IncludePlan) { continue }
+
+		if ($exportCfg.DependsOn -and $includedExports -notcontains $exportCfg.DependsOn) {
+			# Dependencies must exist, be viable and come first in the order within the config file
+			Write-PSFMessage -Level Warning -Message @"
+The Export $($exportCfg.Name) would meet requirements but depends on the Export $($exportCfg.DependsOn), which does not.
+This is very likely a configuration error in the ZeroTrustAssessment module, please report this on:
+https://github.com/microsoft/zerotrustassessment/issues
+"@
+			continue
+		}
+		$includedExports += $exportCfg.Name
+
+		# Insert dynamic data as prepared above
+		if ($exportCfg.Uri -like "%*%") { $exportCfg.Uri = $configVariables[$exportCfg.Uri.Trim("%")] }
+		if ($exportCfg.QueryString -like "%*%") { $exportCfg.QueryString = $configVariables[$exportCfg.QueryString.Trim("%")] }
+		if ($exportCfg.MaximumQueryTime -like "%*%") { $exportCfg.MaximumQueryTime = $configVariables[$exportCfg.MaximumQueryTime.Trim("%")] }
+
+		$exportCfg
+	}
+
+	try {
+		$workflow = Start-ZtTenantDataExport -ExportConfig $applicableExports -ThrottleLimit $ThrottleLimit
+		Wait-ZtTenantDataExport -Workflow $workflow
+	}
+	finally {
+		if ($workflow) {
+			Disable-PSFConsoleInterrupt
+			Export-ZtExportState -Workflow $workflow
+			$workflow | Stop-PSFRunspaceWorkflow
+			$workflow | Remove-PSFRunspaceWorkflow
+		}
+
+		Enable-PSFConsoleInterrupt
+	}
+
+	return
+
+	#TODO: Remove after wrapping up the parallelized export
 
 	$userQueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
 	if ($EntraIDPlan -ne 'Free') {
-		#Add premium fields
+		# Add premium fields
 		$userQueryString += ', signInActivity'
 	}
 	Export-GraphEntity -ExportPath $ExportPath -EntityName 'User' `
