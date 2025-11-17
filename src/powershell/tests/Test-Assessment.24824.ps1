@@ -5,8 +5,9 @@
 
 function Test-Assessment-24824 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
+        MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -19,6 +20,10 @@ function Test-Assessment-24824 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that Non-compliant Devices are Restricted from Accessing Corporate Data "
@@ -40,7 +45,7 @@ function Test-Assessment-24824 {
         $testResultMarkdown = "At least one enabled conditional access policy with device compliance exists for each platform (Windows, macOS, iOS, Android), or a policy exists with no platform section (applies to all).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No enabled conditional access policy with device compliance exists for one or more platforms, and no policy applies to all platforms.`n`n%TestResult%"
+        $testResultMarkdown = "No conditional access policy with device compliance exists for one or more platforms, and no policy applies to all platforms.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 

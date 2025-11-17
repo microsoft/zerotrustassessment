@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.3",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-table": "^8.19.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -34,6 +35,7 @@
     "react-wrap-balancer": "^1.1.0",
     "recharts": "^2.12.7",
     "remark-gfm": "^4.0.0",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"
   },

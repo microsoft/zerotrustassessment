@@ -5,11 +5,12 @@
 
 function Test-Assessment-21862{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Monitoring',
     	ImplementationCost = 'High',
+    	MinimumLicense = ('P2'),
     	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect identities and secrets',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Monitor and detect cyberthreats',
     	TenantType = ('Workforce','External'),
     	TestId = 21862,
     	Title = 'All risky workload identities are triaged',
@@ -19,6 +20,10 @@ function Test-Assessment-21862{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if( -not (Get-ZtLicense EntraWorkloadID) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraWorkloadID
+        return
+    }
 
     $activity = "Checking All risky workload identities are triaged"
     Write-ZtProgress -Activity $activity -Status "Getting risky service principals"
@@ -47,8 +52,6 @@ function Test-Assessment-21862{
             $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
             foreach ($sp in $untriagedRiskyPrincipals) {
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/SignOn/objectId/$($sp.id)/appId/$($sp.appId)"
-                Write-Host $sp.riskState
-                Write-Host $(Get-RiskStateLabel -RiskState $sp.riskState)
                 $testResultMarkdown += "| [$($sp.displayName)]($portalLink) | $($sp.servicePrincipalType) | $(Get-FormattedRiskLevel -RiskLevel $sp.riskLevel) | $(Get-RiskStateLabel -RiskState $sp.riskState) | $($sp.riskLastUpdatedDateTime) |`n"
             }
         }

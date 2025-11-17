@@ -43,7 +43,6 @@ function Export-ZtTenantData {
 		)
 
 		# Get the date range to query by subtracting the number of days from today set to midnight
-		$dateFilter = $null
 		$statusFilter = "status/errorcode eq 0"
 
 		$dateStart = (Get-Date -Hour 0 -Minute 0 -Second 0).AddDays(-$pastDays)
@@ -128,66 +127,74 @@ https://github.com/microsoft/zerotrustassessment/issues
 		-EntityUri 'beta/users' -ProgressActivity 'Users' `
 		-QueryString $userQueryString -ShowCount
 
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
-		-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
-		-QueryString '$top=999' -ShowCount
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
+			-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
+			-QueryString '$expand=owners&$top=999' -ShowCount
 
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
-		-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
-		-QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
-		-ShowCount
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
+			-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
+			-QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
+			-ShowCount
 
-	if ((Get-MgContext).Environment -eq 'Global') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
-			-EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+		if ((Get-MgContext).Environment -eq 'Global') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipalSignIn' `
+				-EntityUri 'beta/reports/servicePrincipalSignInActivities' -ProgressActivity 'Service Principal Sign In Activities'
+		}
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
+			-EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
+
+		# Active role assignments
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
+			-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
+			-QueryString "`$expand=principal"
+
+		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+			# API requires PIM license
+			# Filter for permanently assigned/active (ignore PIM eligible users that have temporarily actived)
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentScheduleInstance' `
+				-EntityUri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ProgressActivity 'Role Assignment Instance' `
+				-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
+
+			# Filter for currently valid, eligible role assignments
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleInstance' `
+				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ProgressActivity 'Role Eligibility Instance' `
+				-QueryString "`$expand=principal"
+
+			# Export role management policy assignments for PIM activation alert configuration
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
+				-EntityUri 'beta/policies/roleManagementPolicyAssignments' -ProgressActivity 'Role Management Policy Assignments' `
+				-QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
+		}
+
+		if ($EntraIDPlan -ne 'Free') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
+				-EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
+		}
+
+		## Download all privileged user details based on roles and role assignments
+		Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
+			-InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
+
+		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
+			# Export eligible privileged groups
+			Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Assigned Privileged Groups' `
+				-InputEntityName 'RoleAssignmentScheduleInstance' -EntityName 'RoleAssignmentScheduleInstanceGroup'
+
+			Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
+				-InputEntityName 'RoleEligibilityScheduleInstance' -EntityName 'RoleEligibilityScheduleInstanceGroup'
+		}
+
+		if ($EntraIDPlan -ne 'Free') {
+			Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
+				-EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
+				-QueryString (Get-ZtiAuditQueryString -PastDays $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
+		}
 	}
 
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleDefinition' `
-		-EntityUri 'beta/roleManagement/directory/roleDefinitions' -ProgressActivity 'Role Definitions' `
-
-
-	# Active role assignments
-	Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
-		-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
-		-QueryString "`$expand=principal"
-
-	if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
-		# API requires PIM license
-		# Filter for permanetly assigned/active (ignore PIM eligible users that have temporarily actived)
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentSchedule' `
-			-EntityUri 'beta/roleManagement/directory/roleAssignmentSchedules' -ProgressActivity 'Role Assignment Schedules' `
-			-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
-
-		# Filter for currently valid, eligible role assignments
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleRequest' `
-			-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleRequests' -ProgressActivity 'Role Eligibility' `
-			-QueryString "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
-
-		# Export role management policy assignments for PIM activation alert configuration
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
-			-EntityUri 'beta/policies/roleManagementPolicyAssignments' -ProgressActivity 'Role Management Policy Assignments' `
-			-QueryString "`$filter=scopeId eq '/' and scopeType eq 'DirectoryRole'"
+	if ($Pillar -in ('All', 'Devices')) {
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
+			-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
+			-QueryString '$top=999' -ShowCount
 	}
-
-	if ($EntraIDPlan -ne 'Free') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'UserRegistrationDetails' `
-			-EntityUri 'beta/reports/authenticationMethods/userRegistrationDetails' -ProgressActivity 'User Registration Details'
-	}
-
-	## Download all privileged user details based on roles and role assignments
-	Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Active Privileged Groups' `
-		-InputEntityName 'RoleAssignment' -EntityName 'RoleAssignmentGroup'
-
-	if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
-		# Export eligible privileged groups
-		Export-GraphEntityPrivilegedGroup -ExportPath $ExportPath -ProgressActivity 'Eligible Privileged Groups' `
-			-InputEntityName 'RoleEligibilityScheduleRequest' -EntityName 'RoleEligibilityScheduleRequestGroup'
-	}
-
-	if ($EntraIDPlan -ne 'Free') {
-		Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
-			-EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
-			-QueryString (Get-ZtiAuditQueryString -PastDays $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
-	}
-	#Export-Entra -Path $OutputFolder -Type Config
 }

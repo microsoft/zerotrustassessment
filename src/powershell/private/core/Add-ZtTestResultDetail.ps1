@@ -65,9 +65,10 @@ function Add-ZtTestResultDetail {
 		[Parameter(Mandatory = $false)]
 		[string] $Title,
 
-		# [ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
-		#     'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', "LicensedEntraIDPremium", 'NotSupported'
-		# )]
+		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
+		    'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', 'NotSupported', 'UnderConstruction',
+			'NotLicensedIntune', 'NoAzureAccess'
+		)]
 		[string] $SkippedBecause,
 
 		[ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
@@ -182,6 +183,7 @@ function Add-ZtTestResultDetail {
 		TestImplementationCost = $ImplementationCost
 		TestSfiPillar          = $testMeta.SfiPillar
 		TestPillar             = $testMeta.Pillar
+		TestMinimumLicense     = $testMeta.MinimumLicense
 		TestDescription        = $Description
 		TestResult             = $Result
 		TestSkipped            = $SkippedBecause

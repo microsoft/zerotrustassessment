@@ -5,14 +5,15 @@
 
 function Test-Assessment-22072{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Credential management',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 22072,
-    	Title = 'Self-Service Password Reset does not use Q & A',
+    	Title = 'Self-service password reset doesn''t use security questions',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

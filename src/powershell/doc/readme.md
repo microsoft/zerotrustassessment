@@ -6,7 +6,7 @@
 
 As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
 
-Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entrasecurityrecommendations) and Intune Security Recommendations (https://learn.microsoft.com/en-us/intune/intune-service/protect/zero-trust-configure-security) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entra/security) and [Intune Security Recommendations](https://aka.ms/intune/security) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
 
 Manually checking a tenant's configuration against the published guidance can be time consuming and error-prone. The Zero Trust Assessment PowerShell module was built to help with this activity.
 
@@ -26,9 +26,12 @@ _This initial release is limited to Microsoft Entra and Microsoft Intune._
 - Global Administrator role
   - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
 
+- Uninstall previous versions
+  - If you have installed previous versions of the Zero Trust Assessment, [uninstall](#how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment) before continuing.
+  
 ## Install the PowerShell modules
 
-Follow these steps to install the assessment and connect to Microsoft Graph and your tenant.
+Follow these steps to install the assessment and connect to Microsoft Graph and your tenant. 
 
 ### Open PowerShell 7
 
@@ -36,29 +39,12 @@ Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open Po
 
 *When prompted to install modules from an untrusted repository, choose `Yes to All`.*
 
-### Install Zero Trust Assessment V2 module
+### Install Zero Trust Assessment module
 
-Install the `ZeroTrustAssessmentV2` module using the following command.
-
-```powershell
-Install-Module ZeroTrustAssessmentV2 -Scope CurrentUser
-```
-
-### Install Az.Accounts module
-
-Install the Az.Accounts module by running the following command.
+Install the `ZeroTrustAssessment` module using the following command.
 
 ```powershell
-Install-Module Az.Accounts -Scope CurrentUser
-```
-
-### Updating the modules
-
-If you have previously installed the modules, run the following instead to ensure you have the latest versions of the modules.
-
-```powershell
-Update-Module ZeroTrustAssessmentV2 -Force -Scope CurrentUser 
-Update-Module Az.Accounts -Force -Scope CurrentUser 
+Install-Module ZeroTrustAssessment -Scope CurrentUser
 ```
 
 ## Connect to Microsoft Graph and Azure
@@ -72,10 +58,12 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - CrossTenantInformation.ReadBasic.All
 - DeviceManagementApps.Read.All
 - DeviceManagementConfiguration.Read.All
+- DeviceManagementManagedDevices.Read.All
 - DeviceManagementRBAC.Read.All
 - DeviceManagementServiceConfig.Read.All
 - Directory.Read.All
 - DirectoryRecommendations.Read.All
+- EntitlementManagement.Read.All
 - IdentityRiskEvent.Read.All
 - IdentityRiskyUser.Read.All
 - Policy.Read.All
@@ -83,8 +71,6 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - Policy.Read.PermissionGrant
 - PrivilegedAccess.Read.AzureAD
 - Reports.Read.All
-- RoleEligibilitySchedule.Read.Directory
-- RoleEligibilitySchedule.ReadWrite.Directory
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
 
@@ -100,13 +86,9 @@ When prompted, sign into Microsoft Graph as a Global Administrator.
 
 The assessment first connects to Microsoft Graph and then to Azure. A second window will open to perform the Azure sign in.
 
-![Microsoft Entra sign in page](media/image1.png)
-
 When prompted, review and accept the requested permissions.
 
 The next time you connect, you won't be required to reconsent to the permissions.
-
-![Graph permissions](media/image2.png)
 
 ### Sign into Azure
 
@@ -114,11 +96,7 @@ When prompted, sign into Azure as a Global Administrator.
 
 The Azure sign in is required to check for export of Audit and sign in logs. If you don't have Azure, you can close the window without signing in and ignore the warning. The test that relies on Azure will be skipped.
 
-![Microsoft Azure sign in page](media/image3.png)
-
 If you have multiple subscriptions, select a tenant and subscription when prompted.
-
-![Azure subscription selection in console](media/image4.png)
 
 ## Run the assessment
 
@@ -159,7 +137,7 @@ After the assessment completes, you are redirected to the **Overview** tab of th
 
 ![Screenshot of Results](media/image5.png)
 
-The **Identity** tab displays the list of checks that were run against the tenant and provide recommendations on addressing the tenant configuration information.
+The **Identity** and **Devices** tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
 
 ![Screenshot of test results](media/image6.png)
 
@@ -202,11 +180,42 @@ report. If you have any feedback or issues, reach out to your account contact th
 
 ## FAQs
 
-### Why is the `RoleEligibilitySchedule.ReadWrite.Directory` permission requested for a read-only report?
+### How can I uninstall previous versions of the Zero Trust Assessment?
 
-- The [List roleAssignmentScheduleRequests](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignmentschedulerequests?view=graph-rest-1.0&tabs=http) Graph API call requires this permission RoleEligibilitySchedule.ReadWrite.Directory.
+Run the following commands to ensure all versions of the past modules are uninstalled.
 
-- You can run this report as a Global Reader to ensure that no changes are made.
+Next restart PowerShell and follow the instructions in this page to install the latest version.
+
+```powershell
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+```
+
+### Could not load file or assembly Microsoft.Graph.Authentication
+
+This error happens when you have conflicting versions of Microsoft Graph PowerShell installed.
+
+To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
+
+When uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment, restart PowerShell and then try a fresh install. 
+
+This is the order of running the cmdlets.
+
+```powershell
+Install-Module Uninstall-Graph
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Uninstall-Graph
+```
+Close all open PowerShell windows.
+
+Start a new PowerShell session.
+
+```powershell
+Install-Module ZeroTrustAssessment -Scope CurrentUser
+```
+
+Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
 
 ### How can I know what the script is doing?
 

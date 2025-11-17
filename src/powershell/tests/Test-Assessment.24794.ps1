@@ -5,8 +5,9 @@
 
 function Test-Assessment-24794 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -43,6 +44,11 @@ function Test-Assessment-24794 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Intune Terms and Conditions Policy is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

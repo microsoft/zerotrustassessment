@@ -8,15 +8,16 @@
 
 function Test-Assessment-24568 {
     [ZtTest(
-    	Category = 'Device management',
-    	ImplementationCost = 'High',
+    	Category = 'Tenant',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24568,
-    	Title = 'macOS - Platform SSO is configured and assigned',
-    	UserImpact = 'Low'
+    	Title = 'Platform SSO is configured to strengthen authentication on macOS devices',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
@@ -111,10 +112,7 @@ Filters policies that contain either of two different settings, each located in 
     function Get-FilteredPoliciesBySetting {
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory)]
             [array]$Policies,
-
-            [Parameter(Mandatory)]
             [hashtable]$RequiredSettings
         )
 
@@ -208,6 +206,11 @@ Filters policies that contain either of two different settings, each located in 
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking macOS Platform SSO is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

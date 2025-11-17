@@ -5,11 +5,12 @@
 
 function Test-Assessment-24840 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
     	TestId = 24840,
     	Title = 'Secure Wi-Fi profiles protect Android devices from unauthorized network access',
@@ -19,6 +20,11 @@ function Test-Assessment-24840 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     #region Data Collection
     $activity = 'Checking that Corporate Wi-Fi network on fully managed Android devices is securely managed'

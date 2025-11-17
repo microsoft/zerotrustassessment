@@ -5,8 +5,9 @@
 
 function Test-Assessment-24827 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Data',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -19,6 +20,10 @@ function Test-Assessment-24827 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that unmanaged and unprotected Apps are restricted from Accessing Corporate Data"
@@ -38,7 +43,7 @@ function Test-Assessment-24827 {
         $testResultMarkdown = "At least one enabled conditional access policy with Application Protection exists for iOS and Android. The platforms could be part of same or different policy with the required grant control.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No enabled conditional access policy with Application Protection exists for iOS and Android or both.`n`n%TestResult%"
+        $testResultMarkdown = "No conditional access policy with Application Protection exists for iOS and Android or both.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 

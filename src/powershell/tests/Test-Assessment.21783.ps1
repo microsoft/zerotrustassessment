@@ -7,6 +7,7 @@ function Test-Assessment-21783 {
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
@@ -20,13 +21,18 @@ function Test-Assessment-21783 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
+
     $activity = "Checking phishing resistant authentication for privileged roles"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # TODO: Check for report-only and exclude from pass state. Include CA state in the CA outpu
     # -Include a pass / partial / fail next to each CA policy to show which ones have phish resistant for roles.
 
-    $roles = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
+    $roles = Get-ZtRole
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
     $asp = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -ApiVersion beta
 

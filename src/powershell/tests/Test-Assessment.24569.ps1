@@ -5,20 +5,26 @@
 
 function Test-Assessment-24569 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Device',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24569,
     	Title = 'FileVault encryption protects data on macOS devices',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     #region Data Collection
     $activity = "Checking that the Intune macOS FileVault policy is created and Assigned"

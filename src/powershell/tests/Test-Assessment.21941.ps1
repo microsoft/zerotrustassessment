@@ -7,6 +7,7 @@ function Test-Assessment-21941{
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
+        MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect identities and secrets',
@@ -19,6 +20,10 @@ function Test-Assessment-21941{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Token protection policies are configured"
     Write-ZtProgress -Activity $activity -Status "Getting Conditional Access policies"

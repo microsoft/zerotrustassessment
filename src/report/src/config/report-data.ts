@@ -8,6 +8,7 @@ export interface ZeroTrustAssessmentReport {
   Account: string;
   CurrentVersion: string;
   LatestVersion: string;
+  IsDemo?: boolean;
   Tests: Test[];
   TenantInfo: TenantInfo | null;
   TestResultSummary: TestResultSummaryData;
@@ -15,14 +16,16 @@ export interface ZeroTrustAssessmentReport {
 }
 
 export interface TenantInfo {
-  OverviewCaMfaAllUsers: SankeyData | null;
-  OverviewCaDevicesAllUsers: SankeyData | null
-  OverviewAuthMethodsPrivilegedUsers: SankeyData | null;
-  OverviewAuthMethodsAllUsers: SankeyData | null;
-  ConfigWindowsEnrollment: ConfigWindowsEnrollment[] | null;
-  ConfigDeviceEnrollmentRestriction: ConfigDeviceEnrollmentRestriction[] | null;
-  ConfigDeviceCompliancePolicies: ConfigDeviceCompliancePolicies[] | null;
-  ConfigDeviceAppProtectionPolicies: ConfigDeviceAppProtectionPolicies[] | null;
+  OverviewCaMfaAllUsers?: SankeyData | null;
+  OverviewCaDevicesAllUsers?: SankeyData | null;
+  OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
+  OverviewAuthMethodsAllUsers?: SankeyData | null;
+  ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
+  ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
+  ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
+  ConfigDeviceAppProtectionPolicies?: ConfigDeviceAppProtectionPolicies[] | null;
+  DeviceOverview?: DeviceOverview | null;
+  TenantOverview?: TenantOverview | null;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -34,7 +37,7 @@ export interface ConfigWindowsEnrollment {
 
 export interface ConfigDeviceEnrollmentRestriction {
   Platform: string | null;
-  Priority: string | null;
+  Priority: string | number | null;
   Name: string | null;
   MDM: string | null;
   MinVer: string | null;
@@ -51,21 +54,21 @@ export interface ConfigDeviceCompliancePolicies {
   DefenderForEndPoint: string | null;
   MinOsVersion: string | null;
   MaxOsVersion: string | null;
-  RequirePswd: string | null;
-  MinPswdLength: string | null;
+  RequirePswd: boolean | string | null;
+  MinPswdLength: number | string | null;
   PasswordType: string | null;
-  PswdExpiryDays: string | null;
-  CountOfPreviousPswdToBlock: string | null;
-  MaxInactivityMin: string | null;
+  PswdExpiryDays: number | string | null;
+  CountOfPreviousPswdToBlock: number | string | null;
+  MaxInactivityMin: number | string | null;
   RequireEncryption: string | null;
   RootedJailbrokenDevices: string | null;
   MaxDeviceThreatLevel: string | null;
   RequireFirewall: string | null;
-  ActionForNoncomplianceDaysPushNotification: string | null;
-  ActionForNoncomplianceDaysSendEmail: string | null;
-  ActionForNoncomplianceDaysRemoteLock: string | null;
-  ActionForNoncomplianceDaysBlock: string | null;
-  ActionForNoncomplianceDaysRetire: string | null;
+  ActionForNoncomplianceDaysPushNotification: number | string | null;
+  ActionForNoncomplianceDaysSendEmail: number | string | null;
+  ActionForNoncomplianceDaysRemoteLock: number | string | null;
+  ActionForNoncomplianceDaysBlock: number | string | null;
+  ActionForNoncomplianceDaysRetire: number | string | null;
   Scope: string | null;
   IncludedGroups: string | null;
   ExcludedGroups: string | null;
@@ -73,7 +76,7 @@ export interface ConfigDeviceCompliancePolicies {
 
 export interface ConfigDeviceAppProtectionPolicies {
   Platform: string | null;
-  Name: string | null;
+  Name: string | string[] | null;
   AppsPublic: string | null;
   AppsCustom: string | null;
   BackupOrgDataToICloudOrGoogle: string | null;
@@ -118,428 +121,149 @@ export interface TestResultSummaryData {
 export interface SankeyData {
   nodes: SankeyDataNode[];
   description: string;
+  totalDevices?: number;
+  entrareigstered?: number;
+  entrahybridjoined?: number;
+  entrajoined?: number;
 }
 export interface SankeyDataNode {
-  value: number;
+  value: number | null;
   source: string;
   target: string;
+}
+
+export interface TenantOverview {
+  UserCount: number;
+  GuestCount: number;
+  GroupCount: number;
+  ApplicationCount: number;
+  DeviceCount: number;
+  ManagedDeviceCount: number;
+}
+export interface DeviceOverview {
+  DesktopDevicesSummary: SankeyData | null;
+  MobileSummary: SankeyData | null;
+  ManagedDevices: ManagedDevices | null;
+  DeviceCompliance: DeviceCompliance | null;
+  DeviceOwnership: DeviceOwnership | null;
+}
+
+export interface DeviceOwnership {
+  corporateCount: number | null;
+  personalCount: number | null;
+}
+
+export interface ManagedDevices {
+  "@odata.context": string;
+  id: string;
+  totalCount: number | null;
+  desktopCount: number;
+  mobileCount: number;
+  enrolledDeviceCount: number;
+  mdmEnrolledCount: number;
+  dualEnrolledDeviceCount: number;
+  managedDeviceModelsAndManufacturers: object | null;
+  lastModifiedDateTime: string;
+  deviceOperatingSystemSummary: DeviceOperatingSystemSummary;
+  deviceExchangeAccessStateSummary: DeviceExchangeAccessStateSummary;
+}
+
+export interface DeviceOperatingSystemSummary {
+  androidCount: number;
+  iosCount: number;
+  macOSCount: number;
+  windowsMobileCount: number;
+  windowsCount: number;
+  unknownCount: number;
+  androidDedicatedCount: number;
+  androidDeviceAdminCount: number;
+  androidFullyManagedCount: number;
+  androidWorkProfileCount: number;
+  androidCorporateWorkProfileCount: number;
+  configMgrDeviceCount: number;
+  aospUserlessCount: number;
+  aospUserAssociatedCount: number;
+  linuxCount: number;
+  chromeOSCount: number;
+}
+
+export interface DeviceExchangeAccessStateSummary {
+  allowedDeviceCount: number;
+  blockedDeviceCount: number;
+  quarantinedDeviceCount: number;
+  unknownDeviceCount: number;
+  unavailableDeviceCount: number;
+}
+
+export interface DeviceCompliance {
+  "@odata.context": string;
+  inGracePeriodCount: number;
+  configManagerCount: number;
+  id: string;
+  unknownDeviceCount: number;
+  notApplicableDeviceCount: number;
+  compliantDeviceCount: number;
+  remediatedDeviceCount: number;
+  nonCompliantDeviceCount: number;
+  errorDeviceCount: number;
+  conflictDeviceCount: number;
 }
 
 export interface Test {
   TestTitle: string;
   TestRisk: string;
-  TestAppliesTo: string[];
+  TestAppliesTo: string[] | null;
   TestImpact: string;
   TestCategory: string | null;
   TestImplementationCost: string;
+  TestMinimumLicense?: string[] | null;
   TestSfiPillar: string | null;
   TestPillar: string | null;
   SkippedReason: string | null;
   TestResult: string;
   TestSkipped: string;
   TestStatus: string;
-  TestTags: string[];
+  TestTags: string[] | null;
   TestId: string;
   TestDescription: string;
 }
 
 export const reportData: ZeroTrustAssessmentReport = {
-  "ExecutedAt": "2025-08-14T21:07:07.24614+10:00",
-  "TenantId": "0ae863cb-7e9c-481a-9762-cc7fd08df299",
-  "TenantName": "Merill - Sep 25",
-  "Domain": "merillsep25.onmicrosoft.com",
-  "Account": "merill@merillsep25.onmicrosoft.com",
-  "CurrentVersion": "0.11.0",
-  "LatestVersion": "0.11.0",
+  "ExecutedAt": "2025-10-21T08:07:56.502298+11:00",
+  "TenantId": "0817c655-a853-4d8f-9723-3a333b5b9235",
+  "TenantName": "Pora Inc.",
+  "Domain": "elapora.com",
+  "Account": "merill@elapora.com",
+  "CurrentVersion": "0.18.0",
+  "LatestVersion": "0.18.0",
   "TestResultSummary": {
-    "IdentityPassed": 1,
-    "IdentityTotal": 1,
-    "DevicesPassed": 0,
-    "DevicesTotal": 0,
+    "IdentityPassed": 0,
+    "IdentityTotal": 0,
+    "DevicesPassed": 1,
+    "DevicesTotal": 1,
     "DataPassed": 0,
     "DataTotal": 0
   },
   "Tests": [
     {
-      "TestResult": "\nNo inactive applications with privileged Entra built-in roles\n\n\n\n",
-      "TestPillar": "Identity",
-      "SkippedReason": null,
+      "TestId": "24546",
+      "TestResult": "\nWindows Automatic Enrollment is enabled.\n\n\n## Windows Automatic Enrollment\n\n| Policy Name | User Scope |\n| :---------- | :--------- |\n| [Microsoft Intune](https://intune.microsoft.com/#view/Microsoft_AAD_IAM/MdmConfiguration.ReactView/appId/0000000a-0000-0000-c000-000000000000/appName/Microsoft%20Intune) | ✅ Specific Groups |\n\n\n\n",
+      "TestDescription": "If Windows automatic enrollment isn't enabled, unmanaged devices can become an entry point for attackers. Threat actors might use these devices to access corporate data, bypass compliance policies, and introduce vulnerabilities into the environment. Devices joined to Microsoft Entra without Intune enrollment create gaps in visibility and control. These unmanaged endpoints can expose weaknesses in the operating system or misconfigured applications that attackers can exploit.\n\nEnforcing automatic enrollment ensures Windows devices are managed from the start, enabling consistent policy enforcement and visibility into compliance. This supports Zero Trust by ensuring all devices are verified, monitored, and governed by security controls.\n\n**Remediation action**\n\nEnable automatic enrollment for Windows devices using Intune and Microsoft Entra to ensure all domain-joined or Entra-joined devices are managed:  \n- [Enable Windows automatic enrollment](https://learn.microsoft.com/intune/intune-service/enrollment/windows-enroll?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-windows-automatic-enrollment)\n\nFor more information, see:  \n- [Deployment guide - Enrollment for Windows](https://learn.microsoft.com/intune/intune-service/fundamentals/deployment-guide-enroll?tabs=work-profile%2Ccorporate-owned-apple%2Cautomatic-enrollment&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enrollment-for-windows)\n",
       "TestSkipped": "",
-      "TestTags": [
-        "Application"
-      ],
-      "TestSfiPillar": "Protect engineering systems",
+      "TestTitle": "Windows automatic device enrollment is enforced to eliminate risks from unmanaged endpoints",
       "TestStatus": "Passed",
-      "TestId": "21771",
-      "TestAppliesTo": [
-        "Identity"
-      ],
-      "TestCategory": "Application management",
-      "TestDescription": "Attackers might exploit valid but inactive applications that still have elevated privileges. These applications can be used to gain initial access without raising alarm because they're legitimate applications. From there, attackers can use the application privileges to plan or execute other attacks. Attackers might also maintain access by manipulating the inactive application, such as by adding credentials. This persistence ensures that even if their primary access method is detected, they can regain access later.\n\n**Remediation action**\n\n- [Disable inactive privileged service principals](https://learn.microsoft.com/graph/api/serviceprincipal-update?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n- Investigate if the application has legitimate use cases. If so, [analyze if a OAuth2 permission is a better fit](https://learn.microsoft.com/entra/identity-platform/v2-app-types?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n- [If service principal doesn't have legitimate use cases, delete it](https://learn.microsoft.com/graph/api/serviceprincipal-delete?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)\n",
+      "TestTags": null,
       "TestRisk": "High",
+      "TestPillar": "Devices",
       "TestImpact": "Low",
-      "TestTitle": "Inactive applications don’t have highly privileged built-in roles",
-      "TestImplementationCost": "Low"
+      "TestSfiPillar": "Protect tenants and isolate production systems",
+      "TestCategory": "Devices",
+      "TestImplementationCost": "Low",
+      "SkippedReason": null,
+      "TestAppliesTo": null
     }
   ],
   "TenantInfo": {
-    "OverviewCaMfaAllUsers": {
-      "nodes": [
-        {
-          "source": "User sign in",
-          "value": 25,
-          "target": "No CA applied"
-        },
-        {
-          "source": "User sign in",
-          "value": 27,
-          "target": "CA applied"
-        },
-        {
-          "source": "CA applied",
-          "value": 3,
-          "target": "No MFA"
-        },
-        {
-          "source": "CA applied",
-          "value": 24,
-          "target": "MFA"
-        }
-      ],
-      "description": "Over the past 29 days, 46.2% of sign-ins were protected by conditional access policies enforcing multifactor."
-    },
-    "OverviewCaDevicesAllUsers": {
-      "nodes": [
-        {
-          "source": "User sign in",
-          "value": 52,
-          "target": "Unmanaged"
-        },
-        {
-          "source": "User sign in",
-          "value": 0,
-          "target": "Managed"
-        },
-        {
-          "source": "Managed",
-          "value": 0,
-          "target": "Non-compliant"
-        },
-        {
-          "source": "Managed",
-          "value": 0,
-          "target": "Compliant"
-        }
-      ],
-      "description": "Over the past 29 days, 0% of sign-ins were from compliant devices."
-    },
-    "OverviewAuthMethodsAllUsers": {
-      "nodes": [
-        {
-          "source": "Users",
-          "value": 1,
-          "target": "Single factor"
-        },
-        {
-          "source": "Users",
-          "value": 3,
-          "target": "Phishable"
-        },
-        {
-          "source": "Phishable",
-          "value": 1,
-          "target": "Phone"
-        },
-        {
-          "source": "Phishable",
-          "value": 2,
-          "target": "Authenticator"
-        },
-        {
-          "source": "Users",
-          "value": 0,
-          "target": "Phish resistant"
-        },
-        {
-          "source": "Phish resistant",
-          "value": 0,
-          "target": "Passkey"
-        },
-        {
-          "source": "Phish resistant",
-          "value": 0,
-          "target": "WHfB"
-        }
-      ],
-      "description": "Strongest authentication method registered by all users."
-    },
-    "OverviewAuthMethodsPrivilegedUsers": {
-      "nodes": [
-        {
-          "source": "Users",
-          "value": 1,
-          "target": "Single factor"
-        },
-        {
-          "source": "Users",
-          "value": 3,
-          "target": "Phishable"
-        },
-        {
-          "source": "Phishable",
-          "value": 1,
-          "target": "Phone"
-        },
-        {
-          "source": "Phishable",
-          "value": 2,
-          "target": "Authenticator"
-        },
-        {
-          "source": "Users",
-          "value": 0,
-          "target": "Phish resistant"
-        },
-        {
-          "source": "Phish resistant",
-          "value": 0,
-          "target": "Passkey"
-        },
-        {
-          "source": "Phish resistant",
-          "value": 0,
-          "target": "WHfB"
-        }
-      ],
-      "description": "Strongest authentication method registered by privileged users."
-    },
-    "ConfigDeviceCompliancePolicies": [
-      {
-        "Platform": "",
-        "PolicyName": "My iOS policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My android personally-owned",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "Min Windows Compliance",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My macOS policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My Windows policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My android device policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My android enterprise policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My Windows 8 policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      },
-      {
-        "Platform": "",
-        "PolicyName": "My android aosp policy",
-        "DefenderForEndPoint": "",
-        "MinOsVersion": "",
-        "MaxOsVersion": "",
-        "RequirePswd": "",
-        "MinPswdLength": "",
-        "PasswordType": "",
-        "PswdExpiryDays": "",
-        "CountOfPreviousPswdToBlock": "",
-        "MaxInactivityMin": "",
-        "RequireEncryption": "",
-        "RootedJailbrokenDevices": "",
-        "MaxDeviceThreatLevel": "",
-        "RequireFirewall": "",
-        "ActionForNoncomplianceDaysPushNotification": "",
-        "ActionForNoncomplianceDaysSendEmail": "",
-        "ActionForNoncomplianceDaysRemoteLock": "",
-        "ActionForNoncomplianceDaysBlock": "",
-        "ActionForNoncomplianceDaysRetire": "",
-        "Scope": "",
-        "IncludedGroups": "",
-        "ExcludedGroups": ""
-      }
-    ],
     "ConfigWindowsEnrollment": [
       {
         "Type": "MDM",
@@ -554,19 +278,246 @@ export const reportData: ZeroTrustAssessmentReport = {
         "Groups": "Not Applicable"
       }
     ],
+    "ConfigDeviceCompliancePolicies": [
+      {
+        "Platform": "iOS/iPadOS",
+        "PolicyName": "My iOS policy",
+        "DefenderForEndPoint": "Clear",
+        "MinOsVersion": "4",
+        "MaxOsVersion": "5",
+        "RequirePswd": true,
+        "MinPswdLength": 5,
+        "PasswordType": "Alphanumeric",
+        "PswdExpiryDays": 34,
+        "CountOfPreviousPswdToBlock": 5,
+        "RequireEncryption": "Not Applicable",
+        "RootedJailbrokenDevices": "Blocked",
+        "MaxDeviceThreatLevel": "Secured",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 0,
+        "ActionForNoncomplianceDaysPushNotification": 2.0,
+        "ActionForNoncomplianceDaysSendEmail": 2.0,
+        "ActionForNoncomplianceDaysRemoteLock": 2.0,
+        "ActionForNoncomplianceDaysBlock": 1.0,
+        "ActionForNoncomplianceDaysRetire": 3.0,
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Android Enterprise (Personal)",
+        "PolicyName": "My android personally-owned",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "3",
+        "MaxOsVersion": "4",
+        "RequirePswd": "Yes",
+        "MinPswdLength": 5,
+        "PasswordType": null,
+        "PswdExpiryDays": 200,
+        "CountOfPreviousPswdToBlock": 12,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Blocked",
+        "MaxDeviceThreatLevel": "Low",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 5,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": 2.0,
+        "ActionForNoncomplianceDaysBlock": 2.0,
+        "ActionForNoncomplianceDaysRetire": "Immediately",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Windows 10 and later",
+        "PolicyName": "Min Windows Compliance",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": null,
+        "MaxOsVersion": null,
+        "RequirePswd": "",
+        "MinPswdLength": null,
+        "PasswordType": null,
+        "PswdExpiryDays": null,
+        "CountOfPreviousPswdToBlock": null,
+        "RequireEncryption": "",
+        "RootedJailbrokenDevices": "Not Applicable",
+        "MaxDeviceThreatLevel": "Not Applicable",
+        "RequireFirewall": "",
+        "MaxInactivityMin": null,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "macOS",
+        "PolicyName": "My macOS policy",
+        "DefenderForEndPoint": "",
+        "MinOsVersion": "1",
+        "MaxOsVersion": "2",
+        "RequirePswd": "Yes",
+        "MinPswdLength": 6,
+        "PasswordType": null,
+        "PswdExpiryDays": null,
+        "CountOfPreviousPswdToBlock": null,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Not Applicable",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "Yes",
+        "MaxInactivityMin": 15,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": 4.0,
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": 6.0,
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Windows 10 and later",
+        "PolicyName": "My Windows policy",
+        "DefenderForEndPoint": "High",
+        "MinOsVersion": null,
+        "MaxOsVersion": null,
+        "RequirePswd": "Yes",
+        "MinPswdLength": 5,
+        "PasswordType": null,
+        "PswdExpiryDays": 22,
+        "CountOfPreviousPswdToBlock": 6,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Not Applicable",
+        "MaxDeviceThreatLevel": "Not Applicable",
+        "RequireFirewall": "Yes",
+        "MaxInactivityMin": 1,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": "Immediately",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Android device administrator",
+        "PolicyName": "My android device policy",
+        "DefenderForEndPoint": "Clear",
+        "MinOsVersion": "2",
+        "MaxOsVersion": "3",
+        "RequirePswd": "Yes",
+        "MinPswdLength": null,
+        "PasswordType": null,
+        "PswdExpiryDays": null,
+        "CountOfPreviousPswdToBlock": null,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Blocked",
+        "MaxDeviceThreatLevel": "Low",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 1,
+        "ActionForNoncomplianceDaysPushNotification": 12.0,
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "Immediately",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": "Immediately",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Android Enterprise (Corp)",
+        "PolicyName": "My android enterprise policy",
+        "DefenderForEndPoint": "Low",
+        "MinOsVersion": null,
+        "MaxOsVersion": null,
+        "RequirePswd": "Yes",
+        "MinPswdLength": 4,
+        "PasswordType": null,
+        "PswdExpiryDays": 200,
+        "CountOfPreviousPswdToBlock": null,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "",
+        "MaxDeviceThreatLevel": "",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 15,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Windows 8.1 and later",
+        "PolicyName": "My Windows 8 policy",
+        "DefenderForEndPoint": "Not Applicable",
+        "MinOsVersion": "1.1",
+        "MaxOsVersion": "2.1",
+        "RequirePswd": "Yes",
+        "MinPswdLength": null,
+        "PasswordType": null,
+        "PswdExpiryDays": 22,
+        "CountOfPreviousPswdToBlock": 10,
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Not Applicable",
+        "MaxDeviceThreatLevel": "Not Applicable",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 240,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": 4.0,
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      },
+      {
+        "Platform": "Android (AOSP)",
+        "PolicyName": "My android aosp policy",
+        "DefenderForEndPoint": "Not Applicable",
+        "MinOsVersion": "1",
+        "MaxOsVersion": "2",
+        "RequirePswd": "Yes",
+        "MinPswdLength": 16,
+        "PasswordType": null,
+        "PswdExpiryDays": "Not Applicable",
+        "CountOfPreviousPswdToBlock": "Not Applicable",
+        "RequireEncryption": "Yes",
+        "RootedJailbrokenDevices": "Blocked",
+        "MaxDeviceThreatLevel": "Not Applicable",
+        "RequireFirewall": "Not Applicable",
+        "MaxInactivityMin": 480,
+        "ActionForNoncomplianceDaysPushNotification": "",
+        "ActionForNoncomplianceDaysSendEmail": "",
+        "ActionForNoncomplianceDaysRemoteLock": "Immediately",
+        "ActionForNoncomplianceDaysBlock": "Immediately",
+        "ActionForNoncomplianceDaysRetire": "",
+        "Scope": "Default",
+        "IncludedGroups": "",
+        "ExcludedGroups": ""
+      }
+    ],
     "ConfigDeviceAppProtectionPolicies": [
       {
-        "Platform": "",
-        "Name": "Test",
-        "AppsPublic": "",
-        "AppsCustom": "",
-        "BackupOrgDataToICloudOrGoogle": "",
-        "SendOrgDataToOtherApps": "",
-        "AppsToExempt": "",
-        "SaveCopiesOfOrgData": "",
-        "AllowUserToSaveCopiesToSelectedServices": "",
-        "DataProtectionTransferTelecommunicationDataTo": "",
-        "DataProtectionReceiveDataFromOtherApps": "",
+        "Platform": "Android",
+        "Name": "Android Policy",
+        "AppsPublic": "Cortana, Microsoft Dynamics 365 for phones, Field Service (Dynamics 365), Dynamics 365 Sales, Microsoft Dynamics 365 for tablets, Microsoft Invoicing, Microsoft Edge, Power Automate, Azure Information Protection, Microsoft Launcher, Microsoft Lists, Microsoft Kaizala, Microsoft Power Apps, Microsoft Excel, Skype for Business, Microsoft 365 (Office) (China), Microsoft Office (HL), Microsoft 365 Copilot, Microsoft Lens, Microsoft OneNote, Microsoft Outlook, Microsoft PowerPoint, Microsoft Word, Microsoft Planner, Microsoft Power BI, Microsoft Defender Endpoint, Microsoft SharePoint, Microsoft OneDrive, Microsoft Teams, Microsoft To-Do, Microsoft Whiteboard, Work Folders, Microsoft 365 Admin, Viva Engage, Microsoft StaffHub",
+        "AppsCustom": "com.microsoft.d365.fs.mobile, com.microsoft.ramobile, com.microsoft.stream, com.oracle.java.pdfviewer",
+        "BackupOrgDataToICloudOrGoogle": "Allow",
+        "SendOrgDataToOtherApps": "Policy managed apps",
+        "AppsToExempt": "Trello:app:trello",
+        "SaveCopiesOfOrgData": "Block",
+        "AllowUserToSaveCopiesToSelectedServices": "Box, Local storage, OneDrive for Business, SharePoint, Photo library",
+        "DataProtectionTransferTelecommunicationDataTo": "A specific dialer app",
+        "DataProtectionReceiveDataFromOtherApps": "Policy managed apps",
         "DataProtectionOpenDataIntoOrgDocuments": "",
         "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
         "DataProtectionRestrictCutCopyBetweenOtherApps": "",
@@ -581,27 +532,27 @@ export const reportData: ZeroTrustAssessmentReport = {
         "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
         "ConditionalLaunchAppDisabedAccount": "",
         "ConditionalLaunchAppMinAppVersion": "",
-        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": "Block access",
         "ConditionalLaunchDevicePrimaryMtdService": "",
         "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
         "ConditionalLaunchDeviceMinOsVersion": "",
         "ConditionalLaunchDeviceMaxOsVersion": "",
-        "Scope": "",
+        "Scope": "Default",
         "IncludedGroups": "",
         "ExcludedGroups": ""
       },
       {
-        "Platform": "",
-        "Name": null,
-        "AppsPublic": "",
-        "AppsCustom": "",
-        "BackupOrgDataToICloudOrGoogle": "",
-        "SendOrgDataToOtherApps": "",
+        "Platform": "iOS/iPadOS",
+        "Name": "iOS Policy",
+        "AppsPublic": "Adobe Acrobat Reader, Cortana, Microsoft Dynamics 365, Microsoft Invoicing, Microsoft Dynamics 365 for phones, Field Service (Dynamics 365), Dynamics 365 Sales, Skype for Business, Microsoft Kaizala, Microsoft Power Apps, Microsoft Edge, Microsoft 365 Admin, Microsoft Excel, Microsoft Outlook, Microsoft PowerPoint, Microsoft Word, Microsoft Lens, Microsoft 365 Copilot, Microsoft OneNote, Microsoft Planner, Microsoft Power BI, Power Automate, Azure Information Protection, Microsoft Defender Endpoint, Microsoft SharePoint, Microsoft StaffHub, Microsoft OneDrive, Microsoft Teams, Microsoft Lists, Microsoft To-Do, Microsoft Whiteboard, Work Folders, Vera for Intune, Viva Engage",
+        "AppsCustom": "com.microsoft.d365.fs.mobile, com.microsoft.ramobile, com.microsoft.stream, com.microsoft.visio, my.merill.net",
+        "BackupOrgDataToICloudOrGoogle": "Block",
+        "SendOrgDataToOtherApps": "Policy managed apps with OS sharing",
         "AppsToExempt": "",
-        "SaveCopiesOfOrgData": "",
-        "AllowUserToSaveCopiesToSelectedServices": "",
-        "DataProtectionTransferTelecommunicationDataTo": "",
-        "DataProtectionReceiveDataFromOtherApps": "",
+        "SaveCopiesOfOrgData": "Allow",
+        "AllowUserToSaveCopiesToSelectedServices": "Box, Local storage, OneDrive for Business, SharePoint, Photo library",
+        "DataProtectionTransferTelecommunicationDataTo": "A specific dialer app",
+        "DataProtectionReceiveDataFromOtherApps": "None",
         "DataProtectionOpenDataIntoOrgDocuments": "",
         "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
         "DataProtectionRestrictCutCopyBetweenOtherApps": "",
@@ -616,18 +567,18 @@ export const reportData: ZeroTrustAssessmentReport = {
         "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
         "ConditionalLaunchAppDisabedAccount": "",
         "ConditionalLaunchAppMinAppVersion": "",
-        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": "Wipe data",
         "ConditionalLaunchDevicePrimaryMtdService": "",
         "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
         "ConditionalLaunchDeviceMinOsVersion": "",
         "ConditionalLaunchDeviceMaxOsVersion": "",
-        "Scope": "",
+        "Scope": "Default",
         "IncludedGroups": "",
         "ExcludedGroups": ""
       },
       {
-        "Platform": "",
-        "Name": null,
+        "Platform": "Windows",
+        "Name": "Windows Info Protect",
         "AppsPublic": "",
         "AppsCustom": "",
         "BackupOrgDataToICloudOrGoogle": "",
@@ -635,8 +586,8 @@ export const reportData: ZeroTrustAssessmentReport = {
         "AppsToExempt": "",
         "SaveCopiesOfOrgData": "",
         "AllowUserToSaveCopiesToSelectedServices": "",
-        "DataProtectionTransferTelecommunicationDataTo": "",
-        "DataProtectionReceiveDataFromOtherApps": "",
+        "DataProtectionTransferTelecommunicationDataTo": null,
+        "DataProtectionReceiveDataFromOtherApps": null,
         "DataProtectionOpenDataIntoOrgDocuments": "",
         "DataProtectionAllowUsersToOpenDataFromSelectedServices": "",
         "DataProtectionRestrictCutCopyBetweenOtherApps": "",
@@ -651,12 +602,12 @@ export const reportData: ZeroTrustAssessmentReport = {
         "ConditionalLaunchAppOfflineGracePeriodWipeData": "",
         "ConditionalLaunchAppDisabedAccount": "",
         "ConditionalLaunchAppMinAppVersion": "",
-        "ConditionalLaunchDeviceRootedJailbrokenDevices": "",
+        "ConditionalLaunchDeviceRootedJailbrokenDevices": null,
         "ConditionalLaunchDevicePrimaryMtdService": "",
         "ConditionalLaunchDeviceMaxAllowedDeviceThreatLevel": "",
         "ConditionalLaunchDeviceMinOsVersion": "",
         "ConditionalLaunchDeviceMaxOsVersion": "",
-        "Scope": "",
+        "Scope": "Default",
         "IncludedGroups": "",
         "ExcludedGroups": ""
       }
@@ -664,19 +615,19 @@ export const reportData: ZeroTrustAssessmentReport = {
     "ConfigDeviceEnrollmentRestriction": [
       {
         "Platform": "iOS/iPadOS",
-        "Priority": "2",
+        "Priority": 2,
         "Name": "iOS Restriction 2",
         "MDM": "Blocked",
         "MinVer": null,
         "MaxVer": null,
         "PersonallyOwned": "Allowed",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "Default",
         "AssignedTo": "All users"
       },
       {
         "Platform": "Android Enterprise (work profile)",
-        "Priority": "1",
+        "Priority": 1,
         "Name": "Andy Penn",
         "MDM": "Allowed",
         "MinVer": "5.0",
@@ -688,7 +639,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "Android device administrator",
-        "Priority": "1",
+        "Priority": 1,
         "Name": "Andy Penn",
         "MDM": "Allowed",
         "MinVer": "5.0",
@@ -700,25 +651,25 @@ export const reportData: ZeroTrustAssessmentReport = {
       },
       {
         "Platform": "iOS/iPadOS",
-        "Priority": "1",
+        "Priority": 1,
         "Name": "iOS Restriction",
         "MDM": "Allowed",
         "MinVer": "9.0",
         "MaxVer": "10.0",
         "PersonallyOwned": "Blocked",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "Default",
         "AssignedTo": "aad-conditional-access-excluded, Avanade Users"
       },
       {
         "Platform": "Windows",
-        "Priority": "1",
+        "Priority": 1,
         "Name": "Win1",
         "MDM": "Allowed",
         "MinVer": null,
         "MaxVer": null,
         "PersonallyOwned": "Allowed",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "Biscope, Default",
         "AssignedTo": "All users"
       },
@@ -730,7 +681,7 @@ export const reportData: ZeroTrustAssessmentReport = {
         "MinVer": "9.0",
         "MaxVer": "10.0",
         "PersonallyOwned": "Blocked",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "",
         "AssignedTo": "All devices"
       },
@@ -742,7 +693,7 @@ export const reportData: ZeroTrustAssessmentReport = {
         "MinVer": "10.0",
         "MaxVer": "11.0",
         "PersonallyOwned": "Blocked",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "",
         "AssignedTo": "All devices"
       },
@@ -766,7 +717,7 @@ export const reportData: ZeroTrustAssessmentReport = {
         "MinVer": null,
         "MaxVer": null,
         "PersonallyOwned": "Blocked",
-        "BlockedManufacturers": "",
+        "BlockedManufacturers": null,
         "Scope": "",
         "AssignedTo": "All devices"
       },
@@ -782,7 +733,241 @@ export const reportData: ZeroTrustAssessmentReport = {
         "Scope": "",
         "AssignedTo": "All devices"
       }
-    ]
+    ],
+    "DeviceOverview": {
+      "DesktopDevicesSummary": {
+        "nodes": [
+          {
+            "source": "Desktop devices",
+            "target": "Windows",
+            "value": 11.0
+          },
+          {
+            "source": "Desktop devices",
+            "target": "macOS",
+            "value": 2.0
+          },
+          {
+            "source": "Windows",
+            "target": "Entra joined",
+            "value": 8.0
+          },
+          {
+            "source": "Windows",
+            "target": "Entra hybrid joined",
+            "value": 0
+          },
+          {
+            "source": "Windows",
+            "target": "Entra registered",
+            "value": 3.0
+          },
+          {
+            "source": "macOS",
+            "target": "Compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Non-compliant",
+            "value": 1.0
+          },
+          {
+            "source": "macOS",
+            "target": "Unmanaged",
+            "value": null
+          },
+          {
+            "source": "Entra joined",
+            "target": "Compliant",
+            "value": null
+          },
+          {
+            "source": "Entra joined",
+            "target": "Non-compliant",
+            "value": 4.0
+          },
+          {
+            "source": "Entra joined",
+            "target": "Unmanaged",
+            "value": null
+          },
+          {
+            "source": "Entra hybrid joined",
+            "target": "Compliant",
+            "value": null
+          },
+          {
+            "source": "Entra hybrid joined",
+            "target": "Non-compliant",
+            "value": null
+          },
+          {
+            "source": "Entra hybrid joined",
+            "target": "Unmanaged",
+            "value": null
+          },
+          {
+            "source": "Entra registered",
+            "target": "Compliant",
+            "value": null
+          },
+          {
+            "source": "Entra registered",
+            "target": "Non-compliant",
+            "value": null
+          },
+          {
+            "source": "Entra registered",
+            "target": "Unmanaged",
+            "value": null
+          }
+        ],
+        "entrahybridjoined": 0,
+        "description": "Desktop devices (Windows and macOS) by join type and compliance status.",
+        "totalDevices": 13.0,
+        "entrajoined": 9.0,
+        "entrareigstered": 4.0
+      },
+      "MobileSummary": {
+        "nodes": [
+          {
+            "source": "Mobile devices",
+            "target": "Android",
+            "value": 40
+          },
+          {
+            "source": "Mobile devices",
+            "target": "iOS",
+            "value": 53
+          },
+          {
+            "source": "Android",
+            "target": "Android (Company)",
+            "value": 20
+          },
+          {
+            "source": "Android",
+            "target": "Android (Personal)",
+            "value": 20
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Company)",
+            "value": 28
+          },
+          {
+            "source": "iOS",
+            "target": "iOS (Personal)",
+            "value": 25
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Compliant",
+            "value": 15
+          },
+          {
+            "source": "Android (Company)",
+            "target": "Non-compliant",
+            "value": 5
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Compliant",
+            "value": 8
+          },
+          {
+            "source": "Android (Personal)",
+            "target": "Non-compliant",
+            "value": 12
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Compliant",
+            "value": 25
+          },
+          {
+            "source": "iOS (Company)",
+            "target": "Non-compliant",
+            "value": 3
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Compliant",
+            "value": 18
+          },
+          {
+            "source": "iOS (Personal)",
+            "target": "Non-compliant",
+            "value": 7
+          }
+        ],
+        "description": "Mobile devices by compliance status.",
+        "totalDevices": 93
+      },
+      "ManagedDevices": {
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.managedDeviceOverview",
+        "id": "4a197fb2-79de-4f46-89e3-bd318ca08984",
+        "enrolledDeviceCount": 0,
+        "mdmEnrolledCount": 0,
+        "dualEnrolledDeviceCount": 0,
+        "managedDeviceModelsAndManufacturers": null,
+        "lastModifiedDateTime": "2025-10-20T21:07:52.4781572Z",
+        "deviceOperatingSystemSummary": {
+          "androidCount": 300,
+          "iosCount": 340,
+          "macOSCount": 10,
+          "windowsMobileCount": 0,
+          "windowsCount": 1000,
+          "unknownCount": 0,
+          "androidDedicatedCount": 0,
+          "androidDeviceAdminCount": 0,
+          "androidFullyManagedCount": 0,
+          "androidWorkProfileCount": 0,
+          "androidCorporateWorkProfileCount": 0,
+          "configMgrDeviceCount": 0,
+          "aospUserlessCount": 0,
+          "aospUserAssociatedCount": 0,
+          "linuxCount": 20,
+          "chromeOSCount": 0
+        },
+        "deviceExchangeAccessStateSummary": {
+          "allowedDeviceCount": 0,
+          "blockedDeviceCount": 0,
+          "quarantinedDeviceCount": 0,
+          "unknownDeviceCount": 0,
+          "unavailableDeviceCount": 0
+        },
+        "desktopCount": 20,
+        "mobileCount": 30,
+        "totalCount": 50
+      },
+      "DeviceCompliance": {
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicyDeviceStateSummary/$entity",
+        "inGracePeriodCount": 0,
+        "configManagerCount": 0,
+        "id": "afaac8a4-5f74-40f5-a213-51af45bedc36",
+        "unknownDeviceCount": 0,
+        "notApplicableDeviceCount": 0,
+        "compliantDeviceCount": 10,
+        "remediatedDeviceCount": 0,
+        "nonCompliantDeviceCount": 10,
+        "errorDeviceCount": 0,
+        "conflictDeviceCount": 0
+      },
+      "DeviceOwnership": {
+        "corporateCount": 20,
+        "personalCount": 10
+      }
+    },
+    "TenantOverview": {
+      "UserCount": 71000,
+      "GuestCount": 12,
+      "GroupCount": 1890,
+      "ApplicationCount": 120,
+      "DeviceCount": 20,
+      "ManagedDeviceCount": 0
+    }
   },
   "EndOfJson": "EndOfJson"
 }

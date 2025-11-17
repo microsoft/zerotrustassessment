@@ -7,6 +7,7 @@ function Test-Assessment-21786 {
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
@@ -19,6 +20,11 @@ function Test-Assessment-21786 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking User sign-in activity uses token protection"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
@@ -76,7 +82,7 @@ function Test-Assessment-21786 {
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "No enabled Conditional Access policies targeting token protection.`n"
+        $mdInfo = "No Conditional Access policies targeting token protection.`n"
     }
 
     # Replace the placeholder with the detailed information

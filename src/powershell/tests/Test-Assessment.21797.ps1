@@ -7,6 +7,7 @@ function Test-Assessment-21797{
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P2'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Accelerate response and remediation',
@@ -19,6 +20,10 @@ function Test-Assessment-21797{
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
+        return
+    }
 
     $activity = "Checking Restrict access to high risk users"
     Write-ZtProgress -Activity $activity -Status "Getting policies"
@@ -102,9 +107,9 @@ function Test-Assessment-21797{
     }
     else {
         if ($passwordlessEnabled -and $caBlockPolicies.Count -eq 0) {
-            $testResultMarkdown += "Passwordless authentication is enabled, but no enabled policies to block high risk users are configured.%TestResult%"
+            $testResultMarkdown += "Passwordless authentication is enabled, but no policies to block high risk users are configured.%TestResult%"
         } else {
-            $testResultMarkdown += "No enabled policies found to protect against high risk users.%TestResult%"
+            $testResultMarkdown += "No policies found to protect against high risk users.%TestResult%"
         }
     }
 
@@ -149,7 +154,7 @@ function Test-Assessment-21797{
     # Include inactive policies if any
     if ($inactiveCAPolicies.Count -gt 0) {
         if ($allEnabledHighRiskPolicies.Count -eq 0) {
-            $mdInfo += "No enabled conditional access policies targeting high risk users found.`n`n"
+            $mdInfo += "No conditional access policies targeting high risk users found.`n`n"
             $mdInfo += "### Inactive policies targeting high risk users (not contributing to security posture):`n`n"
             $mdInfo += "| Conditional Access Policy Name | Status | Conditions |`n"
             $mdInfo += "| :--------------------- | :----- | :--------- |`n"

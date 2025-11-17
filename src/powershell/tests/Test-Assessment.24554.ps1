@@ -8,15 +8,16 @@
 
 function Test-Assessment-24554 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Device',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24554,
     	Title = 'Update policies for iOS/iPadOS are enforced to reduce risk from unpatched vulnerabilities',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
@@ -46,6 +47,11 @@ function Test-PolicyAssignment {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking iOS update policies are created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

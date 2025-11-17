@@ -5,20 +5,26 @@
 
 function Test-Assessment-24545 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24545,
     	Title = 'Compliance policies protect fully managed and corporate-owned Android devices',
-    	UserImpact = 'Low'
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     #region Data Collection
     $activity = "Checking the Compliance policy assignment for Android Enterprise Fully managed device is configured and assigned"

@@ -7,6 +7,7 @@ function Test-Assessment-21823{
     [ZtTest(
     	Category = 'External collaboration',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -23,6 +24,12 @@ function Test-Assessment-21823{
 
     $activity = "Checking Guest self-service sign-up via user flow is disabled"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
+
+    if((Get-MgContext).Environment -ne 'Global')
+    {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
 
     $authFlowPolicy = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationFlowsPolicy" -ApiVersion v1.0
     #endregion Data Collection

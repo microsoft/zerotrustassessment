@@ -7,6 +7,7 @@ function Test-Assessment-21865 {
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',
@@ -19,6 +20,10 @@ function Test-Assessment-21865 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Trusted network locations are configured to increase quality of risk detections"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

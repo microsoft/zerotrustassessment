@@ -7,6 +7,7 @@ function Test-Assessment-21828 {
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
@@ -19,6 +20,10 @@ function Test-Assessment-21828 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Authentication transfer is blocked"
     Write-ZtProgress -Activity $activity -Status "Getting conditional access policies"
@@ -76,7 +81,7 @@ function Test-Assessment-21828 {
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "No enabled Conditional Access policies targeting authentication transfer.`n"
+        $mdInfo = "No Conditional Access policies targeting authentication transfer.`n"
     }
 
     # Replace the placeholder with the detailed information

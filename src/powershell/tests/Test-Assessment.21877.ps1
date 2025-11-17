@@ -7,6 +7,7 @@ function Test-Assessment-21877 {
     [ZtTest(
     	Category = 'Application management',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -21,6 +22,10 @@ function Test-Assessment-21877 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ((Get-MgContext).Environment -ne 'Global') {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        return
+    }
 
     $activity = "Checking All guests have a sponsor"
     Write-ZtProgress -Activity $activity -Status "Getting guest users"
@@ -71,7 +76,7 @@ WHERE userType = 'Guest'
             }
         }
         catch {
-            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Warning
+            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Verbose
             # Treat as guest without sponsor if API call fails
             $guestsWithoutSponsors.Add($guest)
         }

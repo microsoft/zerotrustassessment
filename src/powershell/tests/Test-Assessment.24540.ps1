@@ -8,8 +8,9 @@
 
 function Test-Assessment-24540 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Device',
     	ImplementationCost = 'Low',
+        MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
@@ -23,6 +24,11 @@ function Test-Assessment-24540 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Windows Firewall policies are created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

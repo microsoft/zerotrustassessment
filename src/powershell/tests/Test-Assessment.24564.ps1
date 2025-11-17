@@ -8,11 +8,12 @@
 
 function Test-Assessment-24564 {
     [ZtTest(
-    	Category = 'Protect identities and secrets',
+    	Category = 'Device',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
-    	SfiPillar = '',
+    	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24564,
     	Title = 'Local account usage on Windows is restricted to reduce unauthorized access',
@@ -45,6 +46,11 @@ function Test-Assessment-24564 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Intune Local Users and Groups policy is created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"

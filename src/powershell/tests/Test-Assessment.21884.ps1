@@ -7,6 +7,7 @@ function Test-Assessment-21884 {
     [ZtTest(
     	Category = 'External collaboration',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and production systems',
@@ -21,6 +22,10 @@ function Test-Assessment-21884 {
     )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = 'Checking if workload identities are protected by location-based Conditional Access policies'
     Write-ZtProgress -Activity $activity -Status 'Getting service principals'

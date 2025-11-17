@@ -5,10 +5,11 @@
 
 function Test-Assessment-24555 {
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Tenant',
     	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
-    	RiskLevel = 'High',
+    	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24555,
@@ -43,6 +44,11 @@ function Test-Assessment-24555 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense Intune) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
+    }
 
     $activity = "Checking Intune Scope Tags are configured for delegated administration"
     Write-ZtProgress -Activity $activity -Status "Getting scope tags"

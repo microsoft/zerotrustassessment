@@ -7,6 +7,7 @@ function Test-Assessment-21806 {
     [ZtTest(
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
@@ -19,6 +20,10 @@ function Test-Assessment-21806 {
     param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    if ( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Secure the MFA registration (My Security Info) page"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
@@ -74,7 +79,7 @@ function Test-Assessment-21806 {
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
     else {
-        $mdInfo = "No enabled Conditional Access policies targeting security information registration.`n"
+        $mdInfo = "No Conditional Access policies targeting security information registration.`n"
     }
 
     # Replace the placeholder with the detailed information

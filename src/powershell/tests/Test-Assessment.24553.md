@@ -14,4 +14,3 @@ Intune includes the following Windows update policy type:
 - [Windows driver updates](https://learn.microsoft.com/intune/intune-service/protect/windows-driver-updates-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) - *to update hardware components.*
 <!--- Results --->
 %TestResult%
-
