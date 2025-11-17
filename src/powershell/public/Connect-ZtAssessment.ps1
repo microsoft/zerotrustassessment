@@ -46,8 +46,12 @@ function Connect-ZtAssessment
         # The tenant ID to connect to. If not specified, the default tenant will be used.
         [string]$TenantId,
 
+        # If supplied, a Custom Entra Enterprise App to connect to Graph with by App Id.
+        [string]$AppId,
+
         # If specified, skips connecting to Azure and only connects to Microsoft Graph.
         [switch]$SkipAzureConnection
+
     )
 
     Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
@@ -58,7 +62,6 @@ function Connect-ZtAssessment
             Scopes       = (Get-ZtGraphScope)
             NoWelcome    = $true
             Environment  = $Environment
-            AppId        = $AppId
         }
 
         if ($UseDeviceCode) {
