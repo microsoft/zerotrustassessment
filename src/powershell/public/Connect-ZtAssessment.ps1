@@ -51,7 +51,6 @@ function Connect-ZtAssessment
 
         # If specified, skips connecting to Azure and only connects to Microsoft Graph.
         [switch]$SkipAzureConnection
-
     )
 
     Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
