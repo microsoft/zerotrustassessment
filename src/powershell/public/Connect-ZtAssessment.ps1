@@ -58,6 +58,7 @@ function Connect-ZtAssessment
             Scopes       = (Get-ZtGraphScope)
             NoWelcome    = $true
             Environment  = $Environment
+            AppId        = $AppId
         }
 
         if ($UseDeviceCode) {
@@ -71,6 +72,10 @@ function Connect-ZtAssessment
 
         if ($TenantId) {
             $params['TenantId'] = $TenantId
+        }
+
+        if ($AppId) {
+            $params['AppId'] = $AppId
         }
 
         Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
