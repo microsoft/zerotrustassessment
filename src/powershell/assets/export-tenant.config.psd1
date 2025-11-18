@@ -181,7 +181,7 @@
 }
 
 <#
-PrivilagedGroup types should always be last.
+PrivilegedGroup types should always be last.
 They will block their worker until their dependency is completed and could risk starving the export otherwise.
 #>
 @{
@@ -207,4 +207,18 @@ They will block their worker until their dependency is completed and could risk 
 	# ExcludePlan = @('Free') # Free
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
 	DependsOn = 'RoleEligibilityScheduleRequest'
+}
+
+@{
+	Name = 'Device'
+	Uri = 'beta/devices'
+	QueryString = '$top=999'
+	RelatedPropertyNames = @()
+	Type = 'Default' # PrivilegedGroup
+
+	Pillar = 'Devices'
+	# Environment = $null # 'Global'
+	# IncludePlan = @('Free') # P2, Governance
+	# ExcludePlan = @('Free') # Free
+	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
 }
