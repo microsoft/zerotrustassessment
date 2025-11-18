@@ -43,7 +43,7 @@ function Export-GraphEntity {
 		return
 	}
 
-	#region Utility FUnctions
+	#region Utility Functions
 	function Export-Page {
 		[CmdletBinding()]
 		param (
