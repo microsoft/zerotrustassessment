@@ -23,7 +23,7 @@ function Test-Assessment-24518 {
         $Database
     )
 
-    Test-ApplicationOwnership `
+    Test-ZtApplicationOwnership `
         -Database $Database `
         -TestId '24518' `
         -PrivilegeLevel 'Medium', 'Low', 'Unranked' `
