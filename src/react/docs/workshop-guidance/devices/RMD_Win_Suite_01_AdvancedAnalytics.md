@@ -25,16 +25,11 @@ If not implemented, organizations risk delayed detection of performance issues, 
 ### **Video Walkthrough**
 
 
-<!-- YouTube Embed -->
-<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-<iframe 
-    src="https://www.youtube.com/embed/Vn6OKB94cP0"
-    frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    allowfullscreen
-    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-</iframe>
-</div>
+
+
+https://github.com/user-attachments/assets/3466acf4-e6e7-4206-9f2a-6d51e105783d
+
+
 
 
 https://www.youtube.com/watch?v=Vn6OKB94cP0
