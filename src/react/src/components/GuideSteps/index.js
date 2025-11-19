@@ -18,7 +18,7 @@ const Steps = [
         ),
         imageUrl: require("@site/static/img/guide-step1.png").default,
         imageAltText: "Learn about the Zero Trust Assessment video",
-        videoUrl: "https://www.youtube.com/embed/oyG3EcFd-_E?start=0:03",
+        videoUrl: "https://www.youtube.com/embed/bB2Heu7CCFg",
     },
     {
         id: 2,

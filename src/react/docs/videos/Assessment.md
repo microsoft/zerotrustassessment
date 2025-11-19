@@ -4,6 +4,6 @@ sidebar_position: 8
 
 # Zero Trust Assessment
 
-Learn how to run the Zero Trust Assessment Powershell script and interpret the output.
+Learn how to run the Zero Trust Assessment Powershell module.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/oyG3EcFd-_E?si=Vn_1qR6hnUQtnKmT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bB2Heu7CCFg" title="Microsoft Zero Trust Assessment" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
