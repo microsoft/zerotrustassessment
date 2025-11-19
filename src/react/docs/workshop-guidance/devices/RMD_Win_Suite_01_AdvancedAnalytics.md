@@ -26,8 +26,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 
 
 
-https://github.com/user-attachments/assets/bdb58635-da8e-45f8-8590-d712705c89ab
-
+https://www.youtube.com/watch?v=Vn6OKB94cP0
 
 
 * * *
