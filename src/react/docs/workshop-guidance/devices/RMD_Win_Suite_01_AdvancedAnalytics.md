@@ -36,7 +36,20 @@ If not implemented, organizations risk delayed detection of performance issues, 
 </iframe>
 </div>
 
-
+And put: <!DOCTYPE html>
+<html>
+<body>
+ 
+<h2>My Embedded Video</h2>
+ 
+<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/Vn6OKB94cP0"
+  frameborder="0"
+  allowfullscreen>
+</iframe>
+ 
+</body>
+</html>
 https://www.youtube.com/watch?v=Vn6OKB94cP0
 
 
