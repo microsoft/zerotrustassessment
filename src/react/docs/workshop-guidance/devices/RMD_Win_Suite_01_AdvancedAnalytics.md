@@ -25,7 +25,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 ### **Video Walkthrough**
 
 
-
+[![Watch the video](https://img.youtube.com/vi/_5tFXJQIzi4/0.jpg)](https://www.youtube.com/watch?v=Vn6OKB94cP0)
 https://www.youtube.com/watch?v=Vn6OKB94cP0
 
 
