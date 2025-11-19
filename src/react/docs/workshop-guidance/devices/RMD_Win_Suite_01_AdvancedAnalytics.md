@@ -25,7 +25,13 @@ If not implemented, organizations risk delayed detection of performance issues, 
 ### **Video Walkthrough**
 
 
-[![Watch the video](https://img.youtube.com/vi/_5tFXJQIzi4/0.jpg)](https://www.youtube.com/watch?v=Vn6OKB94cP0)
+<object width="425" height="350">
+  <param name="movie" value="[http://www.youtube.com/user/wwwLoveWatercom?v=BTRN1YETpyg](https://www.youtube.com/watch?v=Vn6OKB94cP0)" />
+  <param name="wmode" value="transparent" />
+  <embed src="http://www.youtube.com/user/wwwLoveWatercom?v=BTRN1YETpyg"
+         type="application/x-shockwave-flash"
+         wmode="transparent" width="425" height="350" />
+</object>
 https://www.youtube.com/watch?v=Vn6OKB94cP0
 
 
