@@ -55,13 +55,13 @@ function Test-Assessment-21850 {
             $mdInfo += "| :---- | :---- |`n"
             $mdInfo += "| [Lockout threshold]($portalLink) | $(Get-SafeMarkdown($lockoutThreshold)) attempts|`n"
 
-            if ($lockoutThreshold -gt 10) {
+            if ($lockoutThreshold -le 10) {
                 $passed = $true
-                $testResultMarkdown = "Smart lockout threshold is configured above 10.%TestResult%"
+                $testResultMarkdown = "Smart lockout threshold is set to 10 or below.%TestResult%"
             }
             else {
                 $passed = $false
-                $testResultMarkdown = "Smart lockout threshold is set to 10 or below.%TestResult%"
+                $testResultMarkdown = "Smart lockout threshold is configured above 10.%TestResult%"
             }
         }
     }
