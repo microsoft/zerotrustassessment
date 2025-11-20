@@ -26,7 +26,7 @@ function New-EntraTable {
     $schemaConfig = Get-TableSchemaConfig -TableName $TableName
 
     # Build read_json parameters
-    $readJsonParams = @('maximum_object_size=40000000')
+    $readJsonParams = @('maximum_object_size=100000000')
 
     if ($schemaConfig) {
         Write-PSFMessage "Using special schema configuration for table $TableName`: $($schemaConfig.reason)" -Level Debug -Tag DB
