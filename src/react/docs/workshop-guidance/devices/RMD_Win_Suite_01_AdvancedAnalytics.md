@@ -25,7 +25,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 
 ### **Video Walkthrough**
 
-<!-- YouTube Embed -->
+<-- YouTube Embed -->
 <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
 <iframe 
     src="https://www.youtube.com/embed/Vn6OKB94cP0"
@@ -36,7 +36,7 @@ If not implemented, organizations risk delayed detection of performance issues, 
 </iframe>
 </div>
 
-And put: <!DOCTYPE html>
+
 <html>
 <body>
  
