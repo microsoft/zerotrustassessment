@@ -5,16 +5,16 @@
 
 function Test-Assessment-21788 {
     [ZtTest(
-    	Category = 'Privileged access',
-    	ImplementationCost = 'Low',
-    	MinimumLicense = ('Free'),
-    	Pillar = 'Identity',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect engineering systems',
-    	TenantType = ('Workforce'),
-    	TestId = 21788,
-    	Title = 'Global Administrators don''t have standing access to Azure subscriptions',
-    	UserImpact = 'Low'
+        Category = 'Privileged access',
+        ImplementationCost = 'Low',
+        MinimumLicense = ('Free'),
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect engineering systems',
+        TenantType = ('Workforce'),
+        TestId = 21788,
+        Title = 'Global Administrators don''t have standing access to Azure subscriptions',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
@@ -22,6 +22,21 @@ function Test-Assessment-21788 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant"
+    Write-ZtProgress -Activity $activity -Status "Checking Azure connection"
+
+    try {
+        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+    }
+    catch [Management.Automation.CommandNotFoundException] {
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
+    }
+
+    if (!$accessToken) {
+        Write-PSFMessage "Azure authentication token not found." -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
     Write-ZtProgress -Activity $activity -Status "Getting role assignments"
 
     $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
@@ -34,13 +49,13 @@ function Test-Assessment-21788 {
 
     $testResultMarkdown = ""
 
-    if ($results.Count -gt 0) {
-        $passed = $false
-        $testResultMarkdown += "Standing access to Root Management group was found.`n`n%TestResult%"
-    }
-    else {
+    if ($results -and $results.Count -eq 0) {
         $passed = $true
         $testResultMarkdown += "No standing access to Azure Root Management Group."
+    }
+    else {
+        $passed = $false
+        $testResultMarkdown += "Standing access to Root Management group was found.`n`n%TestResult%"
     }
 
     # Build the detailed sections of the markdown
@@ -49,7 +64,7 @@ function Test-Assessment-21788 {
     $reportTitle = "Entra ID objects with standing access to Root Management group"
     $tableRows = ""
 
-    if ($results.Count -gt 0) {
+    if ($results -and $results.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         $formatTemplate = @'
 
@@ -93,11 +108,6 @@ function Test-Assessment-21788 {
     $params = @{
         TestId             = '21788'
         Title              = "Global Administrators don't have standing elevated access to all Azure subscriptions in the tenant"
-        UserImpact         = 'Low'
-        Risk               = 'High'
-        ImplementationCost = 'Low'
-        AppliesTo          = 'Identity'
-        Tag                = 'Identity'
         Status             = $passed
         Result             = $testResultMarkdown
     }
