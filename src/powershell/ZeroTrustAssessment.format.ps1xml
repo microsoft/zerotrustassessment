@@ -1,6 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-16"?>
 <Configuration>
     <ViewDefinitions>
+        <!-- ZeroTrustAssessment.TestStatistics -->
+        <View>
+            <Name>ZeroTrustAssessment.TestStatistics</Name>
+            <ViewSelectedBy>
+                <TypeName>ZeroTrustAssessment.TestStatistics</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Error</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>TestID</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Start</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Duration</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Success</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+ $_.Error.Exception.Message
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- ZeroTrustAssessment.Test -->
         <View>
             <Name>ZeroTrustAssessment.Test</Name>
