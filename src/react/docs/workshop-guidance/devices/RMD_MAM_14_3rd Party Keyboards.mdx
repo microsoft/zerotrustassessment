@@ -6,11 +6,18 @@ This setting is a targeted configuration within Microsoft Intune App Protection 
 **User Impact:** Medium  
 Blocking third-party keyboards may affect a subset of users who rely on them for accessibility, language input, or productivity, and they may need to be notified or trained on alternatives.
 
+Example of 3rd party keyboard EULA on iOS Device
+https://github.com/microsoft/zerotrustassessment/assets/20829177/d70a3ecb-8b48-4f63-af5f-f44eec79fa6a
+
 ## Overview
 
 Blocking third-party keyboards on iOS devices is a security control available through Microsoft Intune's App Protection Policies (APP). This setting helps prevent potential data leakage by ensuring that only the system keyboard — which is more trusted and controlled — is used when entering corporate data. Third-party keyboards can pose a risk because they may capture keystrokes or transmit data externally, especially if they are not vetted or managed by the organization.
 
 This control supports the **Zero Trust principle of "Assume Breach"** by minimizing the attack surface and reducing the risk of sensitive data being exposed through untrusted input methods. If not implemented, organizations risk data exfiltration through compromised or malicious keyboard apps.
+
+## Video Walkthrough
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/fu6fioaSjp4?si=4s2-aF2Lw_xvUOI-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
 

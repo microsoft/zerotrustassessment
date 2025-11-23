@@ -16,6 +16,10 @@ Encryption in Microsoft Intune App Protection Policies (APP) ensures that corpor
 
 This encryption setting supports the Zero Trust principle of **assume breach** by ensuring that even if a device is compromised, corporate data remains encrypted and inaccessible to unauthorized apps or users. If not configured, sensitive data stored by apps like Outlook, Word, or Teams could be exposed through device-level vulnerabilities or unauthorized access.
 
+## Video Walkthrough
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VBUNETZN-c0?si=NU4hjTzsqU9SoNOw&amp;start=141" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Reference
 
 - [App protection policies overview – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)  
