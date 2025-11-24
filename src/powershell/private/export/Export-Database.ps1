@@ -156,6 +156,10 @@ as
 
 	if ($Pillar -in ('All', 'Devices')) {
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'WindowsUpdateForBusinessConfiguration'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'WindowsHealthMonitoringConfiguration'
+		# Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'DeviceConfiguration'
 	}
 
 	$database

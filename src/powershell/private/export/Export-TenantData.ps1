@@ -137,5 +137,25 @@ function Export-TenantData {
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Device' `
 			-EntityUri 'beta/devices' -ProgressActivity 'Devices' `
 			-QueryString '$top=999' -ShowCount
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ConfigurationPolicy' `
+			-EntityUri 'beta/deviceManagement/configurationPolicies' -ProgressActivity 'Configuration Policies' `
+			-QueryString '$expand=assignments,settings' # Note: $count not supported on this endpoint
+
+		Export-GraphEntity -ExportPath $ExportPath -EntityName 'DeviceConfiguration' `
+			-EntityUri 'beta/deviceManagement/deviceConfigurations' -ProgressActivity 'Device Configurations' `
+			-QueryString '$expand=assignments' -ShowCount
+
+		# Extract Windows Update for Business configurations
+		Split-GraphEntity -ExportPath $ExportPath `
+			-SourceEntityName 'DeviceConfiguration' `
+			-TargetEntityName 'WindowsUpdateForBusinessConfiguration' `
+			-ResourceType '#microsoft.graph.windowsUpdateForBusinessConfiguration'
+
+		# Extract Windows Health Monitoring configurations
+		Split-GraphEntity -ExportPath $ExportPath `
+			-SourceEntityName 'DeviceConfiguration' `
+			-TargetEntityName 'WindowsHealthMonitoringConfiguration' `
+			-ResourceType '#microsoft.graph.windowsHealthMonitoringConfiguration'
 	}
 }
