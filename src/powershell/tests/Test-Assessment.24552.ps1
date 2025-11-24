@@ -19,7 +19,9 @@ function Test-Assessment-24552 {
     	UserImpact = 'High'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Helper Functions
 function Test-PolicyAssignment {
@@ -55,9 +57,22 @@ function Test-PolicyAssignment {
     $activity = "Checking macOS Firewall Policy is Created and Assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Retrieve all macOS policies
-    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$expand=settings,assignments"
-    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta
+    # Query: Retrieve all macOS policies with mdm and appleRemoteManagement technologies
+    $sql = @"
+    SELECT id, name, platforms, technologies, settings, assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%macOS%'
+      AND technologies LIKE '%mdm%'
+      AND technologies LIKE '%appleRemoteManagement%'
+"@
+    $macOSPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $macOSPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+    }
 
     if($macOSPolicies ) {
         $macOSPolicies = $macOSPolicies | Where-Object { $_.settings.settingInstance.SettingDefinitionID -eq 'com.apple.security.firewall_com.apple.security.firewall' }
@@ -124,38 +139,33 @@ function Test-PolicyAssignment {
 ## {0}
 
 | Policy Name | Status | Assignment Target | Firewall Status |
-| :---------- | :----- | :---------------- | :--------------- |
+| :---------- | :----- | :---------------- | :-------------- |
 {1}
 
 '@
 
         foreach ($policy in $macOSFirewallPolicies) {
 
-                $policyName = $policy.Name
-                $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
+            $policyName = Get-SafeMarkdown -Text $policy.name
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
                 $status = '✅ Assigned'
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
             else {
                 $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
             }
+
             if ($policy.FirewallSettings) {
                 $firewallSettings = '✅ Enabled'
             }
             else {
                 $firewallSettings = '❌ Disabled'
             }
-            # Get assignment details for this specific policy
-            $assignmentTarget = 'None'
 
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
-            }
-
-            $tableRows += @"
-| [$(Get-SafeMarkdown($policyName))]($portalLink) | $status | $assignmentTarget | $firewallSettings `n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget | $firewallSettings |`n"
         }
 
         # Format the template by replacing placeholders with values
