@@ -17,7 +17,9 @@ function Test-Assessment-24553 {
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -30,10 +32,14 @@ function Test-Assessment-24553 {
     $activity = 'Checking that the Intune Windows Update policy is configured and assigned'
     Write-ZtProgress -Activity $activity
 
-    # Retrieve all Windows Update Policies and their assignments
-    $windowsUpdatePolicy = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceConfigurations?$expand=assignments' -ApiVersion beta | Where-Object {
-        $_.'@odata.type' -eq '#microsoft.graph.windowsUpdateForBusinessConfiguration'
-    }
+    # Query: Retrieve all Windows Update Policies and their assignments
+    $sql = @"
+    SELECT id, displayName, assignments
+    FROM WindowsUpdateForBusinessConfiguration
+    WHERE "@odata.type" = '#microsoft.graph.windowsUpdateForBusinessConfiguration'
+"@
+
+    $windowsUpdatePolicy = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
     #endregion Data Collection
 
     #region Assessment Logic
@@ -70,26 +76,25 @@ function Test-Assessment-24553 {
         $formatTemplate = @'
 
 | Policy Name | Status | Assignment |
-| :---------- | :------------- | :--------- |
+| :---------- | :----- | :--------- |
 {0}
 
 '@
 
         $tableRows = ""
+
         foreach ($policy in $windowsUpdatePolicy) {
-            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesWindowsMenu/~/windows10Update'
-            $status = if ($policy.assignments -and $policy.assignments.count -gt 0) {
-                '✅ Assigned'
-            }
-            else {
-                '❌ Not Assigned'
-            }
 
             $policyName = Get-SafeMarkdown -Text $policy.displayName
-            $assignmentTarget = 'None'
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesWindowsMenu/~/windows10Update'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = "✅ Assigned"
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+            }
+            else {
+                $status = "❌ Not assigned"
+                $assignmentTarget = 'None'
             }
 
             $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
