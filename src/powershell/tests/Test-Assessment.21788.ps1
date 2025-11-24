@@ -31,17 +31,32 @@ function Test-Assessment-21788 {
         Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
     }
 
+    $passed = $false
+
     if (!$accessToken) {
         Write-PSFMessage "Azure authentication token not found." -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
         return
     }
+    else {
+        Write-ZtProgress -Activity $activity -Status "Getting role assignments"
 
-    Write-ZtProgress -Activity $activity -Status "Getting role assignments"
+        $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
+        $azRoleAssignmentUri = $resourceManagementUrl + 'providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
 
-    $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
-    $azRoleAssignmentUri = $resourceManagementUrl + 'providers/Microsoft.Authorization/roleAssignments?$filter=atScope()&api-version=2022-04-01'
-    $roleAssignments = Invoke-AzRestMethod -Method GET -Uri $azRoleAssignmentUri
+        try {
+            $roleAssignments = Invoke-AzRestMethod -Method GET -Uri $azRoleAssignmentUri -ErrorAction Stop
+        }
+        catch {
+            if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like "*403*" -or $_.Exception.Message -like "*Forbidden*") {
+                Write-PSFMessage "The signed in user does not have required access to the Azure subscription." -Level Verbose
+                Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+                return
+            }
+            else {
+                throw
+            }
+        }
 
     $results = ($roleAssignments.Content | ConvertFrom-Json).value.properties | Where-Object {
         $_.roleDefinitionId -eq '/providers/Microsoft.Authorization/roleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9'
