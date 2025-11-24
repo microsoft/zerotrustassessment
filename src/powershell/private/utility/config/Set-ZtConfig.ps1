@@ -23,14 +23,22 @@
         $Config
     )
 
+	$lock = Get-PSFRunspaceLock -Name ZeroTrustAssessment.ExportConfig
+
     $configPath = Get-ZtConfigPath -ExportPath $ExportPath
     Write-PSFMessage "Setting config at $configPath"
-    if ($Config) {
-        $Config | Export-PSFJson -Path $configPath
-    }
-    else {
-        $config = Get-ZtConfig -ExportPath $ExportPath
-        $config[$Property] = $Value
-        $config | Export-PSFJson -Path $configPath
-    }
+	$lock.Open()
+	try {
+		if ($Config) {
+			$Config | Export-PSFJson -Path $configPath
+		}
+		else {
+			$config = Get-ZtConfig -ExportPath $ExportPath
+			$config[$Property] = $Value
+			$config | Export-PSFJson -Path $configPath
+		}
+	}
+	finally {
+		$lock.Close()
+	}
 }

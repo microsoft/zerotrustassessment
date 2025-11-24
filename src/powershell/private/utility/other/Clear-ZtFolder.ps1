@@ -22,7 +22,7 @@
         $Path
     )
 
-    if (Test-Path $Path) {
+    if (Test-Path -Path $Path) {
         Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
     }
     $null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop

@@ -10,11 +10,19 @@
         $Property
     )
 
+	$lock = Get-PSFRunspaceLock -Name ZeroTrustAssessment.ExportConfig
+
     # Read config from folder
     $configPath = Get-ZtConfigPath -ExportPath $ExportPath
     $Config = @{}
     if (Test-Path $configPath) {
-        $Config = Import-PSFJson -Path $configPath -AsHashtable
+		try {
+			$lock.Open()
+			$Config = Import-PSFJson -Path $configPath -AsHashtable
+		}
+		finally {
+			$lock.Close()
+		}
     }
 
     if ($Property) {
