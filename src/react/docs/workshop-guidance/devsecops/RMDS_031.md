@@ -1,4 +1,4 @@
-# 031: Set up ServiceConnections todeploy to Azure ​
+# 031: Set up service connections to deploy to Azure ​
 
 ## Overview
 
