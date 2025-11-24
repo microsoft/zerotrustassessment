@@ -1,4 +1,4 @@
-# 029: Integrate Entra ID toADO​
+# 029: Integrate Entra ID to ADO​
 
 ## Overview
 
