@@ -1,4 +1,4 @@
-# 015: Design codepublishingapproach
+# 015: Design code publishing approach
 
 ## Overview
 
