@@ -17,7 +17,9 @@ function Test-Assessment-24551 {
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -34,7 +36,20 @@ function Test-Assessment-24551 {
     $windowsHelloTenantConfig = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/deviceEnrollmentConfigurations?`$filter=deviceEnrollmentConfigurationType eq 'windowsHelloForBusiness'" -ApiVersion beta
 
     # Query 2: Retrieve assignment for Windows Hello for Business related MDM Policies
-    $windowsMdmPolicies = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies?`$filter=platforms has 'windows10' and technologies has 'mdm'&`$select=id,name,platforms,technologies&`$expand=assignments,settings" -ApiVersion beta
+    $sql = @"
+    SELECT id, name, platforms, technologies, settings, assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%windows10%'
+      AND technologies LIKE '%mdm%'
+"@
+    $windowsMdmPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON fields for each policy
+    foreach ($policy in $windowsMdmPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+    }
 
     # filter to only Windows Hello for Business related policies
     $windowsHelloMdmPolicies = $windowsMdmPolicies.Where{
@@ -91,24 +106,20 @@ function Test-Assessment-24551 {
     if ($windowsHelloMdmPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         foreach ($policy in $windowsHelloMdmPolicies) {
-            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
-            $status = if ($policy.assignments.count -gt 0) {
-                '✅ Assigned'
-            }
-            else {
-                '❌ Not Assigned'
-            }
 
             $policyName = Get-SafeMarkdown -Text $policy.name
-            $assignmentTarget = "None"
+            $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = "✅ Assigned"
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
+            else {
+                $status = "❌ Not assigned"
+                $assignmentTarget = 'None'
+            }
 
-            $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
     }
 
