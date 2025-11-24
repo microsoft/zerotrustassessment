@@ -26,6 +26,16 @@
     Connect-ZtAssessment -SkipAzureConnection
 
     Connects to Microsoft Graph only, skipping the Azure connection. The tests that require Azure connectivity will be skipped.
+
+.EXAMPLE
+    Connect-ZtAssessment -ClientId "12345678-1234-1234-1234-123456789012"
+
+    Connects to Microsoft Graph using a specific client ID (application ID) for authentication.
+
+# .EXAMPLE
+    Connect-ZtAssessment -ClientId "12345678-1234-1234-1234-123456789012" -ClientSecret "your-client-secret" -TenantId "your-tenant-id"
+
+    Connects to Microsoft Graph using client credentials (application authentication) with client ID and client secret. For improved security, retrieve the secret from a vault (e.g. SecretManagement) rather than hard-coding.
 #>
 
 function Connect-ZtAssessment
@@ -47,17 +57,32 @@ function Connect-ZtAssessment
         [string]$TenantId,
 
         # If specified, skips connecting to Azure and only connects to Microsoft Graph.
-        [switch]$SkipAzureConnection
+        [switch]$SkipAzureConnection,
+
+        # The client ID (application ID) to use for authentication. If not specified, the default client ID will be used.
+        [string]$ClientId
+,
+
+        # The client secret to use for authentication. Used together with ClientId for application authentication.
+        [string]$ClientSecret
+    ,
+        # Internal/testing: Skip actual connection and just build parameter set
+        [Parameter(DontShow=$true)]
+        [switch]$NoConnect
     )
 
     Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
     Write-PSFMessage 'Connecting to Microsoft Graph'
     try
     {
+        # If using client secret, use app-only auth: omit Scopes and build credential
         $params = @{
-            Scopes       = (Get-ZtGraphScope)
-            NoWelcome    = $true
-            Environment  = $Environment
+            NoWelcome   = $true
+            Environment = $Environment
+        }
+
+        if (-not $ClientSecret) {
+            $params['Scopes'] = (Get-ZtGraphScope)
         }
 
         if ($UseDeviceCode) {
@@ -73,7 +98,24 @@ function Connect-ZtAssessment
             $params['TenantId'] = $TenantId
         }
 
-        Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
+        if ($ClientSecret) {
+            if (-not $TenantId) {
+                Write-PSFMessage 'TenantId is required when using ClientSecret for app-only authentication.' -Level Error
+                throw 'TenantId is required when using ClientSecret.'
+            }
+            $secureSecret = if ($ClientSecret -is [System.Security.SecureString]) { $ClientSecret } else { ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force }
+            $params['ClientSecretCredential'] = New-Object System.Management.Automation.PSCredential ($ClientId, $secureSecret)
+        }
+        elseif ($ClientId) {
+            # Only set ClientId for interactive/device flows
+            $params['ClientId'] = $ClientId
+        }
+
+        if ($NoConnect) {
+            return $params
+        }
+
+        Write-PSFMessage "Connecting to Microsoft Graph with params: $(($params | Out-String))" -Level Verbose
         Connect-MgGraph @params
         $contextTenantId = (Get-MgContext).TenantId
     }
