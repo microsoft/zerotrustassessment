@@ -1,0 +1,30 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "id": null,
+      "name": null,
+      "description": null,
+      "platforms": null,
+      "technologies": null,
+      "createdDateTime": null,
+      "lastModifiedDateTime": null,
+      "settingCount": null,
+      "creationSource": null,
+      "roleScopeTagIds": [],
+      "isAssigned": null,
+      "templateReference": {
+        "templateId": null,
+        "templateFamily": null,
+        "templateDisplayName": null,
+        "templateDisplayVersion": null
+      },
+      "priorityMetaData": {
+        "priority": null
+      },
+      "settings": [],
+      "assignments": []
+    }
+  ]
+}

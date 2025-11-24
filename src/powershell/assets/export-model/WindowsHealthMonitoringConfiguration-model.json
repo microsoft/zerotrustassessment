@@ -1,0 +1,25 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations(assignments())",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "version": null,
+      "configDeviceHealthMonitoringCustomScope": null,
+      "@odata.type": null,
+      "id": null,
+      "description": null,
+      "allowDeviceHealthMonitoring": null,
+      "assignments@odata.context": null,
+      "deviceManagementApplicabilityRuleDeviceMode": null,
+      "assignments": [],
+      "configDeviceHealthMonitoringScope": null,
+      "displayName": null,
+      "roleScopeTagIds": [],
+      "createdDateTime": null,
+      "deviceManagementApplicabilityRuleOsEdition": null,
+      "supportsScopeTags": null,
+      "deviceManagementApplicabilityRuleOsVersion": null,
+      "lastModifiedDateTime": null
+    }
+  ]
+}
