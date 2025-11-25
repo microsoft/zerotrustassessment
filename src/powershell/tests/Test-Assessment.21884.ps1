@@ -1,4 +1,4 @@
-﻿<#
+﻿    <#
 .SYNOPSIS
     Tests if workload identities are protected by location-based Conditional Access policies.
 #>
@@ -24,6 +24,11 @@ function Test-Assessment-21884 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     if ( -not (Get-ZtLicense EntraIDP1) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
+
+    if ( -not (Get-ZtLicense EntraWorkloadID) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraWorkloadID
         return
     }
 
