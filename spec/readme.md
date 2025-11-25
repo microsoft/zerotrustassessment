@@ -1,13 +1,37 @@
-# Assessment Specifications
+# Spec Contributor's Guide
 
-This document contains the specifications for the various assessments performed by the Zero Trust Assessment tool. Each assessment is defined by a unique Test ID, along with its associated risk level, SFI pillar, tenant type, title, user impact, description, and remediation steps.
+This guide outlines the end-to-end process for a Product Manager to create a high-quality Zero Trust (ZT) assessment check specification. It is designed for newcomers to the project, providing clear steps, tool usage, and responsibilities.
 
-## Spec Template
+As a spec owner, you will create a spec file for each check, fill in key metadata, draft the spec content (using provided template and AI tools), and mark the spec status `Review` so it can be handed off to documentation and development teams. The table below summarizes each step, followed by detailed instructions.
 
-The spec template is located at: [template.md](template.md).
+If you are not a member of the official Microsoft Zero Trust Assessment team, please create a new issue in the [ZT Assessment GitHub repository](https://github.com/microsoft/zerotrustassessment/issues/new) with your suggestion for a new assessment check. The team will review and determine next steps.
 
-To get started with a new assessment specification:
+## Set up GitHub account
 
-* Browse to [Test Number Generator](https://github.com/microsoft/zerotrustassessment/issues/627) and claim a new Test ID by commenting under the last comment and claiming the next sequence in the thread.
-* Copy the [spec-template.md](spec-template.md) to the pillar folder and rename it according to the naming convention: `spec/<pillar>/<TestID>.md`, where `<pillar>` is the relevant pillar (e.g., Identity, Device, Network, Data, Infrastructure) and `<TestID>` is the unique identifier for the assessment.
-* Fill out the specification according to the guidelines provided in the template.
+If you don't already have a GitHub account, create one at [GitHub Signup](https://github.com/join).
+
+## Create new Test ID
+
+Browse to [Test Number Generator](https://github.com/microsoft/zerotrustassessment/issues/627) and claim a new Test ID by commenting under the last comment and claiming the next sequence in the thread.
+
+## Copy Spec Template
+
+Copy the [spec-template.md](spec-template.md) to the pillar folder and rename it according to the naming convention: `spec/<pillar>/<TestID>.md`, where `<pillar>` is the relevant pillar (e.g., Identity, Device, Network, Data, Infrastructure) and `<TestID>` is the unique identifier for the assessment.
+
+## Fill out Spec Metadata
+
+Populate work item fields: priority, risk level, user impact, implementation cost, Zero Trust pillar, product, license, etc. Refer to the explanations in the template for guidance.
+
+Use the provided template structure and AI-assisted VS Code prompt to generate a first draft of the spec content (then refine it). See [spec-prompt.md](spec-prompt.md) for prompt.
+
+Tools/Resources: VSCode, MS Lean MCP, Microsoft Graph MCP, Graph Explorer
+
+## Review and refine
+
+Review the draft, test any Graph queries, ensure clarity and completeness. Update the spec with any corrections or improvements.
+
+Tools/Resources: VSCode, MS Lean MCP, Microsoft Graph MCP, Graph Explorer
+
+## Mark Spec as Completed
+
+Update the Spec Status metadata in the spec doc and change it to “Completed” once final. This triggers docs and dev teams to pick it up.

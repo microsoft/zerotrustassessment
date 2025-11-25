@@ -23,20 +23,31 @@ The title should clearly describe the positive outcome we are looking for, so â€
 
 <--Explanation-->
 
+* Not started: The spec has not yet been started.
 * Draft: The spec is being drafted and is not yet ready for implementation.
-* Review: The spec is complete and is under review.
-* Approved: The spec has been reviewed and approved for implementation.
-* Deprecated: The spec is no longer in use and has been deprecated.
+* Completed: The spec is complete and ready for implementation.
 
 <--End Explanation-->
 
 ## Documentation Status
 
-Not started
+<--Explanation-->
+
+* Not started: The documentation has not yet been started.
+* In Progress: The documentation is being drafted.
+* Completed: The documentation is complete.
+
+<--End Explanation-->
 
 ## Dev Status
 
-Not started
+<--Explanation-->
+
+* Not started: (Default) The development has not yet been started.
+* In Progress: The development is underway.
+* Completed: The development is complete.
+
+<--End Explanation-->
 
 ## Minimum License
 <--Explanation-->
