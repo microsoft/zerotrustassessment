@@ -19,6 +19,6 @@ function Add-ZtTenantInfo {
         throw "Tenant info with name $Name already exists"
     }
     else {
-        $script:__ZtSession.TenantInfo[$Name] = $Value
+        $script:__ZtSession.TenantInfo.Value[$Name] = $Value
     }
 }

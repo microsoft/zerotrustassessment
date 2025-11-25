@@ -76,14 +76,14 @@
 	if ($cacheBlocked) { $DisableCache = $true }
 	$results = $null
 	$isBatch = $uri.AbsoluteUri.EndsWith('$batch')
-	$isInCache = $script:__ZtSession.GraphCache.ContainsKey($Uri.AbsoluteUri)
+	$isInCache = $script:__ZtSession.GraphCache.Value.ContainsKey($Uri.AbsoluteUri)
 	$cacheKey = $Uri.AbsoluteUri
 	$isMethodGet = $Method -eq 'GET'
 
 	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isInCache -and $isMethodGet) {
 		# Don't read from cache for batch requests.
 		Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
-		$results = $script:__ZtSession.GraphCache[$cacheKey]
+		$results = $script:__ZtSession.GraphCache.Value[$cacheKey]
 		if ($results) {
 			return $results
 		}
@@ -92,6 +92,15 @@
 	Write-PSFMessage "Invoking Graph: $($Uri.AbsoluteUri)" -Level Debug -Tag Graph
 	Write-PSFMessage ([string]::IsNullOrEmpty($Body)) -Level Debug -Tag Graph
 
+	# Throttling
+	$relativeUrl = ($Uri.LocalPath -split '/',2)[1]
+	$urlBase = $relativeUrl.Trim("/").Split("/")[0]
+	foreach ($urlPath in "$Uri", $relativeUrl, $urlBase) {
+		if ($script:__ZtThrottling.Value[$urlPath]) {
+			$script:__ZtThrottling.Value[$urlPath].GetSlot()
+			break
+		}
+	}
 
 	if (-not $isMethodGet) {
 		Invoke-MgGraphRequest -Method $Method -Uri $Uri -Headers $Headers -OutputType $OutputType -Body $Body
@@ -111,7 +120,7 @@
 
 	if (-not $isBatch -and -not $DisableCache) {
 		# Update cache
-		$script:__ZtSession.GraphCache[$cacheKey] = $results
+		$script:__ZtSession.GraphCache.Value[$cacheKey] = $results
 	}
 	$results
 }

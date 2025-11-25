@@ -197,7 +197,7 @@ function Add-ZtTestResultDetail {
 	if ($script:__ZtSession -and $script:__ZtSession.TestResultDetail) {
 		if ($actualTestId) {
 			# Only set if we are running in the context of a current Test
-			$script:__ZtSession.TestResultDetail[$actualTestId] = $testInfo
+			$script:__ZtSession.TestResultDetail.Value[$actualTestId] = $testInfo
 		}
 	}
 }
