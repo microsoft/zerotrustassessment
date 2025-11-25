@@ -1,4 +1,4 @@
-# 021: Deploy Github SecretScanning​
+# 021: Deploy Github Secret Scanning​
 
 ## Overview
 
