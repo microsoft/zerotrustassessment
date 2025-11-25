@@ -133,23 +133,21 @@ function Export-ZtGraphEntity {
 				continue
 			}
 
-			$pair.Argument[$PropertyName] = $pair.Result
+			$pair.Argument[$PropertyName] = $($pair.Result)
 		}
 
 		foreach ($fail in $failed) {
 			$itemID = $fail.TargetObject.url.replace($PropertyName,"").Trim("/").Split("/")[-1]
 
-			# Check for known timeout errors that should be silently logged
 			if ($Name -eq "SignIn" -and $fail.Exception.Message -like "*The request was canceled due to the configured HttpClient.Timeout*") {
 				Write-PSFMessage -Level Verbose "Timeout occurred while adding $PropertyName to $Name $itemID - silently continuing" -Tag Graph
 			}
 			else {
-				# Log unknown errors and show warning
 				Write-PSFMessage -Level Warning "Failed to add $PropertyName to $Name $itemID." -Tag Graph -ErrorRecord $fail
 			}
 		}
 	}
-	#endregion Utility FUnctions
+	#endregion Utility Functions
 
 	$pageIndex = 0
 

@@ -225,6 +225,10 @@
 		[switch]
 		$Raw,
 
+		[ValidateSet('v1.0', 'beta')]
+		[string]
+		$ApiVersion = 'v1.0',
+
 		[switch]
 		$NoPaging
 	)
@@ -312,6 +316,13 @@
 					}
 				}
 				$task.Url = $Path -f $values
+				# Url Cleanup. Beta/v1.0 is handled at the batch request itself.
+				if ($task.Url -match '^https:') {
+					$task.Url = ($task.Url -replace '^https://' -split '/', 3)[-1]
+				}
+				if ($task.Url -match '^beta/|^v1.0/') {
+					$task.Url = ($task.Url -split '/',2)[1]
+				}
 
 				$batch = @{
 					id     = $task.Id -as [string]
@@ -439,6 +450,15 @@
 				else {
 					Stop-PSFFunction -Cmdlet $Cmdlet -Message "Invalid batch request: No Url found! $Request" -Category InvalidArgument -EnableException+ $true
 				}
+
+				# Url Cleanup. Beta/v1.0 is handled at the batch request itself.
+				if ($task.Url -match '^https:') {
+					$task.Url = ($task.Url -replace '^https://' -split '/', 3)[-1]
+				}
+				if ($task.Url -match '^beta/|^v1.0/') {
+					$task.Url = ($task.Url -split '/',2)[1]
+				}
+
 				if ($Request.DependsOn) {
 					$task.DependsOn = $Request.DependsOn
 				}
@@ -548,6 +568,10 @@
 				[System.Collections.Generic.List[object]]
 				$TaskList,
 
+				[ValidateSet('v1.0', 'beta')]
+				[string]
+				$ApiVersion = 'v1.0',
+
 				[Parameter(Mandatory = $true)]
 				$Cmdlet
 			)
@@ -583,7 +607,7 @@
 					#region Case: Success
 					if (200 -le $result.status -and 299 -ge $result.status) {
 						# Update for paging or complete task
-						if ($result.body.'@odata.nextLink' -and -not $task.Parameters.NoBatching) {
+						if ($result.body.'@odata.nextLink' -and -not $task.Parameters.NoPaging) {
 							$task.Batch.url = ($result.body.'@odata.nextLink' -replace '^https://' -split '/', 3)[-1]
 						}
 						else {
@@ -725,7 +749,7 @@
 			# Case: All remaining tasks have expired
 			if ($allTasks.Count -lt 1) {
 				return
-   }
+			}
 
 			# Case: The only remaining tasks are throttled and wait to continue
 			if (-not $tasks) {
@@ -733,7 +757,7 @@
 				continue
 			}
 
-			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet
+			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion
 		}
 		while ($allTasks.Count -gt 0)
 	}
