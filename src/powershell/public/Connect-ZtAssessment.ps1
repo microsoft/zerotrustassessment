@@ -77,9 +77,13 @@ function Connect-ZtAssessment
         }
 
         if ($AppId) {
-            $params['AppId'] = $AppId
+            $Password = Read-Host -Prompt "Enter Password for Service Principal" -MaskInput
+            $SecuredPassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
+            $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $SecuredPassword
+            $params['ClientSecretCredential'] = $ClientSecretCredential
+            $params['ClientId'] = $AppId
+            $params.Remove('Scopes')
         }
-
         Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
         Connect-MgGraph @params
         $contextTenantId = (Get-MgContext).TenantId
@@ -103,11 +107,25 @@ function Connect-ZtAssessment
             elseif($Environment -in 'USGov', 'USGovDoD') {
                 $azEnvironment = 'AzureUSGovernment'
             }
+            elseif ($AppId) {
 
-            $azParams = @{
+                $ApplicationId = $AppId
+                $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $SecuredPassword
+
+                $azParams = @{
                 UseDeviceAuthentication = $UseDeviceCode
                 Environment = $azEnvironment
                 Tenant = if ($TenantId) { $TenantId } else { $contextTenantId }
+                ServicePrincipal = true
+                Credential = $Credential
+            }
+            }
+            else{
+                $azParams = @{
+                    UseDeviceAuthentication = $UseDeviceCode
+                    Environment = $azEnvironment
+                    Tenant = if ($TenantId) { $TenantId } else { $contextTenantId }
+                }
             }
 
             Connect-AzAccount @azParams
