@@ -1,4 +1,4 @@
-# 023: Integrate with Defenderfor DevOps​
+# 023: Integrate with Defender for DevOps​
 
 ## Overview
 
