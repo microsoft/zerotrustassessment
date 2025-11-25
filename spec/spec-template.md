@@ -13,6 +13,7 @@ The docs and dev teams will update the status as work progresses.
 <--End How to use this template-->
 
 # Title of the test (e.g., Applications don't have certificates with expiration longer than 180 days)
+
 <--Explanation-->
 
 The title should clearly describe the positive outcome we are looking for, so “Green”/”Passed” makes sense.
@@ -39,6 +40,7 @@ Not started
 Not started
 
 ## Minimum License
+
 <--Explanation-->
 
 Comma separated list of service plan names.
@@ -85,6 +87,7 @@ The category of the assessment (e.g., Identity governance).
 ## Risk Level
 
 <--Explanation-->
+
 * High: There is environment-wide exposure to threats until issue is mitigated
 * Medium: There is a moderate exposure to threats until issue is mitigated
 * Low: Mitigation is considered a defense in depth or operational optimizations
@@ -94,6 +97,7 @@ The category of the assessment (e.g., Identity governance).
 ## User Impact
 
 <--Explanation-->
+
 * High: A large number non-privileged users have to take action or be notified of changes
 * Medium: A subset of non-privileged users have to take action or be notified of changes
 * Low: Action can be taken by administrators, users don’t have to be notified
@@ -128,6 +132,7 @@ This section must cover
 
 * What
 * Why
+  
 <--End Explanation-->
 
 ## Check Query
@@ -149,12 +154,15 @@ TODO: Delete this explanation when writing the spec
 ## User facing message
 
 Pass: <--Pass Message: User-facing message when check passes, indicating positive outcome-->
+
 Fail: <--Fail Message: User-facing message when check fails, indicating negative outcome-->
+
 Investigate: <--(If applicable) User-facing message when check is inconclusive, indicating need for further investigation-->
 
 ## Test evaluation logic
 
 <--Explanation-->
+
 TODO: Delete this explanation when writing the spec
 Describe the logic used to evaluate the test results, including any thresholds or conditions that determine whether the test passes, fails, or requires further investigation.
 
@@ -163,11 +171,13 @@ For example:
 * If X > Y, then Pass
 * If X < Y, then Fail
 * If X is null or cannot be determined, then Investigate
+  
 <--End Explanation-->
 
 ## Test output data
 
 <--Explanation-->
+
 TODO: Delete this explanation when writing the spec
 Based on the objects in the query, outline the data shown to the user running the assessment.
 
