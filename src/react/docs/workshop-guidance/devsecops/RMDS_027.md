@@ -1,4 +1,4 @@
-# 027: Discover existingADO accounts andpermissions ​
+# 027: Discover existing ADO accounts and permissions ​
 
 ## Overview
 
