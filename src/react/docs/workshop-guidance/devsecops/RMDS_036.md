@@ -1,4 +1,4 @@
-# 036: Triage results andremediate​
+# 036: Triage results and remediate​
 
 ## Overview
 
