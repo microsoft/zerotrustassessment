@@ -17,6 +17,15 @@ The title should clearly describe the positive outcome we are looking for, so â€
 
 <--End Explanation-->
 
+## Status
+
+<--Explanation-->
+* Draft: The spec is being drafted and is not yet ready for implementation.
+* Review: The spec is complete and is under review.
+* Approved: The spec has been reviewed and approved for implementation.
+* Deprecated: The spec is no longer in use and has been deprecated.
+<--End Explanation-->
+
 ## Minimum License
 <--Explanation-->
 
