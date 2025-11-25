@@ -1,4 +1,4 @@
-<--How to use this template-->
+<--Explanation-->
 
 To get started with a new assessment specification:
 
@@ -10,7 +10,7 @@ Delete all `Explanation` blocks in this file (including this one) before submitt
 
 The docs and dev teams will update the status as work progresses.
 
-<--End How to use this template-->
+<--End Explanation-->
 
 # Title of the test (e.g., Applications don't have certificates with expiration longer than 180 days)
 <--Explanation-->
@@ -23,7 +23,7 @@ The title should clearly describe the positive outcome we are looking for, so �
 
 <--Explanation-->
 
-* Not started: The spec has not yet been started.
+* Not started: (Default) The spec has not yet been started.
 * Draft: The spec is being drafted and is not yet ready for implementation.
 * Completed: The spec is complete and ready for implementation.
 
@@ -33,7 +33,7 @@ The title should clearly describe the positive outcome we are looking for, so �
 
 <--Explanation-->
 
-* Not started: The documentation has not yet been started.
+* Not started: (Default) The documentation has not yet been started.
 * In Progress: The documentation is being drafted.
 * Completed: The documentation is complete.
 
@@ -139,6 +139,10 @@ This section must cover
 
 * What
 * Why
+
+One tight paragraph that outlines the risk that this best practice address, and the kill chain that will derive from not following the best practice. Do not use bullet points or numbered list, use a narrative style. You will describe the risk as a kill chain, following the structure of the MITRE ATT&CK framework, but not mention it explicitly. I want this to be very technical, factual and to the point. Please check for factual accuracy by consulting the entra official documentation using https://learn.microsoft.com. Please refer to attackers or bad actors as "threat actors". Avoid fluff and rely on logical structure and deep customer obsession. Use plain language, but don’t dumb things down. Present facts, not opinions. Do not include hyperbolic language or speculative statements. Stick to articulation of risk. Anticipate counterarguments. Start with the customer and work backwards. Ensure every assertion is backed by data or a clear logical argument. Be frugal with words but exhaustive with clarity.
+To create the paragraph, I want you to use your web search tool to research the entra related features are, and then formulate the kill chain based on what you found. If you can't find anything reply saying "I don't know". Do not make stuff up. You have access to an MCP server called `microsoft.docs.mcp` - this tool allows you to search through Microsoft's latest official documentation, and that information might be more detailed or newer than what's in your training data set.
+
 <--End Explanation-->
 
 ## Check Query
@@ -154,6 +158,32 @@ TODO: Delete this explanation when writing the spec
 * What is the interpretation of the data for the check to be considered “Fail”. Consider a test as failed only when there is no ambiguity that customer is at risk and action must be taken
 
 * If there is ambiguity, mark the test as “Investigate”
+* Use the ms-learn tool to find the relevant articles.
+* Use the ms-graph tool to validate the queries.
+* A list of steps that document exactly how to check for the best practice in tenants. This list should be very clear for a team of developers to implement this.
+* The steps should include one or more queries to Graph or related systems.
+* Assign to each query a unique identifier following the convention "Query n", where n is a sequential number. Then also generate a short name of the query using the naming convention "Qn", where n is the same sequential number used in the long name.
+* Come up with a description in plain English what to query for.
+* Each query should have the specific URL of the rest APIs used (MS Graph, Azure ARM API, etc.). If a check does not have an API, and only can be done using management portals, do not include it in the report, but instead include it in the "Challenges" section below.
+* Do NOT include KQL queries. We don't want to use log analytics for this. We want to use only configuration APIs.
+* every API endpoint, property, and check must be directly supported by official Microsoft documentation, and that the assistant must cite the exact documentation URL for each. Use the web search tool to find the documentation and ensure you find it. If you cannot find the documentation, call that out.
+* reply "I don't know" if it cannot find a documented API or property, never invent endpoints, properties, urls under https://learn.microsoft.com or features.
+* summarize the relevant documentation excerpt for each query, showing how it supports the check.
+* you must not infer or assume the existence of APIs or properties not explicitly documented.
+* always validate the existence of each API and property in the latest Microsoft Learn documentation before including it in the output.
+* for each query, also use MS Graph MCP to validate that the query is correct and will return the expected data.
+* If you are not able to find an API, call that out in the "Challenges" section below and do not include it in the Check Query section.
+* If multiple queries are needed, then call out the dependencies between the queries, using the short name of the query as part of the description
+* Also, call out what to look for in the query results to determine if the best practice is a "pass" or a "fail". Call out the exact names of the properties returned by the Query APIs
+* Generate each query with the convention "Unique Identifier: Short Identifier: Description", followed by a new line and the details of the query
+* Also, cite specific sources coming from https://learn.microsoft.com for accuracy on every query detail. If you cannot find a query, please report "I don't know"
+* A subheader called "Check Results"
+* Then a table of 3 columns: "User-Facing Message", "Details", "Remediation Resources"
+* The first Column will have two sentences. The first sentence will have the prefix "Pass:" and it summarizes that the test passed based on the best practice. The second sentence will have the prefix "Fail:" and it summarizes that the test failed. The sentences should be understandable in the table
+* The second column will have data based on the queries above that will help readers to understand the status. This column will contain results from the queries above, with the relevant properties, for readers to understand
+* The third column will a list of reference. Each reference will have a sentence that describe the step and then links to https://learn.microsoft.com articles that explain how to remediate. 
+* A subheader,called "Challenges (Internal)"
+* Include all the checks you find, that cannot be automated. Instead of using the structure of the "Check Query Section", use a single bullet that summarizes what needs to be checked, articulate this cannot be implemented, and call out the steps in the portal on how to do it.
 
 <--End Check Query-->
 
