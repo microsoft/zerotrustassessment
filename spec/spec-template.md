@@ -1,14 +1,18 @@
+---
+author.spec: 
+author.doc: 
+author.dev:
+---
+
 <--Explanation-->
 
 To get started with a new assessment specification:
 
 * Browse to [Test Number Generator](https://github.com/microsoft/zerotrustassessment/issues/627) and claim a new Test ID by commenting under the last comment and claiming the next sequence in the thread.
 * Copy this template file to the pillar folder and rename it according to the naming convention: `spec/<pillar>/<TestID>.md`, where `<pillar>` is the relevant pillar (e.g., Identity, Device, Network, Data, Infrastructure) and `<TestID>` is the unique identifier for the assessment.
-* Fill out the metadata at the top of the file, replacing the placeholder values with the appropriate information for your assessment.
-
-Delete all `Explanation` blocks in this file (including this one) before submitting the spec for review.
-
-The docs and dev teams will update the status as work progresses.
+* Set 'author.spec' metadata at the top of the file to the github id of the current user. Leave other author fields blank.
+* Delete all `Explanation` blocks in this file (including this one) before submitting the spec for review.
+* The docs and dev teams will update the status as work progresses.
 
 <--End Explanation-->
 
