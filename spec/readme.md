@@ -4,7 +4,7 @@ This document contains the specifications for the various assessments performed 
 
 ## Spec Template
 
-The spec template is located at: [template.md](template.md).
+The spec template is located at: [spec-template.md](spec-template.md).
 
 To get started with a new assessment specification:
 
