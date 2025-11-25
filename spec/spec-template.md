@@ -8,6 +8,8 @@ To get started with a new assessment specification:
 
 Delete all `Explanation` blocks in this file (including this one) before submitting the spec for review.
 
+The docs and dev teams will update the status as work progresses.
+
 <--End How to use this template-->
 
 # Title of the test (e.g., Applications don't have certificates with expiration longer than 180 days)
@@ -17,7 +19,7 @@ The title should clearly describe the positive outcome we are looking for, so â€
 
 <--End Explanation-->
 
-## Status
+## Spec Status
 
 <--Explanation-->
 
@@ -27,6 +29,14 @@ The title should clearly describe the positive outcome we are looking for, so â€
 * Deprecated: The spec is no longer in use and has been deprecated.
 
 <--End Explanation-->
+
+## Documentation Status
+
+Not started
+
+## Dev Status
+
+Not started
 
 ## Minimum License
 <--Explanation-->
