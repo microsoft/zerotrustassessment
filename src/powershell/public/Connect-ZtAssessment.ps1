@@ -80,9 +80,12 @@ function Connect-ZtAssessment
             $Password = Read-Host -Prompt "Enter Password for Service Principal" -MaskInput
             $SecuredPassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
             $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $SecuredPassword
-            $params['ClientSecretCredential'] = $ClientSecretCredential
-            $params['ClientId'] = $AppId
-            $params.Remove('Scopes')
+            $params = @{
+                TenantId               = $TenantId
+                ClientSecretCredential = $ClientSecretCredential
+                NoWelcome              = $true
+            }
+
         }
         Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
         Connect-MgGraph @params
