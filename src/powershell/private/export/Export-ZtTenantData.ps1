@@ -37,7 +37,7 @@ function Export-ZtTenantData {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
-		[string]
+		[PSFDirectorySingle]
 		$ExportPath,
 
 		[int]
