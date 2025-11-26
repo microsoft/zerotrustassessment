@@ -366,7 +366,7 @@ function Invoke-ZtAssessment {
 
 	# Collect data
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-	Export-TenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
 	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
 
 	# Run the tests
