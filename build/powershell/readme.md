@@ -75,6 +75,54 @@ $l.Messages
 
 You can also view the log for each job by it's name.
 
+## How the parallel export works of Graph and tenant data works
+
+Implemented a parallelized tenant export, with the goal of accelerating the export phase.
+The configuration, what should be exported has been moved into a config file under assets: `export-tenant.config.psd1`
+
+The actual export then processes those entries and launches background runspaces via PSFramework Runspace Workflows to actually execute them, wait for the completion and report it all.
+The final result is the exact same json files as in the previous iteration.
+
+> RelatedPropertyNames
+
+The feature to include additional properties - previously used by the Service Principal export - has been rewritten to use batch requests, significantly improving the performance of exporting Service Principals (in my test lab, what took 2.5 minutes turned into 5 seconds).
+
+> Export Statistics / Troubleshooting
+
+One of the issues that arise with parallelizing the export is, that it is harder to troubleshoot the export.
+When everything happens in the background, errors and details are easily lost.
+
+To help with that - and also to better see performance issues - a new publicly available command has been added:
+
+```powershell
+Get-ZtExportStatistics
+```
+
+It includes the status, the duration, any errors and all related log messages.
+Note: The logs are taken from the in-memory log, which is limited to 1024 entries _by default_.
+An export that takes too long might not include all messages as it and other exports happening fill the in-memory log too fast.
+The in-memory log's capacity can be increased like this:
+
+```powershell
+Set-PSFConfig -FullName PSFramework.Logging.MaxMessageCount -Value 102400
+```
+
+> Improved Batch Request handling
+
+The new command `Invoke-ZtGraphBatchRequest` offers improved batch request handling, available for all tests or other, internal usage. It does _not_ integrate into request caching however, to limit memory overload.
+Features:
+
+- Handles throttling individually
+- Handles paging individually
+- Convenient query scaling: `Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id`
+- Can return a matched pair, matching each item in ArgumentList with the corresponding result (and whether it was successful)
+
+> PSFramework dependency version update
+
+The new export handling has to deal with one issue:
+The config tracking - what export was successful and need not be repeated when resuming an export - now might be accessed from multiple runspaces in parallel.
+To avoid conflicts, a feature from `v1.13.419` was used: RunspaceLocks allow marshalling parallel resource access, similar to classic locks in C#.
+
 ## Building and publishing the module
 
 ### Create a preview build
