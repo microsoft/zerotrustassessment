@@ -1,36 +1,51 @@
-﻿<#
- .Synopsis
-  Returns all the members of the specific group ID.
+﻿function Get-ZtGroupMember {
+	<#
+	.SYNOPSIS
+		Returns all members of the specified group.
 
- .Description
+	.DESCRIPTION
+		Returns all members of the specified group.
+		Uses the caching from "Invoke-ZtGraphRequest"
 
- .Example
-  Get-ZtGroupMember
-#>
+	.PARAMETER GroupId
+		The group to retrieve members for.
 
-Function Get-ZtGroupMember {
-  [CmdletBinding()]
-  param(
-    [Parameter(Position=0,mandatory=$true)]
-    [guid]$groupId,
-    [switch]$Recursive
-  )
+	.PARAMETER Recurse
+		Whether to resolve nested group memberships instead.
 
-  Write-PSFMessage -Message "Getting group members."
+	.PARAMETER OutputType
+		The datatype to return the members in.
+		Defaults to: PSObject
 
-  $members = @()
-  $members += Invoke-ZtGraphRequest -RelativeUri "groups/$groupId/members" -ApiVersion v1.0
+	.EXAMPLE
+		PS C:\> Get-ZtGroupMember -GroupId $myGroup
 
-  if(-not $recursive){
-    return $members
-  }
+		Returns all members of the group stored in $myGroup
+	#>
+	[CmdletBinding()]
+	param(
+		[Parameter(Position = 0, mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+		[Alias('id')]
+		[guid]
+		$GroupId,
 
-  $members | Where-Object {`
-    $_.'@odata.type' -eq "#microsoft.graph.group"
-  } | ForEach-Object {`
-    $members += Get-ZtGroupMember -groupId $_.id -Recursive
-  }
+		[Alias('Recursive')]
+		[switch]
+		$Recurse,
 
-  return $members
+		[ValidateSet('PSObject', 'PSCustomObject', 'Hashtable')]
+		[string]
+		$OutputType = 'PSObject'
+	)
 
+	process {
+		Write-PSFMessage -Message "Retrieving group members for {0}." -StringValues "$GroupId"
+
+		if ($Recurse) {
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/transitiveMembers" -ApiVersion v1.0 -OutputType $OutputType
+		}
+		else {
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/members" -ApiVersion v1.0 -OutputType $OutputType
+		}
+	}
 }
