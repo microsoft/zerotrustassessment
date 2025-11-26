@@ -78,6 +78,10 @@ function Test-Assessment-22128 {
 '@
 
     foreach ($role in $resultsPrivilegedRoles) {
+        if ($role.userType -ne 'Guest') {
+            continue
+        }
+        
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $role.principalId
         $tableRows += @"
 | $($role.roleDisplayName) | [$(Get-SafeMarkdown($role.principalDisplayName))]($portalLink) | $($role.userPrincipalName) | $($role.userType) | $($role.assignmentType) |`n
