@@ -123,6 +123,41 @@ The new export handling has to deal with one issue:
 The config tracking - what export was successful and need not be repeated when resuming an export - now might be accessed from multiple runspaces in parallel.
 To avoid conflicts, a feature from `v1.13.419` was used: RunspaceLocks allow marshalling parallel resource access, similar to classic locks in C#.
 
+## How parallel test execution works
+
+Tests are now processed in parallel runspaces, significantly speeding up the assessment phase.
+
+By default, Up to 5 tests will now be processed at a time, there is a parameter & configuration setting to change that.
+
+Added a new command for better Tests diagnostics:
+
+> Get-ZtTestStatistics
+
+```powershell
+$s = Get-ZtTestStatistics
+$s[0].Messages
+```
+```text
+Timestamp           FunctionName           Line Level       TargetObject Message
+---------           ------------           ---- -----       ------------ -------
+2025-10-16 16:02:31 Invoke-ZtTest          54   Verbose                  Processing test '21810'
+2025-10-16 16:02:31 Test-Assessment-21810  21   VeryVerbose              🟦 Start
+2025-10-16 16:02:46 Add-ZtTestResultDetail 192  Verbose                  Adding test result detail for Resource-specific consent is restricted
+2025-10-16 16:02:46 Add-ZtTestResultDetail 193  Debug                    Result: …
+2025-10-16 16:02:46 Invoke-ZtTest          86   Verbose                  Processing test '21810' - Concluded
+```
+```powershell
+$s | Where-Object Success -ne $true
+```
+```text
+TestID Start               Duration         Success Error
+------ -----               --------         ------- -----
+21822  2025-10-16 16:02:40 00:00:02.1888895 False   Cannot bind argument to parameter 'InputObject' because it is null.
+24568  2025-10-16 16:02:54 00:00:00.1956550 False   Cannot bind argument to parameter 'Policies' because it is null.
+21862  2025-10-16 16:02:45 00:00:00.0535597 False   Response status code does not indicate success: Forbidden (Forbidden).
+```
+
+
 ## Building and publishing the module
 
 ### Create a preview build
