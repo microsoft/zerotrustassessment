@@ -176,8 +176,8 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
 }
 @{
-	Name = 'RoleAssignmentSchedule'
-	Uri = 'beta/roleManagement/directory/roleAssignmentSchedules'
+	Name = 'RoleAssignmentScheduleInstance'
+	Uri = 'beta/roleManagement/directory/roleAssignmentScheduleInstances'
 	QueryString = '$expand=principal&$filter = assignmentType eq ''Assigned'''
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
@@ -189,9 +189,9 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
 }
 @{
-	Name = 'RoleEligibilityScheduleRequest'
-	Uri = 'beta/roleManagement/directory/roleEligibilityScheduleRequests'
-	QueryString = "`$expand=principal&`$filter = NOT(status eq 'Canceled' or status eq 'Denied' or status eq 'Failed' or status eq 'Revoked')"
+	Name = 'RoleEligibilityScheduleInstance'
+	Uri = 'beta/roleManagement/directory/roleEligibilityScheduleInstances'
+	QueryString = "`$expand=principal"
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
@@ -245,8 +245,8 @@ They will block their worker until their dependency is completed and could risk 
 	DependsOn = 'RoleAssignment'
 }
 @{
-	Name = 'RoleEligibilityScheduleRequestGroup'
-	InputName = 'RoleEligibilityScheduleRequest'
+	Name = 'RoleEligibilityScheduleInstanceGroup'
+	InputName = 'RoleEligibilityScheduleInstance'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
 	Pillar = 'Identity'
@@ -254,7 +254,20 @@ They will block their worker until their dependency is completed and could risk 
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
-	DependsOn = 'RoleEligibilityScheduleRequest'
+	DependsOn = 'RoleEligibilityScheduleInstance'
+}
+
+@{
+	Name = 'RoleAssignmentScheduleInstanceGroup'
+	InputName = 'RoleAssignmentScheduleInstance'
+	Type = 'PrivilegedGroup' # PrivilegedGroup
+
+	Pillar = 'Identity'
+	# Environment = 'Global' # 'Global'
+	IncludePlan = @('P2', 'Governance') # P2, Governance
+	# ExcludePlan = @('Free') # Free
+	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
+	DependsOn = 'RoleAssignmentScheduleInstance'
 }
 
 @{
