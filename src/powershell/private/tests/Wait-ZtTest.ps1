@@ -27,6 +27,7 @@
 	}
 	process {
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -PercentComplete 0
+		$lastTest = "Starting..."
 		while (-not $Workflow.Queues["Results"].Closed) {
 			Start-Sleep -Milliseconds 500
 
@@ -40,7 +41,8 @@
 			if ($percent -lt 0) { $percent = 0 }
 			if ($percent -gt 100) { $percent = 100 }
 
-			$lastTest = (Get-PSFMessage -Tag start | Select-Object -Last 1).StringValue[0]
+			$lastMessage = Get-PSFMessage -Tag start | Select-Object -Last 1
+			if ($lastMessage -and $lastMessage.StringValue) { $lastTest = $lastMessage.StringValue[0] }
 			$status = "Completed: $($Workflow.Queues["Results"].Count) / $totalCount | Last Test: $lastTest"
 
 			Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -Status $status -PercentComplete $percent
