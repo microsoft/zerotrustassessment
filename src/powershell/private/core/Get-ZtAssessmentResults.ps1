@@ -62,7 +62,7 @@ function Get-ZtAssessmentResults {
 	$mgContext = Get-MgContext
 	$org = Get-Organization
 	# Sort by risk then by status
-	$tests = $script:__ZtSession.TestResultDetail.values | Sort-Object -Property @{Expression = { $_.TestRisk } }, @{Expression = { $_.TestStatus } }
+	$tests = $script:__ZtSession.TestResultDetail.Value.values | Sort-Object -Property @{Expression = { $_.TestRisk } }, @{Expression = { $_.TestStatus } }
 
 	$ztTestResults = [PSCustomObject][ordered]@{
 		ExecutedAt        = Get-Date
@@ -72,9 +72,9 @@ function Get-ZtAssessmentResults {
 		Account           = $mgContext.Account
 		CurrentVersion    = $PSCmdlet.MyInvocation.MyCommand.Module.Version.ToString()
 		LatestVersion     = Get-ModuleLatestVersion
-		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.values
+		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.Value.values
 		Tests             = @($tests) # Use @() to ensure it's an array
-		TenantInfo        = $script:__ZtSession.TenantInfo
+		TenantInfo        = Get-ZtTenantInfo
 		EndOfJson         = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON
 	}
 

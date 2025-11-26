@@ -1,4 +1,4 @@
-# 018: Design organization securityand analysis settings​
+# 018: Design organization security and analysis settings​
 
 ## Overview
 

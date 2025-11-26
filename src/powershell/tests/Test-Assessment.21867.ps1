@@ -21,7 +21,7 @@ function Test-Assessment-21867 {
         $Database
     )
 
-    Test-ApplicationOwnership `
+    Test-ZtApplicationOwnership `
         -Database $Database `
         -TestId '21867' `
         -PrivilegeLevel 'High' `
