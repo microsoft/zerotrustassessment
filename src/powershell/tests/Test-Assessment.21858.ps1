@@ -50,9 +50,10 @@ function Test-Assessment-21858 {
             $daysSinceLastActivity = $null
             $activitySource = ""
 
-            # Check if signInActivity property exists
-            if ([string]::IsNullOrEmpty($guest.signInActivity) -eq $false) {
-                # Evaluate lastSuccessfulSignInDateTime if lastSignInDateTime is not available
+            # Check if daysSinceLastSignIn has a value (not null)
+            # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object
+            if ($null -ne $guest.daysSinceLastSignIn) {
+                # Use lastSuccessfulSignInDateTime
                 $daysSinceLastActivity = $guest.daysSinceLastSignIn
                 $activitySource = "last successful sign-in"
             }
