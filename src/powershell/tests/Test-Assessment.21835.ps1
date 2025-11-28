@@ -78,6 +78,8 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             if ($authMethods) {
                 # Check if user has at least one phishing-resistant auth method (FIDO2 or Certificate)
                 # Note: Passwords are always present and cannot be removed, but CA policies can enforce phishing-resistant MFA
+                # fix for issue #579 - The logic now checks if users have at least one phishing-resistant authentication method (FIDO2 or Certificate) instead of requiring only those methods.
+                # This resolves the issue where passwords auth method were causing all accounts to be filtered out.
                 $hasPhishingResistant = $false
                 $authMethodTypes = @()
 
