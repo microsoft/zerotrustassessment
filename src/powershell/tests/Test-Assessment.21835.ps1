@@ -76,22 +76,23 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $authMethods = $userAuthInfo.AuthenticationMethods
 
             if ($authMethods) {
-                # Check if user only has FIDO2 and/or Certificate auth methods
-                $hasOnlyPhishingResistant = $true
+                # Check if user has at least one phishing-resistant auth method (FIDO2 or Certificate)
+                # Note: Passwords are always present and cannot be removed, but CA policies can enforce phishing-resistant MFA
+                $hasPhishingResistant = $false
                 $authMethodTypes = @()
 
                 foreach ($method in $authMethods) {
                     $methodType = $method.'@odata.type'
                     $authMethodTypes += $methodType
 
-                    # If any method is not FIDO2 or Certificate, mark as not phishing-resistant only
-                    if ($methodType -ne '#microsoft.graph.fido2AuthenticationMethod' -and
-                        $methodType -ne '#microsoft.graph.x509CertificateAuthenticationMethod') {
-                        $hasOnlyPhishingResistant = $false
+                    # Check if this method is FIDO2 or Certificate
+                    if ($methodType -eq '#microsoft.graph.fido2AuthenticationMethod' -or
+                        $methodType -eq '#microsoft.graph.x509CertificateAuthenticationMethod') {
+                        $hasPhishingResistant = $true
                     }
                 }
 
-                if ($hasOnlyPhishingResistant -and $authMethodTypes.Count -gt 0) {
+                if ($hasPhishingResistant) {
                     # This is a candidate emergency account
                     $emergencyAccountCandidates += [PSCustomObject]@{
                         Id = $user.id
