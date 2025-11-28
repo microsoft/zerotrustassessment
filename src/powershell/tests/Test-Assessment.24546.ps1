@@ -10,7 +10,7 @@ function Test-Assessment-24546 {
     [ZtTest(
     	Category = 'Tenant',
     	ImplementationCost = 'Low',
-        MinimumLicense = ('Intune'),
+        MinimumLicense = ('P1'),
     	Pillar = 'Devices',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -24,6 +24,11 @@ function Test-Assessment-24546 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if( -not (Get-ZtLicense EntraIDP1) ) {
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
+        return
+    }
 
     $activity = "Checking Windows Automatic Enrollment is enabled"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
