@@ -68,7 +68,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
 
     foreach ($user in $permanentGAUsers) {
         # Only process cloud-only accounts (onPremisesSyncEnabled is null or false)
-        if ($null -eq $user.onPremisesSyncEnabled -or $user.onPremisesSyncEnabled -eq $false) {
+        if ($user.onPremisesSyncEnabled -ne $true) {
             Write-PSFMessage "Checking auth methods for cloud-only user: $($user.userPrincipalName)" -Level Verbose
 
             # Use Get-ZtUserAuthenticationMethod helper to get authentication methods
@@ -76,22 +76,25 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $authMethods = $userAuthInfo.AuthenticationMethods
 
             if ($authMethods) {
-                # Check if user only has FIDO2 and/or Certificate auth methods
-                $hasOnlyPhishingResistant = $true
+                # Check if user has at least one phishing-resistant auth method (FIDO2 or Certificate)
+                # Note: Passwords are always present and cannot be removed, but CA policies can enforce phishing-resistant MFA
+                # fix for issue #579 - The logic now checks if users have at least one phishing-resistant authentication method (FIDO2 or Certificate) instead of requiring only those methods.
+                # This resolves the issue where passwords auth method were causing all accounts to be filtered out.
+                $hasPhishingResistant = $false
                 $authMethodTypes = @()
 
                 foreach ($method in $authMethods) {
                     $methodType = $method.'@odata.type'
                     $authMethodTypes += $methodType
 
-                    # If any method is not FIDO2 or Certificate, mark as not phishing-resistant only
-                    if ($methodType -ne '#microsoft.graph.fido2AuthenticationMethod' -and
-                        $methodType -ne '#microsoft.graph.x509CertificateAuthenticationMethod') {
-                        $hasOnlyPhishingResistant = $false
+                    # Check if this method is FIDO2 or Certificate
+                    if ($methodType -eq '#microsoft.graph.fido2AuthenticationMethod' -or
+                        $methodType -eq '#microsoft.graph.x509CertificateAuthenticationMethod') {
+                        $hasPhishingResistant = $true
                     }
                 }
 
-                if ($hasOnlyPhishingResistant -and $authMethodTypes.Count -gt 0) {
+                if ($hasPhishingResistant) {
                     # This is a candidate emergency account
                     $emergencyAccountCandidates += [PSCustomObject]@{
                         Id = $user.id
@@ -238,34 +241,60 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
     # Add details table
     if ($emergencyAccessAccounts.Count -gt 0) {
         $testResultMarkdown += "## Emergency access accounts`n`n"
-        $testResultMarkdown += "| Display name | UPN | Synced from on-premises | Authentication methods | CA policies targeting |`n"
-        $testResultMarkdown += "| :----------- | :-- | :---------------------- | :--------------------- | :-------------------- |`n"
+        $testResultMarkdown += "| Display name | UPN | Synced from on-premises | Authentication methods |`n"
+        $testResultMarkdown += "| :----------- | :-- | :---------------------- | :--------------------- |`n"
 
         foreach ($account in $emergencyAccessAccounts) {
-            $syncStatus = if ($null -eq $account.OnPremisesSyncEnabled) { 'No' } else { if ($account.OnPremisesSyncEnabled) { 'Yes' } else { 'No' } }
+            $syncStatus = if ($account.onPremisesSyncEnabled -ne $true) { 'No' } else { 'Yes' }
             $authMethodDisplay = ($account.AuthenticationMethods | ForEach-Object {
                 $_ -replace '#microsoft.graph.', '' -replace 'AuthenticationMethod', ''
             }) -join ', '
 
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($account.Id)"
 
-            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $account.DisplayName) | [$(Get-SafeMarkdown -Text $account.UserPrincipalName)]($portalLink) | $syncStatus | $authMethodDisplay | $($account.CAPoliciesTargeting) |`n"
+            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $account.DisplayName) | [$(Get-SafeMarkdown -Text $account.UserPrincipalName)]($portalLink) | $syncStatus | $authMethodDisplay |`n"
         }
         $testResultMarkdown += "`n"
     }
 
-    # Add candidates that didn't qualify
-    if ($emergencyAccountCandidates.Count -gt $emergencyAccessAccounts.Count) {
-        $testResultMarkdown += "## Accounts not excluded from all CA policies`n`n"
-        $testResultMarkdown += "These accounts have the correct authentication configuration but are targeted by one or more CA policies:`n`n"
-        $testResultMarkdown += "| Display name | UPN | CA policies targeting |`n"
-        $testResultMarkdown += "| :----------- | :-- | :-------------------- |`n"
+    # Add comprehensive table of all permanent GA accounts
+    if ($permanentGAUsers.Count -gt 0) {
+        $testResultMarkdown += "## All permanent Global Administrators`n`n"
+        $testResultMarkdown += "| Display name | UPN | Cloud only | All CA excluded | Phishing resistant auth |`n"
+        $testResultMarkdown += "| :----------- | :-- | :--------: | :---------: | :---------------------: |`n"
 
-        $targetedCandidates = $emergencyAccountCandidates | Where-Object { -not $_.ExcludedFromAllCA }
-        foreach ($account in $targetedCandidates) {
-            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($account.Id)"
-            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $account.DisplayName) | [$(Get-SafeMarkdown -Text $account.UserPrincipalName)]($portalLink) | $($account.CAPoliciesTargeting) |`n"
+        $userSummary = @()
+        foreach ($user in $permanentGAUsers) {
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($user.id)"
+
+            # Check if cloud-only
+            $isCloudOnly = ($user.onPremisesSyncEnabled -ne $true)
+            $cloudOnlyEmoji = if ($isCloudOnly) { '✅' } else { '❌' }
+
+            # Check if in emergency access accounts (excluded from all CA)
+            $emergencyAccount = $emergencyAccessAccounts | Where-Object { $_.Id -eq $user.id }
+            $caExcludedEmoji = if ($emergencyAccount) { '✅' } else { '❌' }
+
+            # Check if has phishing-resistant auth only
+            $candidate = $emergencyAccountCandidates | Where-Object { $_.Id -eq $user.id }
+            $phishingResistantEmoji = if ($candidate) { '✅' } else { '❌' }
+
+            $userSummary += [PSCustomObject]@{
+                DisplayName = $user.displayName
+                UserPrincipalName = $user.userPrincipalName
+                CloudOnly = $cloudOnlyEmoji
+                CAExcluded = $caExcludedEmoji
+                PhishingResistant = $phishingResistantEmoji
+            }
         }
+
+        # show users that have passed every criteria first
+        $userSummary = $userSummary | Sort-Object -Property CAExcluded, PhishingResistant, CloudOnly
+
+        foreach ($user in $userSummary) {
+            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($portalLink) | $($user.CloudOnly) | $($user.CAExcluded) | $($user.PhishingResistant) |`n"
+        }
+
         $testResultMarkdown += "`n"
     }
 
