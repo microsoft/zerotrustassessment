@@ -5,16 +5,16 @@
 
 function Test-Assessment-22128 {
     [ZtTest(
-    	Category = 'Application management',
-    	ImplementationCost = 'Medium',
-    	MinimumLicense = ('Free'),
-    	Pillar = 'Identity',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and isolate production systems',
-    	TenantType = ('Workforce','External'),
-    	TestId = 22128,
-    	Title = 'Guests are not assigned high privileged directory roles',
-    	UserImpact = 'Low'
+        Category = 'Application management',
+        ImplementationCost = 'Medium',
+        MinimumLicense = ('Free'),
+        Pillar = 'Identity',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect tenants and isolate production systems',
+        TenantType = ('Workforce', 'External'),
+        TestId = 22128,
+        Title = 'Guests are not assigned high privileged directory roles',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(
@@ -39,7 +39,7 @@ function Test-Assessment-22128 {
         vr.privilegeType as assignmentType
     FROM vwRole vr
     LEFT JOIN "User" u ON vr.principalId = u.id  -- Join with User table
-    WHERE vr.isPrivileged = true
+    WHERE vr.isPrivileged = true AND u.userType = 'Guest'
     AND vr."@odata.type" = '#microsoft.graph.user'  -- Filter for users only
     ORDER BY vr.roleDisplayName, vr.principalDisplayName
 "@
@@ -47,26 +47,24 @@ function Test-Assessment-22128 {
 
     $resultsPrivilegedRoles = Invoke-DatabaseQuery -Database $Database -Sql $sqlPrivilegedRoles
 
+    $passed = $resultsPrivilegedRoles.Count -eq 0
 
-    if ($resultsPrivilegedRoles.userType -notcontains 'Guest') {
-        $passed = $true
-        $testResultMarkdown = "All users with privileged roles are members of the tenant.`n`n%TestResult%"
+    if ($passed) {
+        $testResultMarkdown = "Guests with privileged roles were not found.`n`nAll users with privileged roles are members of the tenant.`n`n%TestResult%"
     }
     else {
-        $passed = $false
         $testResultMarkdown = "Guests with privileged roles were detected.`n`n%TestResult%"
     }
 
+    if (!$passed) {
+        # Build the detailed sections of the markdown
 
+        # Define variables to insert into the format string
+        $reportTitle = "Guests with privileged roles"
+        $tableRows = ""
 
-    # Build the detailed sections of the markdown
-
-    # Define variables to insert into the format string
-    $reportTitle = "Users with assigned high privileged directory roles"
-    $tableRows = ""
-
-    # Create a here-string with format placeholders {0}, {1}, etc.
-    $formatTemplate = @'
+        # Create a here-string with format placeholders {0}, {1}, etc.
+        $formatTemplate = @'
 
 ## {0}
 
@@ -77,20 +75,20 @@ function Test-Assessment-22128 {
 
 '@
 
-    foreach ($role in $resultsPrivilegedRoles) {
-        if ($role.userType -ne 'Guest') {
-            continue
-        }
-        
-        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $role.principalId
-        $tableRows += @"
+        foreach ($role in $resultsPrivilegedRoles) {
+            if ($role.userType -ne 'Guest') {
+                continue
+            }
+
+            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $role.principalId
+            $tableRows += @"
 | $($role.roleDisplayName) | [$(Get-SafeMarkdown($role.principalDisplayName))]($portalLink) | $($role.userPrincipalName) | $($role.userType) | $($role.assignmentType) |`n
 "@
+        }
+
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
-
-    # Format the template by replacing placeholders with values
-    $mdInfo = $formatTemplate -f $reportTitle, $tableRows
-
     # Replace the placeholder with the detailed information
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
