@@ -161,6 +161,7 @@ as
 
 	if ($Pillar -in ('All', 'Devices')) {
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy'
 	}
 
 	$database
