@@ -32,10 +32,18 @@ function Test-Assessment-21858 {
 
     $sql = @"
     SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
-    date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) daysSinceLastSignIn,
+    CASE
+        WHEN signInActivity.lastSuccessfulSignInDateTime IS NOT NULL
+        THEN date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today())
+        ELSE NULL
+    END as daysSinceLastSignIn,
     date_diff('day', createdDateTime, today()) daysSinceCreated,
     strftime(createdDateTime, '%Y-%m-%d') fmtCreatedDateTime,
-    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') fmtLastSignInDateTime,
+    CASE
+        WHEN signInActivity.lastSuccessfulSignInDateTime IS NOT NULL
+        THEN strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d')
+        ELSE NULL
+    END as fmtLastSignInDateTime
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
@@ -52,19 +60,19 @@ function Test-Assessment-21858 {
 
             # Check if daysSinceLastSignIn has a value (not null)
             # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object
-            if ($null -ne $guest.daysSinceLastSignIn) {
+            if ($null -ne $guest.daysSinceLastSignIn -and $guest.daysSinceLastSignIn -ne '' -and $guest.daysSinceLastSignIn -is [System.IComparable]) {
                 # Use lastSuccessfulSignInDateTime
-                $daysSinceLastActivity = $guest.daysSinceLastSignIn
+                $daysSinceLastActivity = [int]$guest.daysSinceLastSignIn
                 $activitySource = 'last successful sign-in'
             }
-            else {
+            elseif ($null -ne $guest.daysSinceCreated -and $guest.daysSinceCreated -ne '' -and $guest.daysSinceCreated -is [System.IComparable]) {
                 # signInActivity is null, calculate days since creation using createdDateTime
-                $daysSinceLastActivity = $guest.daysSinceCreated
+                $daysSinceLastActivity = [int]$guest.daysSinceCreated
                 $activitySource = 'creation date (no sign-in activity)'
             }
 
             # if guests exist with no sign-in activity in the last $inactivityThresholdDays days add them to the list
-            if ($daysSinceLastActivity -gt $inactivityThresholdDays) {
+            if ($null -ne $daysSinceLastActivity -and $daysSinceLastActivity -gt $inactivityThresholdDays) {
                 $inactiveGuests += [PSCustomObject]@{
                     Guest                 = $guest
                     DaysSinceLastActivity = $daysSinceLastActivity
