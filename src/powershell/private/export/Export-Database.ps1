@@ -135,6 +135,22 @@ as
 
 	$database = Connect-Database -Path $dbPath -PassThru
 
+	# Get list of tables in the database using DuckDB system table
+	Write-PSFMessage "Retrieving list of tables in database" -Tag Import
+	$tables = Invoke-DatabaseQuery -Database $database -Sql "SELECT table_name,table_type FROM information_schema.tables WHERE table_schema = 'main';"
+	Write-PSFMessage "Database contains $($tables.Count) tables" -Tag Import
+	$BaseTables = $tables | Where-Object { $_.table_type -eq 'BASE TABLE' }
+	$BaseViews = $tables | Where-Object { $_.table_type -eq 'VIEW' }
+	if($($tables.Count) -gt 0) {
+		foreach ($table in $BaseTables.table_name) {
+			 Write-PSFMessage "Dropping existing table $table" -Tag Import
+			 Invoke-DatabaseQuery -Database $database -Sql "DROP TABLE IF EXISTS `"$table`";" -NonQuery
+		}
+		foreach ($view in $BaseViews.table_name) {
+			 Write-PSFMessage "Dropping existing view $view" -Tag Import
+			 Invoke-DatabaseQuery -Database $database -Sql "DROP VIEW IF EXISTS `"$view`";" -NonQuery
+		}
+	}
 	trap {
 		Disconnect-Database -Database $database
 		throw $_

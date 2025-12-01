@@ -49,6 +49,8 @@ function New-EntraTable {
     $sqlTable = "CREATE TABLE $TableName AS SELECT d.* FROM temp$TableName;"
 
     try {
+        # Drop tables if they already exist
+        Write-PSFMessage "Dropping existing tables if present for $TableName" -Level Debug -Tag DB
         Write-PSFMessage "Creating temporary table temp$TableName with parameters: $paramsString" -Level Debug -Tag DB
         Invoke-DatabaseQuery -Database $Database -Sql $sqlTemp -NonQuery
 
