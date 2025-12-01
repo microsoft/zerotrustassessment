@@ -32,21 +32,21 @@ function Test-Assessment-21858 {
 
     $sql = @"
     SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
-    date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) as daysSinceLastSignIn,
+    date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) daysSinceLastSignIn,
     date_diff('day', createdDateTime, today()) daysSinceCreated,
     strftime(createdDateTime, '%Y-%m-%d') fmtCreatedDateTime,
-    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') as fmtLastSignInDateTime
+    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') fmtLastSignInDateTime
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
 
+    $inactiveGuests = @()
     $enabledGuestUsers = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
     if ($enabledGuestUsers) {
-        $inactiveGuests = @()
+        $inactivityThresholdDays = 90
 
         foreach ($guest in $enabledGuestUsers) {
-            $inactivityThresholdDays = 90
             $daysSinceLastActivity = $null
             $activitySource = ''
 
@@ -93,7 +93,6 @@ function Test-Assessment-21858 {
 
     # Define variables to insert into the format string
     $reportTitle = 'Inactive guest accounts in the tenant'
-    $tableRows = ''
 
     if ($inactiveGuests.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
@@ -108,17 +107,15 @@ function Test-Assessment-21858 {
 
 '@
 
-        foreach ($inactiveGuest in $inactiveGuests) {
+        $tableRowsArray = foreach ($inactiveGuest in $inactiveGuests) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $inactiveGuest.guest.id
             $displayName = Get-SafeMarkdown $inactiveGuest.guest.displayName
             $userPrincipalName = $inactiveGuest.guest.userPrincipalName
             $lastSignInDateTime = $inactiveGuest.LastSignInDate
             $createdDateTime = $inactiveGuest.CreatedDate
-            $tableRows += @"
-| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |`n
-"@
+            "| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |"
         }
-
+        $tableRows = $tableRowsArray -join "`n"
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
