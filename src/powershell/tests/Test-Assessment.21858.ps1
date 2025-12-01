@@ -32,18 +32,10 @@ function Test-Assessment-21858 {
 
     $sql = @"
     SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
-    CASE
-        WHEN signInActivity.lastSuccessfulSignInDateTime IS NOT NULL
-        THEN date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today())
-        ELSE NULL
-    END as daysSinceLastSignIn,
+    date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) as daysSinceLastSignIn,
     date_diff('day', createdDateTime, today()) daysSinceCreated,
     strftime(createdDateTime, '%Y-%m-%d') fmtCreatedDateTime,
-    CASE
-        WHEN signInActivity.lastSuccessfulSignInDateTime IS NOT NULL
-        THEN strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d')
-        ELSE NULL
-    END as fmtLastSignInDateTime
+    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') as fmtLastSignInDateTime
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
