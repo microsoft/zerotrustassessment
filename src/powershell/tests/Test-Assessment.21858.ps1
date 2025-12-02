@@ -52,14 +52,14 @@ function Test-Assessment-21858 {
 
             # Check if daysSinceLastSignIn has a value (not null)
             # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object
-            if ($null -ne $guest.daysSinceLastSignIn -and $guest.daysSinceLastSignIn -ne '' -and $guest.daysSinceLastSignIn -is [System.IComparable]) {
+            if ($null -ne $guest.daysSinceLastSignIn -and $guest.daysSinceLastSignIn -is [System.IComparable]) {
                 # Use lastSuccessfulSignInDateTime
-                $daysSinceLastActivity = [int]$guest.daysSinceLastSignIn
+                $daysSinceLastActivity = $guest.daysSinceLastSignIn
                 $activitySource = 'last successful sign-in'
             }
-            elseif ($null -ne $guest.daysSinceCreated -and $guest.daysSinceCreated -ne '' -and $guest.daysSinceCreated -is [System.IComparable]) {
+            elseif ($null -ne $guest.daysSinceCreated -and $guest.daysSinceCreated -is [System.IComparable]) {
                 # signInActivity is null, calculate days since creation using createdDateTime
-                $daysSinceLastActivity = [int]$guest.daysSinceCreated
+                $daysSinceLastActivity = $guest.daysSinceCreated
                 $activitySource = 'creation date (no sign-in activity)'
             }
 
@@ -77,11 +77,11 @@ function Test-Assessment-21858 {
         # Mark as FAIL if inactive guests exist
         if ($inactiveGuests.Count -gt 0) {
             $passed = $false
-            $testResultMarkdown = "Found $($inactiveGuests.Count) inactive guest user(s) with no sign-in activity in the last $inactivityThresholdDays days:`n`n%TestResult%"
+            $testResultMarkdown = "❌ Found $($inactiveGuests.Count) inactive guest user(s) with no sign-in activity in the last $inactivityThresholdDays days:`n`n%TestResult%"
         }
         else {
             $passed = $true
-            $testResultMarkdown = "All enabled guest user(s) have been active within the last $inactivityThresholdDays days."
+            $testResultMarkdown = "✅ All enabled guest user(s) have been active within the last $inactivityThresholdDays days."
         }
     }
     else {
@@ -124,6 +124,7 @@ function Test-Assessment-21858 {
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
     $params = @{
+        TestId             = '21858'
         Status             = $passed
         Result             = $testResultMarkdown
     }
