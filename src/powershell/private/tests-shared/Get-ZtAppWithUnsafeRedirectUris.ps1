@@ -146,7 +146,8 @@ function Get-ZtAppWithUnsafeRedirectUris {
 			}
 
 			if (-not $isDnsResolved) {
-				$riskyUrls += "$url"
+				# fixes issue #541 where results were missing icon in front of the unsafe redirect URIs
+				$riskyUrls += "4️⃣ $url"
 			}
 		}
 
