@@ -117,6 +117,8 @@ export interface TestResultSummaryData {
   DevicesTotal: number;
   DataPassed: number;
   DataTotal: number;
+  NetworkPassed?: number;
+  NetworkTotal?: number;
 }
 export interface SankeyData {
   nodes: SankeyDataNode[];

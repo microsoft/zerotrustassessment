@@ -20,4 +20,5 @@ function Clear-ZtModuleVariable {
     $script:__ZtSession.TestStatistics.Value.Clear()
     $script:__ZtSession.TenantInfo.Value.Clear()
     $script:__ZtSession.SignInLogDuration = $null
+    $script:__ZtSession.PreviewEnabled = $false
 }

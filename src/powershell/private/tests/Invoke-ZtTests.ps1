@@ -33,7 +33,7 @@
 		[string[]]
 		$Tests,
 
-		[ValidateSet('All', 'Identity', 'Devices')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
 		[string]
 		$Pillar = 'All',
 
@@ -53,6 +53,13 @@
 	}
 
 	$testsToRun = Get-ZtTest -Tests $Tests -Pillar $Pillar -TenantType $tenantTypeMapping[$TenantType]
+
+	# Filter based on preview feature flag
+	if (-not $script:__ZtSession.PreviewEnabled) {
+		# Non-preview mode: Only include stable/released pillars
+		$stablePillars = @('Identity', 'Devices')
+		$testsToRun = $testsToRun | Where-Object { $_.Pillar -in $stablePillars }
+	}
 
 	try {
 		$workflow = Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit

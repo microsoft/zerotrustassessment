@@ -141,6 +141,11 @@ function Invoke-ZtAssessment {
 		[string]
 		$Pillar = 'All',
 
+		# Enable preview features
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$Preview,
+
 		[int]
 		$ExportThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
 
@@ -347,6 +352,7 @@ function Invoke-ZtAssessment {
 	}
 
 	Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
+	$script:__ZtSession.PreviewEnabled = $Preview.IsPresent
 
 	Write-PSFMessage 'Creating report folder $Path'
 	New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
