@@ -8,7 +8,7 @@ function Test-Assessment-25405 {
     	Category = 'Access control',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
-    	Pillar = 'Identity',
+    	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',
     	TenantType = ('Workforce'),
