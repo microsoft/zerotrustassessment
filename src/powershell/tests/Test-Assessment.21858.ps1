@@ -93,6 +93,7 @@ function Test-Assessment-21858 {
 
     # Define variables to insert into the format string
     $reportTitle = 'Inactive guest accounts in the tenant'
+    $tableRows = ''
 
     if ($inactiveGuests.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
@@ -107,15 +108,15 @@ function Test-Assessment-21858 {
 
 '@
 
-        $tableRowsArray = foreach ($inactiveGuest in $inactiveGuests) {
+        foreach ($inactiveGuest in $inactiveGuests) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/{0}/hidePreviewBanner~/true' -f $inactiveGuest.guest.id
             $displayName = Get-SafeMarkdown $inactiveGuest.guest.displayName
             $userPrincipalName = $inactiveGuest.guest.userPrincipalName
             $lastSignInDateTime = $inactiveGuest.LastSignInDate
             $createdDateTime = $inactiveGuest.CreatedDate
-            "| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |"
+            $tableRows += "| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |`n"
         }
-        $tableRows = $tableRowsArray -join "`n"
+
         # Format the template by replacing placeholders with values
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
