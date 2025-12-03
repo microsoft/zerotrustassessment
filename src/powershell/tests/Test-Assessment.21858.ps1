@@ -49,15 +49,14 @@ function Test-Assessment-21858 {
         foreach ($guest in $enabledGuestUsers) {
             $daysSinceLastActivity = $null
             $activitySource = ''
-
             # Check if daysSinceLastSignIn has a value (not null)
             # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object
-            if ($null -ne $guest.daysSinceLastSignIn -and $guest.daysSinceLastSignIn -is [System.IComparable]) {
+            if ($guest.daysSinceLastSignIn -ne [System.DBNull]::Value) {
                 # Use lastSuccessfulSignInDateTime
                 $daysSinceLastActivity = $guest.daysSinceLastSignIn
                 $activitySource = 'last successful sign-in'
             }
-            elseif ($null -ne $guest.daysSinceCreated -and $guest.daysSinceCreated -is [System.IComparable]) {
+            elseif ($guest.daysSinceCreated -ne [System.DBNull]::Value) {
                 # signInActivity is null, calculate days since creation using createdDateTime
                 $daysSinceLastActivity = $guest.daysSinceCreated
                 $activitySource = 'creation date (no sign-in activity)'
