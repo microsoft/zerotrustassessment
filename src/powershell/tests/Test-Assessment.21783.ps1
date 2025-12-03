@@ -36,8 +36,8 @@ function Test-Assessment-21783 {
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
     $asp = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -ApiVersion beta
 
-    # Get all privileged roles
-    $privilegedRoles = $roles | Where-Object { $_.isPrivileged }
+    # Get all privileged built-in roles only (CA policies cannot target custom roles)
+    $privilegedRoles = $roles | Where-Object { $_.isPrivileged -and $_.isBuiltIn }
 
     $phishResAuthMs = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor') # Phishing resistant authentication methods (passkey included in fido2)
 
@@ -83,14 +83,14 @@ function Test-Assessment-21783 {
     }
 
     $mdInfo += "`n`n## Privileged Roles`n`n"
-    if (($protectedRoles | Measure-Object).Coiunt -eq 0) {
-        $mdInfo += "Privileged roles are not being protected by phishing resistant authentication.`n`n"
+    if (($protectedRoles | Measure-Object).Count -eq 0) {
+        $mdInfo += "Privileged built-in roles are not being protected by phishing resistant authentication.`n`n"
     }
     elseif ($protectedRoles.Length -eq $privilegedRoles.Length) {
-        $mdInfo += "All $($protectedRoles.Length) privileged roles are protected by phishing resistant authentication.`n`n"
+        $mdInfo += "All $($protectedRoles.Length) privileged built-in roles are protected by phishing resistant authentication.`n`n"
     }
     else {
-        $mdInfo += "Found $($protectedRoles.Length) of $($privilegedRoles.Length) privileged roles protected by phishing resistant authentication.`n`n"
+        $mdInfo += "Found $($protectedRoles.Length) of $($privilegedRoles.Length) privileged built-in roles protected by phishing resistant authentication.`n`n"
     }
     $mdInfo += "| Role Name | Phishing resistance enforced |`n"
     $mdInfo += "| :--- | :---: |`n"
