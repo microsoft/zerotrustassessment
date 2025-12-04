@@ -6,6 +6,9 @@ param (
 	[bool]
 	$TestFunctions = $true,
 
+	[bool]
+	$TestAssessments = $true,
+
 	[ValidateSet('None', 'Normal', 'Detailed', 'Diagnostic')]
 	[Alias('Show')]
 	$Output = "None",
@@ -125,6 +128,38 @@ if ($TestFunctions)
 	}
 }
 #endregion Test Commands
+
+#region Test Assessments
+if ($TestAssessments)
+{
+	Write-Host "Proceeding with assessment tests"
+	foreach ($file in (Get-ChildItem "$PSScriptRoot\test-assessments" -Recurse -File | Where-Object Name -like "*Tests.ps1"))
+	{
+		if ($file.Name -notlike $Include) { continue }
+		if ($file.Name -like $Exclude) { continue }
+
+		Write-Host "  Executing $($file.Name)"
+		$config.TestResult.OutputPath = Join-Path "$PSScriptRoot\TestResults" "TEST-$($file.BaseName).xml"
+		$config.Run.Path = $file.FullName
+		$config.Run.PassThru = $true
+		$config.Output.Verbosity = $Output
+    	$results = Invoke-Pester -Configuration $config
+		foreach ($result in $results)
+		{
+			$totalRun += $result.TotalCount
+			$totalFailed += $result.FailedCount
+			$result.Tests | Where-Object Result -ne 'Passed' | ForEach-Object {
+				$testresults += [pscustomobject]@{
+					Block    = $_.Block
+					Name	 = "It $($_.Name)"
+					Result   = $_.Result
+					Message  = $_.ErrorRecord.DisplayErrorMessage
+				}
+			}
+		}
+	}
+}
+#endregion Test Assessments
 
 $testresults | Sort-Object Block, Name, Result, Message | Format-List
 
