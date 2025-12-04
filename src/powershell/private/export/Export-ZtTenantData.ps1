@@ -133,6 +133,10 @@ https://github.com/microsoft/zerotrustassessment/issues
 		$exportCfg
 	}
 
+	if (-not $applicableExports -or $applicableExports.Count -eq 0) {
+		return
+	}
+
 	try {
 		$workflow = Start-ZtTenantDataExport -ExportConfig $applicableExports -ThrottleLimit $ThrottleLimit -ExportPath $ExportPath
 		Wait-ZtTenantDataExport -Workflow $workflow
