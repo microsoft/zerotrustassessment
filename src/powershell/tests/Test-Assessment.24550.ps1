@@ -59,7 +59,7 @@ function Test-Assessment-24550 {
 
     # Query: Retrieve all Windows 10 configuration policies and their assignments
     $sql = @"
-    SELECT id, name, description, platforms, settings, assignments
+    SELECT id, name, description, platforms, to_json(settings) as settings, to_json(assignments) as assignments
     FROM ConfigurationPolicy
     WHERE platforms LIKE '%windows10%'
 "@
@@ -70,17 +70,8 @@ function Test-Assessment-24550 {
         if ($policy.settings -is [string]) {
             $policy.settings = $policy.settings | ConvertFrom-Json
         }
-        elseif ($policy.settings -is [System.Collections.IEnumerable]) {
-            $policy.settings = $policy.settings | ConvertTo-Json -Depth 100 | ConvertFrom-Json
-        }
-    }
-
-    foreach ($policy in $windowsPolicies) {
         if ($policy.assignments -is [string]) {
             $policy.assignments = $policy.assignments | ConvertFrom-Json
-        }
-        elseif ($policy.assignments -is [System.Collections.IEnumerable]) {
-            $policy.assignments = $policy.assignments | ConvertTo-Json -Depth 100 | ConvertFrom-Json
         }
     }
 
