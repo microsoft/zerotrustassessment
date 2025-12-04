@@ -67,6 +67,9 @@ function Export-ZtGraphEntity {
 		[string]
 		$ExportPath
 	)
+
+	# Get maximum size limit for SignIn logs (1GB by default)
+	$maxSizeBytes = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Export.SignInLog.MaxSizeBytes' -Fallback 1073741824
 	if (Get-ZtConfig -ExportPath $ExportPath -Property $Name) {
 		Write-PSFMessage "Skipping '{0}' since it was downloaded previously" -StringValues $Name -Target $Name -Tag Export, redundant, skip
 		return
@@ -150,6 +153,8 @@ function Export-ZtGraphEntity {
 	#endregion Utility Functions
 
 	$pageIndex = 0
+	$totalSize = 0
+	$isSignInLog = $Name -eq 'SignIn'
 
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $Name
 	Clear-ZtFolder -Path $folderPath
@@ -162,6 +167,24 @@ function Export-ZtGraphEntity {
 	do {
 		$results = Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
+
+		# Track file size for SignIn logs
+		if ($isSignInLog) {
+			$lastFile = Join-Path -Path $folderPath -ChildPath "$Name-$pageIndex.json"
+			if (Test-Path $lastFile) {
+				$fileSize = (Get-Item $lastFile).Length
+				$totalSize += $fileSize
+
+				if ($totalSize -gt $maxSizeBytes) {
+					$sizeMB = [math]::Round($totalSize / 1MB, 2)
+					$limitMB = [math]::Round($maxSizeBytes / 1MB, 2)
+					Write-PSFMessage -Level Warning "Sign-in log export reached size limit of $limitMB MB (current: $sizeMB MB). Stopping export and continuing with next task." -Tag Export, SignIn, SizeLimit
+					Write-Host "⚠️ " -NoNewline -ForegroundColor Yellow
+					Write-Host "Sign-in log export reached the 1GB size limit ($sizeMB MB collected). Continuing with remaining exports..." -ForegroundColor Yellow
+					break
+				}
+			}
+		}
 
 		if (-not $results) {
 			$actualUri = $null
