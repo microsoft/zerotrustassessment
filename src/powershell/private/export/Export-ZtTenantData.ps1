@@ -46,7 +46,7 @@ function Export-ZtTenantData {
 		[int]
 		$MaximumSignInLogQueryTime,
 
-		[ValidateSet('All', 'Identity', 'Devices')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
 		[string]
 		$Pillar = 'All',
 
@@ -131,6 +131,10 @@ https://github.com/microsoft/zerotrustassessment/issues
 		if ($exportCfg.MaximumQueryTime -like "%*%") { $exportCfg.MaximumQueryTime = $configVariables[$exportCfg.MaximumQueryTime.Trim("%")] }
 
 		$exportCfg
+	}
+
+	if (-not $applicableExports -or $applicableExports.Count -eq 0) {
+		return
 	}
 
 	try {

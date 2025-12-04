@@ -137,9 +137,14 @@ function Invoke-ZtAssessment {
 		$ConfigurationFile,
 
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
 		[string]
 		$Pillar = 'All',
+
+		# Enable preview features
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$Preview,
 
 		[int]
 		$ExportThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
@@ -186,6 +191,21 @@ function Invoke-ZtAssessment {
 
 	#region Preparation
 	Show-ZtiBanner
+
+	# Validate preview pillar requirements
+	if ($Pillar -eq 'Network' -and -not $Preview) {
+		Write-Host
+		Write-Host "❌ " -NoNewline -ForegroundColor Red
+		Write-Host "The 'Network' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+		Write-Host " switch." -ForegroundColor Red
+		Write-Host
+		Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
+		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+		Write-Host " parameter to assess the Network pillar." -ForegroundColor White
+		Write-Host
+		return
+	}
 
 	# Handle configuration file parameter
 	if ($ConfigurationFile) {
@@ -347,6 +367,7 @@ function Invoke-ZtAssessment {
 	}
 
 	Clear-ZtModuleVariable # Reset the graph cache and urls to avoid stale data
+	$script:__ZtSession.PreviewEnabled = $Preview.IsPresent
 
 	Write-PSFMessage 'Creating report folder $Path'
 	New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
