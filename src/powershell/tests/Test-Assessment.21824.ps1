@@ -30,7 +30,8 @@ function Test-Assessment-21824 {
 
     $filteredCAPolicies = $allCAPolicies | Where-Object {
         ($null -ne $_.conditions.users.includeGuestsOrExternalUsers) -and
-        ($_.state -in @('enabled', 'enabledForReportingButNotEnforced'))
+        ($_.state -in @('enabled', 'enabledForReportingButNotEnforced')) -and
+        ($null -eq $_.grantControls.termsOfUse -or $_.grantControls.termsOfUse.Count -eq 0) # Exclude Terms of Use policies
     }
 
     # Local filtering - validate sign-in frequency for guest sessions
