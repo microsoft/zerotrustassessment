@@ -49,15 +49,16 @@ function Test-Assessment-21858 {
         foreach ($guest in $enabledGuestUsers) {
             $daysSinceLastActivity = $null
             $activitySource = ''
-            # Check if daysSinceLastSignIn has a value (not null)
-            # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object
-            if ($guest.daysSinceLastSignIn -ne [System.DBNull]::Value) {
+            # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object.
+            # Ensure the value is a valid number (handles NULL, DBNull, and empty strings).
+            # DuckDB date_diff returns BIGINT, so we check for [long] (and [int] for safety).
+            if ($guest.daysSinceLastSignIn -is [int] -or $guest.daysSinceLastSignIn -is [long]) {
                 # Use lastSuccessfulSignInDateTime
                 $daysSinceLastActivity = $guest.daysSinceLastSignIn
                 $activitySource = 'last successful sign-in'
             }
-            elseif ($guest.daysSinceCreated -ne [System.DBNull]::Value) {
-                # signInActivity is null, calculate days since creation using createdDateTime
+            elseif ($guest.daysSinceCreated -is [int] -or $guest.daysSinceCreated -is [long]) {
+                # signInActivity is null, use days since creation
                 $daysSinceLastActivity = $guest.daysSinceCreated
                 $activitySource = 'creation date (no sign-in activity)'
             }
