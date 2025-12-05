@@ -45,8 +45,8 @@ function New-EntraTable {
     }
 
     $paramsString = $readJsonParams -join ', '
-    $sqlTemp = "CREATE TABLE temp$TableName AS SELECT unnest(value) as d FROM read_json('$FilePath', $paramsString);"
-    $sqlTable = "CREATE TABLE $TableName AS SELECT d.* FROM temp$TableName;"
+    $sqlTemp = "CREATE OR REPLACE TABLE temp$TableName AS SELECT unnest(value) as d FROM read_json('$FilePath', $paramsString);"
+    $sqlTable = "CREATE OR REPLACE TABLE $TableName AS SELECT d.* FROM temp$TableName;"
 
     try {
         Write-PSFMessage "Creating temporary table temp$TableName with parameters: $paramsString" -Level Debug -Tag DB
@@ -54,6 +54,9 @@ function New-EntraTable {
 
         Write-PSFMessage "Creating final table $TableName" -Level Debug -Tag DB
         Invoke-DatabaseQuery -Database $Database -Sql $sqlTable -NonQuery
+
+        Write-PSFMessage "Dropping temporary table temp$TableName" -Level Debug -Tag DB
+        Invoke-DatabaseQuery -Database $Database -Sql "DROP TABLE temp$TableName" -NonQuery
     }
     catch {
         Write-PSFMessage "Error creating table $TableName`: $($_.Exception.Message)" -Level Error -Tag DB -ErrorRecord $_
