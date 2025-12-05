@@ -18,7 +18,7 @@ function Test-Assessment-25392 {
         Category = 'Private Access',
         ImplementationCost = 'Low',
         MinimumLicense = ('Entra_Premium_Private_Access'),
-        Pillar = 'Devices',
+        Pillar = 'Network',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
