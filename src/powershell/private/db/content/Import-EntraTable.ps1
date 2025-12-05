@@ -54,7 +54,7 @@
 
 	$filePath = Join-Path $folderPath "$TableName*.json"
 
-	New-EntraTable -Database $Database -TableName $TableName -FilePath $filePath -Verbose
+	New-EntraTable -Database $Database -TableName $TableName -FilePath $filePath
 
 	if ($hasModelRow) {
 		# Let's delete the model row to keep the data clean.
