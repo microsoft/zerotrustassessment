@@ -21,37 +21,41 @@ function Test-Assessment-25370 {
     [CmdletBinding()]
     param()
 
+    #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Global Secure Access source IP restoration (Conditional Access signaling)'
     Write-ZtProgress -Activity $activity -Status 'Querying Global Secure Access signaling status'
 
+    # Query Q1: Get Global Secure Access Conditional Access signaling settings
     $settings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta
 
+    # Initialize test variables
+    $testResultMarkdown = ''
+    $passed = $false
+    #endregion Data Collection
+
+    #region Test Logic
     if ($null -eq $settings) {
         $testResultMarkdown = 'Unable to retrieve Global Secure Access Conditional Access signaling settings.'
-        $params = @{
-            TestId = 25370
-            Status = $false
-            Result = $testResultMarkdown
-        }
-        Add-ZtTestResultDetail @params
-        return
+        $passed = $false
     }
-
-    if ($settings.signalingStatus -eq 'enabled') {
+    elseif ($settings.signalingStatus -eq 'enabled') {
+        $testResultMarkdown = '✅ Global Secure Access signaling is enabled.'
         $passed = $true
-        $testResultMarkdown = '✅ Global Secure Access signaling is enabled'
     }
     else {
+        $testResultMarkdown = '❌ Global Secure Access signaling is disabled.'
         $passed = $false
-        $testResultMarkdown = '❌ Global Secure Access signaling is disabled'
     }
+    #endregion Test Logic
 
+    #region Test Result
     $params = @{
-        TestId = 25370
+        TestId = '25370'
         Status = $passed
         Result = $testResultMarkdown
     }
     Add-ZtTestResultDetail @params
+    #endregion Test Result
 }
