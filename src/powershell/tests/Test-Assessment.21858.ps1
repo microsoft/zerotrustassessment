@@ -27,43 +27,44 @@ function Test-Assessment-21858 {
         return
     }
 
-    $activity = "Checking Inactive guest identities are removed from the tenant"
-    Write-ZtProgress -Activity $activity -Status "Querying enabled guest users"
+    $activity = 'Checking Inactive guest identities are removed from the tenant'
+    Write-ZtProgress -Activity $activity -Status 'Querying enabled guest users'
 
     $sql = @"
     SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
     date_diff('day', signInActivity.lastSuccessfulSignInDateTime, today()) daysSinceLastSignIn,
     date_diff('day', createdDateTime, today()) daysSinceCreated,
     strftime(createdDateTime, '%Y-%m-%d') fmtCreatedDateTime,
-    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') fmtLastSignInDateTime,
+    strftime(signInActivity.lastSuccessfulSignInDateTime, '%Y-%m-%d') fmtLastSignInDateTime
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
 
+    $inactiveGuests = @()
     $enabledGuestUsers = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
     if ($enabledGuestUsers) {
-        $inactiveGuests = @()
+        $inactivityThresholdDays = 90
 
         foreach ($guest in $enabledGuestUsers) {
-            $inactivityThresholdDays = 90
             $daysSinceLastActivity = $null
-            $activitySource = ""
-
-            # Check if signInActivity property exists
-            if ([string]::IsNullOrEmpty($guest.signInActivity) -eq $false) {
-                # Evaluate lastSuccessfulSignInDateTime if lastSignInDateTime is not available
+            $activitySource = ''
+            # Fixed issue #593: Check the actual column returned by SQL query, not signInActivity object.
+            # Ensure the value is a valid number (handles NULL, DBNull, and empty strings).
+            # DuckDB date_diff returns BIGINT, so we check for [long] (and [int] for safety).
+            if ($guest.daysSinceLastSignIn -is [int] -or $guest.daysSinceLastSignIn -is [long]) {
+                # Use lastSuccessfulSignInDateTime
                 $daysSinceLastActivity = $guest.daysSinceLastSignIn
-                $activitySource = "last successful sign-in"
+                $activitySource = 'last successful sign-in'
             }
-            else {
-                # signInActivity is null, calculate days since creation using createdDateTime
+            elseif ($guest.daysSinceCreated -is [int] -or $guest.daysSinceCreated -is [long]) {
+                # signInActivity is null, use days since creation
                 $daysSinceLastActivity = $guest.daysSinceCreated
-                $activitySource = "creation date (no sign-in activity)"
+                $activitySource = 'creation date (no sign-in activity)'
             }
 
             # if guests exist with no sign-in activity in the last $inactivityThresholdDays days add them to the list
-            if ($daysSinceLastActivity -gt $inactivityThresholdDays) {
+            if ($null -ne $daysSinceLastActivity -and $daysSinceLastActivity -gt $inactivityThresholdDays) {
                 $inactiveGuests += [PSCustomObject]@{
                     Guest                 = $guest
                     DaysSinceLastActivity = $daysSinceLastActivity
@@ -76,23 +77,23 @@ function Test-Assessment-21858 {
         # Mark as FAIL if inactive guests exist
         if ($inactiveGuests.Count -gt 0) {
             $passed = $false
-            $testResultMarkdown = "❌ **FAIL**: Found $($inactiveGuests.Count) inactive guest user(s) with no sign-in activity in the last $inactivityThresholdDays days:`n`n%TestResult%"
+            $testResultMarkdown = "❌ Found $($inactiveGuests.Count) inactive guest user(s) with no sign-in activity in the last $inactivityThresholdDays days:`n`n%TestResult%"
         }
         else {
             $passed = $true
-            $testResultMarkdown = "✅ **PASS**: All enabled guest user(s) have been active within the last $inactivityThresholdDays days."
+            $testResultMarkdown = "✅ All enabled guest user(s) have been active within the last $inactivityThresholdDays days."
         }
     }
     else {
         $passed = $true   # Test passes if no enabled guests
-        $testResultMarkdown = "✅ No guest users found in the tenant."
+        $testResultMarkdown = "No guest users found in the tenant."
     }
 
     # Build the detailed sections of the markdown
 
     # Define variables to insert into the format string
-    $reportTitle = "Inactive guest accounts in the tenant"
-    $tableRows = ""
+    $reportTitle = 'Inactive guest accounts in the tenant'
+    $tableRows = ''
 
     if ($inactiveGuests.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
@@ -101,7 +102,7 @@ function Test-Assessment-21858 {
 ## {0}
 
 
-| Display Name | User Principal Name | Last Sign-in Date | Created Date |
+| Display name | User principal name | Last sign-in date | Created date |
 | :----------- | :------------------ | :---------------- | :----------- |
 {1}
 
@@ -113,9 +114,7 @@ function Test-Assessment-21858 {
             $userPrincipalName = $inactiveGuest.guest.userPrincipalName
             $lastSignInDateTime = $inactiveGuest.LastSignInDate
             $createdDateTime = $inactiveGuest.CreatedDate
-            $tableRows += @"
-| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |`n
-"@
+            $tableRows += "| [$displayName]($portalLink) | $userPrincipalName | $lastSignInDateTime | $createdDateTime |`n"
         }
 
         # Format the template by replacing placeholders with values
@@ -127,12 +126,6 @@ function Test-Assessment-21858 {
 
     $params = @{
         TestId             = '21858'
-        Title              = 'Inactive guest identities are removed from the tenant'
-        UserImpact         = 'Low'
-        Risk               = 'Medium'
-        ImplementationCost = 'Medium'
-        AppliesTo          = 'Identity'
-        Tag                = 'Identity'
         Status             = $passed
         Result             = $testResultMarkdown
     }
