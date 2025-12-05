@@ -8,19 +8,21 @@
 
 function Test-Assessment-24564 {
     [ZtTest(
-    	Category = 'Device',
-    	ImplementationCost = 'Low',
-    	MinimumLicense = ('Intune'),
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce'),
-    	TestId = 24564,
-    	Title = 'Local account usage on Windows is restricted to reduce unauthorized access',
-    	UserImpact = 'Low'
+        Category = 'Device',
+        ImplementationCost = 'Low',
+        MinimumLicense = ('Intune'),
+        Pillar = 'Devices',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce'),
+        TestId = 24564,
+        Title = 'Local account usage on Windows is restricted to reduce unauthorized access',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Helper Functions
     function Test-PolicyAssignment {
@@ -47,7 +49,7 @@ function Test-Assessment-24564 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if( -not (Get-ZtLicense Intune) ) {
+    if ( -not (Get-ZtLicense Intune) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
         return
     }
@@ -55,9 +57,23 @@ function Test-Assessment-24564 {
     $activity = "Checking Intune Local Users and Groups policy is created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Retrieve device configuration profiles in Intune
-    $windowsPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=platforms has 'windows10'&`$expand=assignments,settings"
-    $windowsPolicies = Invoke-ZtGraphRequest -RelativeUri $windowsPolicies_Uri -ApiVersion beta
+    # Query: Retrieve all Windows 10 configuration policies and their assignments
+    $sql = @"
+    SELECT id, name, platforms, technologies, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%windows10%'
+"@
+    $windowsPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $windowsPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
 
     # Filter policies to include only those related to Local Users and Groups settings
     $windowsLocalUsersAndGroupsPolicies = @()
@@ -125,26 +141,19 @@ function Test-Assessment-24564 {
 
         foreach ($policy in $windowsLocalUsersAndGroupsPolicies) {
 
-            $policyName = $policy.Name
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $status = "✅ Assigned"
-            }
-            else {
-                $status = "❌ Not assigned"
-            }
-
-            # Get assignment details for this specific policy
-            $assignmentTarget = "None"
-
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = '✅ Assigned'
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
+            else {
+                $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
+            }
 
-            $tableRows += @"
-| [$(Get-SafeMarkdown($policyName))]($portalLink) | $status | $assignmentTarget |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
         # Format the template by replacing placeholders with values

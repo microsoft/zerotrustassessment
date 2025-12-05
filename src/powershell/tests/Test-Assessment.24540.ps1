@@ -8,24 +8,26 @@
 
 function Test-Assessment-24540 {
     [ZtTest(
-    	Category = 'Device',
-    	ImplementationCost = 'Low',
+        Category = 'Device',
+        ImplementationCost = 'Low',
         MinimumLicense = ('Intune'),
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect networks',
-    	TenantType = ('Workforce'),
-    	TestId = 24540,
-    	Title = 'Windows Firewall policies protect against unauthorized network access',
-    	UserImpact = 'Medium'
+        Pillar = 'Devices',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect networks',
+        TenantType = ('Workforce'),
+        TestId = 24540,
+        Title = 'Windows Firewall policies protect against unauthorized network access',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if( -not (Get-ZtLicense Intune) ) {
+    if ( -not (Get-ZtLicense Intune) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
         return
     }
@@ -33,9 +35,22 @@ function Test-Assessment-24540 {
     $activity = "Checking Windows Firewall policies are created and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Query 1: Retrieve all Windows Firewall configuration policies and their potential assignments
-    $firewallPoliciesWithAssignmentsUri = "deviceManagement/configurationPolicies?`$select=id,name,description,isAssigned,templateReference&`$expand=assignments&`$filter=templateReference/TemplateFamily eq 'endpointSecurityFirewall'"
-    $firewallPoliciesWithAssignments = Invoke-ZtGraphRequest -RelativeUri $firewallPoliciesWithAssignmentsUri -ApiVersion beta
+    # Query: Retrieve all Windows Firewall configuration policies and their assignments
+    $sql = @"
+    SELECT id, name, description, templateReference, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE templateReference IS NOT NULL
+      AND templateReference.templateFamily = 'endpointSecurityFirewall'
+"@
+    $firewallPoliciesWithAssignments = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $firewallPoliciesWithAssignments) {
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
+
     #endregion Data Collection
 
     #region Assessment Logic
@@ -85,25 +100,20 @@ function Test-Assessment-24540 {
 '@
 
         foreach ($policy in $firewallPoliciesWithAssignments) {
+
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/firewall'
 
-            $status = if ($policy.isAssigned) {
-                "✅ Assigned"
-            }
-            else {
-                "❌ Not assigned"
-            }
-
-            # Get assignment details for this specific policy
-            $assignmentTarget = 'None'
-
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = "✅ Assigned"
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
+            else {
+                $status = "❌ Not assigned"
+                $assignmentTarget = 'None'
+            }
 
-            $tableRows += @"
-| [$(Get-SafeMarkdown($policy.name))]($portalLink) | $status | $assignmentTarget |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
         # Format the template by replacing placeholders with values
