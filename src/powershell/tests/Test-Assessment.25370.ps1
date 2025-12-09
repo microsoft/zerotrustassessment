@@ -35,7 +35,7 @@ function Test-Assessment-25370 {
     $passed = $false
     #endregion Data Collection
 
-    #region Test Logic
+    #region Assessment Logic
     if ($null -eq $settings) {
         $testResultMarkdown = 'Unable to retrieve Global Secure Access Conditional Access signaling settings.'
         $passed = $false
@@ -48,14 +48,15 @@ function Test-Assessment-25370 {
         $testResultMarkdown = '❌ Global Secure Access signaling is disabled.'
         $passed = $false
     }
-    #endregion Test Logic
+    #endregion Assessment Logic
 
-    #region Test Result
+
     $params = @{
         TestId = '25370'
         Status = $passed
         Result = $testResultMarkdown
     }
+
+    # Add test result details
     Add-ZtTestResultDetail @params
-    #endregion Test Result
 }
