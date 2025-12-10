@@ -87,7 +87,7 @@ function Test-Assessment-25399 {
         }
 
         # Determine status for each component
-        $dnsResolutionStatus = if ($appDnsResolutionEnabled) { "✅ Pass" } else { "❌ Fail" }
+        $dnsResolutionStatus = if ($appDnsResolutionEnabled) { "🟢 True" } else { "🔴 False" }
         $dnsSuffixValue = if ($appHasValidSegments) { $([string]::Join(', ', $appDnsSuffixes)) } else { "None" }
         $appStatus = if ($appDnsResolutionEnabled -and $appHasValidSegments) { "✅ Pass" } else { "❌ Fail" }
 
@@ -103,7 +103,7 @@ function Test-Assessment-25399 {
         }
         else {
             $passed = $false
-            $testResultMarkdown = "❌ Private DNS is not configured, or DNS suffixes are missing.`n`n" + $testResultMarkdown
+            $testResultMarkdown = "❌ Private DNS is not configured or DNS suffixes are missing.`n`n" + $testResultMarkdown
         }
     }
     #endregion Assessment Logic
