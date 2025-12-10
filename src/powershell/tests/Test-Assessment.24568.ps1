@@ -8,19 +8,21 @@
 
 function Test-Assessment-24568 {
     [ZtTest(
-    	Category = 'Tenant',
-    	ImplementationCost = 'Medium',
-    	MinimumLicense = ('Intune'),
-    	Pillar = 'Devices',
-    	RiskLevel = 'Medium',
-    	SfiPillar = 'Protect tenants and isolate production systems',
-    	TenantType = ('Workforce'),
-    	TestId = 24568,
-    	Title = 'Platform SSO is configured to strengthen authentication on macOS devices',
-    	UserImpact = 'Medium'
+        Category = 'Tenant',
+        ImplementationCost = 'Medium',
+        MinimumLicense = ('Intune'),
+        Pillar = 'Devices',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect tenants and isolate production systems',
+        TenantType = ('Workforce'),
+        TestId = 24568,
+        Title = 'Platform SSO is configured to strengthen authentication on macOS devices',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Helper Functions
     function Test-PolicyAssignment {
@@ -207,7 +209,7 @@ Filters policies that contain either of two different settings, each located in 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if( -not (Get-ZtLicense Intune) ) {
+    if ( -not (Get-ZtLicense Intune) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
         return
     }
@@ -215,9 +217,25 @@ Filters policies that contain either of two different settings, each located in 
     $activity = "Checking macOS Platform SSO is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Retrieve all configuration policies for macOS that use MDM and Apple Remote Management
-    $macOSPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=(platforms has 'macOS') and (technologies has 'mdm' and technologies has 'appleRemoteManagement')&`$expand=settings,assignments"
-    $macOSPolicies = Invoke-ZtGraphRequest -RelativeUri $macOSPolicies_Uri -ApiVersion beta
+    # Query: Retrieve all macOS policies with mdm and appleRemoteManagement technologies
+    $sql = @"
+    SELECT id, name, platforms, technologies, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%macOS%'
+      AND technologies LIKE '%mdm%'
+      AND technologies LIKE '%appleRemoteManagement%'
+"@
+    $macOSPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $macOSPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
 
     # Define setting configurations with their specific paths and expected values
     $requiredSettings = @{
@@ -315,26 +333,19 @@ Filters policies that contain either of two different settings, each located in 
 
         foreach ($policy in $macOSSSOPolicies) {
 
-            $policyName = $policy.Name
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $status = "✅ Assigned"
-            }
-            else {
-                $status = "❌ Not assigned"
-            }
-
-            # Get assignment details for this specific policy
-            $assignmentTarget = "None"
-
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = '✅ Assigned'
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
+            else {
+                $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
+            }
 
-            $tableRows += @"
-| [$(Get-SafeMarkdown($policyName))]($portalLink) | $status | $assignmentTarget |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
         # Format the template by replacing placeholders with values

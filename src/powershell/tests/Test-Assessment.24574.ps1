@@ -17,7 +17,9 @@ function Test-Assessment-24574 {
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -30,8 +32,26 @@ function Test-Assessment-24574 {
     $activity = "Checking that an Attack Surface Reduction (ASR) policy for Windows devices is created and assigned"
     Write-ZtProgress -Activity $activity
 
-    # Query 1: Retrieve all configuration policies for Windows 10 that use MDM and Microsoft Defender (Sense), and filter for ASR rules
-    $win10MdmSensePolicies = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies?`$filter=(platforms has 'windows10') and (technologies has 'mdm' and technologies has 'microsoftSense')&`$expand=settings,assignments" -ApiVersion beta
+    # Query: Retrieve all Windows 10 policies with mdm and microsoftSense technologies
+    $sql = @"
+    SELECT id, name, platforms, technologies, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%windows10%'
+      AND technologies LIKE '%mdm%'
+      AND technologies LIKE '%microsoftSense%'
+"@
+    $win10MdmSensePolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $win10MdmSensePolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
+
     $win10MdmSenseASRPolicies = $win10MdmSensePolicies.Where{
         $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_policy_config_defender_attacksurfacereductionrules'
     }
@@ -135,12 +155,17 @@ function Test-Assessment-24574 {
 '@
 
         foreach ($policy in $win10MdmSenseASRPolicies) {
+
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/asr'
-            $status = if ($policy.assignments.count -gt 0) {
-                '🟢 Assigned'
+
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = '✅ Assigned'
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
             else {
-                '❌ Not Assigned'
+                $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
             }
 
             $executionOfPotentiallyObfuscatedScripts = if ($policy.settings.settingInstance.groupSettingCollectionValue.children.settingDefinitionId -contains 'device_vendor_msft_policy_config_defender_attacksurfacereductionrules_blockexecutionofpotentiallyobfuscatedscripts') {
@@ -171,13 +196,6 @@ function Test-Assessment-24574 {
             }
             else {
                 '❌ Not Configured'
-            }
-
-            $policyName = Get-SafeMarkdown -Text $policy.name
-            $assignmentTarget = "None"
-
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
 
             $tableRows += "| [$policyName]($portalLink) | $executionOfPotentiallyObfuscatedScripts | $win32ApiCallsFromMacros | $status | $assignmentTarget | `n"

@@ -36,8 +36,9 @@ function Test-Assessment-21783 {
     $caps = Invoke-ZtGraphRequest -RelativeUri 'identity/conditionalAccess/policies' -ApiVersion beta
     $asp = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -ApiVersion beta
 
-    # Get all privileged roles
-    $privilegedRoles = $roles | Where-Object { $_.isPrivileged }
+    # Get all privileged built-in roles only (CA policies cannot target custom roles)
+    # fixes issue #661, only validate built-in privileged roles
+    $privilegedRoles = $roles | Where-Object { $_.isPrivileged -and $_.isBuiltIn }
 
     $phishResAuthMs = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor') # Phishing resistant authentication methods (passkey included in fido2)
 
@@ -66,33 +67,33 @@ function Test-Assessment-21783 {
     }
     $passed = ($unprotectedRoles | Measure-Object).Count -eq 0
     if ($passed) {
-        $testResultMarkdown += "Validated that following roles have.`n`n%TestResult%"
+        $testResultMarkdown += "All privileged built-in roles are protected by Conditional Access policies that enforce phishing-resistant authentication.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Found Roles don’t have policies to enforce phishing resistant Credentials`n`n%TestResult%"
+        $testResultMarkdown += "Some privileged built-in roles don't have Conditional Access policies to enforce phishing-resistant authentication.`n`n%TestResult%"
     }
 
-    $mdInfo += "`n`n## Conditional Access Policies with phishing resistant authentication policies `n`n"
+    $mdInfo += "`n`n## Conditional Access policies with phishing resistant authentication policies `n`n"
 
     if (($capsUsingPhishResAuth | Measure-Object).Count -eq 0) {
-        $mdInfo += "No conditional access policies found with phishing resistant authentication strength policies.`n`n"
+        $mdInfo += "No Conditional Access policies found with phishing resistant authentication strength policies.`n`n"
     }
     else {
-        $mdInfo += "Found $($capsUsingPhishResAuth.Length) phishing resistant conditional access policies.`n`n"
+        $mdInfo += "Found $($capsUsingPhishResAuth.Length) phishing resistant Conditional Access policies.`n`n"
         $mdInfo += Get-GraphObjectMarkdown -GraphObjects $capsUsingPhishResAuth -GraphObjectType ConditionalAccess
     }
 
-    $mdInfo += "`n`n## Privileged Roles`n`n"
-    if (($protectedRoles | Measure-Object).Coiunt -eq 0) {
-        $mdInfo += "Privileged roles are not being protected by phishing resistant authentication.`n`n"
+    $mdInfo += "`n`n## Privileged roles`n`n"
+    if (($protectedRoles | Measure-Object).Count -eq 0) {
+        $mdInfo += "Privileged built-in roles are not being protected by phishing resistant authentication.`n`n"
     }
     elseif ($protectedRoles.Length -eq $privilegedRoles.Length) {
-        $mdInfo += "All $($protectedRoles.Length) privileged roles are protected by phishing resistant authentication.`n`n"
+        $mdInfo += "All $($protectedRoles.Length) privileged built-in roles are protected by phishing resistant authentication.`n`n"
     }
     else {
-        $mdInfo += "Found $($protectedRoles.Length) of $($privilegedRoles.Length) privileged roles protected by phishing resistant authentication.`n`n"
+        $mdInfo += "Found $($protectedRoles.Length) of $($privilegedRoles.Length) privileged built-in roles protected by phishing resistant authentication.`n`n"
     }
-    $mdInfo += "| Role Name | Phishing resistance enforced |`n"
+    $mdInfo += "| Role name | Phishing resistance enforced |`n"
     $mdInfo += "| :--- | :---: |`n"
     foreach ($role in $protectedRoles | Sort-Object displayName) {
         $mdInfo += "| $($role.displayName) | ✅ |`n"
@@ -104,15 +105,17 @@ function Test-Assessment-21783 {
 
 
     if (($phishResAsp | Measure-Object).Count -ne 0) {
-        $mdInfo += "## Authentication Strength Policies`n`n"
+        $mdInfo += "## Authentication strength policies`n`n"
         $mdInfo += "Found $($phishResAsp.Length) custom phishing resistant authentication strength policies.`n`n"
         $mdInfo += Get-GraphObjectMarkdown -GraphObjects $phishResAsp -GraphObjectType AuthenticationStrength
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
 
-    Add-ZtTestResultDetail -TestId '21783' -Title 'Privileged Microsoft Entra built-in roles are targeted with Conditional Access policies to enforce phishing resistant methods' `
-        -UserImpact Low -Risk High -ImplementationCost Medium `
-        -AppliesTo Identity -Tag AccessControl, Authentication `
-        -Status $passed -Result $testResultMarkdown
+$params = @{
+        TestId             = '21783'
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }

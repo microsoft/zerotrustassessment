@@ -283,3 +283,12 @@ They will block their worker until their dependency is completed and could risk 
 	# ExcludePlan = @('Free') # Free
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%'
 }
+@{
+	Name = 'ConfigurationPolicy'
+	Uri = 'beta/deviceManagement/configurationPolicies'
+	QueryString = '$expand=assignments,settings'
+	RelatedPropertyNames = @()
+	Type = 'Default'
+
+	Pillar = 'Devices'
+}

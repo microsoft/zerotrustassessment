@@ -33,9 +33,10 @@ function Get-ZtAssessmentResults {
 	function Get-TestResultSummary {
 		[CmdletBinding()]
 		param (
-			$TestResults
+			$TestResults,
+			$PreviewEnabled
 		)
-		[PSCustomObject]@{
+		$summary = [PSCustomObject]@{
 			IdentityPassed = @($TestResults).Where{ $_.TestPillar -eq 'Identity' -and $_.TestStatus -eq 'Passed' }.Count
 			IdentityTotal  = @($TestResults).Where{ $_.TestPillar -eq 'Identity' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 			DevicesPassed  = @($TestResults).Where{ $_.TestPillar -eq 'Devices' -and $_.TestStatus -eq 'Passed' }.Count
@@ -43,6 +44,13 @@ function Get-ZtAssessmentResults {
 			DataPassed     = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count
 			DataTotal      = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 		}
+
+		if($PreviewEnabled){
+			$summary | Add-Member -NotePropertyName 'NetworkPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -eq 'Passed' }.Count)
+        	$summary | Add-Member -NotePropertyName 'NetworkTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+		}
+
+		return $summary
 	}
 
 	function Get-Organization {
@@ -72,7 +80,7 @@ function Get-ZtAssessmentResults {
 		Account           = $mgContext.Account
 		CurrentVersion    = $PSCmdlet.MyInvocation.MyCommand.Module.Version.ToString()
 		LatestVersion     = Get-ModuleLatestVersion
-		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.Value.values
+		TestResultSummary = Get-TestResultSummary -TestResults $script:__ZtSession.TestResultDetail.Value.values -PreviewEnabled $script:__ZtSession.PreviewEnabled
 		Tests             = @($tests) # Use @() to ensure it's an array
 		TenantInfo        = Get-ZtTenantInfo
 		EndOfJson         = "EndOfJson" # Always leave this as the last property. Used by the script to determine the end of the JSON

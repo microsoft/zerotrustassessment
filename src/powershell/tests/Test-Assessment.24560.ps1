@@ -17,7 +17,9 @@ function Test-Assessment-24560 {
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -30,8 +32,24 @@ function Test-Assessment-24560 {
     $activity = "Checking that the Windows Cloud LAPS policy is created and assigned"
     Write-ZtProgress -Activity $activity
 
-    # Query 1: Retrieve assignment for Tenant wide Windows Hello for Business Configuration Policies
-    $windowsPolicies = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies?`$filter=templateReference/templateFamily eq 'endpointSecurityAccountProtection' and platforms eq 'windows10'&`$expand=settings,assignments" -ApiVersion beta
+    # Query: Retrieve Windows LAPS policies from ConfigurationPolicy table
+    $sql = @"
+    SELECT id, name, platforms, technologies, templateReference, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE templateReference.templateFamily = 'endpointSecurityAccountProtection'
+      AND platforms LIKE '%windows10%'
+"@
+    $windowsPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $windowsPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
 
     $lapsPolicies = $windowsPolicies.Where{
         $_.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory' -or
@@ -88,12 +106,17 @@ function Test-Assessment-24560 {
     if ($lapsPolicies.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
         foreach ($policy in $lapsPolicies) {
+
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/accountprotection'
-            $status = if ($policy.assignments.count -gt 0) {
-                '✅ Assigned'
+
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = '✅ Assigned'
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
             else {
-                '❌ Not Assigned'
+                $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
             }
 
             $backupDirectory = if ($policy.settings.settingInstance.settingDefinitionId -contains 'device_vendor_msft_laps_policies_backupdirectory') {
@@ -123,16 +146,7 @@ function Test-Assessment-24560 {
                 '❌ Not Configured'
             }
 
-            $policyName = Get-SafeMarkdown -Text $policy.name
-            $assignmentTarget = "None"
-
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
-            }
-
-            $tableRows += @"
-| [$policyName]($portalLink) | $status | $assignmentTarget | $backupDirectory | $management |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget | $backupDirectory | $management |`n"
         }
     }
 

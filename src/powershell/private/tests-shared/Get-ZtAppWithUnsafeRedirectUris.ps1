@@ -26,7 +26,7 @@ function Get-ZtAppWithUnsafeRedirectUris {
 			$Type
 		)
 		$mdInfo = ""
-		$mdInfo += "| | Name | Unsafe Redirect URIs |"
+		$mdInfo += "| | Name | Unsafe redirect URIs |"
 		# Only add the app owner tenant column for ServicePrincipal
 		if ($Type -eq 'ServicePrincipal') {
 			$mdInfo += "App owner tenant |`n"
@@ -146,7 +146,8 @@ function Get-ZtAppWithUnsafeRedirectUris {
 			}
 
 			if (-not $isDnsResolved) {
-				$riskyUrls += "$url"
+				# fixes issue #541 where results were missing icon in front of the unsafe redirect URIs
+				$riskyUrls += "4️⃣ $url"
 			}
 		}
 

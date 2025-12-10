@@ -8,19 +8,21 @@
 
 function Test-Assessment-24550 {
     [ZtTest(
-    	Category = 'Device',
-    	ImplementationCost = 'Low',
-    	MinimumLicense = ('Intune'),
-    	Pillar = 'Devices',
-    	RiskLevel = 'High',
-    	SfiPillar = 'Protect identities and secrets',
-    	TenantType = ('Workforce'),
-    	TestId = 24550,
-    	Title = 'Data on Windows is protected by BitLocker encryption',
-    	UserImpact = 'Low'
+        Category = 'Device',
+        ImplementationCost = 'Low',
+        MinimumLicense = ('Intune'),
+        Pillar = 'Devices',
+        RiskLevel = 'High',
+        SfiPillar = 'Protect identities and secrets',
+        TenantType = ('Workforce'),
+        TestId = 24550,
+        Title = 'Data on Windows is protected by BitLocker encryption',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Helper Functions
     function Test-PolicyAssignment {
@@ -47,7 +49,7 @@ function Test-Assessment-24550 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if( -not (Get-ZtLicense Intune) ) {
+    if ( -not (Get-ZtLicense Intune) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
         return
     }
@@ -55,9 +57,23 @@ function Test-Assessment-24550 {
     $activity = "Checking Windows BitLocker policy is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Retrieve device configuration profiles in Intune
-    $windowsPolicies_Uri = "deviceManagement/configurationPolicies?`$filter=platforms has 'windows10'&`$expand=assignments,settings"
-    $windowsPolicies = Invoke-ZtGraphRequest -RelativeUri $windowsPolicies_Uri -ApiVersion beta
+    # Query: Retrieve all Windows 10 configuration policies and their assignments
+    $sql = @"
+    SELECT id, name, description, platforms, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%windows10%'
+"@
+    $windowsPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+
+    # Parse JSON settings field
+    foreach ($policy in $windowsPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
+            $policy.assignments = $policy.assignments | ConvertFrom-Json
+        }
+    }
 
     # Filter policies to include only those related to Windows BitLocker settings
     $windowsBitLockerPolicies = @()
@@ -125,26 +141,19 @@ function Test-Assessment-24550 {
 
         foreach ($policy in $windowsBitLockerPolicies) {
 
-            $policyName = $policy.Name
+            $policyName = Get-SafeMarkdown -Text $policy.name
             $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/configuration'
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
                 $status = "✅ Assigned"
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
             }
             else {
                 $status = "❌ Not assigned"
+                $assignmentTarget = 'None'
             }
 
-            # Get assignment details for this specific policy
-            $assignmentTarget = "None"
-
-            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
-            }
-
-            $tableRows += @"
-| [$(Get-SafeMarkdown($policyName))]($portalLink) | $status | $assignmentTarget |`n
-"@
+            $tableRows += "| [$policyName]($portalLink) | $status | $assignmentTarget |`n"
         }
 
         # Format the template by replacing placeholders with values

@@ -28,7 +28,7 @@ function Export-Database {
 		[PSFDirectorySingle]$ExportPath,
 
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
 		[string]
 		$Pillar = 'All'
 	)
@@ -161,6 +161,7 @@ as
 
 	if ($Pillar -in ('All', 'Devices')) {
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy'
 	}
 
 	$database

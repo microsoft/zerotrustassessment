@@ -33,6 +33,11 @@ function Get-TableSchemaConfig {
             'sample_size' = 20  # Sample more files to avoid schema inference issues
             'reason' = 'Sign-in logs may have similar mixed data type issues'
         }
+        'ConfigurationPolicy' = @{
+            'use_union_by_name' = $true
+            'sample_size' = 50
+            'reason' = 'Contains complex nested objects (settings, assignments) that may vary'
+        }
     }
 
     $configs[$TableName]
