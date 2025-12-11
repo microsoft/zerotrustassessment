@@ -10,14 +10,14 @@
 .NOTES
     Test ID: 25394
     Category: Private Access
-    Required API: servicePrincipals (v1.0), identity/conditionalAccess/policies (v1.0)
+    Required API: servicePrincipals (beta), identity/conditionalAccess/policies (beta)
 #>
 
 function Test-Assessment-25394 {
     [ZtTest(
         Category = 'Private Access',
         ImplementationCost = 'Low',
-        MinimumLicense = (' '),
+        MinimumLicense = ('Entra_Premium_Private_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -60,16 +60,20 @@ function Test-Assessment-25394 {
         $caPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -Filter "state eq 'enabled'" -ApiVersion beta
 
         # Check if Quick Access is protected by Conditional Access policies
-        if ($caPolicies -and $caPolicies.Count -gt 0) {
+        if ($null -eq $caPolicies) {
+            Write-PSFMessage "Failed to retrieve Conditional Access policies" -Level Warning
+        }
+        elseif ($caPolicies -and $caPolicies.Count -gt 0) {
             foreach ($policy in $caPolicies) {
                 # Check if policy targets "All" applications or includes Quick Access app
-                if ($policy.conditions.applications.includeApplications -contains "All" -or
-                    $policy.conditions.applications.includeApplications -contains $quickAccessAppId) {
+                if ($null -ne $policy.conditions -and $null -ne $policy.conditions.applications -and $null -ne $policy.conditions.applications.includeApplications -and
+                    ($policy.conditions.applications.includeApplications -contains "All" -or
+                    $policy.conditions.applications.includeApplications -contains $quickAccessAppId)) {
 
                     # Check if grant controls are configured
-                    if ($policy.grantControls -and
-                        (($policy.grantControls.builtInControls -and $policy.grantControls.builtInControls.Count -gt 0) -or
-                         ($policy.grantControls.authenticationStrength))) {
+                    if ($null -ne $policy.grantControls -and
+                        (($null -ne $policy.grantControls.builtInControls -and @($policy.grantControls.builtInControls).Count -gt 0) -or
+                         ($null -ne $policy.grantControls.authenticationStrength))) {
 
                         $policyInfo = [PSCustomObject]@{
                             DisplayName = $policy.displayName
@@ -83,7 +87,7 @@ function Test-Assessment-25394 {
                         }
 
                         # Collect authentication strength if present
-                        if ($policy.grantControls.authenticationStrength) {
+                        if ($null -ne $policy.grantControls.authenticationStrength -and $null -ne $policy.grantControls.authenticationStrength.displayName) {
                             $policyInfo.GrantControls += "AuthenticationStrength: $($policy.grantControls.authenticationStrength.displayName)"
                         }
 
