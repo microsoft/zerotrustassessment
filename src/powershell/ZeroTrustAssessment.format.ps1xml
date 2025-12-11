@@ -1,6 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-16"?>
 <Configuration>
     <ViewDefinitions>
+        <!-- ZeroTrustAssessment.ExportStatistics -->
+        <View>
+            <Name>ZeroTrustAssessment.ExportStatistics</Name>
+            <ViewSelectedBy>
+                <TypeName>ZeroTrustAssessment.ExportStatistics</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Duration</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Success</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Error</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- ZeroTrustAssessment.TestStatistics -->
         <View>
             <Name>ZeroTrustAssessment.TestStatistics</Name>
@@ -59,49 +94,6 @@
                     <TableColumnHeader>
                         <Label>Cost</Label>
                     </TableColumnHeader>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                </TableHeaders>
-                <TableRowEntries>
-                    <TableRowEntry>
-                        <TableColumnItems>
-                            <TableColumnItem>
-                                <PropertyName>TestId</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>Pillar</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>RiskLevel</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>ImplementationCost</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>UserImpact</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>Title</PropertyName>
-                            </TableColumnItem>
-                        </TableColumnItems>
-                    </TableRowEntry>
-                </TableRowEntries>
-            </TableControl>
-        </View>
-
-        <!-- ZeroTrustAssessment.Test -->
-        <View>
-            <Name>ZeroTrustAssessment.Test</Name>
-            <ViewSelectedBy>
-                <TypeName>ZeroTrustAssessment.Test</TypeName>
-            </ViewSelectedBy>
-            <TableControl>
-                <AutoSize/>
-                <TableHeaders>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
                     <TableColumnHeader/>
                     <TableColumnHeader/>
                 </TableHeaders>
