@@ -17,7 +17,7 @@ function Test-Assessment-25394 {
     [ZtTest(
         Category = 'Private Access',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Premium_Private_Access'),
+        MinimumLicense = (' '),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -36,17 +36,17 @@ function Test-Assessment-25394 {
 
     # Q1: Find Quick Access application
     $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "tags/any(c:c eq 'NetworkAccessQuickAccessApplication')" -Select 'appId,displayName' -ApiVersion beta
+    #endregion Data Collection
 
+    #region Assessment Logic
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
     $quickAccessAppId = $null
     $quickAccessDisplayName = $null
     $applicablePolicies = @()
-    #endregion Data Collection
 
-    #region Assessment Logic
-    # Assessment Logic 1: Check if Quick Access application exists
+    # Check if Quick Access application exists
     if (-not $quickAccessApp -or $quickAccessApp.Count -eq 0) {
         $testResultMarkdown = "❌ No Quick Access application found with 'NetworkAccessQuickAccessApplication' tag."
         $passed = $false
@@ -57,11 +57,11 @@ function Test-Assessment-25394 {
 
         Write-ZtProgress -Activity $activity -Status "Checking Conditional Access policies for Quick Access"
         # Q2: Get all enabled Conditional Access policies
-        $caaPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -Filter "state eq 'enabled'" -ApiVersion beta
+        $caPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" -Filter "state eq 'enabled'" -ApiVersion beta
 
-        # Assessment Logic 2: Check if Quick Access is protected by Conditional Access policies
-        if ($caaPolicies -and $caaPolicies.Count -gt 0) {
-            foreach ($policy in $caaPolicies) {
+        # Check if Quick Access is protected by Conditional Access policies
+        if ($caPolicies -and $caPolicies.Count -gt 0) {
+            foreach ($policy in $caPolicies) {
                 # Check if policy targets "All" applications or includes Quick Access app
                 if ($policy.conditions.applications.includeApplications -contains "All" -or
                     $policy.conditions.applications.includeApplications -contains $quickAccessAppId) {
@@ -96,43 +96,46 @@ function Test-Assessment-25394 {
         # Determine pass/fail status
         if ($applicablePolicies.Count -gt 0) {
             $passed = $true
+            $testResultMarkdown = "✅ Quick Access is bound to a Conditional Access policy with grant controls.`n`n%TestResult%"
         }
         else {
             $passed = $false
-        }
-
-        # Build results table
-        $testResultMarkdown += "`n| Setting | Value |`n"
-        $testResultMarkdown += "|---------|-------|`n"
-        $testResultMarkdown += "| Quick Access Application | $quickAccessDisplayName |`n"
-        $testResultMarkdown += "| App ID | $quickAccessAppId |`n"
-        $testResultMarkdown += "| Conditional Access Policies | $(if ($applicablePolicies.Count -gt 0) { $applicablePolicies.Count } else { "None" }) |`n`n"
-
-        # Show applicable policies if any
-        if ($applicablePolicies.Count -gt 0) {
-            $testResultMarkdown += "### ✅ Applicable Conditional Access Policies`n`n"
-            $testResultMarkdown += "| Policy Name | Policy ID | Grant Controls |`n"
-            $testResultMarkdown += "|---|---|---|`n"
-            foreach ($policy in $applicablePolicies) {
-                $grantControlsStr = $([string]::Join(', ', $policy.GrantControls))
-                $testResultMarkdown += "| $($policy.DisplayName) | $($policy.Id) | $grantControlsStr |`n"
-            }
-            $testResultMarkdown += "`n"
-        }
-        else {
-            $testResultMarkdown += "### ❌ No Conditional Access Policies Found`n`n"
-            $testResultMarkdown += "Quick Access application is not protected by any Conditional Access policies with grant controls.`n`n"
+            $testResultMarkdown = "❌ Quick Access is not bound to a Conditional Access policy with grant controls.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
-    # Determine final pass/fail message
-    if ($passed) {
-        $testResultMarkdown = "✅ Quick Access is bound to a Conditional Access policy with grant controls.`n`n" + $testResultMarkdown
+    #region Report Generation
+    # Build detailed markdown information
+    $mdInfo = ''
+
+    if ($null -ne $quickAccessDisplayName) {
+        $mdInfo += "| Setting | Value |`n"
+        $mdInfo += "|---------|-------|`n"
+        $mdInfo += "| Quick Access application | $quickAccessDisplayName |`n"
+        $mdInfo += "| App Id | $quickAccessAppId |`n"
+        $mdInfo += "| Conditional Access policies | $(if ($applicablePolicies.Count -gt 0) { $applicablePolicies.Count } else { "None" }) |`n`n"
+
+        # Show applicable policies if any
+        if ($applicablePolicies.Count -gt 0) {
+            $mdInfo += "### ✅ Applicable Conditional Access policies`n`n"
+            $mdInfo += "| Policy name | Policy Id | Grant controls |`n"
+            $mdInfo += "|---|---|---|`n"
+            foreach ($policy in $applicablePolicies) {
+                $grantControlsStr = $([string]::Join(', ', $policy.GrantControls))
+                $mdInfo += "| $($policy.DisplayName) | $($policy.Id) | $grantControlsStr |`n"
+            }
+            $mdInfo += "`n"
+        }
+        else {
+            $mdInfo += "### ❌ No Conditional Access policies found`n`n"
+            $mdInfo += "Quick Access application is not protected by any Conditional Access policies with grant controls.`n`n"
+        }
     }
-    else {
-        $testResultMarkdown = "❌ Quick Access is not bound to a Conditional Access policy with grant controls.`n`n" + $testResultMarkdown
-    }
+
+    # Replace the placeholder with detailed information
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    #endregion Report Generation
 
     $params = @{
         TestId = '25394'

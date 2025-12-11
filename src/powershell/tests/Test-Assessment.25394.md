@@ -2,6 +2,7 @@ When Quick Access in Entra Private Access is configured without Conditional Acce
 
 **Remediation action**
 
+Apply Conditional Access policies to Quick Access application from Global Secure Access > Applications > Quick Access > Conditional Access as per the following articles: 
 - [How to apply Conditional Access policies to Microsoft Entra Private Access apps](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-target-resource-private-access-apps)
 
 - [Targeting resources in Conditional Access policies](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps)
