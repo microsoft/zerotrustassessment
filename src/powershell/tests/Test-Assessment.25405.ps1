@@ -28,6 +28,7 @@ function Test-Assessment-25405 {
     [CmdletBinding()]
     param()
 
+
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -36,14 +37,13 @@ function Test-Assessment-25405 {
 
     # Query private networks from Global Secure Access
     $privateNetworks = Invoke-ZtGraphRequest -RelativeUri 'networkaccess/privateNetworks' -ApiVersion beta
-
-    # Initialize test variables
-    $testResultMarkdown = ''
-    $passed = $false
-    $networkCount = 0
     #endregion Data Collection
 
     #region Assessment Logic
+    $testResultMarkdown = ''
+    $passed = $false
+    $networkCount = 0
+
     if ($null -eq $privateNetworks -or $privateNetworks.Count -eq 0) {
         # No private networks configured - test fails
         $passed = $false
@@ -75,7 +75,9 @@ function Test-Assessment-25405 {
 
 '@
         foreach ($network in ($privateNetworks | Sort-Object name)) {
-            $tableRows += "| $(Get-SafeMarkdown $network.name) | $($network.id) |`n"
+            $portalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateNetworks.ReactView"
+            $linkedName = "[$(Get-SafeMarkdown $network.name)]($portalLink)"
+            $tableRows += "| $linkedName | $($network.id) |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
