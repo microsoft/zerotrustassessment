@@ -61,7 +61,12 @@ function Add-ZtDeviceCompliancePolicies {
     function Get-GracePeriodDays($scheduledActionConfigurations, $actionType){
         $action = @($scheduledActionConfigurations).where{ $_.actionType -eq $actionType }
         if ($action) {
-            $gracePeriod = [TimeSpan]::FromHours($action.gracePeriodHours).TotalDays
+            # Ensure that in case of multiple matching actions, we take the longest grace period
+            # And that in case of an empty grace period field, we treat it as 0.
+            $graceHours = @($action.gracePeriodHours | Remove-PSFNull | Sort-Object -Descending)[0]
+            if (-not $graceHours) { $graceHours = 0 }
+
+            $gracePeriod = [TimeSpan]::FromHours($graceHours).TotalDays
             $gracePeriodDays = if( $gracePeriod -eq 0) { 'Immediately' } else { $gracePeriod }
             return $gracePeriodDays
         } else {
