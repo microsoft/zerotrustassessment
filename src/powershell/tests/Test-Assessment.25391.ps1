@@ -23,7 +23,7 @@ function Test-Assessment-25391 {
         TenantType = ('Workforce'),
         TestId = 25391,
         Title = 'Private Access connectors are active and healthy',
-        UserImpact = 'Low'
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
