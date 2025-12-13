@@ -2,8 +2,8 @@ Universal Continuous Access Evaluation (Universal CAE) is a platform feature of 
 
 **Remediation action**
 
-[Review Universal CAE capabilities for Global Secure Access] (https://learn.microsoft.com/en-us/entra/global-secure-access/concept-universal-continuous-access-evaluation)
-[Remove or modify Conditional Access policies that disable CAE for GSA workloads](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation#customize-continuous-access-evaluation)
-[Configure Strict Enforcement mode for enhanced token replay protection](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-universal-continuous-access-evaluation#strict-enforcement-mode)
+- [Review Universal CAE capabilities for Global Secure Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-universal-continuous-access-evaluation)
+- [Remove or modify Conditional Access policies that disable CAE for GSA workloads](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation#customize-continuous-access-evaluation)
+- [Configure Strict Enforcement mode for enhanced token replay protection](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-universal-continuous-access-evaluation#strict-enforcement-mode)
 
 %TestResult%
