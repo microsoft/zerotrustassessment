@@ -13,7 +13,7 @@ function Test-Assessment-24561 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 24561,
-    	Title = 'Local administrator credentials on macOS are protected during enrollment by macOS LAPS',
+    	Title = 'A macOS Cloud LAPS Policy is Created and Assigned',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -162,9 +162,7 @@ function Test-Assessment-24561 {
                     "N/A"
                 }
 
-                $tableRows += @"
-| [$tokenName]($portalLink) | $profileName | $adminAccount | $assignedStatus |`n
-"@
+                $tableRows += "| [$tokenName]($portalLink) | $profileName | $adminAccount | $assignedStatus |`n"
             }
 
             # Format the template by replacing placeholders with values
