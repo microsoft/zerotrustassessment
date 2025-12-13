@@ -162,9 +162,7 @@ function Test-Assessment-24561 {
                     "N/A"
                 }
 
-                $tableRows += @"
-| [$tokenName]($portalLink) | $profileName | $adminAccount | $assignedStatus |`n
-"@
+                $tableRows += "| [$tokenName]($portalLink) | $profileName | $adminAccount | $assignedStatus |`n"
             }
 
             # Format the template by replacing placeholders with values
