@@ -69,15 +69,15 @@ function Test-Assessment-25405 {
         $mdInfo += "Found $networkCount private network(s) configured for Intelligent Local Access.`n`n"
 
         $formatTemplate = @'
-| Name | Id |
+| Network name | Id |
 | :--- | :--- |
 {0}
 
 '@
         foreach ($network in ($privateNetworks | Sort-Object name)) {
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateNetworks.ReactView"
-            $linkedName = "[$(Get-SafeMarkdown $network.name)]($portalLink)"
-            $tableRows += "| $linkedName | $($network.id) |`n"
+            $networkName = Get-SafeMarkdown -Text $network.name
+            $tableRows += "| [$networkName]($portalLink) | $($network.id) |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
