@@ -3,6 +3,6 @@ When the Internet Access forwarding profile remains disabled, users access inter
 **Remediation action**
 
 - [Enable Internet Access forwarding profile to route traffic through the Secure Web Gateway](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile)
-- [Assign users and groups to the Internet Access profile to scope traffic forwarding to specific users](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding) and [manage Internet Access profiles](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile)
+- [Assign users and groups to the Internet Access profile to scope traffic forwarding to specific users](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
 <!--- Results --->
 %TestResult%
