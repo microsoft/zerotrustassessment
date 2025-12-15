@@ -123,6 +123,7 @@ function Get-GroupDisplayNameById {
         # Check for policies that disable CAE
         if ($caePolicies -and $caePolicies.Count -gt 0) {
             foreach ($policy in $caePolicies) {
+                $targetUsersDisplayNames = @()
                 $appCondition = $policy.conditions.applications
                 # Primary check: Check if policy targets All applications
                 $targetsAllApps = $appCondition.includeApplications -contains "All"
