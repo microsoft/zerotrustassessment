@@ -46,7 +46,7 @@ function Test-Assessment-25406 {
 
         try {
             # Fetch only first 6 assignments to check if there are more than 5
-            $servicePrincipal = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals(appId='$($appid)')" -Select "appid,appRoleAssignmentRequired" -ApiVersion v1.0 -QueryParameters @{ '$expand' = 'appRoleAssignedTo($select=principalDisplayName;$top=6;$orderby=principalDisplayName)' }
+            $servicePrincipal = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$id" -Select "appid,appRoleAssignmentRequired" -ApiVersion v1.0 -QueryParameters @{ '$expand' = 'appRoleAssignedTo($select=principalDisplayName;$top=6;$orderby=principalDisplayName)' }
 
             if ($servicePrincipal) {
                 # Pass condition: appRoleAssignmentRequired is False OR appRoleAssignedTo has values
