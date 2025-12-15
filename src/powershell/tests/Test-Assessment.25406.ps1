@@ -32,7 +32,7 @@ function Test-Assessment-25406 {
     $passed = $false
     $profileName = 'Internet traffic forwarding profile'
     $profileState = 'Disabled'
-    $assignmentsList = @('None')
+    $assignmentsList = 'None'
     $hasAssignments = $false
     $appid = $null
     $id = $null
@@ -52,7 +52,7 @@ function Test-Assessment-25406 {
                 # Pass condition: appRoleAssignmentRequired is False OR appRoleAssignedTo has values
                 if ($servicePrincipal.appRoleAssignmentRequired -eq $false) {
                     # Assignment not required: available to everyone regardless of explicit entries
-                    $assignmentsList = @('All Users')
+                    $assignmentsList = 'All Users'
                     $hasAssignments = $true
                 }
                 elseif ($servicePrincipal.appRoleAssignedTo -and $servicePrincipal.appRoleAssignedTo.Count -gt 0) {
@@ -62,16 +62,16 @@ function Test-Assessment-25406 {
 
                     if ($hasMoreThan5) {
                         $first5Names = ($assignments | Select-Object -First 5 -ExpandProperty principalDisplayName) -join ', '
-                        $assignmentsList = @("$first5Names, ...")
+                        $assignmentsList = "$first5Names, ..."
                     }
                     else {
-                        $assignmentsList = @(($assignments.principalDisplayName) -join ', ')
+                        $assignmentsList = ($assignments.principalDisplayName) -join ', '
                     }
                     $hasAssignments = $true
                 }
                 else {
                     # appRoleAssignmentRequired = true but no assignments
-                    $assignmentsList = @('None')
+                    $assignmentsList = 'None'
                     $hasAssignments = $false
                 }
             }
@@ -98,11 +98,10 @@ function Test-Assessment-25406 {
     # Add visual indicators to display
     $stateDisplay = if ($profileState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
-    $assignmentValue = $assignmentsList[0]
-    $assignmentsDisplay = switch ($assignmentValue) {
+    $assignmentsDisplay = switch ($assignmentsList) {
         'None' { '❌ None' }
         'All Users' { '✅ All Users' }
-        default { $assignmentValue }
+        default { $assignmentsList }
     }
 
     if($appid -and $id)
