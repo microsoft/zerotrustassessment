@@ -39,9 +39,6 @@ function Test-Assessment-25391 {
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
-    $totalConnectors = $connectors.Count
-    $activeConnectors = @()
-    $inactiveConnectors = @()
     $allConnectors = @()
     #endregion Data Collection
 
@@ -49,38 +46,29 @@ function Test-Assessment-25391 {
     if (-not $connectors -or $connectors.Count -eq 0) {
         $passed = $false
         $testResultMarkdown = "⚠️ No private network connectors found in this tenant. Configure connectors to enable Private Access."
-        $allConnectors = @()  # Ensure empty array for report generation
     }
     else {
         # Step 2: Check for statuses
         Write-ZtProgress -Activity $activity -Status 'Checking connector statuses'
 
-        foreach ($connector in $connectors) {
-            $status = $connector.status
-            $statusDisplay = if ($status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
-
-            $connectorInfo = [PSCustomObject]@{
-                MachineName = $connector.machineName
-                ExternalIp  = $connector.externalIp
-                Version     = $connector.version
-                Status      = $statusDisplay
-            }
-
-            if ($status -eq 'active') {
-                $activeConnectors += $connectorInfo
-            } else {
-                $inactiveConnectors += $connectorInfo
+        # Transform connectors to result objects with status display
+        $allConnectors = $connectors | ForEach-Object {
+            [PSCustomObject]@{
+                MachineName = $_.machineName
+                ExternalIp  = $_.externalIp
+                Version     = $_.version
+                Status      = if ($_.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
+                IsActive    = $_.status -eq 'active'
             }
         }
 
-        $allConnectors = $inactiveConnectors + $activeConnectors
+        # Determine pass/fail - all connectors must be active
+        $passed = ($allConnectors | Where-Object { -not $_.IsActive }).Count -eq 0
 
-        # Step 4: Determine pass/fail status
-        if ($totalConnectors -eq $activeConnectors.Count) {
-            $passed = $true
-            $testResultMarkdown = "All Private Network Access connectors are active and healthy`n`n%TestResult%"
+        $testResultMarkdown = if ($passed) {
+            "All Private Network Access connectors are active and healthy`n`n%TestResult%"
         } else {
-            $testResultMarkdown = "One or more Private Network Access connectors are inactive or unhealthy`n`n%TestResult%"
+            "One or more Private Network Access connectors are inactive or unhealthy`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
@@ -102,13 +90,11 @@ function Test-Assessment-25391 {
 "@
 
         $tableRows = ''
-        foreach ($connector in ($allConnectors | Sort-Object @{Expression={if ($_.Status -eq '❌ Inactive') {0} else {1}}}, MachineName)) {
+        foreach ($connector in ($allConnectors | Sort-Object IsActive, MachineName)) {
             $tableRows += "| $($connector.MachineName) | $($connector.Status) | $($connector.ExternalIp) | $($connector.Version) |`n"
         }
-
         $mdInfo += $formatTemplate -f $tableRows
     }
-
 
     # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
