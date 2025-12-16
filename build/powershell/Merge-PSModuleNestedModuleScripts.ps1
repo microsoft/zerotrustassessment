@@ -56,18 +56,14 @@ if ($OutputModuleFileInfo.Extension -eq ".psm1") {
     $NestedModulesFileInfo | Where-Object Extension -EQ '.ps1' | ForEach-Object { "#region $($_.Name)`r`n`r`n$(Get-Content $_ -Raw)`r`n#endregion`r`n" } | Add-Content $OutputModuleFileInfo.FullName -Encoding utf8BOM
 
     if ($MergeWithRootModule) {
-        function Join-ModuleMembers ([string[]]$Members) {
-            if ($Members.Count -gt 0) {
-                return "'{0}'" -f ($Members -join "','")
-            }
-            else { return "" }
-        }
-
         ## Add remainder of root module content
+        ## NOTE: We intentionally do NOT add Export-ModuleMember here because:
+        ## 1. The PSD1's FunctionsToExport already controls what gets exported when imported normally
+        ## 2. Adding Export-ModuleMember breaks runspace workers that need access to private functions
+        ##    (e.g., PSFramework runspace workflows that load the PSM1 directly)
         $NestedModuleEndRegion = "#endregion`r`n"
-        $ExportModuleMember += "Export-ModuleMember -Function @({0}) -Cmdlet @({1}) -Variable @({2}) -Alias @({3})" -f (Join-ModuleMembers $ModuleManifest['FunctionsToExport']), (Join-ModuleMembers $ModuleManifest['CmdletsToExport']), (Join-ModuleMembers $ModuleManifest['VariablesToExport']), (Join-ModuleMembers $ModuleManifest['AliasesToExport'])
         
-        $NestedModuleEndRegion, $RootModuleContent, $ExportModuleMember | Add-Content $OutputModuleFileInfo.FullName -Encoding utf8BOM
+        $NestedModuleEndRegion, $RootModuleContent | Add-Content $OutputModuleFileInfo.FullName -Encoding utf8BOM
     }
 
     if ($RemoveNestedModuleScriptFiles) {
