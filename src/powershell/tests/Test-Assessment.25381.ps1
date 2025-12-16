@@ -17,7 +17,7 @@ function Test-Assessment-25381 {
     [ZtTest(
         Category = 'Access control',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('P2'),
+        MinimumLicense = ('Entra_Suite', 'Entra_Premium_Private_Access', 'Entra_Premium_Internet_Access', 'P2'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -53,48 +53,16 @@ function Test-Assessment-25381 {
         $testResultMarkdown = "❌ No traffic forwarding profiles found. Global Secure Access is not configured.`n`n%TestResult%"
     }
     else {
-        # Categorize profiles by traffic type
-        foreach ($profile in $forwardingProfiles) {
-            switch ($profile.trafficForwardingType) {
-                'm365' { $m365Profile = $profile }
-                'private' { $privateProfile = $profile }
-                'internet' { $internetProfile = $profile }
-            }
-        }
+        # Categorize profiles by traffic type for reporting
+        $m365Profile = $forwardingProfiles | Where-Object { $_.trafficForwardingType -eq 'm365' }
+        $privateProfile = $forwardingProfiles | Where-Object { $_.trafficForwardingType -eq 'private' }
+        $internetProfile = $forwardingProfiles | Where-Object { $_.trafficForwardingType -eq 'internet' }
 
-        # Count enabled and disabled profiles
-        $enabledProfiles = @()
-        $disabledProfiles = @()
-
-        if ($m365Profile) {
-            if ($m365Profile.state -eq 'enabled') {
-                $enabledProfiles += $m365Profile
-            }
-            else {
-                $disabledProfiles += $m365Profile
-            }
-        }
-
-        if ($privateProfile) {
-            if ($privateProfile.state -eq 'enabled') {
-                $enabledProfiles += $privateProfile
-            }
-            else {
-                $disabledProfiles += $privateProfile
-            }
-        }
-
-        if ($internetProfile) {
-            if ($internetProfile.state -eq 'enabled') {
-                $enabledProfiles += $internetProfile
-            }
-            else {
-                $disabledProfiles += $internetProfile
-            }
-        }
+        # Identify enabled and disabled profiles
+        $enabledProfiles = $forwardingProfiles | Where-Object { $_.state -eq 'enabled' }
+        $disabledProfiles = $forwardingProfiles | Where-Object { $_.state -ne 'enabled' }
 
         # Determine pass/fail/warning status
-        $totalProfiles = $enabledProfiles.Count + $disabledProfiles.Count
 
         if ($disabledProfiles.Count -eq 0) {
             # All profiles enabled - pass
@@ -125,54 +93,37 @@ function Test-Assessment-25381 {
         $mdInfo += "`n## $reportTitle`n`n"
         $mdInfo += "[Open Traffic Forwarding Profiles in Entra Portal](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/ForwardingProfile.ReactView)`n`n"
 
-        # Summary of unprotected traffic types
-        if ($disabledProfiles.Count -gt 0) {
-            $unprotectedTypes = $disabledProfiles | ForEach-Object {
-                switch ($_.trafficForwardingType) {
-                    'm365' { 'Microsoft 365' }
-                    'private' { 'Private Access' }
-                    'internet' { 'Internet Access' }
-                }
-            }
-            $mdInfo += "**⚠️ Unprotected Traffic Types:** $($unprotectedTypes -join ', ')`n`n"
+        # Define profile metadata for consistent reporting
+        $profilesMetadata = @(
+            @{ Type = 'm365'; Label = 'Microsoft 365'; Object = $m365Profile }
+            @{ Type = 'private'; Label = 'Private Access'; Object = $privateProfile }
+            @{ Type = 'internet'; Label = 'Internet Access'; Object = $internetProfile }
+        )
+
+        # Summary of unprotected traffic types (existing but disabled)
+        $unprotectedLabels = $profilesMetadata | Where-Object { $_.Object -and $_.Object.state -ne 'enabled' } | Select-Object -ExpandProperty Label
+        if ($unprotectedLabels) {
+            $mdInfo += "**⚠️ Unprotected Traffic Types:** $($unprotectedLabels -join ', ')`n`n"
         }
 
-        $formatTemplate = @'
+        # Build table rows
+        $tableRows = $profilesMetadata | ForEach-Object {
+            $profile = $_.Object
+            if ($profile) {
+                $statusIcon = if ($profile.state -eq 'enabled') { '✅' } else { '❌' }
+                "| $($_.Label) | $(Get-SafeMarkdown $profile.name) | $statusIcon $($profile.state) |"
+            }
+            else {
+                "| $($_.Label) | Not found | ❌ Not configured |"
+            }
+        }
+
+        $mdInfo += @'
 | Traffic Type | Name | State |
 | :----------- | :--- | :---- |
 {0}
 
-'@
-
-        # Build table rows for all profiles
-        # Microsoft 365 Profile
-        if ($m365Profile) {
-            $statusIcon = if ($m365Profile.state -eq 'enabled') { '✅' } else { '❌' }
-            $tableRows += "| Microsoft 365 | $(Get-SafeMarkdown $m365Profile.name) | $statusIcon $($m365Profile.state) |`n"
-        }
-        else {
-            $tableRows += "| Microsoft 365 | Not found | ❌ Not configured |`n"
-        }
-
-        # Private Access Profile
-        if ($privateProfile) {
-            $statusIcon = if ($privateProfile.state -eq 'enabled') { '✅' } else { '❌' }
-            $tableRows += "| Private Access | $(Get-SafeMarkdown $privateProfile.name) | $statusIcon $($privateProfile.state) |`n"
-        }
-        else {
-            $tableRows += "| Private Access | Not found | ❌ Not configured |`n"
-        }
-
-        # Internet Access Profile
-        if ($internetProfile) {
-            $statusIcon = if ($internetProfile.state -eq 'enabled') { '✅' } else { '❌' }
-            $tableRows += "| Internet Access | $(Get-SafeMarkdown $internetProfile.name) | $statusIcon $($internetProfile.state) |`n"
-        }
-        else {
-            $tableRows += "| Internet Access | Not found | ❌ Not configured |`n"
-        }
-
-        $mdInfo += $formatTemplate -f $tableRows
+'@ -f ($tableRows -join "`n")
     }
 
     # Replace the placeholder with detailed information
