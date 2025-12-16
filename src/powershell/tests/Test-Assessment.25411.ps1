@@ -117,10 +117,11 @@ function Test-Assessment-25411 {
 
     if ($tlsInspectionPolicies.Count -gt 0) {
         $mdInfo += "`n## TLS Inspection Policies`n`n"
-        $mdInfo += "| Policy ID | Policy Name | State |`n"
+        $mdInfo += "| Policy ID | Policy Name | Action |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($tlsPolicy in $tlsInspectionPolicies) {
-            $mdInfo += "| $($tlsPolicy.id) | $($tlsPolicy.name) | $($tlsPolicy.state) |`n"
+            $tlsPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditTlsInspectionPolicyMenuBlade.MenuView/~/basics/policyId/$(($tlsPolicy.id))"
+            $mdInfo += "| [$($tlsPolicy.name)]($tlsPolicyPortalLink) | $($tlsPolicy.id) | $($tlsPolicy.settings.defaultAction) |`n"
         }
     }
 
