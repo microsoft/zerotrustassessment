@@ -36,13 +36,13 @@ function Test-Assessment-25403 {
 
     # Query all Private Access Sensors
     $sensors = Invoke-ZtGraphRequest -RelativeUri 'onPremisesPublishingProfiles/privateAccess/sensors' -ApiVersion beta
-
-    # Initialize test variables
-    $testResultMarkdown = ''
-    $passed = $false
     #endregion Data Collection
 
     #region Assessment Logic
+    # Initialize test variables
+    $testResultMarkdown = ''
+    $passed = $false
+
     if ($null -eq $sensors -or $sensors.Count -eq 0) {
         # No sensors found - fail
         $passed = $false
