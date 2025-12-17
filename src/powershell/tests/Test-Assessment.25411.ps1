@@ -7,13 +7,13 @@
 
 function Test-Assessment-25411 {
     [ZtTest(
-        Category = 'Network',
+        Category = 'Global Secure Access',
         ImplementationCost = 'High',
-        MinimumLicense = ('Free'),
+        MinimumLicense = ('Entra_Premium_Internet_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
+        TenantType = ('Workforce'),
         TestId = 25411,
         Title = 'TLS inspection is enabled and correctly configured for outbound traffic in Global Secure Access',
         UserImpact = 'Medium'
