@@ -92,15 +92,15 @@ function Test-Assessment-25406 {
             Write-PSFMessage "Failed to check service principal assignments: $_" -Level Warning
         }
     }
-
-    # Pass if profile is enabled AND has assignments
-    $passed = ($profileState -eq 'Enabled') -and $hasAssignments
     #endregion Data Collection
 
     #region Assessment Logic
-    if ($passed) {
+    # Pass if profile is enabled AND has assignments
+    if ($profileState -eq 'Enabled' -and $hasAssignments) {
+        $passed = $true
         $testResultMarkdown = "Internet access forwarding profile is enabled with user assignments.`n`n%TestResult%"
     }else {
+        $passed = $false
         $testResultMarkdown = "Internet access forwarding profile is disabled or lacks user assignments.`n`n%TestResult%"
     }
     #endregion Assessment Logic
