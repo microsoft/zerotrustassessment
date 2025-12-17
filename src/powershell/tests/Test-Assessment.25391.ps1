@@ -22,7 +22,7 @@ function Test-Assessment-25391 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25391,
-        Title = 'Private Access connectors are active and healthy',
+        Title = 'Private network connectors are active and healthy to maintain Zero Trust access to internal resources',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -36,6 +36,7 @@ function Test-Assessment-25391 {
 
     # Query Q1: Get all private network connectors
     $connectors = Invoke-ZtGraphRequest -RelativeUri 'onPremisesPublishingProfiles/applicationProxy/connectors' -ApiVersion beta
+
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
@@ -62,13 +63,18 @@ function Test-Assessment-25391 {
             }
         }
 
+        # Calculate connector statistics
+        $totalConnectors = $allConnectors.Count
+        $activeConnectors = ($allConnectors | Where-Object { $_.IsActive }).Count
+        $inactiveConnectors = ($allConnectors | Where-Object { -not $_.IsActive }).Count
+
         # Determine pass/fail - all connectors must be active
-        $passed = ($allConnectors | Where-Object { -not $_.IsActive }).Count -eq 0
+        $passed = $inactiveConnectors -eq 0
 
         $testResultMarkdown = if ($passed) {
-            "All Private Network Access connectors are active and healthy`n`n%TestResult%"
+            "All Private Network Access connectors are active and healthy.`n`n%TestResult%"
         } else {
-            "One or more Private Network Access connectors are inactive or unhealthy`n`n%TestResult%"
+            "One or more Private Network Access connectors are inactive or unhealthy.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
@@ -81,6 +87,12 @@ function Test-Assessment-25391 {
     {
 
     $formatTemplate = @"
+
+## Private Access connectors summary
+
+- **Total Connectors:** $totalConnectors
+- **Active Connectors:** $activeConnectors
+- **Inactive Connectors:** $inactiveConnectors
 
 ## Private Access connectors status
 
