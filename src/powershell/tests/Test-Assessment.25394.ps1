@@ -86,11 +86,12 @@ function Test-Assessment-25394 {
                 elseif ($policy.conditions.applications.includeApplications -contains $quickAccessAppId) {
                     $policyTargetsQuickAccess = $true
                 }
-                # Check if applicationFilter is configured
+                <# Check if applicationFilter is configured to include Quick Access
                 elseif ($null -ne $policy.conditions.applications.applicationFilter) {
-                    # applicationFilter exists, assume it could match Quick Access
+                    # applicationFilter exists, determine if it matches Quick Access
                     $policyTargetsQuickAccess = $true
                 }
+                #>
 
                 if ($policyTargetsQuickAccess) {
                     # Verify meaningful grant controls
