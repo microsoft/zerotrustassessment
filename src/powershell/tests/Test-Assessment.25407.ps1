@@ -55,12 +55,13 @@ function Test-Assessment-25407 {
 
     # Generate markdown table for policies with Global Secure Access filtering profiles
     $mdInfo = "`n## All Policies with Global Secure Access Filtering Profile Configuration`n`n"
-    $mdInfo += "| Policy ID | Display Name | State | GSA Profile Enabled |`n"
-    $mdInfo += "| :--- | :--- | :--- | :--- |`n"
+    $mdInfo += "| Policy Name | State | GSA Profile Enabled |`n"
+    $mdInfo += "| :--- | :--- | :--- |`n"
     foreach ($policy in $policiesWithProfile) {
         $gsaEnabledSign = if ($policy.sessionControls.globalSecureAccessFilteringProfile.isEnabled) { '✅' } else { '❌' }
         $stateSign = if ($policy.state -eq 'enabled') { '✅' } else { '❌' }
-        $mdInfo += "| $($policy.id) | $($policy.displayName) | $stateSign | $gsaEnabledSign |`n"
+        $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
+        $mdInfo += "| [$($policy.displayName)]($policyPortalLink) | $stateSign | $gsaEnabledSign |`n"
     }
 
 
