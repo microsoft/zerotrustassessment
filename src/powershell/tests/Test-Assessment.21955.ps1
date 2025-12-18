@@ -54,9 +54,6 @@ function Test-Assessment-21955 {
         $passed = $false
         $testResultMarkdown = "Local administrators on Microsoft Entra joined devices are not managed by the organization.`n`n%TestResult%"
     }
-
-    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/DeviceSettings/menuId/Overview'
-    $portalLinkMd = "[Device Settings - Global administrator role is added as local administrator]($portalLink)`n`n"
     #endregion Assessment Logic
 
     #region Report Generation
