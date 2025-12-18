@@ -3,7 +3,7 @@ TLS Inspection empowers Microsoft Entra Global Secure Access to securely interpr
 **Remediation action**
 
 Please check the article below for guidance on configuring the TLS Inspection Policy. 
-[Configure Transport Layer Security Inspection Policies - Global Secure Access | Microsoft Learn](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-transport-layer-security)
+- [Configure Transport Layer Security Inspection Policies - Global Secure Access | Microsoft Learn](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-transport-layer-security)
 
 <!--- Results --->
 %TestResult%
