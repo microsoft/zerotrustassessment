@@ -86,12 +86,18 @@ function Test-Assessment-25394 {
                 elseif ($policy.conditions.applications.includeApplications -contains $quickAccessAppId) {
                     $policyTargetsQuickAccess = $true
                 }
-                <# Check if applicationFilter is configured to include Quick Access
+                # Check if applicationFilter is configured to include Quick Access
                 elseif ($null -ne $policy.conditions.applications.applicationFilter) {
-                    # applicationFilter exists, determine if it matches Quick Access
-                    $policyTargetsQuickAccess = $true
+                    # Check if applicationFilter mode is "include" and rule targets Quick Access
+                    if ($policy.conditions.applications.applicationFilter.mode -eq 'include') {
+                        $rule = $policy.conditions.applications.applicationFilter.rule
+                        if ($rule -match [regex]::Escape($quickAccessAppId) -or
+                            $rule -match 'Quick Access' -or
+                            $rule -match 'NetworkAccessQuickAccessApplication') {
+                            $policyTargetsQuickAccess = $true
+                        }
+                    }
                 }
-                #>
 
                 if ($policyTargetsQuickAccess) {
                     # Verify meaningful grant controls
