@@ -32,7 +32,7 @@ function Test-Assessment-25480 {
     Write-ZtProgress -Activity $activity -Status 'Querying Quick Access application and assigned users/groups'
 
     # Query 1: Find Quick Access application with appRoleAssignedTo expansion
-    $app = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals?$filter=tags/any(c:c eq ''NetworkAccessQuickAccessApplication'')&$expand=appRoleAssignedTo' -Select 'principalId,principalType,principalDisplayName' -ApiVersion v1.0
+    $app = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals?$filter=tags/any(c:c eq ''NetworkAccessQuickAccessApplication'')&$expand=appRoleAssignedTo' -ApiVersion v1.0
     #endregion Data Collection
 
     #region Assessment Logic
