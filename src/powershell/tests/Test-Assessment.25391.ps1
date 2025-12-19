@@ -46,7 +46,7 @@ function Test-Assessment-25391 {
     #region Assessment Logic
     if (-not $connectors -or $connectors.Count -eq 0) {
         $passed = $false
-        $testResultMarkdown = "⚠️ No private network connectors found in this tenant. Configure connectors to enable Private Access."
+        $testResultMarkdown = "⚠️ No Private Network Connectors are configured."
     }
     else {
         # Step 2: Check for statuses
@@ -117,11 +117,6 @@ function Test-Assessment-25391 {
         Title  = 'Private Access connectors are active and healthy'
         Status = $passed
         Result = $testResultMarkdown
-    }
-
-    # Add CustomStatus for investigate when no connectors found
-    if (-not $connectors -or $connectors.Count -eq 0) {
-        $params.CustomStatus = 'Investigate'
     }
 
     # Add test result details
