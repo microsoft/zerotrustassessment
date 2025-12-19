@@ -84,8 +84,6 @@ function Test-Assessment-25383 {
             -QueryParameters @{'$expand' = 'principal($select=id,displayName,userPrincipalName,mail,userType,accountEnabled)' } `
             -ApiVersion v1.0
 
-        $result.TotalCount = @($assignments).Count
-
         foreach ($assignment in $assignments) {
             $principal = $assignment.principal
 
@@ -125,6 +123,8 @@ function Test-Assessment-25383 {
             }
         }
 
+        # TotalCount = Issues + ValidAssignments (disabled users excluded)
+        $result.TotalCount = $result.Issues.Count + $result.ValidAssignments.Count
         $result.HasIssues = $result.Issues.Count -gt 0
         $result.ExceedsThreshold = $result.TotalCount -gt 5
 
@@ -191,17 +191,17 @@ function Test-Assessment-25383 {
 
         if ($result.Issues.Count -gt 0) {
             $mdInfo += "### ❌ Non-compliant assignments`n`n"
-            $mdInfo += "| Name | Principal name | Type | User Type | Issue |`n"
-            $mdInfo += "| :----------- | :-- | :--- | :-------- | :---- |`n"
+            $mdInfo += "| Name | Principal name | Type | User Type |`n"
+            $mdInfo += "| :----------- | :-- | :--- | :-------- |`n"
 
-            $maxDisplay = 1000
+            $maxDisplay = 5
             $displayIssues = $result.Issues
             if ($result.Issues.Count -gt $maxDisplay) {
                 $displayIssues = $result.Issues[0..($maxDisplay - 1)]
             }
 
             foreach ($issue in $displayIssues) {
-                $mdInfo += "| $(Get-SafeMarkdown $issue.DisplayName) | $(Get-SafeMarkdown $issue.UPN) | $($issue.Type) | $($issue.UserType) | $($issue.Issue) |`n"
+                $mdInfo += "| $(Get-SafeMarkdown $issue.DisplayName) | $(Get-SafeMarkdown $issue.UPN) | $($issue.Type) | $($issue.UserType) |`n"
             }
 
             if ($result.Issues.Count -gt $maxDisplay) {
@@ -217,7 +217,7 @@ function Test-Assessment-25383 {
             $mdInfo += "| Name | Principal name | User Type | Account Enabled |`n"
             $mdInfo += "| :----------- | :-- | :-------- | :-------------- |`n"
 
-            $maxDisplay = 1000
+            $maxDisplay = 5
             $displayValid = $result.ValidAssignments
             if ($result.ValidAssignments.Count -gt $maxDisplay) {
                 $displayValid = $result.ValidAssignments[0..($maxDisplay - 1)]
@@ -237,7 +237,7 @@ function Test-Assessment-25383 {
     }
 
     $mdInfo += "`n## Portal Link`n`n"
-    $mdInfo += "[Roles and administrators](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/DirectoryRolesBlade)`n"
+    $mdInfo += "[Roles and administrators](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
