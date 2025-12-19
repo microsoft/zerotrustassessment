@@ -1,0 +1,8 @@
+When the Internet Access forwarding profile remains disabled, users access internet resources without routing traffic through the Secure Web Gateway, bypassing security controls that block threats, malicious content, and unsafe destinations. Threat actors exploit this gap by delivering malware, establishing command and control connections, or exfiltrating data through unmonitored internet channels. Without sufficient controls to prevent unauthorized access, threat actors leverage compromised credentials or social engineering to establish initial access, then use unfiltered internet connectivity to download tools, establish persistence mechanisms, or communicate with external infrastructure. Organizations lose visibility into internet traffic patterns through Traffic Logs, preventing detection of data exfiltration attempts, connections to known malicious domains, or unauthorized access to external resources. The absence of identity-based access controls for internet traffic enables threat actors operating from compromised accounts to blend with normal user behavior, accessing external resources to stage attacks, download exploitation frameworks, or communicate with adversary infrastructure without triggering security alerts based on user context, device compliance, or location.
+
+**Remediation action**
+
+- [Enable Internet Access forwarding profile to route traffic through the Secure Web Gateway](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile)
+- [Assign users and groups to the Internet Access profile to scope traffic forwarding to specific users](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+<!--- Results --->
+%TestResult%
