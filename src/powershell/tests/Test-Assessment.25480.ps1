@@ -33,7 +33,7 @@ function Test-Assessment-25480 {
 
     # Query 1: Find Quick Access application with appRoleAssignedTo expansion
     # executing the original query in graph explorer ignores $select and returns complete entity. A Q&A thread mentions no support for nested $select on expanded directory object relationships [known-issues](https://developer.microsoft.com/en-us/graph/known-issues/?search=13635)
-    $app = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals?$filter=tags/any(c:c eq ''NetworkAccessQuickAccessApplication'')&$expand=appRoleAssignedTo' -ApiVersion v1.0
+    $app = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'NetworkAccessQuickAccessApplication')&`$expand=appRoleAssignedTo" -ApiVersion beta
     #endregion Data Collection
 
     #region Assessment Logic
@@ -66,10 +66,12 @@ function Test-Assessment-25480 {
 
     #region Report Generation
     # Build detailed markdown information
-    $mdInfo = ''
+        $mdInfo = ''
 
     if ($appRoleAssignments.Count -gt 0) {
         # Build results table
+        $reportTitle = "Quick Access application assignments"
+        $mdInfo += "`n## $reportTitle`n`n"
         $mdInfo += "| Member type | Display name |`n"
         $mdInfo += "|-------------|--------------|`n"
         foreach ($assignment in $appRoleAssignments) {
