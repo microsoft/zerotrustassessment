@@ -20,9 +20,9 @@
 
 function Test-Assessment-25371 {
     [ZtTest(
-        Category = 'Private Access',
+        Category = 'Global SecureAccess',
         ImplementationCost = 'Low',
-        MinimumLicense = ( 'AAD_PREMIUM', 'Entra_Premium_Internet_Access', 'Entra_Premium_Private_Access'),
+        MinimumLicense = ('AAD_PREMIUM'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -32,9 +32,7 @@ function Test-Assessment-25371 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param(
-        $Database
-    )
+    param()
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -74,8 +72,9 @@ function Test-Assessment-25371 {
             }
         }
     }
+    # Flag policies where CAE is explicitly disabled for all apps
     $ContinuousAccessEvaluationDisabledPolicies = $CAPolicyDetails | Where-Object {
-        (($null -ne $_.ContinuousAccessEvaluation) -and ($_.ContinuousAccessEvaluation -eq 'disabled')) -and ($_.TargetsAllApps -eq $true)
+        ($_.TargetsAllApps -eq $true) -and ($_.ContinuousAccessEvaluation -eq 'disabled')
     }
 
     #endregion Data Collection
@@ -113,17 +112,17 @@ function Test-Assessment-25371 {
     $mdInfo = ''
 
     if ($gsaSettings) {
-        $mdInfo += "`n## Universal CAE Configuration`n`n"
+        $mdInfo += "`n## Global Secure Access Status`n`n"
         $mdInfo += "**Signaling Status**: $(if ($gsaSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ ' + $gsaSettings.signalingStatus })`n"
     }
     else {
-        $mdInfo += "`n## Universal CAE Configuration`n`n"
+        $mdInfo += "`n## Global Secure Access Status`n`n"
         $mdInfo += "**Status**: ℹ️ Not configured`n`n"
     }
 
     # Informational: Record enabled traffic forwarding profiles
     if ($forwardingProfiles.Count -gt 0) {
-        $mdInfo += "`n## Traffic Forwarding Profiles`n`n"
+        $mdInfo += "`n## Active Traffic Profiles`n`n"
         $mdInfo += "| Name | State | Traffic Type |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($profile in ($forwardingProfiles | Sort-Object -Property name)) {
@@ -131,34 +130,26 @@ function Test-Assessment-25371 {
         }
     }
     else {
-        $mdInfo += "`n## Traffic Forwarding Profiles`n`n"
-        $mdInfo += "No traffic forwarding profiles found.`n`n"
+        $mdInfo += "`n## Active Traffic Profiles`n`n"
+        $mdInfo += "No active traffic profiles found.`n`n"
     }
 
     # Report CAE-disabling policies
     if ($ContinuousAccessEvaluationDisabledPolicies.Count -gt 0) {
-        $mdInfo += "`n## CA Policies disabling Continuous Access Evaluation`n`n"
-        $mdInfo += "| Display Name | Policy ID | State | Targets All Apps | Continuous Access Evaluation |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
+        $mdInfo += "`n## Policies disabling Continuous Access Evaluation`n`n"
+        $mdInfo += "| Policy Name | Policy ID | Continuous Access Evaluation Mode |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($policy in ($ContinuousAccessEvaluationDisabledPolicies | Sort-Object -Property DisplayName)) {
-            $allAppsIcon = if ($policy.TargetsAllApps) {
-                '✅'
-            }
-            else {
-                '❌'
-            }
-            $ContinuousAccessEvalIcon = if ($null -ne $policy.ContinuousAccessEvaluation -and $policy.ContinuousAccessEvaluation -ne 'disabled') {
-                '✅ ' + $policy.ContinuousAccessEvaluation
-            }
-            else {
-                '❌ Disabled'
-            }
+            $ContinuousAccessEvalIcon = "❌ Disabled"
             $policyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.Id)"
-            $mdInfo += "| [$(Get-SafeMarkdown $policy.DisplayName)]($policyLink) | $($policy.Id) | $(Get-FormattedPolicyState $policy.State) | $allAppsIcon | $ContinuousAccessEvalIcon |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown $policy.DisplayName)]($policyLink) | $($policy.Id) | $ContinuousAccessEvalIcon |`n"
         }
         $mdInfo += "`n"
     }
-
+    else {
+        $mdInfo += "`n## Policies disabling Continuous Access Evaluation`n`n"
+        $mdInfo += "No Conditional Access policies were found that disable Continuous Access Evaluation for Global Secure Access traffic.`n`n"
+    }
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
