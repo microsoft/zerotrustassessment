@@ -35,13 +35,20 @@ function Test-Assessment-25383 {
     $activity = 'Checking Global Administrator and GSA role assignments'
     Write-ZtProgress -Activity $activity -Status 'Getting role definitions'
 
-    # Query Q1: Locate GA and GSA role definitions by displayName
-    $gaRole = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -Filter "displayName eq 'Global Administrator'" -ApiVersion v1.0
-    $gsaRole = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -Filter "displayName eq 'Global Secure Access Administrator'" -ApiVersion v1.0
+    # Query Q1: Get all role definitions, then filter locally for GA and GSA
+    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion v1.0
+    $gaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Administrator' }
+    $gsaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Secure Access Administrator' }
 
     # Get tenant ID for portal links
     $organization = Invoke-ZtGraphRequest -RelativeUri 'organization' -ApiVersion v1.0
     $tenantId = $organization[0].id
+
+    # Query Q2/Q3: Get all role assignments with expanded principal
+    Write-ZtProgress -Activity $activity -Status 'Getting role assignments'
+    $allRoleAssignments = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignments' `
+        -QueryParameters @{'$expand' = 'principal($select=id,displayName,userPrincipalName,mail,userType,accountEnabled)' } `
+        -ApiVersion v1.0
 
     # Define roles to check
     $rolesToCheck = @(
@@ -49,7 +56,6 @@ function Test-Assessment-25383 {
         @{ Role = $gsaRole; Name = 'Global Secure Access Administrator' }
     )
 
-    $passed = $true
     $allResults = @()
 
     foreach ($roleInfo in $rolesToCheck) {
@@ -74,15 +80,11 @@ function Test-Assessment-25383 {
         }
 
         $result.Found = $true
-        $result.RoleDefinitionId = $role[0].id
-        $result.TemplateId = $role[0].templateId
-        Write-ZtProgress -Activity $activity -Status "Getting $roleName assignments"
+        $result.RoleDefinitionId = $role.id
+        $result.TemplateId = $role.templateId
 
-        # Query Q2/Q3: Get role assignments with expanded principal
-        $assignments = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignments' `
-            -Filter "roleDefinitionId eq '$($role[0].id)'" `
-            -QueryParameters @{'$expand' = 'principal($select=id,displayName,userPrincipalName,mail,userType,accountEnabled)' } `
-            -ApiVersion v1.0
+        # Filter assignments locally for this role
+        $assignments = $allRoleAssignments | Where-Object { $_.roleDefinitionId -eq $role.id }
 
         foreach ($assignment in $assignments) {
             $principal = $assignment.principal
@@ -191,7 +193,7 @@ function Test-Assessment-25383 {
 
         if ($result.Issues.Count -gt 0) {
             $mdInfo += "### ❌ Non-compliant assignments`n`n"
-            $mdInfo += "| Name | Principal name | Type | User Type |`n"
+            $mdInfo += "| Name | Principal name | Type | User type |`n"
             $mdInfo += "| :----------- | :-- | :--- | :-------- |`n"
 
             $maxDisplay = 5
@@ -214,7 +216,7 @@ function Test-Assessment-25383 {
 
         if ($result.ValidAssignments.Count -gt 0) {
             $mdInfo += "### ✅ Valid Member user assignments`n`n"
-            $mdInfo += "| Name | Principal name | User Type | Account Enabled |`n"
+            $mdInfo += "| Name | Principal name | User type | Account enabled |`n"
             $mdInfo += "| :----------- | :-- | :-------- | :-------------- |`n"
 
             $maxDisplay = 5
