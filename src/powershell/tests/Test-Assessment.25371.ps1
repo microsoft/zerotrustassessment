@@ -20,7 +20,7 @@
 
 function Test-Assessment-25371 {
     [ZtTest(
-        Category = 'Global SecureAccess',
+        Category = 'Global Secure Access',
         ImplementationCost = 'Low',
         MinimumLicense = ('AAD_PREMIUM'),
         Pillar = 'Network',
@@ -89,13 +89,6 @@ function Test-Assessment-25371 {
         $testResultMarkdown = "ℹ️ Global Secure Access with Conditional Access signaling is not configured in this tenant. Universal CAE is not applicable.`n`n%TestResult%"
     }
     else {
-
-        <#if ($ContinuousAccessEvaluationDisabledPolicies.Count -gt 0) {
-            $passed = $false
-        }
-        else {
-            $passed = $true
-        }#>
         $passed = $ContinuousAccessEvaluationDisabledPolicies.Count -eq 0
 
         # Set result message based on findings
