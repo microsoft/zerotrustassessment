@@ -63,15 +63,17 @@ function Test-Assessment-25383 {
         $roleName = $roleInfo.Name
 
         $result = [PSCustomObject]@{
-            RoleName         = $roleName
-            RoleDefinitionId = $null
-            TemplateId       = $null
-            Found            = $false
-            TotalCount       = 0
-            Issues           = @()
-            ValidAssignments = @()
-            HasIssues        = $false
-            ExceedsThreshold = $false
+            RoleName            = $roleName
+            RoleDefinitionId    = $null
+            TemplateId          = $null
+            Found               = $false
+            TotalCount          = 0
+            Issues              = @()
+            DisabledAssignments = @()
+            ValidAssignments    = @()
+            HasIssues           = $false
+            HasDisabledUsers    = $false
+            ExceedsThreshold    = $false
         }
 
         if (-not $role -or $role.Count -eq 0) {
@@ -91,9 +93,9 @@ function Test-Assessment-25383 {
 
             # Determine principal type from @odata.type
             $principalType = switch -Wildcard ($principal.'@odata.type') {
-                '*user' { 'User' }
-                '*group' { 'Group' }
-                '*servicePrincipal' { 'ServicePrincipal' }
+                '*user' { 'user' }
+                '*group' { 'group' }
+                '*servicePrincipal' { 'servicePrincipal' }
                 default { 'Unknown' }
             }
 
@@ -107,27 +109,33 @@ function Test-Assessment-25383 {
             }
 
             # Check for non-compliant assignments
-            if ($principalType -eq 'Group') {
+            if ($principalType -eq 'group') {
                 $assignmentInfo.Issue = 'Group assignment'
                 $result.Issues += $assignmentInfo
             }
-            elseif ($principalType -eq 'ServicePrincipal') {
+            elseif ($principalType -eq 'servicePrincipal') {
                 $assignmentInfo.Issue = 'Service Principal assignment'
                 $result.Issues += $assignmentInfo
             }
-            elseif ($principalType -eq 'User' -and $principal.userType -eq 'Guest') {
+            elseif ($principalType -eq 'user' -and $principal.userType -eq 'Guest') {
                 $assignmentInfo.Issue = 'Guest user assignment'
                 $result.Issues += $assignmentInfo
             }
-            elseif ($principalType -eq 'User' -and $principal.accountEnabled -eq $true) {
+            elseif ($principalType -eq 'user' -and $principal.accountEnabled -eq $false) {
+                # Disabled Member users - latent risk, indicates poor lifecycle management
+                $assignmentInfo.Issue = 'Disabled account with privileged role'
+                $result.DisabledAssignments += $assignmentInfo
+            }
+            elseif ($principalType -eq 'user' -and $principal.accountEnabled -eq $true) {
                 # Only enabled Member users are considered valid
                 $result.ValidAssignments += $assignmentInfo
             }
         }
 
-        # TotalCount = Issues + ValidAssignments (disabled users excluded)
-        $result.TotalCount = $result.Issues.Count + $result.ValidAssignments.Count
+        # TotalCount includes all categorized assignments
+        $result.TotalCount = $result.Issues.Count + $result.DisabledAssignments.Count + $result.ValidAssignments.Count
         $result.HasIssues = $result.Issues.Count -gt 0
+        $result.HasDisabledUsers = $result.DisabledAssignments.Count -gt 0
         $result.ExceedsThreshold = $result.TotalCount -gt 5
 
         $allResults += $result
@@ -136,32 +144,45 @@ function Test-Assessment-25383 {
 
     #region Assessment Logic
     # Determine result status based on spec evaluation logic
-    $rolesNotFound = ($allResults | Where-Object { -not $_.Found }).Count -gt 0
-    $hasAnyIssues = ($allResults | Where-Object { $_.HasIssues }).Count -gt 0
-    $exceedsAnyThreshold = ($allResults | Where-Object { $_.ExceedsThreshold }).Count -gt 0
+    $gaResult = $allResults | Where-Object { $_.RoleName -eq 'Global Administrator' }
+
+    # Per spec: GA not found → Fail (critical role must exist)
+    # Per spec: GSA not found → Skip GSA evaluation (role may not be provisioned)
+    $gaNotFound = -not $gaResult.Found
+
+    # Only evaluate roles that were found
+    $foundResults = $allResults | Where-Object { $_.Found }
+    $hasAnyIssues = ($foundResults | Where-Object { $_.HasIssues }).Count -gt 0
+    $hasAnyDisabledUsers = ($foundResults | Where-Object { $_.HasDisabledUsers }).Count -gt 0
+    $exceedsAnyThreshold = ($foundResults | Where-Object { $_.ExceedsThreshold }).Count -gt 0
 
     $passed = $false
     $customStatus = $null
 
-    # Investigate: Unable to retrieve role assignments or role definitions
-    if ($rolesNotFound) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Unable to retrieve role assignments or role definitions. Manual verification required.`n`n%TestResult%"
+    # Fail: Global Administrator role not found (critical role must exist)
+    if ($gaNotFound) {
+        $testResultMarkdown = "❌ Global Administrator role definition not found. This is a critical role that must exist in all tenants.`n`n%TestResult%"
     }
     # Fail: Groups, guests, or service principals assigned
     elseif ($hasAnyIssues) {
-        $testResultMarkdown = "❌ GA/GSA roles include groups, guests, service principals, or an excessive number of assignments requiring immediate review.`n`n%TestResult%"
+        $testResultMarkdown = "❌ GA/GSA roles include groups, guests, or service principals requiring immediate review.`n`n%TestResult%"
     }
-    # Warn (Investigate): Excessive assignments but no other issues
+    # Investigate: Disabled users with privileged roles - latent risk
+    elseif ($hasAnyDisabledUsers) {
+        $passed = $true
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ GA/GSA roles include disabled Member users or exceed recommended assignment thresholds; review and remediate.`n`n%TestResult%"
+    }
+    # Investigate: Excessive assignments but no other issues
     elseif ($exceedsAnyThreshold) {
         $passed = $true
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ GA/GSA roles exceed the recommended assignment threshold (>5). Review and reduce if possible.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ GA/GSA roles include disabled Member users or exceed recommended assignment thresholds; review and remediate.`n`n%TestResult%"
     }
-    # Pass: All principals are individual Member users within limits
+    # Pass: All principals are enabled Member users within limits
     else {
         $passed = $true
-        $testResultMarkdown = "✅ GA/GSA roles are limited to vetted Member users; no groups, guests, or service principals are assigned.`n`n%TestResult%"
+        $testResultMarkdown = "✅ GA/GSA roles are limited to enabled, vetted Member users; no groups, guests, service principals, or disabled accounts are assigned, and assignment counts are within approved limits.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -173,28 +194,24 @@ function Test-Assessment-25383 {
         $mdInfo += "`n## [$($result.RoleName) Assignments](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n`n"
 
         if (-not $result.Found) {
-            $mdInfo += "ℹ️ $($result.RoleName) role definition not found. Verify tenant license/feature availability.`n`n"
+            if ($result.RoleName -eq 'Global Administrator') {
+                $mdInfo += "❌ $($result.RoleName) role definition not found. This is a critical role that must exist.`n`n"
+            }
+            else {
+                $mdInfo += "ℹ️ $($result.RoleName) role definition not found. Skipping evaluation (role may not be provisioned in tenant).`n`n"
+            }
             continue
         }
 
         $mdInfo += "**Role Definition ID**: $($result.RoleDefinitionId)  `n"
-        $mdInfo += "**Total assignments**: $($result.TotalCount)  `n"
-        $mdInfo += "**Threshold**: 5  `n"
-
-        if ($result.HasIssues) {
-            $mdInfo += "**Status**: ❌ Issues found`n`n"
-        }
-        elseif ($result.ExceedsThreshold) {
-            $mdInfo += "**Status**: ⚠️ Exceeds threshold`n`n"
-        }
-        else {
-            $mdInfo += "**Status**: ✅ Compliant`n`n"
-        }
+        $mdInfo += "**Total Assignment Count**: $($result.TotalCount)  `n"
+        $mdInfo += "**Valid Assignment Count**: $($result.ValidAssignments.Count)  `n"
+        $mdInfo += "**Issue Count**: $($result.Issues.Count + $result.DisabledAssignments.Count)  `n`n"
 
         if ($result.Issues.Count -gt 0) {
             $mdInfo += "### ❌ Non-compliant assignments`n`n"
-            $mdInfo += "| Name | Principal name | Type | User type |`n"
-            $mdInfo += "| :----------- | :-- | :--- | :-------- |`n"
+            $mdInfo += "| Name | Principal name | Type | User type | Account enabled | Status |`n"
+            $mdInfo += "| :----------- | :-- | :--- | :-------- | :-------------- | :----- |`n"
 
             $maxDisplay = 5
             $displayIssues = $result.Issues
@@ -203,7 +220,7 @@ function Test-Assessment-25383 {
             }
 
             foreach ($issue in $displayIssues) {
-                $mdInfo += "| $(Get-SafeMarkdown $issue.DisplayName) | $(Get-SafeMarkdown $issue.UPN) | $($issue.Type) | $($issue.UserType) |`n"
+                $mdInfo += "| $(Get-SafeMarkdown $issue.DisplayName) | $(Get-SafeMarkdown $issue.UPN) | $($issue.Type) | $($issue.UserType) | $($issue.AccountEnabled) | Fail |`n"
             }
 
             if ($result.Issues.Count -gt $maxDisplay) {
@@ -214,10 +231,33 @@ function Test-Assessment-25383 {
             $mdInfo += "`n"
         }
 
+        if ($result.DisabledAssignments.Count -gt 0) {
+            $mdInfo += "### ⚠️ Disabled accounts with privileged roles`n`n"
+            $mdInfo += "| Name | Principal name | Type | User type | Account enabled | Status |`n"
+            $mdInfo += "| :----------- | :-- | :--- | :-------- | :-------------- | :----- |`n"
+
+            $maxDisplay = 5
+            $displayDisabled = $result.DisabledAssignments
+            if ($result.DisabledAssignments.Count -gt $maxDisplay) {
+                $displayDisabled = $result.DisabledAssignments[0..($maxDisplay - 1)]
+            }
+
+            foreach ($disabled in $displayDisabled) {
+                $mdInfo += "| $(Get-SafeMarkdown $disabled.DisplayName) | $(Get-SafeMarkdown $disabled.UPN) | $($disabled.Type) | $($disabled.UserType) | $($disabled.AccountEnabled) | Investigate |`n"
+            }
+
+            if ($result.DisabledAssignments.Count -gt $maxDisplay) {
+                $roleNameEncoded = [System.Uri]::EscapeDataString($result.RoleName)
+                $portalUrl = "https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/$($result.TemplateId)/roleId/$($result.TemplateId)/roleTemplateId/$($result.TemplateId)/roleName/$roleNameEncoded/isRoleCustom~/false/resourceScopeId/%2F/resourceId/$tenantId"
+                $mdInfo += "`n*Showing first $maxDisplay of $($result.DisabledAssignments.Count) records. [View all assignments in Entra Portal]($portalUrl)*`n"
+            }
+            $mdInfo += "`n"
+        }
+
         if ($result.ValidAssignments.Count -gt 0) {
             $mdInfo += "### ✅ Valid Member user assignments`n`n"
-            $mdInfo += "| Name | Principal name | User type | Account enabled |`n"
-            $mdInfo += "| :----------- | :-- | :-------- | :-------------- |`n"
+            $mdInfo += "| Name | Principal name | Type | User type | Account enabled | Status |`n"
+            $mdInfo += "| :----------- | :-- | :--- | :-------- | :-------------- | :----- |`n"
 
             $maxDisplay = 5
             $displayValid = $result.ValidAssignments
@@ -226,7 +266,7 @@ function Test-Assessment-25383 {
             }
 
             foreach ($valid in $displayValid) {
-                $mdInfo += "| $(Get-SafeMarkdown $valid.DisplayName) | $(Get-SafeMarkdown $valid.UPN) | $($valid.UserType) | $($valid.AccountEnabled) |`n"
+                $mdInfo += "| $(Get-SafeMarkdown $valid.DisplayName) | $(Get-SafeMarkdown $valid.UPN) | $($valid.Type) | $($valid.UserType) | $($valid.AccountEnabled) | Valid |`n"
             }
 
             if ($result.ValidAssignments.Count -gt $maxDisplay) {
