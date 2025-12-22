@@ -85,10 +85,13 @@ function Test-Assessment-25391 {
 
     if($allConnectors.Count -gt 0)
     {
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Entra_GSA_Connect/Connectors.ReactView/fromNav/globalSecureAccess'
 
     $formatTemplate = @"
 
 ## Private Access connectors summary
+
+[Portal Link: Global Secure Access > Connect > Connectors]($portalLink)
 
 - **Total Connectors:** $totalConnectors
 - **Active Connectors:** $activeConnectors
