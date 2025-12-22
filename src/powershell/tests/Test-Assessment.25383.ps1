@@ -170,7 +170,7 @@ function Test-Assessment-25383 {
     $mdInfo = ''
 
     foreach ($result in $allResults) {
-        $mdInfo += "`n## $($result.RoleName) Assignments`n`n"
+        $mdInfo += "`n## [$($result.RoleName) Assignments](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n`n"
 
         if (-not $result.Found) {
             $mdInfo += "ℹ️ $($result.RoleName) role definition not found. Verify tenant license/feature availability.`n`n"
@@ -237,9 +237,6 @@ function Test-Assessment-25383 {
             $mdInfo += "`n"
         }
     }
-
-    $mdInfo += "`n## Portal Link`n`n"
-    $mdInfo += "[Roles and administrators](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
