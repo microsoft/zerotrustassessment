@@ -31,9 +31,21 @@ function Test-Assessment-25481 {
     $activity = 'Checking Private Access applications user and group assignments'
     Write-ZtProgress -Activity $activity -Status 'Querying all Private Access applications'
 
-    # Query 1: Get all Private Access applications with appRoleAssignedTo
-    $appDetails = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals?$filter=tags/any(c:c eq ''IsAccessibleViaZTNAClient'')&$expand=appRoleAssignedTo' -ApiVersion v1.0
+    # Query Q1: Get all Private Access applications (ids only)
+    $privateAccessAppsIds = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'IsAccessibleViaZTNAClient')&`$select=id" -ApiVersion beta
+
+    # Query Q2: Get detailed information including appRoleAssignedTo for each app
+    $appDetails = @()
+    if ($null -ne $privateAccessAppsIds -and $privateAccessAppsIds.Count -gt 0) {
+        foreach ($appId in $privateAccessAppsIds) {
+            Write-ZtProgress -Activity $activity -Status "Querying details for application $($appId.id)"
+            $appDetail = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$($appId.id)?`$select=id,appId,displayName,accountEnabled,appRoleAssignmentRequired&`$expand=appRoleAssignedTo" -ApiVersion beta
+            $appDetails += $appDetail
+        }
+    }
     #endregion Data Collection
+
+    #region Assessment Logic
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
@@ -43,7 +55,7 @@ function Test-Assessment-25481 {
 
     # Check if any Private Access applications exist
     if (-not $appDetails -or $appDetails.Count -eq 0) {
-        $testResultMarkdown = '⚠️ No Private Access applications are configured in the tenant. Please review the documentation on how to enable Private Access applications.'
+        $testResultMarkdown = '⚠️ No Private Access application is configured in the tenant, please review the documentation on how to enable Private Access Applications.'
         $customStatus = 'Investigate'
     }
     else {
@@ -64,17 +76,19 @@ function Test-Assessment-25481 {
         }
         else {
             $passed = $false
-            $testResultMarkdown = "❌ Found $($appsWithoutAssignments.Count) Private Access application(s) without assigned users or groups. `n`n%TestResult%"
+            $testResultMarkdown = "❌ Found Private Access applications without assigned users or groups. `n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
     # Build detailed markdown information
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
     $mdInfo = ''
 
     if ($appDetails.Count -gt 0) {
-        # Build summary table with all apps
+        # Build summary table
+        $mdInfo += "## [Private Access applications]($portalLink)`n`n"
         $mdInfo += "| Application name | Application id | # Assignments | Status |`n"
         $mdInfo += "|------------------|----------------|---------------|--------|`n"
 
@@ -86,25 +100,25 @@ function Test-Assessment-25481 {
             $mdInfo += "| $appName | $appId | $assignmentCount | $status |`n"
         }
 
-        $mdInfo += "`n"
+        # Build detailed assignments table only if there are apps with assignments
+        if ($appsWithAssignments.Count -gt 0) {
+            $mdInfo += "## Assignment details`n`n"
 
-        # Build detailed assignments table
-        $mdInfo += "## Assignment details`n`n"
+            foreach ($app in $appDetails) {
+                if ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0) {
+                    $mdInfo += "### $($app.displayName)`n`n"
+                    $mdInfo += "| Principal display name | Principal type | Principal id |`n"
+                    $mdInfo += "|------------------------|----------------|--------------|`n"
 
-        foreach ($app in $appDetails) {
-            if ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0) {
-                $mdInfo += "### $($app.displayName)`n`n"
-                $mdInfo += "| Principal display name | Principal type | Principal id |`n"
-                $mdInfo += "|------------------------|----------------|--------------|`n"
+                    foreach ($assignment in $app.appRoleAssignedTo) {
+                        $principalName = $assignment.principalDisplayName
+                        $principalType = $assignment.principalType
+                        $principalId = $assignment.principalId
+                        $mdInfo += "| $principalName | $principalType | $principalId |`n"
+                    }
 
-                foreach ($assignment in $app.appRoleAssignedTo) {
-                    $principalName = $assignment.principalDisplayName
-                    $principalType = $assignment.principalType
-                    $principalId = $assignment.principalId
-                    $mdInfo += "| $principalName | $principalType | $principalId |`n"
+                    $mdInfo += "`n"
                 }
-
-                $mdInfo += "`n"
             }
         }
     }

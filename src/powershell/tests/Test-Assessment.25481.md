@@ -4,9 +4,5 @@ When Private Access applications lack user or group assignments, organizations l
 
 - [Assign users and groups to enterprise applications](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-per-app-access#assign-users-and-groups)
 
-**Portal Link**
-
-- [Global Secure Access > Applications > Enterprise Applications](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication)
-
 <!--- Results --->
 %TestResult%
