@@ -46,48 +46,56 @@ function Test-Assessment-25411 {
 
     #region Data Processing
     # Extract TLS inspection policy IDs
-    $tlsPolicyIds = [string[]] $tlsInspectionPolicies.id
+    $tlsPolicyIds = $tlsInspectionPolicies.id
 
     # Search for TLS inspection policy in filtering profiles
     $enabledSecurityProfiles = @()
     $enabledBaseLineProfiles = @()
-    $securityProfile = $filteringProfiles | Where-Object { $_.priority -ne 65000 }
+    $securityProfile = $filteringProfiles | Where-Object { ($_.priority -ne 65000)}
     $baseLineProfile = $filteringProfiles | Where-Object { $_.priority -eq 65000 }
-    foreach ($baseLineProfilePolicy in $baseLineProfile.policies) {
+    foreach ($baseLineProfilePolicy in @($baseLineProfile.policies)) {
         # Check if the policy ID matches a TLS inspection policy
-        if ($baseLineProfilePolicy.id -in $tlsPolicyIds) {
-            # Check if the policy state is enabled
-            if ($baseLineProfilePolicy.state -eq 'enabled') {
-                $enabledBaseLineProfiles += [PSCustomObject]@{
-                    TLSProfileId       = $baseLineProfile.id
-                    TLSProfileName     = $baseLineProfile.name
-                    TLSPolicyId        = $baseLineProfilePolicy.policy.id
-                    TLSPolicyName      = $baseLineProfilePolicy.policy.name
-                    TLSPolicyState     = $baseLineProfilePolicy.state
-                    TLSProfileState    = $baseLineProfile.state
-                    TLSProfilePriority = $baseLineProfile.priority
-                }
-
+        if ($null -ne $baseLineProfilePolicy -and $baseLineProfilePolicy.policy.id -in @($tlsPolicyIds) -and $baseLineProfilePolicy.state -eq 'enabled') {
+            $enabledBaseLineProfiles += [PSCustomObject]@{
+                TLSProfileId       = $baseLineProfile.id
+                TLSProfileName     = $baseLineProfile.name
+                TLSPolicyId        = $baseLineProfilePolicy.policy.id
+                TLSPolicyName      = $baseLineProfilePolicy.policy.name
+                TLSPolicyState     = $baseLineProfilePolicy.state
+                TLSProfileState    = $baseLineProfile.state
+                TLSProfilePriority = $baseLineProfile.priority
             }
         }
     }
 
     foreach ($securityProfileItem in $securityProfile) {
-        $linkedCAPolicies = @()
-        foreach ($securityProfileCAPolicy in $securityProfileItem.ConditionalAccessPolicies) {
-            $assignedCAPolicy = $allCAPolicies | Where-Object { $_.id -eq $securityProfileCAPolicy.id }
-            if ($null -ne $assignedCAPolicy -and $assignedCAPolicy.state -eq 'enabled') {
-                $linkedCAPolicies += $assignedCAPolicy.displayName
+        # Check if the security profile contains a TLS inspection policy
+        $hasTlsPolicy = $false
+        foreach ($securityProfilePolicy in $securityProfileItem.policies) {
+            if ($securityProfilePolicy.policy.id -in @($tlsPolicyIds) -and $securityProfilePolicy.state -eq 'enabled') {
+                $hasTlsPolicy = $true
+                break
             }
         }
-        if ($linkedCAPolicies.Count -gt 0 -and $securityProfileItem.state -eq 'enabled') {
-            $enabledSecurityProfiles += [PSCustomObject]@{
-                TLSProfileId       = $securityProfileItem.id
-                TLSProfileName     = $securityProfileItem.name
-                CAPolicyNames      = $linkedCAPolicies -join ', '
-                CAPolicyCount      = $linkedCAPolicies.Count
-                TLSProfileState    = $securityProfileItem.state
-                TLSProfilePriority = $securityProfileItem.priority
+
+        # Only process if the security profile has an enabled TLS inspection policy
+        if ($hasTlsPolicy) {
+            $linkedCAPolicies = @()
+            foreach ($securityProfileCAPolicy in $securityProfileItem.ConditionalAccessPolicies) {
+                $assignedCAPolicy = $allCAPolicies | Where-Object { $_.id -eq $securityProfileCAPolicy.id }
+                if ($null -ne $assignedCAPolicy -and $assignedCAPolicy.state -eq 'enabled') {
+                    $linkedCAPolicies += $assignedCAPolicy.displayName
+                }
+            }
+            if ($linkedCAPolicies.Count -gt 0 -and $securityProfileItem.state -eq 'enabled') {
+                $enabledSecurityProfiles += [PSCustomObject]@{
+                    TLSProfileId       = $securityProfileItem.id
+                    TLSProfileName     = $securityProfileItem.name
+                    CAPolicyNames      = $linkedCAPolicies -join ', '
+                    CAPolicyCount      = $linkedCAPolicies.Count
+                    TLSProfileState    = $securityProfileItem.state
+                    TLSProfilePriority = $securityProfileItem.priority
+                }
             }
         }
     }
