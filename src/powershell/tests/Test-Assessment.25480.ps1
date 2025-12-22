@@ -66,12 +66,14 @@ function Test-Assessment-25480 {
 
     #region Report Generation
     # Build detailed markdown information
-        $mdInfo = ''
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess'
+
+    $mdInfo = ''
 
     if ($appRoleAssignments.Count -gt 0) {
-        # Build results table
-        $reportTitle = "Quick Access application assignments"
-        $mdInfo += "`n## $reportTitle`n`n"
+        # Build results table with link to Users blade
+        $reportTitleLink = "[Quick Access application assignments]($portalLink)"
+        $mdInfo += "`n## $reportTitleLink`n`n"
         $mdInfo += "| Member type | Display name |`n"
         $mdInfo += "|-------------|--------------|`n"
         foreach ($assignment in $appRoleAssignments) {
