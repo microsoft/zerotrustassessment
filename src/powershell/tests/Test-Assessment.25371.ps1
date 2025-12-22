@@ -90,12 +90,13 @@ function Test-Assessment-25371 {
     }
     else {
 
-        if ($ContinuousAccessEvaluationDisabledPolicies.Count -gt 0) {
+        <#if ($ContinuousAccessEvaluationDisabledPolicies.Count -gt 0) {
             $passed = $false
         }
         else {
             $passed = $true
-        }
+        }#>
+        $passed = $ContinuousAccessEvaluationDisabledPolicies.Count -eq 0
 
         # Set result message based on findings
         if (-not $passed) {
@@ -121,7 +122,7 @@ function Test-Assessment-25371 {
     }
 
     # Informational: Record enabled traffic forwarding profiles
-    if ($forwardingProfiles.Count -gt 0) {
+    if (@($forwardingProfiles).Count -gt 0) {
         $mdInfo += "`n## Active Traffic Profiles`n`n"
         $mdInfo += "| Name | State | Traffic Type |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
