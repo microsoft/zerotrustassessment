@@ -4,9 +4,5 @@ When Quick Access lacks user assignments, the service prevents connections to FQ
 
 - [Assign users and groups to Quick Access applications](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-quick-access)
 
-**Portal link**
-
-- [Global Secure Access -> Quick Access](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess)
-
 <!--- Results --->
 %TestResult%
