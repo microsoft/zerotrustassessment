@@ -146,10 +146,6 @@ function Test-Assessment-25371 {
         }
         $mdInfo += "`n"
     }
-    else {
-        $mdInfo += "`n## Policies disabling Continuous Access Evaluation`n`n"
-        $mdInfo += "No Conditional Access policies were found that disable Continuous Access Evaluation for Global Secure Access traffic.`n`n"
-    }
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
