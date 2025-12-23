@@ -10,7 +10,7 @@
 .NOTES
     Test ID: 25383
     Category: Global Secure Access
-    Required API: roleManagement/directory/roleDefinitions, roleManagement/directory/roleAssignments (beta)
+    Required API: Uses database queries (vwRole, User, RoleDefinition tables)
 #>
 
 function Test-Assessment-25383 {
@@ -27,7 +27,9 @@ function Test-Assessment-25383 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -35,20 +37,37 @@ function Test-Assessment-25383 {
     $activity = 'Checking Global Administrator and GSA role assignments'
     Write-ZtProgress -Activity $activity -Status 'Getting role definitions'
 
-    # Query Q1: Get all role definitions, then filter locally for GA and GSA
-    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
-    $gaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Administrator' }
-    $gsaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Secure Access Administrator' }
+    # Query Q1: Get role definitions for GA and GSA from database
+    $sqlRoleDefinitions = @"
+    SELECT id, displayName, templateId
+    FROM main."RoleDefinition"
+    WHERE displayName = 'Global Administrator' OR displayName = 'Global Secure Access Administrator'
+"@
+    $roleDefinitions = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlRoleDefinitions -AsCustomObject)
+    $gaRole = $roleDefinitions | Where-Object { $_.displayName -eq 'Global Administrator' }
+    $gsaRole = $roleDefinitions | Where-Object { $_.displayName -eq 'Global Secure Access Administrator' }
 
     # Get tenant ID for portal links
-    $organization = Invoke-ZtGraphRequest -RelativeUri 'organization' -ApiVersion v1.0
-    $tenantId = $organization[0].id
+    $tenantId = (Get-MgContext).TenantId
 
-    # Query Q2/Q3: Get all role assignments with expanded principal
+    # Query Q2/Q3: Get role assignments for GA and GSA roles from vwRole view with user details
     Write-ZtProgress -Activity $activity -Status 'Getting role assignments'
-    $allRoleAssignments = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignments' `
-        -QueryParameters @{'$expand' = 'principal($select=id,displayName,userPrincipalName,mail,userType,accountEnabled)' } `
-        -ApiVersion beta
+    $sqlRoleAssignments = @"
+    SELECT
+        vr.roleDefinitionId,
+        vr.roleDisplayName,
+        vr.principalId,
+        vr.principalDisplayName,
+        vr.userPrincipalName,
+        vr."@odata.type" as principalOdataType,
+        vr.privilegeType,
+        u.userType,
+        u.accountEnabled
+    FROM main.vwRole vr
+    LEFT JOIN main."User" u ON vr.principalId = u.id
+    WHERE vr.roleDisplayName = 'Global Administrator' OR vr.roleDisplayName = 'Global Secure Access Administrator'
+"@
+    $allRoleAssignments = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlRoleAssignments -AsCustomObject)
 
     # Define roles to check
     $rolesToCheck = @(
@@ -89,10 +108,8 @@ function Test-Assessment-25383 {
         $assignments = $allRoleAssignments | Where-Object { $_.roleDefinitionId -eq $role.id }
 
         foreach ($assignment in $assignments) {
-            $principal = $assignment.principal
-
             # Determine principal type from @odata.type
-            $principalType = switch -Wildcard ($principal.'@odata.type') {
+            $principalType = switch -Wildcard ($assignment.principalOdataType) {
                 '*user' { 'user' }
                 '*group' { 'group' }
                 '*servicePrincipal' { 'servicePrincipal' }
@@ -100,11 +117,11 @@ function Test-Assessment-25383 {
             }
 
             $assignmentInfo = [PSCustomObject]@{
-                DisplayName    = $principal.displayName
-                UPN            = $principal.userPrincipalName
+                DisplayName    = $assignment.principalDisplayName
+                UPN            = $assignment.userPrincipalName
                 Type           = $principalType
-                UserType       = if ($principal.userType) { $principal.userType } else { 'N/A' }
-                AccountEnabled = $principal.accountEnabled
+                UserType       = if ($assignment.userType) { $assignment.userType } else { 'N/A' }
+                AccountEnabled = $assignment.accountEnabled
                 Issue          = $null
             }
 
@@ -117,16 +134,16 @@ function Test-Assessment-25383 {
                 $assignmentInfo.Issue = 'Service Principal assignment'
                 $result.Issues += $assignmentInfo
             }
-            elseif ($principalType -eq 'user' -and $principal.userType -eq 'Guest') {
+            elseif ($principalType -eq 'user' -and $assignment.userType -eq 'Guest') {
                 $assignmentInfo.Issue = 'Guest user assignment'
                 $result.Issues += $assignmentInfo
             }
-            elseif ($principalType -eq 'user' -and $principal.accountEnabled -eq $false) {
+            elseif ($principalType -eq 'user' -and $assignment.accountEnabled -eq $false) {
                 # Disabled Member users - latent risk, indicates poor lifecycle management
                 $assignmentInfo.Issue = 'Disabled account with privileged role'
                 $result.DisabledAssignments += $assignmentInfo
             }
-            elseif ($principalType -eq 'user' -and $principal.accountEnabled -eq $true) {
+            elseif ($principalType -eq 'user' -and $assignment.accountEnabled -eq $true) {
                 # Only enabled Member users are considered valid
                 $result.ValidAssignments += $assignmentInfo
             }
