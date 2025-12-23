@@ -129,7 +129,7 @@ function Test-Assessment-25382 {
     }
     elseif ($hasDisabledProfiles) {
         $passed = $false
-        $testResultMarkdown = "Traffic forwarding profiles are enabled but assignment scope requires review to confirm intentional configuration.`n`n%TestResult%"
+        $testResultMarkdown = "Some of the Traffic forwarding profiles are disabled, please review your configuration, if this is intentional.`n`n%TestResult%"
     }
     else {
         $passed = $true
