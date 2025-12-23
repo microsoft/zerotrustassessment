@@ -208,7 +208,7 @@ function Test-Assessment-25383 {
     $mdInfo = ''
 
     foreach ($result in $allResults) {
-        $mdInfo += "`n## [$($result.RoleName) Assignments](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n`n"
+        $mdInfo += "`n## [$($result.RoleName) assignments](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RolesManagementMenuBlade/~/AllRoles)`n`n"
 
         if (-not $result.Found) {
             if ($result.RoleName -eq 'Global Administrator') {
@@ -272,7 +272,7 @@ function Test-Assessment-25383 {
         }
 
         if ($result.ValidAssignments.Count -gt 0) {
-            $mdInfo += "### ✅ Valid Member user assignments`n`n"
+            $mdInfo += "### ✅ Valid Member User assignments`n`n"
             $mdInfo += "| Name | Principal name | Type | User type | Account enabled | Status |`n"
             $mdInfo += "| :----------- | :-- | :--- | :-------- | :-------------- | :----- |`n"
 
