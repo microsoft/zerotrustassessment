@@ -17,60 +17,47 @@ function Test-Assessment-25407 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param(
-        $Database
-    )
+    param()
 
     #region Data Collection
     Write-PSFMessage '🟦 Start GSA Conditional Access evaluation (security profiles via CA)' -Tag Test -Level VeryVerbose
 
-    # Licensing gate for Conditional Access
-    <#if (-not (Get-ZtLicense EntraIDP1)) {
-        Add-ZtTestResultDetail -TestId 25407 -Title 'Conditional Access policies are applied to Global Secure Access traffic' -Status $false -Result '### ⚠️ Test skipped`nThis tenant does not have Microsoft Entra ID P1, which is required for Conditional Access.'
-        return
-    }#>
-
     $policies = Get-ZtConditionalAccessPolicy
 
-    # All policies that have any Global Secure Access security profile linked
-    $gSAFilteringProfilePolicies = @()
-    $policiesWithProfile = $policies | Where-Object { $null -ne $_.sessionControls.globalSecureAccessFilteringProfile -and $_.state -eq 'enabled'}
-    foreach ($policy in $policiesWithProfile) {
-        if ($policy.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true ) {
-            $gSAFilteringProfilePolicies += $policy
-        }
+    # All policies that have Global Secure Access security profile enabled
+    $gSAFilteringProfilePolicies = $policies | Where-Object {
+        $_.state -eq 'enabled' -and
+        $_.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true
     }
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
-    $testResultMarkdown = ''
 
     if ($null -ne $gSAFilteringProfilePolicies -and $gSAFilteringProfilePolicies.Count -gt 0) {
         $passed = $true
-        $testResultMarkdown = "✅ Internet Access policy is being applied via Conditional Access.`n`n%TestResult%"
     }
     else {
         $passed = $false
-        $testResultMarkdown = "❌ Internet Access policy is not being applied via Conditional Access.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $mdInfo = ''
+    $testResultMarkdown = ''
     # Generate markdown table for policies with Global Secure Access filtering profiles
-    if ($null -ne $policiesWithProfile -and $policiesWithProfile.Count -gt 0) {
-        $mdInfo = "`n## All Policies with Global Secure Access Filtering Profile Configuration`n`n"
-        $mdInfo += "| Policy Name | Policy ID | State | GSA Profile Enabled |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
-        foreach ($policy in $policiesWithProfile) {
-            $gsaEnabledSign = if ($policy.sessionControls.globalSecureAccessFilteringProfile.isEnabled) { '✅' } else { '❌' }
-            $stateSign = if ($policy.state -eq 'enabled') { '✅' } else { '❌' }
+    if ($passed) {
+        $testResultMarkdown = "✅ Internet Access policy is being applied via Conditional Access.`n`n%TestResult%"
+        $mdInfo = "`n## Conditional Access Policies with Global Secure Access Security Profiles`n`n"
+        $mdInfo += "| Policy Name | Policy ID | State |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
+        foreach ($policy in $gSAFilteringProfilePolicies) {
             $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
-            $mdInfo += "| [$(Get-SafeMarkdown $policy.displayName)]($policyPortalLink) | $($policy.id) | $stateSign | $gsaEnabledSign |`n"
+            $mdInfo += "| [$(Get-SafeMarkdown $policy.displayName)]($policyPortalLink) | $($policy.id) | ✅ Enabled |`n"
         }
     }
     else {
+        $testResultMarkdown = "❌ Internet Access policy is not being applied via Conditional Access.`n`n%TestResult%"
         $mdInfo = "`n## Conditional Access Policies`n`n"
         $mdInfo += "No Conditional Access policies with Global Secure Access security profiles were found.`n`n"
     }
