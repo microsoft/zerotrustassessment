@@ -10,7 +10,7 @@
 .NOTES
     Test ID: 25383
     Category: Global Secure Access
-    Required API: roleManagement/directory/roleDefinitions, roleManagement/directory/roleAssignments (v1.0)
+    Required API: roleManagement/directory/roleDefinitions, roleManagement/directory/roleAssignments (beta)
 #>
 
 function Test-Assessment-25383 {
@@ -36,7 +36,7 @@ function Test-Assessment-25383 {
     Write-ZtProgress -Activity $activity -Status 'Getting role definitions'
 
     # Query Q1: Get all role definitions, then filter locally for GA and GSA
-    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion v1.0
+    $allRoleDefinitions = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleDefinitions' -ApiVersion beta
     $gaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Administrator' }
     $gsaRole = $allRoleDefinitions | Where-Object { $_.displayName -eq 'Global Secure Access Administrator' }
 
@@ -48,7 +48,7 @@ function Test-Assessment-25383 {
     Write-ZtProgress -Activity $activity -Status 'Getting role assignments'
     $allRoleAssignments = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignments' `
         -QueryParameters @{'$expand' = 'principal($select=id,displayName,userPrincipalName,mail,userType,accountEnabled)' } `
-        -ApiVersion v1.0
+        -ApiVersion beta
 
     # Define roles to check
     $rolesToCheck = @(
