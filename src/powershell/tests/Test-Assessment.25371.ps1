@@ -52,7 +52,7 @@ function Test-Assessment-25371 {
     # Q3: Check for Conditional Access policies that disable CAE for GSA traffic
     # Query enabled Conditional Access policies to identify any that explicitly disable CAE
     Write-ZtProgress -Activity $activity -Status 'Checking Conditional Access policies'
-    $caePolicies = Get-ZtConditionalAccessPolicy | where-object { ($_.state -eq 'enabled') }
+    $caePolicies = Get-ZtConditionalAccessPolicy | Where-Object { $_.state -eq 'enabled' }
 
     # Initialize test variables
     $CAPolicyDetails = @()
@@ -106,17 +106,17 @@ function Test-Assessment-25371 {
     $mdInfo = ''
 
     if ($gsaSettings) {
-        $mdInfo += "`n## Global Secure Access Status`n`n"
+        $mdInfo += "`n## [Global Secure Access Status](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Welcome.ReactView)`n`n"
         $mdInfo += "**Signaling Status**: $(if ($gsaSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ ' + $gsaSettings.signalingStatus })`n"
     }
     else {
-        $mdInfo += "`n## Global Secure Access Status`n`n"
+        $mdInfo += "`n## [Global Secure Access Status](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Welcome.ReactView)`n`n"
         $mdInfo += "**Status**: ℹ️ Not configured`n`n"
     }
 
     # Informational: Record enabled traffic forwarding profiles
-    if (@($forwardingProfiles).Count -gt 0) {
-        $mdInfo += "`n## Active Traffic Profiles`n`n"
+    if ($null -ne $forwardingProfiles) {
+        $mdInfo += "`n## [Active Traffic Profiles](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/TrafficForwarding.ReactView)`n`n"
         $mdInfo += "| Name | State | Traffic Type |`n"
         $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($profile in ($forwardingProfiles | Sort-Object -Property name)) {
@@ -124,7 +124,7 @@ function Test-Assessment-25371 {
         }
     }
     else {
-        $mdInfo += "`n## Active Traffic Profiles`n`n"
+        $mdInfo += "`n## [Active Traffic Profiles](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/TrafficForwarding.ReactView)`n`n"
         $mdInfo += "No active traffic profiles found.`n`n"
     }
 
@@ -139,6 +139,10 @@ function Test-Assessment-25371 {
             $mdInfo += "| [$(Get-SafeMarkdown $policy.DisplayName)]($policyLink) | $($policy.Id) | $ContinuousAccessEvalIcon |`n"
         }
         $mdInfo += "`n"
+    }
+    else {
+        $mdInfo += "`n## [Policies disabling Continuous Access Evaluation](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
+        $mdInfo += "No Conditional Access policies disabling Continuous Access Evaluation were found.`n`n"
     }
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
