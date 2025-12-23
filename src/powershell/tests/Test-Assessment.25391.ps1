@@ -46,7 +46,7 @@ function Test-Assessment-25391 {
     #region Assessment Logic
     if (-not $connectors -or $connectors.Count -eq 0) {
         $passed = $false
-        $testResultMarkdown = "⚠️ No Private Network Connectors are configured."
+        $testResultMarkdown = "⚠️ No Private Network Connectors are configured.`n`n[To configure Private Network connectors: Global Secure Access > Connect > Connectors](https://entra.microsoft.com/#view/Microsoft_Entra_GSA_Connect/Connectors.ReactView/fromNav/globalSecureAccess)"
     }
     else {
         # Step 2: Check for statuses
