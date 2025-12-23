@@ -4,10 +4,12 @@ Over-privileged assignments also increase blast radius when credentials are phis
 
 **Remediation action**
 
-- Review and limit GA/GSA assignments:
-  - [Role-based access control permissions reference](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference)
-- Remove group and guest assignments; assign directly to vetted admins.
-- Use PIM for just-in-time eligibility:
-  - [Privileged Identity Management](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
+Review and limit GA/GSA assignments:
+- [Role-based access control permissions reference](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference)
+
+Remove group and guest assignments; assign directly to vetted admins.
+
+Use PIM for just-in-time eligibility:
+- [Privileged Identity Management](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure)
 <!--- Results --->
 %TestResult%
