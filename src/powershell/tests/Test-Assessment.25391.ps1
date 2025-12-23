@@ -91,7 +91,7 @@ function Test-Assessment-25391 {
 
 ## Private Access connectors summary
 
-[Portal Link: Global Secure Access > Connect > Connectors]($portalLink)
+[Portal Link: Global Secure Access > Connect > Connectors]($portalLink)
 
 - **Total Connectors:** $totalConnectors
 - **Active Connectors:** $activeConnectors
