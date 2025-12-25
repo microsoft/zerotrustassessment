@@ -77,7 +77,7 @@ function Test-Assessment-21790 {
     $b2bDirectConnectOutbound = $result.b2bDirectConnectOutbound.usersAndGroups.accessType -eq "blocked" -and
     $result.b2bDirectConnectOutbound.usersAndGroups.targets[0].target -eq "AllUsers" -and
     $result.b2bDirectConnectOutbound.applications.accessType -eq "blocked" -and
-    $result.b2bDirectConnectOutbound.applications.targets[0].target -eq "AllAppplications"
+    $result.b2bDirectConnectOutbound.applications.targets[0].target -eq "AllApplications"
 
     $testResultMarkdown = ""
 
