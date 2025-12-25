@@ -40,17 +40,21 @@ const allMenuItems: NavItemWithChildren[] = [
     //     title: 'Infrastructure',
     //     to: 'infrastructure',
     // },
-    // {
-    //     title: 'Data',
-    //     to: 'data',
-    // },
+    {
+        title: 'Data',
+        to: 'data',
+    },
 ]
 
-// Filter menu based on available data (e.g., exclude Network if NetworkTotal doesn't exist)
+// Filter menu based on available data (e.g., exclude Network/Data if their totals don't exist)
 export const mainMenu: NavItemWithChildren[] = allMenuItems.filter(item => {
     if (item.title === 'Network') {
         // Only show Network tab if NetworkTotal exists in the report data
         return reportData.TestResultSummary?.NetworkTotal !== undefined
+    }
+    if (item.title === 'Data') {
+        // Only show Data tab if DataTotal exists in the report data
+        return reportData.TestResultSummary?.DataTotal !== undefined
     }
     return true
 })

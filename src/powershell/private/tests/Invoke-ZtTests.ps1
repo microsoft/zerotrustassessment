@@ -33,7 +33,7 @@
 		[string[]]
 		$Tests,
 
-		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
 		[string]
 		$Pillar = 'All',
 
