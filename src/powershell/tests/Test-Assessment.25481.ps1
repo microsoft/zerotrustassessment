@@ -87,38 +87,36 @@ function Test-Assessment-25481 {
     $mdInfo = ''
 
     if ($appDetails.Count -gt 0) {
-        # Build summary table
+        # Build single comprehensive table with all information
         $mdInfo += "## [Private Access applications]($portalLink)`n`n"
-        $mdInfo += "| Application name | Application id | # Assignments | Status |`n"
-        $mdInfo += "|------------------|----------------|---------------|--------|`n"
+        $mdInfo += "| Application name | Application id | Number of assignments | Assigned principal | Principal type | Principal id |`n"
+        $mdInfo += "|------------------|----------------|---------------|--------------------|----------------|--------------|`n"
 
         foreach ($app in $appDetails) {
             $appName = $app.displayName
             $appId = $app.appId
-            $assignmentCount = if ($null -ne $app.appRoleAssignedTo) { $app.appRoleAssignedTo.Count } else { 0 }
-            $status = if ($assignmentCount -gt 0) { "✅ Pass" } else { "❌ Fail" }
-            $mdInfo += "| $appName | $appId | $assignmentCount | $status |`n"
-        }
+            $hasAssignments = $null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0
+            $assignmentCount = if ($hasAssignments) { $app.appRoleAssignedTo.Count } else { 0 }
 
-        # Build detailed assignments table only if there are apps with assignments
-        if ($appsWithAssignments.Count -gt 0) {
-            $mdInfo += "## Assignment details`n`n"
+            if ($hasAssignments) {
+                # Add a row for each assignment
+                $firstAssignment = $true
+                foreach ($assignment in $app.appRoleAssignedTo) {
+                    $principalName = $assignment.principalDisplayName
+                    $principalType = $assignment.principalType
+                    $principalId = $assignment.principalId
 
-            foreach ($app in $appDetails) {
-                if ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0) {
-                    $mdInfo += "### $($app.displayName)`n`n"
-                    $mdInfo += "| Principal display name | Principal type | Principal id |`n"
-                    $mdInfo += "|------------------------|----------------|--------------|`n"
-
-                    foreach ($assignment in $app.appRoleAssignedTo) {
-                        $principalName = $assignment.principalDisplayName
-                        $principalType = $assignment.principalType
-                        $principalId = $assignment.principalId
-                        $mdInfo += "| $principalName | $principalType | $principalId |`n"
+                    # Show app name, id, and count only in the first row for each app
+                    if ($firstAssignment) {
+                        $mdInfo += "| $appName | $appId | $assignmentCount | $principalName | $principalType | $principalId |`n"
+                        $firstAssignment = $false
+                    } else {
+                        $mdInfo += "| | | | $principalName | $principalType | $principalId |`n"
                     }
-
-                    $mdInfo += "`n"
                 }
+            } else {
+                # No assignments - show single row with empty principal columns
+                $mdInfo += "| $appName | $appId | $assignmentCount | | | |`n"
             }
         }
     }
