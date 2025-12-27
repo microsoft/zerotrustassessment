@@ -64,7 +64,7 @@ function Test-Assessment-21788 {
 
         $testResultMarkdown = ""
 
-        if ($results -and $results.Count -eq 0) {
+        if ( -not $results -or $results.Count -eq 0 ) {
             $passed = $true
             $testResultMarkdown += "No standing access to Azure Root Management Group."
         }
