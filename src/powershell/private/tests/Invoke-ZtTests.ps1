@@ -61,9 +61,22 @@
 		$testsToRun = $testsToRun | Where-Object { $_.Pillar -in $stablePillars }
 	}
 
+	# Separate Sync Tests (Compliance/Exchange) from Parallel Tests
+	$syncTestIds = @('35003', '35004', '35005', '35010')
+	$syncTests = $testsToRun | Where-Object { $_.TestId -in $syncTestIds }
+	$parallelTests = $testsToRun | Where-Object { $_.TestId -notin $syncTestIds }
+
 	try {
-		$workflow = Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
-		Wait-ZtTest -Workflow $workflow
+		# Run Sync Tests in the main thread
+		foreach ($test in $syncTests) {
+			Invoke-ZtTest -Test $test -Database $Database
+		}
+
+		# Run Parallel Tests
+		if ($parallelTests) {
+			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
+			Wait-ZtTest -Workflow $workflow
+		}
 	}
 	finally {
 		if ($workflow) {
