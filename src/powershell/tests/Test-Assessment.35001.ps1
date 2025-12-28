@@ -8,7 +8,7 @@ function Test-Assessment-35001 {
         Category = 'Entra',
         ImplementationCost = 'Low',
         MinimumLicense = ('MIP_P1'),
-        Pillar = 'Devices',
+        Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = '',
         TenantType = ('Workforce','External'),
