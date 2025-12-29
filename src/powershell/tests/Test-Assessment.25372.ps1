@@ -83,37 +83,39 @@ function Test-Assessment-25372 {
     $passed = $false
     $customStatus = $null
 
-    # Calculate deployment percentage
-    $deploymentPercentage = 0
-    $gap = 0
-    if ($totalManagedDevices -gt 0) {
-        $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
-        $gap = $totalManagedDevices - $totalGsaDevices
-    }
-
-    # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
-    if ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Cannot calculate percentage; Intune baseline unavailable.`n`n%TestResult%"
-    }
     # Edge case: GSA devices > Intune devices (data inconsistency; GSA has more devices than Intune)
-    elseif ($totalGsaDevices -gt $totalManagedDevices) {
+    if ($totalGsaDevices -gt $totalManagedDevices) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Data inconsistency; GSA has more devices than Intune.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Data inconsistency; GSA has more devices than Intune. This indicates stale GSA device records or devices removed from Intune management; data reconciliation is needed.`n`n%TestResult%"
     }
-    # Pass: Deployment percentage >= 90%
-    elseif ($deploymentPercentage -ge 90) {
-        $passed = $true
-        $testResultMarkdown = "✅ Global Secure Access client is deployed to the majority of managed endpoints.`n`n%TestResult%"
-    }
-    # Investigate: Deployment percentage between 70% and 90%
-    elseif ($deploymentPercentage -ge 70) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Global Secure Access client deployment coverage is between 70% and 90% of managed devices. Review device platform breakdown to determine if gaps are due to unsupported platforms or incomplete deployment.`n`n%TestResult%"
-    }
-    # Fail: Deployment percentage < 70%
     else {
-        $testResultMarkdown = "❌ Global Secure Access client deployment is significantly below the managed device count; a substantial portion of managed endpoints are not protected by Security Service Edge controls.`n`n%TestResult%"
+        # Calculate deployment percentage
+        $deploymentPercentage = 0
+        $gap = 0
+        if ($totalManagedDevices -gt 0) {
+            $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
+            $gap = $totalManagedDevices - $totalGsaDevices
+        }
+
+        # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
+        if ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
+            $customStatus = 'Investigate'
+            $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate the organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
+        }
+        # Pass: Deployment percentage >= 90%
+        elseif ($deploymentPercentage -ge 90) {
+            $passed = $true
+            $testResultMarkdown = "✅ Global Secure Access client is deployed to the majority of managed endpoints.`n`n%TestResult%"
+        }
+        # Investigate: Deployment percentage between 70% and 90%
+        elseif ($deploymentPercentage -ge 70) {
+            $customStatus = 'Investigate'
+            $testResultMarkdown = "⚠️ Global Secure Access client deployment coverage is between 70% and 90% of managed devices. Review device platform breakdown to identify endpoints missing the client and prioritize deployment to close the gap.`n`n%TestResult%"
+        }
+        # Fail: Deployment percentage < 70%
+        else {
+            $testResultMarkdown = "❌ Global Secure Access client deployment is significantly below the managed device count, leaving a substantial portion of managed endpoints unprotected by Security Service Edge controls.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
