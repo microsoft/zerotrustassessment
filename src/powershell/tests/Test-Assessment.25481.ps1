@@ -55,7 +55,7 @@ function Test-Assessment-25481 {
 
     # Check if any Private Access applications exist
     if (-not $appDetails -or $appDetails.Count -eq 0) {
-        $testResultMarkdown = '⚠️ No Private Access application is configured in the tenant, please review the documentation on how to enable Private Access Applications.'
+        $testResultMarkdown = '⚠️ No Private Access application is configured in the tenant, please review the documentation on how to enable Private Access applications.'
         $customStatus = 'Investigate'
     }
     else {
@@ -87,16 +87,20 @@ function Test-Assessment-25481 {
     $mdInfo = ''
 
     if ($appDetails.Count -gt 0) {
-        # Build single comprehensive table with all information
+        # Build comprehensive table with all information
         $mdInfo += "## [Private Access applications]($portalLink)`n`n"
-        $mdInfo += "| Application name | Application id | Number of assignments | Assigned principal | Principal type | Principal id |`n"
-        $mdInfo += "|------------------|----------------|---------------|--------------------|----------------|--------------|`n"
+        $mdInfo += "| Application name | Number of assignments | Assigned principal | Principal type |`n"
+        $mdInfo += "|------------------|---------------|--------------------|----------------|`n"
 
         foreach ($app in $appDetails) {
             $appName = $app.displayName
             $appId = $app.appId
+            $objectId = $app.id
             $hasAssignments = $null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0
             $assignmentCount = if ($hasAssignments) { $app.appRoleAssignedTo.Count } else { 0 }
+            $statusIcon = if ($hasAssignments) { "✅" } else { "❌" }
+            $appBladeLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$objectId/appId/$appId"
+            $appNameWithIcon = "$statusIcon [$appName]($appBladeLink)"
 
             if ($hasAssignments) {
                 # Add a row for each assignment
@@ -104,19 +108,18 @@ function Test-Assessment-25481 {
                 foreach ($assignment in $app.appRoleAssignedTo) {
                     $principalName = $assignment.principalDisplayName
                     $principalType = $assignment.principalType
-                    $principalId = $assignment.principalId
 
-                    # Show app name, id, and count only in the first row for each app
+                    # Show app name and count only in the first row for each app
                     if ($firstAssignment) {
-                        $mdInfo += "| $appName | $appId | $assignmentCount | $principalName | $principalType | $principalId |`n"
+                        $mdInfo += "| $appNameWithIcon | $assignmentCount | $principalName | $principalType |`n"
                         $firstAssignment = $false
                     } else {
-                        $mdInfo += "| | | | $principalName | $principalType | $principalId |`n"
+                        $mdInfo += "| | | $principalName | $principalType |`n"
                     }
                 }
             } else {
                 # No assignments - show single row with empty principal columns
-                $mdInfo += "| $appName | $appId | $assignmentCount | | | |`n"
+                $mdInfo += "| $appNameWithIcon | $assignmentCount | | |`n"
             }
         }
     }
@@ -132,7 +135,7 @@ function Test-Assessment-25481 {
         Result = $testResultMarkdown
     }
 
-    # Add CustomStatus if Investigate is needed
+    # Add CustomStatus if status is 'Investigate'
     if ($null -ne $customStatus) {
         $params.CustomStatus = $customStatus
     }
