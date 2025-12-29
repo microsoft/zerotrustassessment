@@ -50,8 +50,6 @@ function Test-Assessment-25481 {
     $testResultMarkdown = ''
     $passed = $false
     $customStatus = $null
-    $appsWithoutAssignments = @()
-    $appsWithAssignments = @()
 
     # Check if any Private Access applications exist
     if (-not $appDetails -or $appDetails.Count -eq 0) {
@@ -59,17 +57,9 @@ function Test-Assessment-25481 {
         $customStatus = 'Investigate'
     }
     else {
-        # Check each application for assignments
-        foreach ($app in $appDetails) {
-            if ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0) {
-                $appsWithAssignments += $app
-            }
-            else {
-                $appsWithoutAssignments += $app
-            }
-        }
+        # Check each application for assignments and determine pass/fail
+        $appsWithoutAssignments = $appDetails | Where-Object { -not $_.appRoleAssignedTo -or $_.appRoleAssignedTo.Count -eq 0 }
 
-        # Determine pass/fail
         if ($appsWithoutAssignments.Count -eq 0) {
             $passed = $true
             $testResultMarkdown = "✅ All Private Access applications have assigned users or groups. `n`n%TestResult%"
@@ -86,13 +76,16 @@ function Test-Assessment-25481 {
     $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
     $mdInfo = ''
 
-    if ($appDetails.Count -gt 0) {
+    if ($appDetails -and $appDetails.Count -gt 0) {
+        # Sort applications alphabetically for better readability
+        $sortedApps = $appDetails | Sort-Object displayName
+
         # Build comprehensive table with all information
         $mdInfo += "## [Private Access applications]($portalLink)`n`n"
         $mdInfo += "| Application name | Number of assignments | Assigned principal | Principal type |`n"
         $mdInfo += "|------------------|---------------|--------------------|----------------|`n"
 
-        foreach ($app in $appDetails) {
+        foreach ($app in $sortedApps) {
             $appName = $app.displayName
             $appId = $app.appId
             $objectId = $app.id
