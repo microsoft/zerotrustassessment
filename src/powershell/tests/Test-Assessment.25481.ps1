@@ -93,7 +93,8 @@ function Test-Assessment-25481 {
             $assignmentCount = if ($hasAssignments) { $app.appRoleAssignedTo.Count } else { 0 }
             $statusIcon = if ($hasAssignments) { "✅" } else { "❌" }
             $appBladeLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$objectId/appId/$appId"
-            $appNameWithIcon = "$statusIcon [$appName]($appBladeLink)"
+            $safeAppName = Get-SafeMarkdown $appName
+            $appNameWithIcon = "$statusIcon [$safeAppName]($appBladeLink)"
 
             if ($hasAssignments) {
                 # Add a row for each assignment
