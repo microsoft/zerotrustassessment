@@ -30,10 +30,10 @@ function Test-Assessment-25407 {
 
     # Process CA policies to find those with enabled GSA security profiles linked to enabled filtering profiles
 
-    $enabledPolicies = $policies | Where-Object { $_.state -eq 'enabled' }
+    $gsaPolicies = $policies | Where-Object { ($_.state -eq 'enabled' )-and ($null -ne $_.sessionControls.globalSecureAccessFilteringProfile) }
     $gsaPolicyDetails = @()
 
-    foreach ($policy in $enabledPolicies) {
+    foreach ($policy in $gsaPolicies) {
         $profileId = $policy.sessionControls.globalSecureAccessFilteringProfile.profileId
         $caLinkageEnabled = $policy.sessionControls.globalSecureAccessFilteringProfile.isEnabled
         $matchedProfile = $filteringProfiles | Where-Object { $_.id -eq $profileId }
@@ -47,7 +47,8 @@ function Test-Assessment-25407 {
             ProfileState      = $matchedProfile.state
         }
     }
-    $caPolicyWithGsaProfilesEnabled = $gsaPolicyDetails | Where-Object {$_.ProfileState -eq 'enabled'}
+    $caPolicyWithGsaProfilesEnabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -eq 'enabled' }
+    $caPolicyWithGsaProfilesDisabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -ne 'enabled' }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -63,19 +64,30 @@ function Test-Assessment-25407 {
     }
     else {
         $testResultMarkdown = "❌ Internet Access policy is not being applied via Conditional Access.`n`n%TestResult%"
-    }
-    if ($gsaPolicyDetails){
-        $mdInfo = "`n## Conditional Access Policies with Global Secure Access Security Profiles`n`n"
-        $mdInfo += "| CA Policy Name | CA Policy ID | CA Policy State | Security Profile ID | CA Linkage Enabled | Security Profile Name | Security Profile State |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
-        foreach ($item in $gsaPolicyDetails) {
-            $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($item.PolicyId)"
-            $caStateIcon = '✅ Enabled'
-            $linkageIcon = if ($item.CALinkageEnabled) { '✅ Enabled' } else { '❌ Disabled' }
-            $profileStateIcon = if ($item.ProfileState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
-            $mdInfo += "| [$(Get-SafeMarkdown $item.PolicyDisplayName)]($policyPortalLink) | $($item.PolicyId) | $caStateIcon | $($item.ProfileId) | $linkageIcon | $(Get-SafeMarkdown $item.ProfileName) | $profileStateIcon |`n"
+        if ($gsaPolicyDetails) {
+            $mdInfo = "`n## Conditional Access Policies with Global Secure Access Security Profiles`n`n"
+            $mdInfo += "| CA Policy Name | CA Policy State | Security Profile ID | CA Linkage Enabled | Security Profile Name | Security Profile State |`n"
+            $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
+            foreach ($item in $caPolicyWithGsaProfilesDisabled) {
+                $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($item.PolicyId)"
+                $caStateIcon = '✅ Enabled'
+                $linkageIcon = if ($item.CALinkageEnabled) {
+                    '✅ Enabled'
+                }
+                else {
+                    '❌ Disabled'
+                }
+                $profileStateIcon = if ($item.ProfileState -eq 'enabled') {
+                    '✅ Enabled'
+                }
+                else {
+                    '❌ Disabled'
+                }
+                $mdInfo += "| [$(Get-SafeMarkdown $item.PolicyDisplayName)]($policyPortalLink) | $caStateIcon | $($item.ProfileId) | $linkageIcon | $(Get-SafeMarkdown $item.ProfileName) | $profileStateIcon |`n"
+            }
         }
     }
+
     #endregion Report Generation
 
     $params = @{
