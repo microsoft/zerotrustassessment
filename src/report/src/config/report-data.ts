@@ -115,8 +115,8 @@ export interface TestResultSummaryData {
   IdentityTotal: number;
   DevicesPassed: number;
   DevicesTotal: number;
-  DataPassed: number;
-  DataTotal: number;
+  DataPassed?: number;
+  DataTotal?: number;
   NetworkPassed?: number;
   NetworkTotal?: number;
 }
