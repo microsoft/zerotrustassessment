@@ -16,7 +16,7 @@ function Test-Assessment-25376 {
     [ZtTest(
         Category = 'Traffic Acquisition',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('P1'),
+        MinimumLicense = ('P1','E3'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
