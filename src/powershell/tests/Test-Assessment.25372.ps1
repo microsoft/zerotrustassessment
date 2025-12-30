@@ -127,13 +127,13 @@ function Test-Assessment-25372 {
 
     $mdInfo += "| Metric | Value |`n"
     $mdInfo += "| :----- | ----: |`n"
-    $mdInfo += "| Total GSA Devices | $totalGsaDevices |`n"
-    $mdInfo += "| Active Devices | $activeGsaDevices |`n"
-    $mdInfo += "| Inactive Devices | $inactiveGsaDevices |`n"
-    $mdInfo += "| Total Managed Device Count | $totalManagedDevices |`n"
-    $mdInfo += "| Deployment Percentage | $deploymentPercentage% |`n"
+    $mdInfo += "| Total GSA devices | $totalGsaDevices |`n"
+    $mdInfo += "| Active devices | $activeGsaDevices |`n"
+    $mdInfo += "| Inactive devices | $inactiveGsaDevices |`n"
+    $mdInfo += "| Total managed device count | $totalManagedDevices |`n"
+    $mdInfo += "| Deployment percentage | $deploymentPercentage% |`n"
     $mdInfo += "| Gap | $gap |`n"
-    $mdInfo += "| Evaluation Period | $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd')) |`n"
+    $mdInfo += "| Evaluation period | $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd')) |`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
