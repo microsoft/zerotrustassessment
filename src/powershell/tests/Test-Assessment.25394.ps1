@@ -11,7 +11,7 @@
 .NOTES
     Test ID: 25394
     Category: Global Secure Access
-    Required API: servicePrincipals (v1.0), identity/conditionalAccess/policies (v1.0)
+    Required API: servicePrincipals (beta), identity/conditionalAccess/policies (beta), applications/{AppID}/onPremisesPublishing (beta)
 #>
 
 function Test-Assessment-25394 {
@@ -36,27 +36,22 @@ function Test-Assessment-25394 {
     Write-ZtProgress -Activity $activity -Status 'Querying Quick Access application'
 
     # Q1: Get Quick Access application
-    $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' `
-        -Filter "tags/any(c:c eq 'NetworkAccessQuickAccessApplication')" `
-        -Select 'appId,displayName' `
-        -ApiVersion v1.0
+    $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "tags/any(c:c eq 'NetworkAccessQuickAccessApplication')" -Select 'appId,displayName,id' -ApiVersion beta
 
     # Q2: Get all enabled Conditional Access policies
     $caPolicies = $null
     if ($null -ne $quickAccessApp -and $quickAccessApp.Count -gt 0) {
-        Write-ZtProgress -Activity $activity -Status "Checking Conditional Access policies for Quick Access"
-        $caPolicies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies" `
-            -Filter "state eq 'enabled'" `
-            -ApiVersion v1.0
+        Write-ZtProgress -Activity $activity -Status 'Checking Conditional Access policies for Quick Access'
+        $allCAPolicies = Get-ZtConditionalAccessPolicy
+        $caPolicies = $allCAPolicies | Where-Object { $_.state -eq 'enabled' }
     }
+
     #endregion Data Collection
 
     #region Assessment Logic
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
-    $quickAccessAppId = $null
-    $quickAccessDisplayName = $null
     $applicablePolicies = @()
 
     # Check if Quick Access application exists
@@ -64,39 +59,22 @@ function Test-Assessment-25394 {
         $testResultMarkdown = "⚠️ No Quick Access application is configured, review the documentation on how to enable Quick Access if needed.`n`n%TestResult%"
     }
     else {
-        $quickAccessAppId = $quickAccessApp.appId
-        $quickAccessDisplayName = $quickAccessApp.displayName
-
         # Check Conditional Access policy coverage
         if ($null -eq $caPolicies -or $caPolicies.Count -eq 0) {
-            Write-PSFMessage "Failed to retrieve Conditional Access policies or no policies are enabled" -Level Warning
+            Write-PSFMessage 'Failed to retrieve Conditional Access policies or no policies are enabled' -Level Warning
             $passed = $false
             $testResultMarkdown = "❌ Quick Access application found without Conditional Access policy enforcement.`n`n%TestResult%"
         }
         else {
             foreach ($policy in $caPolicies) {
-                # Check if policy targets "All" applications or includes Quick Access app or uses applicationFilter
                 $policyTargetsQuickAccess = $false
-
                 # Check if "All" apps are targeted
-                if ($policy.conditions.applications.includeApplications -contains "All") {
+                if ($policy.conditions.applications.includeApplications -contains 'All') {
                     $policyTargetsQuickAccess = $true
                 }
                 # Check if Quick Access appId is explicitly included
                 elseif ($policy.conditions.applications.includeApplications -contains $quickAccessAppId) {
                     $policyTargetsQuickAccess = $true
-                }
-                # Check if applicationFilter is configured to include Quick Access
-                elseif ($null -ne $policy.conditions.applications.applicationFilter) {
-                    # Check if applicationFilter mode is "include" and rule targets Quick Access
-                    if ($policy.conditions.applications.applicationFilter.mode -eq 'include') {
-                        $rule = $policy.conditions.applications.applicationFilter.rule
-                        if ($rule -match [regex]::Escape($quickAccessAppId) -or
-                            $rule -match 'Quick Access' -or
-                            $rule -match 'NetworkAccessQuickAccessApplication') {
-                            $policyTargetsQuickAccess = $true
-                        }
-                    }
                 }
 
                 if ($policyTargetsQuickAccess) {
@@ -152,22 +130,21 @@ function Test-Assessment-25394 {
     # Build detailed markdown information
     $mdInfo = ''
 
-    if ($null -ne $quickAccessDisplayName) {
-        $mdInfo += "| Setting | Value |`n"
-        $mdInfo += "|---|---|`n"
-        $mdInfo += "| Application display name | $quickAccessDisplayName |`n"
-        $mdInfo += "| Application id | $quickAccessAppId |`n"
-        $mdInfo += "| Conditional Access policies | $(if (($applicablePolicies.Count + $policiesWithoutControls.Count) -gt 0) { $applicablePolicies.Count + $policiesWithoutControls.Count } else { "None" }) |`n`n"
+    if ($null -ne $quickAccessApp -and $quickAccessApp.Count -gt 0) {
+        $appPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($quickAccessApp.appId)"
+        $mdInfo += "**Quick Access application name:** [$(Get-SafeMarkdown -Text $quickAccessApp.displayName)]($appPortalLink)`n`n"
 
         # Show applicable policies if any
         if ($applicablePolicies.Count -gt 0) {
-            $mdInfo += "### Applicable Conditional Access policies`n`n"
-            $mdInfo += "| Policy name | Policy id | Grant controls configured |`n"
-            $mdInfo += "|---|---|---|`n"
+            $mdInfo += "### [Applicable Conditional Access policies](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess)`n`n"
+            $mdInfo += "| Policy name | Grant controls configured |`n"
+            $mdInfo += "| :---------- | :------------------------ |`n"
 
             foreach ($policy in $applicablePolicies) {
                 $grantControlsStr = $([string]::Join(', ', $policy.GrantControls))
-                $mdInfo += "| $($policy.DisplayName) | $($policy.Id) | $grantControlsStr |`n"
+                # blade link for Conditional Access policy (fixed: no ~/ before policyId)
+                $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.Id)"
+                $mdInfo += "| [$(Get-SafeMarkdown -Text $policy.DisplayName)]($policyPortalLink) | $grantControlsStr |`n"
             }
             $mdInfo += "`n"
         }
@@ -185,7 +162,7 @@ function Test-Assessment-25394 {
     }
 
     # Add Investigate status if Quick Access is not configured
-    if ($null -eq $quickAccessDisplayName) {
+    if (-not $quickAccessApp -or $quickAccessApp.Count -eq 0) {
         $params.CustomStatus = 'Investigate'
     }
 
