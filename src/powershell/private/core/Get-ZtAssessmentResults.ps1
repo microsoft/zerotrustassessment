@@ -41,13 +41,13 @@ function Get-ZtAssessmentResults {
 			IdentityTotal  = @($TestResults).Where{ $_.TestPillar -eq 'Identity' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 			DevicesPassed  = @($TestResults).Where{ $_.TestPillar -eq 'Devices' -and $_.TestStatus -eq 'Passed' }.Count
 			DevicesTotal   = @($TestResults).Where{ $_.TestPillar -eq 'Devices' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
-			DataPassed     = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count
-			DataTotal      = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 		}
 
 		if($PreviewEnabled){
 			$summary | Add-Member -NotePropertyName 'NetworkPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -eq 'Passed' }.Count)
         	$summary | Add-Member -NotePropertyName 'NetworkTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+			$summary | Add-Member -NotePropertyName 'DataPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count)
+			$summary | Add-Member -NotePropertyName 'DataTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
 		}
 
 		return $summary

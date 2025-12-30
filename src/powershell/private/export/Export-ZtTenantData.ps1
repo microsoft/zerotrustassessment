@@ -46,7 +46,7 @@ function Export-ZtTenantData {
 		[int]
 		$MaximumSignInLogQueryTime,
 
-		[ValidateSet('All', 'Identity', 'Devices', 'Network')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
 		[string]
 		$Pillar = 'All',
 
@@ -98,7 +98,9 @@ function Export-ZtTenantData {
 		"%$_%"
 	})
 
-	$exportConfig = Import-PSFPowerShellDataFile -Path "$script:ModuleRoot\assets\export-tenant.config.psd1" -Psd1Mode Safe
+	$exportConfigPath = Join-Path $script:ModuleRoot 'assets' 'export-tenant.config.psd1'
+	Write-PSFMessage "Checking applicable exports for the current configuration... $exportConfigPath"
+	$exportConfig = Import-PSFPowerShellDataFile -Path $exportConfigPath -Psd1Mode Safe
 	$includedExports = @()
 	$applicableExports = foreach ($exportCfg in $exportConfig) {
 		if (-not $exportCfg.Name) {
@@ -134,10 +136,15 @@ https://github.com/microsoft/zerotrustassessment/issues
 	}
 
 	if (-not $applicableExports -or $applicableExports.Count -eq 0) {
+		Write-PSFMessage "No applicable exports found for the current configuration. Nothing to export."
 		return
 	}
 
 	try {
+		Write-PSFMessage "Starting Tenant Data Export to path: $ExportPath"
+		# Show $applicableExports
+		Write-PSFMessage "Applicable exports: $($applicableExports | ForEach-Object { $_.Name } | Sort-Object | Out-String)"
+
 		$workflow = Start-ZtTenantDataExport -ExportConfig $applicableExports -ThrottleLimit $ThrottleLimit -ExportPath $ExportPath
 		Wait-ZtTenantDataExport -Workflow $workflow
 	}

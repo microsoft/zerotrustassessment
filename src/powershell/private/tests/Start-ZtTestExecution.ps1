@@ -41,9 +41,11 @@
 		#region Calculate Resources to Import
 		$variables = @{
 			databasePath = $DbPath
+			moduleRoot   = $script:ModuleRoot
 		}
 		# Explicitly including all modules required, as we later import the psm1, not the psd1 file
-		$modules = (Import-PSFPowerShellDataFile "$($script:ModuleRoot)\$($PSCmdlet.MyInvocation.MyCommand.Module.Name).psd1").RequiredModules | ForEach-Object {
+		$modulePsd1Path = Join-Path $script:ModuleRoot "$($PSCmdlet.MyInvocation.MyCommand.Module.Name).psd1"
+		$modules = (Import-PSFPowerShellDataFile $modulePsd1Path).RequiredModules | ForEach-Object {
 			if ($_ -is [string]) {
 				$name = $_
 			}
@@ -62,7 +64,8 @@
 			}
 		}
 		# Loading the PSM1 to make internal commands directly accessible
-		$modules = @($modules) + "$($script:ModuleRoot)\$($PSCmdlet.MyInvocation.MyCommand.Module.Name).psm1"
+		$modulePsm1Path = Join-Path $script:ModuleRoot "$($PSCmdlet.MyInvocation.MyCommand.Module.Name).psm1"
+		$modules = @($modules) + $modulePsm1Path
 		#endregion Calculate Resources to Import
 
 		$param = @{
@@ -77,6 +80,7 @@
 	process {
 		$workflow = New-PSFRunspaceWorkflow -Name 'ZeroTrustAssessment.Tests' -Force
 		$null = $workflow | Add-PSFRunspaceWorker -Name Tester @param -Begin {
+			$script:ModuleRoot = $moduleRoot
 			$global:database = Connect-Database -Path $databasePath -PassThru
 		} -ScriptBlock {
 			Invoke-ZtTest -Test $_ -Database $global:database

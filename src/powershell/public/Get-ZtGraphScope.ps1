@@ -12,7 +12,18 @@
 #>
 
 Function Get-ZtGraphScope {
+	<#
+	.SYNOPSIS
+		List the Graph scopes needed for the ZeroTrustAssessment.
 
+	.DESCRIPTION
+		List the Graph scopes needed for the ZeroTrustAssessment.
+
+	.EXAMPLE
+		PS C:\> Get-ZtGraphScope
+
+		List the Graph scopes needed for the ZeroTrustAssessment.
+	#>
     [CmdletBinding()]
     param()
 
@@ -42,7 +53,5 @@ Function Get-ZtGraphScope {
         'UserAuthenticationMethod.Read.All'
     )
 
-    #$scopes += Get-EERequiredScopes -PermissionType Delegated
-
-    return $scopes | Sort-Object -Unique
+    $scopes | Sort-Object -Unique
 }

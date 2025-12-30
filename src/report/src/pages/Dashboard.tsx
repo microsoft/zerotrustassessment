@@ -335,11 +335,14 @@ export default function Dashboard() {
                                         bottom: -10,
                                     }}
                                     data={[
-                                        {
-                                            activity: "data",
-                                            value: (reportData.TestResultSummary.DataPassed / reportData.TestResultSummary.DataTotal) * 100,
-                                            fill: "var(--color-stand)",
-                                        },
+                                        // Only include Data pillar if it exists (preview mode)
+                                        ...(reportData.TestResultSummary.DataPassed !== undefined && reportData.TestResultSummary.DataTotal !== undefined
+                                            ? [{
+                                                activity: "data",
+                                                value: (reportData.TestResultSummary.DataPassed / reportData.TestResultSummary.DataTotal) * 100,
+                                                fill: "var(--color-stand)",
+                                            }]
+                                            : []),
                                         {
                                             activity: "devices",
                                             value: (reportData.TestResultSummary.DevicesPassed / reportData.TestResultSummary.DevicesTotal) * 100,
