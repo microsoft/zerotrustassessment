@@ -32,14 +32,7 @@ function Test-Assessment-25481 {
     Write-ZtProgress -Activity $activity -Status 'Querying all Private Access applications'
 
     # Query Q1: Single optimized query for all Private Access applications with assignments
-    $privateAccessAppsRaw = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'IsAccessibleViaZTNAClient')&`$expand=appRoleAssignedTo&`$select=id,appId,displayName,accountEnabled,appRoleAssignmentRequired" -ApiVersion beta
-    if ($privateAccessAppsRaw.PSObject.Properties.Name -contains 'value' -and $privateAccessAppsRaw.value) {
-        $appDetails = $privateAccessAppsRaw.value
-    } elseif ($privateAccessAppsRaw) {
-        $appDetails = $privateAccessAppsRaw
-    } else {
-        $appDetails = @()
-    }
+    $privateAccessApps = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'IsAccessibleViaZTNAClient')&`$expand=appRoleAssignedTo&`$select=id,appId,displayName,accountEnabled,appRoleAssignmentRequired" -ApiVersion beta
     #endregion Data Collection
 
     #region Assessment Logic
@@ -49,13 +42,13 @@ function Test-Assessment-25481 {
     $customStatus = $null
 
     # Check if any Private Access applications exist
-    if (-not $appDetails -or $appDetails.Count -eq 0) {
+    if (-not $privateAccessApps -or $privateAccessApps.Count -eq 0) {
         $testResultMarkdown = '⚠️ No Private Access application is configured in the tenant, please review the documentation on how to enable Private Access applications.'
         $customStatus = 'Investigate'
     }
     else {
         # Check each application for assignments and determine pass/fail
-        $appsWithoutAssignments = $appDetails | Where-Object { -not $_.appRoleAssignedTo -or $_.appRoleAssignedTo.Count -eq 0 }
+        $appsWithoutAssignments = $privateAccessApps | Where-Object { -not $_.appRoleAssignedTo -or $_.appRoleAssignedTo.Count -eq 0 }
 
         if ($appsWithoutAssignments.Count -eq 0) {
             $passed = $true
@@ -73,9 +66,9 @@ function Test-Assessment-25481 {
     $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
     $mdInfo = ''
 
-    if ($appDetails -and $appDetails.Count -gt 0) {
+    if ($privateAccessApps -and $privateAccessApps.Count -gt 0) {
         # Sort applications alphabetically for better readability
-        $sortedApps = $appDetails | Sort-Object displayName
+        $sortedApps = $privateAccessApps | Sort-Object displayName
 
         # Build comprehensive table with all information
         $mdInfo += "## [Private Access applications]($portalLink)`n`n"
