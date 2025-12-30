@@ -5,6 +5,38 @@
     Verifies that a TLS Inspection policy is properly configured. It will fail if no TLS Inspection policy exists, if the policy is not linked to a Security Profile, or if no Conditional Access policy assigning that Security Profile can be identified.
 #>
 
+#region Helper functions
+function Get-ProfileType {
+    param (
+        $Priority
+    )
+    if ($null -eq $Priority) {
+        return 'NA'
+    }
+    if ($Priority -eq 65000) {
+        return "Baseline Profile"
+    }
+    if ($Priority -lt 65000) {
+        return "Security Profile"
+    }
+}
+
+function Get-DefaultAction {
+    param (
+        $TLSPolicies,
+        $TLSPolicyID
+    )
+    $TLSPolicy = $TLSPolicies | Where-Object { $_.id -eq $TLSPolicyID }
+    if ($null -ne $TLSPolicy) {
+        return $TLSPolicy.settings.defaultAction
+    }
+    else {
+        return 'NA'
+    }
+}
+
+#endregion Helper functions
+
 function Test-Assessment-25411 {
     [ZtTest(
         Category = 'Global Secure Access',
@@ -51,53 +83,51 @@ function Test-Assessment-25411 {
     # Search for TLS inspection policy in filtering profiles
     $enabledSecurityProfiles = @()
     $enabledBaseLineProfiles = @()
-    $securityProfile = $filteringProfiles | Where-Object { ($_.priority -ne 65000)}
-    $baseLineProfile = $filteringProfiles | Where-Object { $_.priority -eq 65000 }
-    foreach ($baseLineProfilePolicy in @($baseLineProfile.policies)) {
-        # Check if the policy ID matches a TLS inspection policy
-        if ($null -ne $baseLineProfilePolicy -and $baseLineProfilePolicy.policy.id -in @($tlsPolicyIds) -and $baseLineProfilePolicy.state -eq 'enabled') {
-            $enabledBaseLineProfiles += [PSCustomObject]@{
-                TLSProfileId       = $baseLineProfile.id
-                TLSProfileName     = $baseLineProfile.name
-                TLSPolicyId        = $baseLineProfilePolicy.policy.id
-                TLSPolicyName      = $baseLineProfilePolicy.policy.name
-                TLSPolicyState     = $baseLineProfilePolicy.state
-                TLSProfileState    = $baseLineProfile.state
-                TLSProfilePriority = $baseLineProfile.priority
+    $securityProfile = $filteringProfiles | Where-Object { ($_.priority -lt 65000) }
+    $baseLineProfiles = $filteringProfiles | Where-Object { $_.priority -eq 65000 }
+    <#foreach ($baseLineProfileItem in $baseLineProfiles) {
+        foreach ($baseLineProfilePolicy in @($baseLineProfileItem.policies)) {
+            # Check if the policy ID matches a TLS inspection policy
+            if ($baseLineProfilePolicy.'@odata.type' -like '*filtering*') {
+                $enabledBaseLineProfiles += [PSCustomObject]@{
+                    ProfileId       = $baseLineProfileItem.id
+                    ProfileName     = $baseLineProfileItem.name
+                    TLSPolicyId     = $baseLineProfilePolicy.policy.id
+                    TLSPolicyName   = $baseLineProfilePolicy.policy.name
+                    TLSPolicyState  = $baseLineProfilePolicy.state
+                    ProfileState    = $baseLineProfileItem.state
+                    ProfilePriority = $baseLineProfileItem.priority
+                    ProfileType     = Get-ProfileType -Priority $baseLineProfileItem.priority
+                }
             }
         }
-    }
+    }#>
 
-    foreach ($securityProfileItem in $securityProfile) {
+    foreach ($securityProfileItem in $filteringProfiles) {
         # Check if the security profile contains a TLS inspection policy
-        $hasTlsPolicy = $false
         foreach ($securityProfilePolicy in $securityProfileItem.policies) {
-            if ($securityProfilePolicy.policy.id -in @($tlsPolicyIds) -and $securityProfilePolicy.state -eq 'enabled') {
-                $hasTlsPolicy = $true
-                break
+            $linkedCAPolicies = @()
+            if ($securityProfilePolicy.'@odata.type' -like '*tlsInspectionPolicyLink*') {
+                $assignedCAPolicy = $allCAPolicies | Where-Object { $_.id -in @($securityProfileItem.ConditionalAccessPolicies.id) }
+                if ($null -ne $assignedCAPolicy -and $assignedCAPolicy.state -eq 'enabled') {
+                    $linkedCAPolicies = $assignedCAPolicy.displayName
+                }
+                if ($linkedCAPolicies.Count -gt 0 -and $securityProfileItem.state -eq 'enabled') {
+                    $enabledSecurityProfiles += [PSCustomObject]@{
+                        ProfileId               = $securityProfileItem.id
+                        ProfileName             = $securityProfileItem.name
+                        CAPolicyNames           = $linkedCAPolicies -join ', '
+                        CAPolicyCount           = $linkedCAPolicies.Count
+                        ProfileState            = $securityProfileItem.state
+                        ProfilePriority         = $securityProfileItem.priority
+                        ProfileType             = Get-ProfileType -Priority $securityProfileItem.priority
+                        TLSInspectionPolicyName = $securityProfilePolicy.policy.name
+                        DefaultAction           = Get-DefaultAction -TLSPolicies $tlsInspectionPolicies -TLSPolicyID $securityProfilePolicy.policy.id
+                    }
+                }
             }
         }
 
-        # Only process if the security profile has an enabled TLS inspection policy
-        if ($hasTlsPolicy) {
-            $linkedCAPolicies = @()
-            foreach ($securityProfileCAPolicy in $securityProfileItem.ConditionalAccessPolicies) {
-                $assignedCAPolicy = $allCAPolicies | Where-Object { $_.id -eq $securityProfileCAPolicy.id }
-                if ($null -ne $assignedCAPolicy -and $assignedCAPolicy.state -eq 'enabled') {
-                    $linkedCAPolicies += $assignedCAPolicy.displayName
-                }
-            }
-            if ($linkedCAPolicies.Count -gt 0 -and $securityProfileItem.state -eq 'enabled') {
-                $enabledSecurityProfiles += [PSCustomObject]@{
-                    TLSProfileId       = $securityProfileItem.id
-                    TLSProfileName     = $securityProfileItem.name
-                    CAPolicyNames      = $linkedCAPolicies -join ', '
-                    CAPolicyCount      = $linkedCAPolicies.Count
-                    TLSProfileState    = $securityProfileItem.state
-                    TLSProfilePriority = $securityProfileItem.priority
-                }
-            }
-        }
     }
     #endregion Data Processing
     #region Assessment logic
@@ -139,30 +169,31 @@ function Test-Assessment-25411 {
     if ($enabledBaseLineProfiles.Count -gt 0) {
 
         $mdInfo += "`n## TLS Inspection Policies Linked to Base Line Profiles`n`n"
-        $mdInfo += "| Profile Name | Policy Name | Policy State | Profile State |`n"
+        $mdInfo += "| Profile Name | Policy Name | Policy State | Profile State | TLS Inspection Policy Name|`n"
         $mdInfo += "| :--- | :--- | :--- | :--- |`n"
         foreach ($policy in $enabledBaseLineProfiles) {
-            $baseLineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.TLSProfileId))"
-            $tlsProfileName = Get-SafeMarkdown($policy.TLSProfileName)
+            $baseLineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.ProfileId))"
+            $ProfileName = Get-SafeMarkdown($policy.ProfileName)
             $tlsPolicyName = Get-SafeMarkdown($policy.TLSPolicyName)
             $tlsPolicyState = $policy.TLSPolicyState
-            $tlsProfileState = $policy.TLSProfileState
-            $mdInfo += "| [$tlsProfileName]($baseLineProfilePortalLink) | $tlsPolicyName | $tlsPolicyState | $tlsProfileState |`n"
+            $ProfileState = $policy.ProfileState
+            $mdInfo += "| [$ProfileName]($baseLineProfilePortalLink) | $tlsPolicyName | $tlsPolicyState | $ProfileState |`n"
         }
     }
 
     if ($enabledSecurityProfiles.Count -gt 0) {
         $mdInfo += "`n## Security Profiles Linked to Conditional Access Policies`n`n"
-        $mdInfo += "| Profile Name | CA Policies | CA Policy Count | Profile State | Profile Priority |`n"
+        $mdInfo += "| Profile Name | CA Policies | Profile State | TLS Inspection Policy Name | Default Action |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
         foreach ($profile in $enabledSecurityProfiles) {
-            $securityProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($profile.TLSProfileId))"
-            $tlsProfileName = Get-SafeMarkdown($profile.TLSProfileName)
+            $securityProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($profile.ProfileId))"
+            $ProfileName = Get-SafeMarkdown($profile.ProfileName)
             $caPolicyNames = Get-SafeMarkdown($profile.CAPolicyNames)
-            $caPolicyCount = $profile.CAPolicyCount
-            $tlsProfileState = $profile.TLSProfileState
-            $tlsProfilePriority = $profile.TLSProfilePriority
-            $mdInfo += "| [$tlsProfileName]($securityProfilePortalLink) | $caPolicyNames | $caPolicyCount | $tlsProfileState | $tlsProfilePriority  |`n"
+            $ProfileState = $profile.ProfileState
+            $ProfilePriority = $profile.ProfilePriority
+            $TlsPolicyName = Get-SafeMarkdown($profile.TLSInspectionPolicyName)
+            $DefaultAction = $profile.DefaultAction
+            $mdInfo += "| [$ProfileName]($securityProfilePortalLink) | $caPolicyNames | $ProfileState | $TlsPolicyName | $DefaultAction |`n"
         }
     }
 
