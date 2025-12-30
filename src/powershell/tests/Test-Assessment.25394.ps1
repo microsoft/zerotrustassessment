@@ -37,6 +37,10 @@ function Test-Assessment-25394 {
 
     # Q1: Get Quick Access application
     $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "tags/any(c:c eq 'NetworkAccessQuickAccessApplication')" -Select 'appId,displayName,id' -ApiVersion beta
+    $quickAccessAppId = $null
+    if ($quickAccessApp -and $quickAccessApp.Count -gt 0) {
+        $quickAccessAppId = $quickAccessApp.appId
+    }
 
     # Q2: Get all enabled Conditional Access policies
     $caPolicies = $null
