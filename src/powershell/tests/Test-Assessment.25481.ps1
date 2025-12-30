@@ -31,17 +31,14 @@ function Test-Assessment-25481 {
     $activity = 'Checking Private Access applications user and group assignments'
     Write-ZtProgress -Activity $activity -Status 'Querying all Private Access applications'
 
-    # Query Q1: Get all Private Access applications (ids only)
-    $privateAccessAppsIds = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'IsAccessibleViaZTNAClient')&`$select=id" -ApiVersion beta
-
-    # Query Q2: Get detailed information including appRoleAssignedTo for each app
-    $appDetails = @()
-    if ($null -ne $privateAccessAppsIds -and $privateAccessAppsIds.Count -gt 0) {
-        foreach ($appId in $privateAccessAppsIds) {
-            Write-ZtProgress -Activity $activity -Status "Querying details for application $($appId.id)"
-            $appDetail = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$($appId.id)?`$select=id,appId,displayName,accountEnabled,appRoleAssignmentRequired&`$expand=appRoleAssignedTo" -ApiVersion beta
-            $appDetails += $appDetail
-        }
+    # Query Q1: Single optimized query for all Private Access applications with assignments
+    $privateAccessAppsRaw = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'IsAccessibleViaZTNAClient')&`$expand=appRoleAssignedTo&`$select=id,appId,displayName,accountEnabled,appRoleAssignmentRequired" -ApiVersion beta
+    if ($privateAccessAppsRaw.PSObject.Properties.Name -contains 'value' -and $privateAccessAppsRaw.value) {
+        $appDetails = $privateAccessAppsRaw.value
+    } elseif ($privateAccessAppsRaw) {
+        $appDetails = $privateAccessAppsRaw
+    } else {
+        $appDetails = @()
     }
     #endregion Data Collection
 
