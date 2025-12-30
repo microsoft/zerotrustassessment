@@ -13,7 +13,7 @@ function Test-Assessment-25407 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce', 'External'),
         TestId = 25407,
-        Title = 'Conditional Access policies are applied to Global Secure Access traffic',
+        Title = 'Internet Access security policies are enforced through Conditional Access for user-aware protection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -92,7 +92,6 @@ function Test-Assessment-25407 {
 
     $params = @{
         TestId = '25407'
-        Title  = 'Conditional Access policies are applied to Global Secure Access traffic'
         Status = $passed
         Result = $testResultMarkdown -replace '%TestResult%', $mdInfo
     }
