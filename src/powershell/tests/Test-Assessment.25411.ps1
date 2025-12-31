@@ -107,7 +107,7 @@ function Test-Assessment-25411 {
         # Check if the security profile contains a TLS inspection policy
         foreach ($securityProfilePolicy in $securityProfileItem.policies) {
             $linkedCAPolicies = @()
-            if ($securityProfilePolicy.'@odata.type' -like '*tlsInspectionPolicyLink*') {
+            if ($securityProfilePolicy.'@odata.type' -like '*tlsInspectionPolicyLink*' -or $securityProfilePolicy.'@odata.type' -like '*forwarding*') {
                 $assignedCAPolicy = $allCAPolicies | Where-Object { $_.id -in @($securityProfileItem.ConditionalAccessPolicies.id) }
                 if ($null -ne $assignedCAPolicy -and $assignedCAPolicy.state -eq 'enabled') {
                     $linkedCAPolicies = $assignedCAPolicy.displayName
