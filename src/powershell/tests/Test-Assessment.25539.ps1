@@ -37,59 +37,63 @@ function Test-Assessment-25539 {
     #endregion Azure Connection Verification
 
     #region Data Collection
+    $firewallPolicies = @()
     $azAccessToken = ($accessToken.Token)
     $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
-    $subId = (Get-AzContext).Subscription.Id
+    $subscriptions = Get-AzSubscription
+    foreach ($sub in $subscriptions) {
+        Set-AzContext -SubscriptionId $sub.Id | Out-Null
+        $subId = $sub.Id
 
-    $listUri = $resourceManagementUrl.TrimEnd('/') + "/subscriptions/$subId/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
+        $listUri = $resourceManagementUrl.TrimEnd('/') + "/subscriptions/$subId/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
 
-    try {
-        $listResponse = Invoke-WebRequest -Uri $listUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
-    }
-    catch {
-        if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like "*403*" -or $_.Exception.Message -like "*Forbidden*") {
-            Write-PSFMessage "The signed in user does not have access to the Azure subscription to enumerate firewall policies." -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-        else {
-            throw
-        }
-    }
-
-    $policies = $listResponse.Content | ConvertFrom-Json
-    $policyItems = @()
-    if ($policies.value) {
-        $policyItems = $policies.value
-    }
-
-    $firewallPolicies = @()
-    foreach ($policy in $policyItems) {
-        # fetch full details to inspect intrusionDetection and sku
-        $detailUri = $resourceManagementUrl.TrimEnd('/') + "$($policy.id)?api-version=2025-03-01"
         try {
-            $detailResp = Invoke-WebRequest -Uri $detailUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
-            $detail = $detailResp.Content | ConvertFrom-Json
+            $listResponse = Invoke-WebRequest -Uri $listUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
         }
         catch {
-            Write-PSFMessage "Unable to retrieve details for $($policy.name): $($_.Exception.Message)" -Tag Test -Level Warning
-            continue
-        }
-
-        $policyObj = [PSCustomObject]@{
-            Name                   = $detail.name
-            Id                     = $detail.id
-            IntrusionDetectionMode = if ($detail.properties.intrusionDetection -and $detail.properties.intrusionDetection.mode) {
-                $detail.properties.intrusionDetection.mode
+            if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like "*403*" -or $_.Exception.Message -like "*Forbidden*") {
+                Write-PSFMessage "The signed in user does not have access to the Azure subscription to enumerate firewall policies." -Tag Test -Level Verbose
+                Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+                return
             }
             else {
-                'Off'
+                throw
             }
         }
-        $firewallPolicies += $policyObj
-    }
 
-    $nonCompliant = $firewallPolicies | Where-Object { $_.IntrusionDetectionMode -notin @('Deny') }
+        $policies = $listResponse.Content | ConvertFrom-Json
+        $policyItems = @()
+        if ($policies.value) {
+            $policyItems = $policies.value
+        }
+
+
+        foreach ($policy in $policyItems) {
+            # fetch full details to inspect intrusionDetection and sku
+            $detailUri = $resourceManagementUrl.TrimEnd('/') + "$($policy.id)?api-version=2025-03-01"
+            try {
+                $detailResp = Invoke-WebRequest -Uri $detailUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+                $detail = $detailResp.Content | ConvertFrom-Json
+            }
+            catch {
+                Write-PSFMessage "Unable to retrieve details for $($policy.name): $($_.Exception.Message)" -Tag Test -Level Warning
+                continue
+            }
+
+            $policyObj = [PSCustomObject]@{
+                Name                   = $detail.name
+                Id                     = $detail.id
+                IntrusionDetectionMode = if ($detail.properties.intrusionDetection -and $detail.properties.intrusionDetection.mode) {
+                    $detail.properties.intrusionDetection.mode
+                }
+                SubscriptionName       = $sub.Name
+                SubscriptionId         = $subId
+            }
+            $firewallPolicies += $policyObj
+        }
+
+        $nonCompliant = $firewallPolicies | Where-Object { $_.IntrusionDetectionMode -notin @('Deny') }
+    }
     #endregion Data Collection
 
     #region Assessment Logic
