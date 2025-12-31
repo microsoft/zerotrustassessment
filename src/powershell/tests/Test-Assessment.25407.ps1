@@ -47,8 +47,8 @@ function Test-Assessment-25407 {
             ProfileState      = $matchedProfile.state
         }
     }
-    $caPolicyWithGsaProfilesEnabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -eq 'enabled' }
-    $caPolicyWithGsaProfilesDisabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -ne 'enabled' }
+    $caPolicyWithGsaProfilesEnabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -eq 'enabled' -and $_.CALinkageEnabled -eq $true }
+    $caPolicyWithGsaProfilesDisabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -ne 'enabled' -or $_.CALinkageEnabled -ne $true }
     #endregion Data Collection
 
     #region Assessment Logic
