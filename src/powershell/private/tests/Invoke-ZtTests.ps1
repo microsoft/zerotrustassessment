@@ -61,8 +61,8 @@
 		$testsToRun = $testsToRun | Where-Object { $_.Pillar -in $stablePillars }
 	}
 
-	# Separate Sync Tests (Compliance/Exchange) from Parallel Tests
-	$syncTestIds = @('35003', '35004', '35005', '35010')
+	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests
+	$syncTestIds = @($testsToRun | Where-Object { $_.Pillar -eq 'Data' } | Select-Object -ExpandProperty TestId)
 	$syncTests = $testsToRun | Where-Object { $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun | Where-Object { $_.TestId -notin $syncTestIds }
 
