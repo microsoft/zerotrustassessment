@@ -1,5 +1,5 @@
 SharePoint document libraries support configuring default sensitivity labels that automatically apply baseline protection to new or edited files that lack existing labels or have lower-priority labels. When the tenant-level capability `DisableDocumentLibraryDefaultLabeling` is enabled (set to `$true`), organizations block site administrators from establishing automatic baseline classification for document libraries.
-Using default labels is a critical feature in organisations auto-labeliing strategy. 
+Using default labels is a critical feature in organizations' auto-labeling strategy. 
 
 **Remediation action**
 
