@@ -82,7 +82,7 @@
 		[switch]
 		$SkipAzureConnection,
 
-		# The services to connect to such as Azure and EXO. Default is Graph.
+		# The services to connect to such as Azure and ExchangeOnline. Default is Graph.
 		[ValidateSet('All', 'Azure', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]]$Service = 'Graph',
 
@@ -97,8 +97,6 @@
 		[string]$SharePointAdminUrl
 	)
 
-	# Tracks if we already warned about missing ExchangeOnlineManagement to avoid duplicate prompts
-	$ExchangeModuleNotInstalledWarningShown = $false
 
 	# Ensure ExchangeOnline is included if SecurityCompliance is requested
 	if ($Service -contains 'SecurityCompliance' -and $Service -notcontains 'ExchangeOnline' -and $Service -notcontains 'All') {
@@ -118,18 +116,6 @@
 		$params.ContextScope = 'Process'
 	}
 
-	# Pre-load ExchangeOnlineManagement if required to ensure correct DLLs are loaded
-	if ($Service -contains 'ExchangeOnline' -or $Service -contains 'SecurityCompliance' -or $Service -contains 'All') {
-		Write-Verbose "Pre-loading ExchangeOnlineManagement to ensure correct assembly version is loaded."
-		try {
-			Import-Module ExchangeOnlineManagement -Force -ErrorAction Stop
-		}
-		catch {
-			Write-Host "`nThe Exchange Online module is not installed. Please install the module using the following command.`nFor more information see https://learn.microsoft.com/powershell/exchange/exchange-online-powershell-v2" -ForegroundColor Red
-			Write-Host "`nInstall-Module ExchangeOnlineManagement -Scope CurrentUser`n" -ForegroundColor Yellow
-			$ExchangeModuleNotInstalledWarningShown = $true
-		}
-	}
 
 	$OrderedImport = Get-ModuleImportOrder -Name @('Az.Accounts', 'ExchangeOnlineManagement', 'Microsoft.Graph.Authentication', 'Microsoft.Online.SharePoint.PowerShell')
 
@@ -146,10 +132,7 @@
 					Connect-MgGraph @params -ErrorAction Stop
 					$contextTenantId = (Get-MgContext).TenantId
 				}
-				catch [Management.Automation.CommandNotFoundException] {
-					Write-Host "`nThe Graph PowerShell module is not installed. Please install the module using the following command. For more information see https://learn.microsoft.com/powershell/microsoftgraph/installation" -ForegroundColor Red
-					Write-Host "`Install-Module Microsoft.Graph.Authentication -Scope CurrentUser`n" -ForegroundColor Yellow
-				}
+
 				catch {
 					Stop-PSFFunction -Message "Failed to authenticate to Graph" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 				}
@@ -181,10 +164,18 @@
 					$azEnvironment = 'AzureUSGovernment'
 				}
 
+				$tenantParam = $TenantId
+				if (-not $tenantParam) {
+					$tenantVar = Get-Variable -Name 'contextTenantId' -ErrorAction SilentlyContinue
+					if ($tenantVar) {
+						$tenantParam = $tenantVar.Value
+					}
+				}
+
 				$azParams = @{
 					UseDeviceAuthentication = $UseDeviceCode
 					Environment             = $azEnvironment
-					Tenant                  = $TenantId ? $TenantId : $contextTenantId
+					Tenant                  = $tenantParam
 				}
 				if ($ClientId -and $Certificate) {
 					$azParams.ApplicationId = $ClientId
@@ -271,6 +262,8 @@
 					}
 					catch {
 						# Intentionally swallow errors here; fall back to provided UPN if any
+						$connectionInfoError = $_
+						Write-Verbose "Get-ConnectionInformation failed; falling back to provided UserPrincipalName if available. Error: $($connectionInfoError.Exception.Message)"
 					}
 
 					if (-not $ExoUPN) {
@@ -299,15 +292,20 @@
 						Write-Verbose "Connecting to Security & Compliance with UPN: $ExoUPN"
 						Connect-IPPSSession @ippSessionParams
 					}
-					catch [Management.Automation.CommandNotFoundException] {
-						if (-not $ExchangeModuleNotInstalledWarningShown) {
-							Write-Host "`nThe Exchange Online module is not installed. Please install the module using the following command.`nFor more information see https://learn.microsoft.com/powershell/exchange/exchange-online-powershell-v2" -ForegroundColor Red
-							Write-Host "`nInstall-Module ExchangeOnlineManagement -Scope CurrentUser`n" -ForegroundColor Yellow
-						}
-					}
+
 					catch {
 						$exception = $_
-						if ($exception.Exception.InnerException.Message -like "*Method not found*Microsoft.Identity.Client*" -or $exception.Exception.Message -like "*Method not found*Microsoft.Identity.Client*") {
+						$methodNotFoundException = $null
+
+						# Detect DLL conflict via a specific MissingMethodException, preferring the inner exception when present
+						if ($exception.Exception.InnerException -is [System.MissingMethodException]) {
+							$methodNotFoundException = $exception.Exception.InnerException
+						}
+						elseif ($exception.Exception -is [System.MissingMethodException]) {
+							$methodNotFoundException = $exception.Exception
+						}
+
+						if ($methodNotFoundException -and $methodNotFoundException.Message -like "*Microsoft.Identity.Client*") {
 							Write-Warning "DLL Conflict detected (Method not found in Microsoft.Identity.Client). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
 							Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
 						}
@@ -339,8 +337,15 @@
 					}
 				}
 				catch {
-					Write-Host "`nFailed to import SharePoint Online module: $_" -ForegroundColor Red
-					Write-PSFMessage "Failed to import SharePoint Online module: $_" -Level Error
+					# Provide clearer guidance when import fails, especially under PowerShell Core
+					if ($PSVersionTable.PSEdition -ne 'Desktop') {
+						$message = "Failed to import SharePoint Online module. When running in PowerShell Core, 'Microsoft.Online.SharePoint.PowerShell' must be installed in Windows PowerShell 5.1 (Desktop) for -UseWindowsPowerShell to work. Underlying error: $_"
+					}
+					else {
+						$message = "Failed to import SharePoint Online module: $_"
+					}
+					Write-Host "`n$message" -ForegroundColor Red
+					Write-PSFMessage $message -Level Error
 				}
 			}
 		}
@@ -354,7 +359,8 @@
 		$adminUrl = $SharePointAdminUrl
 		if (-not $adminUrl) {
 			# Try to infer from Graph context
-			if ($contextTenantId) {
+			$contextTenantIdValue = Get-Variable -Name contextTenantId -ErrorAction SilentlyContinue -ValueOnly
+			if ($contextTenantIdValue) {
 				try {
 					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
 					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
