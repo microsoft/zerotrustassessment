@@ -66,6 +66,7 @@
 	$syncTests = $testsToRun | Where-Object { $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun | Where-Object { $_.TestId -notin $syncTestIds }
 
+	$workflow = $null
 	try {
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
@@ -84,7 +85,7 @@
 			Disable-PSFConsoleInterrupt
 			$workflow | Stop-PSFRunspaceWorkflow
 			$workflow | Remove-PSFRunspaceWorkflow
+			Enable-PSFConsoleInterrupt
 		}
-		Enable-PSFConsoleInterrupt
 	}
 }
