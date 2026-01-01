@@ -5,7 +5,8 @@ Describe "Test-Assessment-35001" {
 
         # Mock external module dependencies
         if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
-            function Write-PSFMessage {}
+            function Write-PSFMessage {
+            }
         }
 
         # Load the class
@@ -21,7 +22,9 @@ Describe "Test-Assessment-35001" {
         # Setup output file
         $script:outputFile = Join-Path $here "../TestResults/Report-Test-Assessment.35001.md"
         $outputDir = Split-Path $script:outputFile
-        if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir | Out-Null }
+        if (-not (Test-Path $outputDir)) {
+            New-Item -ItemType Directory -Path $outputDir | Out-Null
+        }
         "# Test Results for 35001`n" | Set-Content $script:outputFile
     }
 
@@ -53,10 +56,10 @@ Describe "Test-Assessment-35001" {
             Mock Get-ZtConditionalAccessPolicy {
                 return @(
                     [PSCustomObject]@{
-                        id = "policy-1"
+                        id          = "policy-1"
                         displayName = "Policy 1"
-                        state = "enabled"
-                        conditions = [PSCustomObject]@{
+                        state       = "enabled"
+                        conditions  = [PSCustomObject]@{
                             applications = [PSCustomObject]@{
                                 includeApplications = @("All")
                                 excludeApplications = @("00000012-0000-0000-c000-000000000000")
@@ -84,23 +87,23 @@ Describe "Test-Assessment-35001" {
             Mock Get-ZtConditionalAccessPolicy {
                 return @(
                     [PSCustomObject]@{
-                        id = "policy-block-all"
-                        displayName = "Block All Policy"
-                        state = "enabled"
-                        conditions = [PSCustomObject]@{
+                        id              = "policy-block-all"
+                        displayName     = "Block All Policy"
+                        state           = "enabled"
+                        conditions      = [PSCustomObject]@{
                             applications = [PSCustomObject]@{
                                 includeApplications = @("All")
                                 excludeApplications = @("some-other-app-id")
                             }
                         }
-                        grantControls = [PSCustomObject]@{
+                        grantControls   = [PSCustomObject]@{
                             builtInControls = @("mfa")
                         }
                         sessionControls = [PSCustomObject]@{
                             signInFrequency = [PSCustomObject]@{
                                 isEnabled = $true
-                                value = 4
-                                type = "hours"
+                                value     = 4
+                                type      = "hours"
                             }
                         }
                     }
@@ -125,13 +128,13 @@ Describe "Test-Assessment-35001" {
         }
 
         It "Should fail when RMS explicitly included and NOT excluded" {
-             Mock Get-ZtConditionalAccessPolicy {
+            Mock Get-ZtConditionalAccessPolicy {
                 return @(
                     [PSCustomObject]@{
-                        id = "policy-block-rms"
+                        id          = "policy-block-rms"
                         displayName = "Block RMS Policy"
-                        state = "enabled"
-                        conditions = [PSCustomObject]@{
+                        state       = "enabled"
+                        conditions  = [PSCustomObject]@{
                             applications = [PSCustomObject]@{
                                 includeApplications = @("00000012-0000-0000-c000-000000000000")
                                 excludeApplications = @()
@@ -182,10 +185,10 @@ Describe "Test-Assessment-35001" {
             Mock Get-ZtConditionalAccessPolicy {
                 return @(
                     [PSCustomObject]@{
-                        id = "policy-disabled-block"
+                        id          = "policy-disabled-block"
                         displayName = "Disabled Block Policy"
-                        state = "disabled"
-                        conditions = [PSCustomObject]@{
+                        state       = "disabled"
+                        conditions  = [PSCustomObject]@{
                             applications = [PSCustomObject]@{
                                 includeApplications = @("00000012-0000-0000-c000-000000000000")
                                 excludeApplications = @()
