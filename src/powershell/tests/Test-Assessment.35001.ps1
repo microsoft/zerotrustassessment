@@ -75,7 +75,7 @@ function Test-Assessment-35001 {
         $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         foreach ($policy in $blockingPolicies) {
-            $policyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies/$($policy.id)"
+            $policyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
 
             # Grant Controls
             $grantControls = @()
