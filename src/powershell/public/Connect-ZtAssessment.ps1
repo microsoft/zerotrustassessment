@@ -166,9 +166,8 @@
 
 				$tenantParam = $TenantId
 				if (-not $tenantParam) {
-					$tenantVar = Get-Variable -Name 'contextTenantId' -ErrorAction SilentlyContinue
-					if ($tenantVar) {
-						$tenantParam = $tenantVar.Value
+					if ($contextTenantId) {
+						$tenantParam = $contextTenantId
 					}
 				}
 
@@ -359,8 +358,7 @@
 		$adminUrl = $SharePointAdminUrl
 		if (-not $adminUrl) {
 			# Try to infer from Graph context
-			$contextTenantIdValue = Get-Variable -Name contextTenantId -ErrorAction SilentlyContinue -ValueOnly
-			if ($contextTenantIdValue) {
+			if ($contextTenantId) {
 				try {
 					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
 					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
