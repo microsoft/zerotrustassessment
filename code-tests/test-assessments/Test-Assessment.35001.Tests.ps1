@@ -2,15 +2,7 @@ Describe "Test-Assessment-35001" {
     BeforeAll {
         $here = $PSScriptRoot
         $srcRoot = Join-Path $here "../../src/powershell"
-<#
-        # Import required module functions
-        @(
-            "private/core/Add-ZtTestResultDetail.ps1"
-            "private/core/Write-ZtProgress.ps1"
-            "private/core/Get-ZtTestStatus.ps1"
-            "private/core/Get-SafeMarkdown.ps1"
-        ) | ForEach-Object { . (Join-Path $srcRoot $_) }
-#>
+
         # Mock external module dependencies
         if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
             function Write-PSFMessage {}
