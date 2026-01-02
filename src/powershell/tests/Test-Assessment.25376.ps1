@@ -77,10 +77,10 @@ function Test-Assessment-25376 {
     $profileState = 'Not found'
     $profileName = 'N/A'
     if ($m365Profile -and $m365Profile.Count -gt 0) {
-        $profile = $m365Profile | Select-Object -First 1
-        $profileName = $profile.name
-        $profileState = $profile.state
-        $profileEnabled = ($profile.state -eq 'enabled')
+        $m365ProfileData = $m365Profile | Select-Object -First 1
+        $profileName = $m365ProfileData.name
+        $profileState = $m365ProfileData.state
+        $profileEnabled = ($m365ProfileData.state -eq 'enabled')
     }
 
     # Extract M365 transaction data
@@ -139,65 +139,73 @@ function Test-Assessment-25376 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = [System.Text.StringBuilder]::new()
+    $mdInfo = ''
 
     # Summary Section
-    [void]$mdInfo.AppendLine("`n## Summary`n")
-    [void]$mdInfo.AppendLine("| Metric | Value |")
-    [void]$mdInfo.AppendLine("| :--- | ---: |")
-    [void]$mdInfo.AppendLine("| Profile Enabled | $(if ($profileEnabled) { '✅ Yes' } else { '❌ No' }) |")
-    [void]$mdInfo.AppendLine("| M365 Transactions (7 days) | $($m365TotalCount.ToString('N0')) |")
-    [void]$mdInfo.AppendLine("| M365 Blocked Transactions | $($m365BlockedCount.ToString('N0')) |")
-    [void]$mdInfo.AppendLine("| Active Devices | $activeDeviceCount |")
-    [void]$mdInfo.AppendLine("| Total Devices | $totalDeviceCount |`n")
+    $mdInfo += "`n## Summary`n`n"
+    $mdInfo += "| Metric | Value |`n"
+    $mdInfo += "| :--- | ---: |`n"
+    $mdInfo += "| Profile Enabled | $(if ($profileEnabled) { '✅ Yes' } else { '❌ No' }) |`n"
+
+    # Only show transaction and device counts if profile is enabled
+    if ($profileEnabled) {
+        $mdInfo += "| M365 Transactions (7 days) | $($m365TotalCount.ToString('N0')) |`n"
+        $mdInfo += "| M365 Blocked Transactions | $($m365BlockedCount.ToString('N0')) |`n"
+        $mdInfo += "| Active Devices | $activeDeviceCount |`n"
+        $mdInfo += "| Total Devices | $totalDeviceCount |`n"
+    }
+    $mdInfo += "`n"
 
     # Traffic Forwarding Profile Section
-    [void]$mdInfo.AppendLine("`n## Traffic Forwarding Profile`n")
-    [void]$mdInfo.AppendLine("| Property | Value |")
-    [void]$mdInfo.AppendLine("| :--- | :--- |")
-    [void]$mdInfo.AppendLine("| Profile Name | $(Get-SafeMarkdown -Text $profileName) |")
-    [void]$mdInfo.AppendLine("| State | $profileState |")
-    [void]$mdInfo.AppendLine("| Traffic Type | m365 |`n")
+    $mdInfo += "`n## Traffic Forwarding Profile`n`n"
+    $mdInfo += "| Property | Value |`n"
+    $mdInfo += "| :--- | :--- |`n"
+    $mdInfo += "| Profile Name | $(Get-SafeMarkdown -Text $profileName) |`n"
+    $mdInfo += "| State | $profileState |`n"
+    $mdInfo += "| Traffic Type | m365 |`n`n"
 
-    # Transaction Summary Section
-    [void]$mdInfo.AppendLine("`n## Transaction Summary`n")
-    [void]$mdInfo.AppendLine("| Traffic Type | Total Count | Blocked Count |")
-    [void]$mdInfo.AppendLine("| :--- | ---: | ---: |")
-    if ($transactionSummary) {
-        foreach ($entry in $transactionSummary | Sort-Object trafficType) {
-            $total = [int]$entry.totalCount
-            $blocked = [int]$entry.blockedCount
-            [void]$mdInfo.AppendLine("| $($entry.trafficType) | $($total.ToString('N0')) | $($blocked.ToString('N0')) |")
+    # Only show transaction and device data if profile is enabled
+    if ($profileEnabled) {
+        # Transaction Summary Section
+        $mdInfo += "`n## Transaction Summary`n`n"
+        $mdInfo += "| Traffic Type | Total Count | Blocked Count |`n"
+        $mdInfo += "| :--- | ---: | ---: |`n"
+        if ($transactionSummary) {
+            foreach ($entry in $transactionSummary | Sort-Object trafficType) {
+                $total = [int]$entry.totalCount
+                $blocked = [int]$entry.blockedCount
+                $mdInfo += "| $($entry.trafficType) | $($total.ToString('N0')) | $($blocked.ToString('N0')) |`n"
+            }
+        } else {
+            $mdInfo += "| - | No data available | - |`n"
         }
-    } else {
-        [void]$mdInfo.AppendLine("| - | No data available | - |")
-    }
-    [void]$mdInfo.AppendLine()
-    [void]$mdInfo.AppendLine("*Evaluation Period: $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))*`n")
+        $mdInfo += "`n"
+        $mdInfo += "*Evaluation Period: $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))*`n`n"
 
-    # Device Usage Section
-    [void]$mdInfo.AppendLine("`n## Device Usage`n")
-    [void]$mdInfo.AppendLine("| Metric | Count |")
-    [void]$mdInfo.AppendLine("| :--- | ---: |")
-    [void]$mdInfo.AppendLine("| Total Devices | $totalDeviceCount |")
-    [void]$mdInfo.AppendLine("| Active Devices | $activeDeviceCount |")
-    [void]$mdInfo.AppendLine("| Inactive Devices | $inactiveDeviceCount |`n")
+        # Device Usage Section
+        $mdInfo += "`n## Device Usage`n`n"
+        $mdInfo += "| Metric | Count |`n"
+        $mdInfo += "| :--- | ---: |`n"
+        $mdInfo += "| Total Devices | $totalDeviceCount |`n"
+        $mdInfo += "| Active Devices | $activeDeviceCount |`n"
+        $mdInfo += "| Inactive Devices | $inactiveDeviceCount |`n`n"
+    }
 
     # Warnings Section
     if ($warnings.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## ⚠️ Warnings`n")
+        $mdInfo += "`n## ⚠️ Warnings`n`n"
         foreach ($warning in $warnings) {
-            [void]$mdInfo.AppendLine("- $warning")
+            $mdInfo += "- $warning`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
     # Portal Link
-    $portalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/TrafficForwardingBlade"
-    [void]$mdInfo.AppendLine("`n[$(Get-SafeMarkdown -Text 'View in Entra Portal: Traffic forwarding')]($portalLink)")
+    $portalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/ForwardingProfile.ReactView"
+    $mdInfo += "`n[$(Get-SafeMarkdown -Text 'View in Entra Portal: Traffic forwarding')]($portalLink)"
 
     # Replace placeholder with detailed information
-    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo.ToString()
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
