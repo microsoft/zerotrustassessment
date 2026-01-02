@@ -43,7 +43,8 @@ function Test-Assessment-25376 {
     # Query 3: Verify Microsoft 365 traffic forwarding profile is enabled
     $m365Profile = $null
     try {
-        $m365Profile = Invoke-ZtGraphRequest -RelativeUri "networkAccess/forwardingProfiles" -Filter "trafficForwardingType eq 'm365'" -ApiVersion beta
+        $allProfiles = Invoke-ZtGraphRequest -RelativeUri "networkAccess/forwardingProfiles" -ApiVersion beta
+        $m365Profile = $allProfiles | Where-Object { $_.trafficForwardingType -eq 'm365' }
     } catch {
         Write-PSFMessage "Unable to retrieve M365 forwarding profile: $_" -Level Warning
     }
