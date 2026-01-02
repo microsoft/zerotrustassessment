@@ -35,14 +35,8 @@ function Test-Assessment-25384 {
     Write-ZtProgress -Activity $activity -Status 'Getting role definition'
 
     # Query 1: Get Application Administrator role definition
-    $appAdminRole = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleDefinitions" -Filter "displayName eq 'Application Administrator'" -ApiVersion beta
+    $appAdminRoleId = Get-ZtRoleInfo -RoleName 'ApplicationAdministrator'
 
-    if (-not $appAdminRole) {
-        Add-ZtTestResultDetail -TestId '25384' -Status $false -Result "Unable to retrieve Application Administrator role definition."
-        return
-    }
-
-    $appAdminRoleId = $appAdminRole.id
     Write-ZtProgress -Activity $activity -Status 'Getting role assignments with principal details'
 
     # Query 2: Get Application Administrator role assignments with expanded principal (no nested $select)
@@ -73,30 +67,20 @@ function Test-Assessment-25384 {
 
     # Fetch service principals referenced in scoped assignments
     $uniqueSpIds = $spIds | Select-Object -Unique
-    if ($uniqueSpIds.Count -gt 0) {
-        $uniqueSpIds | ForEach-Object -Process {
-            try {
-                $sp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$_" -Select 'id,displayName,appId,appOwnerOrganizationId' -ApiVersion beta
-                if ($sp) { $spLookup[$sp.id] = $sp }
-            } catch {
-                Write-PSFMessage "Unable to resolve service principal $_" -Level Verbose
-            }
-        }
+
+    if ($uniqueSpIds) {
+        $sps = Invoke-ZtGraphBatchRequest -Path "servicePrincipals/{0}?`$select=id,displayName,appId,appOwnerOrganizationId" -ArgumentList $uniqueSpIds -ApiVersion beta
+        foreach ($sp in $sps) { $spLookup[$sp.id] = $sp }
     }
 
     # Fetch applications directly referenced in scoped assignments (app registrations)
     $uniqueAppIds = $appIds | Select-Object -Unique
-    if ($uniqueAppIds.Count -gt 0) {
-        $uniqueAppIds | ForEach-Object -Process {
-            try {
-                $app = Invoke-ZtGraphRequest -RelativeUri "applications/$_" -Select 'id,displayName,appId,tags,appOwnerOrganizationId' -ApiVersion beta
-                if ($app) {
-                    $appLookup[$app.id] = $app
-                    if ($app.appId) { $appLookup[$app.appId] = $app }
-                }
-            } catch {
-                Write-PSFMessage "Unable to resolve application $_" -Level Verbose
-            }
+
+       if ($uniqueAppIds) {
+        $apps = Invoke-ZtGraphBatchRequest -Path "applications/{0}?`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $uniqueAppIds -ApiVersion beta
+        foreach ($app in $apps) {
+            $appLookup[$app.id] = $app
+            if ($app.appId) { $appLookup[$app.appId] = $app }
         }
     }
 
@@ -118,19 +102,16 @@ function Test-Assessment-25384 {
     $spAppIds = @($spLookup.Values | Where-Object { $_.appId } | ForEach-Object { $_.appId }) | Select-Object -Unique
     $appIdsToFetch = $spAppIds | Where-Object { -not $paQaAppLookup.ContainsKey($_) -and -not $appLookup.ContainsKey($_) }
 
-    if ($appIdsToFetch.Count -gt 0) {
-        $appIdsToFetch | ForEach-Object -Process {
-            try {
-                $app = Invoke-ZtGraphRequest -RelativeUri "applications" -Filter "appId eq '$_'" -Select 'id,displayName,appId,tags,appOwnerOrganizationId' -ApiVersion beta
-                if ($app) {
-                    $appLookup[$app.id] = $app
-                    $appLookup[$app.appId] = $app
-                }
-            } catch {
-                Write-PSFMessage "Unable to resolve application by appId $_" -Level Verbose
+    if ($appIdsToFetch) {
+        $apps = Invoke-ZtGraphBatchRequest -Path "applications?`$filter=appId eq '{0}'&`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $appIdsToFetch -ApiVersion beta
+        foreach ($app in $apps) {
+            if ($app) {
+                $appLookup[$app.id] = $app
+                $appLookup[$app.appId] = $app
             }
         }
     }
+
     #endregion Data Collection
 
     #region Assessment Logic
