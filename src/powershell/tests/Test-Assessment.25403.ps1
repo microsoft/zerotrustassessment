@@ -83,9 +83,9 @@ function Test-Assessment-25403 {
         $mdInfo += "[Open Private Access in Entra Portal](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateAccessOverview.ReactView)`n`n"
 
         # Summary statistics
-        $mdInfo += "**Total sensors**: $($sensors.Count)`n"
-        $mdInfo += "**Active and enforcing**: $($enforcingSensors.Count)`n"
-        $mdInfo += "**Not enforcing**: $($nonEnforcingSensors.Count)`n`n"
+        $mdInfo += "- **Total sensors**: $($sensors.Count)`n"
+        $mdInfo += "- **Active and enforcing**: $($enforcingSensors.Count)`n"
+        $mdInfo += "- **Not enforcing**: $($nonEnforcingSensors.Count)`n`n"
 
         # Show warning for sensors not enforcing
         if ($nonEnforcingSensors.Count -gt 0) {
