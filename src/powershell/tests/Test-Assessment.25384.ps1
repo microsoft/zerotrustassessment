@@ -9,7 +9,7 @@
 .NOTES
     Test ID: 25384
     Category: Access control
-    Required API: roleManagement/directory (v1.0)
+    Required API: roleManagement/directory (beta)
 #>
 
 function Test-Assessment-25384 {
@@ -46,26 +46,12 @@ function Test-Assessment-25384 {
     Write-ZtProgress -Activity $activity -Status 'Getting role assignments with principal details'
 
     # Query 2: Get Application Administrator role assignments with expanded principal (no nested $select)
-    $assignments = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleAssignments?`$filter=roleDefinitionId eq '$appAdminRoleId'&`$expand=principal" -ApiVersion v1.0
+    $assignments = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleAssignments?`$filter=roleDefinitionId eq '$appAdminRoleId'&`$expand=principal" -ApiVersion beta
 
     # Default to empty array if no assignments found
     $assignments = $assignments ?? @()
 
-    Write-ZtProgress -Activity $activity -Status 'Resolving scoped applications'
-
-    # Query 4: Bulk fetch all Private Access and Quick Access apps by tags
-    $paQaAppLookup = @{}
-    try {
-        $paQuickAccessApps = Invoke-ZtGraphRequest -RelativeUri "applications" -Filter "(tags/any(t: t eq 'PrivateAccessNonWebApplication') or tags/any(t: t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags' -ApiVersion v1.0
-        foreach ($app in $paQuickAccessApps) {
-            if ($app.appId) { $paQaAppLookup[$app.appId] = $app }
-            if ($app.id) { $paQaAppLookup[$app.id] = $app }
-        }
-    } catch {
-        Write-PSFMessage "Unable to query Private Access/Quick Access apps by tags" -Level Verbose
-    }
-
-    # Collect scoped IDs in single pass
+    # Collect scoped IDs from assignments for Q3 resolution
     $spIds = @()
     $appIds = @()
     foreach ($assignment in $assignments) {
@@ -79,16 +65,18 @@ function Test-Assessment-25384 {
         }
     }
 
-    # Consolidate batch fetch logic for service principals and applications
+    Write-ZtProgress -Activity $activity -Status 'Resolving scoped service principals and applications'
+
+    # Query 3: Resolve scoped service principals and applications
     $spLookup = @{}
     $appLookup = @{}
 
-    # Batch fetch service principals
+    # Fetch service principals referenced in scoped assignments
     $uniqueSpIds = $spIds | Select-Object -Unique
     if ($uniqueSpIds.Count -gt 0) {
         $uniqueSpIds | ForEach-Object -Process {
             try {
-                $sp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$_" -Select 'id,displayName,appId' -ApiVersion v1.0
+                $sp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$_" -Select 'id,displayName,appId,appOwnerOrganizationId' -ApiVersion beta
                 if ($sp) { $spLookup[$sp.id] = $sp }
             } catch {
                 Write-PSFMessage "Unable to resolve service principal $_" -Level Verbose
@@ -96,20 +84,50 @@ function Test-Assessment-25384 {
         }
     }
 
-    # Collect all app IDs to fetch (from scoped apps + service principal appIds)
-    $allAppIds = @($appIds) + @($spLookup.Values | Where-Object { $_.appId } | ForEach-Object { $_.appId }) | Select-Object -Unique
-    $appIdsToFetch = $allAppIds | Where-Object { -not $paQaAppLookup.ContainsKey($_) }
+    # Fetch applications directly referenced in scoped assignments (app registrations)
+    $uniqueAppIds = $appIds | Select-Object -Unique
+    if ($uniqueAppIds.Count -gt 0) {
+        $uniqueAppIds | ForEach-Object -Process {
+            try {
+                $app = Invoke-ZtGraphRequest -RelativeUri "applications/$_" -Select 'id,displayName,appId,tags,appOwnerOrganizationId' -ApiVersion beta
+                if ($app) {
+                    $appLookup[$app.id] = $app
+                    if ($app.appId) { $appLookup[$app.appId] = $app }
+                }
+            } catch {
+                Write-PSFMessage "Unable to resolve application $_" -Level Verbose
+            }
+        }
+    }
+
+    Write-ZtProgress -Activity $activity -Status 'Detecting Private Access and Quick Access apps'
+
+    # Query 4: Detect Private Access / Quick Access apps via tags (bulk fetch)
+    $paQaAppLookup = @{}
+    try {
+        $paQuickAccessApps = Invoke-ZtGraphRequest -RelativeUri "applications" -Filter "(tags/any(t: t eq 'PrivateAccessNonWebApplication') or tags/any(t: t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags' -ApiVersion beta
+        foreach ($app in $paQuickAccessApps) {
+            if ($app.appId) { $paQaAppLookup[$app.appId] = $app }
+            if ($app.id) { $paQaAppLookup[$app.id] = $app }
+        }
+    } catch {
+        Write-PSFMessage "Unable to query Private Access/Quick Access apps by tags" -Level Verbose
+    }
+
+    # Fetch application details for service principals from Q3 (if not already in PA/QA lookup)
+    $spAppIds = @($spLookup.Values | Where-Object { $_.appId } | ForEach-Object { $_.appId }) | Select-Object -Unique
+    $appIdsToFetch = $spAppIds | Where-Object { -not $paQaAppLookup.ContainsKey($_) -and -not $appLookup.ContainsKey($_) }
 
     if ($appIdsToFetch.Count -gt 0) {
         $appIdsToFetch | ForEach-Object -Process {
             try {
-                $app = Invoke-ZtGraphRequest -RelativeUri "applications/$_" -Select 'id,displayName,appId,tags' -ApiVersion v1.0
+                $app = Invoke-ZtGraphRequest -RelativeUri "applications" -Filter "appId eq '$_'" -Select 'id,displayName,appId,tags,appOwnerOrganizationId' -ApiVersion beta
                 if ($app) {
                     $appLookup[$app.id] = $app
                     $appLookup[$app.appId] = $app
                 }
             } catch {
-                Write-PSFMessage "Unable to resolve application $_" -Level Verbose
+                Write-PSFMessage "Unable to resolve application by appId $_" -Level Verbose
             }
         }
     }
@@ -185,23 +203,24 @@ function Test-Assessment-25384 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = [System.Text.StringBuilder]::new()
+    $mdInfo = ''
 
     # Summary Section
-    [void]$mdInfo.AppendLine("`n## Summary`n")
-    [void]$mdInfo.AppendLine("| Metric | Count |")
-    [void]$mdInfo.AppendLine("| :--- | ---: |")
-    [void]$mdInfo.AppendLine("| Total Assignments | $($assignments.Count) |")
-    [void]$mdInfo.AppendLine("| Tenant-Wide Assignments | $($tenantWideAssignments.Count) |")
-    [void]$mdInfo.AppendLine("| Scoped Assignments | $($scopedAssignments.Count) |")
-    [void]$mdInfo.AppendLine("| Problematic Assignments | $($problematicAssignments.Count) |`n")
+    $mdInfo += "`n## Summary`n`n"
+    $mdInfo += "| Metric | Count |`n"
+    $mdInfo += "| :--- | ---: |`n"
+    $mdInfo += "| Total Assignments | $($assignments.Count) |`n"
+    $mdInfo += "| Tenant-Wide Assignments | $($tenantWideAssignments.Count) |`n"
+    $mdInfo += "| Scoped Assignments | $($scopedAssignments.Count) |`n"
+    $mdInfo += "| Problematic Assignments | $($problematicAssignments.Count) |`n`n"
 
-    # Application Administrator Assignments (Q2) - count and per-assignment details
-    [void]$mdInfo.AppendLine("`n## Application Administrator Assignments:`n")
-    [void]$mdInfo.AppendLine("- Count: $($assignments.Count)`n")
+    # Application Administrator Assignments
+    $mdInfo += "`n## Application Administrator Assignments:`n`n"
+    $mdInfo += "- Count: $($assignments.Count)`n`n"
+
     if ($assignments.Count -gt 0) {
-        [void]$mdInfo.AppendLine("| DirectoryScopeId | Principal DisplayName | UPN | AccountEnabled | Type | User Type |")
-        [void]$mdInfo.AppendLine("| :--- | :--- | :--- | :---: | :--- | :--- |")
+        $mdInfo += "| DirectoryScopeId | Principal DisplayName | UPN | AccountEnabled | Type | User Type |`n"
+        $mdInfo += "| :--- | :--- | :--- | :---: | :--- | :--- |`n"
         foreach ($rawA in $assignments) {
             $scope = $rawA.directoryScopeId
             $displayName = $rawA.principal.displayName
@@ -209,12 +228,12 @@ function Test-Assessment-25384 {
             $acctEnabled = if ($null -ne $rawA.principal.accountEnabled) { $rawA.principal.accountEnabled } else { '' }
             $pType = if ($rawA.principal.'@odata.type') { $rawA.principal.'@odata.type' -replace '#microsoft.graph.', '' } else { 'unknown' }
             $uType = $rawA.principal.userType
-            [void]$mdInfo.AppendLine("| $(Get-SafeMarkdown -Text $scope) | $(Get-SafeMarkdown -Text $displayName) | $upn | $acctEnabled | $pType | $uType |")
+            $mdInfo += "| $(Get-SafeMarkdown -Text $scope) | $(Get-SafeMarkdown -Text $displayName) | $upn | $acctEnabled | $pType | $uType |`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
-    # Scoped Apps (Q3/Q4, optional): discovered apps and tags
+    # Build map of all discovered apps for display
     $scopedAppsMap = @{ }
     foreach ($app in $paQaAppLookup.Values) {
         if ($app.appId) {
@@ -247,10 +266,11 @@ function Test-Assessment-25384 {
         }
     }
 
+    # Scoped Apps section
     if ($scopedAppsMap.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## Scoped Apps:`n")
-        [void]$mdInfo.AppendLine("| App DisplayName | appId / servicePrincipalId | Tags (includes PA/QA?) |")
-        [void]$mdInfo.AppendLine("| :--- | :--- | :--- |")
+        $mdInfo += "`n## Scoped Apps:`n`n"
+        $mdInfo += "| App DisplayName | appId / servicePrincipalId | Tags (includes PA/QA?) |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
         foreach ($app in $scopedAppsMap.Values) {
             $display = if ($app.displayName) {
                 $(Get-SafeMarkdown -Text $app.displayName)
@@ -274,69 +294,68 @@ function Test-Assessment-25384 {
             } else {
                 '❌'
             }
-            [void]$mdInfo.AppendLine("| $display | $id | $tags $paqa |")
+            $mdInfo += "| $display | $id | $tags $paqa |`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
     # Tenant-Wide Assignments
     if ($tenantWideAssignments.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## ❌ Tenant-Wide Assignments`n")
-        [void]$mdInfo.AppendLine("The following Application Administrator assignments have tenant-wide scope and should be constrained:`n")
-        [void]$mdInfo.AppendLine("| Principal | Type | User Type | Scope |")
-        [void]$mdInfo.AppendLine("| :--- | :--- | :--- | :--- |")
+        $mdInfo += "`n## ❌ Tenant-Wide Assignments`n`n"
+        $mdInfo += "The following Application Administrator assignments have tenant-wide scope and should be constrained:`n`n"
+        $mdInfo += "| Principal | Type | User Type | Scope |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
         foreach ($a in $tenantWideAssignments) {
             $principalName = if ($a.PrincipalUPN) { $a.PrincipalUPN } else { $a.PrincipalDisplayName }
-            [void]$mdInfo.AppendLine("| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $($a.UserType) | Tenant-wide (/) |")
+            $mdInfo += "| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $($a.UserType) | Tenant-wide (/) |`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
-    # Problematic Assignments (Groups, Service Principals, Guests)
+    # Problematic Assignments
     if ($problematicAssignments.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## ❌ Problematic Principal Assignments`n")
-        [void]$mdInfo.AppendLine("The following assignments use groups, service principals, or guest users:`n")
-        [void]$mdInfo.AppendLine("| Principal | Type | User Type | Scope |")
-        [void]$mdInfo.AppendLine("| :--- | :--- | :--- | :--- |")
+        $mdInfo += "`n## ❌ Problematic Principal Assignments`n`n"
+        $mdInfo += "The following assignments use groups, service principals, or guest users:`n`n"
+        $mdInfo += "| Principal | Type | User Type | Scope |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
         foreach ($a in $problematicAssignments) {
             $principalName = if ($a.PrincipalUPN) { $a.PrincipalUPN } else { $a.PrincipalDisplayName }
             $scope = if ($a.DirectoryScopeId -eq '/') { 'Tenant-wide (/)' } else { 'Scoped' }
-            [void]$mdInfo.AppendLine("| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $($a.UserType) | $scope |")
+            $mdInfo += "| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $($a.UserType) | $scope |`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
     # Scoped Assignments
     if ($scopedAssignments.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## ✅ Scoped Assignments`n")
-        [void]$mdInfo.AppendLine("The following Application Administrator assignments are scoped to specific applications:`n")
-        [void]$mdInfo.AppendLine("| Principal | Type | Application | PA/QA App |")
-        [void]$mdInfo.AppendLine("| :--- | :--- | :--- | :---: |")
+        $mdInfo += "`n## ✅ Scoped Assignments`n`n"
+        $mdInfo += "The following Application Administrator assignments are scoped to specific applications:`n`n"
+        $mdInfo += "| Principal | Type | Application | PA/QA App |`n"
+        $mdInfo += "| :--- | :--- | :--- | :---: |`n"
         foreach ($a in $scopedAssignments | Sort-Object PrincipalDisplayName) {
             $principalName = if ($a.PrincipalUPN) { $a.PrincipalUPN } else { $a.PrincipalDisplayName }
             $appName = if ($a.AppDisplayName) { $a.AppDisplayName } else { 'Unknown app' }
             $paIcon = if ($a.IsPAApp) { '✅' } else { '❌' }
-            [void]$mdInfo.AppendLine("| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $(Get-SafeMarkdown -Text $appName) | $paIcon |")
+            $mdInfo += "| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $(Get-SafeMarkdown -Text $appName) | $paIcon |`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
     # Warnings
     if ($warnings.Count -gt 0) {
-        [void]$mdInfo.AppendLine("`n## ⚠️ Warnings`n")
+        $mdInfo += "`n## ⚠️ Warnings`n`n"
         foreach ($warning in $warnings) {
-            [void]$mdInfo.AppendLine("- $warning")
+            $mdInfo += "- $warning`n"
         }
-        [void]$mdInfo.AppendLine()
+        $mdInfo += "`n"
     }
 
     # Portal Link
     $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/AllRolesBlade"
     $portalLinkText = Get-SafeMarkdown -Text "View in Entra Portal: Roles and administrators"
-    [void]$mdInfo.AppendLine("`n[$portalLinkText]($portalLink)")
+    $mdInfo += "`n[$portalLinkText]($portalLink)"
 
-    # Replace placeholder with detailed information
-    $testResultMarkdown = $mdInfo.ToString()
+    $testResultMarkdown = $mdInfo
     #endregion Report Generation
 
     $params = @{
