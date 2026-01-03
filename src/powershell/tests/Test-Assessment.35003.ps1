@@ -16,7 +16,7 @@ function Test-Assessment-35003 {
     [ZtTest(
         Category = 'sensitivity-labels',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('MIP_P1'),
+        MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = '',
