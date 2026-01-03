@@ -64,7 +64,10 @@ function Test-Assessment-35004 {
         $uniqueTargets = New-Object System.Collections.Generic.HashSet[string]
 
         foreach ($policy in $enabledPolicies) {
-            if ($policy.ExchangeLocation -contains "All" -or $policy.ModernGroupLocation -contains "All") {
+            if ($policy.ExchangeLocation  -contains "All" -or
+                $policy.ModernGroupLocation -contains "All" -or
+                $policy.SharePointLocation  -contains "All" -or
+                $policy.OneDriveLocation    -contains "All") {
                 $allUsersTargeted = $true
                 break
             }
