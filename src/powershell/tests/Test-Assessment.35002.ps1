@@ -21,7 +21,7 @@ function Test-Assessment-35002 {
     [ZtTest(
         Category = 'Entra',
         ImplementationCost = 'Low',
-        MinimumLicense = ('MIP_P2'),
+        MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = '',
