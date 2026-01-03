@@ -56,7 +56,8 @@ function ConvertFrom-QueryString {
 			$queryParameters = $inputString.Split('&')
 
 			foreach ($queryParameter in $queryParameters) {
-				$key, $value = $queryParameter.Split('=')
+				# Split only on the first '=' to handle nested OData queries that contain '=' in the value
+				$key, $value = $queryParameter.Split('=', 2)
 				if ($DecodeParameterNames) {
 					$key = [System.Net.WebUtility]::UrlDecode($key)
 				}
