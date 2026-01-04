@@ -35,7 +35,7 @@ Describe "Test-Assessment-35008" {
     }
 
     Context "When querying SharePoint tenant settings fails" {
-        It "Should return Investigate status" {
+        It "Should return Fail status with Investigate message" {
             Mock Get-SPOTenant { throw "Connection error" }
             Mock Add-ZtTestResultDetail {
                 param($TestId, $Title, $Status, $Result)
@@ -80,6 +80,26 @@ Describe "Test-Assessment-35008" {
             Mock Add-ZtTestResultDetail {
                 param($TestId, $Title, $Status, $Result)
                 "## Scenario: Default Labeling Enabled`n`n$Result`n" | Add-Content $script:outputFile
+            }
+
+            Test-Assessment-35008
+
+            Should -Invoke Add-ZtTestResultDetail -ParameterFilter {
+                $Status -eq $true -and $Result -match 'DisableDocumentLibraryDefaultLabeling: False'
+            }
+        }
+    }
+
+    Context "When Default Labeling is Null (Pass)" {
+        It "Should return Pass status" {
+            Mock Get-SPOTenant {
+                return [PSCustomObject]@{
+                    DisableDocumentLibraryDefaultLabeling = $null
+                }
+            }
+            Mock Add-ZtTestResultDetail {
+                param($TestId, $Title, $Status, $Result)
+                "## Scenario: Default Labeling Null`n`n$Result`n" | Add-Content $script:outputFile
             }
 
             Test-Assessment-35008
