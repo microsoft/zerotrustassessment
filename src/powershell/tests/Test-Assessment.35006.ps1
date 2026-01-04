@@ -79,7 +79,7 @@ function Test-Assessment-35006 {
         $enableSensitivityLabelforPDF = if ($null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF) { "True" } else { "False" }
         $testResultMarkdown += "* EnableSensitivityLabelforPDF: $enableSensitivityLabelforPDF`n"
 
-        $testResultMarkdown += "`n[Manage Information protection in SharePoint Admin Center](https://admin.microsoft.com/sharepoint?page=classicSettings&modern=true)`n"
+        $testResultMarkdown += "`n[Manage information protection in SharePoint Admin Center](https://admin.microsoft.com/sharepoint?page=classicSettings&modern=true)`n"
     }
     #endregion Report Generation
 
