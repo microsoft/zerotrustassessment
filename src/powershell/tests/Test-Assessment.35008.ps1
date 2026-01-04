@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    SPO Default Site Label (Tenant-Wide)
+    SPO Default Document Library Label (Tenant-Wide)
 
 .DESCRIPTION
     SharePoint document libraries support configuring default sensitivity labels that automatically apply baseline protection to new or edited files that lack existing labels or have lower-priority labels. When the tenant-level capability DisableDocumentLibraryDefaultLabeling is enabled (set to $true), organizations block site administrators from establishing automatic baseline classification for document libraries.
@@ -15,13 +15,13 @@ function Test-Assessment-35008 {
     [ZtTest(
         Category = 'SharePoint Online',
         ImplementationCost = 'Low',
-        MinimumLicense = ('MIP_P2'),
+        MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
         RiskLevel = 'Medium',
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35008,
-        Title = 'SPO Default Site Label (Tenant-Wide)',
+        Title = 'SPO Default Document Library Label (Tenant-Wide)',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -30,7 +30,7 @@ function Test-Assessment-35008 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking SPO Default Site Label Capability'
+    $activity = 'Checking SPO Default Document Library Label Capability'
     Write-ZtProgress -Activity $activity -Status 'Getting SharePoint Tenant Settings'
 
     $spoTenant = $null
@@ -83,7 +83,7 @@ function Test-Assessment-35008 {
 
     $testResultDetail = @{
         TestId             = '35008'
-        Title              = 'SPO Default Site Label (Tenant-Wide)'
+        Title              = 'SPO Default Document Library Label (Tenant-Wide)'
         Status             = $passed
         Result             = $testResultMarkdown
     }
