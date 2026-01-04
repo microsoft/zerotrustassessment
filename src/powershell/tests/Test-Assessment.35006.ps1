@@ -51,12 +51,7 @@ function Test-Assessment-35006 {
         $passed = $false
     }
     else {
-        if ($null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF -eq $true) {
-            $passed = $true
-        }
-        else {
-            $passed = $false
-        }
+        $passed = $null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF -eq $true
     }
     #endregion Assessment Logic
 
@@ -76,18 +71,18 @@ function Test-Assessment-35006 {
         $testResultMarkdown += "### SharePoint Online Configuration Summary`n`n"
         $testResultMarkdown += "**Tenant Settings:**`n"
 
-        $enableSensitivityLabelforPDF = if ($null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF) { "True" } else { "False" }
+        $enableSensitivityLabelforPDF = if ($null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF -eq $true) { "True" } else { "False" }
         $testResultMarkdown += "* EnableSensitivityLabelforPDF: $enableSensitivityLabelforPDF`n"
 
         $testResultMarkdown += "`n[Manage information protection in SharePoint Admin Center](https://admin.microsoft.com/sharepoint?page=classicSettings&modern=true)`n"
     }
     #endregion Report Generation
 
-    $testResultDetail = @{
+    $params = @{
         TestId             = '35006'
         Title              = 'PDF Labeling Support in SharePoint Online'
         Status             = $passed
         Result             = $testResultMarkdown
     }
-    Add-ZtTestResultDetail @testResultDetail
+    Add-ZtTestResultDetail @params
 }
