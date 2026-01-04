@@ -3,7 +3,7 @@
     Information Rights Management (IRM) Enabled in SharePoint Online
 
 .DESCRIPTION
-    Information Rights Management (IRM) integration in SharePoint Online libraries is a legacy feature that has been replaced by Enhanced SharePoint Permisionss (ESP). Any library using this legacy capabilitiy should be flagged to move to newer capabilities.
+    Information Rights Management (IRM) integration in SharePoint Online libraries is a legacy feature that has been replaced by Enhanced SharePoint Permissions (ESP). Any library using this legacy capabilitiy should be flagged to move to newer capabilities.
 
 .NOTES
     Test ID: 35007
