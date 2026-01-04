@@ -83,11 +83,11 @@ function Test-Assessment-35005 {
     }
     #endregion Report Generation
 
-    $testResultDetail = @{
+    $params = @{
         TestId             = '35005'
         Title              = 'Sensitivity Labels Enabled in SharePoint Online'
         Status             = $passed
         Result             = $testResultMarkdown
     }
-    Add-ZtTestResultDetail @testResultDetail
+    Add-ZtTestResultDetail @params
 }
