@@ -89,4 +89,20 @@ Describe "Test-Assessment-35006" {
             }
         }
     }
+
+    Context "When Get-SPOTenant returns null" {
+        It "Should return Fail status" {
+            Mock Get-SPOTenant { return $null }
+            Mock Add-ZtTestResultDetail {
+                param($TestId, $Title, $Status, $Result)
+                "## Scenario: Get-SPOTenant returns null`n`n$Result`n" | Add-Content $script:outputFile
+            }
+
+            Test-Assessment-35006
+
+            Should -Invoke Add-ZtTestResultDetail -ParameterFilter {
+                $Status -eq $false -and $Result -match 'EnableSensitivityLabelforPDF: False'
+            }
+        }
+    }
 }
