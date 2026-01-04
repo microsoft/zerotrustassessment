@@ -1,4 +1,4 @@
-SharePoint Online and OneDrive for Business require explicit enablement of sensitivity label integration to allow users to apply Microsoft Information Protection labels to files stored in these services. When `EnableAIPIntegration` is disabled, organizations lose the ability to classify and protect documents at rest in their primary collaboration platform. The contant is opaque to SharePoint capabilities and Purview services like eDiscovery is not available.
+SharePoint Online and OneDrive for Business require explicit enablement of sensitivity label integration to allow users to apply Microsoft Information Protection labels to files stored in these services. When `EnableAIPIntegration` is disabled, organizations lose the ability to classify and protect documents at rest in their primary collaboration platform. The content is opaque to SharePoint capabilities and Purview services like eDiscovery is not available.
 
 **Remediation action**
 
