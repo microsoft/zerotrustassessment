@@ -76,7 +76,7 @@ function Test-Assessment-35006 {
         $testResultMarkdown += "### SharePoint Online Configuration Summary`n`n"
         $testResultMarkdown += "**Tenant Settings:**`n"
 
-        $enableSensitivityLabelforPDF = if ($spoTenant.EnableSensitivityLabelforPDF) { "True" } else { "False" }
+        $enableSensitivityLabelforPDF = if ($null -ne $spoTenant -and $spoTenant.EnableSensitivityLabelforPDF) { "True" } else { "False" }
         $testResultMarkdown += "* EnableSensitivityLabelforPDF: $enableSensitivityLabelforPDF`n"
 
         $testResultMarkdown += "`n[Manage Information protection in SharePoint Admin Center](https://admin.microsoft.com/sharepoint?page=classicSettings&modern=true)`n"
