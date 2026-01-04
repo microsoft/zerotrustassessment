@@ -51,7 +51,7 @@ function Test-Assessment-35007 {
         $passed = $false
     }
     else {
-        $passed = $null -ne $spoTenant -and $spoTenant.IrmEnabled -eq $true
+        $passed = $null -ne $spoTenant -and $spoTenant.IrmEnabled -ne $true
     }
     #endregion Assessment Logic
 
@@ -78,11 +78,11 @@ function Test-Assessment-35007 {
     }
     #endregion Report Generation
 
-    $testResultDetail = @{
+    $params = @{
         TestId             = '35007'
         Title              = 'Information Rights Management (IRM) Enabled in SharePoint Online'
         Status             = $passed
         Result             = $testResultMarkdown
     }
-    Add-ZtTestResultDetail @testResultDetail
+    Add-ZtTestResultDetail @params
 }
