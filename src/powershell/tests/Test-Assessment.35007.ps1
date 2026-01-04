@@ -15,7 +15,7 @@ function Test-Assessment-35007 {
     [ZtTest(
         Category = 'SharePoint Online',
         ImplementationCost = 'Low',
-        MinimumLicense = ('MIP_P1'),
+        MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'Low',
         SfiPillar = '',
@@ -51,12 +51,7 @@ function Test-Assessment-35007 {
         $passed = $false
     }
     else {
-        if ($null -ne $spoTenant -and $spoTenant.IrmEnabled -eq $true) {
-            $passed = $false
-        }
-        else {
-            $passed = $true
-        }
+        $passed = $null -ne $spoTenant -and $spoTenant.IrmEnabled -eq $true
     }
     #endregion Assessment Logic
 
@@ -76,7 +71,7 @@ function Test-Assessment-35007 {
         $testResultMarkdown += "### SharePoint Online Configuration Summary`n`n"
         $testResultMarkdown += "**Tenant Settings:**`n"
 
-        $irmEnabled = if ($spoTenant.IrmEnabled) { "True" } else { "False" }
+        $irmEnabled = if ($null -ne $spoTenant -and $spoTenant.IrmEnabled -eq $true) { "True" } else { "False" }
         $testResultMarkdown += "* IrmEnabled: $irmEnabled`n"
 
         $testResultMarkdown += "`n[Manage Information Rights Management (IRM) in SharePoint Admin Center](https://admin.microsoft.com/sharepoint?page=classicSettings&modern=true)`n"
