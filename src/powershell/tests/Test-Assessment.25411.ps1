@@ -76,7 +76,7 @@ function Test-Assessment-25411 {
     # Iterate each TLS inspection policy and find linked profiles
     foreach ($tlsPolicy in $tlsInspectionPolicies) {
         $tlsId = $tlsPolicy.id
-        $baselineProfileFound = $false
+        $baseLineProfileFound = $false
         foreach ($profileItem in $filteringProfiles) {
             $profilePolicies = @()
             if ($null -ne $profileItem.policies) {
