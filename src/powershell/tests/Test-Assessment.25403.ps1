@@ -108,7 +108,7 @@ function Test-Assessment-25403 {
         }
 
         $mdInfo += @'
-| Machine name | status | Audit mode | version | external IP |
+| Machine name | Status | Audit mode | Version | External IP |
 | :----------- | :----- | :--------- | :------ | :---------- |
 {0}
 
