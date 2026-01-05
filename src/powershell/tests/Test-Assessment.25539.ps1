@@ -1,13 +1,24 @@
+<#
+.SYNOPSIS
+    Validates Intrusion Detection is Enabled in Deny Mode on Azure Firewall.
+.DESCRIPTION
+    This test validates that Azure Firewall Policies have Intrusion Detection enabled in Deny mode.
+    Checks all firewall policies in the subscription and reports their intrusion detection status.
+.NOTES
+    Test ID: 25539
+    Category: Azure Network Security
+    Required API: Azure Firewall Policies
+#>
 
 function Test-Assessment-25539 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Azure Firewall Premium SKU'),
+        MinimumLicense = ('Azure_Firewall_Premium'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
+        TenantType = ('Workforce'),
         TestId = 25539,
         Title = 'IDPS Inspection is Enabled in Deny Mode on Azure Firewall',
         UserImpact = 'Low'
@@ -17,153 +28,119 @@ function Test-Assessment-25539 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if ((Get-MgContext).Environment -ne 'Global') {
-        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
-        return
-    }
-    #region Azure Connection Verification
-    try {
-        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-    }
-    catch [Management.Automation.CommandNotFoundException] {
-        Write-PSFMessage $_.Exception.Message -Tag Test  -Level Error
-    }
-
-    if (-not $accessToken) {
-        Write-PSFMessage "Azure authentication token not found." -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
-    }
-    #endregion Azure Connection Verification
-
     #region Data Collection
-    $firewallPolicies = @()
-    $azAccessToken = ($accessToken.Token)
-    $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
+    Write-ZtProgress `
+        -Activity 'Azure Firewall Intrusion Detection' `
+        -Status 'Enumerating Firewall Policies'
+
     $subscriptions = Get-AzSubscription
+    $results = @()
     foreach ($sub in $subscriptions) {
-        Set-AzContext -SubscriptionId $sub.Id | Out-Null
-        $subId = $sub.Id
+        $contextSet = Set-AzContext -SubscriptionId $sub.Id -ErrorAction SilentlyContinue
 
-        $listUri = $resourceManagementUrl.TrimEnd('/') + "/subscriptions/$subId/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
-
-        try {
-            $listResponse = Invoke-WebRequest -Uri $listUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
-        }
-        catch {
-            if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like "*403*" -or $_.Exception.Message -like "*Forbidden*") {
-                Write-PSFMessage "The signed in user does not have access to the Azure subscription to enumerate firewall policies." -Tag Test -Level Verbose
-                Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-                return
-            }
-            else {
-                throw
-            }
+        if (-not $contextSet) {
+            Write-PSFMessage "Unable to set context for subscription $($sub.Id). Skipping." -Tag Firewall -Level Verbose
+            continue
         }
 
-        $policies = $listResponse.Content | ConvertFrom-Json
-        $policyItems = @()
-        if ($policies.value) {
-            $policyItems = $policies.value
+        # Get all firewall policies in the current subscription
+        $policies = $null
+        $policies = Get-AzResource -ResourceType 'Microsoft.Network/firewallPolicies' -ErrorAction SilentlyContinue
+
+        if (-not $policies) {
+            continue
         }
 
+        foreach ($policyResource in $policies) {
+            $policy = Get-AzFirewallPolicy `
+                -Name $policyResource.Name `
+                -ResourceGroupName $policyResource.ResourceGroupName `
+                -ErrorAction SilentlyContinue
 
-        foreach ($policy in $policyItems) {
-            # fetch full details to inspect intrusionDetection and sku
-            $detailUri = $resourceManagementUrl.TrimEnd('/') + "$($policy.id)?api-version=2025-03-01"
-            try {
-                $detailResp = Invoke-WebRequest -Uri $detailUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
-                $detail = $detailResp.Content | ConvertFrom-Json
-            }
-            catch {
-                Write-PSFMessage "Unable to retrieve details for $($policy.name): $($_.Exception.Message)" -Tag Test -Level Warning
+            if (-not $policy) {
                 continue
             }
 
-            $policyObj = [PSCustomObject]@{
-                Name                   = $detail.name
-                Id                     = $detail.id
-                IntrusionDetectionMode = if ($detail.properties.intrusionDetection -and $detail.properties.intrusionDetection.mode) {
-                    $detail.properties.intrusionDetection.mode
-                }
-                SubscriptionName       = $sub.Name
-                SubscriptionId         = $subId
+            # Skip if SKU tier is not Premium
+            if ($policy.Sku.Tier -ne 'Premium') {
+                Write-PSFMessage "Firewall policy '$($policy.Name)' does not have Premium SKU. Skipping." -Tag Firewall -Level Verbose
+                continue
             }
-            $firewallPolicies += $policyObj
-        }
 
-        $nonCompliant = $firewallPolicies | Where-Object { $_.IntrusionDetectionMode -notin @('Deny') }
+            $subContext = Get-AzContext
+
+            # Get the intrusion detection mode (handle both nested object and string property)
+            $idMode = $null
+            if ($null -ne $policy.IntrusionDetection) {
+                if ($policy.IntrusionDetection -is [string]) {
+                    $idMode = $policy.IntrusionDetection
+                }
+                elseif ($policy.IntrusionDetection.Mode) {
+                    $idMode = $policy.IntrusionDetection.Mode
+                }
+            }
+
+            # Default to 'Off' if mode cannot be determined
+            if ([string]::IsNullOrEmpty($idMode)) {
+                $idMode = 'Off'
+            }
+
+            $status = if ($idMode -eq 'Deny') {
+                'Pass'
+            }
+            else {
+                'Fail'
+            }
+
+            # Map intrusion detection mode to user-friendly display values
+            $detectionModeDisplay = switch ($idMode) {
+                'Deny' { 'Alert and Deny' }
+                'Alert' { 'Alert Only' }
+                'Off' { 'Disabled' }
+                default { $idMode }
+            }
+
+            $results += [PSCustomObject]@{
+                PolicyName             = $policy.Name
+                ResourceGroup          = $policy.ResourceGroupName
+                SubscriptionName       = $subContext.Subscription.Name
+                SubscriptionId         = $subContext.Subscription.Id
+                IntrusionDetectionMode = $detectionModeDisplay
+                Status                 = $status
+            }
+        }
     }
     #endregion Data Collection
 
-    #region Assessment Logic
-    $passed = $false
-    $testResultMarkdown = ''
-
-    # Check if no firewall policies exist
-    if ($firewallPolicies.Count -eq 0) {
-        Write-Debug "No firewall policies found in the subscription."
-        Write-Warning "No firewall policies found in the subscription."
-        Write-Host "No firewall policies found in the subscription."
-        Write-PSFMessage "No firewall policies found in the subscription." -Tag Stage -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NoResults
+    #region Assessment Logic Evaluation
+    if (-not $results) {
+        Write-PSFMessage 'No Azure Firewall policies found. Skipping test.' -Tag Firewall -Level Verbose
         return
     }
-
-    $passed = ($nonCompliant.Count -eq 0)
-
-    if ($passed) {
-        $testResultMarkdown = "Intrusion Detection is enabled in 'Deny' mode for all Azure Firewall policies.`n`n%TestResult%"
-    }
     else {
-        $testResultMarkdown = "Azure Firewall policies are not configured with IDPS 'Deny' mode.`n`n%TestResult%"
-    }
-    #endregion Assessment Logic
+        # Check if all policies have Pass status (Intrusion Detection in Deny mode)
+        $passedPolicies = $results | Where-Object { $_.Status -eq 'Pass' }
+        $passed = ($passedPolicies.Count -eq $results.Count)
 
-    #region Result Reporting
-    $mdInfo = ''
+        # --- Markdown Table ---
+        $mdInfo = "## Firewall Policies`n`n"
+        $mdInfo += "| Check Name | Policy Name | Subscription Name | Subscription id | Status |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- | :---: |`n"
 
-    # Create mapping for IntrusionDetectionMode to UI labels
-    $modeMapping = @{
-        'Off'   = 'Disabled'
-        'Alert' = 'Alert'
-        'Deny'  = 'Alert and deny'
-    }
-
-    # Display table based on test result
-    if ($passed) {
-        # Show all policies with checkmarks when passed
-        $mdInfo = "## Firewall policy IDPS status`n`n"
-        $mdInfo += "| Name | Intrusion Detection Mode |`n"
-        $mdInfo += "| :--- | :--- |`n"
-
-        foreach ($item in $firewallPolicies | Sort-Object Name) {
-            $policyLink = "https://portal.azure.com/#@/resource$($item.Id)"
-            $displayMode = $modeMapping[$item.IntrusionDetectionMode]
-            $safePolicyName = Get-SafeMarkdown -Text $item.Name
-            $mdInfo += "| ✅ [$safePolicyName]($policyLink) | $displayMode |`n"
+        $checkName = 'IDPS Inspection is Enabled in Deny Mode on Azure Firewall'
+        $uniqueResults = $results | Group-Object -Property PolicyName, SubscriptionId | ForEach-Object { $_.Group[0] }
+        foreach ($item in $uniqueResults | Sort-Object SubscriptionId, PolicyName) {
+            $mdInfo += "| $checkName | $($item.PolicyName) | $($item.SubscriptionName) | $($item.SubscriptionId) | $($item.Status) |`n"
         }
-    }
-    else {
-        # Show only non-compliant policies when failed
-        $mdInfo = "## Firewall policies without 'Alert and deny' mode`n`n"
-        $mdInfo += "| Name | Intrusion Detection Mode |`n"
-        $mdInfo += "| :--- | :--- |`n"
 
-        foreach ($item in $nonCompliant | Sort-Object Name) {
-            $policyLink = "https://portal.azure.com/#@/resource$($item.Id)"
-            $displayMode = $modeMapping[$item.IntrusionDetectionMode]
-            $safePolicyName = Get-SafeMarkdown -Text $item.Name
-            $mdInfo += "| ❌ [$safePolicyName]($policyLink) | $displayMode |`n"
-        }
-    }
+        #endregion Assessment Logic Evaluation
 
-    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
-    $params = @{
-        TestId = '25539'
-        Status = $passed
-        Result = $testResultMarkdown
+        #region Report Generation
+        Add-ZtTestResultDetail `
+            -TestId '25539' `
+            -Title 'IDPS Inspection is Enabled in Deny Mode on Azure Firewall' `
+            -Status $passed `
+            -Result $mdInfo
+        #endregion Report Generation
     }
-    #endregion Result Reporting
-    Add-ZtTestResultDetail @params
 }
