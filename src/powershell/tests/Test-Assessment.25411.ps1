@@ -21,6 +21,9 @@ function Test-Assessment-25411 {
     [CmdletBinding()]
     param()
 
+    # Define constants
+    [int]$BASELINE_PROFILE_PRIORITY = 65000
+
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -41,6 +44,27 @@ function Test-Assessment-25411 {
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
     $allCAPolicies = Get-ZtConditionalAccessPolicy
 
+    # Build CA profile lookup for O(1) access instead of O(N) search per profile
+    Write-ZtProgress -Activity $activity -Status 'Building Conditional Access policy lookup'
+    $caProfileLookup = @{}
+    foreach ($cap in $allCAPolicies) {
+        $session = $cap.sessionControls
+        if ($null -ne $session -and $null -ne $session.globalSecureAccessFilteringProfile) {
+            $sessionProfileId = $session.globalSecureAccessFilteringProfile.profileId
+            $sessionEnabled = $session.globalSecureAccessFilteringProfile.isEnabled
+
+            if ($sessionEnabled -eq $true -and $cap.state -eq 'enabled') {
+                if (-not $caProfileLookup.ContainsKey($sessionProfileId)) {
+                    $caProfileLookup[$sessionProfileId] = @()
+                }
+                $caProfileLookup[$sessionProfileId] += [PSCustomObject]@{
+                    Id          = $cap.id
+                    DisplayName = $cap.displayName
+                    State       = $cap.state
+                }
+            }
+        }
+    }
 
     #endregion Data Collection
 
@@ -87,11 +111,11 @@ function Test-Assessment-25411 {
                         $null
                     }
 
-                    if ($priority -eq 65000) {
+                    if ($priority -eq $BASELINE_PROFILE_PRIORITY) {
                         # Baseline Profile: apply without CA
 
                         if ($linkState -eq 'enabled' -and $profileState -eq 'enabled') {
-                            $baselineProfileFound = $true
+                            $baseLineProfileFound = $true
                             $enabledBaseLineProfiles += [PSCustomObject]@{
                                 ProfileId          = $profileItem.id
                                 ProfileName        = $profileItem.name
@@ -103,23 +127,12 @@ function Test-Assessment-25411 {
                             }
                             break
                         }
-                    } elseif ($null -ne $priority -and $priority -lt 65000) {
+                    } elseif ($null -ne $priority -and $priority -lt $BASELINE_PROFILE_PRIORITY) {
                         # Security Profile: must be applied via Conditional Access
                         # Validate CA policies reference this profile via sessionControls
                         $matchedCAPolicies = @()
-                        foreach ($cap in $allCAPolicies) {
-                            $session = $cap.sessionControls
-                            if ($null -ne $session -and $null -ne $session.globalSecureAccessFilteringProfile) {
-                                $sessionProfileId = $session.globalSecureAccessFilteringProfile.profileId
-                                $sessionEnabled = $session.globalSecureAccessFilteringProfile.isEnabled
-                                if ($sessionProfileId -eq $profileItem.id -and $sessionEnabled -eq $true -and $cap.state -eq 'enabled') {
-                                    $matchedCAPolicies += [PSCustomObject]@{
-                                        Id          = $cap.id
-                                        DisplayName = $cap.displayName
-                                        State       = $cap.state
-                                    }
-                                }
-                            }
+                        if ($caProfileLookup.ContainsKey($profileItem.id)) {
+                            $matchedCAPolicies = $caProfileLookup[$profileItem.id]
                         }
 
                         if ($matchedCAPolicies.Count -gt 0 -and $profileState -eq 'enabled' -and $linkState -eq 'enabled') {
@@ -146,7 +159,7 @@ function Test-Assessment-25411 {
                     }
                 }
             }
-            if ($baselineProfileFound) {
+            if ($baseLineProfileFound) {
                 break
             }
         }
@@ -188,12 +201,12 @@ function Test-Assessment-25411 {
         foreach ($policy in $enabledBaseLineProfiles) {
             $baseLineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.ProfileId))"
             $tlsPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditTlsInspectionPolicyMenuBlade.MenuView/~/basics/policyId/$(($policy.TLSPolicyId))"
-            $ProfileName = Get-SafeMarkdown -Text $policy.ProfileName
-            $ProfilePriority = $policy.ProfilePriority
+            $profileName = Get-SafeMarkdown -Text $policy.ProfileName
+            $profilePriority = $policy.ProfilePriority
             $tlsPolicyName = Get-SafeMarkdown -Text $policy.TLSPolicyName
             $tlsPolicyLinkState = $policy.TLSPolicyLinkState
-            $ProfileState = $policy.ProfileState
-            $mdInfo += "| [$ProfileName]($baseLineProfilePortalLink) | $ProfilePriority | [$tlsPolicyName]($tlsPolicyPortalLink) | $tlsPolicyLinkState | $ProfileState |`n"
+            $profileState = $policy.ProfileState
+            $mdInfo += "| [$profileName]($baseLineProfilePortalLink) | $profilePriority | [$tlsPolicyName]($tlsPolicyPortalLink) | $tlsPolicyLinkState | $profileState |`n"
         }
     }
 
@@ -204,8 +217,8 @@ function Test-Assessment-25411 {
         foreach ($enabledProfile in $enabledSecurityProfiles) {
             $securityProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($enabledProfile.ProfileId))"
             $tlsPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditTlsInspectionPolicyMenuBlade.MenuView/~/basics/policyId/$(($enabledProfile.TLSPolicyId))"
-            $ProfileName = Get-SafeMarkdown -Text $enabledProfile.ProfileName
-            $ProfilePriority = $enabledProfile.ProfilePriority
+            $profileName = Get-SafeMarkdown -Text $enabledProfile.ProfileName
+            $profilePriority = $enabledProfile.ProfilePriority
             # Build CA policy links
             $caNames = $enabledProfile.CAPolicyNames -split ', '
             $caIds = $enabledProfile.CAPolicyIds -split ', '
@@ -217,10 +230,10 @@ function Test-Assessment-25411 {
             }
             $caPolicyNamesLinked = $caPolicyLinksMarkdown -join ', '
             $caPolicyStates = Get-SafeMarkdown -Text $enabledProfile.CAPolicyStates
-            $ProfileState = $enabledProfile.ProfileState
-            $TlsPolicyName = Get-SafeMarkdown -Text $enabledProfile.TLSPolicyName
-            $DefaultAction = $enabledProfile.DefaultAction
-            $mdInfo += "| [$ProfileName]($securityProfilePortalLink) | $ProfilePriority | $caPolicyNamesLinked | $caPolicyStates | $ProfileState | [$TlsPolicyName]($tlsPolicyPortalLink) | $DefaultAction |`n"
+            $profileState = $enabledProfile.ProfileState
+            $tlsPolicyName = Get-SafeMarkdown -Text $enabledProfile.TLSPolicyName
+            $defaultAction = $enabledProfile.DefaultAction
+            $mdInfo += "| [$profileName]($securityProfilePortalLink) | $profilePriority | $caPolicyNamesLinked | $caPolicyStates | $profileState | [$tlsPolicyName]($tlsPolicyPortalLink) | $defaultAction |`n"
         }
     }
 
