@@ -144,9 +144,7 @@ function Test-Assessment-25411 {
                                 TLSPolicyId        = $tlsId
                                 TLSPolicyName      = $plink.policy.name
                                 TLSPolicyLinkState = $linkState
-                                CAPolicyNames      = ($matchedCAPolicies | Select-Object -ExpandProperty DisplayName) -join ', '
-                                CAPolicyIds        = ($matchedCAPolicies | Select-Object -ExpandProperty Id) -join ', '
-                                CAPolicyStates     = ($matchedCAPolicies | Select-Object -ExpandProperty State) -join ', '
+                                MatchedCAPolicies  = $matchedCAPolicies
                                 CAPolicyCount      = $matchedCAPolicies.Count
                                 DefaultAction      = if ($null -ne $tlsPolicy.settings) {
                                     $tlsPolicy.settings.defaultAction
@@ -220,16 +218,16 @@ function Test-Assessment-25411 {
             $profileName = Get-SafeMarkdown -Text $enabledProfile.ProfileName
             $profilePriority = $enabledProfile.ProfilePriority
             # Build CA policy links
-            $caNames = $enabledProfile.CAPolicyNames -split ', '
-            $caIds = $enabledProfile.CAPolicyIds -split ', '
             $caPolicyLinksMarkdown = @()
-            for ($i = 0; $i -lt $caNames.Count; $i++) {
-                $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Intune_Actions/ConditionalAccessBlade/~/Policies/$($caIds[$i].Trim())"
-                $safeName = Get-SafeMarkdown -Text $caNames[$i]
+            $caPolicyStatesList = @()
+            foreach ($caPolicy in $enabledProfile.MatchedCAPolicies) {
+                $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.Id)"
+                $safeName = Get-SafeMarkdown -Text $caPolicy.DisplayName
                 $caPolicyLinksMarkdown += "[$safeName]($caPolicyPortalLink)"
+                $caPolicyStatesList += $caPolicy.State
             }
             $caPolicyNamesLinked = $caPolicyLinksMarkdown -join ', '
-            $caPolicyStates = Get-SafeMarkdown -Text $enabledProfile.CAPolicyStates
+            $caPolicyStates = $caPolicyStatesList -join ', '
             $profileState = $enabledProfile.ProfileState
             $tlsPolicyName = Get-SafeMarkdown -Text $enabledProfile.TLSPolicyName
             $defaultAction = $enabledProfile.DefaultAction
