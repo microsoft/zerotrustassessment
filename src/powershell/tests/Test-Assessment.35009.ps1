@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-
+Checks whether co-authoring is enabled for encrypted documents with sensitivity labels.
 #>
 
 function Test-Assessment-35009 {
