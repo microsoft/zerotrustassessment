@@ -34,9 +34,12 @@ function Test-Assessment-25409 {
     $activity = 'Checking Web Content Filtering Policies'
     Write-ZtProgress -Activity $activity -Status 'Getting filtering profiles'
 
-    # Q1: Retrieve all filtering profiles with their linked policies
-    # Note: Simple expand only - PowerShell SDK cannot handle nested OData expansions
-    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles?$expand=policies' -ApiVersion beta
+    # Q1: Retrieve all filtering profiles with their linked policies including nested policy details
+    # Note: Using QueryParameters hashtable to properly handle nested OData expansion
+    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
+        '$select' = 'id,name,priority'
+        '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version))'
+    } -ApiVersion beta
 
     # Check if any profiles exist
     if (-not $filteringProfiles -or $filteringProfiles.Count -eq 0) {
@@ -57,9 +60,10 @@ function Test-Assessment-25409 {
     $securityProfilePolicies = @()
     $allPoliciesWithWebCategory = @()
 
-    # Separate baseline and security profiles
-    $baselineProfile = $filteringProfiles | Where-Object { $_.name -eq 'Baseline Profile' }
-    $securityProfiles = $filteringProfiles | Where-Object { $_.name -ne 'Baseline Profile' }
+    # Separate baseline and security profiles based on priority
+    # Priority 65000 = Baseline Profile, Priority < 65000 = Security Profile
+    $baselineProfile = $filteringProfiles | Where-Object { $_.priority -eq 65000 }
+    $securityProfiles = $filteringProfiles | Where-Object { $_.priority -lt 65000 }
 
     Write-ZtProgress -Activity $activity -Status 'Checking baseline profile policies'
 
@@ -91,17 +95,13 @@ function Test-Assessment-25409 {
     # Q2: Check baseline profile policies for webCategory rules
     $baselineHasWebCategory = $false
     foreach ($policyLink in $baselineProfilePolicies) {
-        # Query policy link to get nested policy object (workaround for PowerShell SDK limitations)
-        $policyLinkId = $policyLink.id
-        $policyLinkDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringProfiles/$($baselineProfile.id)/policies/$policyLinkId" -ApiVersion beta
-
         # Skip "All websites" default policy
-        if ($policyLinkDetails.policy.name -eq 'All websites') {
+        if ($policyLink.policy.name -eq 'All websites') {
             continue
         }
 
         # Get policy details with rules using the policy ID (per spec Q2)
-        $policyId = $policyLinkDetails.policy.id
+        $policyId = $policyLink.policy.id
         $policyDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringPolicies/$policyId`?`$select=id,name,version&`$expand=policyRules" -ApiVersion beta
 
         $webCategoryRules = $policyDetails.policyRules | Where-Object { $_.ruleType -eq 'webCategory' }
@@ -132,17 +132,13 @@ function Test-Assessment-25409 {
     # Q3: Check security profile policies for webCategory rules
     $securityProfilesWithWebCategory = @()
     foreach ($profilePolicy in $securityProfilePolicies) {
-        # Query policy link to get nested policy object (workaround for PowerShell SDK limitations)
-        $policyLinkId = $profilePolicy.PolicyLink.id
-        $policyLinkDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringProfiles/$($profilePolicy.ProfileId)/policies/$policyLinkId" -ApiVersion beta
-
         # Skip "All websites" default policy
-        if ($policyLinkDetails.policy.name -eq 'All websites') {
+        if ($profilePolicy.PolicyLink.policy.name -eq 'All websites') {
             continue
         }
 
         # Get policy details with rules using the policy ID (per spec Q3)
-        $policyId = $policyLinkDetails.policy.id
+        $policyId = $profilePolicy.PolicyLink.policy.id
         $policyDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringPolicies/$policyId`?`$select=id,name,version&`$expand=policyRules" -ApiVersion beta
 
         $webCategoryRules = $policyDetails.policyRules | Where-Object { $_.ruleType -eq 'webCategory' }
@@ -205,20 +201,10 @@ function Test-Assessment-25409 {
     $testResultMarkdown = ''
 
     if ($passed) {
-        if ($baselineHasWebCategory) {
-            $testResultMarkdown = "✅ Web content filtering with web category controls is configured in the Baseline Profile.`n`n%TestResult%"
-        }
-        else {
-            $testResultMarkdown = "✅ Web content filtering with web category controls is configured in security profiles linked to active Conditional Access policies.`n`n%TestResult%"
-        }
+        $testResultMarkdown = "✅ Web content filtering with web category controls is configured and applied through either the Baseline Profile or a security profile linked to an active Conditional Access policy.`n`n%TestResult%"
     }
     else {
-        if ($securityProfilesWithWebCategory.Count -gt 0) {
-            $testResultMarkdown = "❌ Web content filtering with web category controls is configured but NOT linked to active Conditional Access policies.`n`n%TestResult%"
-        }
-        else {
-            $testResultMarkdown = "❌ Web content filtering with web category controls is NOT configured in your tenant.`n`n%TestResult%"
-        }
+        $testResultMarkdown = "❌ No policies using web category filtering were found in the Baseline Profile or in security profiles linked to active Conditional Access policies. Web content filtering with web category controls is NOT configured in your tenant.`n`n%TestResult%"
     }
 
     # Build detailed markdown information
@@ -230,7 +216,7 @@ function Test-Assessment-25409 {
 
         $mdInfo += "`n## Filtering Policies with Web Category Rules`n`n"
         $mdInfo += "[Portal Link: Web content filtering policies]($portalPoliciesLink) | [Security profiles]($portalProfilesLink)`n`n"
-        $mdInfo += "| Profile Type | Profile Name | Policy Name | Rule Name | Web Categories | State |`n"
+        $mdInfo += "| Profile type | Profile name | Policy name | Rule name | Web categories | State |`n"
         $mdInfo += "| :----------- | :----------- | :---------- | :-------- | :------------- | :---- |`n"
 
         foreach ($item in ($allPoliciesWithWebCategory | Sort-Object ProfileType, ProfileName)) {
@@ -246,7 +232,7 @@ function Test-Assessment-25409 {
 
             $caLinkedPolicies = $allPoliciesWithWebCategory | Where-Object { $_.ProfileType -eq 'Security' -and $null -ne $_.LinkedCAPolicy }
             if ($caLinkedPolicies.Count -gt 0) {
-                $mdInfo += "| Security Profile Name | CA Policy Name | CA Policy State | Users/Groups Targeted |`n"
+                $mdInfo += "| Security profile name | CA policy name | CA policy state | Users/groups targeted |`n"
                 $mdInfo += "| :-------------------- | :------------- | :-------------- | :-------------------- |`n"
 
                 # Build unique CA linkages with user/group summary
