@@ -31,7 +31,7 @@ function Test-Assessment-35009 {
     }
     catch {
         Write-PSFMessage "Failed to retrieve policy configuration: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedExchangeOnline
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedSecurityCompliance
         return
     }
 
