@@ -304,7 +304,7 @@ function Test-Assessment-25396 {
 
 ## Application Details
 
-| App Name | App ID | App Type | Has CSAs | CA Policy | Auth Strength | Level | Status |
+| App name | App id | App type | Has CSAs | CA policy | Auth strength | Level | Status |
 | :------- | :----- | :------- | :------- | :-------- | :------------ | :---- | :----- |
 
 "@
