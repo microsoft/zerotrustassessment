@@ -261,17 +261,17 @@ function Test-Assessment-25396 {
 
         if ($unprotectedApps -eq 0 -and $manualReviewApps -eq 0) {
             $passed = $true
-            $testResultMarkdown = "All Private Access applications are targeted by at least one enabled CA policy (via direct appId or `"All`" targeting) that requires authentication strength or MFA.`n`n%TestResult%"
+            $testResultMarkdown = "All Private Access applications are targeted by at least one enabled CA policy that requires authentication strength or MFA.`n`n%TestResult%"
         }
         elseif ($unprotectedApps -eq 0 -and $manualReviewApps -gt 0) {
             # Investigate state
             $passed = $false
-            $testResultMarkdown = "Private Access applications exist that have no direct CA policy coverage but DO have CSAs assigned AND applicationFilter-based CA policies exist. Manual review required to verify if applicationFilter policies provide coverage.`n`n%TestResult%"
+            $testResultMarkdown = "Private Access applications have Custom Security Attributes assigned but no direct CA policy coverage. CA policies use applicationFilter targeting. Manual review required to verify if these apps are protected by applicationFilter-based policies.`n`n%TestResult%"
         }
         else {
             # Fail state
             $passed = $false
-            $testResultMarkdown = "One or more Private Access applications are not protected by any CA policy requiring strong authentication (via direct or `"All`" targeting), OR no Private Access applications exist.`n`n%TestResult%"
+            $testResultMarkdown = "One or more Private Access applications are not protected by Conditional Access policies requiring strong authentication.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
