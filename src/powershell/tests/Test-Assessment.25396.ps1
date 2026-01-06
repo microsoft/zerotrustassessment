@@ -57,6 +57,21 @@ function Test-Assessment-25396 {
         'PhishingResistant' = '00000000-0000-0000-0000-000000000004'
     }
 
+    # Authentication level priority for comparison
+    $authLevelPriority = @{
+        'PhishingResistant' = 4
+        'PasswordlessMFA'   = 3
+        'MFA'               = 2
+        'None'              = 1
+    }
+
+    # Status sort order for reporting
+    $statusSortOrder = @{
+        'Protected'     = 3
+        'Manual Review' = 2
+        'Unprotected'   = 1
+    }
+
     # Phishing-resistant methods
     $phishingResistantMethods = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor')
     #endregion Data Collection
@@ -191,7 +206,7 @@ function Test-Assessment-25396 {
                         PolicyName   = $policy.displayName
                         AuthStrength = $currentStrengthName
                         Level        = $currentLevel
-                        Priority     = (@{ 'PhishingResistant' = 4; 'PasswordlessMFA' = 3; 'MFA' = 2; 'None' = 1 })[$currentLevel]
+                        Priority     = $authLevelPriority[$currentLevel]
                     }
                 }
 
@@ -240,23 +255,23 @@ function Test-Assessment-25396 {
                 AuthStrength    = $authStrengthName
                 Level           = $authLevel
                 Status          = $status
-                StatusSort      = switch ($status) { 'Unprotected' { 1 }; 'Manual Review' { 2 }; 'Protected' { 3 } }
+                StatusSort      = $statusSortOrder[$status]
             }
         }
 
         if ($unprotectedApps -eq 0 -and $manualReviewApps -eq 0) {
             $passed = $true
-            $testResultMarkdown = "All Private Access applications are targeted by at least one enabled CA policy that requires authentication strength or MFA.`n`n%TestResult%"
+            $testResultMarkdown = "All Private Access applications are targeted by at least one enabled CA policy (via direct appId or `"All`" targeting) that requires authentication strength or MFA.`n`n%TestResult%"
         }
         elseif ($unprotectedApps -eq 0 -and $manualReviewApps -gt 0) {
             # Investigate state
             $passed = $false
-            $testResultMarkdown = "Private Access applications have Custom Security Attributes assigned but no direct CA policy coverage. CA policies use applicationFilter targeting. Manual review required to verify if these apps are protected by applicationFilter-based policies.`n`n%TestResult%"
+            $testResultMarkdown = "Private Access applications exist that have no direct CA policy coverage but DO have CSAs assigned AND applicationFilter-based CA policies exist. Manual review required to verify if applicationFilter policies provide coverage.`n`n%TestResult%"
         }
         else {
             # Fail state
             $passed = $false
-            $testResultMarkdown = "One or more Private Access applications are not protected by Conditional Access policies requiring strong authentication.`n`n%TestResult%"
+            $testResultMarkdown = "One or more Private Access applications are not protected by any CA policy requiring strong authentication (via direct or `"All`" targeting), OR no Private Access applications exist.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
