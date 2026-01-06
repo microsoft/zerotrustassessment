@@ -2,7 +2,8 @@ Azure Firewall is a cloud-native network security service that provides centrali
 
 **Remediation action**
 
-- [Please check the articles below for guidance on routing outbound traffic through Azure Firewall](https://learn.microsoft.com/en-us/azure/firewall/tutorial-firewall-deploy-portal#configure-routing)
+- [Deploy and configure Azure Firewall using the Azure portal](https://learn.microsoft.com/en-us/azure/firewall/tutorial-firewall-deploy-portal#configure-routing)
+- [Control outbound traffic with Azure Firewall ](https://learn.microsoft.com/en-us/azure/app-service/network-secure-outbound-traffic-azure-firewall)
 
 <!--- Results --->
 %TestResult%
