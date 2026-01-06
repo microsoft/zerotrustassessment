@@ -137,6 +137,9 @@ function Test-Assessment-25395 {
         }
     }
 
+    #endregion Data Collection
+
+    #region Assessment Logic
 
     # Initialize evaluation containers
     $passed             = $false
@@ -146,13 +149,9 @@ function Test-Assessment-25395 {
     $appsWithoutCSA     = @()
     $segmentFindings    = @()
     $appResults         = @()
-
-    #endregion Data Collection
-
-    #region Assessment Logic
-
+	
     # Step 1: Check if any per-app Private Access applications exist
-    if ($apps) {
+    if ($null -ne $apps -and $apps.Count -gt 0) {
 
         Write-ZtProgress -Activity $activity -Status 'Evaluating application segments'
 
@@ -344,8 +343,10 @@ function Test-Assessment-25395 {
         $mdInfo += $formatTemplate -f $tableRows
     }
 
+	# Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
-
+    #endregion Report Generation
+	
     $params = @{
         TestId = '25395'
         Title  = 'Private Access application segments enforce least-privilege access'
@@ -360,6 +361,4 @@ function Test-Assessment-25395 {
 
     # Add test result details
     Add-ZtTestResultDetail @params
-
-    #endregion Report Generation
 }
