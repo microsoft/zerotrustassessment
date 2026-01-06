@@ -49,7 +49,7 @@ function Test-Assessment-25409 {
             TestId = '25409'
             Title  = 'Web content filtering with website categories is configured'
             Status = $false
-            Result = "❌ No filtering profiles are configured in Global Secure Access.`n`n[Configure Global Secure Access](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView)"
+            Result = "❌ No filtering profiles are configured in Global Secure Access."
         }
         Add-ZtTestResultDetail @params
         return
@@ -211,11 +211,7 @@ function Test-Assessment-25409 {
     $mdInfo = ''
 
     if ($allPoliciesWithWebCategory.Count -gt 0) {
-        $portalPoliciesLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView'
-        $portalProfilesLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView'
-
         $mdInfo += "`n## Filtering Policies with Web Category Rules`n`n"
-        $mdInfo += "[Portal Link: Web content filtering policies]($portalPoliciesLink) | [Security profiles]($portalProfilesLink)`n`n"
         $mdInfo += "| Profile type | Profile name | Policy name | Rule name | Web categories | State |`n"
         $mdInfo += "| :----------- | :----------- | :---------- | :-------- | :------------- | :---- |`n"
 
@@ -280,9 +276,7 @@ function Test-Assessment-25409 {
         }
     }
     else {
-        $portalPoliciesLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView'
-        $mdInfo += "`n⚠️ No web content filtering policies with web category rules were found.`n`n"
-        $mdInfo += "[Configure web content filtering policies]($portalPoliciesLink)`n"
+        $mdInfo += "`n⚠️ No web content filtering policies with web category rules were found.`n"
     }
 
     # Replace the placeholder with detailed information
