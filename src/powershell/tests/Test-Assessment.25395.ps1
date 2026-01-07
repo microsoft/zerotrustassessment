@@ -151,7 +151,6 @@ function Test-Assessment-25395 {
     $appsWithoutCSA     = @()
     $segmentFindings    = @()
     $appResults         = @()
-	
     # Step 1: Check if any per-app Private Access applications exist
     if ($null -ne $apps -and $apps.Count -gt 0) {
 
