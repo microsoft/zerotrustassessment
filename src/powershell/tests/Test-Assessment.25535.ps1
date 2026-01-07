@@ -34,7 +34,7 @@ function Test-Assessment-25535 {
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
-    #endregion Azure Connection Verification
+    #endregion
 
     #region Data Collection
     $azAccessToken = $accessToken.Token
@@ -51,7 +51,7 @@ function Test-Assessment-25535 {
 
         # Step 1: List Azure Firewalls
         $fwListUri = $resourceManagementUrl.TrimEnd('/') +
-        "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
+            "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
 
         try {
             $fwResp = Invoke-WebRequest -Uri $fwListUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
@@ -62,23 +62,19 @@ function Test-Assessment-25535 {
         }
 
         $fwItems = ($fwResp.Content | ConvertFrom-Json).value
-        if (-not $fwItems) {
-            continue
-        }
+        if (-not $fwItems) { continue }
 
         # Step 2: Resolve Firewall Private IPs
         foreach ($fw in $fwItems) {
 
             $fwDetailUri = $resourceManagementUrl.TrimEnd('/') +
-            "$($fw.id)?api-version=2025-03-01"
+                "$($fw.id)?api-version=2025-03-01"
 
             try {
                 $fwDetailResp = Invoke-WebRequest -Uri $fwDetailUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
                 $fwDetail = $fwDetailResp.Content | ConvertFrom-Json
             }
-            catch {
-                continue
-            }
+            catch { continue }
 
             foreach ($ipconfig in $fwDetail.properties.ipConfigurations) {
                 if ($ipconfig.properties.privateIPAddress) {
@@ -92,109 +88,167 @@ function Test-Assessment-25535 {
             }
         }
 
-        if ($firewalls.Count -eq 0) {
-            continue
-        }
+        if ($firewalls.Count -eq 0) { continue }
 
         # Step 3: List NICs
         $nicListUri = $resourceManagementUrl.TrimEnd('/') +
-        "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
+            "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
 
-        $nicResp = Invoke-WebRequest -Uri $nicListUri -Authentication Bearer -Token $azAccessToken
+        try {
+            $nicResp = Invoke-WebRequest -Uri $nicListUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+        }
+        catch {
+            Write-PSFMessage "Unable to list network interfaces in subscription $($sub.Name)." -Tag Test -Level Warning
+            continue
+        }
+
         $nics = ($nicResp.Content | ConvertFrom-Json).value
 
-        foreach ($nic in $nics) {
+        # Step 4: Stage 1 - Launch all async effectiveRouteTable requests
+        $asyncOperations = @()
 
+        foreach ($nic in $nics) {
             foreach ($ipconfig in $nic.properties.ipConfigurations) {
+
+                if (-not $ipconfig.properties.subnet?.id) { continue }
 
                 $subnetId = $ipconfig.properties.subnet.id
                 if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') {
                     continue
                 }
 
-                # Step 4: Effective Route Table (ASYNC)
                 $rg = ($nic.id -split '/')[4]
                 $nicName = $nic.name
 
                 $ertUri = $resourceManagementUrl.TrimEnd('/') +
-                "/subscriptions/$subId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$nicName/effectiveRouteTable?api-version=2025-03-01"
+                    "/subscriptions/$subId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$nicName/effectiveRouteTable?api-version=2025-03-01"
 
                 try {
-                    $ertStart = Invoke-WebRequest `
-                        -Uri $ertUri `
-                        -Authentication Bearer `
-                        -Token $azAccessToken `
-                        -Method Post
-
+                    $ertStart = Invoke-WebRequest -Uri $ertUri -Authentication Bearer -Token $azAccessToken -Method Post -ErrorAction Stop
                     $operationUri = $ertStart.Headers['Location'][0]
 
                     $retryAfter = if ($ertStart.Headers['Retry-After']) {
                         [int]$ertStart.Headers['Retry-After'][0]
+                    } else { 5 }
+
+                    $asyncOperations += @{
+                        OperationUri = $operationUri
+                        Nic          = $nic
+                        RetryAfter   = $retryAfter
+                        Timestamp    = Get-Date
                     }
-                    else {
-                        5
-                    }
-
-                    do {
-                        Start-Sleep -Seconds $retryAfter
-
-                        $ertPoll = Invoke-WebRequest `
-                            -Uri $operationUri `
-                            -Authentication Bearer `
-                            -Token $azAccessToken `
-                            -Method Get
-
-                    } while ($ertPoll.StatusCode -eq 202)
-
-                    $routes = ($ertPoll.Content | ConvertFrom-Json).value
                 }
                 catch {
-                    continue
-                }
-
-                $defaultRoute = $routes | Where-Object {
-                    $_.state -eq 'Active' -and
-                    $_.source -eq 'User' -and
-                    $_.addressPrefix -contains '0.0.0.0/0'
-                } | Select-Object -First 1
-
-                # No user-defined default route → FAIL
-                if (-not $defaultRoute) {
-                    $nicFindings += [PSCustomObject]@{
-                        NicName     = $nic.name
-                        NicId       = $nic.id
-                        NextHopType = 'Internet'
-                        NextHopIp   = ''
-                        IsCompliant = $false
-                    }
-                    continue
-                }
-
-                # Match firewall private IP
-                $fwMatch = $firewalls | Where-Object {
-                    $defaultRoute.nextHopIpAddress -contains $_.PrivateIP
-                } | Select-Object -First 1
-
-                $nicFindings += [PSCustomObject]@{
-                    FirewallName      = $fwMatch.FirewallName
-                    FirewallId        = $fwMatch.FirewallId
-                    FirewallPrivateIp = $fwMatch.PrivateIP
-
-                    NicName           = $nic.name
-                    NicId             = $nic.id
-
-                    RouteSource       = $defaultRoute.source
-                    RouteState        = $defaultRoute.state
-                    AddressPrefix     = ($defaultRoute.addressPrefix -join ',')
-                    NextHopType       = $defaultRoute.nextHopType
-                    NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
-
-                    IsCompliant       = ($fwMatch -ne $null)
+                    Write-PSFMessage "Failed to initiate effectiveRouteTable request for NIC $nicName : $($_.Exception.Message)" -Tag Test -Level Warning
                 }
             }
         }
+
+        if ($asyncOperations.Count -eq 0) { continue }
+
+        Write-PSFMessage "Launched $($asyncOperations.Count) async effectiveRouteTable requests for subscription $($sub.Name)" -Tag Test -Level Verbose
+
+        # Step 4: Stage 2 - Poll all operations in parallel
+        $completedOperations = @()
+        $maxRetries = 120  # ~10 minutes with 5 second intervals
+
+        do {
+            $stillPending = @()
+
+            foreach ($op in $asyncOperations) {
+                if ($op.Completed) {
+                    $completedOperations += $op
+                    continue
+                }
+
+                try {
+                    $ertPoll = Invoke-WebRequest -Uri $op.OperationUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+
+                    if ($ertPoll.StatusCode -ne 202) {
+                        $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
+                        $op.Completed = $true
+                        $completedOperations += $op
+                    } else {
+                        $stillPending += $op
+                    }
+                }
+                catch {
+                    Write-PSFMessage "Error polling operation for NIC $($op.Nic.name) : $($_.Exception.Message)" -Tag Test -Level Warning
+                    $op.Completed = $true
+                    $op.Error = $true
+                    $completedOperations += $op
+                }
+            }
+
+            $asyncOperations = $stillPending
+
+            if ($asyncOperations.Count -gt 0) {
+                $maxRetries--
+                if ($maxRetries -le 0) {
+                    Write-PSFMessage "Timeout polling effectiveRouteTable operations. Processing $($asyncOperations.Count) incomplete operations." -Tag Test -Level Warning
+                    $completedOperations += $asyncOperations
+                    break
+                }
+
+                $retryAfter = ($asyncOperations | Select-Object -First 1).RetryAfter
+                Write-PSFMessage "Polling $($asyncOperations.Count) pending operations..." -Tag Test -Level Verbose
+                Start-Sleep -Seconds $retryAfter
+            }
+
+        } while ($asyncOperations.Count -gt 0)
+
+        # Step 4: Stage 3 - Process completed operations
+        foreach ($op in $completedOperations) {
+            if ($op.Error -or -not $op.Routes) {
+                $nicFindings += [PSCustomObject]@{
+                    NicName     = $op.Nic.name
+                    NicId       = $op.Nic.id
+                    NextHopType = 'Unknown'
+                    NextHopIp   = ''
+                    IsCompliant = $false
+                }
+                continue
+            }
+
+            $defaultRoute = $op.Routes | Where-Object {
+                $_.state -eq 'Active' -and
+                $_.source -eq 'User' -and
+                (($_.addressPrefix -eq '0.0.0.0/0') -or ($_.addressPrefix -contains '0.0.0.0/0'))
+            } | Select-Object -First 1
+
+            if (-not $defaultRoute) {
+                $nicFindings += [PSCustomObject]@{
+                    NicName     = $op.Nic.name
+                    NicId       = $op.Nic.id
+                    NextHopType = 'Internet'
+                    NextHopIp   = ''
+                    IsCompliant = $false
+                }
+                continue
+            }
+
+            $fwMatch = $firewalls | Where-Object {
+                # Handle nextHopIpAddress being either a string or an array
+                $nextHop = $defaultRoute.nextHopIpAddress
+                ( ($nextHop -eq $_.PrivateIP) -or ($nextHop -contains $_.PrivateIP) )
+            } | Select-Object -First 1
+
+            $nicFindings += [PSCustomObject]@{
+                FirewallName      = if ($fwMatch) { $fwMatch.FirewallName } else { 'N/A' }
+                FirewallId        = if ($fwMatch) { $fwMatch.FirewallId } else { 'N/A' }
+                FirewallPrivateIp = if ($fwMatch) { $fwMatch.PrivateIP } else { 'N/A' }
+                NicName           = $op.Nic.name
+                NicId             = $op.Nic.id
+                RouteSource       = $defaultRoute.source
+                RouteState        = $defaultRoute.state
+                AddressPrefix     = ($defaultRoute.addressPrefix -join ',')
+                NextHopType       = $defaultRoute.nextHopType
+                NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
+                IsCompliant       = ($fwMatch -ne $null)
+            }
+        }
     }
-    #endregion Data Collection
+    #endregion
 
     #region Assessment Logic
     if ($nicFindings.Count -eq 0) {
@@ -202,35 +256,35 @@ function Test-Assessment-25535 {
         return
     }
 
-    $nonCompliant = $nicFindings | Where-Object { -not $_.IsCompliant }
-    $passed = ($nonCompliant.Count -eq 0)
+    $passed = ($nicFindings | Where-Object { -not $_.IsCompliant }).Count -eq 0
 
-    if ($passed) {
-        $testResultMarkdown = "Outbound traffic is routed through Azure Firewall private IP using a user-defined default route.`n`n%TestResult%"
+    $testResultMarkdown = if ($passed) {
+        "Outbound traffic is routed through Azure Firewall.`n`n%TestResult%"
+    } else {
+        "Outbound traffic is not routed through Azure Firewall.`n`n%TestResult%"
     }
-    else {
-        $testResultMarkdown = "Outbound traffic is not routed through Azure Firewall. The effective route for outbound traffic does not forward 0.0.0.0/0 to the Azure Firewall private IP.`n`n%TestResult%"
-    }
-    #endregion Assessment Logic
+    #endregion
 
     #region Result Reporting
     $mdInfo = "## Outbound traffic routing evidence`n`n"
-    $mdInfo += "| Azure Firewall | Firewall Private IP | Network Interface | Source | State | Address Prefix | Next Hop Type | Next Hop IP | Status |`n"
+    $mdInfo += "| Azure firewall | Firewall private ip | Network interface | Source | State | Address prefix | Next hop type | Next hop ip | Status |`n"
     $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
     foreach ($item in $nicFindings | Sort-Object NicName) {
-        $icon = if ($item.IsCompliant) {
-            '✅'
-        }
-        else {
-            '❌'
-        }
-        $safeName = Get-SafeMarkdown -Text $item.NicName
-        $mdInfo += "| $icon [$safeName](https://portal.azure.com/#@/resource$($item.NicId)) | $($item.NextHopType) | $($item.NextHopIp) | $icon |`n"
+        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
+        $safeFirewallName = Get-SafeMarkdown -Text ($item.FirewallName -or 'N/A')
+        $safeName = Get-SafeMarkdown -Text ($item.NicName -or 'N/A')
+        $fwIp = ($item.FirewallPrivateIp -or 'N/A')
+        $routeSource = ($item.RouteSource -or '')
+        $routeState = ($item.RouteState -or '')
+        $addressPrefix = ($item.AddressPrefix -or '')
+        $nextHopType = ($item.NextHopType -or '')
+        $nextHopIp = ($item.NextHopIpAddress -or '')
+
+        $mdInfo += "| $safeFirewallName | $fwIp | [$safeName](https://portal.azure.com/#@/resource$($item.NicId)) | $routeSource | $routeState | $addressPrefix | $nextHopType | $nextHopIp | $icon |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
-
     Add-ZtTestResultDetail -TestId '25535' -Status $passed -Result $testResultMarkdown
-    #endregion Result Reporting
+    #endregion
 }
