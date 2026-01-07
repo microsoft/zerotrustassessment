@@ -84,7 +84,8 @@ function Test-Assessment-25408 {
 
                 if ($policyLink) {
                     # Determine profile type based on priority
-                    $profileType = if ($null -ne $filteringProfile.priority -and $filteringProfile.priority -eq 65000) { 'Baseline Profile' } elseif ($null -ne $filteringProfile.priority -and $filteringProfile.priority -lt 65000) { 'Security Profile' }
+                    $priority = $filteringProfile.priority
+                    $profileType = if ($priority -eq 65000) { 'Baseline Profile' } elseif ($null -ne $priority -and $priority -lt 65000) { 'Security Profile' }
 
                     $profileInfo = [PSCustomObject]@{
                         ProfileId       = $filteringProfile.id
