@@ -154,7 +154,7 @@ function Test-Assessment-25408 {
             # Add table title for applied policies
             $mdInfo += "### Applied web content filtering policies`n`n"
 
-            # Full table with all columns
+            # table for applied policies
             $mdInfo += "| Linked profile name | Linked profile priority | Linked policy name | Policy state | Profile state | Policy action | CA policy name | CA policy state |`n"
             $mdInfo += "|---------------------|-------------------------|--------------------|--------------|---------------|---------------|----------------|-----------------|`n"
 
@@ -203,8 +203,8 @@ function Test-Assessment-25408 {
             # Add table title with blade link for unapplied policies
             $mdInfo += "### [Web content filtering policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView)`n`n"
 
-            # Simple table with only policy info
-            $mdInfo += "The following Web Content Filtering policies are configured but not applied to users.`n`n"
+            # table for unapplied policies
+            $mdInfo += "The following web content filtering policies are configured but not applied to users.`n`n"
             $mdInfo += "| Policy name | Policy action |`n"
             $mdInfo += "|-------------|---------------|`n"
 
