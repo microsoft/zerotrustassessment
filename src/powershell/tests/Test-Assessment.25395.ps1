@@ -345,10 +345,10 @@ function Test-Assessment-25395 {
         $mdInfo += $formatTemplate -f $tableRows
     }
 
-	# Replace the placeholder with detailed information
+    # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
-	
+    
     $params = @{
         TestId = '25395'
         Title  = 'Private Access application segments enforce least-privilege access'
