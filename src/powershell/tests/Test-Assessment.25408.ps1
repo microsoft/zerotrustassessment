@@ -57,7 +57,6 @@ function Test-Assessment-25408 {
     # Initialize test variables
     $testResultMarkdown = ''
     $passed = $false
-    $customStatus = $null
     $appliedPolicies = @()
 
     # Check if any Web Content Filtering policies exist (excluding "All Websites")
@@ -136,7 +135,7 @@ function Test-Assessment-25408 {
         # Determine pass/fail
         if ($appliedPolicies.Count -gt 0) {
             $passed = $true
-            $testResultMarkdown = "✅ Web Content Filtering policy is applied. `n`n%TestResult%"
+            $testResultMarkdown = "✅ Web Content Filtering policy is enabled. `n`n%TestResult%"
         }
         else {
             $passed = $false
@@ -150,41 +149,69 @@ function Test-Assessment-25408 {
     $mdInfo = ''
 
     if ($wcfPolicies -and $wcfPolicies.Count -gt 0) {
-        $mdInfo += "### Web Content Filtering Configuration`n`n"
-        $mdInfo += "| Policy name | Policy state | Linked profile name | Linked profile priority | Linked profile state | CA policy name | CA policy state |`n"
-        $mdInfo += "|-------------|--------------|---------------------|-------------------------|----------------------|----------------|-----------------|`n"
+        # Check if there are any applied policies to determine table structure
+        if ($appliedPolicies.Count -gt 0) {
+            # Add table title for applied policies
+            $mdInfo += "### Applied web content filtering policies`n`n"
 
-        foreach ($wcfPolicy in $wcfPolicies) {
-            $safePolicyName = Get-SafeMarkdown $wcfPolicy.name
-            $appliedPolicy = $appliedPolicies | Where-Object { $_.PolicyId -eq $wcfPolicy.id }
+            # Full table with all columns
+            $mdInfo += "| Linked profile name | Linked profile priority | Linked policy name | Policy state | Profile state | Policy action | CA policy name | CA policy state |`n"
+            $mdInfo += "|---------------------|-------------------------|--------------------|--------------|---------------|---------------|----------------|-----------------|`n"
 
-            if ($appliedPolicy) {
-                # Get applied profiles for this policy
-                $appliedProfiles = $appliedPolicy.LinkedProfiles | Where-Object { $_.IsApplied -eq $true }
+            foreach ($wcfPolicy in $wcfPolicies | Sort-Object -Property name) {
+                $safePolicyName = Get-SafeMarkdown $wcfPolicy.name
+                $policyAction = $wcfPolicy.action
+                $appliedPolicy = $appliedPolicies | Where-Object { $_.PolicyId -eq $wcfPolicy.id }
 
-                foreach ($profileInfo in $appliedProfiles) {
-                    $safeProfileName = Get-SafeMarkdown $profileInfo.ProfileName
-                    $profilePriority = $profileInfo.ProfilePriority
-                    $profileState = $profileInfo.ProfileState
-                    $policyLinkState = $profileInfo.PolicyLinkState
+                if ($appliedPolicy) {
+                    # Get applied profiles for this policy
+                    $appliedProfiles = $appliedPolicy.LinkedProfiles | Where-Object { $_.IsApplied -eq $true }
 
-                    # If there are CA policies, create a row for each one
-                    if ($profileInfo.CAPolicy -and $profileInfo.CAPolicy.Count -gt 0) {
-                        foreach ($caPolicy in $profileInfo.CAPolicy) {
-                            $safeCAPolicyName = Get-SafeMarkdown $caPolicy.displayName
-                            $caPolicyState = $caPolicy.state
-                            $mdInfo += "| $safePolicyName | $policyLinkState | $safeProfileName | $profilePriority | $profileState | $safeCAPolicyName | $caPolicyState |`n"
+                    foreach ($profileInfo in $appliedProfiles) {
+                        $safeProfileName = Get-SafeMarkdown $profileInfo.ProfileName
+                        $profilePriority = $profileInfo.ProfilePriority
+                        $profileState = $profileInfo.ProfileState
+                        $policyLinkState = $profileInfo.PolicyLinkState
+
+                        # Create blade links
+                        $profileBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profileInfo.ProfileId)"
+                        $profileNameWithLink = "[$safeProfileName]($profileBladeLink)"
+
+                        $policyBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView"
+                        $policyNameWithLink = "[$safePolicyName]($policyBladeLink)"
+
+                        # If there are CA policies, create a row for each one
+                        if ($profileInfo.CAPolicy -and $profileInfo.CAPolicy.Count -gt 0) {
+                            foreach ($caPolicy in $profileInfo.CAPolicy) {
+                                $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.id)"
+                                $safeCAPolicyName = Get-SafeMarkdown $caPolicy.displayName
+                                $caPolicyNameWithLink = "[$safeCAPolicyName]($caPolicyPortalLink)"
+                                $caPolicyState = $caPolicy.state
+
+                                $mdInfo += "| $profileNameWithLink | $profilePriority | $policyNameWithLink | $policyLinkState | $profileState | $policyAction | $caPolicyNameWithLink | $caPolicyState |`n"
+                            }
                         }
-                    }
-                    else {
-                        # Baseline profile or profile without CA policy
-                        $mdInfo += "| $safePolicyName | $policyLinkState | $safeProfileName | $profilePriority | $profileState | Auto-applied (Baseline) | - |`n"
+                        else {
+                            # Baseline profile or profile without CA policy
+                            $mdInfo += "| $profileNameWithLink | $profilePriority | $policyNameWithLink | $policyLinkState | $profileState | $policyAction | Not applicable | Not applicable |`n"
+                        }
                     }
                 }
             }
-            else {
-                # Policy not applied - show with empty profile/CA info
-                $mdInfo += "| $safePolicyName | Not applied | - | - | - | - | - |`n"
+        }
+        else {
+            # Add table title with blade link for unapplied policies
+            $mdInfo += "### [Web content filtering policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView)`n`n"
+
+            # Simple table with only policy info
+            $mdInfo += "The following Web Content Filtering policies are configured but not applied to users.`n`n"
+            $mdInfo += "| Policy name | Policy action |`n"
+            $mdInfo += "|-------------|---------------|`n"
+
+            foreach ($wcfPolicy in $wcfPolicies | Sort-Object -Property name) {
+                $safePolicyName = Get-SafeMarkdown $wcfPolicy.name
+                $policyAction = $wcfPolicy.action
+                $mdInfo += "| $safePolicyName | $policyAction |`n"
             }
         }
     }
@@ -198,11 +225,6 @@ function Test-Assessment-25408 {
         Title  = 'Global Secure Access web content filtering is enabled and configured'
         Status = $passed
         Result = $testResultMarkdown
-    }
-
-    # Add CustomStatus if needed
-    if ($null -ne $customStatus) {
-        $params.CustomStatus = $customStatus
     }
 
     # Add test result details
