@@ -31,6 +31,9 @@ function Test-Assessment-25395 {
     [CmdletBinding()]
     param()
 
+    # Active Directory well-known ports
+    $AD_WELL_KNOWN_PORTS = @('53','88','135','389','445','464','636','3268','3269')
+
     #region Helper Functions
 
     function Test-IsBroadCidr {
@@ -98,11 +101,10 @@ function Test-Assessment-25395 {
             System.Boolean - True if port is a valid AD well-known port, false otherwise.
         #>
         param([string]$Port)
-        $valid = @('53','88','135','389','445','464','636','3268','3269')
         if ($Port -match '^(\d+)-(\d+)$') {
-            return ($matches[1] -eq $matches[2] -and $valid -contains $matches[1])
+            return ($matches[1] -eq $matches[2] -and $AD_WELL_KNOWN_PORTS -contains $matches[1])
         }
-        return ($valid -contains $Port)
+        return ($AD_WELL_KNOWN_PORTS -contains $Port)
     }
 
     #endregion Helper Functions
