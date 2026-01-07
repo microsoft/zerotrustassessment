@@ -248,14 +248,14 @@ function Test-Assessment-25395 {
             }
 
             $appResults += [PSCustomObject]@{
-				AppName      = $app.displayName
-				AppObjectId  = $app.id
-				AppId        = $app.appId
-				SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
-				SegmentScope = ($segmentSummary -join ' | ')
-				HasCSA       = [bool]$sp.customSecurityAttributes
-				Status       = $appStatus
-			}
+                AppName      = $app.displayName
+                AppObjectId  = $app.id
+                AppId        = $app.appId
+                SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
+                SegmentScope = ($segmentSummary -join ' | ')
+                HasCSA       = [bool]$sp.customSecurityAttributes
+                Status       = $appStatus
+            }
 
 
         }
