@@ -286,11 +286,6 @@ function Test-Assessment-25396 {
 
         $mdInfo += @"
 
-## Portal Links
-- [Portal Link: Global Secure Access > Applications](${portalAppsLink})
-- [Conditional Access Policies](${portalCaLink})
-- [Authentication Strengths](${portalAuthStrengthLink})
-
 ## Summary
 
 - **Total Private Access Apps:** $totalApps
@@ -318,6 +313,13 @@ function Test-Assessment-25396 {
             }
             $mdInfo += "| $($app.AppName) | $($app.AppId) | $($app.AppType) | $($app.HasCSA) | $($app.CAPolicies) | $($app.AuthStrength) | $($app.Level) | $statusIcon $($app.Status) |`n"
         }
+
+        $mdInfo += @"
+## Portal Links
+- [Portal Link: Global Secure Access > Applications](${portalAppsLink})
+- [Conditional Access Policies](${portalCaLink})
+- [Authentication Strengths](${portalAuthStrengthLink})
+"@
     }
 
     # Replace the placeholder with detailed information
