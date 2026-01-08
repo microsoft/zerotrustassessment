@@ -79,8 +79,12 @@ function Test-Assessment-25395 {
             System.Boolean - True if port range is considered too broad, false otherwise.
         #>
         param([string]$Port)
+
+        # Maximum number of ports allowed in a range before it is considered "broad".
+        $BroadPortRangeThreshold = 10
+
         if ($Port -eq '1-65535') { return $true }
-        if ($Port -match '^(\d+)-(\d+)$' -and (([int]$matches[2] - [int]$matches[1]) -gt 10)) { return $true }
+        if ($Port -match '^(\d+)-(\d+)$' -and (([int]$matches[2] - [int]$matches[1]) -gt $BroadPortRangeThreshold)) { return $true }
         return $false
     }
 
