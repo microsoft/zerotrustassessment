@@ -22,7 +22,7 @@ function Test-Assessment-35030 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35030,
-        Title = 'DLP Policies Cloud Workloads',
+        Title = 'DLP Policies Enabled',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -47,7 +47,7 @@ function Test-Assessment-35030 {
         $dlpPoliciesDetailed = $dlpPolicies | Select-Object -Property Name, Enabled, WhenCreatedUTC, WhenChangedUTC
 
         # Q3: Count enabled vs disabled DLP policies
-        $enabledPoliciesCount = @($dlpPolicies | Where-Object { $_.Enabled -eq $true }).Count
+        $enabledPoliciesCount = @($dlpPolicies | Where-Object Enabled).Count
     }
     catch {
         $errorMsg = $_
