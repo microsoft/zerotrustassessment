@@ -27,8 +27,8 @@ Alternatively, create via PowerShell:
 3. Add rules to the policy: `New-DlpComplianceRule -Name "Block SSN" -Policy "Sensitive Data Protection"`
 4. Enable and test: `Get-DlpCompliancePolicy | Select-Object -Property Name, Enabled`
 
-[Create and configure DLP policies](https://learn.microsoft.com/en-us/purview/dlp-create-deploy-policy)
-[DLP policy templates](https://learn.microsoft.com/en-us/purview/dlp-policy-templates)
-[DLP Compliance Rules](https://learn.microsoft.com/en-us/powershell/module/exchange/new-dlpcompliancerule)
+- [Create and configure DLP policies](https://learn.microsoft.com/en-us/purview/dlp-create-deploy-policy)
+- [DLP policy templates](https://learn.microsoft.com/en-us/purview/dlp-policy-templates)
+- [DLP Compliance Rules](https://learn.microsoft.com/en-us/powershell/module/exchange/new-dlpcompliancerule)
 <!--- Results --->
 %TestResult%
