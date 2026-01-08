@@ -116,6 +116,29 @@ function Test-Assessment-25395 {
         return ($AD_WELL_KNOWN_PORTS -contains $Port)
     }
 
+    function Test-ContainsAdWellKnownPort {
+        <#
+        .SYNOPSIS
+            Checks if a port range contains any well-known Active Directory ports.
+        .DESCRIPTION
+            Evaluates whether a port range (e.g., '50-500') includes any of the
+            well-known AD ports (53, 88, 135, 389, 445, 464, 636, 3268, 3269).
+        .OUTPUTS
+            System.Boolean - True if range contains AD ports, false otherwise.
+        #>
+        param([string]$Port)
+        if ($Port -match '^(\d+)-(\d+)$') {
+            $start = [int]$matches[1]
+            $end = [int]$matches[2]
+            foreach ($adPort in $AD_WELL_KNOWN_PORTS) {
+                if ([int]$adPort -ge $start -and [int]$adPort -le $end) {
+                    return $true
+                }
+            }
+        }
+        return $false
+    }
+
     #endregion Helper Functions
 
     #region Data Collection
@@ -208,10 +231,16 @@ function Test-Assessment-25395 {
                 # Step 3: Evaluate port breadth with AD RPC exceptions
                 foreach ($port in $segment.ports) {
                     if (Test-IsBroadPortRange $port) {
+                        # Check if this is a valid AD RPC exception or exact AD well-known port
                         if (-not (Test-IsAdRpcException -AppName $app.displayName -Port $port) `
                             -and -not (Test-IsAdWellKnownPort $port)) {
                             $hasBroadPorts = $true
                             $issues += 'Broad port range'
+
+                            # Additionally flag if the broad range contains AD well-known ports
+                            if (Test-ContainsAdWellKnownPort $port) {
+                                $issues += 'Broad range overlaps AD ports'
+                            }
                         }
                     }
                 }
@@ -356,7 +385,6 @@ function Test-Assessment-25395 {
     # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
-    
     $params = @{
         TestId = '25395'
         Title  = 'Private Access application segments enforce least-privilege access'
