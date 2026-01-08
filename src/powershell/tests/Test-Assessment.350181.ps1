@@ -179,7 +179,7 @@ function Test-Assessment-350181 {
         $testResultMarkdown += "- **Number of enabled policies requiring downgrade justification:** $($policiesWithDowngradeJustification.Count)`n"
         $testResultMarkdown += "- **Policy names with downgrade justification:** $policyNames`n"
         $testResultMarkdown += "- **Policy scope:** $policyScope`n"
-        
+
         # Display actual audit log justifications
         $testResultMarkdown += "- **Audit logging - Downgrade Justifications Captured:**`n"
         if ($downgradeJustifications.Count -gt 0) {
