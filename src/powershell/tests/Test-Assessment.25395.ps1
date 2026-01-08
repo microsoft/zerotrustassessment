@@ -66,7 +66,7 @@ function Test-Assessment-25395 {
             $end   = [System.Net.IPAddress]::Parse($matches[2]).GetAddressBytes()
             [array]::Reverse($start)
             [array]::Reverse($end)
-            return (([BitConverter]::ToUInt32($end,0) - [BitConverter]::ToUInt32($start,0)) -gt 256)
+            return (([BitConverter]::ToUInt32($end,0) - [BitConverter]::ToUInt32($start,0)) -gt 255)
         }
         return $false
     }
