@@ -84,15 +84,10 @@ function Test-Assessment-35011 {
 
     #region Report Generation
     $testResultMarkdown = ""
+    $mdInfo = ""
 
     if ($investigateFlag) {
         $testResultMarkdown = "⚠️ Unable to determine AIP super user configuration due to permissions or connection issues.`n`n"
-        $testResultMarkdown += "**Error Details:**`n"
-        $testResultMarkdown += "* $errorMsg`n`n"
-        $testResultMarkdown += "**Possible Causes:**`n"
-        $testResultMarkdown += "* AipService module not installed (requires v3.0+)`n"
-        $testResultMarkdown += "* Not connected to AIP service`n"
-        $testResultMarkdown += "* Insufficient permissions to query AIP configuration`n"
     }
     else {
         if ($passed) {
@@ -107,38 +102,51 @@ function Test-Assessment-35011 {
             }
         }
 
-        $testResultMarkdown += "### Azure Information Protection Super User Configuration`n`n"
-        $testResultMarkdown += "**Feature Status:**`n"
+        # Build detailed information section
+        $mdInfo = "## Azure Information Protection Super User Configuration`n`n"
 
         $featureStatus = if ($superUserFeatureEnabled) { "Enabled" } else { "Disabled" }
-        $testResultMarkdown += "* Super User Feature: $featureStatus`n`n"
+        $mdInfo += "**Super User Feature: $featureStatus**`n`n"
 
         if ($superUserFeatureEnabled) {
             $superUserCount = if ($superUsers) { @($superUsers).Count } else { 0 }
-            $testResultMarkdown += "**Super Users Configured: $superUserCount**`n`n"
+            $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
 
             if ($superUserCount -gt 0) {
-                $testResultMarkdown += "| Email Address / Service Principal ID | Account Type |`n"
-                $testResultMarkdown += "| :--- | :--- |`n"
+                $mdInfo += "| Email Address / Service Principal ID | Account Type |`n"
+                $mdInfo += "| :--- | :--- |`n"
 
                 foreach ($superUser in $superUsers) {
                     $accountType = if ($superUser -like '*-*-*-*-*') { "Service Principal" } else { "User" }
-                    $testResultMarkdown += "| $superUser | $accountType |`n"
+                    $mdInfo += "| $superUser | $accountType |`n"
                 }
 
-                $testResultMarkdown += "`n"
+                $mdInfo += "`n"
             }
         }
 
-        $testResultMarkdown += "**Note:** Super user configuration is not available through the Azure portal and must be managed via PowerShell using the AipService module.`n"
+        $mdInfo += "**Note:** Super user configuration is not available through the Azure portal and must be managed via PowerShell using the AipService module.`n"
+
+        # Add mdInfo to the main markdown if there's content
+        if ($mdInfo) {
+            $testResultMarkdown += "%TestResult%"
+        }
     }
     #endregion Report Generation
 
-    $testResultDetail = @{
+    # Replace placeholder with actual detailed info
+    if ($mdInfo) {
+        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    }
+
+    $params = @{
         TestId             = '35011'
-        Title              = 'Azure Information Protection (AIP) Super User Feature'
         Status             = $passed
         Result             = $testResultMarkdown
     }
-    Add-ZtTestResultDetail @testResultDetail
+    # Add investigate status if needed
+    if ($investigateFlag -eq $true) {
+        $params.CustomStatus = 'Investigate'
+    }
+    Add-ZtTestResultDetail @params
 }

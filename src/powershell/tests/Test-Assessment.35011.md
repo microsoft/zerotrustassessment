@@ -6,12 +6,12 @@ Without super user configuration, organizations risk data loss when encryption k
 
 To configure super users:
 
-Connect to Azure Information Protection PowerShell: Connect-AipService
-Enable the super user feature: Enable-AipServiceSuperUserFeature
-Add super users (service accounts recommended):
-For user accounts: Add-AipServiceSuperUser -EmailAddress "serviceaccount@contoso.com"
-For service principals: Add-AipServiceSuperUser -ServicePrincipalId "service-principal-id"
-Verify configuration: Get-AipServiceSuperUser
+1. Connect to Azure Information Protection PowerShell: `Connect-AipService`
+2. Enable the super user feature: `Enable-AipServiceSuperUserFeature`
+3. Add super users (service accounts recommended):
+   - For user accounts: `Add-AipServiceSuperUser -EmailAddress "serviceaccount@contoso.com"`
+   - For service principals: `Add-AipServiceSuperUser -ServicePrincipalId "service-principal-id"`
+4. Verify configuration: `Get-AipServiceSuperUser`
 
 Best practices:
 
@@ -21,7 +21,9 @@ Best practices:
 - Audit super user access regularly
 - Document business justification for each super user account
 
-[Configure super users for Azure Information Protection Enable-AipServiceSuperUserFeature Add-AipServiceSuperUser](https://learn.microsoft.com/en-us/powershell/module/aipservice/enable-aipservicesuperuserfeature)
+- [Configure super users for Azure Information Protection](https://learn.microsoft.com/en-us/purview/encryption-super-users)
+- [Enable-AipServiceSuperUserFeature](https://learn.microsoft.com/en-us/powershell/module/aipservice/enable-aipservicesuperuserfeature)
+- [Add-AipServiceSuperUser](https://learn.microsoft.com/en-us/powershell/module/aipservice/add-aipservicesuperuser)
 
 <!--- Results --->
 %TestResult%
