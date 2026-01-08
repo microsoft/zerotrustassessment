@@ -9,7 +9,7 @@
 
 .NOTES
     Test ID: 35025
-    Category: Data
+    Category: Rights Management Service (RMS)
     Pillar: Data
     Required Module: ExchangeOnlineManagement
     Required Connection: Exchange Online
@@ -17,65 +17,59 @@
 
 function Test-Assessment-35025 {
     [ZtTest(
-        Category = 'Data',
+        Category = 'Rights Management Service (RMS)',
         ImplementationCost = 'Low',
-        MinimumLicense = 'Microsoft_365_E3',
+        MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce', 'External'),
+        TenantType = ('Workforce'),
         TestId = 35025,
-        Title = 'Internal RMS licensing is enabled',
+        Title = 'Internal RMS Licensing Enabled',
         UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()
 
     #region Data Collection
-    Write-PSFMessage 'Start Internal RMS Licensing evaluation' -Tag Test -Level VeryVerbose
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Internal RMS Licensing'
+    $activity = 'Checking Internal RMS Licensing Status'
     Write-ZtProgress -Activity $activity -Status 'Getting IRM configuration'
 
     # Q1: Get IRM licensing configuration
+    $irmConfig = $null
+    $errorMsg = $null
+
     try {
         $irmConfig = Get-IRMConfiguration -ErrorAction Stop
     }
     catch {
+        $errorMsg = $_
         Write-PSFMessage "Failed to retrieve IRM configuration: $_" -Tag Test -Level Warning
-        
-        $params = @{
-            TestId = '35025'
-            Title  = 'Internal RMS licensing is enabled'
-            Status = $false
-            Result = "❌ Unable to retrieve IRM configuration. Ensure you are connected to Exchange Online with Connect-ExchangeOnline.`n`nError: $_"
-        }
-        Add-ZtTestResultDetail @params
-        return
     }
-
-    # Q2: Check if internal licensing is enabled
-    $internalLicensingEnabled = $irmConfig.InternalLicensingEnabled
-
-    # Q3: Get detailed licensing configuration
-    $detailedConfig = $irmConfig | Select-Object -Property InternalLicensingEnabled, ExternalLicensingEnabled, AzureRMSLicensingEnabled
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
     $customStatus = $null
 
-    # Investigate: Cannot determine licensing status
-    if ($null -eq $internalLicensingEnabled) {
-        $passed = $true
+    if ($errorMsg) {
+        # Investigate: Cannot query IRM configuration
+        $passed = $false
         $customStatus = 'Investigate'
     }
-    # Pass: Internal RMS licensing is enabled
-    elseif ($internalLicensingEnabled -eq $true) {
+    elseif ($null -eq $irmConfig.InternalLicensingEnabled) {
+        # Investigate: Cannot determine licensing status
+        $passed = $false
+        $customStatus = 'Investigate'
+    }
+    elseif ($irmConfig.InternalLicensingEnabled -eq $true) {
+        # Pass: Internal RMS licensing is enabled
         $passed = $true
     }
-    # Fail: Internal RMS licensing is not enabled
     else {
+        # Fail: Internal RMS licensing is not enabled
         $passed = $false
     }
     #endregion Assessment Logic
@@ -85,16 +79,6 @@ function Test-Assessment-35025 {
 
     if ($customStatus -eq 'Investigate') {
         $testResultMarkdown = "⚠️ Unable to determine internal RMS licensing status due to permissions issues or incomplete configuration data.`n`n"
-        
-        $params = @{
-            TestId = '35025'
-            Title  = 'Internal RMS licensing is enabled'
-            Status = $passed
-            Result = $testResultMarkdown
-            CustomStatus = $customStatus
-        }
-        Add-ZtTestResultDetail @params
-        return
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Internal RMS licensing is enabled, allowing internal users to license and share protected content within the organization.`n`n"
@@ -103,36 +87,20 @@ function Test-Assessment-35025 {
         $testResultMarkdown = "❌ Internal RMS licensing is not enabled or licensing endpoints are not configured.`n`n"
     }
 
-    # Build detailed information
-    $mdInfo = "## [Internal RMS Licensing Configuration](https://purview.microsoft.com/settings/encryption)`n`n"
-    $mdInfo += "| Setting | Status |`n"
-    $mdInfo += "| :------ | :----- |`n"
-    $mdInfo += "| Internal Licensing Enabled | $(if ($detailedConfig.InternalLicensingEnabled -eq $true) { '✅ Enabled' } elseif ($detailedConfig.InternalLicensingEnabled -eq $false) { '❌ Disabled' } else { '⚠️ Unknown' }) |`n"
-    $mdInfo += "| External Licensing Enabled | $(if ($detailedConfig.ExternalLicensingEnabled -eq $true) { '✅ Enabled' } elseif ($detailedConfig.ExternalLicensingEnabled -eq $false) { '❌ Disabled' } else { '⚠️ Unknown' }) |`n"
-    $mdInfo += "| Azure RMS Licensing Enabled | $(if ($detailedConfig.AzureRMSLicensingEnabled -eq $true) { '✅ Enabled' } elseif ($detailedConfig.AzureRMSLicensingEnabled -eq $false) { '❌ Disabled' } else { '⚠️ Unknown' }) |`n"
-    $mdInfo += "`n"
-
-    # Additional configuration details
+    # Build detailed information table if we have data
     if ($irmConfig) {
-        $mdInfo += "## Additional Configuration Details`n`n"
-        
-        if ($irmConfig.LicensingLocation) {
-            $mdInfo += "- **Licensing Location**: $(Get-SafeMarkdown $irmConfig.LicensingLocation)`n"
-        }
-        
-        if ($irmConfig.RMSOnlineKeySharingLocation) {
-            $mdInfo += "- **RMS Online Key Sharing Location**: $(Get-SafeMarkdown $irmConfig.RMSOnlineKeySharingLocation)`n"
-        }
-        
-        $mdInfo += "`n"
+        $testResultMarkdown += "## [Internal RMS licensing configuration](https://purview.microsoft.com/settings/encryption)`n`n"
+        $testResultMarkdown += "| Setting | Status |`n"
+        $testResultMarkdown += "| :--- | :--- |`n"
+        $testResultMarkdown += "| Internal licensing enabled | $(if ($irmConfig.InternalLicensingEnabled -eq $true) { '✅ enabled' } elseif ($irmConfig.InternalLicensingEnabled -eq $false) { '❌ disabled' } else { '⚠️ unknown' }) |`n"
+        $testResultMarkdown += "| External licensing enabled | $(if ($irmConfig.ExternalLicensingEnabled -eq $true) { '✅ enabled' } elseif ($irmConfig.ExternalLicensingEnabled -eq $false) { '❌ disabled' } else { '⚠️ unknown' }) |`n"
+        $testResultMarkdown += "| Azure RMS licensing enabled | $(if ($irmConfig.AzureRMSLicensingEnabled -eq $true) { '✅ enabled' } elseif ($irmConfig.AzureRMSLicensingEnabled -eq $false) { '❌ disabled' } else { '⚠️ unknown' }) |`n"
     }
-
-    $testResultMarkdown += $mdInfo
     #endregion Report Generation
 
     $params = @{
         TestId = '35025'
-        Title  = 'Internal RMS licensing is enabled'
+        Title  = 'Internal RMS Licensing Enabled'
         Status = $passed
         Result = $testResultMarkdown
     }
