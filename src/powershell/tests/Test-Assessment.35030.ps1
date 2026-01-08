@@ -3,7 +3,8 @@
     Data Loss Prevention (DLP) Policies
 
 .DESCRIPTION
-    Data Loss Prevention (DLP) policies protect sensitive information by monitoring, detecting, and preventing the sharing of confidential data across Microsoft 365 workloads including Exchange Online, SharePoint Online, OneDrive, and Microsoft Teams. When DLP policies are not enabled or configured, organizations lack automated controls to prevent accidental or intentional disclosure of sensitive information such as credit card numbers, social security numbers, financial data, or proprietary information. Without active DLP policies, employees can freely share sensitive content through email, file uploads, or team communications without organizational oversight, increasing the risk of data breaches, regulatory violations (GDPR, HIPAA, PCI-DSS), and reputational damage. Enabling and configuring at least one DLP policy ensures organizations have automated detection and response capabilities for sensitive data, reducing the risk of unauthorized data exfiltration and demonstrating compliance readiness to regulators and auditors.
+    Data Loss Prevention (DLP) policies protect sensitive information by monitoring, detecting, and preventing the sharing of confidential data across Microsoft 365 workloads including Exchange Online, SharePoint Online, OneDrive, and Microsoft Teams.
+    When DLP policies are not enabled or configured, organizations lack automated controls to prevent accidental or intentional disclosure of sensitive information such as credit card numbers, social security numbers, financial data, or proprietary information. Without active DLP policies, employees can freely share sensitive content through email, file uploads, or team communications without organizational oversight, increasing the risk of data breaches, regulatory violations (GDPR, HIPAA, PCI-DSS), and reputational damage. Enabling and configuring at least one DLP policy ensures organizations have automated detection and response capabilities for sensitive data, reducing the risk of unauthorized data exfiltration and demonstrating compliance readiness to regulators and auditors.
 
 .NOTES
     Test ID: 35030
@@ -104,8 +105,6 @@ function Test-Assessment-35030 {
             }
             $testResultMarkdown += "`n"
         }
-
-        $testResultMarkdown += "[View DLP Policies in Microsoft Purview Portal](https://purview.microsoft.com/datalossprevention/policies)`n"
     }
 
     $testResultMarkdown += "[View DLP Policies in Microsoft Purview Portal](https://purview.microsoft.com/datalossprevention/policies)`n"
