@@ -20,7 +20,7 @@ Best practices:
 - Start with a limited set of mandatory policies covering the most sensitive workloads, then expand incrementally
 - Ensure consistency across all four workloads (Outlook, Teams/OneDrive, SharePoint/Groups, Power BI) for a unified experience
 - Provide comprehensive user training before enforcement, covering each workload separately if needed
-- [ Monitor adoption using label usage](https://learn.microsoft.com/en-us/purview/sensitivity-labels-usage)
+- [Monitor adoption using label usage](https://learn.microsoft.com/en-us/purview/sensitivity-labels-usage)
 - Verify that `disablemandatoryinoutlook` is NOT enabled (should be false) unless intentionally exempting Outlook
 - Consider integrating with DLP policies
   - [Create DLP policies based on labels](https://learn.microsoft.com/en-us/purview/dlp-use-labels-as-conditions)

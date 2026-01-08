@@ -39,6 +39,7 @@ function Test-Assessment-35016 {
     #endregion Data Collection
 
     #region Assessment Logic
+    $allPolicySettings = @()
     $mandatoryPolicies = @()
     $passed = $false
     $customStatus = $null
@@ -102,6 +103,9 @@ function Test-Assessment-35016 {
                     $policySettings.EmailMandatory = $false
                 }
 
+                # Store all policy settings
+                $allPolicySettings += [PSCustomObject]$policySettings
+
                 # Determine if this policy has ANY mandatory setting enabled (after applying overrides)
                 $hasMandatory = $policySettings.EmailMandatory -or
                                 $policySettings.TeamworkMandatory -or
@@ -143,26 +147,24 @@ function Test-Assessment-35016 {
     #region Report Generation
     $mdInfo = ''
 
-    # Add detailed statistics for passing tests
-    if ($passed) {
-        # Build Mandatory Labeling Policies table
-        $mdInfo += "`n`n### [Mandatory Labeling Policies](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
+    # Show table whenever we have policy settings
+    if ($allPolicySettings.Count -gt 0) {
+        # Build policy table
+        $mdInfo += "`n`n### [Enabled label policies](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
         $mdInfo += "| Policy name | Email | Files/Collab | Sites/Groups | Power BI | Email override | Scope | Labels |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
-        foreach ($policy in $mandatoryPolicies) {
+        foreach ($policy in $allPolicySettings) {
             $policyName = Get-SafeMarkdown -Text $policy.PolicyName
-
-            $emailIcon = if ($policy.EmailMandatory) { "✅" } else { "❌" }
-            $teamworkIcon = if ($policy.TeamworkMandatory) { "✅" } else { "❌" }
-            $siteGroupIcon = if ($policy.SiteGroupMandatory) { "✅" } else { "❌" }
-            $powerBIIcon = if ($policy.PowerBIMandatory) { "✅" } else { "❌" }
-            $overrideIcon = if ($policy.EmailOverride) { "⚠️ Yes" } else { "No" }
-
+            $emailIcon = if ($policy.EmailMandatory) { '✅' } else { '❌' }
+            $teamworkIcon = if ($policy.TeamworkMandatory) { '✅' } else { '❌' }
+            $siteGroupIcon = if ($policy.SiteGroupMandatory) { '✅' } else { '❌' }
+            $powerBIIcon = if ($policy.PowerBIMandatory) { '✅' } else { '❌' }
+            $overrideIcon = if ($policy.EmailOverride) { 'Yes' } else { 'No' }
             $mdInfo += "| $policyName | $emailIcon | $teamworkIcon | $siteGroupIcon | $powerBIIcon | $overrideIcon | $($policy.Scope) | $($policy.LabelsCount) |`n"
         }
 
-        # Summary statistics
+        # Build summary metrics
         $emailCount = ($mandatoryPolicies | Where-Object { $_.EmailMandatory }).Count
         $teamworkCount = ($mandatoryPolicies | Where-Object { $_.TeamworkMandatory }).Count
         $siteGroupCount = ($mandatoryPolicies | Where-Object { $_.SiteGroupMandatory }).Count
@@ -171,14 +173,12 @@ function Test-Assessment-35016 {
         $mdInfo += "`n`n### Summary`n"
         $mdInfo += "| Metric | Count |`n"
         $mdInfo += "| :--- | :--- |`n"
-        $mdInfo += "| Total enabled label policies | $($enabledPolicies.Count) |`n"
-        $mdInfo += "| Policies with email mandatory labeling | $emailCount |`n"
-        $mdInfo += "| Policies with file/collaboration mandatory labeling | $teamworkCount |`n"
-        $mdInfo += "| Policies with site/group mandatory labeling | $siteGroupCount |`n"
-        $mdInfo += "| Policies with Power BI mandatory labeling | $powerBICount |"
-    }
-    elseif ($enabledPolicies.Count -gt 0) {
-        $mdInfo += "`n**Total enabled label policies:** $($enabledPolicies.Count)`n"
+        $mdInfo += "| Total enabled label policies | $($allPolicySettings.Count) |`n"
+        $mdInfo += "| Total enabled label policies with mandatory labeling | $($mandatoryPolicies.Count) |`n"
+        $mdInfo += "| Email mandatory labeling | $emailCount |`n"
+        $mdInfo += "| File/collaboration mandatory labeling | $teamworkCount |`n"
+        $mdInfo += "| Site/group mandatory labeling | $siteGroupCount |`n"
+        $mdInfo += "| Power BI mandatory labeling | $powerBICount |"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
