@@ -229,7 +229,8 @@ function Test-Assessment-25409 {
                 $profileBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profileInfo.ProfileId)"
                 $profileNameWithLink = "[$safeProfileName]($profileBladeLink)"
 
-                $policyBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView"
+                $encodedPolicyName = [System.Uri]::EscapeDataString($wcfPolicy.PolicyName)
+                $policyBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditFilteringPolicyMenuBlade.MenuView/~/Basics/policyId/$($wcfPolicy.PolicyId)/title/$encodedPolicyName/defaultMenuItemId/Basics"
                 $policyNameWithLink = "[$safePolicyName]($policyBladeLink)"
 
                 # Process each webCategory rule
@@ -250,7 +251,7 @@ function Test-Assessment-25409 {
         $securityProfiles = $policiesWithWebCategory.LinkedProfiles | Where-Object { $_.ProfileType -eq 'Security Profile' -and $null -ne $_.CAPolicy }
         if ($securityProfiles.Count -gt 0) {
             $mdInfo += "`n## Conditional Access Linkages (for Security Profiles only)`n`n"
-            $mdInfo += "| Security profile name | CA policy name | CA policy state |`n"
+            $mdInfo += "| CA policy name | Security profile name | CA policy state |`n"
             $mdInfo += "| :--- | :--- | :--- |`n"
 
             # Build unique CA linkages
@@ -263,6 +264,7 @@ function Test-Assessment-25409 {
                             if (-not $uniqueCALinks.ContainsKey($key)) {
                                 $uniqueCALinks[$key] = [PSCustomObject]@{
                                     ProfileName   = $profileInfo.ProfileName
+                                    ProfileId     = $profileInfo.ProfileId
                                     CAPolicyName  = $caPolicy.displayName
                                     CAPolicyId    = $caPolicy.id
                                     CAPolicyState = $caPolicy.state
@@ -273,17 +275,20 @@ function Test-Assessment-25409 {
                 }
             }
 
-            foreach ($item in $uniqueCALinks.Values | Sort-Object ProfileName, CAPolicyName) {
+            foreach ($item in $uniqueCALinks.Values | Sort-Object CAPolicyName, ProfileName) {
                 $safeProfileName = Get-SafeMarkdown $item.ProfileName
                 $safeCAPolicyName = Get-SafeMarkdown $item.CAPolicyName
 
                 $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($item.CAPolicyId)"
                 $caPolicyNameWithLink = "[$safeCAPolicyName]($caPolicyPortalLink)"
 
+                $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($item.ProfileId)"
+                $profileNameWithLink = "[$safeProfileName]($profilePortalLink)"
+
                 # Show actual state with indicator
                 $caPolicyState = if ($item.CAPolicyState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
-                $mdInfo += "| $safeProfileName | $caPolicyNameWithLink | $caPolicyState |`n"
+                $mdInfo += "| $caPolicyNameWithLink | $profileNameWithLink | $caPolicyState |`n"
             }
         }
 
