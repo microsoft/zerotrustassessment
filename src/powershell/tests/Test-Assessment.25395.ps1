@@ -207,7 +207,7 @@ function Test-Assessment-25395 {
                 # Step 2: Evaluate segment destination granularity
                 $issues = @()
 
-                $segmentSummary += "$($segment.destinationType):$($segment.destinationHost):$($segment.ports -join ',')"
+                $segmentSummary += "$($segment.destinationHost):$($segment.ports -join ',')"
 
                 switch ($segment.destinationType) {
                     'dnsSuffix' {
@@ -372,15 +372,15 @@ function Test-Assessment-25395 {
         $formatTemplate = @'
 ## Segment findings
 
-| App name | Segment id | Issue | Destination | Ports | Recommendation |
-|---|---|---|---|---|---|
+| App name | Issue | Destination | Ports | Recommendation |
+|---|---|---|---|---|
 {0}
 
 '@
         foreach ($f in $segmentFindings) {
             $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($f.AppId)"
             $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $f.AppName), $appLink
-            $tableRows += "| $linkedAppName | $($f.SegmentId) | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
+            $tableRows += "| $linkedAppName | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
