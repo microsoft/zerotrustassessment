@@ -40,8 +40,13 @@ function Test-Assessment-25395 {
         <#
         .SYNOPSIS
             Checks if a CIDR range is overly permissive (/16 or broader).
+        .DESCRIPTION
+            CIDR ranges with prefix length <= 16 are treated as overly permissive.
+            This includes /16 itself (65,536 IPs) and any broader ranges such as /15, /14, etc.
         .OUTPUTS
-            System.Boolean - True if CIDR is /16 or broader, false otherwise.
+            System.Boolean
+            True  - CIDR prefix length <= 16
+            False - CIDR prefix length > 16 or invalid format
         #>
         param([string]$Cidr)
         if ($Cidr -match '/(\d+)$') { return ([int]$matches[1] -le 16) }
