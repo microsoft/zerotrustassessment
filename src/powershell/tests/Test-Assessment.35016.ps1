@@ -67,27 +67,31 @@ function Test-Assessment-35016 {
                 }
 
                 # Parse Settings array for mandatory labeling flags
+                # Settings are returned as strings in [key, value] format
                 if ($policy.Settings -and $policy.Settings.Count -gt 0) {
                     foreach ($setting in $policy.Settings) {
-                        # Settings are stored as key=value pairs
-                        $key = $setting.Key
-                        $value = $setting.Value
+                        # Parse [key, value] format
+                        $match = $setting -match '^\[(.*?),\s*(.+)\]$'
+                        if ($match) {
+                            $key = $matches[1].ToLower().Trim()
+                            $value = $matches[2].ToLower().Trim()
 
-                        switch ($key) {
-                            'mandatory' {
-                                $policySettings.EmailMandatory = ($value -eq $true)
-                            }
-                            'teamworkmandatory' {
-                                $policySettings.TeamworkMandatory = ($value -eq $true)
-                            }
-                            'siteandgroupmandatory' {
-                                $policySettings.SiteGroupMandatory = ($value -eq $true)
-                            }
-                            'powerbimandatory' {
-                                $policySettings.PowerBIMandatory = ($value -eq $true)
-                            }
-                            'disablemandatoryinoutlook' {
-                                $policySettings.EmailOverride = ($value -eq $true)
+                            switch ($key) {
+                                'mandatory' {
+                                    $policySettings.EmailMandatory = ($value -eq 'true')
+                                }
+                                'teamworkmandatory' {
+                                    $policySettings.TeamworkMandatory = ($value -eq 'true')
+                                }
+                                'siteandgroupmandatory' {
+                                    $policySettings.SiteGroupMandatory = ($value -eq 'true')
+                                }
+                                'powerbimandatory' {
+                                    $policySettings.PowerBIMandatory = ($value -eq 'true')
+                                }
+                                'disablemandatoryinoutlook' {
+                                    $policySettings.EmailOverride = ($value -eq 'true')
+                                }
                             }
                         }
                     }
@@ -119,17 +123,16 @@ function Test-Assessment-35016 {
         if ($null -eq $customStatus) {
             if ($mandatoryPolicies.Count -gt 0) {
                 $passed = $true
-                $testResultMarkdown = "✅ Mandatory labeling is configured and enforced through at least one active sensitivity label policy across one or more workloads (Outlook, Teams/OneDrive, SharePoint/Microsoft 365 Groups, or Power BI).`n`n"
+                $testResultMarkdown = "✅ Mandatory labeling is configured and enforced through at least one active sensitivity label policy across one or more workloads (Outlook, Teams/OneDrive, SharePoint/Microsoft 365 Groups, or Power BI).`n`n%TestResult%"
             }
             else {
                 $passed = $false
 
                 if ($enabledPolicies.Count -eq 0) {
-                    $testResultMarkdown = "❌ No enabled sensitivity label policies were found in your tenant.`n`n"
+                    $testResultMarkdown = "❌ No enabled sensitivity label policies were found in your tenant.`n`n%TestResult%"
                 }
                 else {
-                    $testResultMarkdown = "❌ No sensitivity label policies require users to apply labels across any workload (emails, files, sites, groups, or Power BI content).`n`n"
-                    $testResultMarkdown += "**Total enabled label policies:** $($enabledPolicies.Count)`n`n"
+                    $testResultMarkdown = "❌ No sensitivity label policies require users to apply labels across any workload (emails, files, sites, groups, or Power BI content).`n`n%TestResult%"
                 }
             }
         }
@@ -138,12 +141,14 @@ function Test-Assessment-35016 {
     #endregion Assessment Logic
 
     #region Report Generation
+    $mdInfo = ''
+
     # Add detailed statistics for passing tests
     if ($passed) {
         # Build Mandatory Labeling Policies table
-        $testResultMarkdown += "**[Mandatory Labeling Policies](https://purview.microsoft.com/informationprotection/labelpolicies):**`n`n"
-        $testResultMarkdown += "| Policy name | Email | Files/Collab | Sites/Groups | Power BI | Email override | Scope | Labels |`n"
-        $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
+        $mdInfo += "`n`n### [Mandatory Labeling Policies](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
+        $mdInfo += "| Policy name | Email | Files/Collab | Sites/Groups | Power BI | Email override | Scope | Labels |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         foreach ($policy in $mandatoryPolicies) {
             $policyName = Get-SafeMarkdown -Text $policy.PolicyName
@@ -154,7 +159,7 @@ function Test-Assessment-35016 {
             $powerBIIcon = if ($policy.PowerBIMandatory) { "✅" } else { "❌" }
             $overrideIcon = if ($policy.EmailOverride) { "⚠️ Yes" } else { "No" }
 
-            $testResultMarkdown += "| $policyName | $emailIcon | $teamworkIcon | $siteGroupIcon | $powerBIIcon | $overrideIcon | $($policy.Scope) | $($policy.LabelsCount) |`n"
+            $mdInfo += "| $policyName | $emailIcon | $teamworkIcon | $siteGroupIcon | $powerBIIcon | $overrideIcon | $($policy.Scope) | $($policy.LabelsCount) |`n"
         }
 
         # Summary statistics
@@ -163,13 +168,20 @@ function Test-Assessment-35016 {
         $siteGroupCount = ($mandatoryPolicies | Where-Object { $_.SiteGroupMandatory }).Count
         $powerBICount = ($mandatoryPolicies | Where-Object { $_.PowerBIMandatory }).Count
 
-        $testResultMarkdown += "`n**Summary:**`n"
-        $testResultMarkdown += "- Total enabled label policies: $($enabledPolicies.Count)`n"
-        $testResultMarkdown += "- Policies with email mandatory labeling: $emailCount`n"
-        $testResultMarkdown += "- Policies with file/collaboration mandatory labeling: $teamworkCount`n"
-        $testResultMarkdown += "- Policies with site/group mandatory labeling: $siteGroupCount`n"
-        $testResultMarkdown += "- Policies with Power BI mandatory labeling: $powerBICount`n"
+        $mdInfo += "`n`n### Summary`n"
+        $mdInfo += "| Metric | Count |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        $mdInfo += "| Total enabled label policies | $($enabledPolicies.Count) |`n"
+        $mdInfo += "| Policies with email mandatory labeling | $emailCount |`n"
+        $mdInfo += "| Policies with file/collaboration mandatory labeling | $teamworkCount |`n"
+        $mdInfo += "| Policies with site/group mandatory labeling | $siteGroupCount |`n"
+        $mdInfo += "| Policies with Power BI mandatory labeling | $powerBICount |"
     }
+    elseif ($enabledPolicies.Count -gt 0) {
+        $mdInfo += "`n**Total enabled label policies:** $($enabledPolicies.Count)`n"
+    }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{

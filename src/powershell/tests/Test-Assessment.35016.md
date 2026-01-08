@@ -5,17 +5,11 @@ When sensitivity labels are not mandatory, users can send unclassified emails, s
 To implement mandatory labeling for sensitivity labels across all workloads:
 
 1. Plan your mandatory labeling strategy by reviewing [Plan for sensitivity labels](https://learn.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels#plan-for-sensitivity-labels) and identifying which user groups require mandatory labeling across emails, files, sites, groups, and Power BI content (global or department-specific).
-
 2. Create or update label policies in the Microsoft Purview portal by navigating to Information Protection > Policies > Label publishing policies and enabling the appropriate mandatory labeling settings for each workload as documented in [Create and publish sensitivity labels](https://learn.microsoft.com/en-us/microsoft-365/compliance/create-sensitivity-labels).
-
 3. Enable mandatory labeling for Outlook emails by configuring the "Require users to apply a label to their email" setting. Follow the steps in [Require users to apply a label](https://learn.microsoft.com/en-us/purview/sensitivity-labels-office-apps#require-users-to-apply-a-label-to-their-email-and-documents).
-
 4. Enable mandatory labeling for Teams, OneDrive, and SharePoint files by configuring the "Require users to apply a label for Teams, groups, and SharePoint content" setting in the label policy. This ensures users must label files when uploading to Teams and OneDrive, and when sharing via SharePoint.
-
 5. Enable mandatory labeling for SharePoint sites and Microsoft 365 Groups by configuring the site/group creation policies to require default labels. Users must select a label when creating new sites or groups.
-
 6. Enable mandatory labeling for Power BI by configuring the "Power BI mandatory labeling" setting in the label policy. This ensures Power BI content (dashboards, reports, datasets) requires labels before publication.
-
 7. Deploy the policy to target users or groups, starting with a pilot group, then expanding organization-wide as documented in [Plan your sensitivity label solution](https://learn.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels#plan-for-sensitivity-labels).
 
 Best practices:
