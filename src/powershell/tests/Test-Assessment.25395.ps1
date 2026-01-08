@@ -66,7 +66,7 @@ function Test-Assessment-25395 {
             $end   = [System.Net.IPAddress]::Parse($matches[2]).GetAddressBytes()
             [array]::Reverse($start)
             [array]::Reverse($end)
-            return (([BitConverter]::ToUInt32($end,0) - [BitConverter]::ToUInt32($start,0)) -gt 255)
+            return (([BitConverter]::ToUInt32($end,0) - [BitConverter]::ToUInt32($start,0) + 1) -gt 256)
         }
         return $false
     }
@@ -84,7 +84,7 @@ function Test-Assessment-25395 {
         $BroadPortRangeThreshold = 10
 
         if ($Port -eq '1-65535') { return $true }
-        if ($Port -match '^(\d+)-(\d+)$' -and (([int]$matches[2] - [int]$matches[1]) -gt $BroadPortRangeThreshold)) { return $true }
+        if ($Port -match '^(\d+)-(\d+)$' -and (([int]$matches[2] - [int]$matches[1] + 1) -gt $BroadPortRangeThreshold)) { return $true }
         return $false
     }
 
