@@ -254,6 +254,7 @@ function Test-Assessment-25395 {
                 if ($issues.Count -gt 0) {
                     $segmentFindings += [PSCustomObject]@{
                         AppName     = $app.displayName
+                        AppId       = $app.appId
                         SegmentId   = $segment.id
                         Issue       = ($issues -join ', ')
                         Destination = $segment.destinationHost
@@ -369,7 +370,7 @@ function Test-Assessment-25395 {
     if ($segmentFindings.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-## Segment Findings
+## Segment findings
 
 | App name | Segment id | Issue | Destination | Ports | Recommendation |
 |---|---|---|---|---|---|
@@ -377,7 +378,9 @@ function Test-Assessment-25395 {
 
 '@
         foreach ($f in $segmentFindings) {
-            $tableRows += "| $(Get-SafeMarkdown $f.AppName) | $($f.SegmentId) | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
+            $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($f.AppId)"
+            $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $f.AppName), $appLink
+            $tableRows += "| $linkedAppName | $($f.SegmentId) | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
