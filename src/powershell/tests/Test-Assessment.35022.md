@@ -11,7 +11,6 @@ To enable the default sensitivity label capability for SharePoint document libra
 6. **Monitor progress and analyze results** by tracking completion in the Microsoft Purview Portal. Upon completion, identify sensitive data locations, review prevalence by type, and determine remediation actions.
 
 - [On-demand classification in Microsoft Purview](https://learn.microsoft.com/en-us/purview/on-demand-classification) 
-- [On-demand classification in Microsoft Purview](https://learn.microsoft.com/en-us/purview/on-demand-classification) 
 - [Sensitive information types entity reference](https://learn.microsoft.com/en-us/purview/sensitive-information-type-entity-definitions)
 
 <!--- Results --->
