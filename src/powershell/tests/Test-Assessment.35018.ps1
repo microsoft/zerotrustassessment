@@ -159,16 +159,6 @@ function Test-Assessment-35018 {
             $testResultMarkdown += "| Percentage with Downgrade Justification | $percentage% |`n"
         }
 
-        if ($policiesWithDowngradeJustification.Count -gt 0) {
-            $testResultMarkdown += "`n## Policies with Downgrade Justification Enabled`n`n"
-            $testResultMarkdown += "| Policy Name | Scope | Labels |`n"
-            $testResultMarkdown += "|---|---|---|`n"
-
-            foreach ($policy in $policiesWithDowngradeJustification) {
-                $detail = $policyDetails | Where-Object { $_.PolicyName -eq $policy.Name }
-                $testResultMarkdown += "| $($policy.Name) | $($detail.PolicyScope) | $($detail.LabelsPublishedCount) |`n"
-            }
-        }
     }
 
     #endregion Report Generation
