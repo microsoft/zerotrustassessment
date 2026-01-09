@@ -129,7 +129,7 @@ function Test-Assessment-35025 {
             }
 
             # Build table
-            $testResultMarkdown += "**Internal RMS Licensing Status:**`n"
+            $testResultMarkdown += "**[Internal RMS Licensing Status](https://purview.microsoft.com/settings/encryption)**`n"
             $testResultMarkdown += "| Setting | Status |`n"
             $testResultMarkdown += "| :--- | :--- |`n"
             $testResultMarkdown += "| InternalLicensingEnabled | $internalLicensingValue |`n"
