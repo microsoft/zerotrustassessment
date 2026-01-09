@@ -32,7 +32,7 @@ function Test-Assessment-35025 {
     param()
 
     #region Data Collection
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    Write-PSFMessage 'Start Internal RMS Licensing evaluation' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Internal RMS Licensing Status'
     Write-ZtProgress -Activity $activity -Status 'Getting IRM configuration'
@@ -75,61 +75,73 @@ function Test-Assessment-35025 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $testResultMarkdown = ''
-
     if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "⚠️ Unable to determine internal RMS licensing status due to permissions issues or incomplete configuration data.`n`n"
-    }
-    elseif ($passed) {
-        $testResultMarkdown = "✅ Internal RMS licensing is enabled, allowing internal users to license and share protected content within the organization.`n`n"
+        $testResultMarkdown = "### Investigate`n`n"
+        $testResultMarkdown += "Unable to determine internal RMS licensing status due to permissions issues or incomplete configuration data."
     }
     else {
-        $testResultMarkdown = "❌ Internal RMS licensing is not enabled or licensing endpoints are not configured.`n`n"
-    }
-
-    # Build detailed information if we have data
-    if ($irmConfig) {
-        $testResultMarkdown += "## Internal RMS Licensing Status`n`n"
-        $testResultMarkdown += "| Setting | Status |`n"
-        $testResultMarkdown += "| :--- | :--- |`n"
-
-        # Internal Licensing Enabled
-        $internalLicensing = if ($irmConfig.InternalLicensingEnabled -eq $true) {
-            '✅ True'
-        } elseif ($irmConfig.InternalLicensingEnabled -eq $false) {
-            '❌ False'
-        } else {
-            '⚠️ Unknown'
+        if ($passed) {
+            $testResultMarkdown = "✅ Internal RMS licensing is enabled, allowing internal users to license and share protected content within the organization.`n`n"
         }
-        $testResultMarkdown += "| Internal licensing enabled | $internalLicensing |`n"
-
-        # Intranet Distribution Point URL (ServiceLocation)
-        $serviceLocation = if ($irmConfig.ServiceLocation) {
-            Get-SafeMarkdown $irmConfig.ServiceLocation
-        } else {
-            'Not configured'
+        else {
+            $testResultMarkdown = "❌ Internal RMS licensing is not enabled or licensing endpoints are not configured.`n`n"
         }
-        $testResultMarkdown += "| Intranet distribution point URL | $serviceLocation |`n"
 
-        # License Certification URL (LicensingLocation)
-        $licensingLocation = if ($irmConfig.LicensingLocation) {
-            ($irmConfig.LicensingLocation | ForEach-Object { Get-SafeMarkdown $_ }) -join ', '
-        } else {
-            'Not configured'
-        }
-        $testResultMarkdown += "| License certification URL | $licensingLocation |`n"
+        # Build detailed information if we have data
+        if ($irmConfig) {
+            # Prepare values first
+            $internalLicensingValue = if ($null -eq $irmConfig.InternalLicensingEnabled) {
+                'Unknown'
+            } else {
+                $irmConfig.InternalLicensingEnabled
+            }
 
-        # Internal Template Distribution (PublishingLocation or Azure-based)
-        $templateDistribution = if ($irmConfig.PublishingLocation) {
-            # Hybrid/on-premises: explicit publishing location configured
-            'Configured'
-        } elseif ($irmConfig.InternalLicensingEnabled -eq $true -and $irmConfig.AzureRMSLicensingEnabled -eq $true) {
-            # Cloud-only: templates distributed via Azure RMS automatically
-            'Configured'
-        } else {
-            'Not Configured'
+            $externalLicensingValue = if ($null -eq $irmConfig.ExternalLicensingEnabled) {
+                'Unknown'
+            } else {
+                $irmConfig.ExternalLicensingEnabled
+            }
+
+            $azureRMSLicensingValue = if ($null -eq $irmConfig.AzureRMSLicensingEnabled) {
+                'Unknown'
+            } else {
+                $irmConfig.AzureRMSLicensingEnabled
+            }
+
+            $licensingLocationValue = if ($irmConfig.LicensingLocation) {
+                ($irmConfig.LicensingLocation | ForEach-Object { Get-SafeMarkdown $_ }) -join ', '
+            } else {
+                'Not configured'
+            }
+
+            $internalLicensingConfig = if ($irmConfig.InternalLicensingEnabled -eq $true) {
+                '✅ Enabled'
+            } elseif ($irmConfig.InternalLicensingEnabled -eq $false) {
+                '❌ Disabled'
+            } else {
+                '⚠️ Incomplete'
+            }
+
+            $licensingEndpoints = if ($irmConfig.LicensingLocation) {
+                '✅ Configured'
+            } else {
+                '❌ Not Configured'
+            }
+
+            # Build table
+            $testResultMarkdown += "**Internal RMS Licensing Status:**`n"
+            $testResultMarkdown += "| Setting | Status |`n"
+            $testResultMarkdown += "| :--- | :--- |`n"
+            $testResultMarkdown += "| InternalLicensingEnabled | $internalLicensingValue |`n"
+            $testResultMarkdown += "| ExternalLicensingEnabled | $externalLicensingValue |`n"
+            $testResultMarkdown += "| AzureRMSLicensingEnabled | $azureRMSLicensingValue |`n"
+            $testResultMarkdown += "| LicensingLocation | $licensingLocationValue |`n`n"
+
+            # Summary section
+            $testResultMarkdown += "**Summary:**`n"
+            $testResultMarkdown += "* Internal Licensing Configuration: $internalLicensingConfig`n"
+            $testResultMarkdown += "* Licensing Endpoints: $licensingEndpoints`n"
         }
-        $testResultMarkdown += "| Internal template distribution | $templateDistribution |`n"
     }
     #endregion Report Generation
 
