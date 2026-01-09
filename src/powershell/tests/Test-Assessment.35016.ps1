@@ -95,6 +95,9 @@ function Test-Assessment-35016 {
                                 }
                             }
                         }
+                        else {
+                            Write-PSFMessage "Unexpected label policy setting format '$setting' in policy '$($policy.Name)'" -Level Warning
+                        }
                     }
                 }
 
