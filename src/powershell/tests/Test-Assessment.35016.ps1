@@ -29,7 +29,7 @@ function Test-Assessment-35016 {
     $enabledPolicies = @()
 
     try {
-        # Q1: Get all enabled label policies
+        # Q1: Retrieve all enabled sensitivity label policies to assess mandatory labeling configuration
         $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
