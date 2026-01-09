@@ -114,8 +114,7 @@ function Test-Assessment-25396 {
             $appType = if ($app.tags -contains 'NetworkAccessQuickAccessApplication') { 'Quick Access' } else { 'Per-App' }
 
             # Check CSA presence
-            $csa = $app.customSecurityAttributes
-            $hasCSA = $null -ne $csa
+            $hasCSA = $null -ne $app.customSecurityAttributes -and ($app.customSecurityAttributes.PSObject.Properties.Count -gt 0)
 
             # Find CA policies targeting this app
             $targetingPolicies = @()
