@@ -32,12 +32,12 @@ function Test-Assessment-35025 {
     param()
 
     #region Data Collection
-    Write-PSFMessage 'Start Internal RMS Licensing evaluation' -Tag Test -Level VeryVerbose
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Internal RMS Licensing Status'
     Write-ZtProgress -Activity $activity -Status 'Getting IRM configuration'
 
-    # Q1: Get IRM licensing configuration
+    # Get IRM licensing configuration
     $irmConfig = $null
     $errorMsg = $null
 
