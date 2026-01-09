@@ -34,8 +34,8 @@ function Test-Assessment-25396 {
     $activity = 'Checking Private Access authentication controls'
     Write-ZtProgress -Activity $activity -Status 'Getting Private Access applications'
 
-    # Query Q1: Get all Private Access applications
-    $privateAccessApps = Invoke-ZtGraphRequest -RelativeUri 'applications' -Filter "(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags' -ApiVersion v1.0
+    # Query Q1: Get all Private Access service principals with tags and CSAs
+    $privateAccessApps = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags,customSecurityAttributes' -ApiVersion v1.0 -ConsistencyLevel eventual
 
     # Initialize test variables
     $testResultMarkdown = ''
@@ -92,17 +92,6 @@ function Test-Assessment-25396 {
     else {
         $totalApps = $privateAccessApps.Count
 
-        Write-ZtProgress -Activity $activity -Status 'Getting Custom Security Attributes for service principals'
-
-        # Query Q4: Get Custom Security Attributes for all Private Access service principals
-        $servicePrincipals = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,appId,displayName,customSecurityAttributes' -ApiVersion v1.0 -ConsistencyLevel eventual
-
-        # Create lookup table for CSA by appId
-        $csaLookup = @{}
-        foreach ($sp in $servicePrincipals) {
-            $csaLookup[$sp.appId] = $sp.customSecurityAttributes
-        }
-
         Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
 
         # Query Q2: Get all enabled CA policies
@@ -124,9 +113,9 @@ function Test-Assessment-25396 {
             # Determine app type
             $appType = if ($app.tags -contains 'NetworkAccessQuickAccessApplication') { 'Quick Access' } else { 'Per-App' }
 
-            # Check CSA presence (Q4)
-            $csa = $csaLookup[$appId]
-            $hasCSA = $csa -and ($csa.PSObject.Properties.Count -gt 0)
+            # Check CSA presence
+            $csa = $app.customSecurityAttributes
+            $hasCSA = $null -ne $csa
 
             # Find CA policies targeting this app
             $targetingPolicies = @()
@@ -186,8 +175,8 @@ function Test-Assessment-25396 {
                         elseif ($authStrengthPolicy.policyType -eq 'custom') {
                             # Check if all allowed combinations are phishing-resistant
                             $allPhishingResistant = $true
-                            foreach ($combo in $authStrengthPolicy.allowedCombinations) {
-                                if ($combo -notin $phishingResistantMethods) {
+                            foreach ($authMethod in $authStrengthPolicy.allowedCombinations) {
+                                if ($authMethod -notin $phishingResistantMethods) {
                                     $allPhishingResistant = $false
                                     break
                                 }
