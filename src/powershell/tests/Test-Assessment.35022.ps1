@@ -14,7 +14,7 @@
     Risk Level: Medium
 #>
 
-function Test-Assessment-350022 {
+function Test-Assessment-35022 {
     [ZtTest(
         Category = 'Information Protection',
         ImplementationCost = 'Medium',
