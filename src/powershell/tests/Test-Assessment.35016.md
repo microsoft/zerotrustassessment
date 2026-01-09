@@ -27,5 +27,3 @@ Best practices:
 
 <!--- Results --->
 %TestResult%
-
-```
