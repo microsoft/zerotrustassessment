@@ -2,7 +2,7 @@ Organizations with large volumes of historical content in SharePoint, OneDrive, 
 
 **Remediation action**
 
-To enable the default sensitivity label capability for SharePoint document libraries:
+To configure on-demand scans for sensitive information discovery and classification, follow these steps:
 1. **Plan your scan strategy** by identifying locations with historical sensitive data (finance, HR, legal departments) that predate auto-labeling policies.
 2. **Access the scan creation interface** in the Microsoft Purview Portal: Information Protection > Classifiers > On-demand classification OR Data Loss Prevention > Classifiers > On-demand classification.
 3.  **Select target locations** (specific SharePoint sites, OneDrive accounts, and/or Exchange mailboxes) and **choose sensitive information types to detect** (credit card numbers, SSNs, healthcare identifiers, trade secrets).
