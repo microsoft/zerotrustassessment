@@ -85,7 +85,7 @@ function Test-Assessment-25409 {
             $policyName = $wcfPolicy.name
 
             # Get full policy details with rules to check for webCategory
-            $policyDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringPolicies/$policyId`?`$select=id,name,action&`$expand=policyRules" -ApiVersion beta
+            $policyDetails = Invoke-ZtGraphRequest -RelativeUri "networkAccess/filteringPolicies/$policyId`?`$select=id,name,version&`$expand=policyRules" -ApiVersion beta
             $webCategoryRules = @($policyDetails.policyRules) | Where-Object { $_.ruleType -eq 'webCategory' }
 
             # Skip if no webCategory rules
@@ -191,7 +191,6 @@ function Test-Assessment-25409 {
                 $policiesWithWebCategory += [PSCustomObject]@{
                     PolicyId         = $policyId
                     PolicyName       = $policyName
-                    PolicyAction     = $policyDetails.action
                     LinkedProfiles   = $linkedProfiles
                     WebCategoryRules = $webCategoryRules
                 }
