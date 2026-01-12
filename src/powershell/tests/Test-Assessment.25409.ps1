@@ -93,97 +93,21 @@ function Test-Assessment-25409 {
                 continue
             }
 
-            # Find profiles that have this policy linked (regardless of enabled/disabled state)
-            $linkedProfiles = @()
+            # Find profiles that have this policy linked using shared helper function
+            $findParams = @{
+                PolicyId          = $policyId
+                FilteringProfiles = $filteringProfiles
+                CAPolicies        = $caPolicies
+                BaselinePriority  = $BASELINE_PROFILE_PRIORITY
+                PolicyLinkType    = 'filteringPolicyLink'
+                PolicyRules       = $webCategoryRules
+            }
+            $linkedProfiles = Find-ZtProfilesLinkedToPolicy @findParams
 
-            foreach ($filteringProfile in $filteringProfiles) {
-                # Get profile policies safely
-                $profilePolicies = @()
-                if ($null -ne $filteringProfile.policies) {
-                    $profilePolicies = $filteringProfile.policies
-                }
-
-                foreach ($policyLink in $profilePolicies) {
-                    $plinkType = $policyLink.'@odata.type'
-                    $linkedPolicyId = $null
-
-                    # Only process filteringPolicyLink entries
-                    if ($plinkType -eq '#microsoft.graph.networkaccess.filteringPolicyLink' -and $null -ne $policyLink.policy) {
-                        $linkedPolicyId = $policyLink.policy.id
-                    }
-
-                    if ($null -ne $linkedPolicyId -and $linkedPolicyId -eq $policyId) {
-                        # Determine profile type based on priority
-                        $priority = if ($null -ne $filteringProfile.priority) {
-                            [int]$filteringProfile.priority
-                        }
-                        else {
-                            $null
-                        }
-
-                        # Per spec: Only process Baseline Profile (priority = 65000) or Security Profile (priority < 65000)
-                        if ($null -eq $priority) {
-                            continue
-                        }
-
-                        $linkState = if ($null -ne $policyLink.state) {
-                            $policyLink.state
-                        }
-                        else {
-                            'unknown'
-                        }
-
-                        if ($priority -eq $BASELINE_PROFILE_PRIORITY) {
-                            # Baseline Profile: passes regardless of enabled state
-                            $profileInfo = [PSCustomObject]@{
-                                ProfileId        = $filteringProfile.id
-                                ProfileName      = $filteringProfile.name
-                                ProfileType      = 'Baseline Profile'
-                                ProfileState     = $filteringProfile.state
-                                ProfilePriority  = $priority
-                                PolicyLinkState  = $linkState
-                                PassesCriteria   = $true
-                                CAPolicy         = $null
-                                WebCategoryRules = $webCategoryRules
-                            }
-                            $passed = $true
-                            $linkedProfiles += $profileInfo
-                        }
-                        elseif ($priority -lt $BASELINE_PROFILE_PRIORITY) {
-                            # Security Profile: check if linked to enabled CA policy
-                            $linkedCAPolicies = $caPolicies | Where-Object {
-                                $null -ne $_.sessionControls.globalSecureAccessFilteringProfile -and
-                                $_.sessionControls.globalSecureAccessFilteringProfile.profileId -eq $filteringProfile.id -and
-                                $_.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true
-                            }
-
-                            $profileInfo = [PSCustomObject]@{
-                                ProfileId        = $filteringProfile.id
-                                ProfileName      = $filteringProfile.name
-                                ProfileType      = 'Security Profile'
-                                ProfileState     = $filteringProfile.state
-                                ProfilePriority  = $priority
-                                PolicyLinkState  = $linkState
-                                PassesCriteria   = $false
-                                CAPolicy         = $null
-                                WebCategoryRules = $webCategoryRules
-                            }
-
-                            if ($linkedCAPolicies) {
-                                # Check if at least one CA policy is enabled
-                                $enabledCAPolicies = $linkedCAPolicies | Where-Object { $_.state -eq 'enabled' }
-                                if ($enabledCAPolicies) {
-                                    $profileInfo.PassesCriteria = $true
-                                    $passed = $true
-                                }
-                                $profileInfo.CAPolicy = $linkedCAPolicies
-                            }
-
-                            $linkedProfiles += $profileInfo
-                        }
-                        # Profiles with priority > 65000 or other unknown values are skipped
-                    }
-                }
+            # Check if any linked profile passes criteria
+            $profilePasses = $linkedProfiles | Where-Object { $_.PassesCriteria -eq $true }
+            if ($profilePasses) {
+                $passed = $true
             }
 
             # Add policy with its linked profiles to collection
@@ -192,7 +116,6 @@ function Test-Assessment-25409 {
                     PolicyId         = $policyId
                     PolicyName       = $policyName
                     LinkedProfiles   = $linkedProfiles
-                    WebCategoryRules = $webCategoryRules
                 }
             }
         }
@@ -233,7 +156,7 @@ function Test-Assessment-25409 {
                 $policyNameWithLink = "[$safePolicyName]($policyBladeLink)"
 
                 # Process each webCategory rule
-                foreach ($rule in $profileInfo.WebCategoryRules) {
+                foreach ($rule in $profileInfo.PolicyRules) {
                     $safeRuleName = Get-SafeMarkdown $rule.name
                     $webCategories = ($rule.destinations | ForEach-Object { $_.displayName }) -join ', '
                     $safeWebCategories = Get-SafeMarkdown $webCategories
