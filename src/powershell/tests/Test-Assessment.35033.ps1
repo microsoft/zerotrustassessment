@@ -37,7 +37,7 @@ function Test-Assessment-35033 {
     $activity = 'Checking Custom Sensitive Information Types Configuration'
     Write-ZtProgress -Activity $activity -Status 'Getting custom SIT configuration'
 
-    # Q1: Get all custom Sensitive Information Types
+    # Get all custom Sensitive Information Types
     $customSITs = $null
     $errorMsg = $null
 
@@ -80,7 +80,8 @@ function Test-Assessment-35033 {
     $testResultMarkdown = ''
 
     if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "⚠️ Unable to determine custom SIT status due to permissions issues or service connection failure.`n`n"
+        $testResultMarkdown = "### Investigate`n`n"
+        $testResultMarkdown += "Unable to determine custom SIT status due to permissions issues or service connection failure."
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Custom Sensitive Information Types are configured, enabling detection of organization-specific sensitive data patterns.`n`n"
