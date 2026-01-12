@@ -92,28 +92,16 @@ function Test-Assessment-35033 {
 
     # Build detailed information if we have data
     if ($customSITs -and $customSITs.Count -gt 0) {
-        $testResultMarkdown += "## Custom Sensitive Information Types`n`n"
-        $testResultMarkdown += "| Sit name | Description | Created date | Last modified date | Built-in |`n"
-        $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- |`n"
+        $testResultMarkdown += "## [Custom Sensitive Information Types](https://purview.microsoft.com/informationprotection/dataclassification/sensinfoTypes)`n`n"
+        $testResultMarkdown += "| Name | Description | Publisher |`n"
+        $testResultMarkdown += "| :--- | :--- | :--- |`n"
 
         foreach ($sit in $customSITs | Sort-Object Name) {
             $safeSITName = Get-SafeMarkdown $sit.Name
             $safeDescription = if ($sit.Description) { Get-SafeMarkdown $sit.Description } else { 'Not specified' }
+            $safePublisher = if ($sit.Publisher) { Get-SafeMarkdown $sit.Publisher } else { 'Not specified' }
 
-            # Created date - property doesn't exist in Get-DlpSensitiveInformationType
-            $createdDate = 'Not available'
-
-            # Last modified date
-            $lastModifiedDate = if ($sit.LastModifiedTime) {
-                $sit.LastModifiedTime.ToString('yyyy-MM-dd')
-            } else {
-                'Not available'
-            }
-
-            # Built-in status (all custom SITs are not built-in)
-            $builtIn = 'False'
-
-            $testResultMarkdown += "| $safeSITName | $safeDescription | $createdDate | $lastModifiedDate | $builtIn |`n"
+            $testResultMarkdown += "| $safeSITName | $safeDescription | $safePublisher |`n"
         }
 
         $testResultMarkdown += "`n**Summary:**`n"
