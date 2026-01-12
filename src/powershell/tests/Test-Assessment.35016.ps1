@@ -41,6 +41,7 @@ function Test-Assessment-35016 {
     #region Assessment Logic
     $allPolicySettings = @()
     $mandatoryPolicies = @()
+    $xmlParseErrors = @()
     $passed = $false
     $customStatus = $null
 
@@ -68,40 +69,63 @@ function Test-Assessment-35016 {
                 }
 
                 # Parse PolicySettingsBlob XML for mandatory labeling flags
-                if ($policy.PolicySettingsBlob) {
+                if (-not [string]::IsNullOrWhiteSpace($policy.PolicySettingsBlob)) {
                     try {
                         $xmlSettings = [xml]$policy.PolicySettingsBlob
 
-                        # Access settings as XML elements for direct property lookup
-                        foreach ($setting in $xmlSettings.settings.setting) {
-                            $key = $setting.key.ToLower()
-                            $value = $setting.value.ToLower()
+                        # Validate XML structure before accessing properties
+                        if ($xmlSettings.settings -and $xmlSettings.settings.setting) {
+                            # Access settings as XML elements for direct property lookup
+                            foreach ($setting in $xmlSettings.settings.setting) {
+                                # Add null safety for key and value attributes
+                                if (-not $setting.key -or -not $setting.value) {
+                                    Write-PSFMessage "Skipping setting with null key or value in policy '$($policy.Name)'" -Level Verbose
+                                    continue
+                                }
 
-                            switch ($key) {
-                                'mandatory' {
-                                    $policySettings.EmailMandatory = ($value -eq 'true')
-                                }
-                                'teamworkmandatory' {
-                                    $policySettings.TeamworkMandatory = ($value -eq 'true')
-                                }
-                                'siteandgroupmandatory' {
-                                    $policySettings.SiteGroupMandatory = ($value -eq 'true')
-                                }
-                                'powerbimandatory' {
-                                    $policySettings.PowerBIMandatory = ($value -eq 'true')
-                                }
-                                'disablemandatoryinoutlook' {
-                                    $policySettings.EmailOverride = ($value -eq 'true')
+                                $key = $setting.key.ToLower()
+                                $value = $setting.value.ToLower()
+
+                                switch ($key) {
+                                    'mandatory' {
+                                        $policySettings.EmailMandatory = ($value -eq 'true')
+                                    }
+                                    'teamworkmandatory' {
+                                        $policySettings.TeamworkMandatory = ($value -eq 'true')
+                                    }
+                                    'siteandgroupmandatory' {
+                                        $policySettings.SiteGroupMandatory = ($value -eq 'true')
+                                    }
+                                    'powerbimandatory' {
+                                        $policySettings.PowerBIMandatory = ($value -eq 'true')
+                                    }
+                                    'disablemandatoryinoutlook' {
+                                        $policySettings.EmailOverride = ($value -eq 'true')
+                                    }
+                                    default {
+                                        Write-PSFMessage "Unknown setting key '$key' in policy '$($policy.Name)'" -Level Verbose
+                                    }
                                 }
                             }
                         }
+                        else {
+                            Write-PSFMessage "Policy '$($policy.Name)' has PolicySettingsBlob but no settings elements found" -Level Verbose
+                        }
                     }
                     catch {
+                        # Track parsing errors for reporting
+                        $xmlParseErrors += [PSCustomObject]@{
+                            PolicyName = $policy.Name
+                            Error = $_.Exception.Message
+                        }
                         Write-PSFMessage "Error parsing PolicySettingsBlob XML for policy '$($policy.Name)': $_" -Level Warning
                     }
                 }
 
-                # If disablemandatoryinoutlook is true, it overrides the mandatory setting for emails
+                # Per Microsoft documentation, disablemandatoryinoutlook can be set to explicitly
+                # disable mandatory labeling in Outlook even when the 'mandatory' setting is true.
+                # This provides an exception path for organizations that need mandatory labeling
+                # for files but not emails. Apply the override logic:
                 if ($policySettings.EmailMandatory -and $policySettings.EmailOverride) {
                     $policySettings.EmailMandatory = $false
                 }
@@ -182,6 +206,20 @@ function Test-Assessment-35016 {
         $mdInfo += "| File/collaboration mandatory labeling | $teamworkCount |`n"
         $mdInfo += "| Site/group mandatory labeling | $siteGroupCount |`n"
         $mdInfo += "| Power BI mandatory labeling | $powerBICount |"
+    }
+
+    # Report XML parsing errors if any occurred
+    if ($xmlParseErrors.Count -gt 0) {
+        $mdInfo += "`n`n### ⚠️ XML Parsing Errors`n"
+        $mdInfo += "The following policies could not be parsed and were excluded from analysis:`n`n"
+        $mdInfo += "| Policy Name | Error |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        foreach ($error in $xmlParseErrors) {
+            $errorMsg = Get-SafeMarkdown -Text $error.Error
+            $policyName = Get-SafeMarkdown -Text $error.PolicyName
+            $mdInfo += "| $policyName | $errorMsg |`n"
+        }
+        $mdInfo += "`n**Note**: These policies were treated as having no mandatory labeling configured.`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
