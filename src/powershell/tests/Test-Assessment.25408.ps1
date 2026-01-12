@@ -29,6 +29,9 @@ function Test-Assessment-25408 {
     [CmdletBinding()]
     param()
 
+    # Define constants
+    [int]$BASELINE_PROFILE_PRIORITY = 65000
+
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking Global Secure Access web content filtering configuration'
@@ -49,8 +52,9 @@ function Test-Assessment-25408 {
 
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
 
-    # Q3 prep: Get all Conditional Access policies with session controls
-    $caPolicies = Get-ZtConditionalAccessPolicy
+    # Q3: Get all enabled Conditional Access policies with session controls
+    $allCAPolicies = Get-ZtConditionalAccessPolicy
+    $enabledCAPolicies = $allCAPolicies | Where-Object { $_.state -eq 'enabled' }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -65,70 +69,52 @@ function Test-Assessment-25408 {
         $passed = $false
     }
     else {
-        # Check if WCF policies are linked to profiles
+        # Check if WCF policies are linked to profiles using shared helper
         foreach ($wcfPolicy in $wcfPolicies) {
             $policyId = $wcfPolicy.id
             $policyName = $wcfPolicy.name
             $policyAction = $wcfPolicy.action
 
-            # Find profiles that have this policy linked
-            $linkedProfiles = @()
+            # Use shared helper function to find profiles linked to this policy
+            $findParams = @{
+                PolicyId          = $policyId
+                FilteringProfiles = $filteringProfiles
+                CAPolicies        = $enabledCAPolicies
+                BaselinePriority  = $BASELINE_PROFILE_PRIORITY
+                PolicyLinkType    = 'filteringPolicyLink'
+                PolicyRules       = @()
+            }
+            $linkedProfiles = Find-ZtProfilesLinkedToPolicy @findParams
 
-            foreach ($filteringProfile in $filteringProfiles) {
-                # Check if this profile contains the WCF policy
-                $policyLink = $filteringProfile.policies | Where-Object {
-                    $_.'@odata.type' -eq '#microsoft.graph.networkaccess.filteringPolicyLink' -and
-                    $_.policy.id -eq $policyId -and
-                    $_.state -eq 'enabled'
-                }
-
-                if ($policyLink) {
-                    # Determine profile type based on priority
-                    $priority = $filteringProfile.priority
-                    $profileType = if ($priority -eq 65000) { 'Baseline Profile' } elseif ($null -ne $priority -and $priority -lt 65000) { 'Security Profile' }
-
-                    $profileInfo = [PSCustomObject]@{
-                        ProfileId       = $filteringProfile.id
-                        ProfileName     = $filteringProfile.name
-                        ProfileType     = $profileType
-                        ProfileState    = $filteringProfile.state
-                        ProfilePriority = $filteringProfile.priority
-                        PolicyLinkState = $policyLink.state
-                        IsApplied       = $false
-                        CAPolicy        = $null
-                    }
-
-                    # If Baseline Profile and enabled, it's automatically applied
-                    if ($profileType -eq 'Baseline Profile' -and $filteringProfile.state -eq 'enabled') {
-                        $profileInfo.IsApplied = $true
-                    }
-                    # If Security Profile, check if it's linked to an active CA policy
-                    elseif ($profileType -eq 'Security Profile' -and $filteringProfile.state -eq 'enabled') {
-                        # Step 4: Check for Conditional Access policy linkage
-                        $linkedCAPolicies = $caPolicies | Where-Object {
-                            $_.state -eq 'enabled' -and
-                            $null -ne $_.sessionControls.globalSecureAccessFilteringProfile -and
-                            $_.sessionControls.globalSecureAccessFilteringProfile.profileId -eq $filteringProfile.id -and
-                            $_.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true
-                        }
-
-                        if ($linkedCAPolicies) {
-                            $profileInfo.IsApplied = $true
-                            $profileInfo.CAPolicy = $linkedCAPolicies
-                        }
-                    }
-
-                    $linkedProfiles += $profileInfo
-                }
+            # Filter for enabled profiles and policy links, then check pass criteria
+            $appliedProfiles = $linkedProfiles | Where-Object {
+                $_.PolicyLinkState -eq 'enabled' -and
+                $_.ProfileState -eq 'enabled' -and
+                $_.PassesCriteria -eq $true
             }
 
             # If this policy is applied through at least one profile, add it to applied policies
-            if ($linkedProfiles | Where-Object { $_.IsApplied -eq $true }) {
+            if ($appliedProfiles) {
+                # Convert to format expected by report generation
+                $formattedProfiles = @()
+                foreach ($profileInfo in $appliedProfiles) {
+                    $formattedProfiles += [PSCustomObject]@{
+                        ProfileId       = $profileInfo.ProfileId
+                        ProfileName     = $profileInfo.ProfileName
+                        ProfileType     = $profileInfo.ProfileType
+                        ProfileState    = $profileInfo.ProfileState
+                        ProfilePriority = $profileInfo.ProfilePriority
+                        PolicyLinkState = $profileInfo.PolicyLinkState
+                        IsApplied       = $true
+                        CAPolicy        = $profileInfo.CAPolicy
+                    }
+                }
+
                 $appliedPolicies += [PSCustomObject]@{
                     PolicyId       = $policyId
                     PolicyName     = $policyName
                     PolicyAction   = $policyAction
-                    LinkedProfiles = $linkedProfiles
+                    LinkedProfiles = $formattedProfiles
                 }
             }
         }
