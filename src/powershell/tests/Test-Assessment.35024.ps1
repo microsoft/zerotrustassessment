@@ -86,10 +86,10 @@ function Test-Assessment-35024 {
         }
 
         $testResultMarkdown += "### Summary`n`n"
-        $testResultMarkdown += "* Azure RMS Service: $($azureRMSEnabledStatus)`n"
+        $testResultMarkdown += "- **Azure RMS Service:** $($azureRMSEnabledStatus)`n"
 
 
-        $testResultMarkdown += "`n**Azure RMS Status**`n"
+        $testResultMarkdown += "### Azure RMS Status`n`n"
         $testResultMarkdown += "| Service Enabled | Activation Date | Key Management Mode | Licensing Model |`n"
         $testResultMarkdown += "|:---|:---|:---|:---|`n"
 
