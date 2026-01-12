@@ -67,15 +67,15 @@ function Test-Assessment-35016 {
                     LabelsCount = $policy.Labels.Count
                 }
 
-                # Parse Settings array for mandatory labeling flags
-                # Settings are returned as strings in [key, value] format
-                if ($policy.Settings -and $policy.Settings.Count -gt 0) {
-                    foreach ($setting in $policy.Settings) {
-                        # Parse [key, value] format
-                        $match = $setting -match '^\[(.*?),\s*(.+)\]$'
-                        if ($match) {
-                            $key = $matches[1].ToLower().Trim()
-                            $value = $matches[2].ToLower().Trim()
+                # Parse PolicySettingsBlob XML for mandatory labeling flags
+                if ($policy.PolicySettingsBlob) {
+                    try {
+                        $xmlSettings = [xml]$policy.PolicySettingsBlob
+
+                        # Access settings as XML elements for direct property lookup
+                        foreach ($setting in $xmlSettings.settings.setting) {
+                            $key = $setting.key.ToLower()
+                            $value = $setting.value.ToLower()
 
                             switch ($key) {
                                 'mandatory' {
@@ -95,13 +95,13 @@ function Test-Assessment-35016 {
                                 }
                             }
                         }
-                        else {
-                            Write-PSFMessage "Unexpected label policy setting format '$setting' in policy '$($policy.Name)'" -Level Warning
-                        }
+                    }
+                    catch {
+                        Write-PSFMessage "Error parsing PolicySettingsBlob XML for policy '$($policy.Name)': $_" -Level Warning
                     }
                 }
 
-                # Email mandatory should not be overridden
+                # If disablemandatoryinoutlook is true, it overrides the mandatory setting for emails
                 if ($policySettings.EmailMandatory -and $policySettings.EmailOverride) {
                     $policySettings.EmailMandatory = $false
                 }
