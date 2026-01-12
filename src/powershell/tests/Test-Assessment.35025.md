@@ -16,8 +16,8 @@ For organizations using Exchange Online, ensure mail flow policies and RMS featu
 2. Verify internal licensing is enabled: `Set-IRMConfiguration -InternalLicensingEnabled $true`
 3. Verify the setting: `Get-IRMConfiguration | Select-Object -Property InternalLicensingEnabled, ExternalLicensingEnabled`
 
-- [Configure Azure Rights Management licensing](https://learn.microsoft.com/en-us/purview/encryption-configure-aip)
-- [Rights Management in Exchange Online](https://learn.microsoft.com/en-us/purview/encryption-exchange-owa)
+- [Configure Azure Rights Management licensing](https://learn.microsoft.com/en-us/purview/set-up-new-message-encryption-capabilities)
+- [Rights Management in Exchange Online](https://learn.microsoft.com/en-us/purview/information-rights-management-in-exchange-online)
 
 <!--- Results --->
 %TestResult%
