@@ -53,9 +53,6 @@ function Test-Assessment-35038 {
     if($adaptiveProtectionEnabledPolicies -and $adaptiveProtectionEnabledPolicies.Count -gt 0){
         $passed = $true
     }
-    else{
-        $passed = $false
-    }
     #endregion Assessment Logic
 
     #region Report Generation
