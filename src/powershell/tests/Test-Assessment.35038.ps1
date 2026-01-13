@@ -43,7 +43,7 @@ function Test-Assessment-35038 {
         $adaptiveProtectionEnabledPolicies = $irmPolicies | Where-Object { $_.Enabled -eq $true -and $_.OptInDrpForDlp -eq $true } | Select-Object -Property Name, Enabled, OptInDrpForDlp
     }
     catch {
-        Write-PSFMessage "Error querying Label Policies: $_" -Level Error
+        Write-PSFMessage "Error querying Insider Risk Management Policies: $_" -Level Error
     }
     #endregion Data Collection
 
