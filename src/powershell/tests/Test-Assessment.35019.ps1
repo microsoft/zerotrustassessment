@@ -66,20 +66,22 @@ function Test-Assessment-35019 {
         if ($passed) {
             $testResultMarkdown = "✅ $($policies.Count) auto-labeling $(if ($policies.Count -eq 1) { 'policy exists' } else { 'policies exist' }) in the organization, enabling automatic content classification.`n`n"
 
-            $testResultMarkdown += "### Auto-Labeling Policies`n`n"
-            $testResultMarkdown += "| Policy Name | Enabled | Mode | Workload | Created |`n"
-            $testResultMarkdown += "| :--- | :---: | :--- | :--- | :--- |`n"
-
             $policyLink = "https://purview.microsoft.com/informationprotection/autolabeling"
+
+            $testResultMarkdown += "### [Auto-Labeling Policies]($policyLink)`n`n"
+            $testResultMarkdown += "| Policy Name | Description | Enabled | Mode | Workload | Created | Last Modified |`n"
+            $testResultMarkdown += "| :--- | :--- | :---: | :--- | :--- | :--- | :--- |`n"
 
             foreach ($policy in $policies) {
                 $policyName = Get-SafeMarkdown -Text $policy.Name
+                $description = if ($policy.Comment) { Get-SafeMarkdown -Text $policy.Comment } else { '' }
                 $enabled = if ($policy.Enabled) { '✅' } else { '❌' }
                 $mode = if ($policy.Mode) { $policy.Mode } else { 'Unknown' }
                 $workload = if ($policy.Workload) { $policy.Workload } else { 'Not specified' }
                 $created = if ($policy.WhenCreatedUTC) { $policy.WhenCreatedUTC.ToString('yyyy-MM-dd') } else { 'Unknown' }
+                $lastModified = if ($policy.WhenChangedUTC) { $policy.WhenChangedUTC.ToString('yyyy-MM-dd') } else { 'Unknown' }
 
-                $testResultMarkdown += "| [$policyName]($policyLink) | $enabled | $mode | $workload | $created |`n"
+                $testResultMarkdown += "| $policyName | $description | $enabled | $mode | $workload | $created | $lastModified |`n"
             }
 
             # Summary section
@@ -88,16 +90,26 @@ function Test-Assessment-35019 {
 
             # Check which workloads are covered
             $workloads = $policies.Workload | Where-Object { $_ } | Select-Object -Unique
-            if ($workloads) {
-                $testResultMarkdown += "* **Workloads Covered:** $($workloads -join ', ')`n"
-            }
+            $workloads = $workloads -split ', ' | ForEach-Object { $_.Trim() } | Select-Object -Unique
+            $testResultMarkdown += "`n**Workloads with Auto-Labeling Policies:**`n"
+            $hasExchange = $workloads -contains 'Exchange'
+            $hasSharePoint = $workloads -contains 'SharePoint'
+            $hasOneDrive = $workloads -contains 'OneDriveForBusiness'
+            $hasTeams = $workloads -contains 'Teams'
+            $hasPowerBI = $workloads -contains 'PowerBI'
+
+            $testResultMarkdown += "* Exchange/Outlook: [$(if ($hasExchange) { 'Yes' } else { 'No' })]`n"
+            $testResultMarkdown += "* SharePoint: [$(if ($hasSharePoint) { 'Yes' } else { 'No' })]`n"
+            $testResultMarkdown += "* OneDrive: [$(if ($hasOneDrive) { 'Yes' } else { 'No' })]`n"
+            $testResultMarkdown += "* Teams: [$(if ($hasTeams) { 'Yes' } else { 'No' })]`n"
+            $testResultMarkdown += "* Power BI: [$(if ($hasPowerBI) { 'Yes' } else { 'No' })]`n"
 
             # Date range
             $createdDates = $policies.WhenCreatedUTC | Where-Object { $_ } | Sort-Object
             if ($createdDates) {
                 $oldest = $createdDates[0].ToString('yyyy-MM-dd')
                 $newest = $createdDates[-1].ToString('yyyy-MM-dd')
-                $testResultMarkdown += "* **Policy Creation Date Range:** $oldest to $newest`n"
+                $testResultMarkdown += "`n* **Policy Creation Date Range:** $oldest to $newest`n"
             }
 
             $testResultMarkdown += "`n💡 **Note:** This test validates policy existence only. Test 35020 validates that at least one policy is in enforcement mode.`n"
