@@ -10,7 +10,7 @@ To create and enable Insider Risk Management policies with Adaptive Protection:
 4. Choose a policy template (Data leaks, Security policy violations, Risky browser usage, etc.)
 5. Name the policy and configure the scope (all users or specific groups)
 6. Configure triggering events and risk indicators for the policy
-7. **Enable Adaptive Protection integration**: 
+7. Enable Adaptive Protection integration: 
    - In policy settings, enable "Adaptive Protection" (OptInDrpForDlp)
    - Assign a DLP policy to use for Adaptive Protection
    - This allows the policy to combine behavioral risk indicators with DLP detection
