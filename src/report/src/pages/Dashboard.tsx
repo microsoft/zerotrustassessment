@@ -300,15 +300,28 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                 </div>
-                                {/* <div className="grid flex-1 auto-rows-min gap-0.5">
+                                {reportData.TestResultSummary.DataPassed !== undefined && (
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
                                     <div className="text-sm text-muted-foreground">Data</div>
                                     <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
                                         {reportData.TestResultSummary.DataPassed}/{reportData.TestResultSummary.DataTotal}
                                         <span className="text-sm font-normal text-muted-foreground">
-                                            checks
+                                            tests
                                         </span>
                                     </div>
-                                </div> */}
+                                </div>
+                                )}
+                                {reportData.TestResultSummary.NetworkPassed !== undefined && (
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">Network</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.NetworkPassed}/{reportData.TestResultSummary.NetworkTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            tests
+                                        </span>
+                                    </div>
+                                </div>
+                                )}
                             </div>
                             <ChartContainer
                                 config={{
@@ -324,6 +337,10 @@ export default function Dashboard() {
                                         label: "Data",
                                         color: "hsl(var(--chart-3))",
                                     },
+                                    network: {
+                                        label: "Network",
+                                        color: "hsl(var(--chart-4))",
+                                    },
                                 }}
                                 className="mx-auto aspect-square w-full max-w-[80%]"
                             >
@@ -335,6 +352,14 @@ export default function Dashboard() {
                                         bottom: -10,
                                     }}
                                     data={[
+                                        // Only include Network pillar if it exists (preview mode)
+                                        ...(reportData.TestResultSummary.NetworkPassed !== undefined && reportData.TestResultSummary.NetworkTotal !== undefined
+                                            ? [{
+                                                activity: "network",
+                                                value: (reportData.TestResultSummary.NetworkPassed / reportData.TestResultSummary.NetworkTotal) * 100,
+                                                fill: "var(--color-network)",
+                                            }]
+                                            : []),
                                         // Only include Data pillar if it exists (preview mode)
                                         ...(reportData.TestResultSummary.DataPassed !== undefined && reportData.TestResultSummary.DataTotal !== undefined
                                             ? [{
