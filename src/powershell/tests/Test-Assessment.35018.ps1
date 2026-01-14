@@ -48,11 +48,14 @@ function Test-Assessment-35018 {
 
     #region Assessment Logic
     $testStatus = $null
+    $passed = $false
+    $customStatus = $null
     $policiesWithDowngradeJustification = @()
     $policyDetails = @()
 
     if ($errorMsg) {
-        $testStatus = 'Investigate'
+        # Use CustomStatus to indicate investigation — do not overwrite TestStatus to preserve core pass/fail logic.
+        $customStatus = 'Investigate'
     }
     else {
 
@@ -104,13 +107,16 @@ function Test-Assessment-35018 {
 
         # Determine test status
         if ($investigateReason) {
-            $testStatus = 'Investigate'
+            # Prefer using CustomStatus to indicate investigation; avoid setting TestStatus here.
+            $customStatus = 'Investigate'
         }
         elseif ($policiesWithDowngradeJustification.Count -gt 0) {
             $testStatus = 'Pass'
+            $passed = $true
         }
         else {
             $testStatus = 'Fail'
+            $passed = $false
         }
     }
     #endregion Assessment Logic
@@ -118,16 +124,17 @@ function Test-Assessment-35018 {
     #region Report Generation
     $testResultMarkdown = ""
 
-    if ($testStatus -eq 'Investigate') {
-        $testResultMarkdown += "### Investigate`n`n"
-        $testResultMarkdown += $investigateReason
+    # Prefer CustomStatus 'Investigate' for reporting when present.
+    if ($customStatus -eq 'Investigate') {
+        $testResultMarkdown = "### Investigate`n`n"
+        $testResultMarkdown += "Unable to determine if downgrade justification is required due to policy complexity, permissions issues, or unclear Settings structure.`n`n"
     }
     elseif ($testStatus -eq 'Pass') {
-        $testResultMarkdown += "### ✅ Pass`n`n"
+        $testResultMarkdown = "### ✅ Pass`n`n"
         $testResultMarkdown += "Downgrade justification is required for at least one active sensitivity label policy, ensuring users must explain when removing or reducing label classification.`n`n"
     }
     else {
-        $testResultMarkdown += "### ❌ Fail`n`n"
+        $testResultMarkdown = "### ❌ Fail`n`n"
         $testResultMarkdown += "No sensitivity label policies require users to provide downgrade justification when removing or changing labels.`n`n"
     }
 
@@ -147,9 +154,9 @@ function Test-Assessment-35018 {
         $testResultMarkdown += "`n## Summary Statistics`n`n"
         $testResultMarkdown += "| Metric | Count |`n"
         $testResultMarkdown += "|---|---|`n"
-        $testResultMarkdown += "| Total Enabled Label Policies | $($policyDetails.Count) |`n"
-        $testResultMarkdown += "| Policies Requiring Downgrade Justification | $($policiesWithDowngradeJustification.Count) |`n"
-        $testResultMarkdown += "| Policies NOT Requiring Downgrade Justification | $($policyDetails.Count - $policiesWithDowngradeJustification.Count) |`n"
+        $testResultMarkdown += "| Total enabled label policies | $($policyDetails.Count) |`n"
+        $testResultMarkdown += "| Policies requiring downgrade justification | $($policiesWithDowngradeJustification.Count) |`n"
+        $testResultMarkdown += "| Policies not requiring downgrade justification | $($policyDetails.Count - $policiesWithDowngradeJustification.Count) |`n"
 
         if ($policyDetails.Count -gt 0) {
             $percentage = [Math]::Round(($policiesWithDowngradeJustification.Count / $policyDetails.Count) * 100, 2)
@@ -167,5 +174,11 @@ function Test-Assessment-35018 {
         Status  = $passed
         Result  = $testResultMarkdown
     }
+
+    # Add CustomStatus if status is 'Investigate'
+    if ($null -ne $customStatus) {
+        $params.CustomStatus = $customStatus
+    }
+
     Add-ZtTestResultDetail @params
 }
