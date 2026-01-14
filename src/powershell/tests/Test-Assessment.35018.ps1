@@ -31,8 +31,6 @@ function Test-Assessment-35018 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Sensitivity Label Policy Downgrade Justification Requirements'
-    Write-ZtProgress -Activity $activity -Status 'Query 1: Getting all enabled label policies'
-
     # Query 1: Get all enabled label policies
     $labelPolicies = $null
     $errorMsg = $null
@@ -57,7 +55,6 @@ function Test-Assessment-35018 {
         $testStatus = 'Investigate'
     }
     else {
-        Write-ZtProgress -Activity $activity -Status 'Query 2 & 3: Examining label policy downgrade justification settings'
 
         # For each enabled policy, examine settings for downgrade justification
         foreach ($policy in $labelPolicies) {
@@ -139,7 +136,7 @@ function Test-Assessment-35018 {
         $testResultMarkdown += "## Downgrade Justification Configuration`n`n"
 
         $testResultMarkdown += "### Policy Summary`n`n"
-        $testResultMarkdown += "| Policy Name | Enabled | Downgrade Justification | Scope | Labels Count | Workloads |`n"
+        $testResultMarkdown += "| Policy name | Enabled | Downgrade justification | Scope | Labels count | Workloads |`n"
         $testResultMarkdown += "|---|---|---|---|---|---|`n"
 
         foreach ($detail in $policyDetails) {
