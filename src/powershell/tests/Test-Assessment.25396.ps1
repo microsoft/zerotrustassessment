@@ -173,14 +173,14 @@ function Test-Assessment-25396 {
                         }
                         elseif ($authStrengthPolicy.policyType -eq 'custom') {
                             # Check if all allowed combinations are phishing-resistant
-                            $allPhishingResistant = $true
-                            foreach ($authMethod in $authStrengthPolicy.allowedCombinations) {
-                                if ($authMethod -notin $phishingResistantMethods) {
-                                    $allPhishingResistant = $false
+                            $isPhishingResistant = $false
+                            foreach ($method in $authStrengthPolicy.allowedCombinations) {
+                                if ($phishingResistantMethods -contains $method) {
+                                    $isPhishingResistant = $true
                                     break
                                 }
                             }
-                            $currentLevel = if ($allPhishingResistant) { 'PhishingResistant' } else { 'MFA' }
+                            $currentLevel = if ($isPhishingResistant) { 'PhishingResistant' } else { 'MFA' }
                         }
                     }
                     # Check for MFA in builtInControls
