@@ -55,6 +55,16 @@ function Test-Assessment-35016 {
         try {
             # Examine label policy settings for mandatory labeling
             foreach ($policy in $enabledPolicies) {
+                # Determine policy scope:
+                # - Global if any location is set to "All"
+                # - Scoped if specific users/groups are defined
+                $isGlobal = ($policy.ExchangeLocation -match '^All$') -or
+                            ($policy.ModernGroupLocation -match '^All$') -or
+                            ($policy.SharePointLocation -match '^All$') -or
+                            ($policy.OneDriveLocation -match '^All$') -or
+                            ($policy.SkypeLocation -match '^All$') -or
+                            ($policy.PublicFolderLocation -match '^All$')
+
                 $policySettings = @{
                     PolicyName = $policy.Name
                     Guid = $policy.Guid
@@ -64,7 +74,7 @@ function Test-Assessment-35016 {
                     SiteGroupMandatory = $false
                     PowerBIMandatory = $false
                     EmailOverride = $false
-                    Scope = if ($policy.IsGlobalPolicy) { 'Global' } else { 'Scoped' }
+                    Scope = if ($isGlobal) { 'Global' } else { 'Scoped' }
                     LabelsCount = $policy.Labels.Count
                 }
 
