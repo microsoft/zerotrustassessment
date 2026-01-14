@@ -11,7 +11,6 @@ When sensitivity label policies do not require users to provide justification wh
 
 **Learn More:** [Require users to provide justification to change a label](https://learn.microsoft.com/en-us/purview/sensitivity-labels-office-apps#require-users-to-provide-justification-to-change-a-label)
 
-- [Plan for sensitivity labels](https://learn.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels#plan-for-sensitivity-labels)
 - [Create and publish sensitivity labels](https://learn.microsoft.com/en-us/microsoft-365/compliance/create-sensitivity-labels)
 - [Require users to provide justification to change a label](https://learn.microsoft.com/en-us/purview/sensitivity-labels-office-apps#require-users-to-provide-justification-to-change-a-label)
 - [Plan your sensitivity label solution](https://learn.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels#plan-for-sensitivity-labels)
