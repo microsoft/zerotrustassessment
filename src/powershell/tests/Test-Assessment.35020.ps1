@@ -65,6 +65,10 @@ function Test-Assessment-35020 {
                     WhenChangedUTC = $policy.WhenChangedUTC
                 }
 
+                # Categorize policies by Mode property
+                # Possible Mode values per documentation: Enable, TestWithNotifications, TestWithoutNotifications, Disable
+                # Reference: https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/set-autosensitivitylabelpolicy?view=exchange-ps#-mode
+
                 if ($policy.Enabled -eq $true -and $policy.Mode -eq 'Enable') {
                     $enforcementPolicies += $policyInfo
                 }
