@@ -38,7 +38,7 @@ function Test-Assessment-35038 {
     $adaptiveProtectionEnabledPolicies = $null
 
     try {
-        $irmPolicies = Get-InsiderRiskPolicy | Select-Object -Property Name, Enabled, OptInDrpForDlp, WhenCreatedUTC -ErrorAction Stop
+        $irmPolicies = Get-InsiderRiskPolicy -ErrorAction Stop | Select-Object -Property Name, Enabled, OptInDrpForDlp, WhenCreatedUTC
 
         $adaptiveProtectionEnabledPolicies = $irmPolicies | Where-Object { $_.Enabled -eq $true -and $_.OptInDrpForDlp -eq $true } | Select-Object -Property Name, Enabled, OptInDrpForDlp
     }
@@ -68,7 +68,7 @@ function Test-Assessment-35038 {
     $testResultMarkdown += "- **Enabled Policies with Adaptive Protection:** $($adaptiveProtectionEnabledPolicies.Count)`n"
 
     if($irmPolicies.Count -gt 0){
-        $testResultMarkdown += "## IRM Policies`n`n"
+        $testResultMarkdown += "## [IRM Policies](https://purview.microsoft.com/insiderriskmgmt/policiespage)`n`n"
         $testResultMarkdown += "| Policy Name | Enabled | Adaptive Protection (OptInDrpForDlp) | Created Date |`n"
         $testResultMarkdown += "|:---|:---|:---|:---|`n"
 
@@ -81,9 +81,9 @@ function Test-Assessment-35038 {
             $testResultMarkdown += "| $policyName | $enabled | $adaptiveProtection | $createdDate |`n"
         }
     }
-        $testResultMarkdown += "`n"
-
-        $testResultMarkdown += "[Microsoft Purview Insider Risk Management > Policies](https://purview.microsoft.com/insiderriskmgmt/policiespage)`n"
+    else{
+        $testResultMarkdown += "`n[Microsoft Purview Insider Risk Management > Policies](https://purview.microsoft.com/insiderriskmgmt/policiespage)`n"
+    }
     #endregion Report Generation
 
     $params = @{
