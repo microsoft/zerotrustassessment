@@ -285,7 +285,7 @@ function Test-Assessment-25396 {
 - **Apps without CSAs:** $appsWithoutCSA
 - **CA Policies using applicationFilter:** $filterPoliciesCount
 
-## Application Details
+## [Application Details](${portalAppsLink})
 
 | App name | App id | App type | Has CSAs | CA policy | Auth strength | Level | Status |
 | :------- | :----- | :------- | :------- | :-------- | :------------ | :---- | :----- |
@@ -304,7 +304,6 @@ function Test-Assessment-25396 {
 
         $mdInfo += @"
 ## Portal Links
-- [Portal Link: Global Secure Access > Applications](${portalAppsLink})
 - [Conditional Access Policies](${portalCaLink})
 - [Authentication Strengths](${portalAuthStrengthLink})
 "@
