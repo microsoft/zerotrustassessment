@@ -30,152 +30,150 @@ function Test-Assessment-35018 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Sensitivity Label Policy Downgrade Justification Requirements'
-    # Query 1: Get all enabled label policies
-    $labelPolicies = $null
+    $enabledPolicies = @()
     $errorMsg = $null
-    $investigateReason = $null
 
     try {
-        $labelPolicies = @(Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true })
+        $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
         $errorMsg = $_
-        $investigateReason = "Unable to query Label Policies: $($_)"
-        Write-PSFMessage "Error querying Label Policies: $_" -Level Error
+        Write-PSFMessage "Error querying label policies: $_" -Level Error
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $testStatus = $null
+    $policyResults = @()
+    $policiesWithDowngradeJustification = @()
+    $xmlParseErrors = @()
     $passed = $false
     $customStatus = $null
-    $policiesWithDowngradeJustification = @()
-    $policyDetails = @()
 
     if ($errorMsg) {
-        # Use CustomStatus to indicate investigation — do not overwrite TestStatus to preserve core pass/fail logic.
         $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to determine downgrade justification status due to error: $errorMsg`n`n"
     }
     else {
+        foreach ($policy in $enabledPolicies) {
 
-        # For each enabled policy, examine settings for downgrade justification
-        foreach ($policy in $labelPolicies) {
-            try {
-                # Query 3: Get detail on specific policy settings
-                $policySettings = Get-LabelPolicy -Identity $policy.Identity -ErrorAction Stop |
-                    Select-Object -ExpandProperty Settings
+            $requireDowngradeJustification = $false
 
-                # Convert Settings array to hashtable for easier querying
-                $settingsHash = @{}
-                if ($policySettings) {
-                    foreach ($setting in $policySettings) {
-                        # Parse [key, value] format
-                        $match = $setting -match '^\[(.*?),\s*(.+)\]$'
-                        if ($match) {
-                            $key = $matches[1].ToLower().Trim()
-                            $value = $matches[2].ToLower().Trim()
-                            $settingsHash[$key] = $value
+            if (-not [string]::IsNullOrWhiteSpace($policy.PolicySettingsBlob)) {
+                try {
+                    $xmlSettings = [xml]$policy.PolicySettingsBlob
+
+                    if ($xmlSettings.settings -and $xmlSettings.settings.setting) {
+                        foreach ($setting in $xmlSettings.settings.setting) {
+
+                            if (-not $setting.key -or -not $setting.value) { continue }
+
+                            if ($setting.key.ToLower() -eq 'requiredowngradejustification') {
+                                $requireDowngradeJustification = ($setting.value.ToLower() -eq 'true')
+                            }
                         }
                     }
                 }
-
-                # Query 2: Check for requiredowngradejustification setting
-                $hasDowngradeJustification = $settingsHash.ContainsKey('requiredowngradejustification') -and
-                    $settingsHash['requiredowngradejustification'] -eq 'true'
-
-                if ($hasDowngradeJustification) {
-                    $policiesWithDowngradeJustification += $policy
+                catch {
+                    $xmlParseErrors += [PSCustomObject]@{
+                        PolicyName = $policy.Name
+                        Error      = $_.Exception.Message
+                    }
                 }
-
-                # Collect policy details for reporting
-                $policyDetail = [PSCustomObject]@{
-                    PolicyName                      = $policy.Name
-                    Enabled                         = $policy.Enabled
-                    RequireDowngradeJustification   = $hasDowngradeJustification
-                    PolicyScope                     = if ($policy.ExchangeLocation -and $policy.ExchangeLocation.Type.value -ne 'Tenant') { 'Scoped' } else { 'Global' }
-                    LabelsPublishedCount            = if ($policy.labels) { @($policy.labels).Count } else { 0 }
-                    WorkloadsAffected               = @($policy.Workload) -join ', '
-                }
-                $policyDetails += $policyDetail
             }
-            catch {
-                $investigateReason = "Unable to determine Settings structure or permissions prevent access for policy: $($policy.Name)"
-                Write-PSFMessage "Error examining policy '$($policy.Name)': $_" -Level Warning
+
+            # Determine scope
+            $isGlobal =
+                ($policy.ExchangeLocation -match '^All$') -or
+                ($policy.ModernGroupLocation -match '^All$') -or
+                ($policy.SharePointLocation -match '^All$') -or
+                ($policy.OneDriveLocation -match '^All$') -or
+                ($policy.SkypeLocation -match '^All$') -or
+                ($policy.PublicFolderLocation -match '^All$')
+
+            # Determine workloads
+            $workloads = @()
+            if ($policy.ExchangeLocation)       { $workloads += 'Exchange' }
+            if ($policy.SharePointLocation)     { $workloads += 'SharePoint' }
+            if ($policy.OneDriveLocation)       { $workloads += 'OneDrive' }
+            if ($policy.ModernGroupLocation)    { $workloads += 'M365 Groups' }
+            if ($policy.PowerBILocation)        { $workloads += 'Power BI' }
+
+            $policyResult = [PSCustomObject]@{
+                PolicyName                    = $policy.Name
+                PolicyGuid                    = $policy.Guid
+                Enabled                       = $policy.Enabled
+                RequireDowngradeJustification = $requireDowngradeJustification
+                Scope                         = if ($isGlobal) { 'Global' } else { 'Scoped' }
+                LabelsCount                   = $policy.Labels.Count
+                Workloads                     = ($workloads -join ', ')
+            }
+
+            $policyResults += $policyResult
+
+            if ($requireDowngradeJustification) {
+                $policiesWithDowngradeJustification += $policyResult
             }
         }
 
-        # Determine test status
-        if ($investigateReason) {
-            # Prefer using CustomStatus to indicate investigation; avoid setting TestStatus here.
-            $customStatus = 'Investigate'
-        }
-        elseif ($policiesWithDowngradeJustification.Count -gt 0) {
-            $testStatus = 'Pass'
+        if ($policiesWithDowngradeJustification.Count -gt 0) {
             $passed = $true
+            $testResultMarkdown = "✅ Downgrade justification is enforced in at least one enabled sensitivity label policy.`n`n%TestResult%"
         }
         else {
-            $testStatus = 'Fail'
             $passed = $false
+            $testResultMarkdown = "❌ No enabled sensitivity label policies require downgrade justification.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $testResultMarkdown = ""
+    $mdInfo = "`n`n### Downgrade Justification Configuration`n"
 
-    # Prefer CustomStatus 'Investigate' for reporting when present.
-    if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "### Investigate`n`n"
-        $testResultMarkdown += "Unable to determine if downgrade justification is required due to policy complexity, permissions issues, or unclear Settings structure.`n`n"
-    }
-    elseif ($testStatus -eq 'Pass') {
-        $testResultMarkdown = "### ✅ Pass`n`n"
-        $testResultMarkdown += "Downgrade justification is required for at least one active sensitivity label policy, ensuring users must explain when removing or reducing label classification.`n`n"
-    }
-    else {
-        $testResultMarkdown = "### ❌ Fail`n`n"
-        $testResultMarkdown += "No sensitivity label policies require users to provide downgrade justification when removing or changing labels.`n`n"
-    }
+    if ($policyResults.Count -gt 0) {
+        $mdInfo += "| Policy name | Downgrade justification | Scope | Labels | Workloads |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
 
-    # Add detailed configuration data if we have policy information
-    if ($policyDetails.Count -gt 0) {
-        $testResultMarkdown += "## Downgrade Justification Configuration`n`n"
+        foreach ($policy in $policyResults) {
+            $policyName = Get-SafeMarkdown -Text $policy.PolicyName
+            $policyUrl  = "https://purview.microsoft.com/informationprotection/labelpolicies/$($policy.PolicyGuid)"
+            $icon = if ($policy.RequireDowngradeJustification) { '✅' } else { '❌' }
 
-        $testResultMarkdown += "### Policy Summary`n`n"
-        $testResultMarkdown += "| Policy name | Enabled | Downgrade justification | Scope | Labels count | Workloads |`n"
-        $testResultMarkdown += "|---|---|---|---|---|---|`n"
-
-        foreach ($detail in $policyDetails) {
-            $downgradeStatus = if ($detail.RequireDowngradeJustification) { '✅ Yes' } else { '❌ No' }
-            $testResultMarkdown += "| $($detail.PolicyName) | $($detail.Enabled) | $downgradeStatus | $($detail.PolicyScope) | $($detail.LabelsPublishedCount) | $($detail.WorkloadsAffected) |`n"
+            $mdInfo += "| [$policyName]($policyUrl) | $icon | $($policy.Scope) | $($policy.LabelsCount) | $($policy.Workloads) |`n"
         }
 
-        $testResultMarkdown += "`n## Summary Statistics`n`n"
-        $testResultMarkdown += "| Metric | Count |`n"
-        $testResultMarkdown += "|---|---|`n"
-        $testResultMarkdown += "| Total enabled label policies | $($policyDetails.Count) |`n"
-        $testResultMarkdown += "| Policies requiring downgrade justification | $($policiesWithDowngradeJustification.Count) |`n"
-        $testResultMarkdown += "| Policies not requiring downgrade justification | $($policyDetails.Count - $policiesWithDowngradeJustification.Count) |`n"
-
-        if ($policyDetails.Count -gt 0) {
-            $percentage = [Math]::Round(($policiesWithDowngradeJustification.Count / $policyDetails.Count) * 100, 2)
-            $testResultMarkdown += "| Percentage with Downgrade Justification | $percentage% |`n"
+        $percentage = if ($policyResults.Count -gt 0) {
+            [Math]::Round(($policiesWithDowngradeJustification.Count / $policyResults.Count) * 100, 2)
         }
+        else { 0 }
 
+        $mdInfo += "`n### Summary`n"
+        $mdInfo += "| Metric | Count |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        $mdInfo += "| Total enabled label policies | $($policyResults.Count) |`n"
+        $mdInfo += "| Policies requiring downgrade justification | $($policiesWithDowngradeJustification.Count) |`n"
+        $mdInfo += "| Policies NOT requiring downgrade justification | $($policyResults.Count - $policiesWithDowngradeJustification.Count) |`n"
+        $mdInfo += "| Percentage with downgrade justification | $percentage% |"
     }
 
+    if ($xmlParseErrors.Count -gt 0) {
+        $mdInfo += "`n`n### ⚠️ XML Parsing Errors`n"
+        $mdInfo += "| Policy name | Error |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        foreach ($err in $xmlParseErrors) {
+            $mdInfo += "| $(Get-SafeMarkdown $err.PolicyName) | $(Get-SafeMarkdown $err.Error) |`n"
+        }
+    }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
-    $passed = $testStatus -eq 'Pass'
     $params = @{
-        TestId  = '35018'
-        Title   = 'Downgrade Justification Required for Sensitivity Labels'
-        Status  = $passed
-        Result  = $testResultMarkdown
+        TestId = '35018'
+        Title  = 'Downgrade Justification Required for Sensitivity Labels'
+        Status = $passed
+        Result = $testResultMarkdown
     }
 
-    # Add CustomStatus if status is 'Investigate'
     if ($null -ne $customStatus) {
         $params.CustomStatus = $customStatus
     }
