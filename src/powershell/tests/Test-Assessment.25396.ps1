@@ -173,11 +173,11 @@ function Test-Assessment-25396 {
                         }
                         elseif ($authStrengthPolicy.policyType -eq 'custom') {
                             # Check if ALL combinations contain at least one phishing-resistant method
-                            $allPhishingResistant  = $true
+                            $allPhishingResistant = $true
                             foreach ($combination in $authStrengthPolicy.allowedCombinations) {
                                 $methods = $combination -split ','
                                 $combinationIsPhishingResistant = $false
-                                foreach($method in $methods)
+                                foreach ($method in $methods)
                                 {
                                     if ($phishingResistantMethods -contains $method.Trim()) {
                                         $combinationIsPhishingResistant = $true
@@ -186,7 +186,7 @@ function Test-Assessment-25396 {
                                 }
                                 # If this combination doesn't have a phishing-resistant method, fail
                                 if (-not $combinationIsPhishingResistant) {
-                                    $allPhishingResistant  = $false
+                                    $allPhishingResistant = $false
                                     break
                                 }
                             }
