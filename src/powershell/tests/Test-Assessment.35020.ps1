@@ -117,7 +117,7 @@ function Test-Assessment-35020 {
         foreach ($policy in $enforcementPolicies) {
             $policyName = Get-SafeMarkdown -Text $policy.Name
             $enabledStatus = $policy.Enabled
-            $workload = if ($policy.Workload) { $policy.Workload -join ', ' } else { 'N/A' }
+            $workload = if ($policy.Workload) { $policy.Workload } else { 'N/A' }
             $description = if ($policy.Comment) { Get-SafeMarkdown -Text $policy.Comment } else { 'N/A' }
             $created = if ($policy.WhenCreatedUTC) { $policy.WhenCreatedUTC.ToString('yyyy-MM-dd') } else { 'N/A' }
             $modified = if ($policy.WhenChangedUTC) { $policy.WhenChangedUTC.ToString('yyyy-MM-dd') } else { 'N/A' }
@@ -127,35 +127,39 @@ function Test-Assessment-35020 {
 
     # Build summary metrics
     if ($allPolicies.Count -gt 0) {
-        # Analyze workload coverage from enforcement policies
-        $workloadCoverage = @{
-            Exchange = $false
-            SharePoint = $false
-            OneDrive = $false
-            Teams = $false
-            PowerBI = $false
-        }
-
-        foreach ($policy in $enforcementPolicies) {
-            if ($policy.Workload -contains 'Exchange') { $workloadCoverage.Exchange = $true }
-            if ($policy.Workload -contains 'SharePoint') { $workloadCoverage.SharePoint = $true }
-            if ($policy.Workload -contains 'OneDrive') { $workloadCoverage.OneDrive = $true }
-            if ($policy.Workload -contains 'Teams') { $workloadCoverage.Teams = $true }
-            if ($policy.Workload -contains 'PowerBI') { $workloadCoverage.PowerBI = $true }
-        }
-
         $mdInfo += "`n`n### Summary`n"
         $mdInfo += "| Metric | Value |`n"
         $mdInfo += "| :--- | :--- |`n"
         $mdInfo += "| Total policies in enforcement mode | $($enforcementPolicies.Count) |`n"
         $mdInfo += "| Total policies in simulation mode | $($simulationPolicies.Count) |`n"
         $mdInfo += "| Total policies disabled | $($disabledPolicies.Count) |`n"
-        $mdInfo += "| **Workloads covered by enforcement policies** | |`n"
-        $mdInfo += "| *Exchange/Outlook* | $(if ($workloadCoverage.Exchange) { '✅ Yes' } else { '❌ No' }) |`n"
-        $mdInfo += "| *SharePoint* | $(if ($workloadCoverage.SharePoint) { '✅ Yes' } else { '❌ No' }) |`n"
-        $mdInfo += "| *OneDrive* | $(if ($workloadCoverage.OneDrive) { '✅ Yes' } else { '❌ No' }) |`n"
-        $mdInfo += "| *Teams* | $(if ($workloadCoverage.Teams) { '✅ Yes' } else { '❌ No' }) |`n"
-        $mdInfo += "| *Power BI* | $(if ($workloadCoverage.PowerBI) { '✅ Yes' } else { '❌ No' }) |`n"
+
+        # Show workload coverage only when there are enforcement policies
+        if ($enforcementPolicies.Count -gt 0) {
+            # Analyze workload coverage from enforcement policies
+            $workloadCoverage = @{
+                Exchange = $false
+                SharePoint = $false
+                OneDrive = $false
+                Teams = $false
+                PowerBI = $false
+            }
+
+            foreach ($policy in $enforcementPolicies) {
+                if ($policy.Workload -match 'Exchange') { $workloadCoverage.Exchange = $true }
+                if ($policy.Workload -match 'SharePoint') { $workloadCoverage.SharePoint = $true }
+                if ($policy.Workload -match 'OneDrive') { $workloadCoverage.OneDrive = $true }
+                if ($policy.Workload -match 'Teams') { $workloadCoverage.Teams = $true }
+                if ($policy.Workload -match 'PowerBI') { $workloadCoverage.PowerBI = $true }
+            }
+
+            $mdInfo += "| **Workloads covered by enforcement policies** | |`n"
+            $mdInfo += "| Exchange/Outlook | $(if ($workloadCoverage.Exchange) { '✅ Yes' } else { '❌ No' }) |`n"
+            $mdInfo += "| SharePoint | $(if ($workloadCoverage.SharePoint) { '✅ Yes' } else { '❌ No' }) |`n"
+            $mdInfo += "| OneDrive | $(if ($workloadCoverage.OneDrive) { '✅ Yes' } else { '❌ No' }) |`n"
+            $mdInfo += "| Teams | $(if ($workloadCoverage.Teams) { '✅ Yes' } else { '❌ No' }) |`n"
+            $mdInfo += "| Power BI | $(if ($workloadCoverage.PowerBI) { '✅ Yes' } else { '❌ No' }) |`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo

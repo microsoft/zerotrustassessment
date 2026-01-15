@@ -3,7 +3,7 @@ Auto-labeling policies can operate in two modes: simulation mode (testing and mo
 **Remediation action**
 
 1. **Access auto-labeling policies**:
-   - Navigate to [Auto-labeling policies](https://purview.microsoft.com/informationprotection/autolabeling) in the Microsoft Purview portal.
+   - [Navigate to Auto-labeling policies](https://purview.microsoft.com/informationprotection/autolabeling) in the Microsoft Purview portal.
    - [Apply sensitivity labels automatically](https://learn.microsoft.com/en-us/purview/apply-sensitivity-label-automatically) provides step-by-step access instructions.
 2. **Identify policies in simulation mode**:
    - Review the list of auto-labeling policies. Locate policies with Mode: Simulation. These policies are actively monitoring but not labeling content. 
