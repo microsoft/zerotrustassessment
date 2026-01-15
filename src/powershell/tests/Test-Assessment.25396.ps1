@@ -172,15 +172,25 @@ function Test-Assessment-25396 {
                             }
                         }
                         elseif ($authStrengthPolicy.policyType -eq 'custom') {
-                            # Check if all allowed combinations are phishing-resistant
-                            $isPhishingResistant = $false
-                            foreach ($method in $authStrengthPolicy.allowedCombinations) {
-                                if ($phishingResistantMethods -contains $method) {
-                                    $isPhishingResistant = $true
+                            # Check if ALL combinations contain at least one phishing-resistant method
+                            $allPhishingResistant  = $true
+                            foreach ($combination in $authStrengthPolicy.allowedCombinations) {
+                                $methods = $combination -split ','
+                                $combinationIsPhishingResistant = $false
+                                foreach($method in $methods)
+                                {
+                                    if ($phishingResistantMethods -contains $method.Trim()) {
+                                        $combinationIsPhishingResistant = $true
+                                        break
+                                    }
+                                }
+                                # If this combination doesn't have a phishing-resistant method, fail
+                                if (-not $combinationIsPhishingResistant) {
+                                    $allPhishingResistant  = $false
                                     break
                                 }
                             }
-                            $currentLevel = if ($isPhishingResistant) { 'PhishingResistant' } else { 'MFA' }
+                            $currentLevel = if ($allPhishingResistant) { 'PhishingResistant' } else { 'MFA' }
                         }
                     }
                     # Check for MFA in builtInControls
