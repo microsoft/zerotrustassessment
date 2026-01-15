@@ -58,12 +58,22 @@ function Test-Assessment-35016 {
                 # Determine policy scope:
                 # - Global if any location is set to "All"
                 # - Scoped if specific users/groups are defined
-                $isGlobal = ($policy.ExchangeLocation -match '^All$') -or
-                            ($policy.ModernGroupLocation -match '^All$') -or
-                            ($policy.SharePointLocation -match '^All$') -or
-                            ($policy.OneDriveLocation -match '^All$') -or
-                            ($policy.SkypeLocation -match '^All$') -or
-                            ($policy.PublicFolderLocation -match '^All$')
+                $allLocationNames = @(
+                    $policy.ExchangeLocation.Name
+                    $policy.ModernGroupLocation.Name
+                    $policy.SharePointLocation.Name
+                    $policy.OneDriveLocation.Name
+                    $policy.SkypeLocation.Name
+                    $policy.PublicFolderLocation.Name
+                ) | Where-Object { $_ }
+
+                $isGlobal = $false
+                switch ($allLocationNames) {
+                    'All' {
+                        $isGlobal = $true
+                        break
+                    }
+                }
 
                 $policySettings = @{
                     PolicyName = $policy.Name
