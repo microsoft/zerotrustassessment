@@ -97,7 +97,7 @@ function Test-Assessment-35015 {
                 $sampleLabels = if ($policy.Labels) {
                     $samples = @($policy.Labels | Select-Object -First 5)
                     $labelText = ($samples | ForEach-Object { Get-SafeMarkdown -Text $_ }) -join ', '
-                    if (@($policy.Labels).Count -gt 5) { $labelText += '...' }
+                    if (@($policy.Labels).Count -gt 5) { $labelText += ', ...' }
                     $labelText
                 } else { 'None' }
 
