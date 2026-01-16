@@ -19,7 +19,7 @@ function Test-Assessment-25396 {
         MinimumLicense = ('Entra_Premium_Private_Access', 'AAD_PREMIUM'),
         Pillar = 'Network',
         RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
+        SfiPillar = 'Protect identities and secrets',
         TenantType = ('Workforce'),
         TestId = 25396,
         Title = 'Conditional Access policies enforce strong authentication for private apps',
