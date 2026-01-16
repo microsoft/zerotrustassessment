@@ -136,6 +136,9 @@ function Test-Assessment-25535 {
                         Nic          = $nic
                         RetryAfter   = $retryAfter
                         Timestamp    = Get-Date
+                        SubnetId     = $subnetId
+                        SubscriptionId = $sub.Id
+                        SubscriptionName = $sub.Name
                     }
                 }
                 catch {
@@ -206,6 +209,11 @@ function Test-Assessment-25535 {
                     NextHopType = 'Unknown'
                     NextHopIp   = ''
                     IsCompliant = $false
+                    SubscriptionId = $op.SubscriptionId
+                    SubscriptionName = $op.SubscriptionName
+                    SubnetId = $op.SubnetId
+                    FirewallPrivateIp = 'N/A'
+                    NextHopIpAddress = ''
                 }
                 continue
             }
@@ -223,6 +231,11 @@ function Test-Assessment-25535 {
                     NextHopType = 'Internet'
                     NextHopIp   = ''
                     IsCompliant = $false
+                    SubscriptionId = $op.SubscriptionId
+                    SubscriptionName = $op.SubscriptionName
+                    SubnetId = $op.SubnetId
+                    FirewallPrivateIp = 'N/A'
+                    NextHopIpAddress = ''
                 }
                 continue
             }
@@ -245,6 +258,9 @@ function Test-Assessment-25535 {
                 NextHopType       = $defaultRoute.nextHopType
                 NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
                 IsCompliant       = ($fwMatch -ne $null)
+                SubscriptionId    = $op.SubscriptionId
+                SubscriptionName  = $op.SubscriptionName
+                SubnetId          = $op.SubnetId
             }
         }
     }
@@ -267,21 +283,29 @@ function Test-Assessment-25535 {
 
     #region Result Reporting
     $mdInfo = "## Outbound traffic routing evidence`n`n"
-    $mdInfo += "| Azure firewall | Firewall private ip | Network interface | Source | State | Address prefix | Next hop type | Next hop ip | Status |`n"
-    $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
+    $mdInfo += "| Subscription | Network interface | Subnet | Azure firewall private IP | Default route next hop type | Next hop IP akshitiddress | Result |`n"
+    $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
-    foreach ($item in $nicFindings | Sort-Object NicName) {
+    foreach ($item in $nicFindings | Sort-Object SubscriptionName, NicName) {
         $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
-        $safeFirewallName = Get-SafeMarkdown -Text ($item.FirewallName -or 'N/A')
-        $safeName = Get-SafeMarkdown -Text ($item.NicName -or 'N/A')
-        $fwIp = ($item.FirewallPrivateIp -or 'N/A')
-        $routeSource = ($item.RouteSource -or '')
-        $routeState = ($item.RouteState -or '')
-        $addressPrefix = ($item.AddressPrefix -or '')
-        $nextHopType = ($item.NextHopType -or '')
-        $nextHopIp = ($item.NextHopIpAddress -or '')
 
-        $mdInfo += "| $safeFirewallName | $fwIp | [$safeName](https://portal.azure.com/#@/resource$($item.NicId)) | $routeSource | $routeState | $addressPrefix | $nextHopType | $nextHopIp | $icon |`n"
+        $subName = if ($item.SubscriptionName) { $item.SubscriptionName } else { 'N/A' }
+        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
+        $subMd = "[$(Get-SafeMarkdown -Text $subName)]($subLink)"
+
+        $nicName = if ($item.NicName) { $item.NicName } else { 'N/A' }
+        $nicLink = "https://portal.azure.com/#resource$($item.NicId)"
+        $nicMd = "[$(Get-SafeMarkdown -Text $nicName)]($nicLink)"
+
+        $subnetName = if ($item.SubnetId) { ($item.SubnetId -split '/')[-1] } else { 'N/A' }
+        $subnetLink = "https://portal.azure.com/#resource$($item.SubnetId)"
+        $subnetMd = "[$(Get-SafeMarkdown -Text $subnetName)]($subnetLink)"
+
+        $fwIp = if ($item.FirewallPrivateIp) { $item.FirewallPrivateIp } else { 'N/A' }
+        $nextHopType = if ($item.NextHopType) { $item.NextHopType } else { 'None' }
+        $nextHopIp = if ($item.NextHopIpAddress) { $item.NextHopIpAddress } else { '' }
+
+        $mdInfo += "| $subMd | $nicMd | $subnetMd | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
