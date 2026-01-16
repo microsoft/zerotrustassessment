@@ -19,7 +19,7 @@ function Test-Assessment-25396 {
         MinimumLicense = ('Entra_Premium_Private_Access', 'AAD_PREMIUM'),
         Pillar = 'Network',
         RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
+        SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25396,
         Title = 'Conditional Access policies enforce strong authentication for private apps',
@@ -35,7 +35,7 @@ function Test-Assessment-25396 {
     Write-ZtProgress -Activity $activity -Status 'Getting Private Access applications'
 
     # Query Q1: Get all Private Access service principals with tags and CSAs
-    $privateAccessApps = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags,customSecurityAttributes' -ApiVersion v1.0 -ConsistencyLevel eventual
+    $privateAccessApps = Invoke-ZtGraphRequest -RelativeUri 'servicePrincipals' -Filter "(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))" -Select 'id,displayName,appId,tags,customSecurityAttributes' -ApiVersion v1.0 -ConsistencyLevel eventual -QueryParameters @{ '$count' = 'true' }
 
     # Initialize test variables
     $testResultMarkdown = ''
