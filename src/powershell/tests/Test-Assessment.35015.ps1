@@ -67,7 +67,7 @@ function Test-Assessment-35015 {
             )
         }
         $uniqueLabels = $globalPolicies.Labels | Where-Object { $_ } | Select-Object -Unique
-        $totalUniqueLabels = $uniqueLabels.Count
+        $totalUniqueLabels = @($uniqueLabels).Count
         $passed = $totalUniqueLabels -le $maxRecommendedLabels
     }
     #endregion Assessment Logic
