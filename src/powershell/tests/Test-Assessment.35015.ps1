@@ -55,10 +55,10 @@ function Test-Assessment-35015 {
     else {
         # Identify globally-scoped policies (no specific user/group scope or applies to 'All')
         $globalPolicies = $labelPolicies | Where-Object {
-            ($_.ExchangeLocation    -like 'All') -or
-            ($_.ModernGroupLocation -like 'All') -or
-            ($_.SharePointLocation  -like 'All') -or
-            ($_.OneDriveLocation    -like 'All') -or
+            ($_.ExchangeLocation    -contains 'All') -or
+            ($_.ModernGroupLocation -contains 'All') -or
+            ($_.SharePointLocation  -contains 'All') -or
+            ($_.OneDriveLocation    -contains 'All') -or
             (
                 (-not $_.ModernGroupLocation  -or $_.ModernGroupLocation.Count  -eq 0) -and
                 (-not $_.ExchangeLocation     -or $_.ExchangeLocation.Count     -eq 0) -and
