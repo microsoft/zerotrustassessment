@@ -62,7 +62,7 @@ function Test-Assessment-21955 {
     $mdInfo = ''
 
     if ($assignedMembers.Count -gt 0) {
-        $mdInfo += "`n## Active Microsoft Entra Joined Device Local Administrator assignments`n`n"
+        $mdInfo += "`n## [Active Microsoft Entra Joined Device Local Administrator assignments](https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleTemplateId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleName/Microsoft%20Entra%20Joined%20Device%20Local%20Administrator/isRoleCustom~/false/resourceScopeId/%2F/resourceId/23f1f8b7-1ef3-48a3-9563-e0c17fa1dbec)`n`n"
         $mdInfo += "| Display Name | UPN | Type | Assignment Type |`n"
         $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
 
@@ -81,7 +81,7 @@ function Test-Assessment-21955 {
     }
 
     if ($eligibleMembers.Count -gt 0) {
-        $mdInfo += "`n## Eligible Microsoft Entra Joined Device Local Administrator assignments`n`n"
+        $mdInfo += "`n## [Eligible Microsoft Entra Joined Device Local Administrator assignments](https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleTemplateId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleName/Microsoft%20Entra%20Joined%20Device%20Local%20Administrator/isRoleCustom~/false/resourceScopeId/%2F/resourceId/23f1f8b7-1ef3-48a3-9563-e0c17fa1dbec)`n`n"
         $mdInfo += "| Display Name | UPN | Type | Assignment Type |`n"
         $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
 
