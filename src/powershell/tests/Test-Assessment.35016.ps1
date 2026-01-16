@@ -67,13 +67,7 @@ function Test-Assessment-35016 {
                     $policy.PublicFolderLocation.Name
                 ) | Where-Object { $_ }
 
-                $isGlobal = $false
-                switch ($allLocationNames) {
-                    'All' {
-                        $isGlobal = $true
-                        break
-                    }
-                }
+                $isGlobal = $allLocationNames -contains 'All'
 
                 $policySettings = @{
                     PolicyName = $policy.Name
