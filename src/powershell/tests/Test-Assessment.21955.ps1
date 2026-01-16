@@ -32,7 +32,7 @@ function Test-Assessment-21955 {
 
     # Query database for assigned and eligible users/groups for this role
     $sql = "SELECT principalDisplayName, userPrincipalName, `"@odata.type`", principalId, privilegeType
-              FROM zt.main.vwRole
+              FROM vwRole
               WHERE roleDefinitionId = '$deviceLocalAdminRoleId';"
 
     $roleAssignments = Invoke-DatabaseQuery -Database $Database -Sql $sql
