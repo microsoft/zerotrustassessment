@@ -10,20 +10,20 @@
 .NOTES
     Test ID: 35011
     Pillar: Data
-    Risk Level: High
+    Risk Level: Medium
 #>
 
 function Test-Assessment-35011 {
     [ZtTest(
-        Category = 'Azure Information Protection',
+        Category = 'Advanced Label Features',
         ImplementationCost = 'Medium',
         MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
-        RiskLevel = 'High',
-        SfiPillar = '',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce','External'),
         TestId = 35011,
-        Title = 'Azure Information Protection (AIP) Super User Feature',
+        Title = 'Super User Membership Configuration',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -45,7 +45,8 @@ function Test-Assessment-35011 {
         # This test only performs queries against the authenticated service
 
         # Query Q1: Check if super user feature is enabled
-        $superUserFeatureEnabled = Get-AipServiceSuperUserFeature -ErrorAction Stop
+        $superUserFeatureRaw = Get-AipServiceSuperUserFeature -ErrorAction Stop
+        $superUserFeatureEnabled = $superUserFeatureRaw.Value
 
         # Query Q2: Get list of configured super users
         $superUsers = Get-AipServiceSuperUser -ErrorAction Stop
@@ -56,7 +57,8 @@ function Test-Assessment-35011 {
             $userIdentifier = $superUser -split '@' | Select-Object -First 1
 
             # Check if the identifier is a GUID (service principal) or email/UPN (user)
-            $isGuid = $userIdentifier -match '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+            $parsedGuid = [Guid]::Empty
+            $isGuid = [Guid]::TryParse($userIdentifier, [ref]$parsedGuid)
             $accountType = if ($isGuid) { 'Service Principal' } else { 'User' }
 
             # For users, display the full email; for service principals, will be updated with lookup result
@@ -121,11 +123,11 @@ function Test-Assessment-35011 {
     else {
         # Evaluation logic:
         # 1. If feature is disabled, test fails
-        if ($superUserFeatureEnabled -eq $false) {
+        if ($superUserFeatureEnabled -eq "Disabled") {
             $passed = $false
         }
         # 2. If feature is enabled, check if at least one super user is configured
-        elseif ($superUserFeatureEnabled -eq $true) {
+        elseif ($superUserFeatureEnabled -eq "Enabled") {
             $superUserCount = if ($superUsers) { @($superUsers).Count } else { 0 }
 
             if ($superUserCount -ge 1) {
@@ -141,9 +143,11 @@ function Test-Assessment-35011 {
     #region Report Generation
     $testResultMarkdown = ""
     $mdInfo = ""
+    $customStatus = $null
 
     if ($investigateFlag) {
         $testResultMarkdown = "⚠️ Unable to determine super user configuration due to permissions or connection issues.`n`n"
+        $customStatus = 'Investigate'
     }
     else {
         if ($passed) {
@@ -156,10 +160,9 @@ function Test-Assessment-35011 {
         # Build detailed information section
         $mdInfo = "## Azure Information Protection Super User Configuration`n`n"
 
-        $featureStatus = if ($superUserFeatureEnabled) { "Enabled" } else { "Disabled" }
-        $mdInfo += "**Super User Feature: $featureStatus**`n`n"
+        $mdInfo += "**Super User Feature: $superUserFeatureEnabled**`n`n"
 
-        if ($superUserFeatureEnabled) {
+        if ($superUserFeatureEnabled -eq "Enabled") {
             $superUserCount = $superUserObjects.Count
             $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
 
@@ -170,10 +173,10 @@ function Test-Assessment-35011 {
                 foreach ($superUserObj in $superUserObjects) {
                     if ($superUserObj.IsServicePrincipal) {
                         $spPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($superUserObj.Id)/appId/$($superUserObj.AppId)"
-                        $displayText = "[$($superUserObj.DisplayName)]($spPortalLink)"
+                        $displayText = "[$(Get-SafeMarkdown($superUserObj.DisplayName))]($spPortalLink)"
                     }
                     else {
-                        $displayText = $superUserObj.DisplayName
+                        $displayText = Get-SafeMarkdown($superUserObj.DisplayName)
                     }
                     $mdInfo += "| $displayText | $($superUserObj.AccountType) |`n"
                 }
@@ -197,13 +200,12 @@ function Test-Assessment-35011 {
     }
 
     $params = @{
-        TestId             = '35011'
-        Status             = $passed
-        Result             = $testResultMarkdown
+        TestId = '35011'
+        Status = $passed
+        Result = $testResultMarkdown
     }
-    # Add investigate status if needed
-    if ($investigateFlag -eq $true) {
-        $params.CustomStatus = 'Investigate'
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
 }
