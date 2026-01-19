@@ -67,6 +67,7 @@ function Test-Assessment-25372 {
             -ApiVersion beta `
             -DisablePaging
         $intuneDeviceCount = $intuneResponse.'@odata.count'
+
     }
     catch {
         Write-PSFMessage "Failed to get Intune device count: $_" -Tag Test -Level Warning
@@ -84,26 +85,33 @@ function Test-Assessment-25372 {
     $customStatus = $null
 
     # Edge case: GSA devices > Intune devices (data inconsistency; GSA has more devices than Intune)
-    if ($totalGsaDevices -gt $totalManagedDevices) {
+    if ($totalGsaDevices -gt $totalManagedDevices -and $totalManagedDevices -gt 0) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Data inconsistency; GSA has more devices than Intune. This indicates stale GSA device records or devices removed from Intune management; data reconciliation is needed.`n`n%TestResult%"
+        $deploymentPercentage = 'N/A'
+        $gap = 'N/A'
+        $testResultMarkdown = "⚠️ Global Secure Access device count exceeds the Intune-managed device count. This indicates stale GSA device records, devices removed from Intune management, or data synchronization issues between systems. Review both data sources to reconcile counts.`n`n%TestResult%"
     }
+    # Edge case: No devices at all (both = 0)
+    elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -eq 0) {
+        $customStatus = 'Investigate'
+        $deploymentPercentage = 'N/A'
+        $gap = 'N/A'
+        $testResultMarkdown = "⚠️ No Intune-managed devices or Global Secure Access devices were detected. This test cannot be evaluated without enrolled devices. This may indicate the organization does not use Intune for device management, insufficient API permissions, or the tenant has no enrolled devices.`n`n%TestResult%"
+    }
+    # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
+    elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
+        $customStatus = 'Investigate'
+        $deploymentPercentage = 'N/A'
+        $gap = 'N/A'
+        $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate the organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
+    }
+    # Normal scenario: Calculate deployment percentage and assess
     else {
-        # Calculate deployment percentage
-        $deploymentPercentage = 0
-        $gap = 0
-        if ($totalManagedDevices -gt 0) {
-            $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
-            $gap = $totalManagedDevices - $totalGsaDevices
-        }
+        $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
+        $gap = $totalManagedDevices - $totalGsaDevices
 
-        # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
-        if ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
-            $customStatus = 'Investigate'
-            $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate the organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
-        }
         # Pass: Deployment percentage >= 90%
-        elseif ($deploymentPercentage -ge 90) {
+        if ($deploymentPercentage -ge 90) {
             $passed = $true
             $testResultMarkdown = "✅ Global Secure Access client is deployed to the majority of managed endpoints.`n`n%TestResult%"
         }
@@ -131,7 +139,7 @@ function Test-Assessment-25372 {
     $mdInfo += "| Active devices | $activeGsaDevices |`n"
     $mdInfo += "| Inactive devices | $inactiveGsaDevices |`n"
     $mdInfo += "| Total managed device count | $totalManagedDevices |`n"
-    $mdInfo += "| Deployment percentage | $deploymentPercentage% |`n"
+    $mdInfo += "| Deployment percentage | $(if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }) |`n"
     $mdInfo += "| Gap | $gap |`n"
     $mdInfo += "| Evaluation period | $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd')) |`n"
 
