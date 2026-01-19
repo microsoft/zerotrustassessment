@@ -283,7 +283,7 @@ function Test-Assessment-25535 {
 
     #region Result Reporting
     $mdInfo = "## Outbound traffic routing evidence`n`n"
-    $mdInfo += "| Subscription | Network interface | Subnet | Azure firewall private IP | Default route next hop type | Next hop IP akshitiddress | Result |`n"
+    $mdInfo += "| Subscription | Network interface | Subnet | Azure firewall private IP | Default route next hop type | Next hop IP address | Result |`n"
     $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
     foreach ($item in $nicFindings | Sort-Object SubscriptionName, NicName) {
