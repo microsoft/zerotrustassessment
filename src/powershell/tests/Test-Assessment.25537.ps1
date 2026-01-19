@@ -118,11 +118,15 @@ function Test-Assessment-25537 {
 
         # --- Markdown Table ---
         $mdInfo = "`n`n## Firewall Policies`n`n"
-        $mdInfo += "| Check name | Policy name | Subscription name | Subscription id | Threat Intel Mode |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :---: |`n"
+        $mdInfo += "| Policy name | Subscription name | Threat Intel Mode |`n"
+        $mdInfo += "| :--- | :--- | :---: |`n"
 
         foreach ($item in $results | Sort-Object PolicyName) {
-            $mdInfo += "| $($item.CheckName) | $($item.PolicyName) | $($item.SubscriptionName) | $($item.SubscriptionId) | $($item.ThreatIntelMode) |`n"
+            $policyLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)/resourceGroups/$($item.ResourceGroup)/providers/Microsoft.Network/firewallPolicies/$($item.PolicyName)"
+            $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
+            $policyMd = "[$(Get-SafeMarkdown -Text $item.PolicyName)]($policyLink)"
+            $subMd = "[$(Get-SafeMarkdown -Text $item.SubscriptionName)]($subLink)"
+            $mdInfo += "| $policyMd | $subMd | $($item.ThreatIntelMode) |`n"
         }
 
         $testResultMarkdown += $mdInfo
