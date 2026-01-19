@@ -44,6 +44,7 @@ function Test-Assessment-25535 {
         return
     }
 
+    # Query 1: List all subscriptions
     $subscriptions = Get-AzSubscription
 
     $firewalls = @()
@@ -54,7 +55,7 @@ function Test-Assessment-25535 {
         Set-AzContext -SubscriptionId $sub.Id | Out-Null
         $subId = $sub.Id
 
-        # Query 1: List Azure Firewalls
+        # Query 2: List Azure Firewalls
         $fwListUri = "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
 
         try {
@@ -68,7 +69,7 @@ function Test-Assessment-25535 {
         $fwItems = ($fwResp.Content | ConvertFrom-Json).value
         if (-not $fwItems) { continue }
 
-        # Query 2: Resolve Firewall Private IPs
+        # Query 3: Get Firewall Details (resolve private IPs)
         foreach ($fw in $fwItems) {
 
             $fwDetailUri = "$($fw.id)?api-version=2025-03-01"
@@ -93,7 +94,7 @@ function Test-Assessment-25535 {
 
         if ($firewalls.Count -eq 0) { continue }
 
-        # Query 3: List NICs
+        # Query 4: List NICs
         $nicListUri = "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
 
         try {
@@ -106,7 +107,7 @@ function Test-Assessment-25535 {
 
         $nics = ($nicResp.Content | ConvertFrom-Json).value
 
-        # Query 4: Stage 1 - Launch all async effectiveRouteTable requests
+        # Query 5: Stage 1 - Launch all async effectiveRouteTable requests
         $asyncOperations = @()
 
         foreach ($nic in $nics) {
@@ -152,7 +153,7 @@ function Test-Assessment-25535 {
 
         Write-PSFMessage "Launched $($asyncOperations.Count) async effectiveRouteTable requests for subscription $($sub.Name)" -Tag Test -Level Verbose
 
-        # Query 4: Stage 2 - Poll all operations in parallel
+        # Query 5: Stage 2 - Poll all operations in parallel
         $completedOperations = @()
         $maxRetries = 120  # ~10 minutes with 5 second intervals
 
@@ -201,7 +202,7 @@ function Test-Assessment-25535 {
 
         } while ($asyncOperations.Count -gt 0)
 
-        # Query 4: Stage 3 - Process completed operations
+        # Query 5: Stage 3 - Process completed operations
         foreach ($op in $completedOperations) {
             if ($op.Error -or -not $op.Routes) {
                 $nicFindings += [PSCustomObject]@{
