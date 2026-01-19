@@ -1,0 +1,8 @@
+When Private Access applications lack user or group assignments, organizations lose the ability to grant access to internal resources that the application protects. Without assignments, users cannot establish the tunnel through the Private Access application to reach the FQDNs and IP addresses configured in its application segments, creating operational gaps where users cannot access resources they need. This configuration prevents the enforcement of conditional access policies, since these policies require explicit user-to-application relationships to evaluate risk signals, device compliance state, and authentication strength requirements. Organizations lose visibility into which identities should access specific private resources, preventing the establishment of Zero Trust verification where every access request must be explicitly validated. The absence of assignments eliminates the ability to enforce least privilege access controls, where users receive access only to the specific resources they require rather than broad network segments. This gap also prevents administrators from implementing risk-based access policies that block or challenge authentication attempts based on sign-in risk, user risk, or device compliance status. Without user assignments, organizations cannot leverage identity protection signals that detect credential compromise, impossible travel, or anonymous IP addresses to protect private resources from threat actors who have obtained valid credentials through phishing or credential theft. 
+
+**Remediation action**
+
+- [Assign users and groups to enterprise applications](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-per-app-access#assign-users-and-groups)
+
+<!--- Results --->
+%TestResult%
