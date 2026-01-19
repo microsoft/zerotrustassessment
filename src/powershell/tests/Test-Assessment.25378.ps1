@@ -59,8 +59,7 @@ function Test-Assessment-25378 {
     if ($null -eq $defaultPolicy) {
         $passed = $false
         $testResultMarkdown = "❌ Unable to retrieve cross-tenant access policy configuration.`n`n%TestResult%"
-    }
-    else {
+    } else {
         # Extract configuration values
         $isServiceDefault = $defaultPolicy.isServiceDefault
 
@@ -131,15 +130,18 @@ function Test-Assessment-25378 {
         $appsAccessStatus = if ($applicationsAccessType -eq 'blocked') { '✅' } else { '❌' }
         $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications') { '✅' } else { '❌' }
 
+        $displayUserTarget = if ($null -ne $usersAndGroupsTargets -and $usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
+        $displayAppTarget = if ($null -ne $applicationsTargets -and $applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
+
         # Summary Section
         $mdInfo += "`n## [Default Cross-Tenant Access Settings - Outbound B2B Collaboration]($portalLink)`n`n"
         $mdInfo += "| Setting | Configured Value | Expected Value | Status |`n"
         $mdInfo += "| :--- | :--- | :--- | :---: |`n"
         $mdInfo += "| Is Service Default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
         $mdInfo += "| Users and Groups Access Type | $usersAndGroupsAccessType | blocked | $usersAccessStatus |`n"
-        $mdInfo += "| Users and Groups Target | $($usersAndGroupsTargets[0]) | AllUsers | $usersTargetStatus |`n"
+        $mdInfo += "| Users and Groups Target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
         $mdInfo += "| Applications Access Type | $applicationsAccessType | blocked | $appsAccessStatus |`n"
-        $mdInfo += "| Applications Target | $($applicationsTargets[0]) | AllApplications | $appsTargetStatus |`n"
+        $mdInfo += "| Applications Target | $displayAppTarget | AllApplications | $appsTargetStatus |`n"
     }
 
     # Replace placeholder with detailed information
