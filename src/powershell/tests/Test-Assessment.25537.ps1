@@ -33,112 +33,80 @@ function Test-Assessment-25537 {
         -Activity 'Azure Firewall Threat Intelligence' `
         -Status 'Enumerating Firewall Policies'
 
+    # Query 1: List all subscriptions
     $subscriptions = Get-AzSubscription
     $results = @()
+
     foreach ($sub in $subscriptions) {
         Set-AzContext -SubscriptionId $sub.Id | Out-Null
-        # Get all firewall policies in the subscription
-        $policies = Get-AzResource -ResourceType 'Microsoft.Network/firewallPolicies' -ErrorAction Stop
 
-        if (-not $policies) {
+        # Query 1: List Azure Firewall Policies
+        try {
+            $policies = Get-AzResource -ResourceType 'Microsoft.Network/firewallPolicies' -ErrorAction Stop
+        }
+        catch {
+            Write-PSFMessage "Unable to enumerate firewall policies in subscription $($sub.Name): $($_.Exception.Message)" -Tag Firewall -Level Warning
             continue
         }
 
-        #endregion Data Collection
-        #region Assessment Logic
+        if (-not $policies) { continue }
 
+        # Query 2: Get details for each firewall policy and check threatIntelMode
         foreach ($policyResource in $policies) {
             $policy = Get-AzFirewallPolicy `
                 -Name $policyResource.Name `
                 -ResourceGroupName $policyResource.ResourceGroupName `
                 -ErrorAction SilentlyContinue
 
-            if (-not $policy) {
-                continue
-            }
+            if (-not $policy) { continue }
 
             $subContext = Get-AzContext
-            $status = if ($policy.ThreatIntelMode -eq 'Deny') {
-                'Pass'
-            }
-            else {
-                'Fail'
-            }
+            $isCompliant = $policy.ThreatIntelMode -eq 'Deny'
 
             $results += [PSCustomObject]@{
-                CheckName        = 'Threat intelligence is Enabled in Deny Mode on Azure Firewall'
                 PolicyName       = $policy.Name
                 ResourceGroup    = $policy.ResourceGroupName
                 SubscriptionName = $subContext.Subscription.Name
                 SubscriptionId   = $subContext.Subscription.Id
                 ThreatIntelMode  = $policy.ThreatIntelMode
-                Status           = $status
+                IsCompliant      = $isCompliant
             }
         }
+    }
+    #endregion Data Collection
+
+    #region Assessment Logic
+    if (-not $results) {
+        Add-ZtTestResultDetail -SkippedBecause NoResults
+        return
+    }
+
+    $passed = ($results | Where-Object { -not $_.IsCompliant }).Count -eq 0
+
+    $testResultMarkdown = if ($passed) {
+        'Threat intelligence mode is set to Deny for all Azure Firewall policies.`n`n%TestResult%'
+    } else {
+        'Threat intelligence mode is not set to Deny for all Azure Firewall policies.`n`n%TestResult%'
     }
     #endregion Assessment Logic
 
-    #region Assessment Logic Evaluation
-    if (-not $results) {
-        Write-PSFMessage 'No Azure Firewall policies found. Skipping test.' -Tag Firewall -Level Verbose
-        return
+    #region Report Generation
+    $mdInfo = "## Firewall policies`n`n"
+    $mdInfo += "| Policy name | Subscription name | Threat Intel mode | Result |`n"
+    $mdInfo += "| :--- | :--- | :--- | :--- |`n"
+
+    foreach ($item in $results | Sort-Object PolicyName) {
+        $policyLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)/resourceGroups/$($item.ResourceGroup)/providers/Microsoft.Network/firewallPolicies/$($item.PolicyName)"
+        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
+        $policyMd = "[$(Get-SafeMarkdown -Text $item.PolicyName)]($policyLink)"
+        $subMd = "[$(Get-SafeMarkdown -Text $item.SubscriptionName)]($subLink)"
+        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
+
+        $mdInfo += "| $policyMd | $subMd | $($item.ThreatIntelMode) | $icon |`n"
     }
-    else {
-        $allModes = $results.ThreatIntelMode
-        $uniqueModes = $allModes | Select-Object -Unique
 
-        if ($uniqueModes.Count -eq 1 -and $uniqueModes -eq 'Deny') {
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    #endregion Report Generation
 
-            $passed = $true
-            $testResultMarkdown = 'Threat Intel is enabled in **Alert and Deny** mode.'
-
-        }
-        else {
-
-            $passed = $false
-
-            if ($uniqueModes.Count -eq 1) {
-
-                switch ($uniqueModes) {
-                    'Alert' {
-                        $testResultMarkdown = 'Threat Intel is enabled in **Alert** mode.'
-                    }
-                    'Off' {
-                        $testResultMarkdown = 'Threat Intel is **disabled**.'
-                    }
-                    default {
-                        $testResultMarkdown = 'Threat Intel is not enabled in **Alert and Deny** mode for all Firewall policies.'
-                    }
-                }
-            }
-            else {
-                $testResultMarkdown = 'Threat Intel is not enabled in **Alert and Deny** mode for all Firewall policies.'
-            }
-        }
-
-        # --- Markdown Table ---
-        $mdInfo = "`n`n## Firewall Policies`n`n"
-        $mdInfo += "| Policy name | Subscription name | Threat Intel Mode |`n"
-        $mdInfo += "| :--- | :--- | :---: |`n"
-
-        foreach ($item in $results | Sort-Object PolicyName) {
-            $policyLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)/resourceGroups/$($item.ResourceGroup)/providers/Microsoft.Network/firewallPolicies/$($item.PolicyName)"
-            $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
-            $policyMd = "[$(Get-SafeMarkdown -Text $item.PolicyName)]($policyLink)"
-            $subMd = "[$(Get-SafeMarkdown -Text $item.SubscriptionName)]($subLink)"
-            $mdInfo += "| $policyMd | $subMd | $($item.ThreatIntelMode) |`n"
-        }
-
-        $testResultMarkdown += $mdInfo
-
-        #endregion Assessment Logic Evaluation
-
-        #region Report Generation
-        Add-ZtTestResultDetail `
-            -TestId '25537' `
-            -Title 'Azure Firewall Threat Intelligence is enabled in Alert and Deny mode' `
-            -Status $passed `
-            -Result $testResultMarkdown
-        #endregion Report Generation
-    }
+    Add-ZtTestResultDetail -TestId '25537' -Status $passed -Result $testResultMarkdown
 }
