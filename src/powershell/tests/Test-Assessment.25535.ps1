@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Test to check if outbound traffic from VNET integrated workloads is routed through Azure Firewall
+
+.NOTES
+    Some Azure Firewall documentation links may return 404 errors.
+    This test uses the Azure REST API version 2025-03-01.
+#>
+
 function Test-Assessment-25535 {
     [ZtTest(
         Category = 'Azure Network Security',
@@ -21,7 +30,7 @@ function Test-Assessment-25535 {
         return
     }
 
-    #region Azure Connection Verification
+    #region Data Collection
     try {
         $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
     }
@@ -34,11 +43,7 @@ function Test-Assessment-25535 {
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
-    #endregion
 
-    #region Data Collection
-    $azAccessToken = $accessToken.Token
-    $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
     $subscriptions = Get-AzSubscription
 
     $firewalls = @()
@@ -49,12 +54,11 @@ function Test-Assessment-25535 {
         Set-AzContext -SubscriptionId $sub.Id | Out-Null
         $subId = $sub.Id
 
-        # Step 1: List Azure Firewalls
-        $fwListUri = $resourceManagementUrl.TrimEnd('/') +
-            "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
+        # Query 1: List Azure Firewalls
+        $fwListUri = "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
 
         try {
-            $fwResp = Invoke-WebRequest -Uri $fwListUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+            $fwResp = Invoke-AzRestMethod -Path $fwListUri -Method GET
         }
         catch {
             Write-PSFMessage "Unable to list Azure Firewalls in subscription $($sub.Name)." -Tag Test -Level Warning
@@ -64,14 +68,13 @@ function Test-Assessment-25535 {
         $fwItems = ($fwResp.Content | ConvertFrom-Json).value
         if (-not $fwItems) { continue }
 
-        # Step 2: Resolve Firewall Private IPs
+        # Query 2: Resolve Firewall Private IPs
         foreach ($fw in $fwItems) {
 
-            $fwDetailUri = $resourceManagementUrl.TrimEnd('/') +
-                "$($fw.id)?api-version=2025-03-01"
+            $fwDetailUri = "$($fw.id)?api-version=2025-03-01"
 
             try {
-                $fwDetailResp = Invoke-WebRequest -Uri $fwDetailUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+                $fwDetailResp = Invoke-AzRestMethod -Path $fwDetailUri -Method GET
                 $fwDetail = $fwDetailResp.Content | ConvertFrom-Json
             }
             catch { continue }
@@ -90,12 +93,11 @@ function Test-Assessment-25535 {
 
         if ($firewalls.Count -eq 0) { continue }
 
-        # Step 3: List NICs
-        $nicListUri = $resourceManagementUrl.TrimEnd('/') +
-            "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
+        # Query 3: List NICs
+        $nicListUri = "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
 
         try {
-            $nicResp = Invoke-WebRequest -Uri $nicListUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+            $nicResp = Invoke-AzRestMethod -Path $nicListUri -Method GET
         }
         catch {
             Write-PSFMessage "Unable to list network interfaces in subscription $($sub.Name)." -Tag Test -Level Warning
@@ -104,7 +106,7 @@ function Test-Assessment-25535 {
 
         $nics = ($nicResp.Content | ConvertFrom-Json).value
 
-        # Step 4: Stage 1 - Launch all async effectiveRouteTable requests
+        # Query 4: Stage 1 - Launch all async effectiveRouteTable requests
         $asyncOperations = @()
 
         foreach ($nic in $nics) {
@@ -120,15 +122,14 @@ function Test-Assessment-25535 {
                 $rg = ($nic.id -split '/')[4]
                 $nicName = $nic.name
 
-                $ertUri = $resourceManagementUrl.TrimEnd('/') +
-                    "/subscriptions/$subId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$nicName/effectiveRouteTable?api-version=2025-03-01"
+                $ertUri = "/subscriptions/$subId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$nicName/effectiveRouteTable?api-version=2025-03-01"
 
                 try {
-                    $ertStart = Invoke-WebRequest -Uri $ertUri -Authentication Bearer -Token $azAccessToken -Method Post -ErrorAction Stop
-                    $operationUri = $ertStart.Headers['Location'][0]
+                    $ertStart = Invoke-AzRestMethod -Path $ertUri -Method POST
+                    $operationUri = $ertStart.Headers.Location[0]
 
-                    $retryAfter = if ($ertStart.Headers['Retry-After']) {
-                        [int]$ertStart.Headers['Retry-After'][0]
+                    $retryAfter = if ($ertStart.Headers.'Retry-After') {
+                        [int]$ertStart.Headers.'Retry-After'[0]
                     } else { 5 }
 
                     $asyncOperations += @{
@@ -151,7 +152,7 @@ function Test-Assessment-25535 {
 
         Write-PSFMessage "Launched $($asyncOperations.Count) async effectiveRouteTable requests for subscription $($sub.Name)" -Tag Test -Level Verbose
 
-        # Step 4: Stage 2 - Poll all operations in parallel
+        # Query 4: Stage 2 - Poll all operations in parallel
         $completedOperations = @()
         $maxRetries = 120  # ~10 minutes with 5 second intervals
 
@@ -165,7 +166,7 @@ function Test-Assessment-25535 {
                 }
 
                 try {
-                    $ertPoll = Invoke-WebRequest -Uri $op.OperationUri -Authentication Bearer -Token $azAccessToken -ErrorAction Stop
+                    $ertPoll = Invoke-AzRestMethod -Uri $op.OperationUri -Method GET
 
                     if ($ertPoll.StatusCode -ne 202) {
                         $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
@@ -200,7 +201,7 @@ function Test-Assessment-25535 {
 
         } while ($asyncOperations.Count -gt 0)
 
-        # Step 4: Stage 3 - Process completed operations
+        # Query 4: Stage 3 - Process completed operations
         foreach ($op in $completedOperations) {
             if ($op.Error -or -not $op.Routes) {
                 $nicFindings += [PSCustomObject]@{
@@ -221,7 +222,7 @@ function Test-Assessment-25535 {
             $defaultRoute = $op.Routes | Where-Object {
                 $_.state -eq 'Active' -and
                 $_.source -eq 'User' -and
-                (($_.addressPrefix -eq '0.0.0.0/0') -or ($_.addressPrefix -contains '0.0.0.0/0'))
+                ($_.addressPrefix -contains '0.0.0.0/0')
             } | Select-Object -First 1
 
             if (-not $defaultRoute) {
@@ -264,7 +265,7 @@ function Test-Assessment-25535 {
             }
         }
     }
-    #endregion
+    #endregion Data Collection
 
     #region Assessment Logic
     if ($nicFindings.Count -eq 0) {
@@ -279,11 +280,11 @@ function Test-Assessment-25535 {
     } else {
         "Outbound traffic is not routed through Azure Firewall.`n`n%TestResult%"
     }
-    #endregion
+    #endregion Assessment Logic
 
-    #region Result Reporting
+    #region Report Generation
     $mdInfo = "## Outbound traffic routing evidence`n`n"
-    $mdInfo += "| Subscription | Network interface | Subnet | Azure firewall private IP | Default route next hop type | Next hop IP akshitiddress | Result |`n"
+    $mdInfo += "| Subscription | Network interface | Subnet | Azure firewall private IP | Default route next hop type | Next hop IP address | Result |`n"
     $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
     foreach ($item in $nicFindings | Sort-Object SubscriptionName, NicName) {
@@ -309,6 +310,7 @@ function Test-Assessment-25535 {
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    #endregion Report Generation
+
     Add-ZtTestResultDetail -TestId '25535' -Status $passed -Result $testResultMarkdown
-    #endregion
 }
