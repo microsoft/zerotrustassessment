@@ -84,9 +84,9 @@ function Test-Assessment-25537 {
     $passed = ($results | Where-Object { -not $_.IsCompliant }).Count -eq 0
 
     $testResultMarkdown = if ($passed) {
-        'Threat intelligence mode is set to Deny for all Azure Firewall policies.`n`n%TestResult%'
+        "Threat intelligence mode is set to Deny for all Azure Firewall policies.`n`n%TestResult%"
     } else {
-        'Threat intelligence mode is not set to Deny for all Azure Firewall policies.`n`n%TestResult%'
+        "Threat intelligence mode is not set to Deny for all Azure Firewall policies.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
