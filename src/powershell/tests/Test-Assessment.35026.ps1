@@ -3,9 +3,10 @@
     Validates that SimplifiedClientAccessEnabled is enabled for Office 365 Message Encryption (OME).
 
 .DESCRIPTION
-    This test checks if SimplifiedClientAccessEnabled is enabled for OME, which allows external recipients
-    to access encrypted emails using native email clients with simplified authentication flows rather than
-    being forced to use the OME portal exclusively.
+    This test checks if SimplifiedClientAccessEnabled is enabled for OME, which controls whether the
+    Protect button is available in Outlook on the web, allowing users to quickly apply encryption
+    protections to their messages. SimplifiedClientAccessEnabled requires AzureRMSLicensingEnabled
+    to be active, as Azure Rights Management is the underlying encryption foundation.
 
 .NOTES
     Test ID: 35026
@@ -69,8 +70,13 @@ function Test-Assessment-35026 {
         $passed = $false
         $customStatus = 'Investigate'
     }
+    # Check AzureRMSLicensingEnabled first (prerequisite for encryption foundation)
+    elseif ($irmConfig.AzureRMSLicensingEnabled -ne $true) {
+        # Fail: Encryption foundation is disabled
+        $passed = $false
+    }
     elseif ($irmConfig.SimplifiedClientAccessEnabled -eq $true) {
-        # Pass: SimplifiedClientAccessEnabled is true
+        # Pass: Both SimplifiedClientAccessEnabled and AzureRMSLicensingEnabled are true
         $passed = $true
     }
     else {
@@ -83,56 +89,28 @@ function Test-Assessment-35026 {
     $testResultMarkdown = ''
 
     if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "### Investigate`n`n"
-        $testResultMarkdown += "Unable to determine OME SimplifiedClientAccess status due to permissions issues, service connection failure, or OME not configured."
+        $testResultMarkdown = "⚠️ Unable to determine SimplifiedClientAccessEnabled status due to permissions issues or OME not configured.`n`n"
     }
     elseif ($passed) {
-        $testResultMarkdown = "✅ SimplifiedClientAccessEnabled is true, allowing external recipients simplified client access to encrypted emails.`n`n"
+        $testResultMarkdown = "✅ SimplifiedClientAccessEnabled is true (Protect button enabled) and AzureRMSLicensingEnabled is true (encryption foundation active).`n`n"
     }
     else {
-        $testResultMarkdown = "❌ SimplifiedClientAccessEnabled is false, requiring external recipients to use the OME portal exclusively.`n`n"
+        $testResultMarkdown = "❌ SimplifiedClientAccessEnabled is false or AzureRMSLicensingEnabled is false (encryption foundation or Protect button disabled).`n`n"
     }
 
     # Build detailed information if we have data
     if ($irmConfig) {
-        $testResultMarkdown += "## [OME SimplifiedClientAccess Configuration](https://admin.exchange.microsoft.com/#/transportrules)`n`n"
+        $testResultMarkdown += "## OME SimplifiedClientAccess Status`n`n"
         $testResultMarkdown += "| Property | Value |`n"
         $testResultMarkdown += "| :--- | :--- |`n"
-
-        # SimplifiedClientAccessEnabled
-        $simplifiedAccessValue = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { '✅ True' } elseif ($irmConfig.SimplifiedClientAccessEnabled -eq $false) { '❌ False' } else { '⚠️ Not configured' }
-        $testResultMarkdown += "| SimplifiedClientAccessEnabled | $simplifiedAccessValue |`n"
-
-        # SimplifiedClientAccessEncryptOnlyDisabled
-        if ($null -ne $irmConfig.SimplifiedClientAccessEncryptOnlyDisabled) {
-            $encryptOnlyValue = if ($irmConfig.SimplifiedClientAccessEncryptOnlyDisabled -eq $false) { '✅ Allowed' } else { '❌ Disabled' }
-            $testResultMarkdown += "| Encrypt-Only in Simplified Client Access | $encryptOnlyValue |`n"
-        }
-
-        # SimplifiedClientAccessDoNotForwardDisabled
-        if ($null -ne $irmConfig.SimplifiedClientAccessDoNotForwardDisabled) {
-            $doNotForwardValue = if ($irmConfig.SimplifiedClientAccessDoNotForwardDisabled -eq $false) { '✅ Allowed' } else { '❌ Disabled' }
-            $testResultMarkdown += "| Do Not Forward in Simplified Client Access | $doNotForwardValue |`n"
-        }
-
-        # DecryptAttachmentFromPortal
-        if ($null -ne $irmConfig.DecryptAttachmentFromPortal) {
-            $decryptAttachmentValue = if ($irmConfig.DecryptAttachmentFromPortal -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
-            $testResultMarkdown += "| Decrypt Attachment From Portal | $decryptAttachmentValue |`n"
-        }
-
-        # EnablePortalTrackingLogs
-        if ($null -ne $irmConfig.EnablePortalTrackingLogs) {
-            $trackingLogsValue = if ($irmConfig.EnablePortalTrackingLogs -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
-            $testResultMarkdown += "| Portal Tracking Logs | $trackingLogsValue |`n"
-        }
+        $testResultMarkdown += "| SimplifiedClientAccessEnabled | $($irmConfig.SimplifiedClientAccessEnabled) |`n"
+        $testResultMarkdown += "| AzureRMSLicensingEnabled | $($irmConfig.AzureRMSLicensingEnabled) |`n"
+        $testResultMarkdown += "| InternalLicensingEnabled | $($irmConfig.InternalLicensingEnabled) |`n"
 
         # Summary
         $testResultMarkdown += "`n**Summary:**`n"
-        $clientAccessMode = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { 'Simplified' } else { 'Portal-Only' }
-        $recipientExperience = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { 'Flexible' } else { 'Restrictive' }
-        $testResultMarkdown += "* Client Access Mode: $clientAccessMode`n"
-        $testResultMarkdown += "* External Recipient Experience: $recipientExperience`n"
+        $protectButtonStatus = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
+        $testResultMarkdown += "* Protect button status: $protectButtonStatus`n"
     }
     #endregion Report Generation
 
