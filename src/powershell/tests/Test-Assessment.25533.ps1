@@ -43,7 +43,7 @@ function Test-Assessment-25533 {
         $subscriptionsResponse = Invoke-AzRestMethod -Method GET -Uri $subscriptionsUri -ErrorAction Stop
 
         # Check if the response was successful
-        if ($subscriptionsResponse.StatusCode -lt 200 -or $subscriptionsResponse.StatusCode -ge 300) {
+        if ($subscriptionsResponse.StatusCode -ne 200) {
             throw "API returned status code: $($subscriptionsResponse.StatusCode). Content: $($subscriptionsResponse.Content)"
         }
 
@@ -57,10 +57,9 @@ function Test-Assessment-25533 {
 
     if (!$subscriptions -or $subscriptions.Count -eq 0) {
         Write-PSFMessage "No Azure subscriptions found." -Level Warning
-        $customStatus = 'Investigate'
-
+        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        return
     }
-
     $publicIpFindings = @()
 
     foreach ($sub in $subscriptions) {
@@ -72,12 +71,14 @@ function Test-Assessment-25533 {
             $publicIpsResponse = Invoke-AzRestMethod -Method GET -Uri $publicIpsUri -ErrorAction Stop
 
             # Check if the response was successful
-            if ($publicIpsResponse.StatusCode -lt 200 -or $publicIpsResponse.StatusCode -ge 300) {
-                Write-PSFMessage "Unable to list Public IPs in subscription $($sub.displayName) - Status Code: $($publicIpsResponse.StatusCode)" -Tag Test -Level Warning
-                continue
+            if ($publicIpsResponse.StatusCode -ne 200) {
+                throw "API returned status code: $($publicIpsResponse.StatusCode). Content: $($publicIpsResponse.Content)"
+            }
+            else{
+                $publicIps = ($publicIpsResponse.Content | ConvertFrom-Json).value
             }
 
-            $publicIps = ($publicIpsResponse.Content | ConvertFrom-Json).value
+
         }
         catch {
             Write-PSFMessage "Unable to list Public IPs in subscription $($sub.displayName): $_" -Tag Test -Level Warning
@@ -116,7 +117,7 @@ function Test-Assessment-25533 {
 
     # Check if no public IPs found
     if ($publicIpFindings.Count -eq 0) {
-        Add-ZtTestResultDetail -TestId '25533' -Status $true -Result "No Public IP addresses found."
+        Add-ZtTestResultDetail -TestId '25533' -Status $False -Result "No Public IP addresses found."
         return
     }
 
@@ -133,8 +134,8 @@ function Test-Assessment-25533 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = "## Public IP Address DDoS Protection Details`n`n"
-    $mdInfo += "| | Public IP address name and id | DdosSettingsProtectionMode value |`n"
+    $mdInfo = "## Summary `n`n"
+    $mdInfo += "| | Public IP name | DdosSettings protection mode |`n"
     $mdInfo += "| :--- | :--- | :--- |`n"
 
     foreach ($item in $publicIpFindings | Sort-Object IsCompliant, PublicIpName) {
@@ -142,7 +143,7 @@ function Test-Assessment-25533 {
         $pipLink = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
         $safeName = Get-SafeMarkdown -Text $item.PublicIpName
 
-        $mdInfo += "| $icon | [$safeName]($pipLink) | ``$($item.ProtectionMode)`` |`n"
+        $mdInfo += "| $icon | [$safeName]($pipLink) | $($item.ProtectionMode) |`n"
     }
 
     # Replace the placeholder with detailed information
