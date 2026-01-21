@@ -53,46 +53,66 @@ function Test-Assessment-35024 {
     #region Assessment Logic
     $passed = $false
     $investigateFlag = $false
-    $azureRMSEnabledStatus = $null
 
     if ($errorMsg) {
         $investigateFlag = $true
     }
     else {
-        # Query Q2: Check if Azure RMS licensing is enabled
-        $azureRMSEnabled = $irmConfig.AzureRMSLicensingEnabled
+        $passed = $irmConfig.AzureRMSLicensingEnabled -eq $true
+    }
 
-        $passed = $azureRMSEnabled -eq $true
+    if ($passed) {
+        $testResultMarkdown = "✅ Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n%TestResult%"
+    }
+    else {
+        $testResultMarkdown = "❌ Azure RMS is not enabled or is disabled for the tenant.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    if ($investigateFlag){
-        $testResultMarkdown = "⚠️ Unable to determine Azure RMS status due to permissions issues or service connection failure.`n`n"
+    $mdInfo = ''
+
+    if ($investigateFlag) {
+        $azureRMSEnabledStatus = '⚠️ Unknown'
+        $mdInfo = "⚠️ Unable to determine Azure RMS status due to permissions issues or service connection failure.`n`n"
+        $mdInfo += "**Summary:**`n`n Azure RMS Service: $azureRMSEnabledStatus`n"
     }
     else {
-        if ($passed) {
-            $testResultMarkdown = "✅ Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n"
-            $azureRMSEnabledStatus = '✅ Enabled'
-        }
-        else {
-            $testResultMarkdown = "❌ Azure RMS is not enabled or is disabled for the tenant.`n`n"
-            $azureRMSEnabledStatus = '❌ Disabled'
-        }
-
+        $reportTitle = 'Azure RMS Status'
         $portalLink = 'https://purview.microsoft.com/settings/encryption'
         $whenCreatedDate = if ($null -eq $irmConfig.WhenCreatedUTC) { 'N/A' } else { $irmConfig.WhenCreatedUTC }
 
-        $testResultMarkdown += "### Summary`n`n"
-        $testResultMarkdown += "- **Azure RMS Service:** $($azureRMSEnabledStatus)`n"
+        if ($passed) {
+            $azureRMSEnabledStatus = '✅ Enabled'
+        }
+        else {
+            $azureRMSEnabledStatus = '❌ Disabled'
+        }
 
-        $testResultMarkdown += "### [Azure RMS Status]($portalLink)`n`n"
-        $testResultMarkdown += "- **AzureRMSLicensingEnabled:** $($irmConfig.AzureRMSLicensingEnabled)`n"
-        $testResultMarkdown += "- **SimplifiedClientAccessEnabled:** $($irmConfig.SimplifiedClientAccessEnabled)`n"
-        $testResultMarkdown += "- **InternalLicensingEnabled:** $($irmConfig.InternalLicensingEnabled)`n"
-        $testResultMarkdown += "- **ExternalLicensingEnabled:** $($irmConfig.ExternalLicensingEnabled)`n"
-        $testResultMarkdown += "- **Configuration Created:** $($whenCreatedDate)`n"
+        $formatTemplate = @'
+
+### [{0}]({1})
+
+| Setting | Value |
+| :------ | :---- |
+{2}
+
+**Summary:**
+
+ Azure RMS Service: {3}
+
+'@
+
+        $tableRows = "| AzureRMSLicensingEnabled | $($irmConfig.AzureRMSLicensingEnabled) |`n"
+        $tableRows += "| SimplifiedClientAccessEnabled | $($irmConfig.SimplifiedClientAccessEnabled) |`n"
+        $tableRows += "| InternalLicensingEnabled | $($irmConfig.InternalLicensingEnabled) |`n"
+        $tableRows += "| ExternalLicensingEnabled | $($irmConfig.ExternalLicensingEnabled) |`n"
+        $tableRows += "| Configuration Created | $whenCreatedDate |`n"
+
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows, $azureRMSEnabledStatus
     }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
