@@ -113,6 +113,7 @@ function Test-Assessment-25420 {
     $hasAdequateRetention      = $false
     $hasAllRequiredCategories  = $false
     $settingsWithStorageOnly   = @()
+    $passingSettingFound       = $false
 
     # Step 1: Check if any diagnostic settings exist
     if ($null -eq $diagnosticSettings -or $diagnosticSettings.Count -eq 0) {
@@ -164,19 +165,25 @@ function Test-Assessment-25420 {
                 $workspaceName = $workspace.name
             }
 
-            # Step 4: Evaluate retention meets minimum
+            # Step 4: Evaluate if this setting meets minimum retention criteria
+            # Per spec: workspace ≥ 90 days OR storage account configured = meets minimum
             $meetsMinimum = $false
             if ($retentionDays -ge $MINIMUM_RETENTION_DAYS) {
                 $meetsMinimum = $true
             }
-            elseif ($storageAccountId -and -not $workspaceId) {
-                # Storage-only requires manual verification
+            elseif ($storageAccountId) {
+                # Storage account configured = meets minimum per spec
+                $meetsMinimum = $true
+            }
+
+            # Track storage-only settings for reporting purposes
+            if ($storageAccountId -and -not $workspaceId) {
                 $settingsWithStorageOnly += $settingName
             }
 
             $enabledCategories = @()
 
-            # Step 5: Process log categories
+            # Step 5: Process log categories for this setting
             foreach ($log in $logs) {
                 $categoryName = $log.category
                 $isEnabled    = $log.enabled
@@ -184,7 +191,7 @@ function Test-Assessment-25420 {
                 if ($categoryName -in $REQUIRED_LOG_CATEGORIES -and $isEnabled) {
                     $enabledCategories += $categoryName
 
-                    # Update category status if this is a better configuration
+                    # Update global category status if this is a better configuration
                     $currentStatus = $logCategoryStatus[$categoryName]
                     if (-not $currentStatus.Enabled -or
                         ($retentionDays -and $retentionDays -gt $currentStatus.RetentionDays)) {
@@ -198,10 +205,16 @@ function Test-Assessment-25420 {
                 }
             }
 
+            # Step 6: Check if THIS setting has all 4 categories AND meets retention criteria
+            # Per spec: "If any diagnostic setting has: All four log categories enabled AND
+            # Either workspace with ≥ 90 day retention OR storage account configured → Pass"
+            $settingHasAllCategories = ($enabledCategories.Count -eq $REQUIRED_LOG_CATEGORIES.Count)
+            if ($settingHasAllCategories -and $meetsMinimum) {
+                $passingSettingFound = $true
+            }
+
             # Determine per-setting status
-            $settingStatus = if ($enabledCategories.Count -eq 0) {
-                'No GSA categories'
-            } elseif ($meetsMinimum) {
+            $settingStatus = if ($settingHasAllCategories -and $meetsMinimum) {
                 'Adequate'
             } elseif ($storageAccountId -and -not $workspaceId) {
                 'Manual Review'
@@ -222,41 +235,34 @@ function Test-Assessment-25420 {
             }
         }
 
-        # Step 6: Check if all required categories are enabled
+        # Step 7: Check if all required categories are enabled (across all settings)
         $enabledCategoryCount     = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.Enabled }).Count
         $hasAllRequiredCategories = ($enabledCategoryCount -eq $REQUIRED_LOG_CATEGORIES.Count)
 
-        # Step 7: Check if any configuration meets minimum retention
+        # Step 8: Check if any configuration meets minimum retention
         $hasAdequateRetention = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.MeetsMinimum }).Count -gt 0
 
-        # Step 8: Determine overall test result
-        if ($hasAllRequiredCategories -and $hasAdequateRetention) {
+        # Step 9: Determine overall test result
+        # Per spec: Pass if ANY single diagnostic setting has all 4 categories AND meets retention
+        if ($passingSettingFound) {
 
             $passed = $true
             $testResultMarkdown =
-                "✅ Global Secure Access logs are retained for at least $MINIMUM_RETENTION_DAYS days, supporting security analysis and compliance requirements.`n`n%TestResult%"
-
-        }
-        elseif ($settingsWithStorageOnly.Count -gt 0 -and $hasAllRequiredCategories) {
-
-            # Storage-only configuration requires manual review
-            $customStatus = 'Investigate'
-            $testResultMarkdown =
-                "⚠️ Global Secure Access logs are exported to storage accounts. Manual verification required to confirm retention policies meet the $MINIMUM_RETENTION_DAYS-day minimum.`n`n%TestResult%"
+                "✅ Global Secure Access logs are retained for at least $MINIMUM_RETENTION_DAYS days, supporting security analysis and compliance requirements`n`n%TestResult%"
 
         }
         elseif (-not $hasAllRequiredCategories) {
 
             $passed = $false
             $testResultMarkdown =
-                "❌ Not all Global Secure Access log categories are enabled. Security investigations require complete log coverage across all four categories.`n`n%TestResult%"
+                "❌ Not all Global Secure Access log categories are enabled. Security investigations require complete log coverage across all four categories`n`n%TestResult%"
 
         }
         else {
 
             $passed = $false
             $testResultMarkdown =
-                "❌ Global Secure Access logs are not retained for adequate duration to support security investigations and compliance obligations.`n`n%TestResult%"
+                "❌ Global Secure Access logs are not retained for adequate duration to support security investigations and compliance obligations`n`n%TestResult%"
 
         }
     }
@@ -265,20 +271,31 @@ function Test-Assessment-25420 {
 
     #region Report Generation
 
-    $mdInfo  = "`n## Summary`n`n"
-    $mdInfo += "| Metric | Value |`n|---|---|`n"
-    $mdInfo += "| Total diagnostic settings | $($diagnosticSettings.Count) |`n"
-    $mdInfo += "| Settings with workspace destination | $(($diagResults | Where-Object { $_.WorkspaceId }).Count) |`n"
-    $mdInfo += "| Settings with storage destination | $(($diagResults | Where-Object { $_.StorageAccountId }).Count) |`n"
-    $mdInfo += "| All required categories enabled | $(if ($hasAllRequiredCategories) { 'Yes' } else { 'No' }) |`n"
-    $mdInfo += "| Meets $MINIMUM_RETENTION_DAYS-day minimum | $(if ($hasAdequateRetention) { 'Yes' } else { 'No' }) |`n`n"
+    # Calculate summary metrics per spec
+    $settingsWithLongTermDest = ($diagResults | Where-Object { $_.WorkspaceId -or $_.StorageAccountId }).Count
+    $workspaceRetentions = $diagResults | Where-Object { $_.RetentionDays } | Select-Object -ExpandProperty RetentionDays
+    $avgRetention = if ($workspaceRetentions.Count -gt 0) {
+        [math]::Round(($workspaceRetentions | Measure-Object -Average).Average, 0)
+    } else { $null }
+    $minRetention = if ($workspaceRetentions.Count -gt 0) {
+        ($workspaceRetentions | Measure-Object -Minimum).Minimum
+    } else { $null }
 
+    # Build report in spec order:
+    # 1. Diagnostic Settings Configuration (heading)
+    # 2. Log Retention Status table
+    # 3. Destination Details table
+    # 4. Summary table
+
+    $mdInfo = "`n## [Diagnostic settings configuration](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings)`n`n"
+
+    # Log Retention Status table
     if ($logCategoryStatus.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-## [Log retention status](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings)
+### Log retention status
 
-| Log category | Enabled | Destination type | Retention period | Meets minimum (90 days)|
+| Log category | Enabled | Destination type | Retention period | Meets minimum (90 days) |
 |---|---|---|---|---|
 {0}
 
@@ -286,7 +303,7 @@ function Test-Assessment-25420 {
         foreach ($category in $REQUIRED_LOG_CATEGORIES) {
             $status       = $logCategoryStatus[$category]
             $enabledText  = if ($status.Enabled) { 'Yes' } else { 'No' }
-            $destType     = if ($status.Enabled) { $status.DestinationType } else { 'Not configured' }
+            $destType     = if ($status.Enabled) { $status.DestinationType } else { 'None' }
             $retention    = if ($status.RetentionDays) { "$($status.RetentionDays) days" } else { 'Not configured' }
             $meetsMinText = if ($status.MeetsMinimum) { 'Yes' } else { 'No' }
             $tableRows   += "| $category | $enabledText | $destType | $retention | $meetsMinText |`n"
@@ -294,36 +311,48 @@ function Test-Assessment-25420 {
         $mdInfo += $formatTemplate -f $tableRows
     }
 
+    # Destination Details table
     if ($diagResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-## Destination details
+### Destination details
 
-| Diagnostic setting | Destination type | Resource name | Retention | Status |
-|---|---|---|---|---|
+| Destination type | Resource name | Default retention | Status |
+|---|---|---|---|
 {0}
 
 '@
         foreach ($diag in $diagResults) {
-            $settingNameSafe = Get-SafeMarkdown $diag.SettingName
-            # Add hyperlink to diagnostic setting based on destination type
-            $settingName = if ($diag.WorkspaceName) {
-                "[$settingNameSafe](https://portal.azure.com/?feature.msaljs=true#browse/Microsoft.OperationalInsights%2Fworkspaces)"
+            # Add hyperlink to destination type based on type
+            $destType = if ($diag.WorkspaceName -and $diag.StorageAccountId) {
+                "[Log Analytics workspace](https://portal.azure.com/?feature.msaljs=true#browse/Microsoft.OperationalInsights%2Fworkspaces) & [Storage Account](https://portal.azure.com/?feature.msaljs=true#view/Microsoft_Azure_StorageHub/StorageHub.MenuView/~/StorageAccountsBrowse)"
+            }
+            elseif ($diag.WorkspaceName) {
+                "[Log Analytics workspace](https://portal.azure.com/?feature.msaljs=true#browse/Microsoft.OperationalInsights%2Fworkspaces)"
             }
             elseif ($diag.StorageAccountId) {
-                "[$settingNameSafe](https://portal.azure.com/?feature.msaljs=true#view/Microsoft_Azure_StorageHub/StorageHub.MenuView/~/StorageAccountsBrowse)"
+                "[Storage account](https://portal.azure.com/?feature.msaljs=true#view/Microsoft_Azure_StorageHub/StorageHub.MenuView/~/StorageAccountsBrowse)"
             }
-            else { $settingNameSafe }
+            else { 'None' }
             $resourceName = if ($diag.WorkspaceName) { $diag.WorkspaceName }
                            elseif ($diag.StorageAccountId) { $diag.StorageAccountId.Split('/')[-1] }
                            else { 'N/A' }
-            $retention    = if ($diag.RetentionDays) { "$($diag.RetentionDays) days" }
-                           elseif ($diag.StorageAccountId) { 'Manual verification' }
-                           else { 'N/A' }
-            $tableRows   += "| $settingName | $($diag.DestinationType) | $resourceName | $retention | $($diag.Status) |`n"
+            $retention = if ($diag.RetentionDays) { "$($diag.RetentionDays) days" }
+                        elseif ($diag.StorageAccountId) { 'Manual verification required' }
+                        else { 'N/A' }
+            $tableRows += "| $destType | $resourceName | $retention | $($diag.Status) |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
+
+    # Summary table (per spec format)
+    $mdInfo += "### Summary`n`n"
+    $mdInfo += "| Metric | Value |`n|---|---|`n"
+    $mdInfo += "| Total diagnostic settings | $($diagnosticSettings.Count) |`n"
+    $mdInfo += "| Settings with long-term destination | $settingsWithLongTermDest |`n"
+    $mdInfo += "| Average retention period | $(if ($avgRetention) { "$avgRetention days" } else { 'N/A' }) |`n"
+    $mdInfo += "| Minimum retention found | $(if ($minRetention) { "$minRetention days" } else { 'N/A' }) |`n"
+    $mdInfo += "| Meets 90-day minimum | $(if ($hasAdequateRetention) { 'Yes' } else { 'No' }) |`n"
 
     # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
