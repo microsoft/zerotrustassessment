@@ -53,7 +53,7 @@ function Test-Assessment-35024 {
     #region Assessment Logic
     $passed = $false
     $investigateFlag = $false
-    $azureRMSEnabledStatus = '❌ Disabled'
+    $azureRMSEnabledStatus = $null
 
     if ($errorMsg) {
         $investigateFlag = $true
@@ -62,22 +62,17 @@ function Test-Assessment-35024 {
         # Query Q2: Check if Azure RMS licensing is enabled
         $azureRMSEnabled = $irmConfig.AzureRMSLicensingEnabled
 
-        if ($azureRMSEnabled -eq $true) {
-            $passed = $true
-        }
-        else {
-            $passed = $false
-        }
+        $passed = $azureRMSEnabled -eq $true
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    if($investigateFlag){
+    if ($investigateFlag){
         $testResultMarkdown = "⚠️ Unable to determine Azure RMS status due to permissions issues or service connection failure.`n`n"
     }
     else {
         if ($passed) {
-            $testResultMarkdown = "✅Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n"
+            $testResultMarkdown = "✅ Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n"
             $azureRMSEnabledStatus = '✅ Enabled'
         }
         else {
@@ -86,7 +81,7 @@ function Test-Assessment-35024 {
         }
 
         $portalLink = 'https://purview.microsoft.com/settings/encryption'
-        $whenCreatedDate = if($null -eq $irmConfig.WhenCreatedUTC) { 'N/A' } else { $irmConfig.WhenCreatedUTC }
+        $whenCreatedDate = if ($null -eq $irmConfig.WhenCreatedUTC) { 'N/A' } else { $irmConfig.WhenCreatedUTC }
 
         $testResultMarkdown += "### Summary`n`n"
         $testResultMarkdown += "- **Azure RMS Service:** $($azureRMSEnabledStatus)`n"
