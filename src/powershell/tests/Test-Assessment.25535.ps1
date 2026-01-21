@@ -25,11 +25,6 @@ function Test-Assessment-25535 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if ((Get-MgContext).Environment -ne 'Global') {
-        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
-        return
-    }
-
     #region Data Collection
     try {
         $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
@@ -40,7 +35,7 @@ function Test-Assessment-25535 {
 
     if (-not $accessToken) {
         Write-PSFMessage "Azure authentication token not found." -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Add-ZtTestResultDetail -SkippedBecause 'NotConnectedAzure'
         return
     }
 
@@ -67,7 +62,9 @@ function Test-Assessment-25535 {
         }
 
         $fwItems = ($fwResp.Content | ConvertFrom-Json).value
-        if (-not $fwItems) { continue }
+        if (-not $fwItems) {
+            continue
+        }
 
         # Query 3: Get Firewall Details (resolve private IPs)
         foreach ($fw in $fwItems) {
@@ -78,7 +75,9 @@ function Test-Assessment-25535 {
                 $fwDetailResp = Invoke-AzRestMethod -Path $fwDetailUri -Method GET
                 $fwDetail = $fwDetailResp.Content | ConvertFrom-Json
             }
-            catch { continue }
+            catch {
+                continue
+            }
 
             foreach ($ipconfig in $fwDetail.properties.ipConfigurations) {
                 if ($ipconfig.properties.privateIPAddress) {
@@ -92,7 +91,9 @@ function Test-Assessment-25535 {
             }
         }
 
-        if ($firewalls.Count -eq 0) { continue }
+        if ($firewalls.Count -eq 0) {
+            continue
+        }
 
         # Query 4: List NICs
         $nicListUri = "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
@@ -113,7 +114,9 @@ function Test-Assessment-25535 {
         foreach ($nic in $nics) {
             foreach ($ipconfig in $nic.properties.ipConfigurations) {
 
-                if (-not $ipconfig.properties.subnet?.id) { continue }
+                if (-not $ipconfig.properties.subnet?.id) {
+                    continue
+                }
 
                 $subnetId = $ipconfig.properties.subnet.id
                 if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') {
@@ -131,15 +134,18 @@ function Test-Assessment-25535 {
 
                     $retryAfter = if ($ertStart.Headers.'Retry-After') {
                         [int]$ertStart.Headers.'Retry-After'[0]
-                    } else { 5 }
+                    }
+                    else {
+                        5
+                    }
 
                     $asyncOperations += @{
-                        OperationUri = $operationUri
-                        Nic          = $nic
-                        RetryAfter   = $retryAfter
-                        Timestamp    = Get-Date
-                        SubnetId     = $subnetId
-                        SubscriptionId = $sub.Id
+                        OperationUri     = $operationUri
+                        Nic              = $nic
+                        RetryAfter       = $retryAfter
+                        Timestamp        = Get-Date
+                        SubnetId         = $subnetId
+                        SubscriptionId   = $sub.Id
                         SubscriptionName = $sub.Name
                     }
                 }
@@ -149,7 +155,9 @@ function Test-Assessment-25535 {
             }
         }
 
-        if ($asyncOperations.Count -eq 0) { continue }
+        if ($asyncOperations.Count -eq 0) {
+            continue
+        }
 
         Write-PSFMessage "Launched $($asyncOperations.Count) async effectiveRouteTable requests for subscription $($sub.Name)" -Tag Test -Level Verbose
 
@@ -173,7 +181,8 @@ function Test-Assessment-25535 {
                         $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
                         $op.Completed = $true
                         $completedOperations += $op
-                    } else {
+                    }
+                    else {
                         $stillPending += $op
                     }
                 }
@@ -206,16 +215,16 @@ function Test-Assessment-25535 {
         foreach ($op in $completedOperations) {
             if ($op.Error -or -not $op.Routes) {
                 $nicFindings += [PSCustomObject]@{
-                    NicName     = $op.Nic.name
-                    NicId       = $op.Nic.id
-                    NextHopType = 'Unknown'
-                    NextHopIp   = ''
-                    IsCompliant = $false
-                    SubscriptionId = $op.SubscriptionId
-                    SubscriptionName = $op.SubscriptionName
-                    SubnetId = $op.SubnetId
+                    NicName           = $op.Nic.name
+                    NicId             = $op.Nic.id
+                    NextHopType       = 'Unknown'
+                    NextHopIp         = ''
+                    IsCompliant       = $false
+                    SubscriptionId    = $op.SubscriptionId
+                    SubscriptionName  = $op.SubscriptionName
+                    SubnetId          = $op.SubnetId
                     FirewallPrivateIp = 'N/A'
-                    NextHopIpAddress = ''
+                    NextHopIpAddress  = ''
                 }
                 continue
             }
@@ -223,21 +232,22 @@ function Test-Assessment-25535 {
             $defaultRoute = $op.Routes | Where-Object {
                 $_.state -eq 'Active' -and
                 $_.source -eq 'User' -and
-                ($_.addressPrefix -contains '0.0.0.0/0')
+                (($_.addressPrefix -contains '0.0.0.0/0') -or ($_.addressPrefix -eq '0.0.0.0/0')) -and
+                ($_.nextHopType -eq 'VirtualAppliance')
             } | Select-Object -First 1
 
             if (-not $defaultRoute) {
                 $nicFindings += [PSCustomObject]@{
-                    NicName     = $op.Nic.name
-                    NicId       = $op.Nic.id
-                    NextHopType = 'Internet'
-                    NextHopIp   = ''
-                    IsCompliant = $false
-                    SubscriptionId = $op.SubscriptionId
-                    SubscriptionName = $op.SubscriptionName
-                    SubnetId = $op.SubnetId
+                    NicName           = $op.Nic.name
+                    NicId             = $op.Nic.id
+                    NextHopType       = 'Internet'
+                    NextHopIp         = ''
+                    IsCompliant       = $false
+                    SubscriptionId    = $op.SubscriptionId
+                    SubscriptionName  = $op.SubscriptionName
+                    SubnetId          = $op.SubnetId
                     FirewallPrivateIp = 'N/A'
-                    NextHopIpAddress = ''
+                    NextHopIpAddress  = ''
                 }
                 continue
             }
@@ -249,9 +259,24 @@ function Test-Assessment-25535 {
             } | Select-Object -First 1
 
             $nicFindings += [PSCustomObject]@{
-                FirewallName      = if ($fwMatch) { $fwMatch.FirewallName } else { 'N/A' }
-                FirewallId        = if ($fwMatch) { $fwMatch.FirewallId } else { 'N/A' }
-                FirewallPrivateIp = if ($fwMatch) { $fwMatch.PrivateIP } else { 'N/A' }
+                FirewallName      = if ($fwMatch) {
+                    $fwMatch.FirewallName
+                }
+                else {
+                    'N/A'
+                }
+                FirewallId        = if ($fwMatch) {
+                    $fwMatch.FirewallId
+                }
+                else {
+                    'N/A'
+                }
+                FirewallPrivateIp = if ($fwMatch) {
+                    $fwMatch.PrivateIP
+                }
+                else {
+                    'N/A'
+                }
                 NicName           = $op.Nic.name
                 NicId             = $op.Nic.id
                 RouteSource       = $defaultRoute.source
@@ -259,7 +284,7 @@ function Test-Assessment-25535 {
                 AddressPrefix     = ($defaultRoute.addressPrefix -join ',')
                 NextHopType       = $defaultRoute.nextHopType
                 NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
-                IsCompliant       = ($fwMatch -ne $null)
+                IsCompliant       = ($null -ne $fwMatch)
                 SubscriptionId    = $op.SubscriptionId
                 SubscriptionName  = $op.SubscriptionName
                 SubnetId          = $op.SubnetId
@@ -269,16 +294,13 @@ function Test-Assessment-25535 {
     #endregion Data Collection
 
     #region Assessment Logic
-    if ($nicFindings.Count -eq 0) {
-        Add-ZtTestResultDetail -SkippedBecause NoResults
-        return
-    }
 
     $passed = ($nicFindings | Where-Object { -not $_.IsCompliant }).Count -eq 0
 
     $testResultMarkdown = if ($passed) {
         "Outbound traffic is routed through Azure Firewall.`n`n%TestResult%"
-    } else {
+    }
+    else {
         "Outbound traffic is not routed through Azure Firewall.`n`n%TestResult%"
     }
     #endregion Assessment Logic
@@ -289,23 +311,58 @@ function Test-Assessment-25535 {
     $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
     foreach ($item in $nicFindings | Sort-Object SubscriptionName, NicName) {
-        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
+        $icon = if ($item.IsCompliant) {
+            '✅'
+        }
+        else {
+            '❌'
+        }
 
-        $subName = if ($item.SubscriptionName) { $item.SubscriptionName } else { 'N/A' }
+        $subName = if ($item.SubscriptionName) {
+            $item.SubscriptionName
+        }
+        else {
+            'N/A'
+        }
         $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
         $subMd = "[$(Get-SafeMarkdown -Text $subName)]($subLink)"
 
-        $nicName = if ($item.NicName) { $item.NicName } else { 'N/A' }
+        $nicName = if ($item.NicName) {
+            $item.NicName
+        }
+        else {
+            'N/A'
+        }
         $nicLink = "https://portal.azure.com/#resource$($item.NicId)"
         $nicMd = "[$(Get-SafeMarkdown -Text $nicName)]($nicLink)"
 
-        $subnetName = if ($item.SubnetId) { ($item.SubnetId -split '/')[-1] } else { 'N/A' }
+        $subnetName = if ($item.SubnetId) {
+            ($item.SubnetId -split '/')[-1]
+        }
+        else {
+            'N/A'
+        }
         $subnetLink = "https://portal.azure.com/#resource$($item.SubnetId)"
         $subnetMd = "[$(Get-SafeMarkdown -Text $subnetName)]($subnetLink)"
 
-        $fwIp = if ($item.FirewallPrivateIp) { $item.FirewallPrivateIp } else { 'N/A' }
-        $nextHopType = if ($item.NextHopType) { $item.NextHopType } else { 'None' }
-        $nextHopIp = if ($item.NextHopIpAddress) { $item.NextHopIpAddress } else { '' }
+        $fwIp = if ($item.FirewallPrivateIp) {
+            $item.FirewallPrivateIp
+        }
+        else {
+            'N/A'
+        }
+        $nextHopType = if ($item.NextHopType) {
+            $item.NextHopType
+        }
+        else {
+            'None'
+        }
+        $nextHopIp = if ($item.NextHopIpAddress) {
+            $item.NextHopIpAddress
+        }
+        else {
+            ''
+        }
 
         $mdInfo += "| $subMd | $nicMd | $subnetMd | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
     }
@@ -314,4 +371,13 @@ function Test-Assessment-25535 {
     #endregion Report Generation
 
     Add-ZtTestResultDetail -TestId '25535' -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId = '25535'
+        Title  = 'Outbound traffic from VNET integrated workloads is routed through Azure Firewall'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+
+    # Add test result details
+    Add-ZtTestResultDetail @params
 }
