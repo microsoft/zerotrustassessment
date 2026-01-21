@@ -67,25 +67,17 @@ function Test-Assessment-25410 {
     # Extract values
     $policies = if ($filteringPolicies) { $filteringPolicies } else { @() }
     $profiles = if ($securityProfiles) { $securityProfiles } else { @() }
+
+    # Collect all filtering policy IDs for use in assessment and reporting
+    $q1PolicyIds = @($policies | ForEach-Object { $_.id })
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
+    $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n"
 
-    # Step 1: Check if any filtering policies exist
-    if ($policies.Count -eq 0) {
-        # Fail: No filtering policies configured
-        $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n"
-    }
-    # Step 2: Check if any security profiles exist
-    elseif ($profiles.Count -eq 0) {
-        # Fail: No security profiles configured
-        $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n"
-    }
-    else {
-        # Collect all filtering policy IDs from Q1
-        $q1PolicyIds = $policies | ForEach-Object { $_.id }
-
+    # Check if both policies and profiles exist
+    if ($policies.Count -gt 0 -and $profiles.Count -gt 0) {
         # Find Baseline Profile (priority = 65000)
         $baselineProfile = $profiles | Where-Object { $_.priority -eq $BASELINE_PROFILE_PRIORITY }
 
@@ -113,9 +105,6 @@ function Test-Assessment-25410 {
         if ($baselineHasWCF -or $nonBaselineProfilesWithWCFandCA.Count -gt 0) {
             $passed = $true
             $testResultMarkdown = "✅ Web content filtering policies are configured and enforced - either through security profiles assigned to Conditional Access policies or through the Baseline Profile which applies to all internet traffic.`n`n"
-        }
-        else {
-            $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n"
         }
     }
     #endregion Assessment Logic
@@ -154,8 +143,6 @@ function Test-Assessment-25410 {
         $mdInfo += "## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView)`n`n"
         $mdInfo += "| Profile Name | State | Priority | Filtering Policies Linked | CA Policies Assigned | Is Baseline |`n"
         $mdInfo += "| :----------- | :---- | -------: | :----------------------- | -------------------: | :---------- |`n"
-
-        $q1PolicyIds = $policies | ForEach-Object { $_.id }
 
         foreach ($profile in $profiles) {
             $profileName = $profile.name
