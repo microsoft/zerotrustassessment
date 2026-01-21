@@ -48,13 +48,11 @@ function Test-Assessment-25378 {
     $customStatus = $null
 
     # Initialize evaluation variables
-    $isServiceDefault = $null
+    $isServiceDefault = $false
     $usersAndGroupsAccessType = 'N/A'
     $usersAndGroupsTargets = @('N/A')
-    $usersAndGroupsTargetTypes = @('N/A')
     $applicationsAccessType = 'N/A'
     $applicationsTargets = @('N/A')
-    $applicationsTargetTypes = @('N/A')
 
     if ($null -eq $defaultPolicy) {
         $passed = $false
@@ -66,14 +64,13 @@ function Test-Assessment-25378 {
         # Extract B2B Collaboration Outbound settings
         $b2bOutbound = $defaultPolicy.b2bCollaborationOutbound
 
-        if ($b2bOutbound) {
+        if ($null -ne $b2bOutbound) {
             # Users and Groups settings
             if ($b2bOutbound.usersAndGroups) {
                 $usersAndGroupsAccessType = $b2bOutbound.usersAndGroups.accessType
                 if ($b2bOutbound.usersAndGroups.targets -and $b2bOutbound.usersAndGroups.targets.Count -gt 0) {
                     # wrap in array to handle single vs multiple targets
                     $usersAndGroupsTargets = @($b2bOutbound.usersAndGroups.targets.target)
-                    $usersAndGroupsTargetTypes = @($b2bOutbound.usersAndGroups.targets.targetType)
                 }
             }
 
@@ -83,7 +80,6 @@ function Test-Assessment-25378 {
                 if ($b2bOutbound.applications.targets -and $b2bOutbound.applications.targets.Count -gt 0) {
                     # wrap in array to handle single vs multiple targets
                     $applicationsTargets = @($b2bOutbound.applications.targets.target)
-                    $applicationsTargetTypes = @($b2bOutbound.applications.targets.targetType)
                 }
             }
         }
@@ -101,8 +97,8 @@ function Test-Assessment-25378 {
             $testResultMarkdown = "❌ Default outbound B2B collaboration allows all users to access all applications in external organizations without governance.`n`n%TestResult%"
         }
         # Check for full block (Pass condition)
-        elseif ($usersAndGroupsAccessType -eq 'blocked' -and $usersAndGroupsTargets -contains 'AllUsers' -and $usersAndGroupsTargetTypes -contains 'user' -and
-                $applicationsAccessType -eq 'blocked' -and $applicationsTargets -contains 'AllApplications' -and $applicationsTargetTypes -contains 'application') {
+        elseif ($usersAndGroupsAccessType -eq 'blocked' -and $usersAndGroupsTargets -contains 'AllUsers' -and
+                $applicationsAccessType -eq 'blocked' -and $applicationsTargets -contains 'AllApplications') {
             $passed = $true
             $testResultMarkdown = "✅ Default outbound B2B collaboration is blocked for all users and all applications, requiring explicit cross-tenant access policies for external collaboration.`n`n%TestResult%"
         }
