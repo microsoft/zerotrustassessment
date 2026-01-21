@@ -42,7 +42,7 @@ function Test-Assessment-35024 {
 
     try {
         # Query Q1: Get IRM configuration status
-        $irmConfig = Get-IRMConfiguration -ErrorAction Stop
+        $irmConfig = Get-IRMConfiguration -ErrorAction Stop | Select-Object -Property AzureRMSLicensingEnabled, SimplifiedClientAccessEnabled, InternalLicensingEnabled, ExternalLicensingEnabled, WhenCreatedUTC
     }
     catch {
         $errorMsg = $_
@@ -85,17 +85,18 @@ function Test-Assessment-35024 {
             $azureRMSEnabledStatus = '❌ Disabled'
         }
 
+        $portalLink = 'https://purview.microsoft.com/settings/encryption'
+        $whenCreatedDate = if($null -eq $irmConfig.WhenCreatedUTC) { 'N/A' } else { $irmConfig.WhenCreatedUTC }
+
         $testResultMarkdown += "### Summary`n`n"
         $testResultMarkdown += "- **Azure RMS Service:** $($azureRMSEnabledStatus)`n"
 
-
-        $testResultMarkdown += "### Azure RMS Status`n`n"
-        $testResultMarkdown += "| Service Enabled | Activation Date | Key Management Mode | Licensing Model |`n"
-        $testResultMarkdown += "|:---|:---|:---|:---|`n"
-
-        $testResultMarkdown += "| $azureRMSEnabledStatus | OnboardingDate if available | Standard/BYOK/Other | Enterprise/Consumer/Mixed |`n"
-
-        $testResultMarkdown += "`n[Microsoft Purview portal > Settings > Encryption > Azure Information Protection](https://purview.microsoft.com/settings/encryption)`n"
+        $testResultMarkdown += "### [Azure RMS Status]($portalLink)`n`n"
+        $testResultMarkdown += "- **AzureRMSLicensingEnabled:** $($irmConfig.AzureRMSLicensingEnabled)`n"
+        $testResultMarkdown += "- **SimplifiedClientAccessEnabled:** $($irmConfig.SimplifiedClientAccessEnabled)`n"
+        $testResultMarkdown += "- **InternalLicensingEnabled:** $($irmConfig.InternalLicensingEnabled)`n"
+        $testResultMarkdown += "- **ExternalLicensingEnabled:** $($irmConfig.ExternalLicensingEnabled)`n"
+        $testResultMarkdown += "- **Configuration Created:** $($whenCreatedDate)`n"
     }
     #endregion Report Generation
 
