@@ -106,7 +106,6 @@ function Test-Assessment-25420 {
 
     # Initialize evaluation containers
     $passed              = $false
-    $customStatus        = $null
     $testResultMarkdown  = ''
     $diagResults         = @()
     $logCategoryStatus   = @{}
@@ -169,7 +168,7 @@ function Test-Assessment-25420 {
                 $meetsMinimum = $true
             }
             elseif ($storageAccountId) {
-                # Storage account configured = meets minimum per spec (manual verification required)
+                # Storage account retention cannot be queried via this API; assume meets minimum, flag for manual review
                 $meetsMinimum = $true
             }
 
@@ -184,9 +183,25 @@ function Test-Assessment-25420 {
                     $enabledCategories += $categoryName
 
                     # Update global category status if this is a better configuration
+                    # Prioritize: 1) configs that meet minimum, 2) higher retention days
                     $currentStatus = $logCategoryStatus[$categoryName]
-                    if (-not $currentStatus.Enabled -or
-                        ($retentionDays -and $retentionDays -gt $currentStatus.RetentionDays)) {
+                    $shouldUpdate = $false
+
+                    if (-not $currentStatus.Enabled) {
+                        $shouldUpdate = $true
+                    }
+                    elseif ($meetsMinimum -and -not $currentStatus.MeetsMinimum) {
+                        # New config meets minimum but current doesn't - always prefer
+                        $shouldUpdate = $true
+                    }
+                    elseif ($meetsMinimum -eq $currentStatus.MeetsMinimum) {
+                        # Both meet or both don't meet minimum - compare retention days
+                        if ($retentionDays -and (-not $currentStatus.RetentionDays -or $retentionDays -gt $currentStatus.RetentionDays)) {
+                            $shouldUpdate = $true
+                        }
+                    }
+
+                    if ($shouldUpdate) {
                         $logCategoryStatus[$categoryName] = @{
                             Enabled         = $true
                             DestinationType = $destinationType
@@ -204,7 +219,7 @@ function Test-Assessment-25420 {
             }
 
             # Determine per-setting status
-            # Storage-only settings always require manual review since retention cannot be verified programmatically
+            # Storage-only settings require manual review since retention policies cannot be queried via this API
             $settingStatus = if ($storageAccountId -and -not $workspaceId) {
                 'Manual review'
             } elseif ($settingHasAllCategories -and $meetsMinimum) {
@@ -230,7 +245,8 @@ function Test-Assessment-25420 {
         $enabledCategoryCount     = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.Enabled }).Count
         $hasAllRequiredCategories = ($enabledCategoryCount -eq $REQUIRED_LOG_CATEGORIES.Count)
 
-        # Step 8: Check if any configuration meets minimum retention (90 days or storage account)
+        # Step 8: Check if any category meets minimum retention (used for summary reporting)
+        # Note: Pass/fail is determined by $passingSettingFound which requires ALL categories in ONE setting
         $hasAdequateRetention = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.MeetsMinimum }).Count -gt 0
 
         # Step 9: Determine overall test result
@@ -350,11 +366,5 @@ function Test-Assessment-25420 {
         Result = $testResultMarkdown
     }
 
-    # Add CustomStatus if status is 'Investigate'
-    if ($null -ne $customStatus) {
-        $params.CustomStatus = $customStatus
-    }
-
-    # Add test result details
     Add-ZtTestResultDetail @params
 }
