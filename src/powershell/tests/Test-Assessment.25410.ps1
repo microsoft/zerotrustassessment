@@ -23,7 +23,7 @@ function Test-Assessment-25410 {
         Pillar = 'Network',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
+        TenantType = ('Workforce', 'External'),
         TestId = 25410,
         Title = 'Internet traffic is protected by web content filtering policies in Global Secure Access',
         UserImpact = 'Low'
@@ -114,7 +114,7 @@ function Test-Assessment-25410 {
 
     # Table 1: Web Content Filtering Policies
     if ($policies.Count -gt 0) {
-        $mdInfo += "## [Web Content Filtering Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)`n`n"
+        $mdInfo += "## [Web Content Filtering Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView)`n`n"
         $mdInfo += "| Policy Name | Action | Rules Count | Last Modified |`n"
         $mdInfo += "| :---------- | :----- | ----------: | :------------ |`n"
 
@@ -140,15 +140,15 @@ function Test-Assessment-25410 {
 
     # Table 2: Security Profiles with Linked Policies
     if ($profiles.Count -gt 0) {
-        $mdInfo += "## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView)`n`n"
+        $mdInfo += "## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView)`n`n"
         $mdInfo += "| Profile Name | State | Priority | Filtering Policies Linked | CA Policies Assigned | Is Baseline |`n"
         $mdInfo += "| :----------- | :---- | -------: | :----------------------- | -------------------: | :---------- |`n"
 
-        foreach ($profile in $profiles) {
-            $profileName = $profile.name
-            $profileId = $profile.id
-            $state = $profile.state
-            $priority = $profile.priority
+        foreach ($securityProfile in $profiles) {
+            $profileName = $securityProfile.name
+            $profileId = $securityProfile.id
+            $state = $securityProfile.state
+            $priority = $securityProfile.priority
             $isBaseline = if ($priority -eq $BASELINE_PROFILE_PRIORITY) { 'Yes' } else { 'No' }
 
             # Create profile blade link
@@ -157,13 +157,13 @@ function Test-Assessment-25410 {
             $profileNameWithLink = "[$safeProfileName]($profileBladeLink)"
 
             # Get filtering policy links
-            $filteringPolicyLinks = $profile.policies | Where-Object {
+            $filteringPolicyLinks = $securityProfile.policies | Where-Object {
                 $_.'@odata.type' -eq '#microsoft.graph.networkaccess.filteringPolicyLink' -and
                 $_.policy.id -in $q1PolicyIds
             }
 
             $linkedPolicyNames = if ($filteringPolicyLinks.Count -gt 0) {
-                ($filteringPolicyLinks | ForEach-Object { $_.policy.name }) -join ', '
+                ($filteringPolicyLinks | ForEach-Object { Get-SafeMarkdown $_.policy.name }) -join ', '
             } else {
                 'None'
             }
@@ -171,7 +171,7 @@ function Test-Assessment-25410 {
             $caCount = if ($isBaseline -eq 'Yes') {
                 'N/A'
             } else {
-                $profile.conditionalAccessPolicies.Count
+                $securityProfile.conditionalAccessPolicies.Count
             }
 
             $mdInfo += "| $profileNameWithLink | $state | $priority | $linkedPolicyNames | $caCount | $isBaseline |`n"
@@ -181,12 +181,12 @@ function Test-Assessment-25410 {
 
     # Table 3: Conditional Access Policies Assigned to Security Profiles
     $caPolicies = @()
-    foreach ($profile in $profiles) {
-        if ($profile.conditionalAccessPolicies -and $profile.conditionalAccessPolicies.Count -gt 0) {
-            foreach ($caPolicy in $profile.conditionalAccessPolicies) {
+    foreach ($securityProfile in $profiles) {
+        if ($securityProfile.conditionalAccessPolicies -and $securityProfile.conditionalAccessPolicies.Count -gt 0) {
+            foreach ($caPolicy in $securityProfile.conditionalAccessPolicies) {
                 $caPolicies += [PSCustomObject]@{
                     CAPolicyName = $caPolicy.displayName
-                    ProfileName  = $profile.name
+                    ProfileName  = $securityProfile.name
                     CAPolicyId   = $caPolicy.id
                 }
             }
@@ -199,7 +199,9 @@ function Test-Assessment-25410 {
         $mdInfo += "| :------------- | :--------------- |`n"
 
         foreach ($caPolicy in $caPolicies) {
-            $mdInfo += "| [$($caPolicy.CAPolicyName)](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.CAPolicyId)) | $($caPolicy.ProfileName) |`n"
+            $safeCAPolicyName = Get-SafeMarkdown $caPolicy.CAPolicyName
+            $safeProfileName = Get-SafeMarkdown $caPolicy.ProfileName
+            $mdInfo += "| [$safeCAPolicyName](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.CAPolicyId)) | $safeProfileName |`n"
         }
         $mdInfo += "`n"
     }
