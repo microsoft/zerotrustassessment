@@ -1,4 +1,4 @@
-<#
+    <#
 .SYNOPSIS
     Test to check if outbound traffic from VNET integrated workloads is routed through Azure Firewall
 
@@ -23,9 +23,214 @@ function Test-Assessment-25535 {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    #region Helper Functions
+    function Get-FirewallPrivateIP {
+        param([string]$SubscriptionId)
+
+        $firewalls = @()
+        $fwListUri = "/subscriptions/$SubscriptionId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
+
+        try {
+            $fwResp = Invoke-AzRestMethod -Path $fwListUri -Method GET
+            $fwItems = ($fwResp.Content | ConvertFrom-Json).value
+        }
+        catch {
+            Write-PSFMessage "Unable to list Azure Firewalls in subscription $SubscriptionId." -Tag Test -Level Warning
+            return $firewalls
+        }
+
+        foreach ($fw in $fwItems) {
+            try {
+                $fwDetailResp = Invoke-AzRestMethod -Path "$($fw.id)?api-version=2025-03-01" -Method GET
+                $fwDetail = $fwDetailResp.Content | ConvertFrom-Json
+
+                foreach ($ipconfig in $fwDetail.properties.ipConfigurations) {
+                    if ($ipconfig.properties.privateIPAddress) {
+                        $firewalls += [PSCustomObject]@{
+                            FirewallName   = $fwDetail.name
+                            FirewallId     = $fwDetail.id
+                            PrivateIP      = $ipconfig.properties.privateIPAddress
+                            SubscriptionId = $SubscriptionId
+                        }
+                    }
+                }
+            }
+            catch { <# Skip firewalls we can't read #> }
+        }
+        return $firewalls
+    }
+
+    function Get-WorkloadNicOperation {
+        param(
+            [object]$Subscription,
+            [string]$SubscriptionId
+        )
+
+        $asyncOperations = @()
+        $nicListUri = "/subscriptions/$SubscriptionId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
+
+        try {
+            $nicResp = Invoke-AzRestMethod -Path $nicListUri -Method GET
+            $nics = ($nicResp.Content | ConvertFrom-Json).value
+        }
+        catch {
+            Write-PSFMessage "Unable to list network interfaces in subscription $($Subscription.Name)." -Tag Test -Level Warning
+            return $asyncOperations
+        }
+
+        foreach ($nic in $nics) {
+            foreach ($ipconfig in $nic.properties.ipConfigurations) {
+                $subnetId = $ipconfig.properties.subnet?.id
+                if (-not $subnetId) { continue }
+                if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') { continue }
+
+                $rg = ($nic.id -split '/')[4]
+                $ertUri = "/subscriptions/$SubscriptionId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$($nic.name)/effectiveRouteTable?api-version=2025-03-01"
+
+                try {
+                    $ertStart = Invoke-AzRestMethod -Path $ertUri -Method POST
+                    $retryAfter = if ($ertStart.Headers.'Retry-After') { [int]$ertStart.Headers.'Retry-After'[0] } else { 5 }
+
+                    $asyncOperations += @{
+                        OperationUri     = $ertStart.Headers.Location[0]
+                        Nic              = $nic
+                        RetryAfter       = $retryAfter
+                        SubnetId         = $subnetId
+                        SubscriptionId   = $Subscription.Id
+                        SubscriptionName = $Subscription.Name
+                    }
+                }
+                catch {
+                    Write-PSFMessage "Failed to initiate effectiveRouteTable request for NIC $($nic.name): $($_.Exception.Message)" -Tag Test -Level Warning
+                }
+            }
+        }
+        return $asyncOperations
+    }
+
+    function Wait-AsyncOperation {
+        param([array]$Operations)
+
+        $completedOperations = @()
+        $pendingOperations = $Operations
+        $maxRetries = 120  # ~10 minutes with 5 second intervals
+
+        while ($pendingOperations.Count -gt 0) {
+            $stillPending = @()
+
+            foreach ($op in $pendingOperations) {
+                try {
+                    $ertPoll = Invoke-AzRestMethod -Uri $op.OperationUri -Method GET
+                    if ($ertPoll.StatusCode -ne 202) {
+                        $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
+                        $op.Completed = $true
+                        $completedOperations += $op
+                    } else {
+                        $stillPending += $op
+                    }
+                }
+                catch {
+                    Write-PSFMessage "Error polling operation for NIC $($op.Nic.name): $($_.Exception.Message)" -Tag Test -Level Warning
+                    $op.Completed = $true
+                    $op.Error = $true
+                    $completedOperations += $op
+                }
+            }
+
+            $pendingOperations = $stillPending
+            if ($pendingOperations.Count -eq 0) { break }
+
+            $maxRetries--
+            if ($maxRetries -le 0) {
+                Write-PSFMessage "Timeout polling effectiveRouteTable operations. Processing $($pendingOperations.Count) incomplete operations." -Tag Test -Level Warning
+                $completedOperations += $pendingOperations
+                break
+            }
+
+            Write-PSFMessage "Polling $($pendingOperations.Count) pending operations..." -Tag Test -Level Verbose
+            Start-Sleep -Seconds ($pendingOperations[0].RetryAfter)
+        }
+        return $completedOperations
+    }
+
+    function ConvertTo-NicFinding {
+        param(
+            [object]$Operation,
+            [array]$Firewalls
+        )
+
+        # Handle error or missing routes
+        if ($Operation.Error -or -not $Operation.Routes) {
+            return [PSCustomObject]@{
+                NicName           = $Operation.Nic.name
+                NicId             = $Operation.Nic.id
+                NextHopType       = 'Unknown'
+                NextHopIpAddress  = ''
+                IsCompliant       = $false
+                SubscriptionId    = $Operation.SubscriptionId
+                SubscriptionName  = $Operation.SubscriptionName
+                SubnetId          = $Operation.SubnetId
+                FirewallPrivateIp = 'N/A'
+            }
+        }
+
+        # Find user-defined default route
+        $defaultRoute = $Operation.Routes | Where-Object {
+            $_.state -eq 'Active' -and
+            $_.source -eq 'User' -and
+            $_.nextHopType -eq 'VirtualAppliance' -and
+            (($_.addressPrefix -contains '0.0.0.0/0') -or ($_.addressPrefix -eq '0.0.0.0/0'))
+        } | Select-Object -First 1
+
+        if (-not $defaultRoute) {
+            return [PSCustomObject]@{
+                NicName           = $Operation.Nic.name
+                NicId             = $Operation.Nic.id
+                NextHopType       = 'Internet'
+                NextHopIpAddress  = ''
+                IsCompliant       = $false
+                SubscriptionId    = $Operation.SubscriptionId
+                SubscriptionName  = $Operation.SubscriptionName
+                SubnetId          = $Operation.SubnetId
+                FirewallPrivateIp = 'N/A'
+            }
+        }
+
+        # Match next hop to firewall private IP
+        $nextHop = $defaultRoute.nextHopIpAddress
+        $fwMatch = $Firewalls | Where-Object {
+            ($nextHop -eq $_.PrivateIP) -or ($nextHop -contains $_.PrivateIP)
+        } | Select-Object -First 1
+
+        return [PSCustomObject]@{
+            FirewallName      = if ($fwMatch) { $fwMatch.FirewallName } else { 'N/A' }
+            FirewallId        = if ($fwMatch) { $fwMatch.FirewallId } else { 'N/A' }
+            FirewallPrivateIp = if ($fwMatch) { $fwMatch.PrivateIP } else { 'N/A' }
+            NicName           = $Operation.Nic.name
+            NicId             = $Operation.Nic.id
+            RouteSource       = $defaultRoute.source
+            RouteState        = $defaultRoute.state
+            AddressPrefix     = ($defaultRoute.addressPrefix -join ',')
+            NextHopType       = $defaultRoute.nextHopType
+            NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
+            IsCompliant       = ($null -ne $fwMatch)
+            SubscriptionId    = $Operation.SubscriptionId
+            SubscriptionName  = $Operation.SubscriptionName
+            SubnetId          = $Operation.SubnetId
+        }
+    }
+
+    #endregion Helper Functions
 
     #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    if ((Get-MgContext).Environment -ne 'Global') {
+        Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
+
     try {
         $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
     }
@@ -39,269 +244,47 @@ function Test-Assessment-25535 {
         return
     }
 
-    # Query 1: List all subscriptions
     $subscriptions = Get-AzSubscription
-
     $firewalls = @()
     $nicFindings = @()
 
     foreach ($sub in $subscriptions) {
-
         Set-AzContext -SubscriptionId $sub.Id | Out-Null
-        $subId = $sub.Id
 
-        # Query 2: List Azure Firewalls
-        $fwListUri = "/subscriptions/$subId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
+        # Collect firewall private IPs
+        $firewalls += Get-FirewallPrivateIP -SubscriptionId $sub.Id
+        if ($firewalls.Count -eq 0) { continue }
 
-        try {
-            $fwResp = Invoke-AzRestMethod -Path $fwListUri -Method GET
-        }
-        catch {
-            Write-PSFMessage "Unable to list Azure Firewalls in subscription $($sub.Name)." -Tag Test -Level Warning
-            continue
-        }
-
-        $fwItems = ($fwResp.Content | ConvertFrom-Json).value
-        if (-not $fwItems) {
-            continue
-        }
-
-        # Query 3: Get Firewall Details (resolve private IPs)
-        foreach ($fw in $fwItems) {
-
-            $fwDetailUri = "$($fw.id)?api-version=2025-03-01"
-
-            try {
-                $fwDetailResp = Invoke-AzRestMethod -Path $fwDetailUri -Method GET
-                $fwDetail = $fwDetailResp.Content | ConvertFrom-Json
-            }
-            catch {
-                continue
-            }
-
-            foreach ($ipconfig in $fwDetail.properties.ipConfigurations) {
-                if ($ipconfig.properties.privateIPAddress) {
-                    $firewalls += [PSCustomObject]@{
-                        FirewallName   = $fwDetail.name
-                        FirewallId     = $fwDetail.id
-                        PrivateIP      = $ipconfig.properties.privateIPAddress
-                        SubscriptionId = $subId
-                    }
-                }
-            }
-        }
-
-        if ($firewalls.Count -eq 0) {
-            continue
-        }
-
-        # Query 4: List NICs
-        $nicListUri = "/subscriptions/$subId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
-
-        try {
-            $nicResp = Invoke-AzRestMethod -Path $nicListUri -Method GET
-        }
-        catch {
-            Write-PSFMessage "Unable to list network interfaces in subscription $($sub.Name)." -Tag Test -Level Warning
-            continue
-        }
-
-        $nics = ($nicResp.Content | ConvertFrom-Json).value
-
-        # Query 5: Stage 1 - Launch all async effectiveRouteTable requests
-        $asyncOperations = @()
-
-        foreach ($nic in $nics) {
-            foreach ($ipconfig in $nic.properties.ipConfigurations) {
-
-                if (-not $ipconfig.properties.subnet?.id) {
-                    continue
-                }
-
-                $subnetId = $ipconfig.properties.subnet.id
-                if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') {
-                    continue
-                }
-
-                $rg = ($nic.id -split '/')[4]
-                $nicName = $nic.name
-
-                $ertUri = "/subscriptions/$subId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$nicName/effectiveRouteTable?api-version=2025-03-01"
-
-                try {
-                    $ertStart = Invoke-AzRestMethod -Path $ertUri -Method POST
-                    $operationUri = $ertStart.Headers.Location[0]
-
-                    $retryAfter = if ($ertStart.Headers.'Retry-After') {
-                        [int]$ertStart.Headers.'Retry-After'[0]
-                    }
-                    else {
-                        5
-                    }
-
-                    $asyncOperations += @{
-                        OperationUri     = $operationUri
-                        Nic              = $nic
-                        RetryAfter       = $retryAfter
-                        Timestamp        = Get-Date
-                        SubnetId         = $subnetId
-                        SubscriptionId   = $sub.Id
-                        SubscriptionName = $sub.Name
-                    }
-                }
-                catch {
-                    Write-PSFMessage "Failed to initiate effectiveRouteTable request for NIC $nicName : $($_.Exception.Message)" -Tag Test -Level Warning
-                }
-            }
-        }
-
-        if ($asyncOperations.Count -eq 0) {
-            continue
-        }
+        # Launch async operations for workload NICs
+        $asyncOperations = Get-WorkloadNicOperation -Subscription $sub -SubscriptionId $sub.Id
+        if ($asyncOperations.Count -eq 0) { continue }
 
         Write-PSFMessage "Launched $($asyncOperations.Count) async effectiveRouteTable requests for subscription $($sub.Name)" -Tag Test -Level Verbose
 
-        # Query 5: Stage 2 - Poll all operations in parallel
-        $completedOperations = @()
-        $maxRetries = 120  # ~10 minutes with 5 second intervals
+        # Wait for all operations to complete
+        $completedOperations = Wait-AsyncOperation -Operations $asyncOperations
 
-        do {
-            $stillPending = @()
-
-            foreach ($op in $asyncOperations) {
-                if ($op.Completed) {
-                    $completedOperations += $op
-                    continue
-                }
-
-                try {
-                    $ertPoll = Invoke-AzRestMethod -Uri $op.OperationUri -Method GET
-
-                    if ($ertPoll.StatusCode -ne 202) {
-                        $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
-                        $op.Completed = $true
-                        $completedOperations += $op
-                    }
-                    else {
-                        $stillPending += $op
-                    }
-                }
-                catch {
-                    Write-PSFMessage "Error polling operation for NIC $($op.Nic.name) : $($_.Exception.Message)" -Tag Test -Level Warning
-                    $op.Completed = $true
-                    $op.Error = $true
-                    $completedOperations += $op
-                }
-            }
-
-            $asyncOperations = $stillPending
-
-            if ($asyncOperations.Count -gt 0) {
-                $maxRetries--
-                if ($maxRetries -le 0) {
-                    Write-PSFMessage "Timeout polling effectiveRouteTable operations. Processing $($asyncOperations.Count) incomplete operations." -Tag Test -Level Warning
-                    $completedOperations += $asyncOperations
-                    break
-                }
-
-                $retryAfter = ($asyncOperations | Select-Object -First 1).RetryAfter
-                Write-PSFMessage "Polling $($asyncOperations.Count) pending operations..." -Tag Test -Level Verbose
-                Start-Sleep -Seconds $retryAfter
-            }
-
-        } while ($asyncOperations.Count -gt 0)
-
-        # Query 5: Stage 3 - Process completed operations
+        # Process results into findings
         foreach ($op in $completedOperations) {
-            if ($op.Error -or -not $op.Routes) {
-                $nicFindings += [PSCustomObject]@{
-                    NicName           = $op.Nic.name
-                    NicId             = $op.Nic.id
-                    NextHopType       = 'Unknown'
-                    NextHopIp         = ''
-                    IsCompliant       = $false
-                    SubscriptionId    = $op.SubscriptionId
-                    SubscriptionName  = $op.SubscriptionName
-                    SubnetId          = $op.SubnetId
-                    FirewallPrivateIp = 'N/A'
-                    NextHopIpAddress  = ''
-                }
-                continue
-            }
-
-            $defaultRoute = $op.Routes | Where-Object {
-                $_.state -eq 'Active' -and
-                $_.source -eq 'User' -and
-                (($_.addressPrefix -contains '0.0.0.0/0') -or ($_.addressPrefix -eq '0.0.0.0/0')) -and
-                ($_.nextHopType -eq 'VirtualAppliance')
-            } | Select-Object -First 1
-
-            if (-not $defaultRoute) {
-                $nicFindings += [PSCustomObject]@{
-                    NicName           = $op.Nic.name
-                    NicId             = $op.Nic.id
-                    NextHopType       = 'Internet'
-                    NextHopIp         = ''
-                    IsCompliant       = $false
-                    SubscriptionId    = $op.SubscriptionId
-                    SubscriptionName  = $op.SubscriptionName
-                    SubnetId          = $op.SubnetId
-                    FirewallPrivateIp = 'N/A'
-                    NextHopIpAddress  = ''
-                }
-                continue
-            }
-
-            $fwMatch = $firewalls | Where-Object {
-                # Handle nextHopIpAddress being either a string or an array
-                $nextHop = $defaultRoute.nextHopIpAddress
-                ( ($nextHop -eq $_.PrivateIP) -or ($nextHop -contains $_.PrivateIP) )
-            } | Select-Object -First 1
-
-            $nicFindings += [PSCustomObject]@{
-                FirewallName      = if ($fwMatch) {
-                    $fwMatch.FirewallName
-                }
-                else {
-                    'N/A'
-                }
-                FirewallId        = if ($fwMatch) {
-                    $fwMatch.FirewallId
-                }
-                else {
-                    'N/A'
-                }
-                FirewallPrivateIp = if ($fwMatch) {
-                    $fwMatch.PrivateIP
-                }
-                else {
-                    'N/A'
-                }
-                NicName           = $op.Nic.name
-                NicId             = $op.Nic.id
-                RouteSource       = $defaultRoute.source
-                RouteState        = $defaultRoute.state
-                AddressPrefix     = ($defaultRoute.addressPrefix -join ',')
-                NextHopType       = $defaultRoute.nextHopType
-                NextHopIpAddress  = ($defaultRoute.nextHopIpAddress -join ',')
-                IsCompliant       = ($null -ne $fwMatch)
-                SubscriptionId    = $op.SubscriptionId
-                SubscriptionName  = $op.SubscriptionName
-                SubnetId          = $op.SubnetId
-            }
+            $nicFindings += ConvertTo-NicFinding -Operation $op -Firewalls $firewalls
         }
     }
     #endregion Data Collection
 
     #region Assessment Logic
+    if ($nicFindings.Count -eq 0) {
+        Write-PSFMessage "No workload NICs found to evaluate." -Tag Test -Level Verbose
+        return
+    }
 
-    $passed = ($nicFindings | Where-Object { -not $_.IsCompliant }).Count -eq 0
-
-    $testResultMarkdown = if ($passed) {
-        "Outbound traffic is routed through Azure Firewall.`n`n%TestResult%"
+    $nonCompliantCount = @($nicFindings | Where-Object { -not $_.IsCompliant }).Count
+    if ($nonCompliantCount -eq 0) {
+        $passed = $true
+        $testResultMarkdown = "✅ Outbound traffic is routed through Azure Firewall.`n`n%TestResult%"
     }
     else {
-        "Outbound traffic is not routed through Azure Firewall.`n`n%TestResult%"
+        $passed = $false
+        $testResultMarkdown = "❌ Outbound traffic is not routed through Azure Firewall.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -311,66 +294,27 @@ function Test-Assessment-25535 {
     $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
     foreach ($item in $nicFindings | Sort-Object SubscriptionName, NicName) {
-        $icon = if ($item.IsCompliant) {
-            '✅'
-        }
-        else {
-            '❌'
-        }
+        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
 
-        $subName = if ($item.SubscriptionName) {
-            $item.SubscriptionName
-        }
-        else {
-            'N/A'
-        }
         $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
-        $subMd = "[$(Get-SafeMarkdown -Text $subName)]($subLink)"
+        $subName = Get-SafeMarkdown -Text $item.SubscriptionName
 
-        $nicName = if ($item.NicName) {
-            $item.NicName
-        }
-        else {
-            'N/A'
-        }
         $nicLink = "https://portal.azure.com/#resource$($item.NicId)"
-        $nicMd = "[$(Get-SafeMarkdown -Text $nicName)]($nicLink)"
+        $nicName = Get-SafeMarkdown -Text $item.NicName
 
-        $subnetName = if ($item.SubnetId) {
-            ($item.SubnetId -split '/')[-1]
-        }
-        else {
-            'N/A'
-        }
         $subnetLink = "https://portal.azure.com/#resource$($item.SubnetId)"
-        $subnetMd = "[$(Get-SafeMarkdown -Text $subnetName)]($subnetLink)"
+        $subnetName = Get-SafeMarkdown -Text (($item.SubnetId -split '/')[-1])
 
-        $fwIp = if ($item.FirewallPrivateIp) {
-            $item.FirewallPrivateIp
-        }
-        else {
-            'N/A'
-        }
-        $nextHopType = if ($item.NextHopType) {
-            $item.NextHopType
-        }
-        else {
-            'None'
-        }
-        $nextHopIp = if ($item.NextHopIpAddress) {
-            $item.NextHopIpAddress
-        }
-        else {
-            ''
-        }
+        $fwIp = if ($item.FirewallPrivateIp) { $item.FirewallPrivateIp } else { 'N/A' }
+        $nextHopType = if ($item.NextHopType) { $item.NextHopType } else { 'None' }
+        $nextHopIp = if ($item.NextHopIpAddress) { $item.NextHopIpAddress } else { '' }
 
-        $mdInfo += "| $subMd | $nicMd | $subnetMd | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
+        $mdInfo += "| $subName | $nicName | $subnetName | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
     #endregion Report Generation
 
-    Add-ZtTestResultDetail -TestId '25535' -Status $passed -Result $testResultMarkdown
     $params = @{
         TestId = '25535'
         Title  = 'Outbound traffic from VNET integrated workloads is routed through Azure Firewall'
@@ -378,6 +322,5 @@ function Test-Assessment-25535 {
         Result = $testResultMarkdown
     }
 
-    # Add test result details
     Add-ZtTestResultDetail @params
 }
