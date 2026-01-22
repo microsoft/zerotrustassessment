@@ -265,7 +265,7 @@ function Test-Assessment-25420 {
     $settingsWithLongTermDest = ($diagResults | Where-Object { $_.WorkspaceId -or $_.StorageAccountId }).Count
     $workspaceRetentions = $diagResults | Where-Object { $_.RetentionDays } | Select-Object -ExpandProperty RetentionDays
     $avgRetention = if ($workspaceRetentions.Count -gt 0) {
-        [math]::Round(($workspaceRetentions | Measure-Object -Average).Average, 0)
+        [math]::Round(($workspaceRetentions | Measure-Object -Average).Average, 0) # Round to whole days for compliance reporting
     } else { $null }
     $minRetention = if ($workspaceRetentions.Count -gt 0) {
         ($workspaceRetentions | Measure-Object -Minimum).Minimum
