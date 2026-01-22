@@ -35,77 +35,74 @@ function Test-Assessment-25378 {
     Write-ZtProgress -Activity $activity -Status 'Retrieving default cross-tenant access policy'
 
     # Query 1: Retrieve the default cross-tenant access policy configuration
-    $defaultPolicy = $null
+    $crossTenantAccessPolicy = $null
     try {
-        $defaultPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/crossTenantAccessPolicy/default' -ApiVersion beta
+        $crossTenantAccessPolicy = Invoke-ZtGraphRequest -RelativeUri 'policies/crossTenantAccessPolicy/default' -ApiVersion beta
     } catch {
         Write-PSFMessage "Unable to retrieve cross-tenant access policy: $_" -Level Warning
     }
-    #endregion Data Collection
 
-    #region Assessment Logic
-    $passed = $false
-    $customStatus = $null
-
-    # Initialize evaluation variables
+    # Initialize variables and Extract data
     $isServiceDefault = $false
     $usersAndGroupsAccessType = 'N/A'
     $usersAndGroupsTargets = @('N/A')
     $applicationsAccessType = 'N/A'
     $applicationsTargets = @('N/A')
 
-    if ($null -eq $defaultPolicy) {
-        $passed = $false
-        $testResultMarkdown = "❌ Unable to retrieve cross-tenant access policy configuration.`n`n%TestResult%"
-    } else {
-        # Extract configuration values
-        $isServiceDefault = $defaultPolicy.isServiceDefault
-
-        # Extract B2B Collaboration Outbound settings
-        $b2bOutbound = $defaultPolicy.b2bCollaborationOutbound
+    if ($null -ne $crossTenantAccessPolicy) {
+        $isServiceDefault = $crossTenantAccessPolicy.isServiceDefault
+        $b2bOutbound = $crossTenantAccessPolicy.b2bCollaborationOutbound
 
         if ($null -ne $b2bOutbound) {
-            # Users and Groups settings
             if ($b2bOutbound.usersAndGroups) {
                 $usersAndGroupsAccessType = $b2bOutbound.usersAndGroups.accessType
                 if ($b2bOutbound.usersAndGroups.targets -and $b2bOutbound.usersAndGroups.targets.Count -gt 0) {
-                    # wrap in array to handle single vs multiple targets
                     $usersAndGroupsTargets = @($b2bOutbound.usersAndGroups.targets.target)
                 }
             }
 
-            # Applications settings
             if ($b2bOutbound.applications) {
                 $applicationsAccessType = $b2bOutbound.applications.accessType
                 if ($b2bOutbound.applications.targets -and $b2bOutbound.applications.targets.Count -gt 0) {
-                    # wrap in array to handle single vs multiple targets
                     $applicationsTargets = @($b2bOutbound.applications.targets.target)
                 }
             }
         }
+    }
+    #endregion Data Collection
 
-        # Evaluation logic
-        # Check if using service default (automatic fail)
-        if ($isServiceDefault -eq $true) {
+    #region Assessment Logic
+    $passed = $false
+    $investigateFlag = $false
+
+
+    if ($null -eq $crossTenantAccessPolicy) {
+        $testResultMarkdown = "❌ Unable to retrieve cross-tenant access policy configuration.`n`n%TestResult%"
+    }
+    else {
+        # Define evaluation conditions
+        $fullAllowCondition = $usersAndGroupsAccessType -eq 'allowed' -and
+                              $usersAndGroupsTargets -contains 'AllUsers' -and
+                              $applicationsAccessType -eq 'allowed' -and
+                              $applicationsTargets -contains 'AllApplications'
+
+        $fullBlockCondition = $usersAndGroupsAccessType -eq 'blocked' -and
+                              $usersAndGroupsTargets -contains 'AllUsers' -and
+                              $applicationsAccessType -eq 'blocked' -and
+                              $applicationsTargets -contains 'AllApplications'
+
+        # Evaluate and set test result
+        if ($isServiceDefault -or $fullAllowCondition) {
             $passed = $false
             $testResultMarkdown = "❌ Default outbound B2B collaboration allows all users to access all applications in external organizations without governance.`n`n%TestResult%"
         }
-        # Check for full allow (Fail condition)
-        elseif ($usersAndGroupsAccessType -eq 'allowed' -and $usersAndGroupsTargets -contains 'AllUsers' -and
-                $applicationsAccessType -eq 'allowed' -and $applicationsTargets -contains 'AllApplications') {
-            $passed = $false
-            $testResultMarkdown = "❌ Default outbound B2B collaboration allows all users to access all applications in external organizations without governance.`n`n%TestResult%"
-        }
-        # Check for full block (Pass condition)
-        elseif ($usersAndGroupsAccessType -eq 'blocked' -and $usersAndGroupsTargets -contains 'AllUsers' -and
-                $applicationsAccessType -eq 'blocked' -and $applicationsTargets -contains 'AllApplications') {
+        elseif ($fullBlockCondition) {
             $passed = $true
             $testResultMarkdown = "✅ Default outbound B2B collaboration is blocked for all users and all applications, requiring explicit cross-tenant access policies for external collaboration.`n`n%TestResult%"
         }
-        # Partial restrictions (Investigate)
         else {
             $passed = $false
-            $customStatus = 'Investigate'
+            $investigateFlag = $true
             $testResultMarkdown = "⚠️ Default outbound B2B collaboration has partial restrictions configured; review settings to ensure they align with organizational security policies.`n`n%TestResult%"
         }
     }
@@ -114,11 +111,10 @@ function Test-Assessment-25378 {
     #region Report Generation
     $mdInfo = ''
 
-    if ($null -ne $defaultPolicy) {
-
+    if ($null -ne $crossTenantAccessPolicy) {
+        $reportTitle = 'Default Cross-Tenant Access Settings - Outbound B2B Collaboration'
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade/~/CrossTenantAccessSettings'
 
-        # Details needed to generate the summary table
         $isServiceDefaultStr = if ($null -eq $isServiceDefault) { 'N/A' } elseif ($isServiceDefault) { 'true' } else { 'false' }
         $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
         $usersAccessStatus = if ($usersAndGroupsAccessType -eq 'blocked') { '✅' } else { '❌' }
@@ -129,18 +125,25 @@ function Test-Assessment-25378 {
         $displayUserTarget = if ($null -ne $usersAndGroupsTargets -and $usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
         $displayAppTarget = if ($null -ne $applicationsTargets -and $applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
 
-        # Summary Section
-        $mdInfo += "`n## [Default Cross-Tenant Access Settings - Outbound B2B Collaboration]($portalLink)`n`n"
-        $mdInfo += "| Setting | Configured Value | Expected Value | Status |`n"
-        $mdInfo += "| :--- | :--- | :--- | :---: |`n"
-        $mdInfo += "| Is Service Default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
-        $mdInfo += "| Users and Groups Access Type | $usersAndGroupsAccessType | blocked | $usersAccessStatus |`n"
-        $mdInfo += "| Users and Groups Target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
-        $mdInfo += "| Applications Access Type | $applicationsAccessType | blocked | $appsAccessStatus |`n"
-        $mdInfo += "| Applications Target | $displayAppTarget | AllApplications | $appsTargetStatus |`n"
+        $formatTemplate = @'
+
+## [{0}]({1})
+
+| Setting | Configured Value | Expected Value | Status |
+| :------ | :--------------- | :------------- | :----: |
+{2}
+
+'@
+
+        $tableRows = "| Is Service Default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
+        $tableRows += "| Users and Groups Access Type | $usersAndGroupsAccessType | blocked | $usersAccessStatus |`n"
+        $tableRows += "| Users and Groups Target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
+        $tableRows += "| Applications Access Type | $applicationsAccessType | blocked | $appsAccessStatus |`n"
+        $tableRows += "| Applications Target | $displayAppTarget | AllApplications | $appsTargetStatus |"
+
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
     }
 
-    # Replace placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
@@ -151,7 +154,7 @@ function Test-Assessment-25378 {
         Result = $testResultMarkdown
     }
 
-    if ($customStatus -eq 'Investigate') {
+    if ($investigateFlag -eq $true) {
         $params.CustomStatus = 'Investigate'
     }
 

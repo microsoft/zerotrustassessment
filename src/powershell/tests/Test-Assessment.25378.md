@@ -2,10 +2,10 @@ When default outbound B2B collaboration settings allow all users to access all a
 
 **Remediation action**
 
-- [Understand cross-tenant access settings and planning considerations before making changes:](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview)
-- [Use the cross-tenant access activity workbook to identify current external collaboration patterns before blocking default access:](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/workbook-cross-tenant-access-activity)
-- [Configure default outbound B2B collaboration settings to block access in the Microsoft Entra admin center:](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration#modify-outbound-access-settings)
-- [Add organization-specific settings for approved partner tenants that require B2B collaboration:](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration#add-an-organization)
-- [Update default cross-tenant access policy via Microsoft Graph API:](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-update)
+- [Understand cross-tenant access settings and planning considerations before making changes](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview)
+- [Use the cross-tenant access activity workbook to identify current external collaboration patterns before blocking default access](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/workbook-cross-tenant-access-activity)
+- [Configure default outbound B2B collaboration settings to block access in the Microsoft Entra admin center](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration#modify-outbound-access-settings)
+- [Add organization-specific settings for approved partner tenants that require B2B collaboration](https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-settings-b2b-collaboration#add-an-organization)
+- [Update default cross-tenant access policy via Microsoft Graph API](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-update)
 <!--- Results --->
 %TestResult%
