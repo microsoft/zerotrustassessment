@@ -89,29 +89,45 @@ function Test-Assessment-35026 {
     $testResultMarkdown = ''
 
     if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "⚠️ Unable to determine SimplifiedClientAccessEnabled status due to permissions issues or OME not configured.`n`n"
+        $testResultMarkdown = "⚠️ Unable to determine SimplifiedClientAccessEnabled status due to permissions issues or OME not configured.`n`n%TestResult%"
     }
     elseif ($passed) {
-        $testResultMarkdown = "✅ SimplifiedClientAccessEnabled is true (Protect button enabled) and AzureRMSLicensingEnabled is true (encryption foundation active).`n`n"
+        $testResultMarkdown = "✅ SimplifiedClientAccessEnabled is true (Protect button enabled) and AzureRMSLicensingEnabled is true (encryption foundation active).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ SimplifiedClientAccessEnabled is false or AzureRMSLicensingEnabled is false (encryption foundation or Protect button disabled).`n`n"
+        $testResultMarkdown = "❌ SimplifiedClientAccessEnabled is false or AzureRMSLicensingEnabled is false (encryption foundation or Protect button disabled).`n`n%TestResult%"
     }
 
     # Build detailed information if we have data
-    if ($irmConfig) {
-        $testResultMarkdown += "## OME SimplifiedClientAccess Status`n`n"
-        $testResultMarkdown += "| Property | Value |`n"
-        $testResultMarkdown += "| :--- | :--- |`n"
-        $testResultMarkdown += "| SimplifiedClientAccessEnabled | $($irmConfig.SimplifiedClientAccessEnabled) |`n"
-        $testResultMarkdown += "| AzureRMSLicensingEnabled | $($irmConfig.AzureRMSLicensingEnabled) |`n"
-        $testResultMarkdown += "| InternalLicensingEnabled | $($irmConfig.InternalLicensingEnabled) |`n"
+    $mdInfo = ''
 
-        # Summary
-        $testResultMarkdown += "`n**Summary:**`n"
+    if ($irmConfig) {
+        $reportTitle = 'OME SimplifiedClientAccess Status'
+
         $protectButtonStatus = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
-        $testResultMarkdown += "* Protect button status: $protectButtonStatus`n"
+
+        $formatTemplate = @'
+
+### {0}
+
+| Setting | Value |
+| :------ | :---- |
+{1}
+
+**Summary:**
+
+* Protect Button Status: {2}
+
+'@
+
+        $tableRows = "| SimplifiedClientAccessEnabled | $($irmConfig.SimplifiedClientAccessEnabled) |`n"
+        $tableRows += "| AzureRMSLicensingEnabled | $($irmConfig.AzureRMSLicensingEnabled) |`n"
+        $tableRows += "| InternalLicensingEnabled | $($irmConfig.InternalLicensingEnabled) |`n"
+
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows, $protectButtonStatus
     }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
