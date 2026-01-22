@@ -74,7 +74,7 @@ function Test-Assessment-25410 {
 
     #region Assessment Logic
     $passed = $false
-    $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n"
+    $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n%TestResult%"
 
     # Check if both policies and profiles exist
     if ($policies.Count -gt 0 -and $profiles.Count -gt 0) {
@@ -104,7 +104,7 @@ function Test-Assessment-25410 {
         # Determine pass/fail
         if ($baselineHasWCF -or $nonBaselineProfilesWithWCFandCA.Count -gt 0) {
             $passed = $true
-            $testResultMarkdown = "✅ Web content filtering policies are configured and enforced - either through security profiles assigned to Conditional Access policies or through the Baseline Profile which applies to all internet traffic.`n`n"
+            $testResultMarkdown = "✅ Web content filtering policies are configured and enforced - either through security profiles assigned to Conditional Access policies or through the Baseline Profile which applies to all internet traffic.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
@@ -114,10 +114,19 @@ function Test-Assessment-25410 {
 
     # Table 1: Web Content Filtering Policies
     if ($policies.Count -gt 0) {
-        $mdInfo += "## [Web Content Filtering Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView)`n`n"
-        $mdInfo += "| Policy Name | Action | Rules Count | Last Modified |`n"
-        $mdInfo += "| :---------- | :----- | ----------: | :------------ |`n"
+        $table1Title = 'Web Content Filtering Policies'
+        $table1Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/WebFilteringPolicy.ReactView'
 
+        $table1Template = @'
+
+## [{0}]({1})
+
+| Policy Name | Action | Rules Count | Last Modified |
+| :---------- | :----- | ----------: | :------------ |
+{2}
+'@
+
+        $table1Rows = ''
         foreach ($policy in $policies) {
             $policyName = $policy.name
             $policyId = $policy.id
@@ -133,17 +142,27 @@ function Test-Assessment-25410 {
             $policyBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditFilteringPolicyMenuBlade.MenuView/~/Basics/policyId/$policyId/title/$encodedPolicyName/defaultMenuItemId/Basics"
             $policyNameWithLink = "[$safePolicyName]($policyBladeLink)"
 
-            $mdInfo += "| $policyNameWithLink | $action | $rulesCount | $lastModified |`n"
+            $table1Rows += "| $policyNameWithLink | $action | $rulesCount | $lastModified |`n"
         }
-        $mdInfo += "`n"
+
+        $mdInfo += $table1Template -f $table1Title, $table1Link, $table1Rows
     }
 
     # Table 2: Security Profiles with Linked Policies
     if ($profiles.Count -gt 0) {
-        $mdInfo += "## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView)`n`n"
-        $mdInfo += "| Profile Name | State | Priority | Filtering Policies Linked | CA Policies Assigned | Is Baseline |`n"
-        $mdInfo += "| :----------- | :---- | -------: | :----------------------- | -------------------: | :---------- |`n"
+        $table2Title = 'Security Profiles with Linked Policies'
+        $table2Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView'
 
+        $table2Template = @'
+
+## [{0}]({1})
+
+| Profile Name | State | Priority | Filtering Policies Linked | CA Policies Assigned | Is Baseline |
+| :----------- | :---- | -------: | :----------------------- | -------------------: | :---------- |
+{2}
+'@
+
+        $table2Rows = ''
         foreach ($securityProfile in $profiles) {
             $profileName = $securityProfile.name
             $profileId = $securityProfile.id
@@ -174,9 +193,10 @@ function Test-Assessment-25410 {
                 $securityProfile.conditionalAccessPolicies.Count
             }
 
-            $mdInfo += "| $profileNameWithLink | $state | $priority | $linkedPolicyNames | $caCount | $isBaseline |`n"
+            $table2Rows += "| $profileNameWithLink | $state | $priority | $linkedPolicyNames | $caCount | $isBaseline |`n"
         }
-        $mdInfo += "`n"
+
+        $mdInfo += $table2Template -f $table2Title, $table2Link, $table2Rows
     }
 
     # Table 3: Conditional Access Policies Assigned to Security Profiles
@@ -194,19 +214,29 @@ function Test-Assessment-25410 {
     }
 
     if ($caPolicies.Count -gt 0) {
-        $mdInfo += "## [Conditional Access Policies Assigned to Security Profiles](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
-        $mdInfo += "| CA Policy Name | Security Profile |`n"
-        $mdInfo += "| :------------- | :--------------- |`n"
+        $table3Title = 'Conditional Access Policies Assigned to Security Profiles'
+        $table3Link = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
+        $table3Template = @'
+
+## [{0}]({1})
+
+| CA Policy Name | Security Profile |
+| :------------- | :--------------- |
+{2}
+'@
+
+        $table3Rows = ''
         foreach ($caPolicy in $caPolicies) {
             $safeCAPolicyName = Get-SafeMarkdown $caPolicy.CAPolicyName
             $safeProfileName = Get-SafeMarkdown $caPolicy.ProfileName
-            $mdInfo += "| [$safeCAPolicyName](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.CAPolicyId)) | $safeProfileName |`n"
+            $table3Rows += "| [$safeCAPolicyName](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.CAPolicyId)) | $safeProfileName |`n"
         }
-        $mdInfo += "`n"
+
+        $mdInfo += $table3Template -f $table3Title, $table3Link, $table3Rows
     }
 
-    $testResultMarkdown += $mdInfo
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
