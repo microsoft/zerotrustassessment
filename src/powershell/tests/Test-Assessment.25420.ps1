@@ -112,7 +112,6 @@ function Test-Assessment-25420 {
     $logCategoryStatus   = @{}
     $hasAdequateRetention      = $false
     $hasAllRequiredCategories  = $false
-    $settingsWithStorageOnly   = @()
     $passingSettingFound       = $false
 
     # Step 1: Check if any diagnostic settings exist
@@ -139,12 +138,11 @@ function Test-Assessment-25420 {
 
         foreach ($setting in $diagnosticSettings) {
 
-            $settingName      = $setting.name
             $workspaceId      = $setting.properties.workspaceId
             $storageAccountId = $setting.properties.storageAccountId
             $logs             = $setting.properties.logs
 
-            # Step 2: Determine destination type
+            # Step 2: Determine destination type (Workspace, Storage, or both)
             $destinationType = 'None'
             if ($workspaceId -and $storageAccountId) {
                 $destinationType = 'Workspace & Storage'
@@ -166,24 +164,18 @@ function Test-Assessment-25420 {
             }
 
             # Step 4: Evaluate if this setting meets minimum retention criteria
-            # Per spec: workspace ≥ 90 days OR storage account configured = meets minimum
             $meetsMinimum = $false
             if ($retentionDays -ge $MINIMUM_RETENTION_DAYS) {
                 $meetsMinimum = $true
             }
             elseif ($storageAccountId) {
-                # Storage account configured = meets minimum per spec
+                # Storage account configured = meets minimum per spec (manual verification required)
                 $meetsMinimum = $true
-            }
-
-            # Track storage-only settings for reporting purposes
-            if ($storageAccountId -and -not $workspaceId) {
-                $settingsWithStorageOnly += $settingName
             }
 
             $enabledCategories = @()
 
-            # Step 5: Process log categories for this setting
+            # Step 5: Process log categories for this setting and track best configuration
             foreach ($log in $logs) {
                 $categoryName = $log.category
                 $isEnabled    = $log.enabled
@@ -205,25 +197,24 @@ function Test-Assessment-25420 {
                 }
             }
 
-            # Step 6: Check if THIS setting has all 4 categories AND meets retention criteria
-            # Per spec: "If any diagnostic setting has: All four log categories enabled AND
-            # Either workspace with ≥ 90 day retention OR storage account configured → Pass"
+            # Step 6: Check if this setting has all required categories AND meets retention criteria
             $settingHasAllCategories = ($enabledCategories.Count -eq $REQUIRED_LOG_CATEGORIES.Count)
             if ($settingHasAllCategories -and $meetsMinimum) {
                 $passingSettingFound = $true
             }
 
             # Determine per-setting status
-            $settingStatus = if ($settingHasAllCategories -and $meetsMinimum) {
+            # Storage-only settings always require manual review since retention cannot be verified programmatically
+            $settingStatus = if ($storageAccountId -and -not $workspaceId) {
+                'Manual review'
+            } elseif ($settingHasAllCategories -and $meetsMinimum) {
                 'Adequate'
-            } elseif ($storageAccountId -and -not $workspaceId) {
-                'Manual Review'
             } else {
                 'Insufficient'
             }
 
             $diagResults += [PSCustomObject]@{
-                SettingName       = $settingName
+                SettingName       = $setting.name
                 WorkspaceId       = $workspaceId
                 WorkspaceName     = $workspaceName
                 StorageAccountId  = $storageAccountId
@@ -235,15 +226,14 @@ function Test-Assessment-25420 {
             }
         }
 
-        # Step 7: Check if all required categories are enabled (across all settings)
+        # Step 7: Verify all required Global Secure Access log categories are enabled (across all settings)
         $enabledCategoryCount     = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.Enabled }).Count
         $hasAllRequiredCategories = ($enabledCategoryCount -eq $REQUIRED_LOG_CATEGORIES.Count)
 
-        # Step 8: Check if any configuration meets minimum retention
+        # Step 8: Check if any configuration meets minimum retention (90 days or storage account)
         $hasAdequateRetention = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.MeetsMinimum }).Count -gt 0
 
         # Step 9: Determine overall test result
-        # Per spec: Pass if ANY single diagnostic setting has all 4 categories AND meets retention
         if ($passingSettingFound) {
 
             $passed = $true
@@ -271,7 +261,7 @@ function Test-Assessment-25420 {
 
     #region Report Generation
 
-    # Calculate summary metrics per spec
+    # Calculate summary metrics
     $settingsWithLongTermDest = ($diagResults | Where-Object { $_.WorkspaceId -or $_.StorageAccountId }).Count
     $workspaceRetentions = $diagResults | Where-Object { $_.RetentionDays } | Select-Object -ExpandProperty RetentionDays
     $avgRetention = if ($workspaceRetentions.Count -gt 0) {
@@ -280,12 +270,6 @@ function Test-Assessment-25420 {
     $minRetention = if ($workspaceRetentions.Count -gt 0) {
         ($workspaceRetentions | Measure-Object -Minimum).Minimum
     } else { $null }
-
-    # Build report in spec order:
-    # 1. Diagnostic Settings Configuration (heading)
-    # 2. Log Retention Status table
-    # 3. Destination Details table
-    # 4. Summary table
 
     $mdInfo = "`n## [Diagnostic settings configuration](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings)`n`n"
 
