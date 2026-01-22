@@ -225,7 +225,7 @@ function Test-Assessment-25535 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if ((Get-MgContext).Environment -ne 'Global') {
+    if ((Get-AzContext).Environment.name -ne 'AzureCloud') {
         Write-PSFMessage "This test is only applicable to the Global environment." -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
