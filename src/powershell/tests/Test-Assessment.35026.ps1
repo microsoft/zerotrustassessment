@@ -70,9 +70,14 @@ function Test-Assessment-35026 {
         $passed = $false
         $customStatus = 'Investigate'
     }
+    elseif ($null -eq $irmConfig.AzureRMSLicensingEnabled) {
+        # Investigate: AzureRMSLicensingEnabled property not available (incomplete configuration)
+        $passed = $false
+        $customStatus = 'Investigate'
+    }
     # Check AzureRMSLicensingEnabled first (prerequisite for encryption foundation)
     elseif ($irmConfig.AzureRMSLicensingEnabled -ne $true) {
-        # Fail: Encryption foundation is disabled
+        # Fail: Encryption foundation is explicitly disabled
         $passed = $false
     }
     elseif ($irmConfig.SimplifiedClientAccessEnabled -eq $true) {
@@ -104,7 +109,11 @@ function Test-Assessment-35026 {
     if ($irmConfig) {
         $reportTitle = 'OME SimplifiedClientAccess Status'
 
-        $protectButtonStatus = if ($irmConfig.SimplifiedClientAccessEnabled -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
+        $protectButtonStatus = if (($irmConfig.SimplifiedClientAccessEnabled -eq $true) -and ($irmConfig.AzureRMSLicensingEnabled -eq $true)) {
+            '✅ Enabled'
+        } else {
+            '❌ Disabled'
+        }
 
         $formatTemplate = @'
 
