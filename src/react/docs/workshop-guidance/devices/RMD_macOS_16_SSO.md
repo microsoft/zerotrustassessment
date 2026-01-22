@@ -8,6 +8,7 @@
 ## Video Walkthrough
 https://www.youtube.com/watch?v=blJ9O5jT0UM
 <iframe width="560" height="315" src="https://www.youtube.com/watch?v=blJ9O5jT0UM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Introduction
 
 Single Sign-On (SSO) enables macOS users to authenticate once and gain seamless access to corporate apps and services without repeated credential prompts. In Intune-managed macOS environments, Microsoft supports multiple SSO mechanisms, including the **Enterprise SSO plug-in**, **Platform SSO**, and **Kerberos SSO**. These technologies reduce friction, improve security, and support Zero Trust by enforcing strong, identity-based access controls.
