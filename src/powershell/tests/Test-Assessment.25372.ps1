@@ -96,7 +96,7 @@ function Test-Assessment-25372 {
         $customStatus = 'Investigate'
         $deploymentPercentage = 'N/A'
         $gap = 'N/A'
-        $testResultMarkdown = "⚠️ No Intune-managed devices or Global Secure Access devices were detected. This test cannot be evaluated without enrolled devices. This may indicate the organization does not use Intune for device management, insufficient API permissions, or the tenant has no enrolled devices.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ No Intune-managed devices or Global Secure Access-connected devices were detected during the evaluation period. This may indicate that the organization is using a different device management solution and/or an alternative SASE or network security platform, or that these services are not currently in scope for this environment. As a result, deployment coverage for the Global Secure Access client cannot be evaluated.`n`n%TestResult%"
     }
     # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
