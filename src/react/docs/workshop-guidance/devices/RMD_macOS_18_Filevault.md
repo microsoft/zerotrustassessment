@@ -7,7 +7,7 @@
 ---
 ## Video Walkthrough
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/oQeHMweSWms?si=HMwssCmWSeWYX9iR" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/0lZg1NjJin8?si=V1KSRyemTh9cggXb" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Introduction
 
