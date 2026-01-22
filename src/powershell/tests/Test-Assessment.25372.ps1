@@ -128,20 +128,30 @@ function Test-Assessment-25372 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = ''
+    $reportTitle = 'Deployment Summary'
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/AdminDashboard.ReactView'
+    $deploymentPercentageDisplay = if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }
+    $evaluationPeriod = "$($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))"
 
-    # Summary section with portal link in header
-    $mdInfo += "`n## [Deployment Summary](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/AdminDashboard.ReactView)`n`n"
+    $formatTemplate = @'
 
-    $mdInfo += "| Metric | Value |`n"
-    $mdInfo += "| :----- | ----: |`n"
-    $mdInfo += "| Total GSA devices | $totalGsaDevices |`n"
-    $mdInfo += "| Active devices | $activeGsaDevices |`n"
-    $mdInfo += "| Inactive devices | $inactiveGsaDevices |`n"
-    $mdInfo += "| Total managed device count | $totalManagedDevices |`n"
-    $mdInfo += "| Deployment percentage | $(if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }) |`n"
-    $mdInfo += "| Gap | $gap |`n"
-    $mdInfo += "| Evaluation period | $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd')) |`n"
+## [{0}]({1})
+
+| Metric | Value |
+| :----- | ----: |
+{2}
+
+'@
+
+    $tableRows = "| Total GSA devices | $totalGsaDevices |`n"
+    $tableRows += "| Active devices | $activeGsaDevices |`n"
+    $tableRows += "| Inactive devices | $inactiveGsaDevices |`n"
+    $tableRows += "| Total managed device count | $totalManagedDevices |`n"
+    $tableRows += "| Deployment percentage | $deploymentPercentageDisplay |`n"
+    $tableRows += "| Gap | $gap |`n"
+    $tableRows += "| Evaluation period | $evaluationPeriod |`n"
+
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
