@@ -1,6 +1,6 @@
 # macOS Local Account Management
 
-**Last Updated:** May 2025  
+**Last Updated:** Jan 2026  
 **Implementation Effort:** Medium – Admins must configure and assign enrollment profiles and optionally customize account settings during Automated Device Enrollment (ADE).  
 **User Impact:** Low – Local accounts are created automatically during setup; users don’t need to take action or make decisions.
 
