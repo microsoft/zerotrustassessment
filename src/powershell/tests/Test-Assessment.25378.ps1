@@ -75,7 +75,6 @@ function Test-Assessment-25378 {
     $passed = $false
     $investigateFlag = $false
 
-
     if ($null -eq $crossTenantAccessPolicy) {
         $testResultMarkdown = "❌ Unable to retrieve cross-tenant access policy configuration.`n`n%TestResult%"
     }
