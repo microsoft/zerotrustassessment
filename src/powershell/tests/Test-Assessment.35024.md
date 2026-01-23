@@ -8,8 +8,8 @@ To enable Azure RMS:
 2. Enable the service: `Set-IRMConfiguration -AzureRMSLicensingEnabled $true`
 3. Verify activation: `Get-IRMConfiguration | Select-Object -Property AzureRMSLicensingEnabled`
 
-- [Enable Azure Information Protection](https://learn.microsoft.com/en-us/purview/encryption-overview#enable-azure-rights-management)
-- [IRM Configuration](https://learn.microsoft.com/en-us/exchange/security-and-compliance/information-rights-management)
+- [Enable Azure Information Protection](https://learn.microsoft.com/en-us/purview/activate-rights-management-service)
+- [IRM Configuration](https://learn.microsoft.com/en-us/exchange/policy-and-compliance/information-rights-management)
 
 <!--- Results --->
 %TestResult%
