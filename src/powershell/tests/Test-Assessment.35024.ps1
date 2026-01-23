@@ -56,16 +56,17 @@ function Test-Assessment-35024 {
 
     if ($errorMsg) {
         $investigateFlag = $true
+        $testResultMarkdown = "⚠️ Unable to retrieve Azure RMS licensing status. Please verify connectivity and permissions.`n`n%TestResult%"
     }
     else {
         $passed = $irmConfig.AzureRMSLicensingEnabled -eq $true
-    }
 
-    if ($passed) {
-        $testResultMarkdown = "✅ Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n%TestResult%"
-    }
-    else {
-        $testResultMarkdown = "❌ Azure RMS is not enabled or is disabled for the tenant.`n`n%TestResult%"
+        if ($passed) {
+            $testResultMarkdown = "✅ Azure RMS is enabled at the tenant level, enabling all downstream encryption and rights management capabilities.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "❌ Azure RMS is not enabled or is disabled for the tenant.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
@@ -74,12 +75,10 @@ function Test-Assessment-35024 {
 
     if ($investigateFlag) {
         $azureRMSEnabledStatus = '⚠️ Unknown'
-        $mdInfo = "⚠️ Unable to determine Azure RMS status due to permissions issues or service connection failure.`n`n"
-        $mdInfo += "**Summary:**`n`n Azure RMS Service: $azureRMSEnabledStatus`n"
+        $mdInfo = "**Summary:**`n`n Azure RMS Service: $azureRMSEnabledStatus`n"
     }
     else {
         $reportTitle = 'Azure RMS Status'
-        $portalLink = 'https://purview.microsoft.com/settings/encryption'
         $whenCreatedDate = if ($null -eq $irmConfig.WhenCreatedUTC) { 'N/A' } else { $irmConfig.WhenCreatedUTC }
 
         if ($passed) {
@@ -91,15 +90,15 @@ function Test-Assessment-35024 {
 
         $formatTemplate = @'
 
-### [{0}]({1})
+### {0}
 
 | Setting | Value |
 | :------ | :---- |
-{2}
+{1}
 
 **Summary:**
 
- Azure RMS Service: {3}
+ Azure RMS Service: {2}
 
 '@
 
@@ -109,7 +108,7 @@ function Test-Assessment-35024 {
         $tableRows += "| ExternalLicensingEnabled | $($irmConfig.ExternalLicensingEnabled) |`n"
         $tableRows += "| Configuration Created | $whenCreatedDate |`n"
 
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows, $azureRMSEnabledStatus
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows, $azureRMSEnabledStatus
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo

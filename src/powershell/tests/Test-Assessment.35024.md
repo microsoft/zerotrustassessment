@@ -4,13 +4,6 @@ Azure Rights Management Service (Azure RMS) is the foundational encryption and a
 
 To enable Azure RMS:
 
-1. Sign in as a Global Administrator or Compliance Administrator to the [Microsoft Purview portal](https://purview.microsoft.com)
-2. Navigate to Settings > Encryption > Azure Information Protection
-3. If Azure RMS is shown as disabled, select the option to activate or enable the service
-4. Confirm the action to enable Azure RMS for the tenant
-5. Wait 15 minutes for the activation to propagate across the tenant
-
-Alternatively, enable via PowerShell:
 1. Connect to Exchange Online: `Connect-ExchangeOnline`
 2. Enable the service: `Set-IRMConfiguration -AzureRMSLicensingEnabled $true`
 3. Verify activation: `Get-IRMConfiguration | Select-Object -Property AzureRMSLicensingEnabled`
