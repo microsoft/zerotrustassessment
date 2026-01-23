@@ -46,8 +46,11 @@ function Test-Assessment-25378 {
     $isServiceDefault = $false
     $usersAndGroupsAccessType = 'N/A'
     $usersAndGroupsTargets = @('N/A')
+    $usersAndGroupsTargetTypes = @('N/A')
     $applicationsAccessType = 'N/A'
     $applicationsTargets = @('N/A')
+    $applicationsTargetTypes = @('N/A')
+
 
     if ($null -ne $crossTenantAccessPolicy) {
         $isServiceDefault = $crossTenantAccessPolicy.isServiceDefault
@@ -58,6 +61,7 @@ function Test-Assessment-25378 {
                 $usersAndGroupsAccessType = $b2bOutbound.usersAndGroups.accessType
                 if ($b2bOutbound.usersAndGroups.targets -and $b2bOutbound.usersAndGroups.targets.Count -gt 0) {
                     $usersAndGroupsTargets = @($b2bOutbound.usersAndGroups.targets.target)
+                    $usersAndGroupsTargetTypes = @($b2bOutbound.usersAndGroups.targets.targetType)
                 }
             }
 
@@ -65,6 +69,7 @@ function Test-Assessment-25378 {
                 $applicationsAccessType = $b2bOutbound.applications.accessType
                 if ($b2bOutbound.applications.targets -and $b2bOutbound.applications.targets.Count -gt 0) {
                     $applicationsTargets = @($b2bOutbound.applications.targets.target)
+                    $applicationsTargetTypes = @($b2bOutbound.applications.targets.targetType)
                 }
             }
         }
@@ -82,13 +87,17 @@ function Test-Assessment-25378 {
         # Define evaluation conditions
         $fullAllowCondition = $usersAndGroupsAccessType -eq 'allowed' -and
                               $usersAndGroupsTargets -contains 'AllUsers' -and
+                              $usersAndGroupsTargetTypes -contains 'user' -and
                               $applicationsAccessType -eq 'allowed' -and
-                              $applicationsTargets -contains 'AllApplications'
+                              $applicationsTargets -contains 'AllApplications' -and
+                              $applicationsTargetTypes -contains 'application'
 
         $fullBlockCondition = $usersAndGroupsAccessType -eq 'blocked' -and
                               $usersAndGroupsTargets -contains 'AllUsers' -and
+                              $usersAndGroupsTargetTypes -contains 'user' -and
                               $applicationsAccessType -eq 'blocked' -and
-                              $applicationsTargets -contains 'AllApplications'
+                              $applicationsTargets -contains 'AllApplications' -and
+                              $applicationsTargetTypes -contains 'application'
 
         # Evaluate and set test result
         if ($isServiceDefault -or $fullAllowCondition) {
@@ -117,9 +126,9 @@ function Test-Assessment-25378 {
         $isServiceDefaultStr = if ($null -eq $isServiceDefault) { 'N/A' } elseif ($isServiceDefault) { 'true' } else { 'false' }
         $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
         $usersAccessStatus = if ($usersAndGroupsAccessType -eq 'blocked') { '✅' } else { '❌' }
-        $usersTargetStatus = if ($usersAndGroupsTargets -contains 'AllUsers') { '✅' } else { '❌' }
+        $usersTargetStatus = if ($usersAndGroupsTargets -contains 'AllUsers' -and $usersAndGroupsTargetTypes -contains 'user') { '✅' } else { '❌' }
         $appsAccessStatus = if ($applicationsAccessType -eq 'blocked') { '✅' } else { '❌' }
-        $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications') { '✅' } else { '❌' }
+        $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications' -and $applicationsTargetTypes -contains 'application') { '✅' } else { '❌' }
 
         $displayUserTarget = if ($null -ne $usersAndGroupsTargets -and $usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
         $displayAppTarget = if ($null -ne $applicationsTargets -and $applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
