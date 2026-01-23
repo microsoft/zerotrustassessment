@@ -14,17 +14,25 @@ function Test-Assessment-25533 {
     [CmdletBinding()]
     param()
 
+    # -------------------------------
+    # State variables
+    # -------------------------------
+    $passed  = $null     # $true = pass, $false = fail
+    $testResultMarkdown = ''
+    $subscriptions = @()
+    $publicIpFindings = @()
+
     #region Data Collection
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    Write-PSFMessage 'Start Test-Assessment-25533' -Tag Test -Level VeryVerbose
     $activity = 'Checking DDoS Protection is enabled for all Public IP Addresses in VNETs'
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
-    # --- Azure connection & ARM endpoint ---
+    # ---- Azure connection ----
     try {
         $context = Get-AzContext -ErrorAction Stop
 
-        if ($context.Environment.Name -ne 'AzureCloud') {
-            throw "Unsupported Azure environment: $($context.Environment.Name)"
+        if (-not $context.Environment -or $context.Environment.Name -ne 'AzureCloud') {
+            throw 'Unsupported Azure environment'
         }
 
         $resourceManagementUrl = $context.Environment.ResourceManagerUrl.TrimEnd('/')
@@ -34,112 +42,109 @@ function Test-Assessment-25533 {
         return
     }
 
-    # --- Get subscriptions ---
+    # ---- Get subscriptions ----
     Write-ZtProgress -Activity $activity -Status 'Getting Azure subscriptions'
-    $subscriptions = @()
-
     try {
-        $subscriptionsUri = "$resourceManagementUrl/subscriptions?api-version=2022-12-01"
-        $subscriptionsResponse = Invoke-AzRestMethod -Method GET -Uri $subscriptionsUri -ErrorAction Stop
-
-        if ($subscriptionsResponse.StatusCode -ne 200) {
-            throw "Failed to retrieve subscriptions. StatusCode=$($subscriptionsResponse.StatusCode)"
-        }
-
-        $subscriptions = ($subscriptionsResponse.Content | ConvertFrom-Json).value
+        $uri = "$resourceManagementUrl/subscriptions?api-version=2022-12-01"
+        $response = Invoke-AzRestMethod -Method GET -Uri $uri -ErrorAction Stop
+        $subscriptions = @((($response.Content | ConvertFrom-Json).value))
     }
     catch {
-        Write-PSFMessage $_ -Level Error
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
+        $passed = $false
+        $testResultMarkdown = "Failed to retrieve Azure subscriptions: $($_.Exception.Message)"
     }
 
-    if (-not $subscriptions -or $subscriptions.Count -eq 0) {
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
+    # ❌ Rule: no subscriptions → FAIL
+    if ($passed -ne $false -and $subscriptions.Count -eq 0) {
+        $passed = $false
+        $testResultMarkdown = 'No Azure subscriptions were returned. The assessment cannot be evaluated.'
     }
 
-    # --- Collect Public IPs ---
-    $publicIpFindings = @()
+    # ---- Collect Public IPs ----
+    if ($passed -ne $false) {
+        foreach ($sub in $subscriptions) {
+            Write-ZtProgress -Activity $activity -Status "Processing subscription: $($sub.displayName)"
 
-    foreach ($sub in $subscriptions) {
-        Write-ZtProgress -Activity $activity -Status "Processing subscription: $($sub.displayName)"
-
-        $publicIpsUri = "$resourceManagementUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/publicIPAddresses?api-version=2025-03-01"
-
-        try {
-            $publicIpsResponse = Invoke-AzRestMethod -Method GET -Uri $publicIpsUri -ErrorAction Stop
-
-            if ($publicIpsResponse.StatusCode -lt 200 -or $publicIpsResponse.StatusCode -ge 300) {
-                Write-PSFMessage "Failed to list Public IPs in $($sub.displayName)" -Level Warning
+            try {
+                $publicIpsUri = "$resourceManagementUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/publicIPAddresses?api-version=2025-03-01"
+                $publicIpsResponse = Invoke-AzRestMethod -Method GET -Uri $publicIpsUri -ErrorAction Stop
+            }
+            catch {
+                Write-PSFMessage "Error calling Public IP API for $($sub.displayName): $($_.Exception.Message)" -Level Warning
                 continue
             }
 
-            $publicIps = ($publicIpsResponse.Content | ConvertFrom-Json).value
-        }
-        catch {
-            Write-PSFMessage $_ -Level Warning
-            continue
-        }
+            $body = $publicIpsResponse.Content | ConvertFrom-Json
+            $publicIps = $body.value
 
-        foreach ($pip in $publicIps) {
-            $protectionMode = if (
-                $pip.properties.ddosSettings -and
-                $pip.properties.ddosSettings.protectionMode
-            ) {
-                $pip.properties.ddosSettings.protectionMode
-            }
-            else {
-                'Disabled'
+            # Skip subscription if no Public IPs or no permission
+            if (-not $publicIps) {
+                continue
             }
 
-            $publicIpFindings += [PSCustomObject]@{
-                PublicIpName     = $pip.name
-                PublicIpId       = $pip.id
-                Location         = $pip.location
-                ProtectionMode   = $protectionMode
-                IsCompliant      = $protectionMode -in @('VirtualNetworkInherited', 'Enabled')
-                SubscriptionId   = $sub.subscriptionId
-                SubscriptionName = $sub.displayName
+            foreach ($pip in $publicIps) {
+                $mode = if (
+                    $pip.properties.ddosSettings -and
+                    $pip.properties.ddosSettings.protectionMode
+                ) {
+                    $pip.properties.ddosSettings.protectionMode
+                }
+                else {
+                    'Disabled'
+                }
+
+                $publicIpFindings += [PSCustomObject]@{
+                    PublicIpName     = $pip.name
+                    PublicIpId       = $pip.id
+                    ProtectionMode   = $mode
+                    IsCompliant      = $mode -in @('VirtualNetworkInherited', 'Enabled')
+                    SubscriptionName = $sub.displayName
+                }
             }
         }
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    if ($publicIpFindings.Count -eq 0) {
-        Add-ZtTestResultDetail -TestId 25533 -Status $false -Result 'No Public IP addresses found.'
-        return
-    }
+    if ($passed -ne $false) {
 
-    $nonCompliant = $publicIpFindings | Where-Object { -not $_.IsCompliant }
-    $passed = ($nonCompliant.Count -eq 0)
+        # ✅ Subscriptions exist but NO Public IPs anywhere
+        # → NO OUTPUT (silent exit)
+        if ($publicIpFindings.Count -eq 0) {
+            return
+        }
 
-    if ($passed) {
-        $testResultMarkdown = "DDoS Protection is enabled for all Public IP addresses.`n`n%TestResult%"
-    }
-    else {
-        $testResultMarkdown = "DDoS Protection is not enabled for one or more Public IP addresses.`n`n%TestResult%"
+        $nonCompliant = $publicIpFindings | Where-Object { -not $_.IsCompliant }
+
+        if ($nonCompliant.Count -eq 0) {
+            $passed = $true
+            $testResultMarkdown = "DDoS Protection is enabled for all Public IP addresses.`n`n%TestResult%"
+        }
+        else {
+            $passed = $false
+            $testResultMarkdown = "DDoS Protection is not enabled for one or more Public IP addresses.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo  = "## Public IP Address DDoS Protection Details`n`n"
-    $mdInfo += "| | Public IP address name and id | DdosSettingsProtectionMode value |`n"
+    $mdInfo = "## Public IP Address DDoS Protection Details`n`n"
+    $mdInfo += "| | Public IP name | Protection Mode |`n"
     $mdInfo += "| :--- | :--- | :--- |`n"
 
     foreach ($item in $publicIpFindings | Sort-Object IsCompliant, PublicIpName) {
-        $icon     = if ($item.IsCompliant) { '✅' } else { '❌' }
-        $pipLink  = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
-        $safeName = Get-SafeMarkdown -Text $item.PublicIpName
+        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
+        $link = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
 
-        $mdInfo += "| $icon | [$safeName]($pipLink) | ``$($item.ProtectionMode)`` |`n"
+        $mdInfo += "| $icon | [$($item.PublicIpName)]($link) | $($item.ProtectionMode) |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
-    # --- Final result (splatted) ---
+    # -------------------------------
+    # Final result emission (ONCE)
+    # -------------------------------
     $params = @{
         TestId = 25533
         Status = $passed
