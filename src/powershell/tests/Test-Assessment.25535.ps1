@@ -55,12 +55,14 @@ function Test-Assessment-25535 {
                     }
                 }
             }
-            catch { <# Skip firewalls we can't read #> }
+            catch { # Firewall exists but details could not be read (RBAC or transient issue).
+                # Skipping is intentional to avoid failing the whole test.
+            }}
         }
         return $firewalls
     }
 
-    function Get-WorkloadNicOperation {
+     function Get-WorkloadNicOperation {
         param(
             [object]$Subscription,
             [string]$SubscriptionId
@@ -70,8 +72,25 @@ function Test-Assessment-25535 {
         $nicListUri = "/subscriptions/$SubscriptionId/providers/Microsoft.Network/networkInterfaces?api-version=2025-03-01"
 
         try {
+            # Azure REST list APIs are paginated.
+            # Handling nextLink is required to avoid missing NICs in large subscriptions.
+            $nics = @()
             $nicResp = Invoke-AzRestMethod -Path $nicListUri -Method GET
-            $nics = ($nicResp.Content | ConvertFrom-Json).value
+            $nicPage = $nicResp.Content | ConvertFrom-Json
+
+            if ($nicPage.value) {
+                $nics += $nicPage.value
+            }
+
+            $nextLink = $nicPage.nextLink
+            while ($nextLink) {
+                $nicResp = Invoke-AzRestMethod -Uri $nextLink -Method GET
+                $nicPage = $nicResp.Content | ConvertFrom-Json
+                if ($nicPage.value) {
+                    $nics += $nicPage.value
+                }
+                $nextLink = $nicPage.nextLink
+            }
         }
         catch {
             Write-PSFMessage "Unable to list network interfaces in subscription $($Subscription.Name)." -Tag Test -Level Warning
@@ -82,15 +101,25 @@ function Test-Assessment-25535 {
             foreach ($ipconfig in $nic.properties.ipConfigurations) {
                 $subnetId = $ipconfig.properties.subnet?.id
                 if (-not $subnetId) { continue }
-                if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') { continue }
+
+                if ($subnetId -match 'AzureFirewallSubnet|GatewaySubnet|AzureBastionSubnet') {
+                    continue
+                }
 
                 $rg = ($nic.id -split '/')[4]
                 $ertUri = "/subscriptions/$SubscriptionId/resourceGroups/$rg/providers/Microsoft.Network/networkInterfaces/$($nic.name)/effectiveRouteTable?api-version=2025-03-01"
 
                 try {
                     $ertStart = Invoke-AzRestMethod -Path $ertUri -Method POST
-                    $retryAfter = if ($ertStart.Headers.'Retry-After') { [int]$ertStart.Headers.'Retry-After'[0] } else { 5 }
+                    $retryAfter = if ($ertStart.Headers.'Retry-After') {
+                        [int]$ertStart.Headers.'Retry-After'[0]
+                    } else {
+                        5
+                    }
 
+                    # effectiveRouteTable is a documented async ARM operation.
+                    # It returns 202 with a Location header.
+                    # No defensive null-check is added so unexpected API behavior is visible.
                     $asyncOperations += @{
                         OperationUri     = $ertStart.Headers.Location[0]
                         Nic              = $nic
@@ -121,6 +150,9 @@ function Test-Assessment-25535 {
             foreach ($op in $pendingOperations) {
                 try {
                     $ertPoll = Invoke-AzRestMethod -Uri $op.OperationUri -Method GET
+                    # The effectiveRouteTable async API returns 202 while in progress.
+                    # Any non-202 response indicates the operation has completed.
+                    # This logic is intentionally kept simple and unchanged.
                     if ($ertPoll.StatusCode -ne 202) {
                         $op.Routes = ($ertPoll.Content | ConvertFrom-Json).value
                         $op.Completed = $true
@@ -173,7 +205,8 @@ function Test-Assessment-25535 {
                 FirewallPrivateIp = 'N/A'
             }
         }
-
+        # addressPrefix can be returned as string or array.
+        # Both checks are kept intentionally to support both shapes.
         # Find user-defined default route
         $defaultRoute = $Operation.Routes | Where-Object {
             $_.state -eq 'Active' -and
@@ -198,6 +231,10 @@ function Test-Assessment-25535 {
 
         # Match next hop to firewall private IP
         $nextHop = $defaultRoute.nextHopIpAddress
+        # This logic is intentionally NOT changed.
+        # nextHopIpAddress may be string or array.
+        # Using both -eq and -contains keeps backward compatibility
+        # and avoids forcing assumptions about the API response type.
         $fwMatch = $Firewalls | Where-Object {
             ($nextHop -eq $_.PrivateIP) -or ($nextHop -contains $_.PrivateIP)
         } | Select-Object -First 1
@@ -309,7 +346,7 @@ function Test-Assessment-25535 {
         $nextHopType = if ($item.NextHopType) { $item.NextHopType } else { 'None' }
         $nextHopIp = if ($item.NextHopIpAddress) { $item.NextHopIpAddress } else { '' }
 
-        $mdInfo += "| $subName | $nicName | $subnetName | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
+        $mdInfo += "| [$subName]($subLink) | [$nicName]($nicLink) | [$subnetName]($subnetLink) | $fwIp | $nextHopType | $nextHopIp | $icon |`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
