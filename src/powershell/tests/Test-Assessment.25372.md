@@ -6,19 +6,19 @@ The gap between Intune-managed device counts and Global Secure Access active dev
 
 **Remediation action**
 
-Deploy the GSA client on Windows endpoints: 
+Deploy the GSA client on Windows endpoints
 - [Install the Global Secure Access client for Windows](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-windows-client)
 
-Deploy the GSA client on macOS endpoints: 
+Deploy the GSA client on macOS endpoints
 - [Install the Global Secure Access client for macOS](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-macos-client)
 
-Deploy on iOS: 
+Deploy on iOS
 - [Install the Global Secure Access client for iOS](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-ios-client)
 
-Deploy on Android: 
+Deploy on Android
 - [Install the Global Secure Access client for Android](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-android-client)
 
-Monitor client health: 
+Monitor client health
 - [Global Secure Access dashboard](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-dashboard)
 
 <!--- Results --->

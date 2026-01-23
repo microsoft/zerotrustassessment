@@ -60,14 +60,12 @@ function Test-Assessment-25372 {
     # Query Q2: Count Intune-managed devices
     $intuneDeviceCount = $null
     try {
-        # Use -DisablePaging to get raw response with @odata.count
         $intuneResponse = Invoke-ZtGraphRequest `
             -RelativeUri 'deviceManagement/managedDevices' `
             -QueryParameters @{'$top' = '1'; '$count' = 'true'} `
             -ApiVersion beta `
             -DisablePaging
         $intuneDeviceCount = $intuneResponse.'@odata.count'
-
     }
     catch {
         Write-PSFMessage "Failed to get Intune device count: $_" -Tag Test -Level Warning
@@ -91,19 +89,18 @@ function Test-Assessment-25372 {
         $gap = 'N/A'
         $testResultMarkdown = "⚠️ Global Secure Access device count exceeds the Intune-managed device count. This indicates stale GSA device records, devices removed from Intune management, or data synchronization issues between systems. Review both data sources to reconcile counts.`n`n%TestResult%"
     }
-    # Edge case: No devices at all (both = 0)
+    # Edge case: No devices at all (both = 0) - Fail per spec
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -eq 0) {
-        $customStatus = 'Investigate'
         $deploymentPercentage = 'N/A'
         $gap = 'N/A'
-        $testResultMarkdown = "⚠️ No Intune-managed devices or Global Secure Access-connected devices were detected during the evaluation period. This may indicate that the organization is using a different device management solution and/or an alternative SASE or network security platform, or that these services are not currently in scope for this environment. As a result, deployment coverage for the Global Secure Access client cannot be evaluated.`n`n%TestResult%"
+        $testResultMarkdown = "❌ Global Secure Access client deployment is insufficient or cannot be verified. Either deployment coverage is below 70%, no devices are detected, or services may not be in scope for this environment.`n`n%TestResult%"
     }
     # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
         $customStatus = 'Investigate'
         $deploymentPercentage = 'N/A'
         $gap = 'N/A'
-        $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate the organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate your organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
     }
     # Normal scenario: Calculate deployment percentage and assess
     else {
@@ -118,11 +115,11 @@ function Test-Assessment-25372 {
         # Investigate: Deployment percentage between 70% and 90%
         elseif ($deploymentPercentage -ge 70) {
             $customStatus = 'Investigate'
-            $testResultMarkdown = "⚠️ Global Secure Access client deployment coverage is between 70% and 90% of managed devices. Review device platform breakdown to identify endpoints missing the client and prioritize deployment to close the gap.`n`n%TestResult%"
+            $testResultMarkdown = "⚠️ Global Secure Access client deployment coverage is between 70% and 90% of managed devices. Review device platform breakdown for more details.`n`n%TestResult%"
         }
         # Fail: Deployment percentage < 70%
         else {
-            $testResultMarkdown = "❌ Global Secure Access client deployment is significantly below the managed device count, leaving a substantial portion of managed endpoints unprotected by Security Service Edge controls.`n`n%TestResult%"
+            $testResultMarkdown = "❌ Global Secure Access client deployment is insufficient or cannot be verified. Either deployment coverage is below 70%, no devices are detected, or services may not be in scope for this environment.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
