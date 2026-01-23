@@ -42,32 +42,34 @@ function Test-Assessment-25378 {
         Write-PSFMessage "Unable to retrieve cross-tenant access policy: $_" -Level Warning
     }
 
-    # Initialize variables and Extract data
-    $isServiceDefault = $false
-    $usersAndGroupsAccessType = 'N/A'
-    $usersAndGroupsTargets = @('N/A')
-    $usersAndGroupsTargetTypes = @('N/A')
-    $applicationsAccessType = 'N/A'
-    $applicationsTargets = @('N/A')
-    $applicationsTargetTypes = @('N/A')
+    # Initialize variables
+    $isServiceDefault = $null
+    $usersAndGroupsAccessType = $null
+    $usersAndGroupsTargets = @()
+    $usersAndGroupsTargetTypes = @()
+    $applicationsAccessType = $null
+    $applicationsTargets = @()
+    $applicationsTargetTypes = @()
 
-
+    # Extract data
     if ($null -ne $crossTenantAccessPolicy) {
         $isServiceDefault = $crossTenantAccessPolicy.isServiceDefault
         $b2bOutbound = $crossTenantAccessPolicy.b2bCollaborationOutbound
 
         if ($null -ne $b2bOutbound) {
+            # Extract users and groups settings
             if ($b2bOutbound.usersAndGroups) {
                 $usersAndGroupsAccessType = $b2bOutbound.usersAndGroups.accessType
-                if ($b2bOutbound.usersAndGroups.targets -and $b2bOutbound.usersAndGroups.targets.Count -gt 0) {
+                if ($b2bOutbound.usersAndGroups.targets.Count -gt 0) {
                     $usersAndGroupsTargets = @($b2bOutbound.usersAndGroups.targets.target)
                     $usersAndGroupsTargetTypes = @($b2bOutbound.usersAndGroups.targets.targetType)
                 }
             }
 
+            # Extract applications settings
             if ($b2bOutbound.applications) {
                 $applicationsAccessType = $b2bOutbound.applications.accessType
-                if ($b2bOutbound.applications.targets -and $b2bOutbound.applications.targets.Count -gt 0) {
+                if ($b2bOutbound.applications.targets.Count -gt 0) {
                     $applicationsTargets = @($b2bOutbound.applications.targets.target)
                     $applicationsTargetTypes = @($b2bOutbound.applications.targets.targetType)
                 }
@@ -123,15 +125,19 @@ function Test-Assessment-25378 {
         $reportTitle = 'Default Cross-Tenant Access Settings - Outbound B2B Collaboration'
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade/~/CrossTenantAccessSettings'
 
+        # Prepare display values
         $isServiceDefaultStr = if ($null -eq $isServiceDefault) { 'N/A' } elseif ($isServiceDefault) { 'true' } else { 'false' }
-        $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
-        $usersAccessStatus = if ($usersAndGroupsAccessType -eq 'blocked') { '✅' } else { '❌' }
-        $usersTargetStatus = if ($usersAndGroupsTargets -contains 'AllUsers' -and $usersAndGroupsTargetTypes -contains 'user') { '✅' } else { '❌' }
-        $appsAccessStatus = if ($applicationsAccessType -eq 'blocked') { '✅' } else { '❌' }
-        $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications' -and $applicationsTargetTypes -contains 'application') { '✅' } else { '❌' }
+        $usersAndGroupsAccessTypeDisplay = if ([string]::IsNullOrEmpty($usersAndGroupsAccessType)) { 'N/A' } else { $usersAndGroupsAccessType }
+        $applicationsAccessTypeDisplay = if ([string]::IsNullOrEmpty($applicationsAccessType)) { 'N/A' } else { $applicationsAccessType }
+        $displayUserTarget = if ($usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
+        $displayAppTarget = if ($applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
 
-        $displayUserTarget = if ($null -ne $usersAndGroupsTargets -and $usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
-        $displayAppTarget = if ($null -ne $applicationsTargets -and $applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
+        # Calculate status indicators
+        $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
+        $usersAccessStatus = if ($usersAndGroupsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
+        $usersTargetStatus = if ($usersAndGroupsTargets -contains 'AllUsers' -and $usersAndGroupsTargetTypes -contains 'user') { '✅' } else { '❌' }
+        $appsAccessStatus = if ($applicationsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
+        $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications' -and $applicationsTargetTypes -contains 'application') { '✅' } else { '❌' }
 
         $formatTemplate = @'
 
@@ -144,9 +150,9 @@ function Test-Assessment-25378 {
 '@
 
         $tableRows = "| Is Service Default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
-        $tableRows += "| Users and Groups Access Type | $usersAndGroupsAccessType | blocked | $usersAccessStatus |`n"
+        $tableRows += "| Users and Groups Access Type | $usersAndGroupsAccessTypeDisplay | blocked | $usersAccessStatus |`n"
         $tableRows += "| Users and Groups Target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
-        $tableRows += "| Applications Access Type | $applicationsAccessType | blocked | $appsAccessStatus |`n"
+        $tableRows += "| Applications Access Type | $applicationsAccessTypeDisplay | blocked | $appsAccessStatus |`n"
         $tableRows += "| Applications Target | $displayAppTarget | AllApplications | $appsTargetStatus |"
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
@@ -162,7 +168,7 @@ function Test-Assessment-25378 {
         Result = $testResultMarkdown
     }
 
-    if ($investigateFlag -eq $true) {
+    if ($investigateFlag) {
         $params.CustomStatus = 'Investigate'
     }
 
