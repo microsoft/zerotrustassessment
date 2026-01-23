@@ -19,7 +19,7 @@ function Test-Assessment-25420 {
     [ZtTest(
         Category = 'Global Secure Access',
         ImplementationCost = 'Low',
-        MinimumLicense = 'Entra_Premium_Internet_Access',
+        MinimumLicense = 'AAD_PREMIUM, Entra_Premium_Internet_Access, Entra_Premium_Private_Access',
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -36,10 +36,13 @@ function Test-Assessment-25420 {
 
     # Required Global Secure Access log categories
     $REQUIRED_LOG_CATEGORIES = @(
-        'NetworkAccessTrafficLogs',
-        'RemoteNetworkHealthLogs',
-        'NetworkAccessAlerts',
-        'NetworkAccessConnectionEvents'
+        'AuditLogs',                          # Audit logs for configuration changes to Global Secure Access
+        'NetworkAccessTrafficLogs',           # Network traffic logs
+        'EnrichedOffice365AuditLogs',         # Enriched Office 365 audit logs with network context
+        'RemoteNetworkHealthLogs',            # Remote network health logs
+        'NetworkAccessAlerts',                # Security alerts
+        'NetworkAccessConnectionEvents',     # Connection event logs
+        'NetworkAccessGenerativeAIInsights'  # AI-generated insights and security recommendations
     )
 
     #region Data Collection
@@ -117,8 +120,7 @@ function Test-Assessment-25420 {
     if ($null -eq $diagnosticSettings -or $diagnosticSettings.Count -eq 0) {
 
         $passed = $false
-        $testResultMarkdown =
-            "❌ No diagnostic settings are configured for Microsoft Entra. Global Secure Access logs are retained for only 30 days (default in-portal retention) which is insufficient for security investigations.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No diagnostic settings are configured for Microsoft Entra. Global Secure Access logs are retained for only 30 days (default in-portal retention) which is insufficient for security investigations.`n`n%TestResult%"
 
     }
     else {
@@ -242,7 +244,7 @@ function Test-Assessment-25420 {
         }
 
         # Step 7: Verify all required Global Secure Access log categories are enabled (across all settings)
-        $enabledCategoryCount     = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.Enabled }).Count
+        $enabledCategoryCount = ($logCategoryStatus.GetEnumerator() | Where-Object { $_.Value.Enabled }).Count
         $hasAllRequiredCategories = ($enabledCategoryCount -eq $REQUIRED_LOG_CATEGORIES.Count)
 
         # Step 8: Check if any category meets minimum retention (used for summary reporting)
@@ -253,22 +255,13 @@ function Test-Assessment-25420 {
         if ($passingSettingFound) {
 
             $passed = $true
-            $testResultMarkdown =
-                "✅ Global Secure Access logs are retained for at least $MINIMUM_RETENTION_DAYS days, supporting security analysis and compliance requirements`n`n%TestResult%"
-
-        }
-        elseif (-not $hasAllRequiredCategories) {
-
-            $passed = $false
-            $testResultMarkdown =
-                "❌ Not all Global Secure Access log categories are enabled. Security investigations require complete log coverage across all four categories`n`n%TestResult%"
+            $testResultMarkdown = "✅ Global Secure Access logs are retained for at least $MINIMUM_RETENTION_DAYS days, supporting security analysis and compliance requirements`n`n%TestResult%"
 
         }
         else {
 
             $passed = $false
-            $testResultMarkdown =
-                "❌ Global Secure Access logs are not retained for adequate duration to support security investigations and compliance obligations`n`n%TestResult%"
+            $testResultMarkdown = "❌ Global Secure Access logs are not retained for adequate duration to support security investigations and compliance obligations`n`n%TestResult%"
 
         }
     }
@@ -296,7 +289,7 @@ function Test-Assessment-25420 {
 ### Log retention status
 
 | Log category | Enabled | Destination type | Retention period | Meets minimum (90 days) |
-|---|---|---|---|---|
+| :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
@@ -304,8 +297,18 @@ function Test-Assessment-25420 {
             $status       = $logCategoryStatus[$category]
             $enabledText  = if ($status.Enabled) { 'Yes' } else { 'No' }
             $destType     = if ($status.Enabled) { $status.DestinationType } else { 'None' }
-            $retention    = if ($status.RetentionDays) { "$($status.RetentionDays) days" } else { 'Not configured' }
+
+            # For storage-only destinations, retention cannot be queried via API
+            $isStorageOnly = $status.DestinationType -eq 'Storage'
+            $retention = if ($status.RetentionDays) {
+                "$($status.RetentionDays) days"
+            } elseif ($isStorageOnly) {
+                'Manual verification required'
+            } else {
+                'Not configured'
+            }
             $meetsMinText = if ($status.MeetsMinimum) { 'Yes' } else { 'No' }
+
             $tableRows   += "| $category | $enabledText | $destType | $retention | $meetsMinText |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
@@ -318,7 +321,7 @@ function Test-Assessment-25420 {
 ### Destination details
 
 | Destination type | Resource name | Default retention | Status |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 {0}
 
 '@
@@ -347,7 +350,7 @@ function Test-Assessment-25420 {
 
     # Summary table (per spec format)
     $mdInfo += "### Summary`n`n"
-    $mdInfo += "| Metric | Value |`n|---|---|`n"
+    $mdInfo += "| Metric | Value |`n| :--- | :--- |`n"
     $mdInfo += "| Total diagnostic settings | $($diagnosticSettings.Count) |`n"
     $mdInfo += "| Settings with long-term destination | $settingsWithLongTermDest |`n"
     $mdInfo += "| Average retention period | $(if ($avgRetention) { "$avgRetention days" } else { 'N/A' }) |`n"
