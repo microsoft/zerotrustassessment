@@ -57,8 +57,9 @@ function Test-Assessment-25535 {
             }
             catch { # Firewall exists but details could not be read (RBAC or transient issue).
                 # Skipping is intentional to avoid failing the whole test.
-            }}
+            }
         }
+
         return $firewalls
     }
 
