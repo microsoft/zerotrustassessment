@@ -82,13 +82,18 @@ function Test-Assessment-35018 {
             }
 
             # Determine scope
-            $isGlobal =
-                ($policy.ExchangeLocation -match '^All$') -or
-                ($policy.ModernGroupLocation -match '^All$') -or
-                ($policy.SharePointLocation -match '^All$') -or
-                ($policy.OneDriveLocation -match '^All$') -or
-                ($policy.SkypeLocation -match '^All$') -or
-                ($policy.PublicFolderLocation -match '^All$')
+            # - Global if any location is set to "All"
+            # - Scoped if specific users/groups are defined
+            $allLocationNames = @(
+                    $policy.ExchangeLocation.Name
+                    $policy.ModernGroupLocation.Name
+                    $policy.SharePointLocation.Name
+                    $policy.OneDriveLocation.Name
+                    $policy.SkypeLocation.Name
+                    $policy.PublicFolderLocation.Name
+                ) | Where-Object { $_ }
+
+                $isGlobal = $allLocationNames -contains 'All'
 
             # Determine workloads
             $workloads = @()
