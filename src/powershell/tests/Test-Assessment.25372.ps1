@@ -62,10 +62,8 @@ function Test-Assessment-25372 {
     try {
         $intuneResponse = Invoke-ZtGraphRequest `
             -RelativeUri 'deviceManagement/managedDevices' `
-            -QueryParameters @{'$top' = '1'; '$count' = 'true'} `
-            -ApiVersion beta `
-            -DisablePaging
-        $intuneDeviceCount = $intuneResponse.'@odata.count'
+            -ApiVersion beta
+        $intuneDeviceCount = $intuneResponse.Count
     }
     catch {
         Write-PSFMessage "Failed to get Intune device count: $_" -Tag Test -Level Warning
