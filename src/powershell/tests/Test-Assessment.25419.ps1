@@ -61,16 +61,20 @@ function Test-Assessment-25419 {
 
     try {
         $result = Invoke-AzRestMethod -Method GET -Uri $diagnosticSettingsUri -ErrorAction Stop
-    }
-    catch {
-        if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*') {
+
+        if ($result.StatusCode -eq 403) {
             Write-PSFMessage 'The signed in user does not have access to check diagnostic settings.' -Level Verbose
             Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
             return
         }
-        else {
-            throw
+
+        if ($result.StatusCode -ge 400) {
+            throw "Diagnostic settings request failed with status code $($result.StatusCode)"
         }
+    }
+    catch {
+        # Only catches actual exceptions (network errors, etc.), not HTTP status codes
+        throw
     }
 
     $diagnosticSettings = ($result.Content | ConvertFrom-Json).value
