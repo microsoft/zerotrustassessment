@@ -121,11 +121,11 @@ function Test-Assessment-25419 {
     $mdInfo = ''
 
     if ($diagnosticSettings.Count -gt 0) {
-        $mdInfo += "`n## [Diagnostic Settings Configuration](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings)`n`n"
+        $mdInfo += "`n## [Diagnostic settings configuration](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/DiagnosticSettings)`n`n"
 
         # Build pivoted table: Log Categories as rows, Diagnostic Settings as columns
         # Header row with diagnostic setting names
-        $headerRow = '| Log Category |'
+        $headerRow = '| Log category |'
         $separatorRow = '| :--- |'
         foreach ($setting in $diagnosticSettings) {
             $headerRow += " $(Get-SafeMarkdown $setting.name) |"
@@ -166,8 +166,8 @@ function Test-Assessment-25419 {
         # Summary section
         $mdInfo += "`n**Summary:**`n`n"
 
-        $mdInfo += "- Total Diagnostic Settings: $($diagnosticSettings.Count)`n"
-        $mdInfo += "- Diagnostic Settings Passing Criteria (All Six Categories + Workspace): $($settingsWithAllCategories.Count)`n"
+        $mdInfo += "- Total diagnostic settings: $($diagnosticSettings.Count)`n"
+        $mdInfo += "- Diagnostic settings passing criteria (All six categories + workspace): $($settingsWithAllCategories.Count)`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
