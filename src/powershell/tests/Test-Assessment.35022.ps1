@@ -3,124 +3,91 @@
     On-Demand Scans Configured for Sensitive Information Discovery
 
 .DESCRIPTION
-    On-demand scans enable organizations to discover sensitive information in historical
-    SharePoint, OneDrive, and Exchange content that predates auto-labeling policies.
-    If no on-demand scans are configured, organizations lack visibility into existing
-    sensitive data and cannot establish a compliance baseline.
+    Checks if on-demand scans are configured for sensitive information discovery in SharePoint, OneDrive, and Exchange.
+    Ref: https://learn.microsoft.com/en-us/purview/on-demand-classification
 
 .NOTES
     Test ID: 35022
     Pillar: Data
     Risk Level: Medium
+    User Impact: Low
+    Implementation Cost: Medium
 #>
-
-function Test-Assessment-35022 {
-    [ZtTest(
-        Category = 'Information Protection',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Microsoft 365 E5'),
-        Pillar = 'Data',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce'),
-        TestId = 35022,
-        Title = 'On-Demand Scans Configured for Sensitive Information Discovery',
-        UserImpact = 'Low'
-    )]
+function Test-Assessment35022 {
     [CmdletBinding()]
-    param()
+    param(
+        [Parameter(Mandatory = $false)]
+        [Object]$Context
+    )
 
-    #region Data Collection
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    Write-ZtProgress -Activity 'Checking On-Demand Sensitive Information Scans'
-
-    $scans        = $null
-    $errorMsg     = $null
-    $customStatus = $null
+    $TestId = "35022"
+    $Result = "Investigate"
+    $Message = ""
+    $Details = @()
 
     try {
-        $scans = Get-SensitiveInformationScan -ErrorAction Stop
-    }
-    catch {
-        $errorMsg = $_.Exception.Message
-        Write-PSFMessage "Error retrieving on-demand scans: $errorMsg" -Level Error
-    }
-    #endregion Data Collection
+        # Check prerequisites
+        if (-not (Get-Command Get-SensitiveInformationScan -ErrorAction SilentlyContinue)) {
+            throw "Command 'Get-SensitiveInformationScan' not found. Ensure ExchangeOnlineManagement module is installed and connected."
+        }
 
-    #region Assessment Logic
-    if ($errorMsg) {
-        $passed = $false
-        $customStatus = 'Investigate'
-    }
-    elseif ($scans -and $scans.Count -gt 0) {
-        $passed = $true
-    }
-    else {
-        $passed = $false
-    }
-    #endregion Assessment Logic
+        # Query 1: Get all on-demand scans
+        $ScansList = Get-SensitiveInformationScan -ErrorAction Stop
 
-    #region Data Processing & Report Generation
-    if ($errorMsg) {
-        $testResultMarkdown  = "### Investigate`n`n"
-        $testResultMarkdown += "Unable to retrieve on-demand scan configuration due to an error:`n`n"
-        $testResultMarkdown += $errorMsg
-    }
-    elseif (-not $passed) {
-        $testResultMarkdown  = "❌ No on-demand scans are configured. Historical sensitive data cannot be discovered.`n"
-    }
-    else {
-        $testResultMarkdown  = "### On-Demand Sensitive Information Discovery Summary`n`n"
-        $testResultMarkdown += "Total Scans Configured: **$($scans.Count)**`n`n"
+        # Evaluation Logic
+        if ($null -ne $ScansList -and $ScansList.Count -ge 1) {
+            $Result = "Pass"
+            $Message = "At least one on-demand scan is configured in the organization, enabling discovery and classification of historical sensitive information."
+        }
+        else {
+            $Result = "Fail"
+            $Message = "No on-demand scans are configured in the organization; historical sensitive data cannot be discovered."
+        }
 
-        # Define Table Header
-        $testResultMarkdown += "| Scan name | Status | Workload | Last run | Sensitive info types covered |`n"
-        $testResultMarkdown += "|-----------|--------|----------|----------|------------------------------|`n"
+        # SIT GUID Mapping
+        $SitGuidMap = @{
+            "50842eb7-edc8-4019-85dd-5a5c1f2bb085" = "Credit Card Number"
+            "a44669fe-0d48-453d-a9b1-2cc83f2cba77" = "U.S. Social Security Number (SSN)"
+            "ed36cf51-9d63-40f3-a9a6-5a865c418d21" = "U.S. Bank Account Number"
+            "48ee9090-3f74-4238-89c9-6c0a93767a8f" = "SWIFT Code"
+            "50f56e32-3a6f-459f-82e9-e2b27b96b430" = "Drivers License Number (U.S.)"
+            "65ce4b3d-79b3-46c0-ba9d-8226d98130c8" = "IBAN (International Banking Account Number)"
+            "3b35900d-fd2d-446b-b3ad-b4723419e2d5" = "ABA Routing Number"
+            "f3dbc5dd-e2d4-4487-b43c-ebd87f349aa4" = "Canada Social Insurance Number"
+            "f87b75b6-570d-465d-a91a-f0d9b9e0b000" = "U.K. National Insurance Number (NINO)"
+            "b3a2fd72-cc1b-40fc-b0dc-6c5ca0e00f6f" = "International Medical Record Number (MRN)"
+        }
 
-        foreach ($scan in $scans) {
-            # 1. Retrieve the matching Rule to find SIT details
-            # We use SilentlyContinue because a broken/orphan scan might lack a rule
-            $rule = Get-SensitiveInformationScanRule -Policy $scan.Name -ErrorAction SilentlyContinue
+        # Process Details
+        foreach ($ScanSummary in $ScansList) {
+            # Query 3: Get details for specific scan to ensure we have ItemStatistics
+            $Scan = Get-SensitiveInformationScan -Identity $ScanSummary.Name -ErrorAction SilentlyContinue
+            if (-not $Scan) { $Scan = $ScanSummary }
 
-            # 2. Extract SIT Names using the discovered property path
-            $sitNamesList = @()
-            if ($rule -and $rule.ContentContainsSensitiveInformation -and $rule.ContentContainsSensitiveInformation.groups -and $rule.ContentContainsSensitiveInformation.groups.sensitivetypes) {
-                $types = $rule.ContentContainsSensitiveInformation.groups.sensitivetypes
-                foreach ($t in $types) {
-                    if ($t.Name) { $sitNamesList += $t.Name }
+            $SitDetails = @()
+
+            # ItemStatistics parsing
+            if ($Scan.ItemStatistics -and $Scan.ItemStatistics.SIT) {
+                $Sits = $Scan.ItemStatistics.SIT
+
+                # Handle if it's a PSObject (common in deserialized objects) or Dictionary
+                $SitKeys = if ($Sits -is [System.Collections.IDictionary]) { $Sits.Keys } elseif ($Sits -is [PSCustomObject]) { $Sits.PSObject.Properties.Name } else { $null }
+
+                if ($SitKeys) {
+                    foreach ($Guid in $SitKeys) {
+                        $Count = if ($Sits -is [System.Collections.IDictionary]) { $Sits[$Guid] } else { $Sits.$Guid }
+                        $FriendlyName = if ($SitGuidMap.ContainsKey($Guid)) { $SitGuidMap[$Guid] } else { "Unknown SIT - $Guid" }
+                        $SitDetails += "$FriendlyName: $Count matches"
+                    }
                 }
             }
 
-            # Fallback if list is empty but rule exists (uncommon, but handles potential unexpected structures)
-            if ($sitNamesList.Count -eq 0) {
-                if ($rule) { $sitNamesList += "All/None Specific" }
-                else       { $sitNamesList += "Rule Not Found" }
-            }
+            $SitString = if ($SitDetails.Count -gt 0) { $SitDetails -join ", " } else { "None" }
 
-            $sitString = $sitNamesList -join ", "
-
-            # 3. Format Other Columns
-            $scanName = $scan.Name
-            $status   = $scan.SensitiveInformationScanStatus
-            $workload = if ($scan.Workload) { $scan.Workload -replace ",", ", " } else { "None" }
-            $lastRun  = if ($scan.LastImpactAssessmentStartTime) { $scan.LastImpactAssessmentStartTime.ToString("yyyy-MM-dd") } else { "Never" }
-
-            # 4. Append Row to Markdown Table
-            $testResultMarkdown += "| $scanName | $status | $workload | $lastRun | $sitString |`n"
-        }
-    }
-    #endregion Data Processing & Report Generation
-
-    $testResultDetail = @{
-        TestId = '35022'
-        Title  = 'On-Demand Scans Configured for Sensitive Information Discovery'
-        Status = $passed
-        Result = $testResultMarkdown
-    }
-
-    if ($customStatus) {
-        $testResultDetail.CustomStatus = $customStatus
-    }
-
-    Add-ZtTestResultDetail @testResultDetail
-}
+            $Details += [PSCustomObject]@{
+                Name                                   = $Scan.Name
+                SensitiveInformationScanStatus         = $Scan.SensitiveInformationScanStatus
+                Workload                               = if ($Scan.Workload) { $Scan.Workload -join ", " } else { "" }
+                "Sensitive Information Types Detected" = $SitString
+                WhenCreatedUTC                         = $Scan.WhenCreatedUTC
+                LastScanStartTime                      = $Scan.LastScanSt
