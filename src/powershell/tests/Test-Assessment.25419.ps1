@@ -167,7 +167,7 @@ function Test-Assessment-25419 {
         $mdInfo += "`n**Summary:**`n`n"
 
         $mdInfo += "- Total diagnostic settings: $($diagnosticSettings.Count)`n"
-        $mdInfo += "- Diagnostic settings passing criteria (All six categories + workspace): $($settingsWithAllCategories.Count)`n"
+        $mdInfo += "- Diagnostic settings passing criteria (all six categories + workspace): $($settingsWithAllCategories.Count)`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
