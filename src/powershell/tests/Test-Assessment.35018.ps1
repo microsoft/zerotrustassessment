@@ -108,7 +108,7 @@ function Test-Assessment-35018 {
                 PolicyGuid                    = $policy.Guid
                 Enabled                       = $policy.Enabled
                 RequireDowngradeJustification = $requireDowngradeJustification
-                Scope                         = if ($isGlobal) { 'Global' } else { 'Scoped' }
+                Scope                         =  $isGlobal
                 LabelsCount                   = $policy.Labels.Count
                 Workloads                     = ($workloads -join ', ')
             }
