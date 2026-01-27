@@ -75,7 +75,7 @@ function Test-Assessment-25372 {
     $totalGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.totalDeviceCount } else { 0 }
     $activeGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.activeDeviceCount } else { 0 }
     $inactiveGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.inactiveDeviceCount } else { 0 }
-    $totalManagedDevices = if ($intuneDeviceCount) { [int]$intuneDeviceCount } else { 0 }
+    $totalManagedDevices = if ($intuneDeviceCount) { $intuneDeviceCount } else { 0 }
     #endregion Data Collection
 
     #region Assessment Logic
