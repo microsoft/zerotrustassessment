@@ -115,45 +115,53 @@ function Test-Assessment-25377 {
     # Calculate all values and status icons
     # Network Packet Tagging
     $networkPacketDisplay = if ($null -eq $networkPacketTaggingStatus) { 'Not configured' } else { $networkPacketTaggingStatus }
-    $networkPacketIcon = if ($networkPacketTaggingStatus -eq 'enabled') { '✅ Pass' } else { '❌ Fail' }
+    $networkPacketIcon = if ($networkPacketTaggingStatus -eq 'enabled') { '✅' } else { '❌' }
 
     # Users & Groups Access Type
-    $usersAccessType = if ($tenantRestrictions.usersAndGroups) { $tenantRestrictions.usersAndGroups.accessType } else { 'Not configured' }
-    $usersAccessIcon = if ($usersAccessType -eq 'blocked') { '✅ Pass' } else { '❌ Fail' }
+    $usersAccessTypeDisplay = if ($tenantRestrictions.usersAndGroups) { $tenantRestrictions.usersAndGroups.accessType } else { 'Not configured' }
+    $usersAccessIcon = if ($usersAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
 
-    # Users & Groups Target
-    $usersTargets = if ($tenantRestrictions.usersAndGroups.targets) {
-        ($tenantRestrictions.usersAndGroups.targets | ForEach-Object { $_.target }) -join ', '
-    } else {
-        'Not configured'
+    # Users & Groups Target - extract targets array properly
+    $usersTargetsArray = @()
+    if ($tenantRestrictions.usersAndGroups.targets) {
+        $usersTargetsArray = @($tenantRestrictions.usersAndGroups.targets | ForEach-Object { $_.target })
     }
-    $usersTargetIcon = if ($usersTargets -like '*AllUsers*') { '✅ Pass' } else { '❌ Fail' }
+    $usersTargetDisplay = if ($usersTargetsArray.Count -gt 0) { $usersTargetsArray[0] } else { 'Not configured' }
+    $usersTargetIcon = if ($usersTargetsArray -contains 'AllUsers') { '✅' } else { '❌' }
 
     # Applications Access Type
-    $appsAccessType = if ($tenantRestrictions.applications) { $tenantRestrictions.applications.accessType } else { 'Not configured' }
-    $appsAccessIcon = if ($appsAccessType -eq 'blocked') { '✅ Pass' } else { '❌ Fail' }
+    $appsAccessTypeDisplay = if ($tenantRestrictions.applications) { $tenantRestrictions.applications.accessType } else { 'Not configured' }
+    $appsAccessIcon = if ($appsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
 
-    # Applications Target
-    $appsTargets = if ($tenantRestrictions.applications.targets) {
-        ($tenantRestrictions.applications.targets | ForEach-Object { $_.target }) -join ', '
-    } else {
-        'Not configured'
+    # Applications Target - extract targets array properly
+    $appsTargetsArray = @()
+    if ($tenantRestrictions.applications.targets) {
+        $appsTargetsArray = @($tenantRestrictions.applications.targets | ForEach-Object { $_.target })
     }
-    $appsTargetIcon = if ($appsTargets -like '*AllApplications*') { '✅ Pass' } else { '❌ Fail' }
+    $appsTargetDisplay = if ($appsTargetsArray.Count -gt 0) { $appsTargetsArray[0] } else { 'Not configured' }
+    $appsTargetIcon = if ($appsTargetsArray -contains 'AllApplications') { '✅' } else { '❌' }
 
-    # Build clean configuration table
-    $mdInfo = @"
+    # Build configuration table using format template
+    $formatTemplate = @'
 
-#### [Universal Tenant Restrictions Configuration](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SessionManagementMenu.ReactView/menuId~/null/sectionId~/null)
+## [{0}]({1})
 
-| Setting | Current Value | Expected Value | Status |
-| :--- | :--- | :--- | :---: |
-| Network Packet Tagging Status | $networkPacketDisplay | enabled | $networkPacketIcon |
-| Users & Groups Access Type | $usersAccessType | blocked | $usersAccessIcon |
-| Users & Groups Target | $usersTargets | AllUsers | $usersTargetIcon |
-| Applications Access Type | $appsAccessType | blocked | $appsAccessIcon |
-| Applications Target | $appsTargets | AllApplications | $appsTargetIcon |
-"@
+| Setting | Configured Value | Expected Value | Status |
+| :------ | :--------------- | :------------- | :----: |
+{2}
+
+'@
+
+    $reportTitle = 'Universal Tenant Restrictions Configuration'
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SessionManagementMenu.ReactView/menuId~/null/sectionId~/null'
+
+    $tableRows = "| Network Packet Tagging Status | $networkPacketDisplay | enabled | $networkPacketIcon |`n"
+    $tableRows += "| Users & Groups Access Type | $usersAccessTypeDisplay | blocked | $usersAccessIcon |`n"
+    $tableRows += "| Users & Groups Target | $usersTargetDisplay | AllUsers | $usersTargetIcon |`n"
+    $tableRows += "| Applications Access Type | $appsAccessTypeDisplay | blocked | $appsAccessIcon |`n"
+    $tableRows += "| Applications Target | $appsTargetDisplay | AllApplications | $appsTargetIcon |"
+
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
     # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
