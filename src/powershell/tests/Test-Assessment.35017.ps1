@@ -112,6 +112,18 @@ function Test-Assessment-35017 {
 
                 $hasAnyDefault = $hasDocumentDefault -or $hasOutlookDefault -or $hasPowerBIDefault -or $hasSiteGroupDefault
 
+                # Q2: Determine policy scope (Global vs User/Group-Scoped)
+                # A policy is Global if ANY location property contains "All"
+                $allLocationNames = @(
+                    $policy.ExchangeLocation.Name
+                    $policy.ModernGroupLocation.Name
+                    $policy.SharePointLocation.Name
+                    $policy.OneDriveLocation.Name
+                    $policy.SkypeLocation.Name
+                    $policy.PublicFolderLocation.Name
+                ) | Where-Object { $_ }
+                $isGlobal = $allLocationNames -contains 'All'
+
                 $policyInfo = [PSCustomObject]@{
                     PolicyName           = $policy.Name
                     Guid                 = $policy.Guid
@@ -125,7 +137,7 @@ function Test-Assessment-35017 {
                     HasPowerBIDefault    = $hasPowerBIDefault
                     HasSiteGroupDefault  = $hasSiteGroupDefault
                     HasAnyDefault        = $hasAnyDefault
-                    Scope                = if ($policy.ExchangeLocation -match '^All$') { 'Global' } else { 'Scoped' }
+                    Scope                = if ($isGlobal) { 'Global' } else { 'User/Group-Scoped' }
                     LabelsCount          = $policy.Labels.Count
                 }
 
