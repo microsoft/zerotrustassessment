@@ -56,7 +56,6 @@
             return
         }
      $results = @()
- $resourceManagerUrl = (Get-AzContext).Environment.ResourceManagerUrl.TrimEnd('/')
      foreach ($sub in $subscriptions) {
 
          Set-AzContext -SubscriptionId $sub.subscriptionId | Out-Null
@@ -71,7 +70,7 @@
 
          }
          catch {
-             Write-PSFMessage "Unable to enumerate firewall policies in subscription $($sub.Name): $($_.Exception.Message)" -Tag Firewall -Level Warning
+             Write-PSFMessage "Unable to enumerate firewall policies in subscription $($sub.displayName): $($_.Exception.Message)" -Tag Firewall -Level Warning
              continue
          }
 
