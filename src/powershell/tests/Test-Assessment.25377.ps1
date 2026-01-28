@@ -146,14 +146,14 @@ function Test-Assessment-25377 {
 
 ## [{0}]({1})
 
-| Setting | Configured Value | Expected Value | Status |
-| :------ | :--------------- | :------------- | :----: |
+| Setting | Current Value | Expected Value | Status |
+| :------ | :------------ | :------------- | :----: |
 {2}
 
 '@
 
     $reportTitle = 'Universal Tenant Restrictions Configuration'
-    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SessionManagementMenu.ReactView/menuId~/null/sectionId~/null'
+    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/TenantRestrictions.ReactView/isDefault~/true/name//id/'
 
     $tableRows = "| Network Packet Tagging Status | $networkPacketDisplay | enabled | $networkPacketIcon |`n"
     $tableRows += "| Users & Groups Access Type | $usersAccessTypeDisplay | blocked | $usersAccessIcon |`n"
