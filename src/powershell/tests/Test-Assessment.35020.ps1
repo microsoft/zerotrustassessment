@@ -21,15 +21,15 @@ function Test-Assessment-35020 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
     $activity = 'Checking auto-labeling enforcement mode configuration'
+
+    # Q1: Get all auto-labeling policies
     Write-ZtProgress -Activity $activity -Status 'Getting auto-labeling policies'
 
     $errorMsg = $null
     $allPolicies = @()
 
     try {
-        # Q1: Get all auto-labeling policies
         $allPolicies = Get-AutoSensitivityLabelPolicy -ErrorAction Stop
     }
     catch {
@@ -46,60 +46,43 @@ function Test-Assessment-35020 {
     $customStatus = $null
 
     if ($errorMsg) {
-        $testResultMarkdown = "⚠️ Unable to determine auto-labeling enforcement mode status due to error: $errorMsg`n`n"
+        $testResultMarkdown = "⚠️ Unable to determine auto-labeling enforcement mode status due to permissions issues or query failure.`n`n"
         $customStatus = 'Investigate'
     }
     else {
         Write-PSFMessage "Found $($allPolicies.Count) auto-labeling policies" -Level Verbose
 
-        try {
-            # Categorize policies by status and mode
-            foreach ($policy in $allPolicies) {
-                $policyInfo = [PSCustomObject]@{
-                    Name = $policy.Name
-                    Enabled = $policy.Enabled
-                    Mode = $policy.Mode
-                    Workload = $policy.Workload
-                    Comment = $policy.Comment # Description field
-                    WhenCreatedUTC = $policy.WhenCreatedUTC
-                    WhenChangedUTC = $policy.WhenChangedUTC
-                }
+        # Categorize policies by status and mode
+        foreach ($policy in $allPolicies) {
+            # Categorize policies by Mode property
+            # Possible Mode values per documentation: Enable, TestWithNotifications, TestWithoutNotifications, Disable
+            # Reference: https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/set-autosensitivitylabelpolicy?view=exchange-ps#-mode
 
-                # Categorize policies by Mode property
-                # Possible Mode values per documentation: Enable, TestWithNotifications, TestWithoutNotifications, Disable
-                # Reference: https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/set-autosensitivitylabelpolicy?view=exchange-ps#-mode
-
-                if ($policy.Enabled -eq $true -and $policy.Mode -eq 'Enable') {
-                    $enforcementPolicies += $policyInfo
-                }
-                elseif ($policy.Enabled -eq $true -and ($policy.Mode -eq 'TestWithoutNotifications' -or $policy.Mode -eq 'TestWithNotifications')) {
-                    $simulationPolicies += $policyInfo
-                }
-                elseif ($policy.Enabled -eq $false) {
-                    $disabledPolicies += $policyInfo
-                }
+            if ($policy.Enabled -eq $true -and $policy.Mode -eq 'Enable') {
+                $enforcementPolicies += $policy
             }
-
-            # Determine pass/fail status
-            if ($enforcementPolicies.Count -gt 0) {
-                $passed = $true
-                $testResultMarkdown = "✅ At least one auto-labeling policy is enabled and actively labeling content in enforcement mode.`n`n%TestResult%"
+            elseif ($policy.Enabled -eq $true -and ($policy.Mode -eq 'TestWithoutNotifications' -or $policy.Mode -eq 'TestWithNotifications')) {
+                $simulationPolicies += $policy
             }
-            else {
-                $passed = $false
-
-                if ($allPolicies.Count -eq 0) {
-                    $testResultMarkdown = "❌ No auto-labeling policies were found in your tenant.`n`n%TestResult%"
-                }
-                else {
-                    $testResultMarkdown = "❌ No auto-labeling policies are in enforcement mode. All policies are either disabled or in simulation mode.`n`n%TestResult%"
-                }
+            elseif ($policy.Enabled -eq $false) {
+                $disabledPolicies += $policy
             }
         }
-        catch {
-            Write-PSFMessage "Error processing auto-labeling policies: $_" -Level Error
-            $testResultMarkdown = "⚠️ Unable to determine auto-labeling enforcement mode status due to unexpected policy structure: $_`n`n"
-            $customStatus = 'Investigate'
+
+        # Determine pass/fail status
+        if ($enforcementPolicies.Count -gt 0) {
+            $passed = $true
+            $testResultMarkdown = "✅ At least one auto-labeling policy is enabled and actively labeling content in enforcement mode.`n`n%TestResult%"
+        }
+        else {
+            $passed = $false
+
+            if ($allPolicies.Count -eq 0) {
+                $testResultMarkdown = "❌ No auto-labeling policies were found in your tenant.`n`n%TestResult%"
+            }
+            else {
+                $testResultMarkdown = "❌ No auto-labeling policies are in enforcement mode. All policies are either disabled or in simulation mode.`n`n%TestResult%"
+            }
         }
     }
 
@@ -111,7 +94,7 @@ function Test-Assessment-35020 {
     # Show enforcement policies table if any exist
     if ($enforcementPolicies.Count -gt 0) {
         $mdInfo += "`n`n### [Auto-labeling policies in enforcement mode](https://purview.microsoft.com/informationprotection/autolabeling)`n"
-        $mdInfo += "| Policy name | Enabled status | Mode | Workload(s) targeted | Description | Date activated | Last modified |`n"
+        $mdInfo += "| Policy name | Enabled status | Mode | Workload(s) targeted | Policy description | Date activated | Last modified |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         foreach ($policy in $enforcementPolicies) {
@@ -123,31 +106,28 @@ function Test-Assessment-35020 {
             $modified = if ($policy.WhenChangedUTC) { $policy.WhenChangedUTC.ToString('yyyy-MM-dd') } else { 'N/A' }
             $mdInfo += "| $policyName | $enabledStatus | $($policy.Mode) | $workload | $description | $created | $modified |`n"
         }
-
-        # Show workload coverage table for enforcement policies
-        $mdInfo += "`n`n### Workloads covered by enforcement policies`n"
-        $mdInfo += "| Policy name | Exchange/Outlook | SharePoint | OneDrive | Teams | Power BI |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
-
-        foreach ($policy in $enforcementPolicies) {
-            $policyName = Get-SafeMarkdown -Text $policy.Name
-            $exchange = if ($policy.Workload -match 'Exchange') { '✅ Yes' } else { '❌ No' }
-            $sharepoint = if ($policy.Workload -match 'SharePoint') { '✅ Yes' } else { '❌ No' }
-            $onedrive = if ($policy.Workload -match 'OneDrive') { '✅ Yes' } else { '❌ No' }
-            $teams = if ($policy.Workload -match 'Teams') { '✅ Yes' } else { '❌ No' }
-            $powerbi = if ($policy.Workload -match 'PowerBI') { '✅ Yes' } else { '❌ No' }
-            $mdInfo += "| $policyName | $exchange | $sharepoint | $onedrive | $teams | $powerbi |`n"
-        }
     }
 
     # Build summary metrics
     if ($allPolicies.Count -gt 0) {
-        $mdInfo += "`n`n### Summary`n"
-        $mdInfo += "| Metric | Value |`n"
-        $mdInfo += "| :--- | :--- |`n"
-        $mdInfo += "| Total policies in enforcement mode | $($enforcementPolicies.Count) |`n"
-        $mdInfo += "| Total policies in simulation mode | $($simulationPolicies.Count) |`n"
-        $mdInfo += "| Total policies disabled | $($disabledPolicies.Count) |`n"
+        # Calculate aggregated workload coverage across all enforcement policies
+        $allWorkloads = ($enforcementPolicies | ForEach-Object { $_.Workload }) -join ' '
+        $exchangeCovered = if ($allWorkloads -match 'Exchange') { 'Yes' } else { 'No' }
+        $sharepointCovered = if ($allWorkloads -match 'SharePoint') { 'Yes' } else { 'No' }
+        $onedriveCovered = if ($allWorkloads -match 'OneDrive') { 'Yes' } else { 'No' }
+        $teamsCovered = if ($allWorkloads -match 'Teams') { 'Yes' } else { 'No' }
+        $powerbiCovered = if ($allWorkloads -match 'PowerBI') { 'Yes' } else { 'No' }
+
+        $mdInfo += "`n`n### Summary:`n`n"
+        $mdInfo += "- **Total Policies in Enforcement Mode:** $($enforcementPolicies.Count)`n"
+        $mdInfo += "- **Total Policies in Simulation Mode:** $($simulationPolicies.Count)`n"
+        $mdInfo += "- **Total Policies Disabled:** $($disabledPolicies.Count)`n"
+        $mdInfo += "- **Workloads Covered by Enforcement Policies:**`n"
+        $mdInfo += "  - **Exchange/Outlook:** $exchangeCovered`n"
+        $mdInfo += "  - **SharePoint:** $sharepointCovered`n"
+        $mdInfo += "  - **OneDrive:** $onedriveCovered`n"
+        $mdInfo += "  - **Teams:** $teamsCovered`n"
+        $mdInfo += "  - **Power BI:** $powerbiCovered`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
