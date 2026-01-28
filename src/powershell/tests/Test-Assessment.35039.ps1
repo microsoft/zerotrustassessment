@@ -244,7 +244,6 @@ function Test-Assessment-35039 {
 
     $params = @{
         TestId = '35039'
-        Title  = 'Communication Compliance Rules Targeting Copilot Content'
         Status = $passed
         Result = $testResultMarkdown
     }
