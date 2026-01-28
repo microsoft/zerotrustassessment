@@ -42,12 +42,15 @@ function Test-Assessment-25410 {
 
     # Query Q1: List all web content filtering policies
     $filteringPolicies = $null
+    $errorMsg = $null
     try {
         $filteringPolicies = Invoke-ZtGraphRequest `
             -RelativeUri 'networkAccess/filteringPolicies?$expand=policyRules' `
-            -ApiVersion beta
+            -ApiVersion beta `
+            -ErrorAction Stop
     }
     catch {
+        $errorMsg = $_
         Write-PSFMessage "Failed to get filtering policies: $_" -Tag Test -Level Warning
     }
 
@@ -58,9 +61,13 @@ function Test-Assessment-25410 {
     try {
         $securityProfiles = Invoke-ZtGraphRequest `
             -RelativeUri 'networkAccess/filteringProfiles?$expand=policies($expand=policy),conditionalAccessPolicies' `
-            -ApiVersion beta
+            -ApiVersion beta `
+            -ErrorAction Stop
     }
     catch {
+        if (-not $errorMsg) {
+            $errorMsg = $_
+        }
         Write-PSFMessage "Failed to get security profiles: $_" -Tag Test -Level Warning
     }
 
@@ -74,10 +81,18 @@ function Test-Assessment-25410 {
 
     #region Assessment Logic
     $passed = $false
-    $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n%TestResult%"
+    $customStatus = $null
+    $testResultMarkdown = ''
 
+    # Check if API calls failed
+    if ($errorMsg) {
+        # Investigate: Cannot query API
+        $passed = $false
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to determine web content filtering status due to API connection failure or insufficient permissions.`n`n%TestResult%"
+    }
     # Check if both policies and profiles exist
-    if ($policies.Count -gt 0 -and $profiles.Count -gt 0) {
+    elseif ($policies.Count -gt 0 -and $profiles.Count -gt 0) {
         # Find Baseline Profile (priority = 65000)
         $baselineProfile = $profiles | Where-Object { $_.priority -eq $BASELINE_PROFILE_PRIORITY }
 
@@ -106,6 +121,11 @@ function Test-Assessment-25410 {
             $passed = $true
             $testResultMarkdown = "✅ Web content filtering policies are configured and enforced - either through security profiles assigned to Conditional Access policies or through the Baseline Profile which applies to all internet traffic.`n`n%TestResult%"
         }
+    }
+
+    # Default failure message (if not API error and not passed)
+    if (-not $errorMsg -and -not $passed) {
+        $testResultMarkdown = "❌ Web content filtering is not properly configured - either no policies exist, policies are not linked to security profiles, or security profiles with filtering policies are not enforced (no CA policy assignment and not using Baseline Profile).`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -244,6 +264,9 @@ function Test-Assessment-25410 {
         Title  = 'Internet traffic is protected by web content filtering policies in Global Secure Access'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
 }
