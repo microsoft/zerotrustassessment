@@ -14,18 +14,17 @@ function Test-Assessment-25533 {
     [CmdletBinding()]
     param()
 
-    # -------------------------------
-    # State variables
-    # -------------------------------
-    $passed  = $null     # $true = pass, $false = fail
+    #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    $activity = 'Checking DDoS Protection is enabled for all Public IP Addresses in VNETs'
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
+
+    # Initialize test variables
+    $passed = $null
     $testResultMarkdown = ''
     $subscriptions = @()
     $publicIpFindings = @()
-
-    #region Data Collection
-    Write-PSFMessage 'Start Test-Assessment-25533' -Tag Test -Level VeryVerbose
-    $activity = 'Checking DDoS Protection is enabled for all Public IP Addresses in VNETs'
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
     # ---- Azure connection ----
     try {
@@ -38,6 +37,7 @@ function Test-Assessment-25533 {
         $resourceManagementUrl = $context.Environment.ResourceManagerUrl.TrimEnd('/')
     }
     catch {
+        #----- Scenario : Not connected to Azure -----
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
         return
     }
@@ -50,18 +50,12 @@ function Test-Assessment-25533 {
         $subscriptions = @((($response.Content | ConvertFrom-Json).value))
     }
     catch {
-        $passed = $false
         $testResultMarkdown = "Failed to retrieve Azure subscriptions: $($_.Exception.Message)"
-    }
-
-    # ❌ Rule: no subscriptions → FAIL
-    if ($passed -ne $false -and $subscriptions.Count -eq 0) {
         $passed = $false
-        $testResultMarkdown = 'No Azure subscriptions were returned. The assessment cannot be evaluated.'
     }
 
-    # ---- Collect Public IPs ----
-    if ($passed -ne $false) {
+    # ---- Collect Public IPs from subscriptions ----
+    if ($passed -ne $false -and $subscriptions.Count -gt 0) {
         foreach ($sub in $subscriptions) {
             Write-ZtProgress -Activity $activity -Status "Processing subscription: $($sub.displayName)"
 
@@ -77,11 +71,13 @@ function Test-Assessment-25533 {
             $body = $publicIpsResponse.Content | ConvertFrom-Json
             $publicIps = $body.value
 
-            # Skip subscription if no Public IPs or no permission
+             #----- Scenario : No Public IPs found (Skip)-----
+            #
             if (-not $publicIps) {
                 continue
             }
 
+            # Collect Public IPs from this subscription
             foreach ($pip in $publicIps) {
                 $mode = if (
                     $pip.properties.ddosSettings -and
@@ -106,49 +102,57 @@ function Test-Assessment-25533 {
     #endregion Data Collection
 
     #region Assessment Logic
-    if ($passed -ne $false) {
+    if ($subscriptions.Count -eq 0) {
+         #----- Scenario : No subscriptions found - Skip
+        $testResultMarkdown = 'The Signed in user does not have any active Azure subscription to perform test.'
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure -Result $testResultMarkdown
+        return
+    }
 
-        # ✅ Subscriptions exist but NO Public IPs anywhere
-        # → NO OUTPUT (silent exit)
-        if ($publicIpFindings.Count -eq 0) {
-            return
-        }
-
+    elseif ($publicIpFindings.Count -eq 0) {
+         #----- Scenario :Subscriptions exist but no Public IPs - SKIP
+        $testResultMarkdown = 'No Public IP addresses were found in any subscriptions.'
+        Add-ZtTestResultDetail -SkippedBecause NotSupported -Result $testResultMarkdown
+        return
+    }
+    else {
+        # Public IPs found - evaluate compliance
         $nonCompliant = $publicIpFindings | Where-Object { -not $_.IsCompliant }
 
         if ($nonCompliant.Count -eq 0) {
             $passed = $true
-            $testResultMarkdown = "DDoS Protection is enabled for all Public IP addresses.`n`n%TestResult%"
+            $testResultMarkdown = "✅ DDoS Protection is enabled for all Public IP addresses.`n`n%TestResult%"
         }
         else {
             $passed = $false
-            $testResultMarkdown = "DDoS Protection is not enabled for one or more Public IP addresses.`n`n%TestResult%"
+            $testResultMarkdown = "❌ DDoS Protection is not enabled for one or more Public IP addresses.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = "## Public IP Address DDoS Protection Details`n`n"
-    $mdInfo += "| | Public IP name | Protection Mode |`n"
-    $mdInfo += "| :--- | :--- | :--- |`n"
+    $mdInfo = ''
 
-    foreach ($item in $publicIpFindings | Sort-Object IsCompliant, PublicIpName) {
-        $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
-        $link = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
+    if ($publicIpFindings.Count -gt 0) {
+        $mdInfo = "## Public IP Address DDoS Protection Details`n`n"
+        $mdInfo += "| | Public IP name | Protection Mode |`n"
+        $mdInfo += "| :--- | :--- | :--- |`n"
 
-        $mdInfo += "| $icon | [$($item.PublicIpName)]($link) | $($item.ProtectionMode) |`n"
+        foreach ($item in $publicIpFindings | Sort-Object IsCompliant, PublicIpName) {
+            $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
+            $link = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
+
+            $mdInfo += "| $icon | [$($item.PublicIpName)]($link) | $($item.ProtectionMode) |`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
-    # -------------------------------
-    # Final result emission (ONCE)
-    # -------------------------------
     $params = @{
-        TestId = 25533
-        Status = $passed
+        TestId = '25533'
         Title  = 'DDoS Protection is enabled for all Public IP Addresses in VNETs'
+        Status = $passed
         Result = $testResultMarkdown
     }
 
