@@ -47,8 +47,6 @@
                 Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
                 return
             }
-
-            throw
         }
 
         $subscriptions = ($subscriptionsResponse.Content | ConvertFrom-Json).value
@@ -58,7 +56,7 @@
             return
         }
      $results = @()
-
+ $resourceManagerUrl = (Get-AzContext).Environment.ResourceManagerUrl.TrimEnd('/')
      foreach ($sub in $subscriptions) {
 
          Set-AzContext -SubscriptionId $sub.subscriptionId | Out-Null
@@ -102,11 +100,14 @@
 
 
      $passed = ($results | Where-Object { -not $_.Passed }).Count -eq 0
+     $allAlert = ($results | Where-Object { $_.ThreatIntelMode -ne 'Alert' }).Count -eq 0
 
     $testResultMarkdown = if ($passed) {
-        "Threat intelligence mode is set to Deny for all Azure Firewall policies.`n`n%TestResult%"
+        "Threat Intel is enabled in **Alert and Deny** mode .`n`n%TestResult%"
+    } elseif ($allAlert) {
+        "Threat Intel is enabled in **Alert** mode .`n`n%TestResult%"
     } else {
-        "Threat intelligence mode is not set to Deny for all Azure Firewall policies.`n`n%TestResult%"
+        "Threat Intel is not enabled in **Alert and Deny** mode for all Firewall policies.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
