@@ -30,33 +30,6 @@ function Test-Assessment-35017 {
     [CmdletBinding()]
     param()
 
-    #region Helper Functions
-    function Test-ValidLabelId {
-        <#
-        .SYNOPSIS
-            Checks if a label ID is a valid GUID and not empty.
-        .PARAMETER LabelId
-            The label ID to validate.
-        .OUTPUTS
-            Boolean indicating if the label ID is valid.
-        #>
-        param(
-            [Parameter(Mandatory = $false)]
-            [AllowNull()]
-            [AllowEmptyString()]
-            $LabelId
-        )
-
-        if ([string]::IsNullOrWhiteSpace($LabelId)) {
-            return $false
-        }
-
-        # Check if it's a valid GUID format
-        $guid = [System.Guid]::Empty
-        return [System.Guid]::TryParse($LabelId, [ref]$guid)
-    }
-    #endregion Helper Functions
-
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -104,11 +77,12 @@ function Test-Assessment-35017 {
                     }
                 }
 
-                # Validate label IDs
-                $hasDocumentDefault = Test-ValidLabelId -LabelId $parsedSettings.DefaultLabelId
-                $hasOutlookDefault = Test-ValidLabelId -LabelId $parsedSettings.OutlookDefaultLabel
-                $hasPowerBIDefault = Test-ValidLabelId -LabelId $parsedSettings.PowerBIDefaultLabelId
-                $hasSiteGroupDefault = Test-ValidLabelId -LabelId $parsedSettings.SiteAndGroupDefaultLabelId
+                # Validate label IDs (TryParse handles $null and empty strings)
+                $guid = [System.Guid]::Empty
+                $hasDocumentDefault = [System.Guid]::TryParse($parsedSettings.DefaultLabelId, [ref]$guid)
+                $hasOutlookDefault = [System.Guid]::TryParse($parsedSettings.OutlookDefaultLabel, [ref]$guid)
+                $hasPowerBIDefault = [System.Guid]::TryParse($parsedSettings.PowerBIDefaultLabelId, [ref]$guid)
+                $hasSiteGroupDefault = [System.Guid]::TryParse($parsedSettings.SiteAndGroupDefaultLabelId, [ref]$guid)
 
                 $hasAnyDefault = $hasDocumentDefault -or $hasOutlookDefault -or $hasPowerBIDefault -or $hasSiteGroupDefault
 
