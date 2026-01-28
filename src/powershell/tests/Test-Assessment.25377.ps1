@@ -73,40 +73,45 @@ function Test-Assessment-25377 {
         $passed = $false
     }
     else {
-        # Validate usersAndGroups configuration
-        $usersAndGroupsValid = $false
-        if ($tenantRestrictions.usersAndGroups) {
-            $usersAccessType = $tenantRestrictions.usersAndGroups.accessType
-            $usersTargets = $tenantRestrictions.usersAndGroups.targets
-
-            # Check if accessType is blocked and targets contain AllUsers
-            if ($usersAccessType -eq 'blocked' -and $usersTargets) {
-                $hasAllUsers = $usersTargets | Where-Object { $_.target -eq 'AllUsers' }
-                $usersAndGroupsValid = $null -ne $hasAllUsers
-            }
-        }
-
-        # Validate applications configuration
-        $applicationsValid = $false
-        if ($tenantRestrictions.applications) {
-            $appsAccessType = $tenantRestrictions.applications.accessType
-            $appsTargets = $tenantRestrictions.applications.targets
-
-            # Check if accessType is blocked and targets contain AllApplications
-            if ($appsAccessType -eq 'blocked' -and $appsTargets) {
-                $hasAllApplications = $appsTargets | Where-Object { $_.target -eq 'AllApplications' }
-                $applicationsValid = $null -ne $hasAllApplications
-            }
-        }
-
-        # Both must be valid for test to pass
-        if ($usersAndGroupsValid -and $applicationsValid) {
-            $testResultMarkdown = "✅ Universal Tenant Restrictions are configured. Network packet tagging is enabled and the default tenant restrictions v2 policy blocks all users from accessing all applications in unauthorized external tenants. `n`n%TestResult%"
-            $passed = $true
+        # Check if tenant restrictions policy was retrieved successfully
+        if ($null -eq $tenantRestrictions) {
+            $testResultMarkdown = "❌ Unable to retrieve tenant restrictions v2 default policy. Network packet tagging is enabled, but policy configuration could not be evaluated.`n`n%TestResult%"
+            $passed = $false
         }
         else {
-            $testResultMarkdown = "❌ Universal Tenant Restrictions are not fully configured. Tenant restrictions v2 policy does not block all users and all applications by default. `n`n%TestResult%"
-            $passed = $false
+            # Validate usersAndGroups configuration
+            $usersAndGroupsValid = $false
+            if ($tenantRestrictions.usersAndGroups) {
+                $usersAccessType = $tenantRestrictions.usersAndGroups.accessType
+                $usersTargets = $tenantRestrictions.usersAndGroups.targets
+
+                # Check if accessType is blocked and targets contain AllUsers
+                if ($usersAccessType -eq 'blocked' -and $usersTargets) {
+                    $usersAndGroupsValid = @($usersTargets.target) -contains 'AllUsers'
+                }
+            }
+
+            # Validate applications configuration
+            $applicationsValid = $false
+            if ($tenantRestrictions.applications) {
+                $appsAccessType = $tenantRestrictions.applications.accessType
+                $appsTargets = $tenantRestrictions.applications.targets
+
+                # Check if accessType is blocked and targets contain AllApplications
+                if ($appsAccessType -eq 'blocked' -and $appsTargets) {
+                    $applicationsValid = @($appsTargets.target) -contains 'AllApplications'
+                }
+            }
+
+            # Both must be valid for test to pass
+            if ($usersAndGroupsValid -and $applicationsValid) {
+                $testResultMarkdown = "✅ Universal Tenant Restrictions are configured. Network packet tagging is enabled and the default tenant restrictions v2 policy blocks all users from accessing all applications in unauthorized external tenants. `n`n%TestResult%"
+                $passed = $true
+            }
+            else {
+                $testResultMarkdown = "❌ Universal Tenant Restrictions are not fully configured. Tenant restrictions v2 policy does not block all users and all applications by default. `n`n%TestResult%"
+                $passed = $false
+            }
         }
     }
     #endregion Assessment Logic
