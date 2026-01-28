@@ -6,31 +6,34 @@ Copilot interaction capture through Communication Compliance enables organizatio
 
 To create and enable Communication Compliance policies for Copilot interaction capture:
 
-Sign in as a Global Administrator or Compliance Administrator to the Microsoft Purview portal
-Navigate to Communication Compliance > Policies
-Select "+ Create policy" to start the policy creation workflow
-Choose the "Monitor for sensitive content" template or create a custom policy
-Name the policy (e.g., "Copilot Data Protection")
-Configure the scope (all users or specific groups)
-On the Conditions page, add conditions to detect:
-Sensitive information types (credit cards, SSN, financial data)
-Keywords related to confidential data
-Custom patterns for your organization's sensitive data
-On the Review settings page, configure:
-Reviewers (compliance team members)
-Alert volume preference
-Review mailbox for alerts
-Enable the policy
-Verify rule creation via PowerShell using Query 1 and 2
+1. Sign in as a Global Administrator or Compliance Administrator to the [Microsoft Purview portal](https://purview.microsoft.com)
+2. Navigate to Communication Compliance > Policies
+3. Select "+ Create policy" to start the policy creation workflow
+4. Choose the "Monitor for sensitive content" template or create a custom policy
+5. Name the policy (e.g., "Copilot Data Protection")
+6. Configure the scope (all users or specific groups)
+7. On the Conditions page, add conditions to detect:
+   - Sensitive information types (credit cards, SSN, financial data)
+   - Keywords related to confidential data
+   - Custom patterns for your organization's sensitive data
+8. On the Review settings page, configure:
+   - Reviewers (compliance team members)
+   - Alert volume preference
+   - Review mailbox for alerts
+9. Enable the policy
+10. Verify rule creation via PowerShell using Query 1 and 2
+
 Via PowerShell (creation requires portal, but verification via cmdlets):
 
+```powershell
 Connect-ExchangeOnline
-Get-SupervisoryReviewRule -IncludeDetails | Select-Object Name, Policy
+Get-SupervisoryReviewRule -IncludeRuleXml | Select-Object Name, Policy
 Get-SupervisoryReviewPolicyV2 | Select-Object Name, Enabled, ReviewMailbox
-For more information:
+```
 
-Create Communication Compliance policies
-Communication Compliance message classes
-SupervisoryReview cmdlet reference
+For more information:
+- [Create Communication Compliance policies](https://learn.microsoft.com/en-us/purview/communication-compliance-policies)
+- [Communication Compliance message classes](https://learn.microsoft.com/en-us/purview/communication-compliance-feature-reference)
+- [SupervisoryReview cmdlet reference](https://learn.microsoft.com/en-us/powershell/module/exchange/get-supervisoryreviewpolicyv2)
 <!--- Results --->
 %TestResult%
