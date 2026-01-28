@@ -53,19 +53,22 @@ function Test-Assessment-35015 {
         $customStatus = 'Investigate'
     }
     else {
-        # Identify globally-scoped policies (no specific user/group scope or applies to 'All')
-        $globalPolicies = $labelPolicies | Where-Object {
-            ($_.ExchangeLocation    -contains 'All') -or
-            ($_.ModernGroupLocation -contains 'All') -or
-            ($_.SharePointLocation  -contains 'All') -or
-            ($_.OneDriveLocation    -contains 'All') -or
-            (
-                (-not $_.ModernGroupLocation  -or $_.ModernGroupLocation.Count  -eq 0) -and
-                (-not $_.ExchangeLocation     -or $_.ExchangeLocation.Count     -eq 0) -and
-                (-not $_.SharePointLocation   -or $_.SharePointLocation.Count   -eq 0) -and
-                (-not $_.OneDriveLocation     -or $_.OneDriveLocation.Count     -eq 0)
-            )
-        }
+        # Identify globally-scoped policies by checking all location names
+        $globalPolicies = $labelPolicies | ForEach-Object {
+            $policy = $_
+            $allLocationNames = @(
+                $policy.ExchangeLocation.Name
+                $policy.ModernGroupLocation.Name
+                $policy.SharePointLocation.Name
+                $policy.OneDriveLocation.Name
+                $policy.SkypeLocation.Name
+                $policy.PublicFolderLocation.Name
+            ) | Where-Object { $_ }
+            $isGlobal = $allLocationNames -contains 'All'
+            $scope = if ($isGlobal) { 'Global' } else { 'User/Group-Scoped' }
+
+            $policy | Add-Member -MemberType NoteProperty -Name 'Scope' -Value $scope -PassThru
+        } | Where-Object { $_.Scope -eq 'Global' }
         $uniqueLabels = $globalPolicies.Labels | Where-Object { $_ } | Select-Object -Unique
         $totalUniqueLabels = @($uniqueLabels).Count
         $passed = $totalUniqueLabels -le $maxRecommendedLabels
@@ -84,13 +87,14 @@ function Test-Assessment-35015 {
 
         if ($globalPolicies) {
             $testResultMarkdown += "### Global Label Policies`n`n"
-            $testResultMarkdown += "| Policy Name | Status | Labels Published | Sample Labels |`n"
-            $testResultMarkdown += "| :--- | :--- | :---: | :--- |`n"
+            $testResultMarkdown += "| Policy Name | Status | Scope | Labels Published | Sample Labels |`n"
+            $testResultMarkdown += "| :--- | :--- | :--- | :---: | :--- |`n"
 
             $policyLink = "https://purview.microsoft.com/informationprotection/labelpolicies"
 
             foreach ($policy in $globalPolicies) {
                 $policyName = Get-SafeMarkdown -Text $policy.Name
+                $scope = $policy.Scope
                 $labelCount = @($policy.Labels).Count
 
                 # Get sample labels (up to 5)
@@ -101,7 +105,7 @@ function Test-Assessment-35015 {
                     $labelText
                 } else { 'None' }
 
-                $testResultMarkdown += "| [$policyName]($policyLink) | Enabled | $labelCount | $sampleLabels |`n"
+                $testResultMarkdown += "| [$policyName]($policyLink) | Enabled | $scope | $labelCount | $sampleLabels |`n"
             }
 
             $statusText = if ($passed) { 'Pass' } else { 'Fail' }
