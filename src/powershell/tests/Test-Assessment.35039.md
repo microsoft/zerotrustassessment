@@ -21,7 +21,7 @@ To create and enable Communication Compliance policies for Copilot interaction c
    - Alert volume preference
    - Review mailbox for alerts
 9. Enable the policy
-10. Verify rule creation via PowerShell using Query 1 and 2
+10. Verify rule creation via PowerShell using the commands below
 
 Via PowerShell (creation requires portal, but verification via cmdlets):
 
