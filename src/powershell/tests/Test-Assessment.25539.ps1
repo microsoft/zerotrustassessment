@@ -18,7 +18,7 @@ function Test-Assessment-25539 {
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
+        TenantType = ('Workforce','External'),
         TestId = 25539,
         Title = 'IDPS Inspection is Enabled in Deny Mode on Azure Firewall',
         UserImpact = 'Low'
@@ -222,7 +222,6 @@ function Test-Assessment-25539 {
 
     $params = @{
         TestId = '25539'
-        Title  = 'IDPS Inspection is Enabled in Deny Mode on Azure Firewall'
         Status = $passed
         Result = $testResultMarkdown
     }
