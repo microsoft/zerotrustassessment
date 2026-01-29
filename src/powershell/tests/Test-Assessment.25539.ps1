@@ -26,69 +26,101 @@ function Test-Assessment-25539 {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    #Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
     $activity = 'Azure Firewall Intrusion Detection'
-    Write-ZtProgress `
-        -Activity $activity `
-        -Status 'Enumerating Firewall Policies'
+    #Write-ZtProgress `
+        #-Activity $activity `
+        #-Status 'Enumerating Firewall Policies'
 
     # Query subscriptions using REST API
     $resourceManagerUrl = (Get-AzContext).Environment.ResourceManagerUrl.TrimEnd('/')
-    $subscriptionsUri = "$resourceManagerUrl/subscriptions?api-version=2020-01-01"
+    $subscriptionsUri = "$resourceManagerUrl/subscriptions?api-version=2025-03-01"
 
     try {
         $subscriptionsResponse = Invoke-AzRestMethod -Method GET -Uri $subscriptionsUri -ErrorAction Stop
+        $subscriptionsContent = $subscriptionsResponse.Content
+
+        if (-not $subscriptionsContent) {
+            Add-ZtTestResultDetail -SkippedBecause NoResults
+            return
+        }
+
+        $subscriptions = ($subscriptionsContent | ConvertFrom-Json).value
     }
     catch {
         if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*') {
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+           # Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
             return
         }
-    }
-
-    $subscriptions = ($subscriptionsResponse.Content | ConvertFrom-Json).value
-
-    if (-not $subscriptions) {
-        Add-ZtTestResultDetail -SkippedBecause NoResults
+        #Write-PSFMessage "Unable to enumerate subscriptions: $($_.Exception.Message)" -Tag Firewall -Level Warning
         return
     }
 
     $results = @()
 
     foreach ($sub in $subscriptions) {
-
         Set-AzContext -SubscriptionId $sub.subscriptionId -ErrorAction SilentlyContinue | Out-Null
 
         # Query Azure Firewall Policies
         try {
-            $policiesUri = "$resourceManagerUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/firewallPolicies?api-version=2023-04-01"
-            Write-ZtProgress -Activity $activity -Status "Enumerating policies in subscription $($sub.displayName)"
+            $policiesUri = "$resourceManagerUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
+            #Write-ZtProgress -Activity $activity -Status "Enumerating policies in subscription $($sub.displayName)"
 
-            $policyResponse = (Invoke-AzRestMethod -Method GET -Uri $policiesUri -ErrorAction Stop).Content | ConvertFrom-Json
+            $policyResponseContent = (Invoke-AzRestMethod -Method GET -Uri $policiesUri -ErrorAction Stop).Content
+
+            if (-not $policyResponseContent) {
+                #Write-PSFMessage "No response content for policies in subscription $($sub.displayName)" -Tag Firewall -Level Warning
+                continue
+            }
+
+            $policyResponse = $policyResponseContent | ConvertFrom-Json
             $policies = $policyResponse.value
-
         }
         catch {
-            Write-PSFMessage "Unable to enumerate firewall policies in subscription $($sub.displayName): $($_.Exception.Message)" -Tag Firewall -Level Warning
+            if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*') {
+                #Write-PSFMessage "Access denied to firewall policies in subscription $($sub.displayName): Insufficient permissions" -Tag Firewall -Level Warning
+                continue
+            }
+            #Write-PSFMessage "Unable to enumerate firewall policies in subscription $($sub.displayName): $($_.Exception.Message)" -Tag Firewall -Level Warning
             continue
         }
 
         if (-not $policies) { continue }
 
-        # Check intrusion detection mode for each firewall policy
+        # Step 3: Get individual firewall policy details
+        $detailedPolicies = @()
         foreach ($policyResource in $policies) {
+            try {
+                $detailUri = "$resourceManagerUrl$($policyResource.id)?api-version=2025-03-01"
+                $detailResponseContent = (Invoke-AzRestMethod -Method GET -Uri $detailUri -ErrorAction Stop).Content
+
+                if (-not $detailResponseContent) {
+                    #Write-PSFMessage "No response content for policy $($policyResource.name) in subscription $($sub.displayName)" -Tag Firewall -Level Warning
+                    continue
+                }
+
+                $detailResponse = $detailResponseContent | ConvertFrom-Json
+                $detailedPolicies += $detailResponse
+            }
+            catch {
+                #Write-PSFMessage "Unable to get detailed policy information for $($policyResource.name) in subscription $($sub.displayName): $($_.Exception.Message)" -Tag Firewall -Level Warning
+            }
+        }
+
+        # Check intrusion detection mode for each firewall policy
+        foreach ($policyResource in $detailedPolicies) {
 
             # Skip if policy is missing required properties
             if (-not $policyResource -or -not $policyResource.Name -or -not $policyResource.Id -or -not $policyResource.Properties) {
-                Write-PSFMessage "Firewall policy is missing required properties. Skipping." -Tag Firewall -Level Verbose
+                #Write-PSFMessage "Firewall policy is missing required properties. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
 
             # Skip if SKU tier is not Premium
             if ($policyResource.Properties.sku.tier -ne 'Premium') {
-                Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have Premium SKU. Skipping." -Tag Firewall -Level Verbose
+                #Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have Premium SKU. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
 
@@ -96,7 +128,7 @@ function Test-Assessment-25539 {
 
             # Skip if intrusion detection mode is not configured
             if ([string]::IsNullOrEmpty($idMode)) {
-                Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have intrusion detection configured. Skipping." -Tag Firewall -Level Verbose
+                #Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have intrusion detection configured. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
 
@@ -124,11 +156,12 @@ function Test-Assessment-25539 {
 
     #region Assessment Logic
     if (-not $results) {
-        Add-ZtTestResultDetail -SkippedBecause NoResults
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
-    $passed = ($results | Where-Object { -not $_.Passed }).Count -eq 0
+    $failedPolicies = @($results | Where-Object { -not $_.Passed })
+    $passed = $failedPolicies.Count -eq 0
 
     if ($passed) {
         $testResultMarkdown = "Intrusion Detection System (IDPS) inspection is set to Deny for all Azure Firewall policies.`n`n%TestResult%"
