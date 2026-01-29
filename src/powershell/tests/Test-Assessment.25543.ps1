@@ -5,7 +5,7 @@
 .DESCRIPTION
     This test validates that Azure Front Door Web Application Firewall policies are configured
     in Prevention mode to actively block malicious requests. Checks all Front Door WAF policies
-    across all subscriptions and reports their protection mode status.
+    across all subscriptions and reports their prevention/detection mode status.
 
 .NOTES
     Test ID: 25543
@@ -32,7 +32,7 @@ function Test-Assessment-25543 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Azure Front Door WAF Protection Mode'
+    $activity = 'Checking Azure Front Door WAF policies configuration'
 
     # Check if connected to Azure
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
