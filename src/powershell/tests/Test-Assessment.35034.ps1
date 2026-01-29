@@ -79,6 +79,8 @@ function Test-Assessment-35034 {
 
 ## [{0}]({1})
 
+| Schema Name | Description | Version | Created Date | Modified Date |
+| :---------- | :---------- | :------ | :----------- | :------------ |
 {2}
 
 '@
@@ -86,11 +88,7 @@ function Test-Assessment-35034 {
         $reportTitle = 'Exact Data Match Schemas'
         $portalLink = 'https://purview.microsoft.com/informationprotection/dataclassification/exactdatamatch'
 
-        $schemaDetails = ''
-
-        # Build table header
-        $schemaDetails += "| Schema Name | Description | Version | Created Date | Modified Date |`n"
-        $schemaDetails += "| :---------- | :---------- | :------ | :----------- | :------------ |`n"
+        $tableRows = ''
 
         # Build table rows
         foreach ($schema in $edmSchemas) {
@@ -100,13 +98,13 @@ function Test-Assessment-35034 {
             $created = if ($schema.CreatedDate) { $schema.CreatedDate } else { 'N/A' }
             $modified = if ($schema.ModifiedDate) { $schema.ModifiedDate } else { 'N/A' }
 
-            $schemaDetails += "| $name | $description | $version | $created | $modified |`n"
+            $tableRows += "| $name | $description | $version | $created | $modified |`n"
         }
 
-        $schemaDetails += "`n**Summary:**`n"
-        $schemaDetails += "* Total EDM Schemas: $(@($edmSchemas).Count)"
+        $tableRows += "`n**Summary:**`n"
+        $tableRows += "* Total EDM Schemas: $(@($edmSchemas).Count)"
 
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $schemaDetails
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
     }
 
     # Replace the placeholder with detailed information
