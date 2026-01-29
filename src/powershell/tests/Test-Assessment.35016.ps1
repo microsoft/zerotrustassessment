@@ -21,15 +21,14 @@ function Test-Assessment-35016 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
     $activity = 'Checking mandatory labeling configuration'
-    Write-ZtProgress -Activity $activity -Status 'Getting sensitivity label policies'
 
+    # Q1: Retrieve all enabled sensitivity label policies to assess mandatory labeling configuration
+    Write-ZtProgress -Activity $activity -Status 'Getting sensitivity label policies'
     $errorMsg = $null
     $enabledPolicies = @()
 
     try {
-        # Q1: Retrieve all enabled sensitivity label policies to assess mandatory labeling configuration
         $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
@@ -46,7 +45,7 @@ function Test-Assessment-35016 {
     $customStatus = $null
 
     if ($errorMsg) {
-        $testResultMarkdown = "⚠️ Unable to determine mandatory labeling status due to error: $errorMsg`n`n"
+        $testResultMarkdown = "⚠️ Unable to determine auto-labeling enforcement mode status due to permissions issues or query failure.`n`n"
         $customStatus = 'Investigate'
     }
     else {
@@ -78,7 +77,7 @@ function Test-Assessment-35016 {
                     SiteGroupMandatory = $false
                     PowerBIMandatory = $false
                     EmailOverride = $false
-                    Scope = if ($isGlobal) { 'Global' } else { 'Scoped' }
+                    Scope = if ($isGlobal) { 'Global' } else { 'User/Group-scoped' }
                     LabelsCount = $policy.Labels.Count
                 }
 
@@ -160,7 +159,7 @@ function Test-Assessment-35016 {
         }
         catch {
             Write-PSFMessage "Error parsing label policy settings: $_" -Level Error
-            $testResultMarkdown = "⚠️ Unable to determine mandatory labeling status due to unexpected policy settings structure: $_`n`n"
+            $testResultMarkdown = "⚠️ Unable to determine mandatory labeling status due to policy complexity or unclear Settings structure.`n`n"
             $customStatus = 'Investigate'
         }
 
@@ -224,9 +223,9 @@ function Test-Assessment-35016 {
 
     # Report XML parsing errors if any occurred
     if ($xmlParseErrors.Count -gt 0) {
-        $mdInfo += "`n`n### ⚠️ XML Parsing Errors`n"
+        $mdInfo += "`n`n### ⚠️ XML parsing errors`n"
         $mdInfo += "The following policies could not be parsed and were excluded from analysis:`n`n"
-        $mdInfo += "| Policy Name | Error |`n"
+        $mdInfo += "| Policy name | Error |`n"
         $mdInfo += "| :--- | :--- |`n"
         foreach ($error in $xmlParseErrors) {
             $errorMsg = Get-SafeMarkdown -Text $error.Error
