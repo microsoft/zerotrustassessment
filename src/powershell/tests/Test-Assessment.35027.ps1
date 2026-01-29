@@ -45,7 +45,7 @@ function Test-Assessment-35027 {
 
     try {
         # Query Q1: Get all OME template branding configurations
-        $omeConfig = Get-OMEConfiguration -ErrorAction Stop | Select-Object -Property Identity, ImageUrl, BackgroundColor, IntroductionText, PortalText, DisclaimerText, EmailText
+        $omeConfig = Get-OMEConfiguration | Select-Object -Property Identity, ImageUrl, BackgroundColor, IntroductionText, PortalText, DisclaimerText, EmailText
 
         # Extract and normalize data
         $totalConfigs = ($omeConfig | Measure-Object).Count
@@ -69,12 +69,12 @@ function Test-Assessment-35027 {
             # Store configuration details for reporting
             $configDetails += [PSCustomObject]@{
                 Identity         = $config.Identity
-                EmailText        = if ($hasEmailText) { $config.EmailText } else { 'None' }
-                LogoConfigured   = if ($hasImageUrl) { 'Yes' } else { 'No' }
-                BackgroundColor  = if ($hasBackgroundColor) { $config.BackgroundColor } else { 'None' }
-                PortalText       = if ($hasPortalText) { $config.PortalText } else { 'None' }
-                IntroductionText = if ($hasIntroductionText) { $config.IntroductionText } else { 'None' }
-                DisclaimerText   = if ($hasDisclaimerText) { $config.DisclaimerText } else { 'None' }
+                EmailText        = if ($hasEmailText) { "✅ $($config.EmailText)" } else { '❌ None' }
+                LogoConfigured   = if ($hasImageUrl) { '✅ Yes' } else { '❌ No' }
+                BackgroundColor  = if ($hasBackgroundColor) { "✅ $($config.BackgroundColor)" } else { '❌ None' }
+                PortalText       = if ($hasPortalText) { "✅ $($config.PortalText)" } else { '❌ None' }
+                IntroductionText = if ($hasIntroductionText) { "✅ $($config.IntroductionText)" } else { '❌ None' }
+                DisclaimerText   = if ($hasDisclaimerText) { "✅ $($config.DisclaimerText)" } else { '❌ None' }
             }
         }
     }
