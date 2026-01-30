@@ -19,7 +19,7 @@ function Test-Assessment-35027 {
     [ZtTest(
         Category = 'Information Protection',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Microsoft 365 E3'),
+        MinimumLicense = ('Microsoft 365 E3', 'Microsoft 365 E5', 'Advanced Message Encryption add-on'),
         Pillar = 'Data',
         RiskLevel = 'Low',
         SfiPillar = 'Protect tenants and production systems',
