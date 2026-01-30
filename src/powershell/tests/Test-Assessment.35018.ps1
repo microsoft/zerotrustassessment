@@ -143,7 +143,7 @@ function Test-Assessment-35018 {
 
         foreach ($policy in $policyResults) {
             $policyName = Get-SafeMarkdown -Text $policy.PolicyName
-            $policyUrl  = "https://purview.microsoft.com/informationprotection/labelpolicies/$($policy.PolicyGuid)"
+            $policyUrl  = "https://purview.microsoft.com/informationprotection/labelpolicies"
             $icon = if ($policy.RequireDowngradeJustification) { '✅' } else { '❌' }
 
             $mdInfo += "| [$policyName]($policyUrl) | $icon | $($policy.Scope) | $($policy.LabelsCount) | $($policy.Workloads) |`n"
