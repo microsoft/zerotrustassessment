@@ -23,7 +23,7 @@ function Test-Assessment-25377 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce', 'External'),
         TestId = 25377,
-        Title = 'Universal Tenant Restrictions block access to unauthorized external tenants',
+        Title = 'Users accessing external applications from corporate devices are blocked unless explicitly authorized by tenant restrictions policies',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -174,7 +174,7 @@ function Test-Assessment-25377 {
 
     $params = @{
         TestId = '25377'
-        Title  = 'Universal Tenant Restrictions block unauthorized external tenant access'
+        Title  = 'Users accessing external applications from corporate devices are blocked unless explicitly authorized by tenant restrictions policies'
         Status = $passed
         Result = $testResultMarkdown
     }
