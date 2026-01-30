@@ -1,0 +1,13 @@
+Without Global Secure Access logs integrated into Microsoft Sentinel, security operations teams lack centralized visibility into network traffic patterns, connection attempts, and access anomalies flowing through Private Access, Internet Access, and Microsoft 365 traffic forwarding. Threat actors who compromise user credentials or devices can leverage these network access paths to perform reconnaissance, identifying internal resources and network topology without detection. Once reconnaissance establishes targets, threat actors can execute lateral movement across Private Access connections to internal applications or exfiltrate sensitive data through Internet Access channels, with security teams unable to correlate these network-layer activities with identity-based signals in Microsoft Entra ID or endpoint detections. The absence of log integration prevents security information and event management (SIEM) systems from applying behavioral analytics, threat intelligence correlation, and automated response playbooks to Global Secure Access traffic, allowing threat actors to maintain persistence and conduct malicious activities beneath the detection threshold. Security teams cannot investigate historical network access patterns during incident response, perform threat hunting across network and identity signals, or establish baseline behavioral profiles for users and devices accessing corporate resources through Global Secure Access, fundamentally weakening the organization's ability to detect and respond to sophisticated attacks that leverage compromised network access.
+
+**Remediation action**
+
+- [Configure diagnostic settings to send Global Secure Access logs to a Log Analytics workspace for Microsoft Sentinel integration](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-sentinel-integration)
+
+- [Enable all six required Global Secure Access log categories (NetworkAccessTrafficLogs, EnrichedOffice365AuditLogs, RemoteNetworkHealthLogs, NetworkAccessAlerts, NetworkAccessConnectionEvents, NetworkAccessGenerativeAIInsights) in diagnostic settings](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-diagnostic-settings-logs-options)
+
+- [Integrate Microsoft Entra activity logs with Azure Monitor for centralized log collection](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/howto-integrate-activity-logs-with-azure-monitor-logs)
+
+- [Configure Microsoft Sentinel workspace and install the Global Secure Access solution from Content Hub](https://learn.microsoft.com/en-us/azure/sentinel/quickstart-onboard)
+<!--- Results --->
+%TestResult%

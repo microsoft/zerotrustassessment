@@ -22,6 +22,6 @@ The Zero Trust Assessment is a PowerShell module that can be run on your environ
 * * *
  
 ### **Video Walkthrough**
-<iframe width="560" height="315" src="https://www.youtube.com/embed/-6XG3ha68r8?si=uuFEDhjD_20H2-s6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-6XG3ha68r8?si=fqLYmhu7UFCO-pZH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 For more information, check out the [Zero Trust Assessment Tool](./app-permissions) page and the [Zero Trust Assessment Video](./videos/Assessment.md) page.
