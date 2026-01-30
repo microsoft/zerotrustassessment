@@ -13,11 +13,5 @@ Deploy Global Secure Access clients on devices
 
 Enable Microsoft traffic profile for Universal Tenant Restrictions
 - [Microsoft traffic profile concept](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-microsoft-traffic-profile)
-
-**Who**: Global Secure Access Administrator (for Q1), Security Administrator or Global Administrator (for Q2)
-
-**When**: During initial Global Secure Access deployment and before enabling production traffic forwarding
-
-**Where**: Microsoft Entra admin center > Global Secure Access > Session Management > Universal Tenant Restrictions
 <!--- Results --->
 %TestResult%
