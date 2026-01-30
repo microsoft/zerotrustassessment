@@ -35,15 +35,15 @@ function Test-Assessment-25416 {
     [int]$BASELINE_PROFILE_PRIORITY = 65000
 
     #region Data Collection
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    #Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking Office Internet Traffic Protection via Cloud Firewall Policies'
-    Write-ZtProgress -Activity $activity -Status 'Querying remote networks'
+    #Write-ZtProgress -Activity $activity -Status 'Querying remote networks'
 
     # Q1: Get all configured remote networks (branch sites)
     $remoteNetworks = Invoke-ZtGraphRequest -RelativeUri 'networkaccess/connectivity/branches' -ApiVersion beta
 
     # Q2: Get filtering profiles with cloud firewall policy links
-    Write-ZtProgress -Activity $activity -Status 'Querying baseline security profile'
+    #Write-ZtProgress -Activity $activity -Status 'Querying baseline security profile'
     $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkaccess/filteringProfiles' -QueryParameters @{
         '$select' = 'id,name,description,state,version,priority'
         '$expand' = 'policies($select=id,state;$expand=policy)'
@@ -67,12 +67,39 @@ function Test-Assessment-25416 {
                 foreach ($policyLink in @($baselineProfile.policies)) {
                     # Check if this is a cloud firewall policy link and it's enabled
                     if ($policyLink.'@odata.type' -eq '#microsoft.graph.networkaccess.cloudFirewallPolicyLink' -and $policyLink.state -eq 'enabled') {
+                        # Q3: Retrieve the actual cloud firewall policy rules using policy.id
+                        $policyId = if ($policyLink.policy) { $policyLink.policy.id } else { $null }
+                        $policyRulesData = @()
+                        $enabledRulesCount = 0
+
+                        if ($policyId) {
+                            $policyDisplayName = if ($policyLink.policy.name) { $policyLink.policy.name } else { 'Unknown' }
+                            #Write-ZtProgress -Activity $activity -Status "Retrieving policy rules for $policyDisplayName"
+                            try {
+                                # Q3: GET https://graph.microsoft.com/beta/networkaccess/cloudfirewallpolicies/{policyId}?$expand=policyRules
+                                $policyWithRules = Invoke-ZtGraphRequest -RelativeUri "networkaccess/cloudfirewallpolicies/$policyId" -QueryParameters @{
+                                    '$expand' = 'policyRules'
+                                } -ApiVersion beta -disablecache
+
+                                if ($policyWithRules -and $policyWithRules.policyRules) {
+                                    $policyRulesData = @($policyWithRules.policyRules)
+                                    # Count enabled rules where settings.status = 'enabled'
+                                    $enabledRulesCount = @($policyRulesData | Where-Object { $_.settings.status -eq 'enabled' }).Count
+                                }
+                            }
+                            catch {
+                                #Write-PSFMessage "Error retrieving policy rules for policy $policyId`: $_" -Tag Test -Level Warning
+                            }
+                        }
+
                         $enabledCloudFirewallPolicies += [PSCustomObject]@{
-                            PolicyLinkId    = $policyLink.id
-                            PolicyLinkState = $policyLink.state
-                            PolicyId        = if ($policyLink.policy) { $policyLink.policy.id } else { $null }
-                            PolicyName      = if ($policyLink.policy) { $policyLink.policy.name } else { 'Unknown' }
-                            PolicyRules     = if ($policyLink.policy ) { $policyLink.policy.settings.defaultAction } else { @()
+                            PolicyLinkId      = $policyLink.id
+                            PolicyLinkState   = $policyLink.state
+                            PolicyId          = $policyId
+                            PolicyName        = if ($policyLink.policy) { $policyLink.policy.name } else { 'Unknown' }
+                            PolicyRules       = $policyRulesData
+                            TotalRulesCount   = $policyRulesData.Count
+                            EnabledRulesCount = $enabledRulesCount
                         }
                     }
                 }
@@ -100,10 +127,15 @@ function Test-Assessment-25416 {
         # No remote networks configured - test is skipped
         $passed = $false
     }
-    # 2. Check if baseline profile has enabled cloud firewall policies
+    # 2. Check if baseline profile has enabled cloud firewall policies with at least one enabled rule
     elseif ($null -ne $baselineProfileWithCloudFirewall) {
-        # Baseline profile found with enabled policies - pass
-        $passed = $true
+        # Q3: Check if any policy has enabled rules
+        $hasEnabledRules = @($baselineProfileWithCloudFirewall.CloudFirewallPolicies | Where-Object { $_.EnabledRulesCount -gt 0 }).Count -gt 0
+        if ($hasEnabledRules) {
+            $passed = $true
+        }else {
+            $passed = $false
+        }
     }
     else {
         # Remote networks exist but no enabled cloud firewall policies - fail
@@ -113,98 +145,95 @@ function Test-Assessment-25416 {
 
     #region Report Generation
     $testResultMarkdown = ""
-    $mdInfo = ""
-    $customStatus = $null
 
     # Determine if test should be skipped
     if ($remoteNetworkCount -eq 0) {
-        $testResultMarkdown = "⏭️ No remote networks configured. Cloud firewall policies are only applicable when remote networks (branch sites) are configured.`n`n"
-        $customStatus = 'Skipped'
+        $testResultMarkdown = "⏭️ No remote networks configured. Cloud firewall policies are only applicable when remote networks (branch sites) are configured."
     }
     else {
+        # Build initial status message with placeholder
         if ($passed) {
-            $testResultMarkdown = "✅ Office internet traffic is protected by cloud firewall policies through Global Secure Access.`n`n"
+            $testResultMarkdown = "✅ Office internet traffic is protected by cloud firewall policies through Global Secure Access.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "❌ Office internet traffic is not adequately protected by cloud firewall policies.`n`n"
+            $testResultMarkdown = "❌ Office internet traffic is not adequately protected by cloud firewall policies.`n`n%TestResult%"
         }
 
-        # Build detailed information section
-        $mdInfo = "## Cloud Firewall Policy Configuration`n`n"
+        # Build test output data section
+        $mdInfo = "## Test output data`n`n"
 
-        # Display baseline profile with cloud firewall policies
-        if ($null -ne $baselineProfileWithCloudFirewall) {
-            $mdInfo += "## Baseline Profile Cloud Firewall Policies`n`n"
-            $mdInfo += "| Profile Name | Profile Priority | Profile State | Cloud Firewall Policies |`n"
-            $mdInfo += "| :--- | :--- | :--- | :--- |`n"
+        # Remote Networks Configuration Table Template
+        $remoteNetworkTableTemplate = @'
+#### [Cloud Firewall Configuration for Remote Networks](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/CloudFirewallPolicy.ReactView)
 
-            $baselineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($baselineProfileWithCloudFirewall.ProfileId)"
-            $profileName = Get-SafeMarkdown -Text $baselineProfileWithCloudFirewall.ProfileName
-            $profilePriority = $baselineProfileWithCloudFirewall.ProfilePriority
-            $profileState = $baselineProfileWithCloudFirewall.ProfileState
-            $policyCount = $baselineProfileWithCloudFirewall.PolicyCount
+| Remote Network Name | Remote Network ID | Baseline Profile Policy Linked | Policy State | Rules Configured |
+|---------------------|-------------------|-------------------------------|--------------|------------------|
+{0}
 
-            $mdInfo += "| [$profileName]($baselineProfilePortalLink) | $profilePriority | $profileState | $policyCount enabled |`n"
-            $mdInfo += "`n"
+'@
 
-            # List cloud firewall policies with their state
-            if ($baselineProfileWithCloudFirewall.CloudFirewallPolicies.Count -gt 0) {
-                $mdInfo += "| Policy Name | Link State |`n"
-                $mdInfo += "| :--- | :--- |`n"
-
-                foreach ($policyLink in @($baselineProfileWithCloudFirewall.CloudFirewallPolicies)) {
-                    $policyName = Get-SafeMarkdown -Text $policyLink.PolicyName
-                    $linkState = $policyLink.PolicyLinkState
-                    $mdInfo += "| $policyName | $linkState |`n"
-                }
-                $mdInfo += "`n"
-            }
-        }
-        else {
-            $mdInfo += "**Baseline Security Profile Status: Not Configured or No Enabled Policies**`n`n"
-            if ($remoteNetworkCount -gt 0) {
-                $mdInfo += "The baseline profile with priority 65000 is required with enabled cloud firewall policies and rules to protect office internet traffic from remote networks.`n`n"
-            }
-        }
-
-        # Display remote networks information
-        $mdInfo += "## Remote Networks Configuration`n`n"
-        $mdInfo += "**Remote Networks Configured: $remoteNetworkCount**`n`n"
-
-        if ($remoteNetworkCount -gt 0) {
-            $mdInfo += "| Remote Network Name | Connectivity State |`n"
-            $mdInfo += "| :--- | :--- |`n"
-
+        # Build remote network table rows
+        $remoteNetworkTableRows = ""
+        if ($remoteNetworks -and @($remoteNetworks).Count -gt 0) {
             foreach ($network in @($remoteNetworks) | Sort-Object -Property name) {
                 $networkName = Get-SafeMarkdown -Text $network.name
-                $connectivityState = if ($network.connectivityState) { $network.connectivityState } else { 'Unknown' }
-                $mdInfo += "| $networkName | $connectivityState |`n"
+                $networkId = Get-SafeMarkdown -Text $network.id
+                $policyLinked = if ($null -ne $baselineProfileWithCloudFirewall) { "Yes" } else { "No" }
+                $policyState = if ($null -ne $baselineProfileWithCloudFirewall) { "Enabled" } else { "N/A" }
+                $rulesCount = if ($null -ne $baselineProfileWithCloudFirewall) { ($baselineProfileWithCloudFirewall.CloudFirewallPolicies | Measure-Object -Property EnabledRulesCount -Sum).Sum } else { 0 }
+
+                $remoteNetworkTableRows += "| $networkName | $networkId | $policyLinked | $policyState | $rulesCount |`n"
             }
-
-            $mdInfo += "`n"
+            $mdInfo += $remoteNetworkTableTemplate -f $remoteNetworkTableRows
         }
 
-        $mdInfo += "`n**Note:** Cloud firewall policies must be linked to the baseline security profile (priority 65000) and enabled to protect office internet traffic from remote networks. Ensure policies include appropriate 5-tuple rules to filter malicious outbound connections and prevent data exfiltration.`n"
+        # Baseline Profile Details Table Template
+        $baselineProfileTableTemplate = @'
+#### Baseline Profile Details
 
-        # Add mdInfo to the main markdown if there's content
-        if ($mdInfo) {
-            $testResultMarkdown += "%TestResult%"
+| Profile Name | Priority | Linked Policy Name | Policy State | Enabled Rules Count |
+|--------------|----------|-------------------|--------------|---------------------|
+{0}
+
+'@
+
+        # Build baseline profile table rows
+        $baselineProfileTableRows = ""
+        if ($null -ne $baselineProfileWithCloudFirewall) {
+            $profileName = Get-SafeMarkdown -Text $baselineProfileWithCloudFirewall.ProfileName
+            $profilePriority = $baselineProfileWithCloudFirewall.ProfilePriority
+
+            foreach ($policyLink in @($baselineProfileWithCloudFirewall.CloudFirewallPolicies)) {
+                $policyName = Get-SafeMarkdown -Text $policyLink.PolicyName
+                $policyState = $policyLink.PolicyLinkState
+                $enabledRulesCount = $policyLink.EnabledRulesCount
+
+                $baselineProfileTableRows += "| $profileName | $profilePriority | $policyName | $policyState | $enabledRulesCount |`n"
+            }
         }
+        else {
+            $baselineProfileTableRows = "| N/A | 65000 | None | N/A | 0 |`n"
+        }
+
+        $mdInfo += $baselineProfileTableTemplate -f $baselineProfileTableRows
+
+        # Replace the placeholder with the actual test result data
+        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
     }
     #endregion Report Generation
 
-    # Replace placeholder with actual detailed info
-    if ($mdInfo) {
-        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
-    }
-
     $params = @{
         TestId = '25416'
+        Title = 'Branch office internet traffic is protected by Cloud Firewall policies through Global Secure Access'
         Status = $passed
         Result = $testResultMarkdown
     }
-    if ($customStatus) {
-        $params.CustomStatus = $customStatus
+
+    try {
+        Add-ZtTestResultDetail @params
     }
-    Add-ZtTestResultDetail @params
-}}
+    catch {
+        Write-PSFMessage "Error adding test result detail: $_" -Tag Test -Level Error
+        throw
+    }
+}
