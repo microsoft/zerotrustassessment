@@ -29,19 +29,72 @@ function Test-Assessment-25415 {
     #region Data Collection
     Write-PSFMessage '🟦 Start Prompt Shield evaluation' -Tag Test -Level VeryVerbose
 
+    # Check if connected to Azure
     $activity = 'Checking Prompt Shield configuration for AI Gateway protection'
-    Write-ZtProgress -Activity $activity -Status 'Querying prompt policies'
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
+
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if (-not $azContext) {
+        Write-PSFMessage 'Not connected to Azure.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Check the supported environment
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
+        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
 
     # Q1: Get prompt policies
-    $promptPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/promptPolicies' -QueryParameters @{
-        '$expand' = 'policyRules'
-    } -ApiVersion beta
+    Write-ZtProgress -Activity $activity -Status 'Querying prompt policies'
+    $graphBaseUrl = 'https://graph.microsoft.com/beta/'
+    $promptPoliciesUri = $graphBaseUrl + 'networkAccess/promptPolicies?$expand=policyRules'
+
+    try {
+        $result = Invoke-AzRestMethod -Method GET -Uri $promptPoliciesUri -ErrorAction Stop
+
+        if ($result.StatusCode -eq 403) {
+            Write-PSFMessage 'The signed in user does not have access to query prompt policies.' -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
+
+        if ($result.StatusCode -ge 400) {
+            throw "Prompt policies request failed with status code $($result.StatusCode)"
+        }
+
+        $promptPolicies = ($result.Content | ConvertFrom-Json).value
+    }
+    catch {
+        throw
+    }
 
     # Q2: Get filtering profiles with linked policies and Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying security profiles and linked policies'
-    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
-        '$expand' = 'policies($expand=policy),conditionalAccessPolicies'
-    } -ApiVersion beta
+    $filteringProfilesUri = $graphBaseUrl + 'networkAccess/filteringProfiles?$expand=policies($expand=policy),conditionalAccessPolicies'
+
+    try {
+        $result = Invoke-AzRestMethod -Method GET -Uri $filteringProfilesUri -ErrorAction Stop
+
+        if ($result.StatusCode -eq 403) {
+            Write-PSFMessage 'The signed in user does not have access to query filtering profiles.' -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
+
+        if ($result.StatusCode -ge 400) {
+            throw "Filtering profiles request failed with status code $($result.StatusCode)"
+        }
+
+        $filteringProfiles = ($result.Content | ConvertFrom-Json).value
+    }
+    catch {
+        throw
+    }
 
     # Get all Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
@@ -49,7 +102,7 @@ function Test-Assessment-25415 {
 
     #endregion Data Collection
 
-    #region Data Processing
+    #region Assessment Logic
     $enabledSecurityProfiles = @()
     $enabledBaselineProfiles = @()
     $allPromptPolicyIds = @()
@@ -110,10 +163,6 @@ function Test-Assessment-25415 {
             }
         }
     }
-
-    #endregion Data Processing
-
-    #region Assessment Logic
     $testResultMarkdown = ''
     $passed = $false
     $mdInfo = ''
@@ -144,62 +193,82 @@ function Test-Assessment-25415 {
 
     #region Report Generation
 
-    # Table 1: Prompt Policies
-    if ($promptPolicies -and $promptPolicies.Count -gt 0) {
-        $mdInfo += "`n## [Prompt Policies (AI Gateway)](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)`n`n"
-        $mdInfo += "| Policy Name | Action | Rules Count | Last Modified |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
-        foreach ($policy in $promptPolicies) {
-            $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($policy.id)"
-            $policyName = Get-SafeMarkdown -Text $policy.name
-            $action = if ($policy.action) { $policy.action } else { 'Not specified' }
-            $rulesCount = if ($policy.policyRules) { @($policy.policyRules).Count } else { 0 }
-            $lastModified = if ($policy.lastModifiedDateTime) { $policy.lastModifiedDateTime } else { 'N/A' }
-            $mdInfo += "| [$policyName]($policyPortalLink) | $action | $rulesCount | $lastModified |`n"
-        }
-    }
+    if ($passed) {
+        # Build detailed report only when test passes
+        $formatTemplate = @'
 
-    # Table 2: Baseline Profiles with Prompt Policies
-    if ($enabledBaselineProfiles.Count -gt 0) {
-        $mdInfo += "`n## Prompt Policies Linked to Baseline Profile`n`n"
-        $mdInfo += "| Profile Name | Priority | State | Prompt Policy | Policy Link State | Rules Count |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
-        foreach ($profile in $enabledBaselineProfiles) {
-            $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
-            $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($profile.PromptPolicyId)"
-            $profileName = Get-SafeMarkdown -Text $profile.ProfileName
-            $policyName = Get-SafeMarkdown -Text $profile.PromptPolicyName
-            $mdInfo += "| [$profileName]($profilePortalLink) | $($profile.ProfilePriority) | $($profile.ProfileState) | [$policyName]($policyPortalLink) | $($profile.PromptPolicyLinkState) | $($profile.RulesCount) |`n"
-        }
-    }
+## [Prompt Policies (AI Gateway)](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)
 
-    # Table 3: Security Profiles with Prompt Policies and CA Assignments
-    if ($enabledSecurityProfiles.Count -gt 0) {
-        $mdInfo += "`n## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView)`n`n"
-        $mdInfo += "| Profile Name | State | Priority | Prompt Policy | CA Policies Assigned | Is Baseline |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
-        foreach ($profile in $enabledSecurityProfiles) {
-            $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
-            $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($profile.PromptPolicyId)"
-            $profileName = Get-SafeMarkdown -Text $profile.ProfileName
-            $policyName = Get-SafeMarkdown -Text $profile.PromptPolicyName
-            $isBaseline = if ($profile.ProfilePriority -eq $BASELINE_PROFILE_PRIORITY) { 'Yes' } else { 'No' }
-            $caCount = $profile.CAPolicyCount
-            $mdInfo += "| [$profileName]($profilePortalLink) | $($profile.ProfileState) | $($profile.ProfilePriority) | [$policyName]($policyPortalLink) | $caCount | $isBaseline |`n"
-        }
+| Policy Name | Action | Rules Count | Last Modified |
+| :---------- | :----- | :---------- | :------------ |
+{0}
+{1}
+{2}
+'@
 
-        # Table 4: Conditional Access Policies
-        $mdInfo += "`n## [Conditional Access Policies Assigned to Security Profiles](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
-        $mdInfo += "| CA Policy Name | Security Profile | CA Policy ID |`n"
-        $mdInfo += "| :--- | :--- | :--- |`n"
-        foreach ($profile in $enabledSecurityProfiles) {
-            foreach ($caPolicy in $profile.MatchedCAPolicies) {
-                $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.Id)"
-                $profileName = Get-SafeMarkdown -Text $profile.ProfileName
-                $caPolicyName = Get-SafeMarkdown -Text $caPolicy.DisplayName
-                $mdInfo += "| [$caPolicyName]($caPolicyPortalLink) | $profileName | $($caPolicy.Id) |`n"
+        # Table 1: Prompt Policies
+        $promptPoliciesRows = ''
+        if ($promptPolicies -and $promptPolicies.Count -gt 0) {
+            foreach ($policy in $promptPolicies) {
+                $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($policy.id)"
+                $policyName = Get-SafeMarkdown -Text $policy.name
+                $action = if ($policy.action) { $policy.action } else { 'Not specified' }
+                $rulesCount = if ($policy.policyRules) { @($policy.policyRules).Count } else { 0 }
+                $lastModified = if ($policy.lastModifiedDateTime) { $policy.lastModifiedDateTime } else { 'N/A' }
+                $promptPoliciesRows += "| [$policyName]($policyPortalLink) | $action | $rulesCount | $lastModified |`n"
             }
         }
+
+        # Table 2: Baseline Profiles with Prompt Policies
+        $baselineProfilesSection = ''
+        if ($enabledBaselineProfiles.Count -gt 0) {
+            $baselineProfilesSection += "`n## Prompt Policies Linked to Baseline Profile`n`n"
+            $baselineProfilesSection += "| Profile Name | Priority | State | Prompt Policy | Policy Link State | Rules Count |`n"
+            $baselineProfilesSection += "| :----------- | :------- | :---- | :------------ | :---------------- | :---------- |`n"
+            foreach ($profile in $enabledBaselineProfiles) {
+                $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
+                $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($profile.PromptPolicyId)"
+                $profileName = Get-SafeMarkdown -Text $profile.ProfileName
+                $policyName = Get-SafeMarkdown -Text $profile.PromptPolicyName
+                $baselineProfilesSection += "| [$profileName]($profilePortalLink) | $($profile.ProfilePriority) | $($profile.ProfileState) | [$policyName]($policyPortalLink) | $($profile.PromptPolicyLinkState) | $($profile.RulesCount) |`n"
+            }
+        }
+
+        # Table 3: Security Profiles with Prompt Policies and CA Assignments
+        $securityProfilesSection = ''
+        if ($enabledSecurityProfiles.Count -gt 0) {
+            $securityProfilesSection += "`n## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView)`n`n"
+            $securityProfilesSection += "| Profile Name | State | Priority | Prompt Policy | CA Policies Assigned | Is Baseline |`n"
+            $securityProfilesSection += "| :----------- | :---- | :------- | :------------ | :------------------- | :---------- |`n"
+            foreach ($profile in $enabledSecurityProfiles) {
+                $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
+                $policyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditPromptPolicyMenuBlade.MenuView/~/basics/policyId/$($profile.PromptPolicyId)"
+                $profileName = Get-SafeMarkdown -Text $profile.ProfileName
+                $policyName = Get-SafeMarkdown -Text $profile.PromptPolicyName
+                $isBaseline = if ($profile.ProfilePriority -eq $BASELINE_PROFILE_PRIORITY) { 'Yes' } else { 'No' }
+                $caCount = $profile.CAPolicyCount
+                $securityProfilesSection += "| [$profileName]($profilePortalLink) | $($profile.ProfileState) | $($profile.ProfilePriority) | [$policyName]($policyPortalLink) | $caCount | $isBaseline |`n"
+            }
+
+            # Table 4: Conditional Access Policies
+            $securityProfilesSection += "`n## [Conditional Access Policies Assigned to Security Profiles](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
+            $securityProfilesSection += "| CA Policy Name | Security Profile | CA Policy ID |`n"
+            $securityProfilesSection += "| :------------- | :--------------- | :----------- |`n"
+            foreach ($profile in $enabledSecurityProfiles) {
+                foreach ($caPolicy in $profile.MatchedCAPolicies) {
+                    $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.Id)"
+                    $profileName = Get-SafeMarkdown -Text $profile.ProfileName
+                    $caPolicyName = Get-SafeMarkdown -Text $caPolicy.DisplayName
+                    $securityProfilesSection += "| [$caPolicyName]($caPolicyPortalLink) | $profileName | $($caPolicy.Id) |`n"
+                }
+            }
+        }
+
+        $mdInfo = $formatTemplate -f $promptPoliciesRows, $baselineProfilesSection, $securityProfilesSection
+    }
+    else {
+        # For failed states, just show the portal link
+        $mdInfo = "[View Prompt Shield Configuration](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
