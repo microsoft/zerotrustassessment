@@ -25,7 +25,7 @@ function Test-Assessment-35013 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35013,
-        Title = 'Encryption-enabled sensitivity labels are configured',
+        Title = 'Encryption-Enabled Labels',
         UserImpact = 'High'
     )]
     [CmdletBinding()]
@@ -43,27 +43,27 @@ function Test-Assessment-35013 {
     # Query: Get all sensitivity labels with LabelActions
     try {
         $allLabels = Get-Label -ErrorAction Stop | Where-Object { $_.LabelActions }
-        
+
         # Parse LabelActions to find encryption-enabled labels
         foreach ($label in $allLabels) {
             try {
                 $labelActions = $label.LabelActions | ConvertFrom-Json
                 $encryptAction = $labelActions | Where-Object { $_.Type -eq 'encrypt' }
-                
+
                 if ($null -ne $encryptAction) {
                     # Extract encryption details from Settings array (Key-Value pairs)
                     $protectionTypeSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'protectiontype' }
                     $encryptionType = if ($protectionTypeSetting) { $protectionTypeSetting.Value } else { 'template' }
-                    
+
                     $rightsDefSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'rightsdefinitions' }
                     $rightsDef = if ($rightsDefSetting) { $rightsDefSetting.Value } else { 'Not specified' }
-                    
+
                     $contentExpirySetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'contentexpiredondateindaysornever' }
                     $contentExpiry = if ($contentExpirySetting) { $contentExpirySetting.Value } else { 'Never' }
-                    
+
                     # Determine if co-authoring is blocked
                     $coAuthoringBlocked = ($encryptionType -eq 'dke') -or ($contentExpiry -ne 'Never')
-                    
+
                     $encryptedLabels += [PSCustomObject]@{
                         Name                  = $label.DisplayName
                         EncryptionType        = $encryptionType
@@ -117,15 +117,13 @@ function Test-Assessment-35013 {
 
 '@
 
-        $reportTitle = 'Encryption-Enabled Sensitivity Labels'
-        $portalLink = 'https://purview.microsoft.com/informationprotection/labels'
+        $reportTitle = 'Encryption Label Details'
+        $portalLink = 'https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels'
 
-        $labelDetails = "**Encryption-Enabled Labels:**`n`n"
-        
         # Build table header
-        $labelDetails += "| Label Name | Encryption Type | Default Permissions | Co-authoring Blocked |`n"
-        $labelDetails += "| :--------- | :-------------- | :------------------ | :------------------: |`n"
-        
+        $labelDetails += "| Label name | Encryption type | Default permissions users | Co-Authoring blocked |`n"
+        $labelDetails += "| :--------- | :-------------- | :------------------------ | :------------------: |`n"
+
         # Build table rows
         foreach ($encLabel in $encryptedLabels) {
             $name = if ($encLabel.Name) { $encLabel.Name } else { 'N/A' }
@@ -135,36 +133,39 @@ function Test-Assessment-35013 {
                 'userdefined' { 'User-Defined Permissions' }
                 default { $encLabel.EncryptionType }
             }
-            
-            # Format rights definitions (rightsdefinitions Value is a JSON string)
+
+            # Format rights definitions - show count of users (per spec)
             $rights = 'Not specified'
             if ($encLabel.RightsDefinitions -and $encLabel.RightsDefinitions -ne 'Not specified') {
                 try {
                     # Parse the JSON string containing rights definitions
                     $rightsArray = $encLabel.RightsDefinitions | ConvertFrom-Json
                     if ($rightsArray) {
-                        $rights = ($rightsArray | ForEach-Object { "$($_.Identity): $($_.Rights -join ', ')" }) -join '; '
+                        $userCount = @($rightsArray).Count
+                        $rights = if ($userCount -eq 1) { '1 user' } else { "$userCount users" }
                     }
                 }
                 catch {
-                    # If parsing fails, show the raw value or a fallback message
-                    $rights = if ($encLabel.RightsDefinitions.Length -gt 50) { 'Complex permissions configured' } else { $encLabel.RightsDefinitions }
+                    # If parsing fails, show fallback message
+                    $rights = 'Unable to parse permissions'
                 }
             }
-            
+
             $coAuthBlocked = $encLabel.CoAuthoringBlocked
-            
+
             $labelDetails += "| $name | $encType | $rights | $coAuthBlocked |`n"
         }
-        
+
+        $labelDetails += "`n*Note: The rightsdefinitions setting may contain multiple users with individual permission sets. The table displays a count of users. For detailed per-user permissions, examine the LabelActions JSON encrypt action directly.*`n"
+
         $labelDetails += "`n**Summary:**`n"
         $labelDetails += "* Total Encryption-Enabled Labels: $($encryptedLabels.Count)`n"
-        
+
         # Count by encryption type
         $standardRMS = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'template' }).Count
         $userDefined = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'userdefined' }).Count
         $dkeLabels = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'dke' }).Count
-        
+
         if ($standardRMS -gt 0) {
             $labelDetails += "* Standard RMS: $standardRMS`n"
         }
@@ -184,7 +185,7 @@ function Test-Assessment-35013 {
 
     $params = @{
         TestId = '35013'
-        Title  = 'Encryption-enabled sensitivity labels configured'
+        Title  = 'Encryption-Enabled Labels'
         Status = $passed
         Result = $testResultMarkdown
     }
