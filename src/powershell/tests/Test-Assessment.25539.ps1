@@ -171,10 +171,6 @@ function Test-Assessment-25539 {
     #endregion Data Collection
 
     #region Assessment Logic
-    if (-not $results) {
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
 
     $failedPolicies = @($results | Where-Object { -not $_.Passed })
     $passed = $failedPolicies.Count -eq 0
