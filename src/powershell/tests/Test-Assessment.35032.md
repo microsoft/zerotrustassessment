@@ -7,7 +7,7 @@ For example, when insider risk identifies a user engaging in suspicious data acc
 To configure Adaptive Protection in DLP policies:
 
 **Prerequisites:**
-- Microsoft 365 E5 or E5 Compliance license (Adaptive Protection is premium feature)
+- Microsoft 365 E5 or E5 Compliance license (Adaptive Protection is a premium feature)
 - Insider Risk Management solution must be enabled in your organization
 - Global Administrator or Compliance Administrator role
 
