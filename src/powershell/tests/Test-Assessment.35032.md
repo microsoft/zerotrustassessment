@@ -39,7 +39,7 @@ To configure Adaptive Protection in DLP policies:
        "SubConditions": [
          {
            "ConditionName": "SharedByIRMUserRisk",
-           "Value": ["fcb9fa93-6269-4acf-a756-832e79b36a2a"]
+           "Value": ["FCB9FA93-6269-4ACF-A756-832E79B36A2A"]
          }
        ]
      }
