@@ -29,72 +29,19 @@ function Test-Assessment-25415 {
     #region Data Collection
     Write-PSFMessage '🟦 Start Prompt Shield evaluation' -Tag Test -Level VeryVerbose
 
-    # Check if connected to Azure
     $activity = 'Checking Prompt Shield configuration for AI Gateway protection'
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
-
-    $azContext = Get-AzContext -ErrorAction SilentlyContinue
-    if (-not $azContext) {
-        Write-PSFMessage 'Not connected to Azure.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
-        return
-    }
-
-    # Check the supported environment
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
-
-    if ($azContext.Environment.Name -ne 'AzureCloud') {
-        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
+    Write-ZtProgress -Activity $activity -Status 'Querying prompt policies'
 
     # Q1: Get prompt policies
-    Write-ZtProgress -Activity $activity -Status 'Querying prompt policies'
-    $graphBaseUrl = 'https://graph.microsoft.com/beta/'
-    $promptPoliciesUri = $graphBaseUrl + 'networkAccess/promptPolicies?$expand=policyRules'
-
-    try {
-        $result = Invoke-AzRestMethod -Method GET -Uri $promptPoliciesUri -ErrorAction Stop
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to query prompt policies.' -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Prompt policies request failed with status code $($result.StatusCode)"
-        }
-
-        $promptPolicies = ($result.Content | ConvertFrom-Json).value
-    }
-    catch {
-        throw
-    }
+    $promptPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/promptPolicies' -QueryParameters @{
+        '$expand' = 'policyRules'
+    } -ApiVersion beta
 
     # Q2: Get filtering profiles with linked policies and Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying security profiles and linked policies'
-    $filteringProfilesUri = $graphBaseUrl + 'networkAccess/filteringProfiles?$expand=policies($expand=policy),conditionalAccessPolicies'
-
-    try {
-        $result = Invoke-AzRestMethod -Method GET -Uri $filteringProfilesUri -ErrorAction Stop
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to query filtering profiles.' -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Filtering profiles request failed with status code $($result.StatusCode)"
-        }
-
-        $filteringProfiles = ($result.Content | ConvertFrom-Json).value
-    }
-    catch {
-        throw
-    }
+    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
+        '$expand' = 'policies($expand=policy),conditionalAccessPolicies'
+    } -ApiVersion beta
 
     # Get all Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
