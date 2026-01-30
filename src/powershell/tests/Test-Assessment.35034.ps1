@@ -56,7 +56,7 @@ function Test-Assessment-35034 {
 
     # Check if query failed
     if ($null -ne $errorMsg) {
-        $testResultMarkdown = "⚠️ Unable to determine EDM schema configuration due to permissions issues or service connection failure.`n`n$errorMsg`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unable to determine EDM schema configuration due to permissions issues or service connection failure.`n`n%TestResult%"
         $passed = $false
         $customStatus = 'Investigate'
     }
@@ -79,7 +79,7 @@ function Test-Assessment-35034 {
 
 ## [{0}]({1})
 
-| Schema Name | Description | Version | Created Date | Modified Date |
+| Schema name | Description | Version | Created date | Modified date |
 | :---------- | :---------- | :------ | :----------- | :------------ |
 {2}
 
@@ -98,7 +98,12 @@ function Test-Assessment-35034 {
             $created = if ($schema.CreatedDate) { $schema.CreatedDate } else { 'N/A' }
             $modified = if ($schema.ModifiedDate) { $schema.ModifiedDate } else { 'N/A' }
 
-            $tableRows += "| $name | $description | $version | $created | $modified |`n"
+            $safeName = Get-SafeMarkdown -Text $name
+            $safeDescription = Get-SafeMarkdown -Text $description
+            $safeVersion = Get-SafeMarkdown -Text $version
+            $safeCreated = Get-SafeMarkdown -Text $created
+            $safeModified = Get-SafeMarkdown -Text $modified
+            $tableRows += "| $safeName | $safeDescription | $safeVersion | $safeCreated | $safeModified |`n"
         }
 
         $tableRows += "`n**Summary:**`n"
