@@ -25,7 +25,7 @@ function Test-Assessment-35034 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35034,
-        Title = 'Exact Data Match (EDM) schemas are configured for organization-specific sensitive data detection',
+        Title = 'Exact Data Match (EDM) Configurations',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -113,7 +113,7 @@ function Test-Assessment-35034 {
 
     $params = @{
         TestId = '35034'
-        Title  = 'Exact Data Match (EDM) schemas configured'
+        Title  = 'Exact Data Match (EDM) Configurations'
         Status = $passed
         Result = $testResultMarkdown
     }
