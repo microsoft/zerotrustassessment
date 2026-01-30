@@ -29,6 +29,7 @@ function Test-Assessment-35018 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
     $activity = 'Checking downgrade justification required for sensitivity labels'
     Write-ZtProgress -Activity $activity -Status 'Checking downgrade justification'
 
