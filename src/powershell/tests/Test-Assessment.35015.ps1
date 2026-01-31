@@ -69,7 +69,17 @@ function Test-Assessment-35015 {
 
             $policy | Add-Member -MemberType NoteProperty -Name 'Scope' -Value $scope -PassThru
         } | Where-Object { $_.Scope -eq 'Global' }
-        $uniqueLabels = $globalPolicies.Labels | Where-Object { $_ } | Select-Object -Unique
+
+        # Include both Labels and ScopedLabels when counting unique labels for global policies
+        $allLabels = @()
+        if ($globalPolicies.Labels) {
+            $allLabels += $globalPolicies.Labels
+        }
+        if ($globalPolicies.ScopedLabels) {
+            $allLabels += $globalPolicies.ScopedLabels
+        }
+
+        $uniqueLabels = $allLabels | Where-Object { $_ } | Select-Object -Unique
         $totalUniqueLabels = @($uniqueLabels).Count
         $passed = $totalUniqueLabels -le $maxRecommendedLabels
     }
