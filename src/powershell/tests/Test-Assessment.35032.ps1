@@ -73,12 +73,9 @@ function Test-Assessment-35032 {
     }
     else {
         # If at least 1 DLP rule contains SharedByIRMUserRisk condition, the test passes
-        if ($adaptiveRules -and @($adaptiveRules).Count -ge 1) {
-            $passed = $true
-        }
-        else {
-            $passed = $false
-        }
+        # Returns $true if $adaptiveRules contains any items
+        # Returns $false if it's $null or empty
+        $passed = [bool]$adaptiveRules
     }
     #endregion Assessment Logic
 
