@@ -105,13 +105,23 @@ function Test-Assessment-35015 {
             foreach ($policy in $globalPolicies) {
                 $policyName = Get-SafeMarkdown -Text $policy.Name
                 $scope = $policy.Scope
-                $labelCount = @($policy.Labels).Count
+
+                # Prefer Labels; fall back to ScopedLabels if Labels is not populated
+                $labelSource = if ($policy.Labels) {
+                    $policy.Labels
+                } elseif ($policy.ScopedLabels) {
+                    $policy.ScopedLabels
+                } else {
+                    @()
+                }
+
+                $labelCount = @($labelSource).Count
 
                 # Get sample labels (up to 5)
-                $sampleLabels = if ($policy.Labels) {
-                    $samples = @($policy.Labels | Select-Object -First 5)
+                $sampleLabels = if ($labelSource -and $labelSource.Count -gt 0) {
+                    $samples = @($labelSource | Select-Object -First 5)
                     $labelText = ($samples | ForEach-Object { Get-SafeMarkdown -Text $_ }) -join ', '
-                    if (@($policy.Labels).Count -gt 5) { $labelText += ', ...' }
+                    if (@($labelSource).Count -gt 5) { $labelText += ', ...' }
                     $labelText
                 } else { 'None' }
 
