@@ -56,14 +56,22 @@ function Test-Assessment-35015 {
         # Identify globally-scoped policies by checking all location names
         $globalPolicies = $labelPolicies | ForEach-Object {
             $policy = $_
+            # Locations from Get-LabelPolicy can be strings/arrays (e.g. 'All') or objects with a Name property.
             $allLocationNames = @(
-                $policy.ExchangeLocation.Name
-                $policy.ModernGroupLocation.Name
-                $policy.SharePointLocation.Name
-                $policy.OneDriveLocation.Name
-                $policy.SkypeLocation.Name
-                $policy.PublicFolderLocation.Name
-            ) | Where-Object { $_ }
+                $policy.ExchangeLocation
+                $policy.ModernGroupLocation
+                $policy.SharePointLocation
+                $policy.OneDriveLocation
+                $policy.SkypeLocation
+                $policy.PublicFolderLocation
+            ) | ForEach-Object {
+                if ($_ -is [string]) {
+                    $_
+                }
+                elseif ($_.PSObject.Properties['Name']) {
+                    $_.Name
+                }
+            } | Where-Object { $_ }
             $isGlobal = $allLocationNames -contains 'All'
             $scope = if ($isGlobal) { 'Global' } else { 'User/Group-Scoped' }
 
