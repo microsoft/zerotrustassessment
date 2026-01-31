@@ -65,11 +65,11 @@ function Test-Assessment-35032 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $investigateFlag = $false
+    $customStatus = $false
     $passed = $false
 
     if ($errorMsg) {
-        $investigateFlag = $true
+        $customStatus = $true
     }
     else {
         # If at least 1 DLP rule contains SharedByIRMUserRisk condition, the test passes
@@ -85,7 +85,7 @@ function Test-Assessment-35032 {
     #region Report Generation
     $testResultMarkdown = ""
 
-    if ($investigateFlag) {
+    if ($customStatus) {
         $testResultMarkdown = "⚠️ Unable to determine Adaptive Protection configuration due to permissions issues or service connection failure.`n`n%TestResult%"
     }
     elseif ($passed) {
@@ -97,7 +97,7 @@ function Test-Assessment-35032 {
 
     $mdInfo = ''
 
-    if ($investigateFlag) {
+    if ($customStatus) {
         $mdInfo = "[View DLP Policies in Microsoft Purview Portal](https://purview.microsoft.com/datalossprevention/policies)`n"
     }
     elseif ($passed) {
@@ -176,7 +176,7 @@ function Test-Assessment-35032 {
         Status = $passed
         Result = $testResultMarkdown
     }
-    if ($investigateFlag -eq $true) {
+    if ($customStatus -eq $true) {
         $params.CustomStatus = 'Investigate'
     }
     Add-ZtTestResultDetail @params
