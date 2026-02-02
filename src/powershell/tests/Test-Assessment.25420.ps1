@@ -19,11 +19,11 @@ function Test-Assessment-25420 {
     [ZtTest(
         Category = 'Global Secure Access',
         ImplementationCost = 'Low',
-        MinimumLicense = 'AAD_PREMIUM, Entra_Premium_Internet_Access, Entra_Premium_Private_Access',
+        MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Internet_Access', 'Entra_Premium_Private_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
-        TenantType = 'Workforce',
+        TenantType = ('Workforce'),
         TestId = 25420,
         Title = 'Network access logs are retained for security analysis and compliance requirements',
         UserImpact = 'Low'
@@ -49,33 +49,51 @@ function Test-Assessment-25420 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Evaluating network access log retention configuration'
+
+    # Check if connected to Azure
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
-    # Check for Azure authentication
-    try {
-        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-    }
-    catch [Management.Automation.CommandNotFoundException] {
-        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
-    }
-
-    if (!$accessToken) {
-        Write-PSFMessage "Azure authentication token not found." -Level Warning
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if (-not $azContext) {
+        Write-PSFMessage 'Not connected to Azure.' -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
         return
     }
 
+    # Check the supported environment, 'AzureCloud' in (Get-AzContext).Environment.Name maps to 'Global' in (Get-MgContext).Environment
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
+        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
+
+    # Query diagnostic settings for Microsoft Entra
     Write-ZtProgress -Activity $activity -Status 'Querying diagnostic settings'
 
-    # Query Q1: Retrieve diagnostic settings for Microsoft Entra
+    $resourceManagementUrl = $azContext.Environment.ResourceManagerUrl
+    $diagnosticSettingsUri = $resourceManagementUrl + 'providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview'
+
     $diagnosticSettings = $null
     try {
-        $uri = 'https://management.azure.com/providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview'
-        $response = Invoke-AzRestMethod -Uri $uri -Method GET -ErrorAction Stop
-        $diagnosticSettings = ($response.Content | ConvertFrom-Json).value
+        $result = Invoke-AzRestMethod -Method GET -Uri $diagnosticSettingsUri -ErrorAction Stop
+
+        if ($result.StatusCode -eq 403) {
+            Write-PSFMessage 'The signed in user does not have access to check diagnostic settings.' -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
+
+        if ($result.StatusCode -ge 400) {
+            throw "Diagnostic settings request failed with status code $($result.StatusCode)"
+        }
+
+        $diagnosticSettings = ($result.Content | ConvertFrom-Json).value
     }
     catch {
-        Write-PSFMessage "Error querying diagnostic settings: $_" -Level Error
+        # Only catches actual exceptions (network errors, etc.), not HTTP status codes
+        throw
     }
 
     # Query Q2: Retrieve Log Analytics workspace retention settings for each configured workspace
@@ -92,9 +110,16 @@ function Test-Assessment-25420 {
 
         foreach ($workspaceId in $workspaceIds) {
             try {
-                $workspaceUri = "https://management.azure.com$workspaceId`?api-version=2023-09-01"
-                $workspaceResponse = Invoke-AzRestMethod -Uri $workspaceUri -Method GET -ErrorAction Stop
-                $workspaceDetails[$workspaceId] = ($workspaceResponse.Content | ConvertFrom-Json)
+                $workspaceUri = $resourceManagementUrl.TrimEnd('/') + $workspaceId + '?api-version=2023-09-01'
+                $workspaceResponse = Invoke-AzRestMethod -Method GET -Uri $workspaceUri -ErrorAction Stop
+
+                if ($workspaceResponse.StatusCode -ge 400) {
+                    Write-PSFMessage "Failed to query workspace $workspaceId with status code $($workspaceResponse.StatusCode)" -Level Warning
+                    $workspaceDetails[$workspaceId] = $null
+                }
+                else {
+                    $workspaceDetails[$workspaceId] = ($workspaceResponse.Content | ConvertFrom-Json)
+                }
             }
             catch {
                 Write-PSFMessage "Error querying workspace $workspaceId : $_" -Level Warning
@@ -337,8 +362,8 @@ function Test-Assessment-25420 {
                 "[Storage account](https://portal.azure.com/?feature.msaljs=true#view/Microsoft_Azure_StorageHub/StorageHub.MenuView/~/StorageAccountsBrowse)"
             }
             else { 'None' }
-            $resourceName = if ($diag.WorkspaceName) { $diag.WorkspaceName }
-                           elseif ($diag.StorageAccountId) { $diag.StorageAccountId.Split('/')[-1] }
+            $resourceName = if ($diag.WorkspaceName) { Get-SafeMarkdown $diag.WorkspaceName }
+                           elseif ($diag.StorageAccountId) { Get-SafeMarkdown ($diag.StorageAccountId.Split('/')[-1]) }
                            else { 'N/A' }
             $retention = if ($diag.RetentionDays) { "$($diag.RetentionDays) days" }
                         elseif ($diag.StorageAccountId) { 'Manual verification required' }
