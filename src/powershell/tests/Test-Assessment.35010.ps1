@@ -1,15 +1,24 @@
 <#
 .SYNOPSIS
-    Checks for excessive Double Key Encryption (DKE) label proliferation
+    Double Key Encryption (DKE) Labels
+
 .DESCRIPTION
-    Verifies that organizations maintain appropriate limits on DKE labels (5 or fewer) to avoid operational complexity,
-    user confusion, and management overhead. DKE should be reserved for truly critical data requiring stringent regulatory protection.
+    Double Key Encryption (DKE) provides an additional layer of protection for highly sensitive data by requiring two keys to decrypt content:
+    one managed by Microsoft and one managed by the customer. This "hold your own key" approach ensures Microsoft cannot decrypt customer
+    content even with legal compulsion, meeting stringent regulatory requirements for data sovereignty and control.
+
+    However, DKE introduces significant operational complexity including dedicated key service infrastructure, reduced feature compatibility,
+    and increased support burden. Organizations that deploy DKE should maintain 1-3 labels reserved for truly mission-critical or heavily
+    regulated data. Excessive DKE label proliferation (4 or more labels) indicates potential misuse and creates management overhead, user
+    confusion about when to apply DKE versus standard encryption, and reduces collaboration capabilities.
+
+    DKE should never be broadly deployed across general business content. Overuse of DKE creates operational risk where key service
+    unavailability prevents access to business-critical documents.
 
 .NOTES
     Test ID: 35010
-    Category: Encryption
-    Required Module: ExchangeOnlineManagement v3.5.1+
-    Required Connection: Connect-IPPSSession
+    Pillar: Data
+    Risk Level: Low
 #>
 
 function Test-Assessment-35010 {
