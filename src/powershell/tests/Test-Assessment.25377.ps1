@@ -131,7 +131,11 @@ function Test-Assessment-25377 {
     if ($tenantRestrictions.usersAndGroups.targets) {
         $usersTargetsArray = @($tenantRestrictions.usersAndGroups.targets | ForEach-Object { $_.target })
     }
-    $usersTargetDisplay = if ($usersTargetsArray.Count -gt 0) { $usersTargetsArray[0] } else { 'Not configured' }
+    $usersTargetDisplay = if ($usersTargetsArray.Count -le 5) {
+        $usersTargetsArray -join ', '
+    } else {
+        ($usersTargetsArray[0..4] -join ', ') + ' ...'
+    }
     $usersTargetIcon = if ($usersTargetsArray -contains 'AllUsers') { '✅' } else { '❌' }
 
     # Applications Access Type
@@ -143,7 +147,11 @@ function Test-Assessment-25377 {
     if ($tenantRestrictions.applications.targets) {
         $appsTargetsArray = @($tenantRestrictions.applications.targets | ForEach-Object { $_.target })
     }
-    $appsTargetDisplay = if ($appsTargetsArray.Count -gt 0) { $appsTargetsArray[0] } else { 'Not configured' }
+    $appsTargetDisplay = if ($appsTargetsArray.Count -le 5) {
+        $appsTargetsArray -join ', '
+    } else {
+        ($appsTargetsArray[0..4] -join ', ') + ' ...'
+    }
     $appsTargetIcon = if ($appsTargetsArray -contains 'AllApplications') { '✅' } else { '❌' }
 
     # Build configuration table using format template
