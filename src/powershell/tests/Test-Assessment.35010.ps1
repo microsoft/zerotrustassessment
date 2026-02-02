@@ -75,8 +75,8 @@ function Test-Assessment-35010 {
         }
 
         # Calculate counts
-        $totalLabelsCount = @($allLabels).Count
-        $dkeLabelsCount = @($allLabels | Where-Object { $_.DkeEnabled }).Count
+        $totalLabelsCount = $allLabels.Count
+        $dkeLabelsCount = ($allLabels | Where-Object { $_.DkeEnabled }).Count
     }
     catch {
         $errorMsg = $_
