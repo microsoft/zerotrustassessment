@@ -88,15 +88,26 @@ function Test-Assessment-35015 {
 
         if ($globalPolicies) {
             $testResultMarkdown += "### [Global Label Policies](https://purview.microsoft.com/informationprotection/labelpolicies)`n`n"
-            $testResultMarkdown += "| Policy Name | Status | Scope | Labels Published | Sample Labels |`n"
-            $testResultMarkdown += "| :--- | :--- | :--- | :---: | :--- |`n"
+            $testResultMarkdown += "| Policy Name | Global Workloads | Labels Published | Sample Labels |`n"
+            $testResultMarkdown += "| :--- | :--- | :---: | :--- |`n"
 
             $policyLink = "https://purview.microsoft.com/informationprotection/labelpolicies"
 
             foreach ($policy in $globalPolicies) {
                 $policyName = Get-SafeMarkdown -Text $policy.Name
-                $scope = $policy.Scope
                 $labelCount = @($policy.Labels).Count
+
+                # Identify which workloads have "All" (Location Properties with "All")
+                $globalWorkloads = @()
+                if ($policy.ExchangeLocation.Name -contains 'All') { $globalWorkloads += 'Exchange' }
+                if ($policy.SharePointLocation.Name -contains 'All') { $globalWorkloads += 'SharePoint' }
+                if ($policy.OneDriveLocation.Name -contains 'All') { $globalWorkloads += 'OneDrive' }
+                if ($policy.ModernGroupLocation.Name -contains 'All') { $globalWorkloads += 'ModernGroup' }
+                if ($policy.SkypeLocation.Name -contains 'All') { $globalWorkloads += 'Skype' }
+
+                $workloadsText = if ($globalWorkloads.Count -gt 0) {
+                    $globalWorkloads -join ', '
+                } else { 'None' }
 
                 # Get sample labels (up to 5)
                 $sampleLabels = if ($policy.Labels) {
@@ -106,7 +117,7 @@ function Test-Assessment-35015 {
                     $labelText
                 } else { 'None' }
 
-                $testResultMarkdown += "| [$policyName]($policyLink) | Enabled | $scope | $labelCount | $sampleLabels |`n"
+                $testResultMarkdown += "| [$policyName]($policyLink) | $workloadsText | $labelCount | $sampleLabels |`n"
             }
 
             $statusText = if ($passed) { 'Pass' } else { 'Fail' }
