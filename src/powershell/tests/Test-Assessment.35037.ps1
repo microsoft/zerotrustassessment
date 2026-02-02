@@ -21,27 +21,45 @@ function Test-Assessment-35037 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
     $activity = 'Checking Purview audit logging configuration'
+
+    # Query Q1: Get unified audit logging configuration
     Write-ZtProgress -Activity $activity -Status 'Getting audit log configuration'
 
-    # Query Q1: Check if unified audit logging is enabled
-    $auditConfig = Get-AdminAuditLogConfig
+    $errorMsg = $null
+    $auditConfig = $null
 
-    Write-PSFMessage "Retrieved audit log configuration " -Level Verbose
+    try {
+
+        $auditConfig = Get-AdminAuditLogConfig -ErrorAction Stop
+        Write-PSFMessage "Retrieved audit log configuration" -Level Verbose
+    }
+    catch {
+        $errorMsg = $_
+        Write-PSFMessage "Error querying audit log configuration: $_" -Level Error
+    }
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
+    $customStatus = $null
 
-    # Determine pass/fail status based on UnifiedAuditLogIngestionEnabled
-    if ($auditConfig.UnifiedAuditLogIngestionEnabled -eq $true) {
-        $passed = $true
-        $testResultMarkdown = "✅ Purview audit logging is enabled and all activities across Microsoft 365 services are being captured and logged for investigation and compliance purposes.`n`n%TestResult%"
+    if ($errorMsg) {
+        $testResultMarkdown = "❌ Unable to determine audit logging status due to permissions issues or query failure.`n`n"
+    }
+    elseif (-not $auditConfig) {
+        $testResultMarkdown = "❌ Unable to retrieve audit logging configuration.`n`n"
     }
     else {
-        $passed = $false
-        $testResultMarkdown = "❌ Purview audit logging is disabled, creating a critical visibility gap where unauthorized access, policy violations, and security incidents cannot be detected or investigated.`n`n%TestResult%"
+        # Determine pass/fail status based on UnifiedAuditLogIngestionEnabled
+        if ($auditConfig.UnifiedAuditLogIngestionEnabled -eq $true) {
+            $passed = $true
+            $testResultMarkdown = "✅ Purview Audit Logging is ENABLED and all activities across Microsoft 365 services are being captured and logged for investigation and compliance purposes.`n`n%TestResult%"
+        }
+        else {
+            $passed = $false
+            $testResultMarkdown = "❌ Purview Audit Logging is DISABLED, creating a critical visibility gap where unauthorized access, policy violations, and security incidents cannot be detected or investigated.`n`n%TestResult%"
+        }
     }
 
     #endregion Assessment Logic
@@ -49,18 +67,20 @@ function Test-Assessment-35037 {
     #region Report Generation
     $mdInfo = ''
 
-    # Show audit configuration
-    $mdInfo += "`n`n### [Audit logging status](https://purview.microsoft.com/audit)`n"
-    $mdInfo += "| Configuration property | Value |`n"
-    $mdInfo += "| :--- | :--- |`n"
+    # Show audit configuration only if we have data
+    if ($null -ne $auditConfig) {
+        $mdInfo += "`n`n### [Audit logging status](https://purview.microsoft.com/audit)`n"
+        $mdInfo += "| Configuration property | Value |`n"
+        $mdInfo += "| :--- | :--- |`n"
 
-    $auditStatus = $auditConfig.UnifiedAuditLogIngestionEnabled
-    $ageLimit = if ($auditConfig.AdminAuditLogAgeLimit) { $auditConfig.AdminAuditLogAgeLimit } else { 'Not configured' }
-    $organization = if ($auditConfig.OrganizationalUnitRoot) { Get-SafeMarkdown -Text $auditConfig.OrganizationalUnitRoot } else { 'N/A' }
+        $auditStatus = $auditConfig.UnifiedAuditLogIngestionEnabled
+        $ageLimit = if ($auditConfig.AdminAuditLogAgeLimit) { $auditConfig.AdminAuditLogAgeLimit } else { 'Not configured' }
+        $organizationId = if ($auditConfig.OrganizationId) { Get-SafeMarkdown -Text $auditConfig.OrganizationId } else { 'N/A' }
 
-    $mdInfo += "| Unified audit log ingestion enabled | $auditStatus |`n"
-    $mdInfo += "| Audit log age limit | $ageLimit |`n"
-    $mdInfo += "| Organization | $organization |"
+        $mdInfo += "| Unified audit log ingestion enabled | $auditStatus |`n"
+        $mdInfo += "| Audit log age limit | $ageLimit |`n"
+        $mdInfo += "| Organization ID | $organizationId |"
+    }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
