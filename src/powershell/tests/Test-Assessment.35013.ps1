@@ -40,17 +40,22 @@ function Test-Assessment-35013 {
     $allLabels = $null
     $encryptedLabels = @()
 
-    # Query: Get all sensitivity labels with LabelActions
+    # Query: Get all sensitivity labels with encryption-enabled (not disabled)
     try {
-        $allLabels = Get-Label -ErrorAction Stop | Where-Object { $_.LabelActions }
+        $allLabels = Get-Label -ErrorAction Stop | Where-Object {
+            $encryptAction = ($_.LabelActions | ConvertFrom-Json | Where-Object { $_.Type -eq 'encrypt' })
+            $disabledSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'disabled' }
+            ($encryptAction -ne $null) -and (-not ($disabledSetting -and $disabledSetting.Value -eq 'true'))
+        }
 
-        # Parse LabelActions to find encryption-enabled labels
+        # Parse LabelActions to extract encryption details
         foreach ($label in $allLabels) {
             try {
                 $labelActions = $label.LabelActions | ConvertFrom-Json
                 $encryptAction = $labelActions | Where-Object { $_.Type -eq 'encrypt' }
 
                 if ($null -ne $encryptAction) {
+
                     # Extract encryption details from Settings array (Key-Value pairs)
                     $protectionTypeSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'protectiontype' }
                     $encryptionType = if ($protectionTypeSetting) { $protectionTypeSetting.Value } else { 'template' }
@@ -113,6 +118,8 @@ function Test-Assessment-35013 {
 
 ## [{0}]({1})
 
+| Label name | Encryption type | Default permissions users | Co-Authoring blocked |
+| :--------- | :-------------- | :------------------------ | :------------------: |
 {2}
 
 '@
@@ -120,11 +127,8 @@ function Test-Assessment-35013 {
         $reportTitle = 'Encryption Label Details'
         $portalLink = 'https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels'
 
-        # Build table header
-        $labelDetails += "| Label name | Encryption type | Default permissions users | Co-Authoring blocked |`n"
-        $labelDetails += "| :--------- | :-------------- | :------------------------ | :------------------: |`n"
-
         # Build table rows
+        $labelDetails = ''
         foreach ($encLabel in $encryptedLabels) {
             $name = if ($encLabel.Name) { $encLabel.Name } else { 'N/A' }
             $encType = switch ($encLabel.EncryptionType) {
