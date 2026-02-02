@@ -86,12 +86,12 @@ function Test-Assessment-35010 {
 
     #region Assessment Logic
     $passed = $false
-    $investigateFlag = $false
+    $customStatus  = $null
     $testResultMarkdown = ''
 
     if ($errorMsg) {
         # Investigate scenario - Query failed
-        $investigateFlag = $true
+        $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ Unable to determine DKE label configuration due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
     }
     elseif ($dkeLabelsCount -eq 0) {
@@ -106,7 +106,7 @@ function Test-Assessment-35010 {
     }
     else {
         # Investigate scenario - 4+ DKE labels (excessive)
-        $investigateFlag = $true
+        $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ 4 or more DKE labels detected - review each label's business justification to confirm appropriate use; excessive DKE beyond critical data indicates potential misuse.`n`n%TestResult%"
     }
     #endregion Assessment Logic
@@ -152,8 +152,8 @@ function Test-Assessment-35010 {
     }
 
     # Add CustomStatus if status is 'Investigate'
-    if ($investigateFlag) {
-        $params.CustomStatus = 'Investigate'
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     # Add test result details
