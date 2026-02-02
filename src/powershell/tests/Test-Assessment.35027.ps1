@@ -86,12 +86,12 @@ function Test-Assessment-35027 {
 
     #region Assessment Logic
     $passed = $false
-    $investigateFlag = $false
+    $customStatus = $null
     $testResultMarkdown = ''
 
     if ($errorMsg) {
         # Investigate scenario
-        $investigateFlag = $true
+        $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ Unable to determine OME branding configuration status due to permissions issues or query failure.`n`n%TestResult%"
     }
     elseif ($configsWithBranding -gt 0) {
@@ -142,8 +142,8 @@ function Test-Assessment-35027 {
         Result = $testResultMarkdown
     }
 
-    if ($investigateFlag -eq $true) {
-        $params.CustomStatus = 'Investigate'
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
