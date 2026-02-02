@@ -45,7 +45,7 @@ function Test-Assessment-35027 {
 
     try {
         # Query Q1: Get all OME template branding configurations
-        $omeConfig = Get-OMEConfiguration | Select-Object -Property Identity, ImageUrl, BackgroundColor, IntroductionText, PortalText, DisclaimerText, EmailText
+        $omeConfig = Get-OMEConfiguration -ErrorAction Stop | Select-Object -Property Identity, ImageUrl, BackgroundColor, IntroductionText, PortalText, DisclaimerText, EmailText
 
         # Extract and normalize data
         $totalConfigs = ($omeConfig | Measure-Object).Count
