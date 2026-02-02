@@ -13,8 +13,8 @@
 
 function Test-Assessment-35015 {
     [ZtTest(
-        Category = 'Information Protection',
-        ImplementationCost = 'Low',
+        Category = 'sensitivity-labels',
+        ImplementationCost = 'Medium',
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'Medium',
@@ -29,8 +29,9 @@ function Test-Assessment-35015 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
     $activity = 'Checking Global Scope Label Count'
+
+    # Q1: Get all enabled label policies
     Write-ZtProgress -Activity $activity -Status 'Getting label policies'
 
     $errorMsg = $null
@@ -49,7 +50,7 @@ function Test-Assessment-35015 {
     #region Assessment Logic
     $customStatus = $null
     if ($errorMsg) {
-        $passed = $false
+        $testResultMarkdown = "⚠️ Unable to determine global label count due to permissions issues or query failure.`n`n"
         $customStatus = 'Investigate'
     }
     else {
@@ -86,7 +87,7 @@ function Test-Assessment-35015 {
         $testResultMarkdown = "$status $totalUniqueLabels sensitivity labels are published in globally-scoped policies, $statusText the recommended limit of $maxRecommendedLabels.`n`n"
 
         if ($globalPolicies) {
-            $testResultMarkdown += "### Global Label Policies`n`n"
+            $testResultMarkdown += "### [Global Label Policies](https://purview.microsoft.com/informationprotection/labelpolicies)`n`n"
             $testResultMarkdown += "| Policy Name | Status | Scope | Labels Published | Sample Labels |`n"
             $testResultMarkdown += "| :--- | :--- | :--- | :---: | :--- |`n"
 
@@ -113,6 +114,7 @@ function Test-Assessment-35015 {
             $testResultMarkdown += "* **Total Unique Labels Published Globally:** $totalUniqueLabels`n"
             $testResultMarkdown += "* **Recommended Maximum:** $maxRecommendedLabels`n"
             $testResultMarkdown += "* **Status:** $statusText`n"
+            $testResultMarkdown += "`n*Note: Labels appearing in multiple global policies are counted once (deduplicated).*`n"
         } else {
             $testResultMarkdown += "No globally-scoped label policies found.`n"
         }
