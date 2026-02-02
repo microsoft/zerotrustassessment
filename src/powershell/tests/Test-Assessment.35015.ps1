@@ -56,38 +56,20 @@ function Test-Assessment-35015 {
         # Identify globally-scoped policies by checking all location names
         $globalPolicies = $labelPolicies | ForEach-Object {
             $policy = $_
-            # Locations from Get-LabelPolicy can be strings/arrays (e.g. 'All') or objects with a Name property.
             $allLocationNames = @(
-                $policy.ExchangeLocation
-                $policy.ModernGroupLocation
-                $policy.SharePointLocation
-                $policy.OneDriveLocation
-                $policy.SkypeLocation
-                $policy.PublicFolderLocation
-            ) | ForEach-Object {
-                if ($_ -is [string]) {
-                    $_
-                }
-                elseif ($_.PSObject.Properties['Name']) {
-                    $_.Name
-                }
-            } | Where-Object { $_ }
+                $policy.ExchangeLocation.Name
+                $policy.ModernGroupLocation.Name
+                $policy.SharePointLocation.Name
+                $policy.OneDriveLocation.Name
+                $policy.SkypeLocation.Name
+                $policy.PublicFolderLocation.Name
+            ) | Where-Object { $_ }
             $isGlobal = $allLocationNames -contains 'All'
             $scope = if ($isGlobal) { 'Global' } else { 'User/Group-Scoped' }
 
             $policy | Add-Member -MemberType NoteProperty -Name 'Scope' -Value $scope -PassThru
         } | Where-Object { $_.Scope -eq 'Global' }
-
-        # Include both Labels and ScopedLabels when counting unique labels for global policies
-        $allLabels = @()
-        if ($globalPolicies.Labels) {
-            $allLabels += $globalPolicies.Labels
-        }
-        if ($globalPolicies.ScopedLabels) {
-            $allLabels += $globalPolicies.ScopedLabels
-        }
-
-        $uniqueLabels = $allLabels | Where-Object { $_ } | Select-Object -Unique
+        $uniqueLabels = $globalPolicies.Labels | Where-Object { $_ } | Select-Object -Unique
         $totalUniqueLabels = @($uniqueLabels).Count
         $passed = $totalUniqueLabels -le $maxRecommendedLabels
     }
@@ -113,23 +95,13 @@ function Test-Assessment-35015 {
             foreach ($policy in $globalPolicies) {
                 $policyName = Get-SafeMarkdown -Text $policy.Name
                 $scope = $policy.Scope
-
-                # Prefer Labels; fall back to ScopedLabels if Labels is not populated
-                $labelSource = if ($policy.Labels) {
-                    $policy.Labels
-                } elseif ($policy.ScopedLabels) {
-                    $policy.ScopedLabels
-                } else {
-                    @()
-                }
-
-                $labelCount = @($labelSource).Count
+                $labelCount = @($policy.Labels).Count
 
                 # Get sample labels (up to 5)
-                $sampleLabels = if ($labelSource -and $labelSource.Count -gt 0) {
-                    $samples = @($labelSource | Select-Object -First 5)
+                $sampleLabels = if ($policy.Labels) {
+                    $samples = @($policy.Labels | Select-Object -First 5)
                     $labelText = ($samples | ForEach-Object { Get-SafeMarkdown -Text $_ }) -join ', '
-                    if (@($labelSource).Count -gt 5) { $labelText += ', ...' }
+                    if (@($policy.Labels).Count -gt 5) { $labelText += ', ...' }
                     $labelText
                 } else { 'None' }
 
