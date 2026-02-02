@@ -23,9 +23,7 @@ function Test-Assessment-25379 {
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param(
-        $Database
-    )
+    param()
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -98,14 +96,14 @@ function Test-Assessment-25379 {
                     }
                     $investigateMatch = $investigateMatchPattern1 + $investigateMatchPattern2 + $investigateMatchPattern3 | Select-Object -Unique
                     if ($policyMatch) {
-                        $testResultMarkdown = '✅ Compliant network controls are configured in Conditional Access.'
+                        $testResultMarkdown = "✅ Compliant network controls are configured in Conditional Access.`n`n%TestResult%"
                         $passed = $true
                     } elseif ($investigateMatch) {
-                        $testResultMarkdown = '⚠️ Compliant network controls are partially configured. Alternative enforcement pattern requires manual review.'
+                        $testResultMarkdown = "⚠️ Compliant network controls are partially configured. Alternative enforcement pattern requires manual review.`n`n%TestResult%"
                         $passed = $true
                         $customStatus = 'Investigate'
                     } else {
-                        $testResultMarkdown = '❌ Compliant network controls are not properly configured.'
+                        $testResultMarkdown = "❌ Compliant network controls are not properly configured.`n`n%TestResult%"
                         $passed = $false
                     }
                 }
@@ -118,28 +116,28 @@ function Test-Assessment-25379 {
     $mdInfo = ''
 
     # Add Global Secure Access Signaling Status
-    $mdInfo += "`n## Global Secure Access Configuration`n`n"
+    $mdInfo += "`n## Global secure access configuration`n`n"
     $mdInfo += "| Setting | Value |`n"
     $mdInfo += "| :--- | :--- |`n"
     $signalingStatusValue = if ($null -ne $settings) { $settings.signalingStatus } else { 'N/A' }
-    $mdInfo += "| Signaling Status | $signalingStatusValue |`n`n"
+    $mdInfo += "| Signaling status | $signalingStatusValue |`n`n"
 
     # Add Compliant Network Named Location Details
     if ($compliantNetworkLocation) {
-        $mdInfo += "## Compliant Network Named Location`n`n"
+        $mdInfo += "## Compliant network named location`n`n"
         $mdInfo += "| Property | Value |`n"
         $mdInfo += "| :--- | :--- |`n"
-        $mdInfo += "| Display Name | $(Get-SafeMarkdown($compliantNetworkLocation.displayName)) |`n"
-        $mdInfo += "| Location ID | $($compliantNetworkLocation.id) |`n"
-        $mdInfo += "| Network Type | $($compliantNetworkLocation.compliantNetworkType) |`n"
+        $namedLocationPortal = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/NamedLocations"
+        $mdInfo += "| Display name  | [($compliantNetworkLocation.displayName)]($namedLocationPortal) |`n"
+        $mdInfo += "| Network type | $($compliantNetworkLocation.compliantNetworkType) |`n"
         $isTrustedValue = if ($null -ne $compliantNetworkLocation.isTrusted) { $compliantNetworkLocation.isTrusted } else { 'Not specified' }
-        $mdInfo += "| Is Trusted | $isTrustedValue |`n`n"
+        $mdInfo += "| Is trusted | $isTrustedValue |`n`n"
     }
 
     # Add Conditional Access Policy Details
     if ($passed -or $customStatus -eq 'Investigate') {
-        $mdInfo += "## Conditional Access Policies Using Compliant Network`n`n"
-        $mdInfo += "| Status | Policy Name | State | Include Locations | Exclude Locations | Grant Controls |`n"
+        $mdInfo += "## Conditional access policies ssing compliant network`n`n"
+        $mdInfo += "| Status | Policy name | State | Include locations | Exclude locations | Grant controls |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         if ($policyMatch) {
