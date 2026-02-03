@@ -145,14 +145,15 @@ function Test-Assessment-25377 {
         $appsTargetsArray = @($tenantRestrictions.applications.targets | ForEach-Object { $_.target })
     }
 
-    # Resolve application GUIDs to display names (limit to first 5 items)
+    # Resolve application GUIDs to display names
+    $resolvedAppsArray = Get-ApplicationNameFromId -TargetsArray $appsTargetsArray -Database $Database
+
+    # Display first 5 items with "..." if more exist
     $maxItems = 5
-    $itemsToResolve = if ($appsTargetsArray.Count -le $maxItems) { $appsTargetsArray } else { $appsTargetsArray[0..($maxItems - 1)] }
-    $resolvedAppsArray = Get-ApplicationNameFromId -TargetsArray $itemsToResolve -Database $Database
-    $appsTargetDisplay = if ($appsTargetsArray.Count -le $maxItems) {
+    $appsTargetDisplay = if ($resolvedAppsArray.Count -le $maxItems) {
         $resolvedAppsArray -join ', '
     } else {
-        ($resolvedAppsArray -join ', ') + ' ...'
+        ($resolvedAppsArray[0..($maxItems - 1)] -join ', ') + ' ...'
     }
     $appsTargetIcon = if ($appsTargetsArray -contains 'AllApplications') { '✅' } else { '❌' }
 
