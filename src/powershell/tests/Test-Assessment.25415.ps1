@@ -144,7 +144,7 @@ function Test-Assessment-25415 {
         # Build detailed report only when test passes
         $formatTemplate = @'
 
-## [Prompt Policies (AI Gateway)](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)
+## Prompt Policies (AI Gateway)
 
 | Policy Name | Action | Rules Count | Last Modified |
 | :---------- | :----- | :---------- | :------------ |
@@ -184,7 +184,7 @@ function Test-Assessment-25415 {
         # Table 3: Security Profiles with Prompt Policies and CA Assignments
         $securityProfilesSection = ''
         if ($enabledSecurityProfiles.Count -gt 0) {
-            $securityProfilesSection += "`n## [Security Profiles with Linked Policies](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView)`n`n"
+            $securityProfilesSection += "`n## Security Profiles with Linked Policies`n`n"
             $securityProfilesSection += "| Profile Name | State | Priority | Prompt Policy | CA Policies Assigned | Is Baseline |`n"
             $securityProfilesSection += "| :----------- | :---- | :------- | :------------ | :------------------- | :---------- |`n"
             foreach ($profile in $enabledSecurityProfiles) {
@@ -198,7 +198,7 @@ function Test-Assessment-25415 {
             }
 
             # Table 4: Conditional Access Policies
-            $securityProfilesSection += "`n## [Conditional Access Policies Assigned to Security Profiles](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
+            $securityProfilesSection += "`n## Conditional Access Policies Assigned to Security Profiles`n`n"
             $securityProfilesSection += "| CA Policy Name | Security Profile | CA Policy ID |`n"
             $securityProfilesSection += "| :------------- | :--------------- | :----------- |`n"
             foreach ($profile in $enabledSecurityProfiles) {
@@ -215,7 +215,7 @@ function Test-Assessment-25415 {
     }
     else {
         # For failed states, just show the portal link
-        $mdInfo = "[View Prompt Shield Configuration](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Policies.ReactView)`n"
+        $mdInfo = "[View Prompt Shield Configuration](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PromptPolicy.ReactView)`n"
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
