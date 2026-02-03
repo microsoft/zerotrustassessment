@@ -14,12 +14,12 @@ function Test-Assessment-25379 {
         Category = 'External Identities',
         ImplementationCost = 'Medium',
         MinimumLicense = ('AAD_PREMIUM'),
-        Pillar = 'Identity',
+        Pillar = 'Network',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce','External'),
         TestId = 25379,
-        Title = 'Compliant network controls are used in Conditional Access policies',
+        Title = 'Compliant network controls are used in conditional access policies',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -31,14 +31,14 @@ function Test-Assessment-25379 {
     $activity = 'Checking compliant network controls in Conditional Access'
     Write-ZtProgress -Activity $activity -Status 'Querying Global Secure Access signaling status'
 
-    # Q1: Get Global Secure Access Conditional Access signaling settings
+    # Query 1: Q1:  Get Global Secure Access Conditional Access signaling settings
     $settings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta
 
-    # Q2: Retrieve the compliant network named location
+    # Query 2: Q2: Retrieve the compliant network named location
     Write-ZtProgress -Activity $activity -Status 'Querying compliant network named location'
 
     $namedLocations = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/namedLocations`?`$filter=isof('microsoft.graph.compliantNetworkNamedLocation')" -ApiVersion beta
-    # Q3: Retrieve enabled Conditional Access policies
+    # Query 3: Q3: Retrieve enabled Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying enabled Conditional Access policies'
     $policies = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/policies`?`$filter=state eq 'enabled'" -ApiVersion beta
     #endregion Data Collection
@@ -121,31 +121,32 @@ function Test-Assessment-25379 {
     $mdInfo += "| :--- | :--- |`n"
     $signalingStatusValue = if ($null -ne $settings) { $settings.signalingStatus } else { 'N/A' }
     $mdInfo += "| Signaling status | $signalingStatusValue |`n`n"
-
+    $namedLocationPortal = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/NamedLocations"
     # Add Compliant Network Named Location Details
     if ($compliantNetworkLocation) {
         $mdInfo += "## Compliant network named location`n`n"
         $mdInfo += "| Property | Value |`n"
         $mdInfo += "| :--- | :--- |`n"
-        $namedLocationPortal = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/NamedLocations"
-        $mdInfo += "| Display name  | [($compliantNetworkLocation.displayName)]($namedLocationPortal) |`n"
+
+        $mdInfo += "| Display name  | [$(get-safeMarkdown($($compliantNetworkLocation.displayName)))]($namedLocationPortal) |`n"
         $mdInfo += "| Network type | $($compliantNetworkLocation.compliantNetworkType) |`n"
         $isTrustedValue = if ($null -ne $compliantNetworkLocation.isTrusted) { $compliantNetworkLocation.isTrusted } else { 'Not specified' }
         $mdInfo += "| Is trusted | $isTrustedValue |`n`n"
+        #$displayText = "[$(Get-SafeMarkdown($superUserObj.DisplayName))]($spPortalLink)"
     }
 
     # Add Conditional Access Policy Details
     if ($passed -or $customStatus -eq 'Investigate') {
-        $mdInfo += "## Conditional access policies ssing compliant network`n`n"
-        $mdInfo += "| Status | Policy name | State | Include locations | Exclude locations | Grant controls |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
+        $mdInfo += "## Conditional access policies using compliant network`n`n"
+        $mdInfo += "| Status | Policy name | State | Include locations |  Grant controls |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
 
         if ($policyMatch) {
             foreach ($policy in $policyMatch) {
                 $includeLocations = if ($policy.conditions.locations.includeLocations) { ($policy.conditions.locations.includeLocations -join ', ') } else { 'None' }
                 $excludeLocations = if ($policy.conditions.locations.excludeLocations) { ($policy.conditions.locations.excludeLocations -join ', ') } else { 'None' }
                 $grantControls = if ($policy.grantControls.builtInControls) { ($policy.grantControls.builtInControls -join ', ') } else { 'None' }
-                $mdInfo += "| ✅ | $(Get-SafeMarkdown($policy.displayName)) | $($policy.state) | $includeLocations | $excludeLocations | $grantControls |`n"
+                $mdInfo += "| ✅ | [$(get-safeMarkdown($($compliantNetworkLocation.displayName)))]($namedLocationPortal)  | $($policy.state) | $includeLocations | $grantControls |`n"
             }
         }
 
@@ -154,7 +155,7 @@ function Test-Assessment-25379 {
                 $includeLocations = if ($policy.conditions.locations.includeLocations) { ($policy.conditions.locations.includeLocations -join ', ') } else { 'None' }
                 $excludeLocations = if ($policy.conditions.locations.excludeLocations) { ($policy.conditions.locations.excludeLocations -join ', ') } else { 'None' }
                 $grantControls = if ($policy.grantControls.builtInControls) { ($policy.grantControls.builtInControls -join ', ') } else { 'None' }
-                $mdInfo += "| ⚠️ | $(Get-SafeMarkdown($policy.displayName)) | $($policy.state) | $includeLocations | $excludeLocations | $grantControls |`n"
+                $mdInfo += "| ⚠️ | [$(get-safeMarkdown($($compliantNetworkLocation.displayName)))]($namedLocationPortal)  | $($policy.state) | $includeLocations  | $grantControls |`n"
             }
         }
 
@@ -170,7 +171,7 @@ function Test-Assessment-25379 {
 
     $params = @{
         TestId             = '25379'
-        Title              = 'Compliant network controls are used in Conditional Access policies'
+        Title              = 'Compliant network controls are used in conditional access policies',
         Status             = $passed
         Result             = $testResultMarkdown
     }
