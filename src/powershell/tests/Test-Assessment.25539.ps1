@@ -121,7 +121,7 @@ function Test-Assessment-25539 {
 
         if (-not $policies) { continue }
 
-        # Step 3: Get individual firewall policy details
+        # Get individual firewall policy details
         $detailedPolicies = @()
         foreach ($policyResource in $policies) {
             try {
