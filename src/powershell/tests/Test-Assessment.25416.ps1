@@ -158,15 +158,15 @@ function Test-Assessment-25416 {
 
     if ($passed) {
         $statusIcon = '✅ Pass'
-        $statusMessage = 'Office internet traffic is protected by cloud firewall policies through Global Secure Access.'
+        $testResultMarkdown = "Office internet traffic is protected by cloud firewall policies through Global Secure Access.`n`n%TestResult%"
     }
     else {
         $statusIcon = '❌ Fail'
-        $statusMessage = 'Office internet traffic is not adequately protected by cloud firewall policies.'
+        $testResultMarkdown = "Office internet traffic is not adequately protected by cloud firewall policies.`n`n%TestResult%"
     }
 
     if ($remoteNetworkCount -eq 0) {
-        $mdInfo = "No remote networks configured. Cloud firewall policies are only applicable when remote networks (branch sites) are configured."
+       $testResultMarkdown = "No remote networks configured. Cloud firewall policies are only applicable when remote networks (branch sites) are configured.`n`n%TestResult%"
     }
     else {
         $remoteNetworkTableRows = ''
@@ -223,7 +223,7 @@ function Test-Assessment-25416 {
         }
     }
 
-    $testResultMarkdown = "$statusMessage`n$mdInfo"
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
