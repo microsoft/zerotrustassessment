@@ -81,6 +81,7 @@ function Test-Assessment-25539 {
     }
     catch {
         Write-PSFMessage "Unable to enumerate subscriptions: $($_.Exception.Message)" -Tag Firewall -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
