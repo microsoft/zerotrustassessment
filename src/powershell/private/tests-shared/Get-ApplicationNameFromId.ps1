@@ -34,22 +34,15 @@ function Get-ApplicationNameFromId {
     foreach ($target in $TargetsArray) {
         # Check if it's a valid GUID
         try {
-            $guid = [System.Guid]::Parse($target)
-            # It's a GUID, try to resolve it
+            [void][System.Guid]::Parse($target)
+            # It's a GUID, try to resolve it using a single UNION query
             try {
-                $sqlApp = "SELECT displayName FROM ServicePrincipal WHERE id = '$target' OR appId = '$target' LIMIT 1"
+                $sqlApp = "SELECT displayName FROM ServicePrincipal WHERE id = '$target' OR appId = '$target' UNION SELECT displayName FROM Application WHERE id = '$target' OR appId = '$target' LIMIT 1"
                 $resolvedApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
                 if ($resolvedApp) {
                     $displayArray += $resolvedApp.displayName
                 } else {
-                    # Try Application table
-                    $sqlApp2 = "SELECT displayName FROM Application WHERE id = '$target' OR appId = '$target' LIMIT 1"
-                    $resolvedApp2 = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp2
-                    if ($resolvedApp2) {
-                        $displayArray += $resolvedApp2.displayName
-                    } else {
-                        $displayArray += $target
-                    }
+                    $displayArray += $target
                 }
             }
             catch {
