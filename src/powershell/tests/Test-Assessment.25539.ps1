@@ -145,6 +145,12 @@ function Test-Assessment-25539 {
                 continue
             }
 
+            # Skip if intrusionDetection is not configured
+            if (-not $policyResource.Properties.intrusionDetection) {
+                Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have intrusion detection configured. Skipping." -Tag Firewall -Level Verbose
+                continue
+            }
+
             $idMode = $policyResource.Properties.intrusionDetection.mode
 
             # Map intrusion detection mode to user-friendly display values
@@ -186,6 +192,7 @@ function Test-Assessment-25539 {
     #region Report Generation
     $reportTitle = "Firewall policies"
     $tableRows = ""
+    $mdInfo = ""
 
     if ($results.Count -gt 0) {
         # Create a here-string with format placeholders {0}, {1}, etc.
