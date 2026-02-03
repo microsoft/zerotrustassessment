@@ -23,54 +23,47 @@ function Get-ApplicationNameFromId {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [array]$TargetsArray,
+        [string[]]$TargetsArray,
 
         [Parameter(Mandatory = $true)]
         $Database
     )
 
     $displayArray = @()
-
-    # First pass: Separate GUIDs from non-GUIDs and build lookup map
-    $guidList = @()
     $targetMap = @{}
+    # Use HashSet for deduplication of GUIDs to query
+    $guidsToQuery = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
+    # 1. Classification & Deduplication
     foreach ($target in $TargetsArray) {
-        try {
-            [void][System.Guid]::Parse($target)
-            $guidList += $target
-            $targetMap[$target] = $target  # Default to GUID if not found
-        }
-        catch {
-            # Not a GUID, use as-is
-            $targetMap[$target] = $target
+        $targetMap[$target] = $target # Default fallback
+
+        $guidRef = [System.Guid]::Empty
+        if ([System.Guid]::TryParse($target, [ref]$guidRef)) {
+            [void]$guidsToQuery.Add($target)
         }
     }
 
-    # If we have GUIDs, resolve them all in a single query
-    if ($guidList.Count -gt 0) {
+    # 2. Query
+    if ($guidsToQuery.Count -gt 0) {
         try {
-            # Build IN clause for all GUIDs (escape single quotes for defense-in-depth)
-            $guidInClause = ($guidList | ForEach-Object { "'$($_.Replace("'", "''"))'" }) -join ','
+            # Build IN clause for all GUIDs
+            $guidInClause = ($guidsToQuery | ForEach-Object { "'$($_.Replace("'", "''"))'" }) -join ','
 
             # Single query to resolve all GUIDs at once
             $sqlApp = @"
 SELECT id, appId, displayName FROM ServicePrincipal WHERE id IN ($guidInClause) OR appId IN ($guidInClause)
-UNION ALL
+UNION
 SELECT id, appId, displayName FROM Application WHERE id IN ($guidInClause) OR appId IN ($guidInClause)
 "@
             $resolvedApps = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
 
-            # Map resolved apps back to GUIDs in targetMap
+            # 3. Build Lookup Hash
             foreach ($app in $resolvedApps) {
-                if (-not $app.displayName) { continue }
-
-                # Check if any GUID in our list matches this app's id or appId
-                foreach ($guid in $guidList) {
-                    if ($app.id -eq $guid -or $app.appId -eq $guid) {
-                        $targetMap[$guid] = $app.displayName
-                        break
-                    }
+                if (-not [string]::IsNullOrEmpty($app.displayName)) {
+                    # Handle DB returning Guid objects by forcing string conversion for keys
+                    if ($app.id)    { $targetMap["$($app.id)"]    = $app.displayName }
+                    if ($app.appId) { $targetMap["$($app.appId)"] = $app.displayName }
                 }
             }
         }
@@ -79,10 +72,11 @@ SELECT id, appId, displayName FROM Application WHERE id IN ($guidInClause) OR ap
         }
     }
 
-    # Build final array in original order
+    # 4. Reconstruct Output
     foreach ($target in $TargetsArray) {
         $displayArray += $targetMap[$target]
     }
 
-    return , $displayArray
+    # Comma operator prevents PowerShell from unrolling single-element arrays
+    return ,$displayArray
 }
