@@ -12,7 +12,6 @@ function Get-ZtSkippedReason {
     switch($SkippedBecause){
         "NotConnectedAzure" { "Not connected to Azure." ; break}
         "NotConnectedExchange" { "Not connected to Exchange Online."; break}
-        "NoExchangeAccess" { "The signed in user does not have the required permissions in Exchange Online to perform this test."; break}
         "NotConnectedSecurityCompliance" { "Not connected to Security & Compliance."; break}
         "NotDotGovDomain" { "This test is only for federal, executive branch, departments and agencies."; break}
         "NotLicensedEntraIDP1" { "This test is for tenants that are licensed for Entra ID P1. See [Entra ID licensing](https://learn.microsoft.com/entra/fundamentals/licensing)"; break}

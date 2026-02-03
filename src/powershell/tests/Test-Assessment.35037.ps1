@@ -41,17 +41,8 @@ function Test-Assessment-35037 {
 
     #region Assessment Logic
     if ($errorMsg -or -not $auditConfig) {
-        $errorText = if ($errorMsg) { $errorMsg.ToString() } else { '' }
-
-        # Determine skip reason based on error type
-        if ($errorText -match 'Access Denied|permission|unauthorized|denied') {
-            Write-PSFMessage 'Insufficient permissions to access Exchange Online audit configuration.' -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NoExchangeAccess
-        }
-        else {
-            Write-PSFMessage 'Not connected to Exchange Online.' -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
-        }
+        Write-PSFMessage 'Not connected to Exchange Online.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
         return
     }
 

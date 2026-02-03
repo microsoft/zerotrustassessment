@@ -65,7 +65,7 @@ function Add-ZtTestResultDetail {
 		[Parameter(Mandatory = $false)]
 		[string] $Title,
 
-		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NoExchangeAccess', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
+		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
 		    'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', 'NotSupported', 'UnderConstruction',
 			'NotLicensedIntune', 'NoAzureAccess'
 		)]
