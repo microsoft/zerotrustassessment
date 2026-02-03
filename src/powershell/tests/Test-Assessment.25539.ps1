@@ -165,21 +165,17 @@ function Test-Assessment-25539 {
                 continue
             }
 
-            # Skip if intrusionDetection is not configured
-            if (-not $policyResource.Properties.intrusionDetection) {
-                Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have intrusion detection configured. Skipping." -Tag Firewall -Level Verbose
-                continue
+            # Get intrusion detection mode - if not configured, it's disabled by default (FAIL)
+            $idMode = if ($policyResource.Properties.intrusionDetection) {
+                $policyResource.Properties.intrusionDetection.mode
+            } else {
+                'Off'
             }
-
-            $idMode = $policyResource.Properties.intrusionDetection.mode
-
             # Map intrusion detection mode to user-friendly display values
             $detectionModeDisplay = switch ($idMode) {
                 'Deny' { 'Alert and Deny' }
                 'Alert' { 'Alert Only' }
                 'Off' { 'Disabled' }
-                $null { 'Not Configured' }
-                default { $idMode }
             }
 
             $subContext = Get-AzContext
@@ -227,8 +223,8 @@ function Test-Assessment-25539 {
 
 ## {0}
 
-| Policy name | Subscription name | IDPS Inspection mode | Result |
-| :--- | :--- | :--- | :--- |
+| Policy name | Subscription name | Result |
+| :--- | :--- | :--- |
 {1}
 
 '@
@@ -239,7 +235,8 @@ function Test-Assessment-25539 {
             $policyMd = "[$(Get-SafeMarkdown -Text $item.PolicyName)]($policyLink)"
             $subMd = "[$(Get-SafeMarkdown -Text $item.SubscriptionName)]($subLink)"
             $icon = if ($item.Passed) { '✅' } else { '❌' }
-            $tableRows += "| $policyMd | $subMd | $($item.IntrusionDetectionMode) | $icon |`n"
+            $resultText = "$icon $($item.IntrusionDetectionMode)"
+            $tableRows += "| $policyMd | $subMd | $resultText |`n"
         }
 
         # Format the template by replacing placeholders with values
