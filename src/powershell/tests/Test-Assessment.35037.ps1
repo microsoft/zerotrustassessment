@@ -30,7 +30,6 @@ function Test-Assessment-35037 {
     $auditConfig = $null
 
     try {
-
         $auditConfig = Get-AdminAuditLogConfig -ErrorAction Stop
         Write-PSFMessage "Retrieved audit log configuration" -Level Verbose
     }
@@ -41,25 +40,30 @@ function Test-Assessment-35037 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $false
-    $customStatus = $null
+    if ($errorMsg -or -not $auditConfig) {
+        $errorText = if ($errorMsg) { $errorMsg.ToString() } else { '' }
 
-    if ($errorMsg) {
-        $testResultMarkdown = "❌ Unable to determine audit logging status due to permissions issues or query failure.`n`n"
-    }
-    elseif (-not $auditConfig) {
-        $testResultMarkdown = "❌ Unable to retrieve audit logging configuration.`n`n"
-    }
-    else {
-        # Determine pass/fail status based on UnifiedAuditLogIngestionEnabled
-        if ($auditConfig.UnifiedAuditLogIngestionEnabled -eq $true) {
-            $passed = $true
-            $testResultMarkdown = "✅ Purview Audit Logging is ENABLED and all activities across Microsoft 365 services are being captured and logged for investigation and compliance purposes.`n`n%TestResult%"
+        # Determine skip reason based on error type
+        if ($errorText -match 'Access Denied|permission|unauthorized|denied') {
+            Write-PSFMessage 'Insufficient permissions to access Exchange Online audit configuration.' -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NoExchangeAccess
         }
         else {
-            $passed = $false
-            $testResultMarkdown = "❌ Purview Audit Logging is DISABLED, creating a critical visibility gap where unauthorized access, policy violations, and security incidents cannot be detected or investigated.`n`n%TestResult%"
+            Write-PSFMessage 'Not connected to Exchange Online.' -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
         }
+        return
+    }
+
+    $passed = $false
+
+    if ($auditConfig.UnifiedAuditLogIngestionEnabled -eq $true) {
+        $passed = $true
+        $testResultMarkdown = "✅ Purview Audit Logging is ENABLED and all activities across Microsoft 365 services are being captured and logged for investigation and compliance purposes.`n`n%TestResult%"
+    }
+    else {
+        $passed = $false
+        $testResultMarkdown = "❌ Purview Audit Logging is DISABLED, creating a critical visibility gap where unauthorized access, policy violations, and security incidents cannot be detected or investigated.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
