@@ -38,14 +38,14 @@ function Test-Assessment-35039 {
     Write-ZtProgress -Activity $activity -Status 'Getting supervisory review rules'
 
     # Q1: Find Communication Compliance rules targeting Copilot content
-    $copilotRules = $null
+    $copilotRules = @()
     $errorMsg = $null
 
     try {
-        $allRules = @(Get-SupervisoryReviewRule -IncludeRuleXml -ErrorAction Stop)
+        $allRules = Get-SupervisoryReviewRule -IncludeRuleXml -ErrorAction Stop
         $allReviewPolicy = Get-SupervisoryReviewPolicyV2
 
-        $copilotRules = @(foreach ($rule in $allRules) {
+        foreach ($rule in $allRules) {
             if (-not [string]::IsNullOrWhiteSpace($rule.RuleXml)) {
                 try {
                     # Wrap RuleXml in a root element to handle multiple rule elements
@@ -77,7 +77,7 @@ function Test-Assessment-35039 {
                         $policyId = $rule.Policy
                         $policyName = ($allReviewPolicy | Where-Object { $_.Guid -eq $policyId }).Name
 
-                        [PSCustomObject]@{
+                        $copilotRules += [PSCustomObject]@{
                             RuleName   = $rule.Name
                             PolicyId   = $policyId
                             PolicyName = if ($policyName) { $policyName } else { 'Unknown' }
@@ -88,7 +88,8 @@ function Test-Assessment-35039 {
                     Write-PSFMessage "Error parsing RuleXml for rule '$($rule.Name)': $_" -Level Warning
                 }
             }
-        })
+
+        }
     }
     catch {
         $errorMsg = $_
@@ -120,7 +121,7 @@ function Test-Assessment-35039 {
         try {
             $startDate = (Get-Date).AddDays(-30)
             $endDate = Get-Date
-            $hits = @(Search-UnifiedAuditLog -StartDate $startDate -EndDate $endDate -Operations SupervisionRuleMatch -ErrorAction Stop)
+            $hits = Search-UnifiedAuditLog -StartDate $startDate -EndDate $endDate -Operations SupervisionRuleMatch -ErrorAction Stop
 
             if ($hits) {
                 $policyNamePattern = ($enabledCopilotPolicies.Name | ForEach-Object { [regex]::Escape($_) }) -join '|'
