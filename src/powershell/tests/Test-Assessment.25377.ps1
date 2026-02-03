@@ -126,31 +126,33 @@ function Test-Assessment-25377 {
     $usersAccessTypeDisplay = if ($tenantRestrictions.usersAndGroups) { $tenantRestrictions.usersAndGroups.accessType } else { 'Not configured' }
     $usersAccessIcon = if ($usersAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
 
-    # Users & Groups Target - extract targets array properly
+    # Users & Groups Target - extract targets array (no GUID resolution for users)
     $usersTargetsArray = @()
     if ($tenantRestrictions.usersAndGroups.targets) {
         $usersTargetsArray = @($tenantRestrictions.usersAndGroups.targets | ForEach-Object { $_.target })
     }
-    $usersTargetDisplay = if ($usersTargetsArray.Count -le 5) {
-        $usersTargetsArray -join ', '
-    } else {
-        ($usersTargetsArray[0..4] -join ', ') + ' ...'
-    }
+
+    $usersTargetDisplay = if ($usersTargetsArray.Count -gt 0) { $usersTargetsArray[0] } else { '' }
     $usersTargetIcon = if ($usersTargetsArray -contains 'AllUsers') { '✅' } else { '❌' }
 
     # Applications Access Type
     $appsAccessTypeDisplay = if ($tenantRestrictions.applications) { $tenantRestrictions.applications.accessType } else { 'Not configured' }
     $appsAccessIcon = if ($appsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
 
-    # Applications Target - extract targets array properly
+    # Applications Target - extract targets array and resolve GUIDs
     $appsTargetsArray = @()
     if ($tenantRestrictions.applications.targets) {
         $appsTargetsArray = @($tenantRestrictions.applications.targets | ForEach-Object { $_.target })
     }
-    $appsTargetDisplay = if ($appsTargetsArray.Count -le 5) {
-        $appsTargetsArray -join ', '
+
+    # Resolve application GUIDs to display names (limit to first 5 items)
+    $maxItems = 5
+    $itemsToResolve = if ($appsTargetsArray.Count -le $maxItems) { $appsTargetsArray } else { $appsTargetsArray[0..($maxItems - 1)] }
+    $resolvedAppsArray = Get-ApplicationNameFromId -TargetsArray $itemsToResolve -Database $Database
+    $appsTargetDisplay = if ($appsTargetsArray.Count -le $maxItems) {
+        $resolvedAppsArray -join ', '
     } else {
-        ($appsTargetsArray[0..4] -join ', ') + ' ...'
+        ($resolvedAppsArray -join ', ') + ' ...'
     }
     $appsTargetIcon = if ($appsTargetsArray -contains 'AllApplications') { '✅' } else { '❌' }
 
