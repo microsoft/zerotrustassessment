@@ -32,10 +32,30 @@ function Test-Assessment-25539 {
     $activity = 'Azure Firewall Intrusion Detection'
     Write-ZtProgress `
         -Activity $activity `
+        -Status 'Checking Azure connection'
+
+    # Check if connected to Azure
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if (-not $azContext) {
+        Write-PSFMessage 'Not connected to Azure.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Check the supported environment
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
+        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
+
+    Write-ZtProgress `
+        -Activity $activity `
         -Status 'Enumerating Firewall Policies'
 
     # Query subscriptions using REST API
-    $resourceManagerUrl = (Get-AzContext).Environment.ResourceManagerUrl.TrimEnd('/')
+    $resourceManagerUrl = $azContext.Environment.ResourceManagerUrl.TrimEnd('/')
     $subscriptionsUri = "$resourceManagerUrl/subscriptions?api-version=2025-03-01"
 
     try {
