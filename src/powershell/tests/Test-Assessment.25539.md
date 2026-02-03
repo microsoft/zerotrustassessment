@@ -5,7 +5,8 @@ This check verifies that the Intrusion Detection and Prevention System (IDPS) is
 If this check does not pass, it means that the Intrusion Detection and Prevention System (IDPS) is not analyzing, detecting and actively blocking malicious patterns in legitimate looking traffic.
 
 **Remediation action**
-Please check the IDPS section of this article for guidance on how to enable Intrusion Deletion and Prevention System (IDPS) in “Alert and Deny” mode in the Azure Firewall Policy.
+
+- Please check the IDPS section of this article for guidance on how to enable Intrusion Deletion and Prevention System (IDPS) in “Alert and Deny” mode in the Azure Firewall Policy.
 
 - [Azure Firewall Premium features implementation guide | Microsoft Learn](https://learn.microsoft.com/en-us/azure/firewall/premium-features)
 <!--- Results --->
