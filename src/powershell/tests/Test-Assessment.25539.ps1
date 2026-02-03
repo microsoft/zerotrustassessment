@@ -73,7 +73,7 @@ function Test-Assessment-25539 {
 
         $subscriptionsContent = $subscriptionsResponse.Content
         if (-not $subscriptionsContent) {
-            Add-ZtTestResultDetail -SkippedBecause NoResults
+            Add-ZtTestResultDetail -SkippedBecause NotSupported
             return
         }
 
@@ -201,7 +201,7 @@ function Test-Assessment-25539 {
     # If no Premium firewall policies found, skip the test
     if ($results.Count -eq 0) {
         Write-PSFMessage 'No Azure Firewall Premium policies found to evaluate.' -Tag Firewall -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NoResults
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
