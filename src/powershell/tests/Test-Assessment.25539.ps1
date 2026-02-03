@@ -71,7 +71,7 @@ function Test-Assessment-25539 {
             throw "Subscriptions request failed with status code $($subscriptionsResponse.StatusCode)"
         }
 
-        $subscriptionsContent = $subscriptionsResponse.Content
+        $subscriptionsContent = $subscriptionsResponse.Content.Value
         if (-not $subscriptionsContent) {
             Add-ZtTestResultDetail -SkippedBecause NotSupported
             return
