@@ -198,6 +198,13 @@ function Test-Assessment-25539 {
 
     #region Assessment Logic
 
+    # If no Premium firewall policies found, skip the test
+    if ($results.Count -eq 0) {
+        Write-PSFMessage 'No Azure Firewall Premium policies found to evaluate.' -Tag Firewall -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NoResults
+        return
+    }
+
     $failedPolicies = @($results | Where-Object { -not $_.Passed })
     $passed = $failedPolicies.Count -eq 0
 
