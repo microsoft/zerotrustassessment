@@ -32,8 +32,8 @@ Get-SupervisoryReviewPolicyV2 | Select-Object Name, Enabled, ReviewMailbox
 ```
 
 For more information:
+- [Communication Compliance overview](https://learn.microsoft.com/en-us/purview/communication-compliance)
 - [Create Communication Compliance policies](https://learn.microsoft.com/en-us/purview/communication-compliance-policies)
-- [Communication Compliance message classes](https://learn.microsoft.com/en-us/purview/communication-compliance-feature-reference)
 - [SupervisoryReview cmdlet reference](https://learn.microsoft.com/en-us/powershell/module/exchange/get-supervisoryreviewpolicyv2)
 <!--- Results --->
 %TestResult%
