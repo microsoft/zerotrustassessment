@@ -19,7 +19,7 @@ function Test-Assessment-35012 {
     [ZtTest(
         Category = 'Sensitivity Labels Configuration',
         ImplementationCost = 'Medium',
-        MinimumLicense = 'Microsoft_365_E5',
+        MinimumLicense = 'Microsoft 365 E5',
         Pillar = 'Data',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',
@@ -123,6 +123,30 @@ function Test-Assessment-35012 {
             }
         }
         catch {
+            # Emit verbose message to aid troubleshooting JSON parsing failures
+            $labelIdentifier = $null
+            if ($null -ne $Label) {
+                if ($Label.PSObject.Properties.Match('DisplayName').Count -gt 0 -and
+                    -not [string]::IsNullOrWhiteSpace($Label.DisplayName)) {
+                    $labelIdentifier = $Label.DisplayName
+                }
+                elseif ($Label.PSObject.Properties.Match('Name').Count -gt 0 -and
+                    -not [string]::IsNullOrWhiteSpace($Label.Name)) {
+                    $labelIdentifier = $Label.Name
+                }
+                elseif ($Label.PSObject.Properties.Match('Id').Count -gt 0 -and
+                    -not [string]::IsNullOrWhiteSpace($Label.Id)) {
+                    $labelIdentifier = $Label.Id
+                }
+            }
+
+            if (-not $labelIdentifier) {
+                $labelIdentifier = '<unknown label>'
+            }
+
+            $errorMessage = $_.Exception.Message
+            Write-PSFMessage -Level Verbose -Tag Test -Message ("Failed to parse LabelActions JSON for label '{0}': {1}" -f $labelIdentifier, $errorMessage)
+
             # Return null to indicate parsing failure
             return $null
         }
@@ -193,15 +217,7 @@ function Test-Assessment-35012 {
             "⚠️ Query fails or LabelActions JSON cannot be parsed due to permissions issues or service connection failure. Ensure the Security & Compliance PowerShell module is connected and the account has appropriate permissions to retrieve label properties.`n`n%TestResult%"
 
     }
-    # Step 2: Check if LabelActions JSON parsing failed for any label
-    elseif ($parseError) {
-
-        $customStatus = 'Investigate'
-        $testResultMarkdown =
-            "⚠️ Query fails or LabelActions JSON cannot be parsed due to permissions issues or service connection failure. Some labels could not be evaluated.`n`n%TestResult%"
-
-    }
-    # Step 3: Check if container labels exist (count >= 1) - Pass
+    # Step 2: Check if container labels exist (count >= 1) - Pass (even if some labels had parse errors)
     elseif ($containerLabels.Count -ge 1) {
 
         # Container labels are configured - Pass
@@ -213,6 +229,14 @@ function Test-Assessment-35012 {
         foreach ($data in $containerLabels) {
             $labelResults += Get-ContainerLabelSummary -Label $data.Label -ProtectGroupAction $data.ProtectGroup -ProtectSiteAction $data.ProtectSite
         }
+
+    }
+    # Step 3: Check if LabelActions JSON parsing failed for any label (only Investigate when no container labels found)
+    elseif ($parseError) {
+
+        $customStatus = 'Investigate'
+        $testResultMarkdown =
+            "⚠️ Query fails or LabelActions JSON cannot be parsed due to permissions issues or service connection failure. Some labels could not be evaluated.`n`n%TestResult%"
 
     }
     # Step 4: Count = 0 - Fail
@@ -243,7 +267,6 @@ function Test-Assessment-35012 {
 | Label name | Content type | Group privacy setting | Site external sharing | Site guest access |
 |---|---|---|---|---|
 {0}
-
 '@
         foreach ($r in $labelResults) {
             $labelLink = "https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels"
