@@ -266,7 +266,7 @@ function Test-Assessment-35022 {
         $testResultMarkdown += "### On-Demand scan configuration summary`n`n"
 
         if ($scanCount -gt 0 -and $tableData) {
-            $testResultMarkdown += "**Scan Details:**`n`n"
+            $testResultMarkdown += "**Scan details:**`n`n"
             $testResultMarkdown += "| Name | Sensitive information scan status | Workload | Sensitive information types detected  | When created UTC | Last scan start time|`n"
             $testResultMarkdown += "|------|--------|----------|--------------|---------------|-----------------|`n"
 
