@@ -40,17 +40,26 @@ function Get-GroupNameFromId {
 
     # 2. Query
     if ($guidsToQuery.Count -gt 0) {
-        # Query each group from Entra
-        foreach ($guid in $guidsToQuery) {
-            try {
-                $group = Invoke-ZtGraphRequest -RelativeUri "groups/$guid" -ApiVersion beta -ErrorAction SilentlyContinue
-                if ($group -and $group.displayName) {
-                    $targetMap[$guid] = $group.displayName
+        try {
+            # Build filter with all GUIDs at once
+            $guidList = ($guidsToQuery | ForEach-Object { "'$_'" }) -join ','
+            $filter = "id in ($guidList)"
+
+            Write-PSFMessage -Level VeryVerbose -Message "Querying groups with filter: $filter"
+            $groups = Invoke-ZtGraphRequest -RelativeUri 'groups' -Filter $filter -Select 'id,displayName' -ApiVersion beta -ErrorAction SilentlyContinue
+
+            Write-PSFMessage -Level VeryVerbose -Message "Groups returned: $($groups.Count)"
+
+            if ($null -ne $groups -and $groups.Count -gt 0) {
+                foreach ($group in $groups) {
+                    if ($group.id -and $group.displayName) {
+                        $targetMap[$group.id] = $group.displayName
+                    }
                 }
             }
-            catch {
-                Write-PSFMessage -Level Warning -Message "Unable to resolve group GUID $guid : $_"
-            }
+        }
+        catch {
+            Write-PSFMessage -Level Warning -Message "Unable to resolve group GUIDs: $_"
         }
     }
 
