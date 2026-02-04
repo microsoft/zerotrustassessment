@@ -41,12 +41,9 @@ function Get-GroupNameFromId {
     # 2. Query
     if ($guidsToQuery.Count -gt 0) {
         try {
-            # Build filter with all GUIDs at once
-            $guidList = ($guidsToQuery | ForEach-Object { "'$_'" }) -join ','
-            $filter = "id in ($guidList)"
+            $guidsArray = @($guidsToQuery)
 
-            Write-PSFMessage -Level VeryVerbose -Message "Querying groups with filter: $filter"
-            $groups = Invoke-ZtGraphRequest -RelativeUri 'groups' -Filter $filter -Select 'id,displayName' -ApiVersion beta -ErrorAction SilentlyContinue
+            $groups = Invoke-ZtGraphRequest -RelativeUri 'groups' -UniqueId $guidsArray -Select 'id,displayName' -ApiVersion beta -ErrorAction SilentlyContinue
 
             Write-PSFMessage -Level VeryVerbose -Message "Groups returned: $($groups.Count)"
 
