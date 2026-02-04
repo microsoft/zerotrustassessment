@@ -170,15 +170,9 @@ function Test-Assessment-35013 {
         $userDefined = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'userdefined' }).Count
         $dkeLabels = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'dke' }).Count
 
-        if ($standardRMS -gt 0) {
-            $labelDetails += "* Standard RMS: $standardRMS`n"
-        }
-        if ($userDefined -gt 0) {
-            $labelDetails += "* User-Defined Permissions: $userDefined`n"
-        }
-        if ($dkeLabels -gt 0) {
-            $labelDetails += "* Double Key Encryption (DKE): $dkeLabels"
-        }
+        $labelDetails += "* Standard RMS: $standardRMS`n"
+        $labelDetails += "* User-Defined Permissions: $userDefined`n"
+        $labelDetails += "* Double Key Encryption (DKE): $dkeLabels"
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $labelDetails
     }
