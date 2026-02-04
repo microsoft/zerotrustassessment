@@ -71,12 +71,7 @@ function Test-Assessment-25539 {
             throw "Subscriptions request failed with status code $($subscriptionsResponse.StatusCode)"
         }
 
-        $subscriptionsContent = $subscriptionsResponse.Content.Value
-        if (-not $subscriptionsContent) {
-            Add-ZtTestResultDetail -SkippedBecause NotSupported
-            return
-        }
-
+        $subscriptionsContent = $subscriptionsResponse.Content
         $subscriptions = ($subscriptionsContent | ConvertFrom-Json).value
     }
     catch {
@@ -88,7 +83,15 @@ function Test-Assessment-25539 {
     $results = @()
 
     foreach ($sub in $subscriptions) {
-        Set-AzContext -SubscriptionId $sub.subscriptionId -ErrorAction SilentlyContinue | Out-Null
+
+        # Switch subscription context
+        try {
+            Set-AzContext -SubscriptionId $sub.subscriptionId -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-PSFMessage "Unable to switch to subscription $($sub.displayName): $($_.Exception.Message)" -Tag Firewall -Level Warning
+            continue
+        }
 
         # Query Azure Firewall Policies
         try {
@@ -103,7 +106,8 @@ function Test-Assessment-25539 {
             }
 
             if ($policyResponse.StatusCode -ge 400) {
-                throw "Firewall policies request failed with status code $($policyResponse.StatusCode)"
+                Write-PSFMessage "Firewall policies request failed with status code $($policyResponse.StatusCode)" -Tag Firewall -Level Warning
+                continue
             }
 
             $policyResponseContent = $policyResponse.Content
@@ -134,7 +138,8 @@ function Test-Assessment-25539 {
                 }
 
                 if ($detailResponse.StatusCode -ge 400) {
-                    throw "Firewall policy details request failed with status code $($detailResponse.StatusCode)"
+                    Write-PSFMessage "Firewall policy details request failed with status code $($detailResponse.StatusCode)" -Tag Firewall -Level Warning
+                    continue
                 }
 
                 $detailResponseContent = $detailResponse.Content
@@ -155,20 +160,20 @@ function Test-Assessment-25539 {
         foreach ($policyResource in $detailedPolicies) {
 
             # Skip if policy is missing required properties
-            if (-not $policyResource -or -not $policyResource.Name -or -not $policyResource.Id -or -not $policyResource.Properties) {
+            if (-not $policyResource -or -not $policyResource.Name -or -not $policyResource.Id -or -not $policyResource.properties) {
                 Write-PSFMessage "Firewall policy is missing required properties. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
 
             # Skip if SKU tier is not Premium
-            if ($policyResource.Properties.sku.tier -ne 'Premium') {
+            if ($policyResource.properties.sku.tier -ne 'Premium') {
                 Write-PSFMessage "Firewall policy '$($policyResource.name)' does not have Premium SKU. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
 
             # Get intrusion detection mode - if not configured, it's disabled by default (FAIL)
-            $idMode = if ($policyResource.Properties.intrusionDetection) {
-                $policyResource.Properties.intrusionDetection.mode
+            $idMode = if ($policyResource.properties.intrusionDetection) {
+                $policyResource.properties.intrusionDetection.mode
             } else {
                 'Off'
             }
