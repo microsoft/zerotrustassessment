@@ -25,7 +25,7 @@ function Test-Assessment-35023 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35023,
-        Title = 'OCR Configuration for Sensitive Information Detection',
+        Title = 'OCR configuration for sensitive information detection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -101,16 +101,12 @@ function Test-Assessment-35023 {
 
     #region Report Generation
 
-$errorMsg = $true
-$customStatus = 'Investigate'
-
     if ($errorMsg) {
         $testResultMarkdown = "### Investigate`n`n"
         $testResultMarkdown += "Unable to determine OCR configuration status due to error: $errorMsg"
     }
     else {
         $portalLink = "https://purview.microsoft.com/"
-
         # Status text
         if ($passed) {
             $statusIcon = "✅ Pass"
@@ -144,13 +140,14 @@ $customStatus = 'Investigate'
         $testResultMarkdown += "* **Status:** $(if ($passed) { 'Pass' } else { 'Fail' })`n"
 
         # Portal link
-        $testResultMarkdown += "`n**Portal Access:**`n`n"
+        $testResultMarkdown += "`n**Portal access:**`n`n"
         $testResultMarkdown += "[Microsoft Purview portal > Settings > Optical character recognition (OCR)]($portalLink)`n"
     }
     #endregion Report Generation
 
     $params = @{
         TestId = '35023'
+        Title = 'OCR Configuration for sensitive information detection'
         Status = $passed
         Result = $testResultMarkdown
     }
