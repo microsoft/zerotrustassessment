@@ -26,7 +26,7 @@ function Test-Assessment-25539 {
     [CmdletBinding()]
     param()
 
-    #Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     #region Data Collection
     $activity = 'Azure Firewall Intrusion Detection'
@@ -160,7 +160,7 @@ function Test-Assessment-25539 {
         foreach ($policyResource in $detailedPolicies) {
 
             # Skip if policy is missing required properties
-            if (-not $policyResource -or -not $policyResource.Name -or -not $policyResource.Id -or -not $policyResource.properties) {
+            if (-not $policyResource -or -not $policyResource.name -or -not $policyResource.Id -or -not $policyResource.properties) {
                 Write-PSFMessage "Firewall policy is missing required properties. Skipping." -Tag Firewall -Level Verbose
                 continue
             }
