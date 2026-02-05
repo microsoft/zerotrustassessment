@@ -16,7 +16,7 @@ To create or enable encryption on sensitivity labels:
    - **Double Key Encryption (DKE)**: For highly sensitive data requiring customer-managed key (note: blocks co-authoring)
 7. Save and publish the label to make it available to users
 
-For detailed guidance 
+For detailed guidance:
 - [Restrict access to content by using encryption in sensitivity labels](https://learn.microsoft.com/en-us/microsoft-365/compliance/encryption-sensitivity-labels)
 <!--- Results --->
 %TestResult%

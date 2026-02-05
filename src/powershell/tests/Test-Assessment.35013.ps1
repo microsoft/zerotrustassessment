@@ -41,13 +41,9 @@ function Test-Assessment-35013 {
     $allLabels = $null
     $encryptedLabels = @()
 
-    # Query: Get all sensitivity labels with encryption-enabled (not disabled)
+    # Query: Get all sensitivity labels
     try {
-        $allLabels = Get-Label -ErrorAction Stop | Where-Object {
-            $encryptAction = ($_.LabelActions | ConvertFrom-Json | Where-Object { $_.Type -eq 'encrypt' })
-            $disabledSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'disabled' }
-            ($null -ne $encryptAction) -and (-not ($disabledSetting -and $disabledSetting.Value -eq 'true'))
-        }
+        $allLabels = Get-Label -ErrorAction Stop
 
         # Parse LabelActions to extract encryption details
         foreach ($label in $allLabels) {
@@ -56,6 +52,11 @@ function Test-Assessment-35013 {
                 $encryptAction = $labelActions | Where-Object { $_.Type -eq 'encrypt' }
 
                 if ($null -ne $encryptAction) {
+                    # Check if encryption is disabled
+                    $disabledSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'disabled' }
+                    if ($disabledSetting -and $disabledSetting.Value -eq 'true') {
+                        continue  # Skip this label as encryption is disabled
+                    }
 
                     # Check if DKE using Capabilities property (more reliable than LabelActions)
                     $isDKE = $label.Capabilities -contains 'DoubleKeyEncryption'
@@ -151,7 +152,7 @@ function Test-Assessment-35013 {
         # Build table rows
         $labelDetails = ''
         foreach ($encLabel in $encryptedLabels) {
-            $name = if ($encLabel.Name) { $encLabel.Name } else { 'N/A' }
+            $name = if ($encLabel.Name) { Get-SafeMarkdown -Text $encLabel.Name } else { 'N/A' }
             $encType = switch ($encLabel.EncryptionType) {
                 'template' { 'Standard RMS' }
                 'dke' { 'Double Key Encryption (DKE)' }
@@ -166,7 +167,7 @@ function Test-Assessment-35013 {
                     # Parse the JSON string containing rights definitions
                     $rightsArray = $encLabel.RightsDefinitions | ConvertFrom-Json
                     if ($rightsArray) {
-                        $identities = @($rightsArray | ForEach-Object { $_.Identity })
+                        $identities = @($rightsArray | Where-Object { $_.Identity } | ForEach-Object { Get-SafeMarkdown -Text $_.Identity })
                         if ($identities.Count -gt 5) {
                             $rights = ($identities[0..4] -join ', ') + ', ...'
                         }
@@ -213,7 +214,7 @@ function Test-Assessment-35013 {
     }
 
     if ($null -ne $customStatus) {
-        $params['CustomStatus'] = $customStatus
+        $params.CustomStatus = $customStatus
     }
 
     # Add test result details
