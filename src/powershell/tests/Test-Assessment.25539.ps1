@@ -50,9 +50,7 @@ function Test-Assessment-25539 {
         return
     }
 
-    Write-ZtProgress `
-        -Activity $activity `
-        -Status 'Enumerating Firewall Policies'
+    Write-ZtProgress -Activity $activity -Status 'Enumerating Firewall Policies'
 
     # Query subscriptions using REST API
     $resourceManagerUrl = $azContext.Environment.ResourceManagerUrl.TrimEnd('/')
