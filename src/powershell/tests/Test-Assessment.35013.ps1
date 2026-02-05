@@ -36,7 +36,8 @@ function Test-Assessment-35013 {
     $activity = 'Checking encryption-enabled sensitivity labels'
     Write-ZtProgress -Activity $activity -Status 'Querying sensitivity labels'
 
-    $errorMsg = $null
+    $getCmdletFailed = $false
+    $parsingFailed = $false
     $allLabels = $null
     $encryptedLabels = @()
 
@@ -56,9 +57,22 @@ function Test-Assessment-35013 {
 
                 if ($null -ne $encryptAction) {
 
+                    # Check if DKE using Capabilities property (more reliable than LabelActions)
+                    $isDKE = $label.Capabilities -contains 'DoubleKeyEncryption'
+
                     # Extract encryption details from Settings array (Key-Value pairs)
                     $protectionTypeSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'protectiontype' }
-                    $encryptionType = if ($protectionTypeSetting) { $protectionTypeSetting.Value } else { 'template' }
+
+                    # Determine encryption type
+                    if ($isDKE) {
+                        $encryptionType = 'dke'
+                    }
+                    elseif ($protectionTypeSetting) {
+                        $encryptionType = $protectionTypeSetting.Value
+                    }
+                    else {
+                        $encryptionType = 'template'
+                    }
 
                     $rightsDefSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'rightsdefinitions' }
                     $rightsDef = if ($rightsDefSetting) { $rightsDefSetting.Value } else { 'Not specified' }
@@ -79,12 +93,13 @@ function Test-Assessment-35013 {
             }
             catch {
                 Write-PSFMessage "Failed to parse LabelActions for label '$($label.DisplayName)': $_" -Tag Test -Level Warning
+                $parsingFailed = $true
             }
         }
     }
     catch {
-        $errorMsg = "Failed to retrieve sensitivity labels: $_"
-        Write-PSFMessage $errorMsg -Tag Test -Level Warning
+        $getCmdletFailed = $true
+        Write-PSFMessage "Failed to retrieve sensitivity labels: $_" -Tag Test -Level Warning
     }
     #endregion Data Collection
 
@@ -93,9 +108,15 @@ function Test-Assessment-35013 {
     $passed = $false
     $customStatus = $null
 
-    # Check if query failed
-    if ($null -ne $errorMsg) {
-        $testResultMarkdown = "⚠️ Labels exist but encryption configuration cannot be determined.`n`n$errorMsg`n`n%TestResult%"
+    # Check if Get-Label cmdlet failed
+    if ($getCmdletFailed) {
+        $testResultMarkdown = "⚠️ Unable to determine encryption-enabled label configuration due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
+        $passed = $false
+        $customStatus = 'Investigate'
+    }
+    # Check if labels were retrieved but parsing failed
+    elseif ($parsingFailed) {
+        $testResultMarkdown = "⚠️ Labels exist but encryption configuration cannot be determined for some labels.`n`n%TestResult%"
         $passed = $false
         $customStatus = 'Investigate'
     }
@@ -118,8 +139,8 @@ function Test-Assessment-35013 {
 
 ## [{0}]({1})
 
-| Label name | Encryption type | Default permissions users | Co-Authoring blocked |
-| :--------- | :-------------- | :------------------------ | :------------------: |
+| Label name | Encryption type | Default permissions identities | Co-Authoring blocked |
+| :--------- | :-------------- | :----------------------------- | :------------------: |
 {2}
 
 '@
@@ -134,19 +155,24 @@ function Test-Assessment-35013 {
             $encType = switch ($encLabel.EncryptionType) {
                 'template' { 'Standard RMS' }
                 'dke' { 'Double Key Encryption (DKE)' }
-                'userdefined' { 'User-Defined Permissions' }
+                'userdefined' { 'User-Defined' }
                 default { $encLabel.EncryptionType }
             }
 
-            # Format rights definitions - show count of users (per spec)
+            # Format rights definitions - show first 5 identities (users, groups, or domains)
             $rights = 'Not specified'
             if ($encLabel.RightsDefinitions -and $encLabel.RightsDefinitions -ne 'Not specified') {
                 try {
                     # Parse the JSON string containing rights definitions
                     $rightsArray = $encLabel.RightsDefinitions | ConvertFrom-Json
                     if ($rightsArray) {
-                        $userCount = @($rightsArray).Count
-                        $rights = if ($userCount -eq 1) { '1 user' } else { "$userCount users" }
+                        $identities = @($rightsArray | ForEach-Object { $_.Identity })
+                        if ($identities.Count -gt 5) {
+                            $rights = ($identities[0..4] -join ', ') + ', ...'
+                        }
+                        else {
+                            $rights = $identities -join ', '
+                        }
                     }
                 }
                 catch {
@@ -169,7 +195,7 @@ function Test-Assessment-35013 {
         $dkeLabels = @($encryptedLabels | Where-Object { $_.EncryptionType -eq 'dke' }).Count
 
         $labelDetails += "* Standard RMS: $standardRMS`n"
-        $labelDetails += "* User-Defined Permissions: $userDefined`n"
+        $labelDetails += "* User-Defined: $userDefined`n"
         $labelDetails += "* Double Key Encryption (DKE): $dkeLabels"
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $labelDetails
