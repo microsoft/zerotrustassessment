@@ -27,7 +27,7 @@ function Test-Assessment-25377 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param($Database)
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
