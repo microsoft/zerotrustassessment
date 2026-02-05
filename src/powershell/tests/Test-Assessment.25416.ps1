@@ -138,7 +138,7 @@ function Test-Assessment-25416 {
     # If Q1 returns no remote networks → Skipped
     if ($remoteNetworkCount -eq 0) {
         Write-PSFMessage 'No remote networks configured.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
