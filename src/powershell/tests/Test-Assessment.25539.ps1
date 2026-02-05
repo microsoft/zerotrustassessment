@@ -46,7 +46,7 @@ function Test-Assessment-25539 {
     Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
     if ($azContext.Environment.Name -ne 'AzureCloud') {
         Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
@@ -62,13 +62,15 @@ function Test-Assessment-25539 {
         $subscriptionsResponse = Invoke-AzRestMethod -Method GET -Uri $subscriptionsUri -ErrorAction Stop
 
         if ($subscriptionsResponse.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to check subscriptions.' -Level Verbose
+            Write-PSFMessage 'The signed in user does not have access to check subscriptions.' -Tag Firewall -Level Warning
             Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
             return
         }
 
         if ($subscriptionsResponse.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($subscriptionsResponse.StatusCode)"
+            Write-PSFMessage "Subscriptions request failed with status code $($subscriptionsResponse.StatusCode)" -Tag Firewall -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
         }
 
         $subscriptionsContent = $subscriptionsResponse.Content
@@ -203,7 +205,7 @@ function Test-Assessment-25539 {
     # If no Premium firewall policies found, skip the test
     if ($results.Count -eq 0) {
         Write-PSFMessage 'No Azure Firewall Premium policies found to evaluate.' -Tag Firewall -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
