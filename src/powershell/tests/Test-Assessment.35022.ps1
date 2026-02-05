@@ -27,7 +27,7 @@ function Test-Assessment-35022 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = 'Workforce',
         TestId = 35022,
-        Title = 'On-Demand Scans Configured for Sensitive Information Discovery',
+        Title = 'On-Demand scans configured for sensitive information discovery',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -316,7 +316,7 @@ function Test-Assessment-35022 {
 
     $params = @{
         TestId = '35022'
-        Title  = 'On-Demand Scans Configured for Sensitive Information Discovery'
+        Title  = 'On-Demand scans configured for sensitive information discovery'
         Status = $passed
         Result = $testResultMarkdown
     }
