@@ -15,7 +15,6 @@ This activity strongly aligns with the Zero Trust principle **Assume Breach**, b
   You can disable compromised accounts or reset user passwords directly from the Defender for Identity portal, and review results in the Action Center.  
   [1](https://learn.microsoft.com/en-us/defender-for-identity/remediation-actions)
 
-*(No images were provided in the referenced Learn articles.)*
 
 ## Reference
 
