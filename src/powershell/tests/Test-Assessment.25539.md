@@ -2,7 +2,7 @@ Azure Firewall Premium offers signature-based IDPS to quickly detect attacks by 
 
 This check verifies that the Intrusion Detection and Prevention System (IDPS) is enabled in “Alert and deny” mode in the Azure Firewall policy configuration. The check will fail if Intrusion Detection and Prevention System (IDPS) is either Disabled (Off) or if it is configured in “Alert” only mode, in the firewall policy attached to the firewall.
 
-If this check does not pass, it means that the Intrusion Detection and Prevention System (IDPS) is not analyzing, detecting and actively blocking malicious patterns in legitimate looking traffic.
+If this check does not pass, it means that the Intrusion Detection and Prevention System (IDPS) is not analyzing, detecting, and actively blocking malicious patterns in legitimate looking traffic.
 
 **Remediation action**
 
