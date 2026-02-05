@@ -255,7 +255,6 @@ function Test-Assessment-35022 {
         $customStatus = 'Investigate'
     }
     else {
-        $passed =$false
         if ($passed) {
             $testResultMarkdown = "✅ At least one on-demand scan is configured in the organization, enabling discovery and classification of historical sensitive information.`n`n"
         }
