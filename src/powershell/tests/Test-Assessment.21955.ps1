@@ -7,7 +7,7 @@ function Test-Assessment-21955 {
     [ZtTest(
     	Category = 'Devices',
     	ImplementationCost = 'Low',
-    	MinimumLicense = ('Free'),
+    	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and isolate production systems',
@@ -65,7 +65,7 @@ function Test-Assessment-21955 {
 
     if ($assignedMembers.Count -gt 0) {
         $mdInfo += "`n## [Active Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
-        $mdInfo += "| Display Name | UPN | Type | Assignment Type |`n"
+        $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
         $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
 
         foreach ($member in ($assignedMembers | Sort-Object -Property principalDisplayName)) {
@@ -84,7 +84,7 @@ function Test-Assessment-21955 {
 
     if ($eligibleMembers.Count -gt 0) {
         $mdInfo += "`n## [Eligible Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
-        $mdInfo += "| Display Name | UPN | Type | Assignment Type |`n"
+        $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
         $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
 
         foreach ($member in ($eligibleMembers | Sort-Object -Property principalDisplayName)) {
