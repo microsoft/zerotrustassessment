@@ -47,12 +47,19 @@ function Test-Assessment-25550 {
     foreach ($subscription in $subscriptions) {
         Write-ZtProgress -Activity $activity -Status "Checking subscription: $($subscription.Name)"
 
-        # List all firewall policies in subscription
+        # List all firewall policies in subscription (handle possible pagination via nextLink)
         $fwPoliciesUri = "$resourceManagementUrl/subscriptions/$($subscription.Id)/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
+        $fwPolicies = @()
 
         try {
-            $fwPoliciesResp = Invoke-AzRestMethod -Method GET -Uri $fwPoliciesUri
-            $fwPolicies = ($fwPoliciesResp.Content | ConvertFrom-Json).value
+            do {
+                $fwPoliciesResp = Invoke-AzRestMethod -Method GET -Uri $fwPoliciesUri
+                $fwPoliciesJson = $fwPoliciesResp.Content | ConvertFrom-Json
+                if ($fwPoliciesJson.value) {
+                    $fwPolicies += $fwPoliciesJson.value
+                }
+                $fwPoliciesUri = $fwPoliciesJson.nextLink
+            } while ($fwPoliciesUri)
         }
         catch {
             Write-PSFMessage "Unable to list firewall policies in subscription $($subscription.Name): $_" -Tag Test -Level Warning
