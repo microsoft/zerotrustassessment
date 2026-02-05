@@ -135,53 +135,49 @@ function Test-Assessment-25543 {
         return
     }
 
-    # Assess policies if found
-    if ($policies.Count -gt 0) {
-        # Check if all policies are enabled and in Prevention mode
-        $allCompliant = $true
-        foreach ($policy in $policies) {
-            if ($policy.EnabledState -ne 'Enabled' -or $policy.Mode -ne 'Prevention') {
-                $allCompliant = $false
-                break
-            }
+    # Check if all policies are enabled and in Prevention mode
+    $allCompliant = $true
+    foreach ($policy in $policies) {
+        if ($policy.EnabledState -ne 'Enabled' -or $policy.Mode -ne 'Prevention') {
+            $allCompliant = $false
+            break
         }
+    }
 
-        if ($allCompliant) {
-            $passed = $true
-            $testResultMarkdown = "✅ All Azure Front Door WAF policies are enabled in **Prevention** mode.`n`n%TestResult%"
-        }
-        else {
-            $passed = $false
-            $testResultMarkdown = "❌ One or more Azure Front Door WAF policies are either in **Disabled** state or in **Detection** mode.`n`n%TestResult%"
-        }
+    if ($allCompliant) {
+        $passed = $true
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies are enabled in **Prevention** mode.`n`n%TestResult%"
+    }
+    else {
+        $passed = $false
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies are either in **Disabled** state or in **Detection** mode.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $mdInfo = ''
 
-    if ($policies.Count -gt 0) {
-        # Table title
-        $reportTitle = 'Azure Front Door WAF policies'
-        $portalLink = "https://portal.azure.com/#view/Microsoft_Azure_HybridNetworking/FirewallManagerMenuBlade/~/wafMenuItem"
+    # Table title
+    $reportTitle = 'Azure Front Door WAF policies'
+    $portalLink = "https://portal.azure.com/#view/Microsoft_Azure_HybridNetworking/FirewallManagerMenuBlade/~/wafMenuItem"
 
-        # Prepare table rows
-        $tableRows = ''
-        foreach ($item in $policies) {
-            $policyLink = "https://portal.azure.com/#resource$($item.PolicyId)"
-            $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
-            $policyMd = "[$(Get-SafeMarkdown $item.PolicyName)]($policyLink)"
-            $subMd = "[$(Get-SafeMarkdown $item.SubscriptionName)]($subLink)"
+    # Prepare table rows
+    $tableRows = ''
+    foreach ($item in $policies) {
+        $policyLink = "https://portal.azure.com/#resource$($item.PolicyId)"
+        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
+        $policyMd = "[$(Get-SafeMarkdown $item.PolicyName)]($policyLink)"
+        $subMd = "[$(Get-SafeMarkdown $item.SubscriptionName)]($subLink)"
 
-            # Calculate status indicators
-            $policyStatus = if ($item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention') { '✅' } else { '❌' }
-            $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
-            $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
+        # Calculate status indicators
+        $policyStatus = if ($item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention') { '✅' } else { '❌' }
+        $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
+        $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
-            $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $policyStatus |`n"
-        }
+        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $policyStatus |`n"
+    }
 
-        $formatTemplate = @'
+    $formatTemplate = @'
 
 
 ## [{0}]({1})
@@ -192,8 +188,7 @@ function Test-Assessment-25543 {
 
 '@
 
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows.TrimEnd("`n")
-    }
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows.TrimEnd("`n")
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
