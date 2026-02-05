@@ -108,6 +108,7 @@ function Test-Assessment-25550 {
                     $rcgDetail = $rcgDetailResp.Content | ConvertFrom-Json
                 }
                 catch {
+                    Write-PSFMessage "Unable to get details for rule collection group $($rcgRef.id): $_" -Tag Test -Level Warning
                     continue
                 }
 
