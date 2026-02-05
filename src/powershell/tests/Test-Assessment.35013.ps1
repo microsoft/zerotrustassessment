@@ -45,7 +45,7 @@ function Test-Assessment-35013 {
         $allLabels = Get-Label -ErrorAction Stop | Where-Object {
             $encryptAction = ($_.LabelActions | ConvertFrom-Json | Where-Object { $_.Type -eq 'encrypt' })
             $disabledSetting = $encryptAction.Settings | Where-Object { $_.Key -eq 'disabled' }
-            ($encryptAction -ne $null) -and (-not ($disabledSetting -and $disabledSetting.Value -eq 'true'))
+            ($null -ne $encryptAction) -and (-not ($disabledSetting -and $disabledSetting.Value -eq 'true'))
         }
 
         # Parse LabelActions to extract encryption details
@@ -159,8 +159,6 @@ function Test-Assessment-35013 {
 
             $labelDetails += "| $name | $encType | $rights | $coAuthBlocked |`n"
         }
-
-        $labelDetails += "`n*Note: The rightsdefinitions setting may contain multiple users with individual permission sets. The table displays a count of users. For detailed per-user permissions, examine the LabelActions JSON encrypt action directly.*`n"
 
         $labelDetails += "`n**Summary:**`n"
         $labelDetails += "* Total Encryption-Enabled Labels: $($encryptedLabels.Count)`n"
