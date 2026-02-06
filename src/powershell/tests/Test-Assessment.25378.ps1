@@ -26,7 +26,9 @@ function Test-Assessment-25378 {
         UserImpact = 'High'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -80,7 +82,7 @@ function Test-Assessment-25378 {
 
     #region Assessment Logic
     $passed = $false
-    $investigateFlag = $false
+    $customStatus = $null
 
     if ($null -eq $crossTenantAccessPolicy) {
         $testResultMarkdown = "❌ Unable to retrieve cross-tenant access policy configuration.`n`n%TestResult%"
@@ -112,7 +114,7 @@ function Test-Assessment-25378 {
         }
         else {
             $passed = $false
-            $investigateFlag = $true
+            $customStatus = 'Investigate'
             $testResultMarkdown = "⚠️ Default outbound B2B collaboration has partial restrictions configured; review settings to ensure they align with organizational security policies.`n`n%TestResult%"
         }
     }
@@ -122,15 +124,52 @@ function Test-Assessment-25378 {
     $mdInfo = ''
 
     if ($null -ne $crossTenantAccessPolicy) {
-        $reportTitle = 'Default Cross-Tenant Access Settings - Outbound B2B Collaboration'
+        $reportTitle = 'Default Cross-tenant access settings - Outbound B2B collaboration'
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/CompanyRelationshipsMenuBlade/~/CrossTenantAccessSettings'
 
         # Prepare display values
         $isServiceDefaultStr = if ($null -eq $isServiceDefault) { 'N/A' } elseif ($isServiceDefault) { 'true' } else { 'false' }
         $usersAndGroupsAccessTypeDisplay = if ([string]::IsNullOrEmpty($usersAndGroupsAccessType)) { 'N/A' } else { $usersAndGroupsAccessType }
         $applicationsAccessTypeDisplay = if ([string]::IsNullOrEmpty($applicationsAccessType)) { 'N/A' } else { $applicationsAccessType }
-        $displayUserTarget = if ($usersAndGroupsTargets.Count -gt 0) { $usersAndGroupsTargets[0] } else { 'N/A' }
-        $displayAppTarget = if ($applicationsTargets.Count -gt 0) { $applicationsTargets[0] } else { 'N/A' }
+
+        # Resolve and display users and groups (first 5)
+        $displayUserTarget = 'N/A'
+        if ($b2bOutbound.usersAndGroups.targets.Count -gt 0) {
+            $targets = $b2bOutbound.usersAndGroups.targets | Select-Object -First 5
+
+            $userTargets = $targets | Where-Object { $_.targetType -eq 'user' } | Select-Object -ExpandProperty target
+            $groupTargets = $targets | Where-Object { $_.targetType -eq 'group' } | Select-Object -ExpandProperty target
+
+            # Resolve all user and group targets at once
+            $resolvedNames = @()
+
+            if ($userTargets.Count -gt 0) {
+                $resolvedUsers = Get-UserNameFromId -TargetsArray $userTargets -Database $Database
+                $resolvedNames += $resolvedUsers
+            }
+
+            if ($groupTargets.Count -gt 0) {
+                $resolvedGroups = Get-GroupNameFromId -TargetsArray $groupTargets
+                $resolvedNames += $resolvedGroups
+            }
+
+            $displayUserTarget = $resolvedNames -join ', '
+            if ($b2bOutbound.usersAndGroups.targets.Count -gt 5) {
+                $displayUserTarget += ', ...'
+            }
+        }
+
+        # Resolve and display applications (first 5)
+        $displayAppTarget = 'N/A'
+        if ($b2bOutbound.applications.targets.Count -gt 0) {
+            $targets = $b2bOutbound.applications.targets | Select-Object -First 5
+            $resolvedApps = Get-ApplicationNameFromId -TargetsArray $targets.target -Database $Database
+
+            $displayAppTarget = $resolvedApps -join ', '
+            if ($b2bOutbound.applications.targets.Count -gt 5) {
+                $displayAppTarget += ', ...'
+            }
+        }
 
         # Calculate status indicators
         $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
@@ -143,17 +182,17 @@ function Test-Assessment-25378 {
 
 ## [{0}]({1})
 
-| Setting | Configured Value | Expected Value | Status |
+| Setting | Configured value | Expected value | Status |
 | :------ | :--------------- | :------------- | :----: |
 {2}
 
 '@
 
-        $tableRows = "| Is Service Default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
-        $tableRows += "| Users and Groups Access Type | $usersAndGroupsAccessTypeDisplay | blocked | $usersAccessStatus |`n"
-        $tableRows += "| Users and Groups Target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
-        $tableRows += "| Applications Access Type | $applicationsAccessTypeDisplay | blocked | $appsAccessStatus |`n"
-        $tableRows += "| Applications Target | $displayAppTarget | AllApplications | $appsTargetStatus |"
+        $tableRows = "| Is service default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
+        $tableRows += "| Users and groups access type | $usersAndGroupsAccessTypeDisplay | blocked | $usersAccessStatus |`n"
+        $tableRows += "| Users and groups target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
+        $tableRows += "| Applications access type | $applicationsAccessTypeDisplay | blocked | $appsAccessStatus |`n"
+        $tableRows += "| Applications target | $displayAppTarget | AllApplications | $appsTargetStatus |"
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
     }
@@ -168,8 +207,8 @@ function Test-Assessment-25378 {
         Result = $testResultMarkdown
     }
 
-    if ($investigateFlag) {
-        $params.CustomStatus = 'Investigate'
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
