@@ -104,7 +104,6 @@ function Test-Assessment-35022 {
     else {
         $scanCount = @($scansList).Count
         $passed = $scanCount -ge 1
-
         if ($scanCount -gt 0) {
             foreach ($scan in $scansList) {
                 # Use scan object directly - already contains full details from Get-SensitiveInformationScan
@@ -123,6 +122,7 @@ function Test-Assessment-35022 {
 
                 # Parse ItemStatistics.SIT
                 $sitDetails = @()
+                # Put into list to simulate cmdlet output
                 try {
                     if ($scan.ItemStatistics -and $scan.ItemStatistics.SIT) {
                         $sits = $scan.ItemStatistics.SIT
@@ -139,61 +139,63 @@ function Test-Assessment-35022 {
                         }
 
                         foreach ($guid in $sitKeys) {
-                            $guidString = $guid.ToString().Trim()
+                        $guidString = $guid.ToString().Trim()
 
-                            # Obtain count for this GUID
-                            $count = 0
-                            if ($sits -is [System.Collections.IDictionary]) {
-                                $count = $sits[$guid]
+                        # Obtain count for this GUID
+                        $count = 0
+                        if ($sits -is [System.Collections.IDictionary]) {
+                            $count = $sits[$guid]
+                        }
+                        else {
+                            try {
+                                $count = $sits.$guid
                             }
-                            else {
-                                try {
-                                    $count = $sits.$guid
-                                }
-                                catch {
-                                    $count = 0
-                                }
+                            catch {
+                                $count = 0
                             }
+                        }
 
-                            # Resolve SIT GUID to friendly name
-                            $friendlyName = $null
-                            if ($sitGuidMap.ContainsKey($guidString)) {
-                                $friendlyName = $sitGuidMap[$guidString]
-                            }
-                            elseif ($fallbackMap.ContainsKey($guidString)) {
-                                $friendlyName = $fallbackMap[$guidString]
-                            }
-                            else {
-                                # Attempt to query tenant by Identity as a last resort
-                                try {
-                                    $sitObj = Get-DlpSensitiveInformationType -Identity $guidString -ErrorAction SilentlyContinue
-                                    if ($sitObj) {
-                                        if ($sitObj.PSObject.Properties['Name']) {
-                                            $friendlyName = $sitObj.Name
-                                        }
-                                        elseif ($sitObj.PSObject.Properties['DisplayName']) {
-                                            $friendlyName = $sitObj.DisplayName
-                                        }
-                                        else {
-                                            $friendlyName = $sitObj.ToString()
-                                        }
+                        # 🔹 SPEC RULE: Ignore SITs with zero matches
+                        if (-not $count -or $count -le 0) {
+                            continue
+                        }
+
+                        # Resolve SIT GUID to friendly name
+                        $friendlyName = $null
+                        if ($sitGuidMap.ContainsKey($guidString)) {
+                            $friendlyName = $sitGuidMap[$guidString]
+                        }
+                        elseif ($fallbackMap.ContainsKey($guidString)) {
+                            $friendlyName = $fallbackMap[$guidString]
+                        }
+                        else {
+                            try {
+                                $sitObj = Get-DlpSensitiveInformationType -Identity $guidString -ErrorAction SilentlyContinue
+                                if ($sitObj) {
+                                    if ($sitObj.PSObject.Properties['Name']) {
+                                        $friendlyName = $sitObj.Name
+                                    }
+                                    elseif ($sitObj.PSObject.Properties['DisplayName']) {
+                                        $friendlyName = $sitObj.DisplayName
+                                    }
+                                    else {
+                                        $friendlyName = $sitObj.ToString()
                                     }
                                 }
-                                catch {
-                                    $friendlyName = "Unknown SIT - $guidString"
-                                }
                             }
-
-                            if (-not $friendlyName) {
-                                $friendlyName = "Unknown SIT - $guidString"
-                            }
-
-                            $sitDetails += "$friendlyName`: $count matches"
+                            catch {}
                         }
+
+                        if (-not $friendlyName) {
+                            $friendlyName = "Unknown SIT - $guidString"
+                        }
+
+                        $sitDetails += "$friendlyName`: $count matches"
+                    }
                     }
                 }
                 catch {
-                    $sitDetails += "Unable to parse ItemStatistics: $($_.Exception.Message)"
+
                 }
 
                 $sitString = if ($sitDetails.Count -gt 0) {
@@ -273,15 +275,19 @@ function Test-Assessment-35022 {
                 $nameEsc =  $row.Name
                 $statusEsc =  $row.Status
                 $workEsc = $row.Workload
-                $sitEsc = 'SIT Detected'
+                $sitEsc = $row.'SIT Detected'
                 $created = if ($row.'Created (UTC)') {
                     $row.'Created (UTC)'
+                     Get-FormattedDate -DateString $row.'Created (UTC)'
+
+
                 }
                 else {
                     ''
                 }
                 $last = if ($row.'Last Scan Start') {
                     $row.'Last Scan Start'
+                     Get-FormattedDate -DateString $row.'Last Scan Start'
                 }
                 else {
                     ''
