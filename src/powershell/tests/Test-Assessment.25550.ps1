@@ -172,9 +172,7 @@ function Test-Assessment-25550 {
     $tableRows = ''
     foreach ($policyInfo in $firewallPoliciesWithTLS) {
         $policyName = Get-SafeMarkdown -Text $policyInfo.PolicyName
-        # Extract just the policy name from the full resource ID
-        $policyIdShort = ($policyInfo.PolicyId -split '/')[-1]
-        $policyId = Get-SafeMarkdown -Text $policyIdShort
+        $policyId = Get-SafeMarkdown -Text $policyInfo.PolicyId
         $subId = Get-SafeMarkdown -Text $policyInfo.SubscriptionId
         $certName = Get-SafeMarkdown -Text $policyInfo.CertificateAuthorityName
         $certKeyVault = Get-SafeMarkdown -Text $policyInfo.CertificateKeyVaultSecretIdDisplay
