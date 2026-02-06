@@ -36,7 +36,8 @@ function Test-Assessment-35036 {
     $activity = 'Checking trainable classifier usage in policies'
     Write-ZtProgress -Activity $activity -Status 'Querying auto-labeling and DLP rules'
 
-    $getCmdletFailed = $false
+    $autoLabelCmdletFailed = $false
+    $dlpCmdletFailed = $false
     $autoLabelRulesWithClassifiers = @()
     $dlpRulesWithClassifiers = @()
 
@@ -44,20 +45,20 @@ function Test-Assessment-35036 {
     try {
         Write-ZtProgress -Activity $activity -Status 'Checking auto-labeling rules'
         $allAutoLabelRules = Get-AutoSensitivityLabelRule -ErrorAction Stop
-        
+
         # Filter rules that contain trainable classifiers (MLModel in AdvancedRule)
         $rulesWithMLModel = $allAutoLabelRules | Where-Object { $_.AdvancedRule -match 'MLModel' }
-        
+
         foreach ($rule in $rulesWithMLModel) {
             try {
                 # Parse AdvancedRule JSON to extract classifier details
                 $advancedRule = $rule.AdvancedRule | ConvertFrom-Json
-                
+
                 # Navigate to ContentContainsSensitiveInformation condition
-                $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object { 
-                    $_.ConditionName -eq 'ContentContainsSensitiveInformation' 
+                $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object {
+                    $_.ConditionName -eq 'ContentContainsSensitiveInformation'
                 }
-                
+
                 if ($sensitiveInfoCondition) {
                     # Extract trainable classifiers from Groups (Value is an array)
                     $trainableClassifiers = @()
@@ -71,7 +72,7 @@ function Test-Assessment-35036 {
                             }
                         }
                     }
-                    
+
                     if ($trainableClassifiers.Count -gt 0) {
                         $autoLabelRulesWithClassifiers += [PSCustomObject]@{
                             RuleName          = $rule.Name
@@ -88,7 +89,7 @@ function Test-Assessment-35036 {
         }
     }
     catch {
-        $getCmdletFailed = $true
+        $autoLabelCmdletFailed = $true
         Write-PSFMessage "Failed to retrieve auto-sensitivity label rules: $_" -Tag Test -Level Warning
     }
 
@@ -96,20 +97,20 @@ function Test-Assessment-35036 {
     try {
         Write-ZtProgress -Activity $activity -Status 'Checking DLP rules'
         $allDlpRules = Get-DlpComplianceRule -ErrorAction Stop
-        
+
         # Filter rules that contain trainable classifiers (MLModel in AdvancedRule)
         $rulesWithMLModel = $allDlpRules | Where-Object { $_.AdvancedRule -match 'MLModel' }
-        
+
         foreach ($rule in $rulesWithMLModel) {
             try {
                 # Parse AdvancedRule JSON to extract classifier details
                 $advancedRule = $rule.AdvancedRule | ConvertFrom-Json
-                
+
                 # Navigate to ContentContainsSensitiveInformation condition
-                $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object { 
-                    $_.ConditionName -eq 'ContentContainsSensitiveInformation' 
+                $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object {
+                    $_.ConditionName -eq 'ContentContainsSensitiveInformation'
                 }
-                
+
                 if ($sensitiveInfoCondition) {
                     # Extract trainable classifiers from Groups (Value is an array)
                     $trainableClassifiers = @()
@@ -123,7 +124,7 @@ function Test-Assessment-35036 {
                             }
                         }
                     }
-                    
+
                     if ($trainableClassifiers.Count -gt 0) {
                         $dlpRulesWithClassifiers += [PSCustomObject]@{
                             RuleName          = $rule.Name
@@ -140,7 +141,7 @@ function Test-Assessment-35036 {
         }
     }
     catch {
-        $getCmdletFailed = $true
+        $dlpCmdletFailed = $true
         Write-PSFMessage "Failed to retrieve DLP compliance rules: $_" -Tag Test -Level Warning
     }
     #endregion Data Collection
@@ -152,10 +153,17 @@ function Test-Assessment-35036 {
 
     $totalRulesWithClassifiers = $autoLabelRulesWithClassifiers.Count + $dlpRulesWithClassifiers.Count
 
-    # Check if cmdlet failed
-    if ($getCmdletFailed) {
+    # Check if both cmdlets failed
+    if ($autoLabelCmdletFailed -and $dlpCmdletFailed) {
         $testResultMarkdown = "⚠️ Unable to determine trainable classifier usage due to permissions issues or service connection failure.`n`n%TestResult%"
         $passed = $false
+        $customStatus = 'Investigate'
+    }
+    # Check if one cmdlet failed but we have some results
+    elseif ($autoLabelCmdletFailed -or $dlpCmdletFailed) {
+        $failedQuery = if ($autoLabelCmdletFailed) { 'auto-labeling rules' } else { 'DLP rules' }
+        $testResultMarkdown = "⚠️ Unable to retrieve $failedQuery due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
+        $passed = if ($totalRulesWithClassifiers -gt 0) { $true } else { $false }
         $customStatus = 'Investigate'
     }
     # Check if any rules use trainable classifiers
@@ -182,7 +190,6 @@ function Test-Assessment-35036 {
 **Summary:**
 * Total Auto-Labeling Rules Using Classifiers: {3}
 * Total DLP Rules Using Classifiers: {4}
-* Total Rules with Trainable Classifiers: {5}
 
 '@
 
@@ -197,13 +204,25 @@ function Test-Assessment-35036 {
             $details += "**Trainable Classifiers in Auto-Labeling Rules:**`n`n"
             $details += "| Rule name | Parent policy | Created date | Classifiers in rule |`n"
             $details += "| :-------- | :------------ | :----------- | :------------------ |`n"
-            
+
             foreach ($rule in $autoLabelRulesWithClassifiers) {
-                $ruleName = if ($rule.RuleName) { $rule.RuleName } else { 'N/A' }
-                $policyName = if ($rule.ParentPolicyName) { $rule.ParentPolicyName } else { 'N/A' }
+                $ruleName = if ($rule.RuleName) { Get-SafeMarkdown -Text $rule.RuleName } else { 'N/A' }
+                $policyName = if ($rule.ParentPolicyName) { Get-SafeMarkdown -Text $rule.ParentPolicyName } else { 'N/A' }
                 $createdDate = if ($rule.CreatedDate) { $rule.CreatedDate.ToString('yyyy-MM-dd') } else { 'N/A' }
-                $classifiers = if ($rule.Classifiers) { ($rule.Classifiers -join ', ') } else { 'N/A' }
-                
+
+                if ($rule.Classifiers) {
+                    $sanitizedClassifiers = $rule.Classifiers | ForEach-Object { Get-SafeMarkdown -Text $_ }
+                    if (@($sanitizedClassifiers).Count -gt 5) {
+                        $classifiers = ($sanitizedClassifiers[0..4] -join ', ') + ', ...'
+                    }
+                    else {
+                        $classifiers = $sanitizedClassifiers -join ', '
+                    }
+                }
+                else {
+                    $classifiers = 'N/A'
+                }
+
                 $details += "| $ruleName | $policyName | $createdDate | $classifiers |`n"
             }
             $details += "`n"
@@ -214,22 +233,33 @@ function Test-Assessment-35036 {
             $details += "**Trainable Classifiers in DLP Rules:**`n`n"
             $details += "| Rule name | Parent policy | Created date | Classifiers in rule |`n"
             $details += "| :-------- | :------------ | :----------- | :------------------ |`n"
-            
+
             foreach ($rule in $dlpRulesWithClassifiers) {
-                $ruleName = if ($rule.RuleName) { $rule.RuleName } else { 'N/A' }
-                $policyName = if ($rule.ParentPolicyName) { $rule.ParentPolicyName } else { 'N/A' }
+                $ruleName = if ($rule.RuleName) { Get-SafeMarkdown -Text $rule.RuleName } else { 'N/A' }
+                $policyName = if ($rule.ParentPolicyName) { Get-SafeMarkdown -Text $rule.ParentPolicyName } else { 'N/A' }
                 $createdDate = if ($rule.CreatedDate) { $rule.CreatedDate.ToString('yyyy-MM-dd') } else { 'N/A' }
-                $classifiers = if ($rule.Classifiers) { ($rule.Classifiers -join ', ') } else { 'N/A' }
-                
+
+                if ($rule.Classifiers) {
+                    $sanitizedClassifiers = $rule.Classifiers | ForEach-Object { Get-SafeMarkdown -Text $_ }
+                    if (@($sanitizedClassifiers).Count -gt 5) {
+                        $classifiers = ($sanitizedClassifiers[0..4] -join ', ') + ', ...'
+                    }
+                    else {
+                        $classifiers = $sanitizedClassifiers -join ', '
+                    }
+                }
+                else {
+                    $classifiers = 'N/A'
+                }
+
                 $details += "| $ruleName | $policyName | $createdDate | $classifiers |`n"
             }
             $details += "`n"
         }
 
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $details, 
-            $autoLabelRulesWithClassifiers.Count, 
-            $dlpRulesWithClassifiers.Count, 
-            $totalRulesWithClassifiers
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $details,
+            $autoLabelRulesWithClassifiers.Count,
+            $dlpRulesWithClassifiers.Count
     }
 
     # Replace the placeholder with detailed information
@@ -244,7 +274,7 @@ function Test-Assessment-35036 {
     }
 
     if ($null -ne $customStatus) {
-        $params['CustomStatus'] = $customStatus
+        $params.CustomStatus = $customStatus
     }
 
     # Add test result details
