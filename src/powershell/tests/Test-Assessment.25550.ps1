@@ -148,12 +148,21 @@ function Test-Assessment-25550 {
                 }
             }
 
+            # Parse policy ID to extract components for formatted display
+            # Format: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{provider}/{resourceType}/{resourceName}
+            $policyIdParts = $policy.id -split '/'
+            $subscriptionId = $policyIdParts[2]
+            $resourceGroupName = $policyIdParts[4]
+            $resourceName = $policyIdParts[-1]
+            $formattedPolicyId = "$subscriptionId/$resourceGroupName/$resourceName"
+
             # Store results
             $firewallPoliciesWithTLS += [PSCustomObject]@{
                 SubscriptionId                    = $subscription.Id
                 SubscriptionName                  = $subscription.Name
                 PolicyName                        = $policy.name
                 PolicyId                          = $policy.id
+                PolicyIdFormatted                 = $formattedPolicyId
                 TLSGloballyConfigured             = if ($tlsGloballyConfigured) { 'Yes' } else { 'No' }
                 CertificateAuthorityName          = $certName
                 CertificateKeyVaultSecretId       = $certKeyVaultSecretId
@@ -195,7 +204,7 @@ function Test-Assessment-25550 {
     $tableRows = ''
     foreach ($policyInfo in $firewallPoliciesWithTLS) {
         $policyName = Get-SafeMarkdown -Text $policyInfo.PolicyName
-        $policyId = Get-SafeMarkdown -Text $policyInfo.PolicyId
+        $policyId = Get-SafeMarkdown -Text $policyInfo.PolicyIdFormatted
         $subId = Get-SafeMarkdown -Text $policyInfo.SubscriptionId
         $certName = Get-SafeMarkdown -Text $policyInfo.CertificateAuthorityName
         $certKeyVault = Get-SafeMarkdown -Text $policyInfo.CertificateKeyVaultSecretIdDisplay
