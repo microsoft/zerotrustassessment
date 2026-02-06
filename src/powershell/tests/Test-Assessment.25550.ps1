@@ -25,11 +25,23 @@ function Test-Assessment-25550 {
     Write-PSFMessage '🟦 Start Azure Firewall TLS Inspection evaluation' -Tag Test -Level VeryVerbose
 
     $activity = 'Checking Azure Firewall TLS Inspection configuration'
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
     #region Data Collection
 
-    if ((Get-AzContext).Environment.Name -ne 'AzureCloud') {
+    # Check if connected to Azure
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
+
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if (-not $azContext) {
+        Write-PSFMessage 'Not connected to Azure.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Check the supported environment, 'AzureCloud' in (Get-AzContext).Environment.Name maps to 'Global' in (Get-MgContext).Environment
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
         Write-PSFMessage "This test is only applicable to the Global (AzureCloud) environment." -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
@@ -37,7 +49,7 @@ function Test-Assessment-25550 {
 
     Write-ZtProgress -Activity $activity -Status 'Querying Azure subscriptions'
     $subscriptions = Get-AzSubscription
-    $resourceManagementUrl = (Get-AzContext).Environment.ResourceManagerUrl
+    $resourceManagementUrl = $azContext.Environment.ResourceManagerUrl
 
     $firewallPoliciesWithTLS = @()
 
@@ -54,6 +66,17 @@ function Test-Assessment-25550 {
         try {
             do {
                 $fwPoliciesResp = Invoke-AzRestMethod -Method GET -Uri $fwPoliciesUri
+
+                if ($fwPoliciesResp.StatusCode -eq 403) {
+                    Write-PSFMessage 'The signed in user does not have access to query firewall policies.' -Level Verbose
+                    Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+                    return
+                }
+
+                if ($fwPoliciesResp.StatusCode -ge 400) {
+                    throw "Firewall policies request failed with status code $($fwPoliciesResp.StatusCode)"
+                }
+
                 $fwPoliciesJson = $fwPoliciesResp.Content | ConvertFrom-Json
                 if ($fwPoliciesJson.value) {
                     $fwPolicies += $fwPoliciesJson.value
