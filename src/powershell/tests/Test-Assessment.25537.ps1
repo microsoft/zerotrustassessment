@@ -121,10 +121,10 @@ function Test-Assessment-25537 {
     $allAlert = ($results | Where-Object { $_.ThreatIntelMode -ne 'Alert' }).Count -eq 0
 
     $testResultMarkdown = if ($passed) {
-        "Threat Intel is enabled in **Alert and Deny** mode .`n`n%TestResult%"
+        "Threat Intel is enabled in **Alert and Deny** mode.`n`n%TestResult%"
     }
     elseif ($allAlert) {
-        "Threat Intel is enabled in **Alert** mode .`n`n%TestResult%"
+        "Threat Intel is enabled in **Alert** mode.`n`n%TestResult%"
     }
     else {
         "Threat Intel is not enabled in **Alert and Deny** mode for all Firewall policies.`n`n%TestResult%"
