@@ -21,6 +21,7 @@ function Get-ZtSkippedReason {
         "NotLicensedIntune" { "This test is for tenants that are licensed for Microsoft Intune. See [Microsoft Intune licensing](https://learn.microsoft.com/intune/intune-service/fundamentals/licenses)"; break}
         "NotSupported" { "This test relies on capabilities not currently available (e.g., cmdlets that are not available on all platforms, Resolve-DnsName)"; break}
         "NoAzureAccess" { "The signed in user does not have access to the Azure subscription to perform this test."; break}
+        "NotApplicable" { "This test is not applicable to the current environment."; break}
         default { $SkippedBecause; break}
     }
 }

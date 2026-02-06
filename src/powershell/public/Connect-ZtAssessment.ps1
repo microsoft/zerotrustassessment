@@ -1,4 +1,4 @@
-﻿function Connect-ZtAssessment {
+function Connect-ZtAssessment {
 	<#
 	.SYNOPSIS
 		Helper method to connect to Microsoft Graph using Connect-MgGraph with the required scopes.
@@ -416,16 +416,22 @@
 	}
 
 	if ($Service -contains 'AipService' -or $Service -contains 'All') {
-		Write-Host "`nConnecting to Azure Information Protection" -ForegroundColor Yellow
-		Write-PSFMessage 'Connecting to Azure Information Protection'
-
-		try {
-			Connect-AipService -ErrorAction Stop
-			Write-Verbose "Successfully connected to Azure Information Protection."
+		# AIPService module only works on Windows (contains Windows-only DLL)
+		if (-not $IsWindows) {
+			Write-PSFMessage 'Skipping Azure Information Protection connection - AIPService module is only supported on Windows.' -Level Warning
 		}
-		catch {
-			Write-Host "`nFailed to connect to Azure Information Protection: $_" -ForegroundColor Red
-			Write-PSFMessage "Failed to connect to Azure Information Protection: $_" -Level Error
+		else {
+			Write-Host "`nConnecting to Azure Information Protection" -ForegroundColor Yellow
+			Write-PSFMessage 'Connecting to Azure Information Protection'
+
+			try {
+				Connect-AipService -ErrorAction Stop
+				Write-Verbose "Successfully connected to Azure Information Protection."
+			}
+			catch {
+				Write-Host "`nFailed to connect to Azure Information Protection: $_" -ForegroundColor Red
+				Write-PSFMessage "Failed to connect to Azure Information Protection: $_" -Level Error
+			}
 		}
 	}
 }
