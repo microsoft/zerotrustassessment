@@ -114,14 +114,16 @@ function Test-Assessment-35014 {
             $customStatus = 'Investigate'
         }
 
-        # Step 3: Determine pass/fail status
-        if ($policiesWithInheritance.Count -gt 0 -and $dualScopedLabels.Count -gt 0) {
-            $passed = $true
-            $testResultMarkdown = "✅ Email label inheritance from attachments is configured. At least one label policy has the ``attachmentaction`` setting enabled, and labels with Files & Emails scope are available to inherit from attachments to email messages.`n`n%TestResult%"
-        }
-        else {
-            $passed = $false
-            $testResultMarkdown = "❌ Email label inheritance is not configured. No label policies have the ``attachmentaction`` setting enabled, or no labels are scoped to both files and emails to participate in inheritance.`n`n%TestResult%"
+        # Step 3: Determine pass/fail status and message (only if no error occurred)
+        if ($null -eq $customStatus){
+            if ($policiesWithInheritance.Count -gt 0 -and $dualScopedLabels.Count -gt 0) {
+                $passed = $true
+                $testResultMarkdown = "✅ Email label inheritance from attachments is configured. At least one label policy has the ``attachmentaction`` setting enabled, and labels with Files & Emails scope are available to inherit from attachments to email messages.`n`n%TestResult%"
+            }
+            else {
+                $passed = $false
+                $testResultMarkdown = "❌ Email label inheritance is not configured. No label policies have the ``attachmentaction`` setting enabled, or no labels are scoped to both files and emails to participate in inheritance.`n`n%TestResult%"
+            }
         }
     }
     #endregion Assessment Logic
