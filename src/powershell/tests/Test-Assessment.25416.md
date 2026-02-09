@@ -7,11 +7,8 @@ When remote networks are connected to Global Secure Access via IPsec tunnels but
 3. [Link the cloud firewall policy to the baseline profile for remote networks](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-cloud-firewall#link-a-cloud-firewall-policy-to-the-baseline-profile-for-the-remote-network)
 4. [Define 5-tuple firewall rules based on source IP, destination IP, ports, and protocols](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-cloud-firewall#add-or-update-a-cloud-firewall-rule-assign-priority-and-enable-or-disable)
 
-- **Who**: Global Secure Access Administrator role required
-
-- **When**: After remote networks are configured and before production traffic is routed through Global Secure Access
-
-- **Where**: Microsoft Entra admin center > Global Secure Access > Secure > Cloud firewall policies and Security Profiles > Baseline Profile
+This remediation requires the Global Secure Access Administrator role and should be performed after remote networks are configured and before production traffic is routed through Global Secure Access.
+Configuration is done in the Microsoft Entra admin center under Global Secure Access > Secure > Cloud firewall policies and Security Profiles > Baseline Profile.
 
 <!--- Results --->
 %TestResult%
