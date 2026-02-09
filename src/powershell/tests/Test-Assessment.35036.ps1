@@ -52,7 +52,7 @@ function Test-Assessment-35036 {
         foreach ($rule in $rulesWithMLModel) {
             try {
                 # Parse AdvancedRule JSON to extract classifier details
-                $advancedRule = $rule.AdvancedRule | ConvertFrom-Json
+                $advancedRule = $rule.AdvancedRule | ConvertFrom-Json -ErrorAction Stop
 
                 # Navigate to ContentContainsSensitiveInformation condition
                 $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object {
@@ -74,17 +74,27 @@ function Test-Assessment-35036 {
                     }
 
                     if ($trainableClassifiers.Count -gt 0) {
+                        # Deduplicate classifier names
+                        $uniqueClassifiers = $trainableClassifiers | Select-Object -Unique
                         $autoLabelRulesWithClassifiers += [PSCustomObject]@{
                             RuleName          = $rule.Name
                             ParentPolicyName  = $rule.ParentPolicyName
                             CreatedDate       = $rule.WhenCreatedUTC
-                            Classifiers       = $trainableClassifiers
+                            Classifiers       = $uniqueClassifiers
                         }
                     }
                 }
             }
             catch {
                 Write-PSFMessage "Failed to parse AdvancedRule for auto-labeling rule '$($rule.Name)': $_" -Tag Test -Level Warning
+
+                # Fallback: this rule matched 'MLModel' via string search, so record it even if JSON parsing failed
+                $autoLabelRulesWithClassifiers += [PSCustomObject]@{
+                    RuleName          = $rule.Name
+                    ParentPolicyName  = $rule.ParentPolicyName
+                    CreatedDate       = $rule.WhenCreatedUTC
+                    Classifiers       = @('Unknown (AdvancedRule parse failed)')
+                }
             }
         }
     }
@@ -104,7 +114,7 @@ function Test-Assessment-35036 {
         foreach ($rule in $rulesWithMLModel) {
             try {
                 # Parse AdvancedRule JSON to extract classifier details
-                $advancedRule = $rule.AdvancedRule | ConvertFrom-Json
+                $advancedRule = $rule.AdvancedRule | ConvertFrom-Json -ErrorAction Stop
 
                 # Navigate to ContentContainsSensitiveInformation condition
                 $sensitiveInfoCondition = $advancedRule.Condition.SubConditions | Where-Object {
@@ -126,17 +136,27 @@ function Test-Assessment-35036 {
                     }
 
                     if ($trainableClassifiers.Count -gt 0) {
+                        # Deduplicate classifier names
+                        $uniqueClassifiers = $trainableClassifiers | Select-Object -Unique
                         $dlpRulesWithClassifiers += [PSCustomObject]@{
                             RuleName          = $rule.Name
                             ParentPolicyName  = $rule.ParentPolicyName
                             CreatedDate       = $rule.WhenCreatedUTC
-                            Classifiers       = $trainableClassifiers
+                            Classifiers       = $uniqueClassifiers
                         }
                     }
                 }
             }
             catch {
                 Write-PSFMessage "Failed to parse AdvancedRule for DLP rule '$($rule.Name)': $_" -Tag Test -Level Warning
+
+                # Fallback: this rule matched 'MLModel' via string search, so record it even if JSON parsing failed
+                $dlpRulesWithClassifiers += [PSCustomObject]@{
+                    RuleName          = $rule.Name
+                    ParentPolicyName  = $rule.ParentPolicyName
+                    CreatedDate       = $rule.WhenCreatedUTC
+                    Classifiers       = @('Unknown (AdvancedRule parse failed)')
+                }
             }
         }
     }
