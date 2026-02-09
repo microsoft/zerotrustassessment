@@ -129,54 +129,89 @@ function Test-Assessment-35014 {
     #region Report Generation
     $mdInfo = ''
 
-    # Show policies with attachmentaction setting
+    # Build policy table rows
+    $policyTableRows = ''
     if ($policiesWithInheritance.Count -gt 0) {
-        $mdInfo += "`n`n### [Policies with attachmentaction setting](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
-        $mdInfo += "| Policy name | Inherit label from attachments |`n"
-        $mdInfo += "| :--- | :--- |`n"
-
         foreach ($policy in $policiesWithInheritance) {
-            $mdInfo += "| $($policy.PolicyName) | $($policy.AttachmentAction) |`n"
+            $policyTableRows += "| $($policy.PolicyName) | $($policy.AttachmentAction) |`n"
         }
     }
 
-    # Show dual-scoped labels (ready for inheritance)
+    # Build label table rows
+    $labelTableRows = ''
     if ($dualScopedLabels.Count -gt 0) {
-        $mdInfo += "`n`n### [Dual-scoped labels (ready for inheritance)](https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels)`n"
-        $mdInfo += "| Label name | Content type | Priority |`n"
-        $mdInfo += "| :--- | :--- | :--- |`n"
-
         # Sort by priority (lower number = higher priority)
         $sortedLabels = $dualScopedLabels | Sort-Object -Property Priority
-
         foreach ($label in $sortedLabels) {
-            $mdInfo += "| $($label.DisplayName)| $($label.ContentType) | $($label.Priority) |`n"
+            $labelTableRows += "| $($label.DisplayName) | $($label.ContentType) | $($label.Priority) |`n"
+        }
+    }
+
+    # Build XML parsing error rows
+    $errorTableRows = ''
+    if ($xmlParseErrors.Count -gt 0) {
+        foreach ($parseError in $xmlParseErrors) {
+            $errorTableRows += "| $($parseError.PolicyName) | $($parseError.Error) |`n"
         }
     }
 
     $inheritanceSetting = if($passed) {'True'} elseif ($customStatus -eq 'Investigate') {'Unknown'} else {'False'}
 
-    # Build summary metrics
-    $mdInfo += "`n`n### Summary`n"
-    $mdInfo += "| Metric | Count |`n"
-    $mdInfo += "| :--- | :--- |`n"
-    $mdInfo += "| Policies with attachmentaction enabled | $($policiesWithInheritance.Count) |`n"
-    $mdInfo += "| Labels with Files & Emails scope | $($dualScopedLabels.Count) |`n"
-    $mdInfo += "| Inheritance setting found | $inheritanceSetting |`n"
+    # Build report using format template
+    $formatTemplate = @'
+{0}{1}
+**Summary:**
 
-    # Report XML parsing errors if any occurred
-    if ($xmlParseErrors.Count -gt 0) {
-        $mdInfo += "`n`n### ⚠️ XML Parsing Errors`n"
-        $mdInfo += "The following policies could not be parsed and were excluded from analysis:`n`n"
-        $mdInfo += "| Policy Name | Error |`n"
-        $mdInfo += "| :--- | :--- |`n"
-        foreach ($parseError in $xmlParseErrors) {
-            $errorMessage = Get-SafeMarkdown -Text $parseError.Error
-            $policyName = Get-SafeMarkdown -Text $parseError.PolicyName
-            $mdInfo += "| $policyName | $errorMessage |`n"
-        }
-        $mdInfo += "`n**Note**: These policies were treated as having no ``attachmentaction`` configured.`n"
+- Policies with attachmentaction enabled: {2}
+- Labels with Files & Emails scope: {3}
+- Inheritance setting found: {4}
+{5}
+'@
+
+    # Build policies section
+    $policiesSection = ''
+    if ($policiesWithInheritance.Count -gt 0) {
+        $policiesSection = @"
+
+### [Policies with attachmentaction setting](https://purview.microsoft.com/informationprotection/labelpolicies)
+
+| Policy name | Inherit label from attachments |
+| :---------- | :---------- |
+$($policyTableRows.TrimEnd("`n"))
+"@
     }
+
+    # Build labels section
+    $labelsSection = ''
+    if ($dualScopedLabels.Count -gt 0) {
+        $labelsSection = @"
+
+### [Dual-scoped labels (ready for inheritance)](https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels)
+
+| Label name | Content type | Priority |
+| :---------- | :---------- | :-------- |
+$($labelTableRows.TrimEnd("`n"))
+"@
+    }
+
+    # Build error section
+    $errorSection = ''
+    if ($xmlParseErrors.Count -gt 0) {
+        $errorSection = @"
+
+### ⚠️ XML Parsing Errors
+
+The following policies could not be parsed and were excluded from analysis:
+
+| Policy Name | Error |
+| :---------- | :---- |
+$($errorTableRows.TrimEnd("`n"))
+
+**Note**: These policies were treated as having no ``attachmentaction`` configured.
+"@
+    }
+
+    $mdInfo = $formatTemplate -f $policiesSection, $labelsSection, $policiesWithInheritance.Count, $dualScopedLabels.Count, $inheritanceSetting, $errorSection
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
