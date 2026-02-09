@@ -48,12 +48,17 @@ function Test-Assessment-25416 {
         '$select' = 'id,name,description,state,version,priority'
         '$expand' = 'policies($select=id,state;$expand=policy)'
     } -ApiVersion beta
-    #endregion Data Collection
 
-    #region Data Processing
     # Identify baseline profile with enabled cloud firewall policies
     $baselineProfileWithCloudFirewall = @()
     $remoteNetworkCount = if ($remoteNetworks) { $remoteNetworks.Count } else { 0 }
+
+    # If Q1 returns no remote networks → Skipped
+    if ($remoteNetworkCount -eq 0) {
+        Write-PSFMessage 'No remote networks are configured. Cloud Firewall policies for remote networks are not applicable.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
 
     if ($filteringProfiles -and $remoteNetworkCount -gt 0) {
         $baselineProfile = $filteringProfiles | Where-Object { $_.priority -eq $BASELINE_PROFILE_PRIORITY }
@@ -139,15 +144,9 @@ function Test-Assessment-25416 {
 
         }
     }
-    #endregion Data Processing
+    #endregion Data Collection
     #region Assessment Logic
 
-    # If Q1 returns no remote networks → Skipped
-    if ($remoteNetworkCount -eq 0) {
-        Write-PSFMessage 'No remote networks are configured. Cloud Firewall policies for remote networks are not applicable.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
 
     $passed = $false
 
