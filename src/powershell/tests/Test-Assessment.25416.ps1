@@ -42,15 +42,6 @@ function Test-Assessment-25416 {
     # Q1: Get all configured remote networks (branch sites)
     $remoteNetworks = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/connectivity/branches' -ApiVersion beta
 
-    # Q2: Get filtering profiles with cloud firewall policy links
-    Write-ZtProgress -Activity $activity -Status 'Querying baseline security profile'
-    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
-        '$select' = 'id,name,description,state,version,priority'
-        '$expand' = 'policies($select=id,state;$expand=policy)'
-    } -ApiVersion beta
-
-    # Identify baseline profile with enabled cloud firewall policies
-    $baselineProfileWithCloudFirewall = @()
     $remoteNetworkCount = if ($remoteNetworks) { $remoteNetworks.Count } else { 0 }
 
     # If Q1 returns no remote networks → Skipped
@@ -59,6 +50,14 @@ function Test-Assessment-25416 {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
+
+    # Q2: Get filtering profiles with cloud firewall policy links
+    $baselineProfileWithCloudFirewall = @()
+    Write-ZtProgress -Activity $activity -Status 'Querying baseline security profile'
+    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
+        '$select' = 'id,name,description,state,version,priority'
+        '$expand' = 'policies($select=id,state;$expand=policy)'
+    } -ApiVersion beta
 
     if ($filteringProfiles -and $remoteNetworkCount -gt 0) {
         $baselineProfile = $filteringProfiles | Where-Object { $_.priority -eq $BASELINE_PROFILE_PRIORITY }
@@ -175,7 +174,7 @@ function Test-Assessment-25416 {
     $mdInfo = ''
 
     if ($passed) {
-        $testResultMarkdown = "Cloud Firewall is enabled and configured for remote networks. Branch office internet traffic is protected by firewall policies through the baseline security profile. .`n`n%TestResult%"
+        $testResultMarkdown = "Cloud Firewall is enabled and configured for remote networks. Branch office internet traffic is protected by firewall policies through the baseline security profile.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Cloud Firewall is not properly configured for remote networks. Remote network internet traffic is not protected by cloud firewall policies.`n`n%TestResult%"
