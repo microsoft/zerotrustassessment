@@ -74,31 +74,24 @@ function Test-Assessment-35029 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $false
-    $customStatus = $null
-
     if ($errorMsg) {
-        $customStatus = 'Investigate'
+        Write-PSFMessage 'Not connected to Exchange Online.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
+        return
     }
-    else {
-        # Pass if at least one enabled rule with protection actions exists
-        if ($enabledRulesCount -ge 1) {
-            $passed = $true
-        }
-        else {
-            # No rules exist or all rules are disabled
-            $passed = $false
-        }
+
+    $passed = $false
+
+    # Pass if at least one enabled rule with protection actions exists
+    if ($enabledRulesCount -ge 1) {
+        $passed = $true
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $testResultMarkdown = ''
 
-    if ($customStatus -eq 'Investigate') {
-        $testResultMarkdown = "⚠️ Unable to determine mail flow rule configuration due to permissions issues or query failure.`n`n%TestResult%"
-    }
-    elseif ($passed) {
+    if ($passed) {
         $testResultMarkdown = "✅ Mail flow rules with rights protection are configured, automatically protecting sensitive emails through encryption and restriction policies.`n`n%TestResult%"
     }
     else {
@@ -167,10 +160,6 @@ function Test-Assessment-35029 {
         Title  = 'Mail flow rules with rights protection'
         Status = $passed
         Result = $testResultMarkdown
-    }
-
-    if ($customStatus) {
-        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
