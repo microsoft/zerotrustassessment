@@ -133,13 +133,17 @@ function Test-Assessment-25422 {
             $truncationMessage = "Showing $displayCount of $totalCount deployments. [View all deployments]($deploymentLogsLink)`n`n"
         }
 
-        $mdInfo += @"
+        $formatTemplate = @'
 
 **Recent Deployments:**
 
-$truncationMessage| Date | Operation | Change Type | Status | Initiated By | Error Message |
+{0}| Date | Operation | Change Type | Status | Initiated By | Error Message |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-"@
+{1}
+
+'@
+
+        $tableRows = ''
 
         # Sort by date descending and take first 10
         $sortedDeployments = $recentDeployments | Sort-Object -Property {
@@ -173,19 +177,22 @@ $truncationMessage| Date | Operation | Change Type | Status | Initiated By | Err
                 'N/A'
             }
 
-            $deploymentStage = if ($deployment.status.deploymentStage) {
-                $stage = $deployment.status.deploymentStage
-                switch ($stage) {
-                    'succeeded' { '✅ Succeeded' }
-                    'failed' { '❌ Failed' }
-                    'inProgress' { '🔄 In Progress' }
-                    'pending' { '⏳ Pending' }
-                    default { $stage }
-                }
+            $stage = $deployment.status.deploymentStage
+            $icon = switch ($stage) {
+                'succeeded' { '✅' }
+                'failed' { '❌' }
+                'inProgress' { '🔄' }
+                'pending' { '⏳' }
+                default { '' }
             }
-            else {
-                'N/A'
+            $deploymentStage = switch ($stage) {
+                'succeeded' { 'Succeeded' }
+                'failed' { 'Failed' }
+                'inProgress' { 'In Progress' }
+                'pending' { 'Pending' }
+                default { $stage }
             }
+            $resultText = if ($icon) { "$icon $deploymentStage" } else { $deploymentStage }
 
             $initiatedBy = if ($deployment.initiatedBy) {
                 Get-SafeMarkdown -Text $deployment.initiatedBy
@@ -201,14 +208,14 @@ $truncationMessage| Date | Operation | Change Type | Status | Initiated By | Err
                 'N/A'
             }
 
-            $mdInfo += "`n| $deploymentDate | $operationName | $changeType | $deploymentStage | $initiatedBy | $errorMessage |"
+            $tableRows += "| $deploymentDate | $operationName | $changeType | $resultText | $initiatedBy | $errorMessage |`n"
         }
 
         if ($isTruncated) {
-            $mdInfo += "`n| ... | | | | | |"
+            $tableRows += "| ... | | | | | |`n"
         }
 
-        $mdInfo += "`n"
+        $mdInfo += $formatTemplate -f $truncationMessage, $tableRows
     }
     else {
         $mdInfo += "`n**Recent Deployments:**`n`nNo deployments found in the last 30 days.`n"
