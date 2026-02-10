@@ -137,7 +137,8 @@ function Test-Assessment-25422 {
 
 **Recent Deployments:**
 
-{0}| Date | Operation | Change Type | Status | Initiated By | Error Message |
+{0}
+| Date | Operation | Change Type | Status | Initiated By | Error Message |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 {1}
 
