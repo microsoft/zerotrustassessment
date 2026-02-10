@@ -112,7 +112,7 @@ function Test-Assessment-25550 {
                 $tlsGloballyConfigured = $true
                 $certName = $certAuth.name
                 $certKeyVaultSecretId = $certAuth.keyVaultSecretId
-                $certKeyVaultSecretIdDisplay = 'XXXX'
+                $certKeyVaultSecretIdDisplay = $certAuth.keyVaultSecretId
             }
 
             # Check for application rules with terminateTLS enabled
