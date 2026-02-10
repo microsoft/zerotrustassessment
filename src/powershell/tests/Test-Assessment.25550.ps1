@@ -53,9 +53,6 @@ function Test-Assessment-25550 {
 
     $firewallPoliciesWithTLS = @()
 
-    #endregion Data Collection
-
-    #region Assessment Logic
     foreach ($subscription in $subscriptions) {
         Write-ZtProgress -Activity $activity -Status "Checking subscription: $($subscription.Name)"
 
@@ -68,9 +65,8 @@ function Test-Assessment-25550 {
                 $fwPoliciesResp = Invoke-AzRestMethod -Method GET -Uri $fwPoliciesUri
 
                 if ($fwPoliciesResp.StatusCode -eq 403) {
-                    Write-PSFMessage 'The signed in user does not have access to query firewall policies.' -Level Verbose
-                    Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-                    return
+                    Write-PSFMessage "The signed in user does not have access to query firewall policies in subscription $($subscription.Name)." -Level Verbose
+                    break
                 }
 
                 if ($fwPoliciesResp.StatusCode -ge 400) {
@@ -148,30 +144,36 @@ function Test-Assessment-25550 {
                 }
             }
 
-            # Parse policy ID to extract components for formatted display
+            # Parse policy ID to extract components for portal URL
             # Format: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{provider}/{resourceType}/{resourceName}
             $policyIdParts = $policy.id -split '/'
             $subscriptionId = $policyIdParts[2]
             $resourceGroupName = $policyIdParts[4]
             $resourceName = $policyIdParts[-1]
-            $formattedPolicyId = "$subscriptionId/$resourceGroupName/$resourceName"
+
+            # Create Azure portal URL for the firewall policy
+            $portalUrl = "https://portal.azure.com/#@/resource$($policy.id)"
 
             # Store results
             $firewallPoliciesWithTLS += [PSCustomObject]@{
-                SubscriptionId                    = $subscription.Id
-                SubscriptionName                  = $subscription.Name
-                PolicyName                        = $policy.name
-                PolicyId                          = $policy.id
-                PolicyIdFormatted                 = $formattedPolicyId
-                TLSGloballyConfigured             = if ($tlsGloballyConfigured) { 'Yes' } else { 'No' }
-                CertificateAuthorityName          = $certName
-                CertificateKeyVaultSecretId       = $certKeyVaultSecretId
-                CertificateKeyVaultSecretIdDisplay = $certKeyVaultSecretIdDisplay
-                ApplicationRuleWithTLS            = if ($tlsEnabledRulesFound) { 'Yes' } else { 'No' }
-                PassesCriteria                    = $tlsGloballyConfigured -and $tlsEnabledRulesFound
+                SubscriptionId                     = $subscription.Id
+                SubscriptionName                   = $subscription.Name
+                PolicyName                         = $policy.name
+                PolicyId                           = $policy.id
+                PortalUrl                          = $portalUrl
+                TLSGloballyConfigured              = if ($tlsGloballyConfigured) { 'Yes' } else { 'No' }
+                CertificateAuthorityName           = $certName
+                CertificateKeyVaultSecretId        = $certKeyVaultSecretId
+                CertificateKeyVaultSecretIdDisplay  = $certKeyVaultSecretIdDisplay
+                ApplicationRuleWithTLS             = if ($tlsEnabledRulesFound) { 'Yes' } else { 'No' }
+                PassesCriteria                     = $tlsGloballyConfigured -and $tlsEnabledRulesFound
             }
         }
     }
+
+    #endregion Data Collection
+
+    #region Assessment Logic
 
     # Determine pass/fail
     $passed = $false
@@ -195,8 +197,8 @@ function Test-Assessment-25550 {
 
 ## Azure Firewall policies TLS inspection status
 
-| Subscription ID | Azure Firewall policy name | Azure Firewall policy ID | TLS inspection globally configured | Certificate authority name | Certificate authority Key Vault secret ID | Application rule with TLS inspection enabled |
-| :------------- | :------------------------- | :----------------------- | :--------------------------------- | :------------------------- | :------------------------------------- | :------------------------------------------- |
+| Subscription name | Azure Firewall policy name | TLS inspection globally configured | Certificate authority name | Certificate authority Key Vault secret ID | Application rule with TLS inspection enabled |
+| :------------- | :------------------------- | :--------------------------------- | :------------------------- | :------------------------------------- | :------------------------------------------- |
 {0}
 
 '@
@@ -204,12 +206,13 @@ function Test-Assessment-25550 {
     $tableRows = ''
     foreach ($policyInfo in $firewallPoliciesWithTLS) {
         $policyName = Get-SafeMarkdown -Text $policyInfo.PolicyName
-        $policyId = Get-SafeMarkdown -Text $policyInfo.PolicyIdFormatted
-        $subId = Get-SafeMarkdown -Text $policyInfo.SubscriptionId
+        $portalUrl = $policyInfo.PortalUrl
+        $policyNameWithLink = "[$policyName]($portalUrl)"
+        $subName = Get-SafeMarkdown -Text $policyInfo.SubscriptionName
         $certName = Get-SafeMarkdown -Text $policyInfo.CertificateAuthorityName
         $certKeyVault = Get-SafeMarkdown -Text $policyInfo.CertificateKeyVaultSecretIdDisplay
 
-        $tableRows += "| $subId | $policyName | $policyId | $($policyInfo.TLSGloballyConfigured) | $certName | $certKeyVault | $($policyInfo.ApplicationRuleWithTLS) |`n"
+        $tableRows += "| $subName | $policyNameWithLink | $($policyInfo.TLSGloballyConfigured) | $certName | $certKeyVault | $($policyInfo.ApplicationRuleWithTLS) |`n"
     }
 
     $mdInfo = $formatTemplate -f $tableRows

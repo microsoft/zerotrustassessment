@@ -6,9 +6,9 @@ This check verifies that Azure Firewall Premium has TLS inspection enabled. With
 
 **Remediation action**
 
-- [Enable and use TLS inspection in Azure Firewall Premium policy](https://learn.microsoft.com/en-us/azure/firewall/premium-features)
-- [Azure Firewall Premium features implementation guide](https://learn.microsoft.com/en-us/azure/firewall/premium-deploy-certificates-enterprise-ca)
-- [Azure Firewall Premium certificates - How to create and configure intermediate CA certificates for TLS inspection](https://learn.microsoft.com/en-us/azure/firewall/premium-certificates)
+- [Azure Firewall Premium features implementation guide](https://learn.microsoft.com/en-us/azure/firewall/premium-features)
+- [Deploy and configure Enterprise CA certificates for Azure Firewall](https://learn.microsoft.com/en-us/azure/firewall/premium-deploy-certificates-enterprise-ca)
+- [Azure Firewall Premium certificates](https://learn.microsoft.com/en-us/azure/firewall/premium-certificates)
 
 <!--- Results --->
 %TestResult%
