@@ -9,7 +9,7 @@
 .NOTES
     Test ID: 25422
     Pillar: Network
-    Risk Level: High
+    Risk Level: Medium
     SFI Pillar: Monitor and detect cyberthreats
 #>
 
@@ -17,9 +17,9 @@ function Test-Assessment-25422 {
     [ZtTest(
         Category = 'Global Secure Access',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
+        MinimumLicense = ('Entra_Premium_Internet_Access','Entra_Premium_Private_Access'),
         Pillar = 'Network',
-        RiskLevel = 'High',
+        RiskLevel = 'Medium',
         SfiPillar = 'Monitor and detect cyberthreats',
         TenantType = ('Workforce', 'External'),
         TestId = '25422',
@@ -124,18 +124,22 @@ function Test-Assessment-25422 {
 
     # Build recent deployments table
     if ($totalCount -gt 0) {
-        $mdInfo += "`n**Recent Deployments:**`n`n"
-
         # Check if truncation needed
         $displayCount = [math]::Min($totalCount, 10)
         $isTruncated = $totalCount -gt 10
 
+        $truncationMessage = ''
         if ($isTruncated) {
-            $mdInfo += "Showing $displayCount of $totalCount deployments. [View all deployments]($deploymentLogsLink)`n`n"
+            $truncationMessage = "Showing $displayCount of $totalCount deployments. [View all deployments]($deploymentLogsLink)`n`n"
         }
 
-        $mdInfo += "| Date | Operation | Change Type | Status | Initiated By | Error Message |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
+        $mdInfo += @"
+
+**Recent Deployments:**
+
+$truncationMessage| Date | Operation | Change Type | Status | Initiated By | Error Message |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+"@
 
         # Sort by date descending and take first 10
         $sortedDeployments = $recentDeployments | Sort-Object -Property {
@@ -197,12 +201,14 @@ function Test-Assessment-25422 {
                 'N/A'
             }
 
-            $mdInfo += "| $deploymentDate | $operationName | $changeType | $deploymentStage | $initiatedBy | $errorMessage |`n"
+            $mdInfo += "`n| $deploymentDate | $operationName | $changeType | $deploymentStage | $initiatedBy | $errorMessage |"
         }
 
         if ($isTruncated) {
-            $mdInfo += "| ... | | | | | |`n"
+            $mdInfo += "`n| ... | | | | | |"
         }
+
+        $mdInfo += "`n"
     }
     else {
         $mdInfo += "`n**Recent Deployments:**`n`nNo deployments found in the last 30 days.`n"
