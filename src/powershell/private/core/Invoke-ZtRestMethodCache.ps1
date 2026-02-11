@@ -5,48 +5,45 @@ function Invoke-ZtRestMethodCache {
 
 	.DESCRIPTION
 		Executes an Azure REST Method request unless it has previously been cached.
-		Caches all successful GET requests, whether cache is disabled or not.
-		Only GET requests are cached, no matter what.
+		Caches successful GET responses for the duration of the session.
+		When -DisableCache is specified, both cache reads and writes are skipped.
 
 		Throws an exception on non-2xx status codes unless -FullResponse is specified.
 
-	.PARAMETER Path
-		Path of target resource URL including api-version query parameter.
-		Hostname of Resource Manager should not be added.
+		This function is called by Invoke-ZtRestMethod and receives pre-built
+		Invoke-AzRestMethod parameters to forward directly.
 
-	.PARAMETER Method
-		The HTTP Method to execute.
-		Defaults to "GET"
+	.PARAMETER CacheKey
+		A unique string key for the cache (typically the Path or Uri).
+
+	.PARAMETER AzParams
+		Hashtable of parameters to splat to Invoke-AzRestMethod.
+		The HTTP method is inferred from AzParams.Method (defaults to GET if absent).
 
 	.PARAMETER DisableCache
 		Specify if this request should skip cache and go directly to Azure.
-
-	.PARAMETER DisablePaging
-		Only return first page of results. By default, paging is enabled.
 
 	.PARAMETER FullResponse
 		Return the full PSHttpResponse object instead of just the parsed content.
 		When specified, does not throw on non-2xx status codes.
 
 	.EXAMPLE
-		PS C:\> Invoke-ZtRestMethodCache -Path '/subscriptions?api-version=2022-01-01'
+		PS C:\> Invoke-ZtRestMethodCache -CacheKey '/subscriptions?api-version=2022-01-01' -AzParams @{ Path = '/subscriptions?api-version=2022-01-01'; Paginate = $true }
 
-		Lists all subscriptions and caches the result.
+		Lists all subscriptions (GET is the default) and caches the result.
 	#>
 	[CmdletBinding()]
 	param(
 		[Parameter(Mandatory = $true)]
 		[string]
-		$Path,
+		$CacheKey,
 
-		[string]
-		$Method = 'GET',
+		[Parameter(Mandatory = $true)]
+		[hashtable]
+		$AzParams,
 
 		[switch]
 		$DisableCache,
-
-		[switch]
-		$DisablePaging,
 
 		[switch]
 		$FullResponse
@@ -54,51 +51,45 @@ function Invoke-ZtRestMethodCache {
 
 	$cacheBlocked = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.DisableCache'
 	if ($cacheBlocked) { $DisableCache = $true }
-
-	$isMethodGet = $Method -eq 'GET'
-	$cacheKey = $Path
+	$isGet = -not $AzParams.ContainsKey('Method') -or $AzParams['Method'] -eq 'GET'
+	$isInCache = $script:__ZtSession.AzureCache.Value.ContainsKey($CacheKey)
 
 	# Check cache for GET requests
-	if (-not $cacheBlocked -and -not $DisableCache -and $isMethodGet) {
-		$isInCache = $script:__ZtSession.AzureCache.Value.ContainsKey($cacheKey)
-		if ($isInCache) {
-			Write-PSFMessage "Using Azure cache: $($cacheKey)" -Level Debug
-			$cachedResult = $script:__ZtSession.AzureCache.Value[$cacheKey]
-			if ($cachedResult) {
-				if ($FullResponse) {
-					# Return a synthetic response object for cached content
-					return [PSCustomObject]@{
-						StatusCode = 200
-						Content    = $cachedResult | ConvertTo-Json -Depth 100
-						Headers    = @{}
-						Method     = 'GET'
-					}
+	if (-not $cacheBlocked -and -not $DisableCache -and $isGet -and $isInCache) {
+		Write-PSFMessage "Using Azure cache: $($CacheKey)" -Level Debug
+		$cachedResult = $script:__ZtSession.AzureCache.Value[$CacheKey]
+		if ($cachedResult) {
+			if ($FullResponse) {
+				# Return a synthetic response object for cached content
+				return [PSCustomObject]@{
+					StatusCode = 200
+					Content    = $cachedResult | ConvertTo-Json -Depth 100
+					Headers    = @{}
+					Method     = 'GET'
 				}
-				return $cachedResult
 			}
+			return $cachedResult
 		}
 	}
 
-	Write-PSFMessage "Invoking Azure REST: $Path" -Level Debug -Tag Azure
+	Write-PSFMessage "Invoking Azure REST: $CacheKey" -Level Debug -Tag Azure
 
-	# Build request parameters
-	$requestParams = @{
-		Path   = $Path
-		Method = $Method
-	}
-
-	# Add paging parameters for GET requests
-	if ($isMethodGet -and -not $DisablePaging) {
-		$requestParams['Paginate'] = $true
-	}
-
-	$response = Invoke-AzRestMethod @requestParams
+	# Forward all parameters directly to Invoke-AzRestMethod
+	$response = Invoke-AzRestMethod @AzParams
 
 	# Check for success (2xx status codes)
 	$isSuccess = $response.StatusCode -ge 200 -and $response.StatusCode -lt 300
 
 	if ($FullResponse) {
-		# Return full response without throwing
+		# Cache the parsed content so subsequent non-FullResponse calls benefit,
+		# then return the full response without throwing.
+		if ($isGet -and -not $DisableCache -and $isSuccess) {
+			$parsedForCache = $null
+			if (-not [string]::IsNullOrWhiteSpace($response.Content)) {
+				$parsedForCache = $response.Content | ConvertFrom-Json
+			}
+			$script:__ZtSession.AzureCache.Value[$CacheKey] = $parsedForCache
+		}
 		return $response
 	}
 
@@ -123,8 +114,8 @@ function Invoke-ZtRestMethodCache {
 	}
 
 	# Cache successful GET responses
-	if ($isMethodGet -and -not $DisableCache) {
-		$script:__ZtSession.AzureCache.Value[$cacheKey] = $results
+	if ($isGet -and -not $DisableCache) {
+		$script:__ZtSession.AzureCache.Value[$CacheKey] = $results
 	}
 
 	$results
