@@ -179,7 +179,7 @@ function Test-Assessment-35014 {
 
 | Policy name | Inherit label from attachments |
 | :---------- | :---------- |
-$($policyTableRows.TrimEnd("`n"))
+$policyTableRows
 "@
     }
 
@@ -192,7 +192,7 @@ $($policyTableRows.TrimEnd("`n"))
 
 | Label name | Content type | Priority |
 | :---------- | :---------- | :-------- |
-$($labelTableRows.TrimEnd("`n"))
+$labelTableRows
 "@
     }
 
@@ -207,7 +207,7 @@ The following policies could not be parsed and were excluded from analysis:
 
 | Policy Name | Error |
 | :---------- | :---- |
-$($errorTableRows.TrimEnd("`n"))
+$errorTableRows
 
 **Note**: These policies were treated as having no ``attachmentaction`` configured.
 "@
