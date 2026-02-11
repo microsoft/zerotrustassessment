@@ -85,7 +85,7 @@ function Test-Assessment-25375 {
     # Handle any query failure - cannot determine license status
     if ($skuCmdletFailed -or $userCmdletFailed) {
         $testResultMarkdown = "⚠️ Unable to determine GSA license status.`n`n%TestResult%"
-        $customStatus = 'Investigate'
+        $customStatus = 'Skipped'
     }
     # Filter SKUs containing GSA service plans
     elseif ($null -ne $subscribedSkus) {
