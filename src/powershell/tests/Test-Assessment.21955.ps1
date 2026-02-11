@@ -59,7 +59,8 @@ function Test-Assessment-21955 {
     #region Report Generation
 
     # Build detailed markdown
-    $resourceId = '23f1f8b7-1ef3-48a3-9563-e0c17fa1dbec'
+    # Get current tenant ID from context to build the portal link
+    $resourceId = (Get-MgContext).TenantId
     $assignmentsPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/$deviceLocalAdminRoleId/roleId/$deviceLocalAdminRoleId/roleTemplateId/$deviceLocalAdminRoleId/roleName/Microsoft%20Entra%20Joined%20Device%20Local%20Administrator/isRoleCustom~/false/resourceScopeId/%2F/resourceId/$resourceId"
 
     $mdInfo = ''
