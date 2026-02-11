@@ -80,7 +80,7 @@ function Test-Assessment-35014 {
                     }
                 }
 
-                # Check if attachmentaction is set to "automatic" or "recommended"
+                # Check if attachmentaction is set to 'automatic' or 'recommended'
                 $hasInheritance = $parsedSettings.AttachmentAction -in @('automatic', 'recommended')
 
                 if ($hasInheritance) {
@@ -92,7 +92,7 @@ function Test-Assessment-35014 {
             }
 
             # Step 2: Check labels for Files & Emails scope
-            # ContentType contains comma-separated values like "File, Email" or "File, Email, Site, UnifiedGroup"
+            # ContentType contains comma-separated values like 'File, Email' or 'File, Email, Site, UnifiedGroup'
             foreach ($label in $allLabels) {
                 $contentType = $label.ContentType
                 $hasFileScope = $contentType -like '*File*'
@@ -102,7 +102,7 @@ function Test-Assessment-35014 {
                     $dualScopedLabels += [PSCustomObject]@{
                         DisplayName = $label.DisplayName
                         Name        = $label.Name
-                        ContentType = "Files & Emails"
+                        ContentType = 'Files & Emails'
                         Priority    = $label.Priority
                     }
                 }
