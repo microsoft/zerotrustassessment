@@ -51,7 +51,7 @@ function Test-Assessment-25541 {
     $subscriptions = @()
     $policies = @()
     $anySuccessfulAccess = 0
-    $apiVersion = "2025-03-01"
+    $apiVersion = '2025-03-01'
 
     try {
         $subscriptions = Get-AzSubscription -ErrorAction Stop
@@ -61,7 +61,7 @@ function Test-Assessment-25541 {
     }
 
     if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage "No Azure subscriptions found." -Level Warning
+        Write-PSFMessage 'No Azure subscriptions found.' -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
@@ -143,11 +143,11 @@ function Test-Assessment-25541 {
     if ($policies.Count -eq 0) {
         if ($anySuccessfulAccess -eq 0) {
             # All subscriptions were inaccessible
-            Write-PSFMessage "No accessible Azure subscriptions found." -Level Warning
+            Write-PSFMessage 'No accessible Azure subscriptions found.' -Level Warning
             Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         } else {
             # Subscriptions accessible but no WAF policies deployed
-            Write-PSFMessage "No Application Gateway WAF policies found across subscriptions." -Tag Test -Level Verbose
+            Write-PSFMessage 'No Application Gateway WAF policies found across subscriptions.' -Tag Test -Level Verbose
             Add-ZtTestResultDetail -SkippedBecause NotApplicable
         }
         return
@@ -177,11 +177,11 @@ function Test-Assessment-25541 {
 
     # Table title
     $reportTitle = 'Application Gateway WAF policies'
-    $portalLink = "https://portal.azure.com/#view/Microsoft_Azure_HybridNetworking/FirewallManagerMenuBlade/~/wafMenuItem"
+    $portalLink = 'https://portal.azure.com/#view/Microsoft_Azure_HybridNetworking/FirewallManagerMenuBlade/~/wafMenuItem'
 
     # Prepare table rows
     $tableRows = ''
-    foreach ($item in $policies) {
+    foreach ($item in $policies | Sort-Object SubscriptionName, PolicyName) {
         $policyLink = "https://portal.azure.com/#resource$($item.PolicyId)"
         $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
         $policyMd = "[$(Get-SafeMarkdown $item.PolicyName)]($policyLink)"
@@ -206,7 +206,7 @@ function Test-Assessment-25541 {
 
 '@
 
-    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows.TrimEnd("`n")
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
