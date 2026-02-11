@@ -9,14 +9,14 @@
 
 .NOTES
     Test ID: 35014
-    Category: Information Protection
+    Category: Label Policy Configuration
     Pillar: Data
     Risk Level: Medium
 #>
 
 function Test-Assessment-35014 {
     [ZtTest(
-        Category = 'Information Protection',
+        Category = 'Label Policy Configuration',
         ImplementationCost = 'Low',
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
