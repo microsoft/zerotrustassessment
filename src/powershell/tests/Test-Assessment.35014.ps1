@@ -131,6 +131,10 @@ function Test-Assessment-35014 {
     #region Report Generation
     $mdInfo = ''
 
+    # Portal Links
+    $labelPoliciesLink = 'https://purview.microsoft.com/informationprotection/labelpolicies'
+    $labelsLink = 'https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels'
+
     # Build policy table rows
     $policyTableRows = ''
     if ($policiesWithInheritance.Count -gt 0) {
@@ -175,10 +179,10 @@ function Test-Assessment-35014 {
     if ($policiesWithInheritance.Count -gt 0) {
         $policiesSection = @"
 
-### [Policies with attachmentaction setting](https://purview.microsoft.com/informationprotection/labelpolicies)
+### [Policies with attachmentaction setting]($labelPoliciesLink)
 
 | Policy name | Inherit label from attachments |
-| :---------- | :---------- |
+| :---------- | :----------------------------- |
 $policyTableRows
 "@
     }
@@ -188,10 +192,10 @@ $policyTableRows
     if ($dualScopedLabels.Count -gt 0) {
         $labelsSection = @"
 
-### [Dual-scoped labels (ready for inheritance)](https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels)
+### [Dual-scoped labels (ready for inheritance)]($labelsLink)
 
 | Label name | Content type | Priority |
-| :---------- | :---------- | :-------- |
+| :--------- | :----------- | :------- |
 $labelTableRows
 "@
     }
