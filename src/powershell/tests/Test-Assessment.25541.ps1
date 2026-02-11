@@ -99,14 +99,31 @@ function Test-Assessment-25541 {
             continue
         }
 
+        # Azure REST list APIs are paginated.
+        # Handling nextLink is required to avoid missing WAF policies in subscriptions with many policies.
+        $allPoliciesInSub = @()
         $policiesJson = $response.Content | ConvertFrom-Json
 
-        if (-not $policiesJson.value -or $policiesJson.value.Count -eq 0) {
+        if ($policiesJson.value) {
+            $allPoliciesInSub += $policiesJson.value
+        }
+
+        $nextLink = $policiesJson.nextLink
+        while ($nextLink) {
+            $response = Invoke-AzRestMethod -Uri $nextLink -Method GET
+            $policiesJson = $response.Content | ConvertFrom-Json
+            if ($policiesJson.value) {
+                $allPoliciesInSub += $policiesJson.value
+            }
+            $nextLink = $policiesJson.nextLink
+        }
+
+        if ($allPoliciesInSub.Count -eq 0) {
             continue
         }
 
         # Collect policies from this subscription
-        foreach ($policyResource in $policiesJson.value) {
+        foreach ($policyResource in $allPoliciesInSub) {
             $policies += [PSCustomObject]@{
                 SubscriptionId   = $sub.Id
                 SubscriptionName = $sub.Name
