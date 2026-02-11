@@ -2,20 +2,11 @@ Global Secure Access requires specific Microsoft Entra licenses to function, inc
 
 **Remediation action**
 
-Review GSA licensing requirements and purchase appropriate licenses
-- <https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access#licensing-overview>
-
-Assign licenses to users through Microsoft Entra admin center
-- <https://learn.microsoft.com/en-us/entra/fundamentals/license-users-groups>
-
-Use group-based licensing for easier management at scale
-- <https://learn.microsoft.com/en-us/entra/fundamentals/concept-group-based-licensing>
-
-Monitor license utilization through Microsoft 365 admin center
-- <https://admin.microsoft.com/Adminportal/Home#/licenses>
-
-Review Microsoft Entra Suite as an alternative that includes both Internet Access and Private Access
-- <https://learn.microsoft.com/en-us/entra/fundamentals/whats-new#microsoft-entra-suite>
+- [Review GSA licensing requirements and purchase appropriate licenses](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access#licensing-overview)
+- [Assign licenses to users through Microsoft Entra admin center](https://learn.microsoft.com/en-us/entra/fundamentals/license-users-groups)
+- [Use group-based licensing for easier management at scale](https://learn.microsoft.com/en-us/entra/fundamentals/concept-group-based-licensing)
+- [Monitor license utilization through Microsoft 365 admin center](https://admin.microsoft.com/Adminportal/Home#/licenses)
+- [Review Microsoft Entra Suite as an alternative that includes both Internet Access and Private Access](https://learn.microsoft.com/en-us/entra/fundamentals/whats-new#microsoft-entra-suite)
 
 <!--- Results --->
 %TestResult%

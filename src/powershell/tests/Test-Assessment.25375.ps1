@@ -42,10 +42,10 @@ function Test-Assessment-25375 {
     Write-ZtProgress -Activity $activity -Status 'Querying tenant licenses'
 
     # GSA Service Plan IDs
-    $gsaServicePlanIds = @(
-        '8d23cb83-ab07-418f-8517-d7aca77307dc', # Entra_Premium_Internet_Access
-        'f057aab1-b184-49b2-85c0-881b02a405c5'  # Entra_Premium_Private_Access
-    )
+    $gsaServicePlanIds = @{
+        InternetAccess = '8d23cb83-ab07-418f-8517-d7aca77307dc' # Entra_Premium_Internet_Access
+        PrivateAccess  = 'f057aab1-b184-49b2-85c0-881b02a405c5' # Entra_Premium_Private_Access
+    }
 
     $skuCmdletFailed = $false
     $userCmdletFailed = $false
@@ -89,13 +89,13 @@ function Test-Assessment-25375 {
     }
     # Filter SKUs containing GSA service plans
     elseif ($null -ne $subscribedSkus) {
-        $gsaSkus = $subscribedSkus | Where-Object {
+        $gsaSkus = @($subscribedSkus | Where-Object {
             $sku = $_
-            $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds }
-        }
+            $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
+        })
 
         # Check if GSA licenses exist and are enabled
-        $enabledGsaSkus = $gsaSkus | Where-Object { $_.CapabilityStatus -eq 'Enabled' }
+        $enabledGsaSkus = @($gsaSkus | Where-Object { $_.CapabilityStatus -eq 'Enabled' })
 
         if ($gsaSkus.Count -eq 0 -or $enabledGsaSkus.Count -eq 0) {
             $testResultMarkdown = "❌ GSA licenses are not available or not assigned to users in the tenant.`n`n%TestResult%"
@@ -110,9 +110,9 @@ function Test-Assessment-25375 {
             }
 
             # Count users with GSA licenses assigned
-            $usersWithInternetAccess = @()
-            $usersWithPrivateAccess = @()
-            $usersWithAnyGsa = @()
+            $usersWithInternetAccess = [System.Collections.Generic.List[object]]::new()
+            $usersWithPrivateAccess = [System.Collections.Generic.List[object]]::new()
+            $usersWithAnyGsa = [System.Collections.Generic.List[object]]::new()
 
             foreach ($user in $allUsers) {
                 if (-not $user.AssignedLicenses -or $user.AssignedLicenses.Count -eq 0) {
@@ -128,13 +128,13 @@ function Test-Assessment-25375 {
                         $disabledPlans = $license.DisabledPlans
 
                         # Check if Internet Access is enabled
-                        $internetAccessPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq '8d23cb83-ab07-418f-8517-d7aca77307dc' }
+                        $internetAccessPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.InternetAccess }
                         if ($internetAccessPlan -and $internetAccessPlan.ServicePlanId -notin $disabledPlans) {
                             $hasInternetAccess = $true
                         }
 
                         # Check if Private Access is enabled
-                        $privateAccessPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq 'f057aab1-b184-49b2-85c0-881b02a405c5' }
+                        $privateAccessPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.PrivateAccess }
                         if ($privateAccessPlan -and $privateAccessPlan.ServicePlanId -notin $disabledPlans) {
                             $hasPrivateAccess = $true
                         }
@@ -142,13 +142,13 @@ function Test-Assessment-25375 {
                 }
 
                 if ($hasInternetAccess) {
-                    $usersWithInternetAccess += $user
+                    $usersWithInternetAccess.Add($user)
                 }
                 if ($hasPrivateAccess) {
-                    $usersWithPrivateAccess += $user
+                    $usersWithPrivateAccess.Add($user)
                 }
                 if ($hasInternetAccess -or $hasPrivateAccess) {
-                    $usersWithAnyGsa += $user
+                    $usersWithAnyGsa.Add($user)
                 }
             }
 
@@ -214,7 +214,7 @@ function Test-Assessment-25375 {
         # Build service plan table
         $servicePlanTableRows = ''
         foreach ($sku in $enabledGsaSkus) {
-            $gsaPlans = $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds }
+            $gsaPlans = $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
             foreach ($plan in $gsaPlans) {
                 $planName = Get-SafeMarkdown -Text $plan.ServicePlanName
                 $skuName = Get-SafeMarkdown -Text $sku.SkuPartNumber
