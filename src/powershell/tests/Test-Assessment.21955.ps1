@@ -59,7 +59,8 @@ function Test-Assessment-21955 {
     #region Report Generation
 
     # Build detailed markdown
-    $assignmentsPortalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleTemplateId/9f06204d-73c1-4d4c-880a-6edb90606fd8/roleName/Microsoft%20Entra%20Joined%20Device%20Local%20Administrator/isRoleCustom~/false/resourceScopeId/%2F/resourceId/23f1f8b7-1ef3-48a3-9563-e0c17fa1dbec'
+    $resourceId = '23f1f8b7-1ef3-48a3-9563-e0c17fa1dbec'
+    $assignmentsPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/$deviceLocalAdminRoleId/roleId/$deviceLocalAdminRoleId/roleTemplateId/$deviceLocalAdminRoleId/roleName/Microsoft%20Entra%20Joined%20Device%20Local%20Administrator/isRoleCustom~/false/resourceScopeId/%2F/resourceId/$resourceId"
 
     $mdInfo = ''
 
