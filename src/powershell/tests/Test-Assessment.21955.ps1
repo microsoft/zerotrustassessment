@@ -68,7 +68,7 @@ function Test-Assessment-21955 {
     if ($assignedMembers.Count -gt 0) {
         $mdInfo += "`n## [Active Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
         $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
-        $mdInfo += "| :----------- | :---| :--- | :-------------- |`n"
+        $mdInfo += "| :----------- | :--- | :--- | :-------------- |`n"
 
         foreach ($member in ($assignedMembers | Sort-Object -Property principalDisplayName)) {
             $objectType = if ($member.'@odata.type' -eq '#microsoft.graph.user') { 'User' } else { 'Group' }
@@ -87,7 +87,7 @@ function Test-Assessment-21955 {
     if ($eligibleMembers.Count -gt 0) {
         $mdInfo += "`n## [Eligible Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
         $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
-        $mdInfo += "| :----------- | :---| :--- | :-------------- |`n"
+        $mdInfo += "| :----------- | :--- | :--- | :-------------- |`n"
 
         foreach ($member in ($eligibleMembers | Sort-Object -Property principalDisplayName)) {
             $objectType = if ($member.'@odata.type' -eq '#microsoft.graph.user') { 'User' } else { 'Group' }
