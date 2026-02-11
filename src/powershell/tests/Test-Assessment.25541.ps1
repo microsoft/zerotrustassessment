@@ -109,13 +109,19 @@ function Test-Assessment-25541 {
         }
 
         $nextLink = $policiesJson.nextLink
-        while ($nextLink) {
-            $response = Invoke-AzRestMethod -Uri $nextLink -Method GET
-            $policiesJson = $response.Content | ConvertFrom-Json
-            if ($policiesJson.value) {
-                $allPoliciesInSub += $policiesJson.value
+        try{
+            while ($nextLink) {
+                $response = Invoke-AzRestMethod -Uri $nextLink -Method GET
+                $policiesJson = $response.Content | ConvertFrom-Json
+                if ($policiesJson.value) {
+                    $allPoliciesInSub += $policiesJson.value
+                }
+                $nextLink = $policiesJson.nextLink
             }
-            $nextLink = $policiesJson.nextLink
+        }
+        catch {
+            Write-PSFMessage "Failed to retrieve next page of Application Gateway WAF policies for subscription '$($sub.Name)': $_. Continuing with collected data." -Level Warning
+            break
         }
 
         if ($allPoliciesInSub.Count -eq 0) {
@@ -129,8 +135,8 @@ function Test-Assessment-25541 {
                 SubscriptionName = $sub.Name
                 PolicyName       = $policyResource.name
                 PolicyId         = $policyResource.id
-                EnabledState     = $policyResource.properties.policySettings.state
-                Mode             = $policyResource.properties.policySettings.mode
+                EnabledState     = $policyResource.properties?.policySettings?.state
+                Mode             = $policyResource.properties?.policySettings?.mode
             }
         }
     }
