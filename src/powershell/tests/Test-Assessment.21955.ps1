@@ -67,11 +67,11 @@ function Test-Assessment-21955 {
     if ($assignedMembers.Count -gt 0) {
         $mdInfo += "`n## [Active Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
         $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
-        $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
+        $mdInfo += "| :----------- | :---| :--- | :-------------- |`n"
 
         foreach ($member in ($assignedMembers | Sort-Object -Property principalDisplayName)) {
             $objectType = if ($member.'@odata.type' -eq '#microsoft.graph.user') { 'User' } else { 'Group' }
-            $upn = if ($member.userPrincipalName) { $member.userPrincipalName } else { '-' }
+            $upn = if ([string]::IsNullOrWhiteSpace($member.userPrincipalName)) { 'N/A' } else { $member.userPrincipalName }
 
             $portalLink = if ($member.'@odata.type' -eq '#microsoft.graph.user') {
                 "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($member.principalId)"
@@ -86,11 +86,11 @@ function Test-Assessment-21955 {
     if ($eligibleMembers.Count -gt 0) {
         $mdInfo += "`n## [Eligible Microsoft Entra Joined Device Local Administrator assignments]($assignmentsPortalLink)`n`n"
         $mdInfo += "| Display name | UPN | Type | Assignment type |`n"
-        $mdInfo += "| :----------- | :--- | :-- | :-------------- |`n"
+        $mdInfo += "| :----------- | :---| :--- | :-------------- |`n"
 
         foreach ($member in ($eligibleMembers | Sort-Object -Property principalDisplayName)) {
             $objectType = if ($member.'@odata.type' -eq '#microsoft.graph.user') { 'User' } else { 'Group' }
-            $upn = if ($member.userPrincipalName) { $member.userPrincipalName } else { '-' }
+            $upn = if ([string]::IsNullOrWhiteSpace($member.userPrincipalName)) { 'N/A' } else { $member.userPrincipalName }
 
             $portalLink = if ($member.'@odata.type' -eq '#microsoft.graph.user') {
                 "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($member.principalId)"
