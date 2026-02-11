@@ -44,8 +44,7 @@ function Test-Assessment-35029 {
         $protectionRules = $allRules | Where-Object {
             $_.ApplyOME -eq $true -or
             $_.ApplyRightsProtectionTemplate -or
-            $_.ApplyClassification -or
-            $_.ApplyHtmlDisclaimerText
+            $_.ApplyClassification
         }
 
         # Q2: Get detailed configuration of each protection rule
@@ -57,7 +56,6 @@ function Test-Assessment-35029 {
                 ApplyOME                      = $rule.ApplyOME
                 ApplyRightsProtectionTemplate = $rule.ApplyRightsProtectionTemplate
                 ApplyClassification           = $rule.ApplyClassification
-                ApplyHtmlDisclaimerText       = if ($rule.ApplyHtmlDisclaimerText) { $true } else { $false }
                 SentToScope                   = $rule.SentToScope
                 WhenChanged                   = $rule.WhenChanged
             }
@@ -109,15 +107,14 @@ function Test-Assessment-35029 {
     $omeRulesCount = @($protectionRules | Where-Object { $_.ApplyOME -eq $true }).Count
     $rmsRulesCount = @($protectionRules | Where-Object { $_.ApplyRightsProtectionTemplate }).Count
     $classificationRulesCount = @($protectionRules | Where-Object { $_.ApplyClassification }).Count
-    $disclaimerRulesCount = @($protectionRules | Where-Object { $_.ApplyHtmlDisclaimerText }).Count
 
     # Check common protection scenarios
     $hasExternalProtection = @($protectionRules | Where-Object { $_.SentToScope -eq 'NotInOrganization' }).Count -gt 0
 
     if ($allProtectionRulesDetailed.Count -gt 0) {
         $mdInfo += "### [Protection rules configuration](https://admin.exchange.microsoft.com/#/transportrules)`n`n"
-        $mdInfo += "| Rule name | State | Priority | OME | RMS template | Classification | Disclaimer | Last modified |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
+        $mdInfo += "| Rule name | State | Priority | OME | RMS template | Classification | Last modified |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         foreach ($rule in $allProtectionRulesDetailed | Sort-Object -Property Priority) {
             $ruleName = Get-SafeMarkdown -Text $rule.Name
@@ -126,10 +123,9 @@ function Test-Assessment-35029 {
             $omeStatus = if ($rule.ApplyOME) { 'Yes' } else { 'No' }
             $rmsTemplate = if ($rule.ApplyRightsProtectionTemplate) { Get-SafeMarkdown -Text $rule.ApplyRightsProtectionTemplate } else { 'N/A' }
             $classificationStatus = if ($rule.ApplyClassification) { Get-SafeMarkdown -Text $rule.ApplyClassification } else { 'N/A' }
-            $disclaimerStatus = if ($rule.ApplyHtmlDisclaimerText) { 'Yes' } else { 'No' }
             $modifiedDate = if ($rule.WhenChanged) { $rule.WhenChanged.ToString('yyyy-MM-dd') } else { 'N/A' }
 
-            $mdInfo += "| $ruleLink | $stateIcon $($rule.State) | $($rule.Priority) | $omeStatus | $rmsTemplate | $classificationStatus | $disclaimerStatus | $modifiedDate |`n"
+            $mdInfo += "| $ruleLink | $stateIcon $($rule.State) | $($rule.Priority) | $omeStatus | $rmsTemplate | $classificationStatus | $modifiedDate |`n"
         }
         $mdInfo += "`n"
     }
@@ -140,7 +136,6 @@ function Test-Assessment-35029 {
     $mdInfo += "| OME encryption rules | $omeRulesCount |`n"
     $mdInfo += "| RMS template application | $rmsRulesCount |`n"
     $mdInfo += "| Classification rules | $classificationRulesCount |`n"
-    $mdInfo += "| Disclaimer rules | $disclaimerRulesCount |`n"
 
     $externalProtectionStatus = if ($hasExternalProtection) { '✅ Yes' } else { '❌ No' }
 
