@@ -62,7 +62,7 @@ function Test-Assessment-35014 {
     $customStatus = $null
 
     if ($errorMsg) {
-        $testResultMarkdown = "⚠️ Labels exist but the ``attachmentaction`` setting could not be inspected due to permissions or unexpected data format. Check label policy settings in the Purview portal to confirm inheritance is explicitly enabled, or verify PowerShell access to policy Settings.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unable to query label policies or sensitivity labels, so the ``attachmentaction`` setting could not be evaluated. Check label policy settings in the Purview portal to confirm inheritance is explicitly enabled, and verify PowerShell access to label policies and labels. Captured error: $($errorMsg)`n`n%TestResult%"
         $customStatus = 'Investigate'
     }
     else {
