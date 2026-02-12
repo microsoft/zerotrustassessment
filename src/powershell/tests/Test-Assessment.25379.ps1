@@ -36,7 +36,13 @@ function Test-Assessment-25379 {
 
     # Q1: Retrieve Global Secure Access Conditional Access signaling status
     # Query the Global Secure Access settings to determine if Conditional Access signaling is enabled
-    $settings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta -ErrorAction SilentlyContinue
+    try {
+        $settings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta -ErrorAction Stop
+    }
+    catch {
+        Write-PSFMessage -Message "Failed to retrieve Global Secure Access Conditional Access settings via Graph: $_" -Tag Test, Graph -Level Warning
+        $settings = $null
+    }
 
     # Q2: Retrieve the compliant network named location
     # Query named locations to find the compliant network named location
