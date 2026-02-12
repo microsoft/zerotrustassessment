@@ -113,6 +113,7 @@ function Test-Assessment-26889 {
         $subscriptions = $allSubscriptions | Where-Object { $_.state -eq 'Enabled' }
     }
     catch {
+        Write-PSFMessage "Failed to enumerate Azure subscriptions while evaluating Front Door WAF diagnostic logging: $_" -Level Error
         throw
     }
 
@@ -125,6 +126,8 @@ function Test-Assessment-26889 {
     # Collect Front Door resources and WAF policies across all subscriptions
     $allAfdResources = @()
     $allWafPolicies = @()
+    $frontDoorQuerySuccess = $false
+    $wafQuerySuccess = $false
 
     foreach ($subscription in $subscriptions) {
         $subscriptionId = $subscription.subscriptionId
@@ -138,6 +141,7 @@ function Test-Assessment-26889 {
             $afdListResult = Invoke-AzRestMethod -Path $afdListPath -ErrorAction Stop
 
             if ($afdListResult.StatusCode -lt 400) {
+                $frontDoorQuerySuccess = $true
                 # Azure REST list APIs are paginated.
                 # Handling nextLink is required to avoid missing Front Door profiles.
                 $allCdnResources = @()
@@ -186,6 +190,7 @@ function Test-Assessment-26889 {
             $wafResult = Invoke-AzRestMethod -Path $wafPath -ErrorAction Stop
 
             if ($wafResult.StatusCode -lt 400) {
+                $wafQuerySuccess = $true
                 # Azure REST list APIs are paginated.
                 # Handling nextLink is required to avoid missing WAF policies.
                 $allWafPoliciesInSub = @()
@@ -225,8 +230,20 @@ function Test-Assessment-26889 {
 
     # Check if any Front Door resources exist
     if ($allAfdResources.Count -eq 0) {
+        if (-not $frontDoorQuerySuccess) {
+            Write-PSFMessage 'Unable to query Front Door resources in any subscription due to access restrictions.' -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
         Write-PSFMessage 'No Azure Front Door Standard/Premium resources found.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotLicensedOrNotApplicable
+        return
+    }
+
+    # Check if WAF policies could be queried
+    if ($allWafPolicies.Count -eq 0 -and -not $wafQuerySuccess) {
+        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
@@ -403,7 +420,7 @@ function Test-Assessment-26889 {
 '@
         foreach ($result in $evaluationResults) {
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)](https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)/overview)"
-            $profileLink = "[$($result.FrontDoorName)](https://portal.azure.com/#resource$($result.FrontDoorId)/diagnostics)"
+            $profileLink = "[$(Get-SafeMarkdown $result.FrontDoorName)](https://portal.azure.com/#resource$($result.FrontDoorId)/diagnostics)"
             $diagCount = $result.DiagnosticSettingCount
             $destConfigured = if ($result.DestinationType -eq 'None') { 'No' } else { 'Yes' }
             $enabledCategories = if ($result.DiagnosticSettingCount -eq 0) {
