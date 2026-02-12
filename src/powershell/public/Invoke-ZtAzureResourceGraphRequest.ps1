@@ -51,6 +51,7 @@ function Invoke-ZtAzureResourceGraphRequest {
 		$ApiVersion = '2024-04-01',
 
 		[Parameter()]
+		[ValidateRange(1, 1000)]
 		[int]
 		$MaxPages = 100
 	)
