@@ -49,7 +49,7 @@
 
 #>
 function Invoke-ZtAzureRequest {
-	[CmdletBinding(DefaultParameterSetName = 'ByPath', SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+	[CmdletBinding(DefaultParameterSetName = 'ByPath')]
 	param(
 		#region Invoke-AzRestMethod: ByPath parameter set
 		[Parameter(ParameterSetName = 'ByPath', Mandatory, HelpMessage = 'Path of target resource URL. Hostname of Resource Manager should not be added.')]
