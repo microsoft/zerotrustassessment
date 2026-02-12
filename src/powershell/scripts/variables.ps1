@@ -3,6 +3,7 @@
 $script:__ZtSession = @{
 	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
 	GraphCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.GraphCache" -Dictionary -PassThru
+	AzureCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.AzureCache" -Dictionary -PassThru
 	GraphBaseUri = $null
 	TestMeta     = @()
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
