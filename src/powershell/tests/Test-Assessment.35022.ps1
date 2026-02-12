@@ -277,16 +277,12 @@ function Test-Assessment-35022 {
                 $workEsc = $row.Workload
                 $sitEsc = $row.'SIT Detected'
                 $created = if ($row.'Created (UTC)') {
-                    $row.'Created (UTC)'
                      Get-FormattedDate -DateString $row.'Created (UTC)'
-
-
                 }
                 else {
                     ''
                 }
                 $last = if ($row.'Last Scan Start') {
-                    $row.'Last Scan Start'
                      Get-FormattedDate -DateString $row.'Last Scan Start'
                 }
                 else {
