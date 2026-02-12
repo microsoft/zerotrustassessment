@@ -41,9 +41,7 @@
 			if ($percent -lt 0) { $percent = 0 }
 			if ($percent -gt 100) { $percent = 100 }
 
-			$lastMessage = Get-PSFMessage -Tag start | Select-Object -Last 1
-			if ($lastMessage -and $lastMessage.StringValue) { $lastTest = $lastMessage.StringValue[0] }
-			$status = "Completed: $($Workflow.Queues["Results"].Count) / $totalCount | Last Test: $lastTest"
+			$status = "Completed: $($Workflow.Queues["Results"].Count) / $totalCount"
 
 			Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -Status $status -PercentComplete $percent
 		}
