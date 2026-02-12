@@ -272,8 +272,8 @@ function Test-Assessment-35022 {
             $testResultMarkdown += "|------|--------|----------|--------------|---------------|-----------------|`n"
 
             foreach ($row in $tableData) {
-                $nameEsc =  $row.Name
-                $statusEsc =  $row.Status
+                $nameEsc = $row.Name
+                $statusEsc = $row.Status
                 $workEsc = $row.Workload
                 $sitEsc = $row.'SIT Detected'
                 $created = if ($row.'Created (UTC)') {
@@ -311,7 +311,7 @@ function Test-Assessment-35022 {
 
         $testResultMarkdown += "`n[Microsoft Purview Portal > Information Protection > Classifiers > On-demand classification](https://purview.microsoft.com/informationprotection/dataclassification/colddatascans)`n"
         $testResultMarkdown += "or"
-        $testResultMarkdown += "`n[ Microsoft Purview Portal > Data Loss Prevention > Classifiers > On-demand classification ](https://purview.microsoft.com/datalossprevention/dataclassification/colddatascans)`n"
+        $testResultMarkdown += "`n[Microsoft Purview Portal > Data Loss Prevention > Classifiers > On-demand classification](https://purview.microsoft.com/datalossprevention/dataclassification/colddatascans)`n"
 
     }
     #endregion Report Generation
