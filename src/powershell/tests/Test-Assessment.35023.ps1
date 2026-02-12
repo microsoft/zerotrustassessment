@@ -59,15 +59,16 @@ function Test-Assessment-35023 {
     $blockReason = $null
     $enabledLocations = @()
 
+$ocrConfig =@()
     if ($ocrConfig) {
-        $enabled = $ocrConfig.Enabled
-        $exchange = $ocrConfig.ExchangeLocation
-        $sharePoint = $ocrConfig.SharePointLocation
-        $oneDrive = $ocrConfig.OneDriveLocation
-        $teams = $ocrConfig.TeamsLocation
-        $endpoint = $ocrConfig.EndpointDlpLocation
-        $isBlocked = $ocrConfig.IsOcrUsageBlocked
         $blockReason = $ocrConfig.OcrUsageBlockageReason
+        $enabled   = [bool]($ocrConfig.Enabled -eq $true)
+        $exchange  = [bool]($ocrConfig.ExchangeLocation.Name -eq 'All')
+        $sharePoint= [bool]($ocrConfig.SharePointLocation.Name -eq 'All')
+        $oneDrive  = [bool]($ocrConfig.OneDriveLocation.Name -eq 'All')
+        $teams     = [bool]($ocrConfig.TeamsLocation.Name -eq 'All')
+        $endpoint  = [bool]($ocrConfig.EndpointDlpLocation.Name -eq 'All')
+        $isBlocked = [bool]($ocrConfig.IsOcrUsageBlocked -eq $true)
 
         if ($exchange) { $enabledLocations += 'Exchange' }
         if ($sharePoint) { $enabledLocations += 'SharePoint' }
@@ -110,11 +111,11 @@ function Test-Assessment-35023 {
         # Status text
         if ($passed) {
             $statusIcon = "✅ Pass"
-            $statusMessage = "OCR configuration is enabled for at least one workload location, allowing policies to detect sensitive information within images."
+            $statusMessage = "OCR configuration is enabled at the tenant level for at least one workload, enabling policies to detect sensitive information within images."
         }
         else {
             $statusIcon = "❌ Fail"
-            $statusMessage = "OCR is not configured, disabled for all workloads, or usage is blocked."
+            $statusMessage = "OCR is not configured or is disabled for all workloads."
         }
 
         # OCR Configuration Table
@@ -131,12 +132,12 @@ function Test-Assessment-35023 {
         $testResultMarkdown += "| Endpoint | $endpoint |`n"
         $testResultMarkdown += "| OCR usage blocked | $isBlocked |`n"
         $testResultMarkdown += "| Blockage Reason | $(if ($blockReason) { $blockReason } else { 'None' }) |`n"
-        $testResultMarkdown += "| Azure Billing Status | Manual Verification Required |`n"
+        $testResultMarkdown += "| Azure billing status | Manual verification required |`n"
 
         # Summary Section (matches MD output structure)
         $testResultMarkdown += "`n### Summary`n`n"
-        $testResultMarkdown += "* **OCR Configuration:** $(if ($ocrConfig) { 'Configured' } else { 'Not Configured' })`n"
-        $testResultMarkdown += "* **Active Workloads:** $($enabledLocations.Count)`n"
+        $testResultMarkdown += "* **OCR configuration:** $(if ($ocrConfig) { 'Configured' } else { 'Not Configured' })`n"
+        $testResultMarkdown += "* **Active workloads:** $($enabledLocations.Count)`n"
         $testResultMarkdown += "* **Status:** $(if ($passed) { 'Pass' } else { 'Fail' })`n"
 
         # Portal link
