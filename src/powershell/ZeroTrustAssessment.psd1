@@ -76,7 +76,7 @@ FormatsToProcess = 'ZeroTrustAssessment.format.ps1xml'
 FunctionsToExport = 'Connect-ZtAssessment', 'Disconnect-ZtAssessment',
                'Get-ZtExportStatistics', 'Get-ZtGraphScope', 'Get-ZtTest',
                'Get-ZtTestStatistics', 'Invoke-ZtAssessment',
-               'Invoke-ZtGraphRequest', 'Invoke-ZtRestMethod',
+               'Invoke-ZtGraphRequest', 'Invoke-ZtAzureRequest',
                'Invoke-ZtAzureResourceGraphRequest'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

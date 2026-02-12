@@ -19,17 +19,17 @@
     * Automatic unwrapping of .value array from responses
 
  .EXAMPLE
-    Invoke-ZtRestMethod -Path "/subscriptions?api-version=2022-01-01"
+    Invoke-ZtAzureRequest -Path "/subscriptions?api-version=2022-01-01"
 
     Get all subscriptions (api-version in the path, like Invoke-AzRestMethod).
 
  .EXAMPLE
-    Invoke-ZtRestMethod -Path "/subscriptions/$subscriptionId/providers/Microsoft.Compute/virtualMachines?api-version=2024-03-01" -Select "name,location"
+    Invoke-ZtAzureRequest -Path "/subscriptions/$subscriptionId/providers/Microsoft.Compute/virtualMachines?api-version=2024-03-01" -Select "name,location"
 
     Get all virtual machines with selected properties.
 
  .EXAMPLE
-    $response = Invoke-ZtRestMethod -Path "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01" -Filter "atScope()" -FullResponse
+    $response = Invoke-ZtAzureRequest -Path "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01" -Filter "atScope()" -FullResponse
     if ($response.StatusCode -eq 403) {
         # Handle forbidden access
     }
@@ -38,17 +38,17 @@
 
  .EXAMPLE
     $body = @{ query = "Resources | where type =~ 'microsoft.compute/virtualmachines'" } | ConvertTo-Json
-    Invoke-ZtRestMethod -Path "/providers/Microsoft.ResourceGraph/resources?api-version=2022-10-01" -Method POST -Payload $body
+    Invoke-ZtAzureRequest -Path "/providers/Microsoft.ResourceGraph/resources?api-version=2022-10-01" -Method POST -Payload $body
 
     Query Azure Resource Graph using POST with pagination (follows $skipToken automatically).
 
  .EXAMPLE
-    Invoke-ZtRestMethod -Uri "https://management.usgovcloudapi.net/subscriptions?api-version=2022-01-01"
+    Invoke-ZtAzureRequest -Uri "https://management.usgovcloudapi.net/subscriptions?api-version=2022-01-01"
 
     Use -Uri for full URL (sovereign cloud). All Invoke-AzRestMethod parameters are supported.
 
 #>
-function Invoke-ZtRestMethod {
+function Invoke-ZtAzureRequest {
 	[CmdletBinding(DefaultParameterSetName = 'ByPath', SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 	param(
 		#region Invoke-AzRestMethod: ByPath parameter set
@@ -104,7 +104,7 @@ function Invoke-ZtRestMethod {
 
 		#region Invoke-AzRestMethod: Common parameters
 		[Parameter(HelpMessage = 'Specifies the method used for the web request. Defaults to GET.')]
-		[ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'DELETE')]
+		[ValidateSet('GET', 'POST')]
 		[ValidateNotNullOrEmpty()]
 		[string]
 		${Method},
@@ -124,7 +124,7 @@ function Invoke-ZtRestMethod {
 		${DefaultProfile},
 		#endregion
 
-		#region ZtRestMethod: OData convenience parameters
+		#region ZtAzureRequest: OData convenience parameters
 		# Filters properties (columns). Adds $select query parameter.
 		[Parameter()]
 		[string[]]
@@ -147,7 +147,7 @@ function Invoke-ZtRestMethod {
 		$QueryParameters,
 		#endregion
 
-		#region ZtRestMethod: Pagination and caching control
+		#region ZtAzureRequest: Pagination and caching control
 		# Only return first page of results. By default, -Paginate is enabled.
 		[Parameter()]
 		[switch]
@@ -174,7 +174,7 @@ function Invoke-ZtRestMethod {
 		# Start with all bound parameters, then remove our custom ones
 		$azParams = @{} + $PSBoundParameters
 
-		# Remove ZtRestMethod-specific parameters (not recognized by Invoke-AzRestMethod)
+		# Remove ZtAzureRequest-specific parameters (not recognized by Invoke-AzRestMethod)
 		foreach ($customParam in @('Select', 'Filter', 'Top', 'QueryParameters', 'DisablePaging', 'DisableCache', 'FullResponse')) {
 			$azParams.Remove($customParam) | Out-Null
 		}
@@ -257,7 +257,7 @@ function Invoke-ZtRestMethod {
 		#endregion Determine cache key
 
 		#region Execute with caching
-		$results = Invoke-ZtRestMethodCache -CacheKey $cacheKey -AzParams $azParams `
+		$results = Invoke-ZtAzureRequestCache -CacheKey $cacheKey -AzParams $azParams `
 			-DisableCache:$DisableCache -FullResponse:$FullResponse
 		#endregion Execute with caching
 

@@ -1,4 +1,4 @@
-function Invoke-ZtRestMethodCache {
+function Invoke-ZtAzureRequestCache {
 	<#
 	.SYNOPSIS
 		Executes an Azure REST Method request unless it has previously been cached.
@@ -10,7 +10,7 @@ function Invoke-ZtRestMethodCache {
 
 		Throws an exception on non-2xx status codes unless -FullResponse is specified.
 
-		This function is called by Invoke-ZtRestMethod and receives pre-built
+		This function is called by Invoke-ZtAzureRequest and receives pre-built
 		Invoke-AzRestMethod parameters to forward directly.
 
 	.PARAMETER CacheKey
@@ -28,7 +28,7 @@ function Invoke-ZtRestMethodCache {
 		When specified, does not throw on non-2xx status codes.
 
 	.EXAMPLE
-		PS C:\> Invoke-ZtRestMethodCache -CacheKey '/subscriptions?api-version=2022-01-01' -AzParams @{ Path = '/subscriptions?api-version=2022-01-01'; Paginate = $true }
+		PS C:\> Invoke-ZtAzureRequestCache -CacheKey '/subscriptions?api-version=2022-01-01' -AzParams @{ Path = '/subscriptions?api-version=2022-01-01'; Paginate = $true }
 
 		Lists all subscriptions (GET is the default) and caches the result.
 	#>

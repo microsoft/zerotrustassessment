@@ -3,13 +3,13 @@
     Queries Azure Resource Graph and returns results with automatic pagination.
 
  .DESCRIPTION
-    Thin wrapper over Invoke-ZtRestMethod that handles Azure Resource Graph's
+    Thin wrapper over Invoke-ZtAzureRequest that handles Azure Resource Graph's
     POST-based query endpoint and its $skipToken pagination model.
 
     Sends the KQL query to the ARG REST API, follows $skipToken across pages,
     and returns a flat array of result objects.
 
-    Uses Invoke-ZtRestMethod internally, so sovereign-cloud resolution (-Path)
+    Uses Invoke-ZtAzureRequest internally, so sovereign-cloud resolution (-Path)
     and error handling (throw on non-2xx) are inherited automatically.
 
  .PARAMETER Query
@@ -88,8 +88,8 @@ function Invoke-ZtAzureResourceGraphRequest {
 
 			#region Execute request
 			# -DisablePaging: ARG uses $skipToken in the request body for pagination (handled by this loop),
-			# not the standard ARM nextLink pattern that Invoke-ZtRestMethod's -Paginate follows.
-			$content = Invoke-ZtRestMethod -Path $argPath -Method POST -Payload $bodyJson -DisablePaging
+			# not the standard ARM nextLink pattern that Invoke-ZtAzureRequest's -Paginate follows.
+			$content = Invoke-ZtAzureRequest -Path $argPath -Method POST -Payload $bodyJson -DisablePaging
 
 			# Accumulate results
 			if ($content.data) {
