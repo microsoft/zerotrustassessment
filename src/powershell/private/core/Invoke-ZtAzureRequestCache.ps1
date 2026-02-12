@@ -58,18 +58,16 @@ function Invoke-ZtAzureRequestCache {
 	if (-not $cacheBlocked -and -not $DisableCache -and $isGet -and $isInCache) {
 		Write-PSFMessage "Using Azure cache: $($CacheKey)" -Level Debug
 		$cachedResult = $script:__ZtSession.AzureCache.Value[$CacheKey]
-		if ($cachedResult) {
-			if ($FullResponse) {
-				# Return a synthetic response object for cached content
-				return [PSCustomObject]@{
-					StatusCode = 200
-					Content    = $cachedResult | ConvertTo-Json -Depth 100
-					Headers    = @{}
-					Method     = 'GET'
-				}
+		if ($FullResponse) {
+			# Return a synthetic response object for cached content
+			return [PSCustomObject]@{
+				StatusCode = 200
+				Content    = $cachedResult | ConvertTo-Json -Depth 100
+				Headers    = @{}
+				Method     = 'GET'
 			}
-			return $cachedResult
 		}
+		return $cachedResult
 	}
 
 	Write-PSFMessage "Invoking Azure REST: $CacheKey" -Level Debug -Tag Azure
