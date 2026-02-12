@@ -87,21 +87,16 @@ function Test-Assessment-25422 {
     # If failedCount > 0 → Fail
     if ($failedCount -eq 0) {
         $passed = $true
+        $testResultMarkdown = "GSA deployment logs are populated and recent deployments have succeeded.`n`n%TestResult%"
     }
     else {
         $passed = $false
+        $testResultMarkdown = "GSA deployment logs contain failed deployments that require investigation.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $mdInfo = ''
-
-    if ($passed) {
-        $testResultMarkdown = "GSA deployment logs are populated and recent deployments have succeeded.`n`n%TestResult%"
-    }
-    else {
-        $testResultMarkdown = "GSA deployment logs contain failed deployments that require investigation.`n`n%TestResult%"
-    }
 
     # Build deployment summary table
     $deploymentLogsLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/DeploymentLogs.ReactView'
