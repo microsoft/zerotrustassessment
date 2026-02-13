@@ -23,6 +23,12 @@ function Test-Assessment-21955 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
+    # Check for Intune license, if present skip the test
+    if (Get-ZtLicense Intune) {
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
     #region Data Collection
     $activity = 'Checking Manage the local administrators on Microsoft Entra joined devices'
 
