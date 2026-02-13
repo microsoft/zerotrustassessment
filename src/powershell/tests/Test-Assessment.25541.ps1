@@ -45,100 +45,32 @@ function Test-Assessment-25541 {
         return
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Enumerating subscriptions'
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph'
 
-    # Initialize variables
-    $subscriptions = @()
+    # Query all Application Gateway WAF policies using Azure Resource Graph
+    $argQuery = @"
+    resources
+    | where type =~ 'microsoft.network/ApplicationGatewayWebApplicationFirewallPolicies'
+    | join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions' | project subscriptionName=name, subscriptionId) on subscriptionId
+    | project PolicyName=name, SubscriptionName=subscriptionName, SubscriptionId=subscriptionId, EnabledState=tostring(properties.policySettings.state), Mode=tostring(properties.policySettings.mode), PolicyId=id
+"@
+
     $policies = @()
-    $anySuccessfulAccess = 0
-    $apiVersion = '2025-03-01'
-
     try {
-        $subscriptions = Get-AzSubscription -ErrorAction Stop
+        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+
+        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
+
+        # Normalize null/empty values to 'Unknown'
+        foreach ($policy in $policies) {
+            if ([string]::IsNullOrWhiteSpace($policy.EnabledState)) { $policy.EnabledState = 'Unknown' }
+            if ([string]::IsNullOrWhiteSpace($policy.Mode)) { $policy.Mode = 'Unknown' }
+        }
     }
     catch {
-        Write-PSFMessage "Unable to retrieve Azure subscriptions: $_" -Level Warning
-    }
-
-    if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No Azure subscriptions found.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
-    }
-
-    # Collect WAF policies from all subscriptions
-    foreach ($sub in $subscriptions) {
-        Write-ZtProgress -Activity $activity -Status "Checking subscription: $($sub.Name)"
-
-        $path = "/subscriptions/$($sub.Id)/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies?api-version=$apiVersion"
-        $response = Invoke-AzRestMethod -Path $path -ErrorAction SilentlyContinue
-
-        # Skip if request failed completely
-        if (-not $response -or $null -eq $response.StatusCode) {
-            Write-PSFMessage "Failed to query subscription '$($sub.Name)'. Skipping." -Level Warning
-            continue
-        }
-
-        # Handle access denied for this subscription - skip and continue to next
-        if ($response.StatusCode -eq 403) {
-            Write-PSFMessage "Access denied to subscription '$($sub.Name)': HTTP $($response.StatusCode). Skipping." -Level Verbose
-            continue
-        }
-
-        # Handle other HTTP errors - skip this subscription
-        if ($response.StatusCode -ge 400) {
-            Write-PSFMessage "Error querying subscription '$($sub.Name)': HTTP $($response.StatusCode). Skipping." -Level Warning
-            continue
-        }
-
-        # Count successful accesses
-        $anySuccessfulAccess++
-
-        # No content or no policies in this subscription
-        if (-not $response.Content) {
-            continue
-        }
-
-        # Azure REST list APIs are paginated.
-        # Handling nextLink is required to avoid missing WAF policies in subscriptions with many policies.
-        $allPoliciesInSub = @()
-        $policiesJson = $response.Content | ConvertFrom-Json
-
-        if ($policiesJson.value) {
-            $allPoliciesInSub += $policiesJson.value
-        }
-
-        $nextLink = $policiesJson.nextLink
-        try{
-            while ($nextLink) {
-                $response = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                $policiesJson = $response.Content | ConvertFrom-Json
-                if ($policiesJson.value) {
-                    $allPoliciesInSub += $policiesJson.value
-                }
-                $nextLink = $policiesJson.nextLink
-            }
-        }
-        catch {
-            Write-PSFMessage "Failed to retrieve next page of Application Gateway WAF policies for subscription '$($sub.Name)': $_. Continuing with collected data." -Level Warning
-            break
-        }
-
-        if ($allPoliciesInSub.Count -eq 0) {
-            continue
-        }
-
-        # Collect policies from this subscription
-        foreach ($policyResource in $allPoliciesInSub) {
-            $policies += [PSCustomObject]@{
-                SubscriptionId   = $sub.Id
-                SubscriptionName = $sub.Name
-                PolicyName       = $policyResource.name
-                PolicyId         = $policyResource.id
-                EnabledState     = $policyResource.properties?.policySettings?.state
-                Mode             = $policyResource.properties?.policySettings?.mode
-            }
-        }
     }
     #endregion Data Collection
 
@@ -147,33 +79,18 @@ function Test-Assessment-25541 {
 
     # Skip test if no policies found
     if ($policies.Count -eq 0) {
-        if ($anySuccessfulAccess -eq 0) {
-            # All subscriptions were inaccessible
-            Write-PSFMessage 'No accessible Azure subscriptions found.' -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        } else {
-            # Subscriptions accessible but no WAF policies deployed
-            Write-PSFMessage 'No Application Gateway WAF policies found across subscriptions.' -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        }
+        Write-PSFMessage 'No Application Gateway WAF policies found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
     # Check if all policies are enabled and in Prevention mode
-    $allCompliant = $true
-    foreach ($policy in $policies) {
-        if ($policy.EnabledState -ne 'Enabled' -or $policy.Mode -ne 'Prevention') {
-            $allCompliant = $false
-            break
-        }
-    }
+    $passed = ($policies | Where-Object { $_.EnabledState -ne 'Enabled' -or $_.Mode -ne 'Prevention' }).Count -eq 0
 
-    if ($allCompliant) {
-        $passed = $true
+    if ($passed) {
         $testResultMarkdown = "✅ All Application Gateway WAF policies are enabled in **Prevention** mode.`n`n%TestResult%"
     }
     else {
-        $passed = $false
         $testResultMarkdown = "❌ One or more Application Gateway WAF policies are either in **Disabled** state or in **Detection** mode.`n`n%TestResult%"
     }
     #endregion Assessment Logic
