@@ -59,7 +59,6 @@ function Test-Assessment-35023 {
     $blockReason = $null
     $enabledLocations = @()
 
-$ocrConfig =@()
     if ($ocrConfig) {
         $blockReason = $ocrConfig.OcrUsageBlockageReason
         $enabled   = [bool]($ocrConfig.Enabled -eq $true)
@@ -142,13 +141,13 @@ $ocrConfig =@()
 
         # Portal link
         $testResultMarkdown += "`n**Portal access:**`n`n"
-        $testResultMarkdown += "[Microsoft Purview portal > Settings > Optical character recognition (OCR)]($portalLink)`n"
+        $testResultMarkdown += "[Microsoft purview portal > Settings > Optical character recognition (OCR)]($portalLink)`n"
     }
     #endregion Report Generation
 
     $params = @{
         TestId = '35023'
-        Title = 'OCR Configuration for sensitive information detection'
+        Title = 'OCR configuration for sensitive information detection'
         Status = $passed
         Result = $testResultMarkdown
     }
