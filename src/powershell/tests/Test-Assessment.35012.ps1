@@ -47,12 +47,18 @@ function Test-Assessment-35012 {
         # Extract content types from label
         $contentType = if ($Label.ContentType) { $Label.ContentType } else { 'Not specified' }
 
+        # Use null-coalescing to provide default values for potentially missing properties
+        $labelName = if ($null -ne $Label.Name) { $Label.Name } else { 'Unknown' }
+        $displayName = if ($null -ne $Label.DisplayName) { $Label.DisplayName } else { 'Not specified' }
+        $isParent = if ($null -ne $Label.IsParent) { $Label.IsParent } else { $false }
+        $priority = if ($null -ne $Label.Priority) { $Label.Priority } else { 'N/A' }
+
         return [PSCustomObject]@{
-            LabelName   = $Label.Name
+            LabelName   = $labelName
             ContentType = $contentType
-            DisplayName = $Label.DisplayName
-            IsParent    = $Label.IsParent
-            Priority    = $Label.Priority
+            DisplayName = $displayName
+            IsParent    = $isParent
+            Priority    = $priority
         }
     }
 
@@ -65,14 +71,21 @@ function Test-Assessment-35012 {
         #>
         param([object]$Label)
 
-        if ([string]::IsNullOrWhiteSpace($Label.ContentType)) {
+        if ($null -eq $Label.ContentType -or
+            ([string]::IsNullOrWhiteSpace($Label.ContentType) -and $Label.ContentType -isnot [array])) {
             return $false
         }
 
-        # Split ContentType string and check for both Site and UnifiedGroup
-        $types = $Label.ContentType -split ', '
-        $hasSite = ($types | Where-Object { $_ -eq 'Site' }) -ne $null
-        $hasUnifiedGroup = ($types | Where-Object { $_ -eq 'UnifiedGroup' }) -ne $null
+        # Handle ContentType as both array and string
+        # Get-Label may return ContentType as an array or a comma-separated string
+        $types = if ($Label.ContentType -is [array]) {
+            $Label.ContentType
+        } else {
+            $Label.ContentType -split ', '
+        }
+
+        $hasSite = @($types | Where-Object { $_ -eq 'Site' }).Count -gt 0
+        $hasUnifiedGroup = @($types | Where-Object { $_ -eq 'UnifiedGroup' }).Count -gt 0
 
         return ($hasSite -and $hasUnifiedGroup)
     }
@@ -176,7 +189,7 @@ function Test-Assessment-35012 {
             $labelLink = "https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels"
             $linkedLabelName = "[{0}]({1})" -f (Get-SafeMarkdown $r.LabelName), $labelLink
 
-            $tableRows += "| $linkedLabelName | $($r.ContentType) | $(Get-SafeMarkdown $r.DisplayName) | $($r.IsParent) | $($r.Priority) |`n"
+            $tableRows += "| $linkedLabelName | $(Get-SafeMarkdown $r.ContentType) | $(Get-SafeMarkdown $r.DisplayName) | $($r.IsParent) | $($r.Priority) |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
