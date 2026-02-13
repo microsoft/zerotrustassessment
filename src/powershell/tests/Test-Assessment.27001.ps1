@@ -73,7 +73,7 @@ function Test-Assessment-27001 {
 
         # Filter out auto-created system rules (description starts with "Auto-created TLS rule")
         $customRules = $policyRules | Where-Object {
-            -not ($_.description -and $_.description -like "Auto-created TLS rule*")
+            $_.description -notlike "Auto-created TLS rule*"
         }
 
         # Count custom bypass rules
@@ -131,14 +131,14 @@ function Test-Assessment-27001 {
         # Prepare table rows
         $tableRows = ''
         foreach ($item in $policiesWithCustomBypass) {
-            $lastModifiedDisplay = $item.LastModifiedDateTime.ToString('yyyy-MM-dd')
+            $lastModifiedDisplay = Get-FormattedDate -DateString $item.LastModifiedDateTime
             $reviewStatus = if ($item.RequiresReview) { '❌' } else { '✅' }
 
             $tableRows += "| $($item.PolicyName) | $lastModifiedDisplay | $($item.DaysSinceModified) | $($item.CustomBypassCount) | $reviewStatus |`n"
         }
 
         $totalCount = $policiesWithCustomBypass.Count
-        $oldPoliciesCount = ($policiesRequiringReview).Count
+        $oldPoliciesCount = $policiesRequiringReview.Count
 
         $formatTemplate = @'
 
