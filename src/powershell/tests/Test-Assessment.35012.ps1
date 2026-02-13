@@ -172,7 +172,7 @@ function Test-Assessment-35012 {
     #region Report Generation
 
     $mdInfo  = "`n## Summary`n`n"
-    $mdInfo += "| Metric | Value |`n|---|---|`n"
+    $mdInfo += "| Metric | Value |`n|:---|:---|`n"
     $mdInfo += "| Total sensitivity labels | $(if ($allLabels) { $allLabels.Count } else { 0 }) |`n"
     $mdInfo += "| Container-protected labels | $($containerLabels.Count) |`n`n"
 
@@ -182,7 +182,7 @@ function Test-Assessment-35012 {
 ## [Container label details](https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels)
 
 | Label name | Content type | Display name | Is parent | Priority |
-|---|---|---|---|---|
+|:---|:---|:---|:---|:---|
 {0}
 '@
         foreach ($r in $labelResults) {
