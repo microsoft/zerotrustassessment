@@ -58,7 +58,6 @@ function Test-Assessment-25541 {
     $policies = @()
     try {
         $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
-
         Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
