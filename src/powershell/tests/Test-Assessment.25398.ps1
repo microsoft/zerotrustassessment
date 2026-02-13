@@ -46,11 +46,12 @@ function Test-Assessment-25398 {
 
     Write-PSFMessage "Found $($privateAccessApps.Count) Private Access application(s)" -Tag Test -Level VeryVerbose
 
-    # Collect DC hosts and RDP apps
-    $dcHosts = @{}  # Key: destinationHost, Value: @{SourceApp, Ports}
-    $allAppSegments = @{}  # Key: appId, Value: segments array
+    # Initialize tracking collections
+    $dcHosts = @{}  # Key: destinationHost, Value: @{SourceApp, Ports, RdpAppFound, RdpAppName}
+    $allAppSegments = @{}  # Key: appId, Value: @{App, Segments}
 
-    # Q2A: Get segments for each app and identify DC hosts
+    # Q2A: Retrieve segments for each app and identify DC hosts
+    # DC hosts are identified by having BOTH port 88 (Kerberos) AND port 389 (LDAP) explicitly configured
     Write-ZtProgress -Activity $activity -Status 'Analyzing application segments for DC indicators'
 
     foreach ($app in $privateAccessApps) {
@@ -66,7 +67,8 @@ function Test-Assessment-25398 {
                     Segments = $segments
                 }
 
-                # Check for DC indicators (ports 88 AND 389 as discrete values)
+                # Check for DC indicators: ports 88 (Kerberos) AND 389 (LDAP) as discrete values
+                # Note: -contains operator matches exact strings, so '88' won't match ranges like '50-100'
                 $has88 = $false
                 $has389 = $false
                 $hostsWith88 = @()
@@ -75,25 +77,26 @@ function Test-Assessment-25398 {
                 foreach ($segment in $segments) {
                     $ports = $segment.port
 
-                    # Check if port 88 is explicitly configured (not in a range)
+                    # Check if port 88 is explicitly configured (must be discrete, not in a range)
                     if ($ports -contains '88') {
                         $has88 = $true
                         $hostsWith88 += $segment.destinationHost
                     }
 
-                    # Check if port 389 is explicitly configured (not in a range)
+                    # Check if port 389 is explicitly configured (must be discrete, not in a range)
                     if ($ports -contains '389') {
                         $has389 = $true
                         $hostsWith389 += $segment.destinationHost
                     }
                 }
 
-                # If both ports found, mark hosts as likely DCs
+                # If both port 88 AND port 389 are found, mark hosts with both as likely domain controllers
                 if ($has88 -and $has389) {
+                    # Find hosts that have both ports configured
                     $commonHosts = $hostsWith88 | Where-Object { $hostsWith389 -contains $_ }
-                    foreach ($host in $commonHosts) {
-                        if (-not $dcHosts.ContainsKey($host)) {
-                            $dcHosts[$host] = @{
+                    foreach ($dcHost in $commonHosts) {
+                        if (-not $dcHosts.ContainsKey($dcHost)) {
+                            $dcHosts[$dcHost] = @{
                                 SourceApp = $app.displayName
                                 Ports = '88, 389'
                                 RdpAppFound = $false
@@ -111,12 +114,12 @@ function Test-Assessment-25398 {
 
     Write-PSFMessage "Identified $($dcHosts.Count) likely DC host(s)" -Tag Test -Level VeryVerbose
 
-    # Identify RDP apps
+    # Q2A/Q2B: Identify RDP applications (port 3389 over TCP)
     $rdpApps = @()
     $appType = ''
 
     if ($dcHosts.Count -gt 0) {
-        # Look for RDP apps targeting DC hosts
+        # Q2A: DC hosts identified - search for RDP apps targeting those specific DC hosts
         Write-ZtProgress -Activity $activity -Status 'Searching for RDP apps targeting DC hosts'
 
         foreach ($appId in $allAppSegments.Keys) {
@@ -127,17 +130,18 @@ function Test-Assessment-25398 {
                 $ports = $segment.port
                 $protocol = $segment.protocol
 
-                # Check if this targets a DC host and has RDP (port 3389)
+                # Check if this segment targets a DC host AND has RDP access (port 3389 over TCP)
                 if ($dcHosts.ContainsKey($destinationHost) -and $protocol -eq 'tcp') {
                     $hasRdp = $false
 
-                    # Check for port 3389 (discrete or in range)
+                    # Check for port 3389 (discrete value or within a port range)
                     foreach ($portValue in $ports) {
+                        # Check discrete port 3389
                         if ($portValue -eq '3389') {
                             $hasRdp = $true
                             break
                         }
-                        # Check if it's a port range containing 3389
+                        # Check if 3389 is within a port range (e.g., '1-5000' or '3000-4000')
                         if ($portValue -match '^(\d+)-(\d+)$') {
                             $start = [int]$Matches[1]
                             $end = [int]$Matches[2]
@@ -167,7 +171,8 @@ function Test-Assessment-25398 {
         $appType = 'DC RDP'
     }
     else {
-        # Q2B: Fallback - look for any general RDP apps
+        # Q2B: Fallback - no DC hosts identified, search for any general RDP apps
+        # These require manual investigation to determine if they target domain controllers
         Write-ZtProgress -Activity $activity -Status 'No DC hosts found, searching for general RDP apps'
 
         foreach ($appId in $allAppSegments.Keys) {
@@ -180,11 +185,14 @@ function Test-Assessment-25398 {
                 if ($protocol -eq 'tcp') {
                     $hasRdp = $false
 
+                    # Check for port 3389 (discrete value or within a port range)
                     foreach ($portValue in $ports) {
+                        # Check discrete port 3389
                         if ($portValue -eq '3389') {
                             $hasRdp = $true
                             break
                         }
+                        # Check if 3389 is within a port range
                         if ($portValue -match '^(\d+)-(\d+)$') {
                             $start = [int]$Matches[1]
                             $end = [int]$Matches[2]
@@ -210,8 +218,9 @@ function Test-Assessment-25398 {
         $appType = 'General RDP'
     }
 
-    # Remove duplicates
-    $rdpApps = $rdpApps | Sort-Object AppId -Unique
+    # Remove duplicates based on AppId and DestinationHost combination
+    # An app may have multiple segments targeting the same host; we only need one entry per app-host pair
+    $rdpApps = $rdpApps | Group-Object -Property AppId, DestinationHost | ForEach-Object { $_.Group | Select-Object -First 1 }
 
     Write-PSFMessage "Found $($rdpApps.Count) RDP application(s)" -Tag Test -Level VeryVerbose
 
@@ -250,21 +259,23 @@ function Test-Assessment-25398 {
 
     #region Assessment Logic
 
-    # Check each RDP app for CA policy protection
+    # Evaluate each RDP app for Conditional Access policy protection with phishing-resistant MFA
     $results = @()
 
     foreach ($rdpApp in $rdpApps) {
+        # Initialize status variables
         $protected = $false
         $protectedBy = 'None'
         $authStrengthName = 'N/A'
-        $status = 'Fail'
+        $status = 'Fail'  # Default to Fail for DC RDP apps
         $targetingMethod = 'None'
 
+        # Check if any enabled CA policy with phishing-resistant MFA targets this app
         foreach ($policy in $enabledPolicies) {
             $includeApps = $policy.conditions.applications.includeApplications
             $appFilter = $policy.conditions.applications.applicationFilter
 
-            # Check if policy targets this app
+            # Check if policy targets this app directly or via 'All'
             if ($includeApps -contains $rdpApp.AppId -or $includeApps -contains 'All') {
                 $protected = $true
                 $protectedBy = $policy.displayName
@@ -273,18 +284,19 @@ function Test-Assessment-25398 {
                 $targetingMethod = if ($includeApps -contains 'All') { 'All Apps' } else { 'Direct' }
                 break
             }
+            # Check if policy uses custom security attributes (requires manual verification)
             elseif ($appFilter) {
-                # Policy uses custom security attributes
                 $protected = $true
                 $protectedBy = $policy.displayName
                 $authStrengthName = 'Phishing-resistant MFA'
-                $status = 'Investigate'
+                $status = 'Investigate'  # Cannot verify attribute assignment without CustomSecAttributeAssignment.Read.All
                 $targetingMethod = 'Filter (Custom Security Attributes)'
                 break
             }
         }
 
-        # If it's a general RDP app and not protected, mark as Investigate instead of Fail
+        # Special handling for General RDP apps: mark as Investigate if not protected
+        # (Cannot confirm if these target DCs without additional context)
         if (-not $protected -and $rdpApp.AppType -eq 'General RDP App') {
             $status = 'Investigate'
         }
@@ -302,29 +314,32 @@ function Test-Assessment-25398 {
         }
     }
 
-    # Determine overall pass/fail
+    # Determine overall test status based on individual app results
     $passed = $false
     $testResultMarkdown = ''
 
     if ($appType -eq 'DC RDP') {
-        # DC RDP apps found
+        # DC RDP apps found - evaluate protection status
         $passedApps = $results | Where-Object { $_.Status -eq 'Pass' }
         $investigateApps = $results | Where-Object { $_.Status -eq 'Investigate' }
         $failedApps = $results | Where-Object { $_.Status -eq 'Fail' }
 
+        # Pass: All DC RDP apps are protected by CA policies with phishing-resistant MFA
         if ($passedApps.Count -gt 0 -and $failedApps.Count -eq 0 -and $investigateApps.Count -eq 0) {
             $passed = $true
             $testResultMarkdown = "✅ RDP access (port 3389) to identified domain controller hosts is protected by a Conditional Access policy requiring phishing-resistant authentication (FIDO2, Windows Hello for Business, or Certificate-based MFA).`n`n%TestResult%"
         }
+        # Investigate: CA policy targets apps via custom security attributes (cannot verify without additional permissions)
         elseif ($investigateApps.Count -gt 0) {
             $testResultMarkdown = "⚠️ A Conditional Access policy requiring phishing-resistant authentication targets applications via custom security attributes - manual verification required to confirm the domain controller RDP application has the required attribute assigned (Global Admin cannot read custom security attributes by default).`n`n%TestResult%"
         }
+        # Fail: DC RDP apps exist but are not protected by CA policies with phishing-resistant MFA
         else {
             $testResultMarkdown = "❌ RDP access (port 3389) to identified domain controller hosts is not protected by a Conditional Access policy requiring phishing-resistant authentication.`n`n%TestResult%"
         }
     }
     else {
-        # General RDP apps only
+        # Investigate: General RDP apps found but no DC hosts identified (manual verification needed)
         $testResultMarkdown = "⚠️ No domain controller hosts identified, but RDP-enabled Private Access applications (port 3389) were found - manual verification recommended to confirm these are not domain controllers and to ensure appropriate protection.`n`n%TestResult%"
     }
 
@@ -340,10 +355,10 @@ function Test-Assessment-25398 {
         $mdInfo += "| DC host (FQDN/IP) | Source application | Ports configured | RDP app found | RDP app name |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
 
-        foreach ($host in $dcHosts.Keys) {
-            $info = $dcHosts[$host]
+        foreach ($dcHost in $dcHosts.Keys) {
+            $info = $dcHosts[$dcHost]
             $rdpFound = if ($info.RdpAppFound) { 'Yes' } else { 'No' }
-            $hostSafe = Get-SafeMarkdown -Text $host
+            $hostSafe = Get-SafeMarkdown -Text $dcHost
             $sourceSafe = Get-SafeMarkdown -Text $info.SourceApp
             $rdpAppSafe = Get-SafeMarkdown -Text $info.RdpAppName
 
