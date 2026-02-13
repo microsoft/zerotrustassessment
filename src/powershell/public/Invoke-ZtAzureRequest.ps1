@@ -40,7 +40,7 @@
     List of Target Resource Type
 
  .PARAMETER Name
-    list of Target Resource Name
+    List of Target Resource Name
 
  .PARAMETER ApiVersion
     Api Version
