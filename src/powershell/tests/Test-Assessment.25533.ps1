@@ -20,7 +20,6 @@ function Test-Assessment-25533 {
     $activity = 'Checking DDoS Protection is enabled for all Public IP Addresses in VNETs'
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
-    # Initialize test variables
     $passed = $null
     $testResultMarkdown = ''
     $subscriptions = @()
@@ -37,7 +36,6 @@ function Test-Assessment-25533 {
         $resourceManagementUrl = $context.Environment.ResourceManagerUrl.TrimEnd('/')
     }
     catch {
-        #----- Scenario : Not connected to Azure -----
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
         return
     }
@@ -54,11 +52,34 @@ function Test-Assessment-25533 {
         $passed = $false
     }
 
-    # ---- Collect Public IPs from subscriptions ----
+    # ---- Collect Public IPs ----
     if ($passed -ne $false -and $subscriptions.Count -gt 0) {
+
         foreach ($sub in $subscriptions) {
+
             Write-ZtProgress -Activity $activity -Status "Processing subscription: $($sub.displayName)"
 
+            # -------------------------------
+            # Cache VNET DDoS configuration
+            # -------------------------------
+            $vnetMap = @{}
+
+            try {
+                $vnetUri = "$resourceManagementUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/virtualNetworks?api-version=2023-04-01"
+                $vnetResponse = Invoke-AzRestMethod -Method GET -Uri $vnetUri -ErrorAction Stop
+                $vnets = ($vnetResponse.Content | ConvertFrom-Json).value
+
+                foreach ($v in $vnets) {
+                    $vnetMap[$v.id.ToLower()] = $v.properties.enableDdosProtection
+                }
+            }
+            catch {
+                Write-PSFMessage "Error calling VNET API for $($sub.displayName): $($_.Exception.Message)" -Level Warning
+            }
+
+            # -------------------------------
+            # Get Public IPs
+            # -------------------------------
             try {
                 $publicIpsUri = "$resourceManagementUrl/subscriptions/$($sub.subscriptionId)/providers/Microsoft.Network/publicIPAddresses?api-version=2025-03-01"
                 $publicIpsResponse = Invoke-AzRestMethod -Method GET -Uri $publicIpsUri -ErrorAction Stop
@@ -71,14 +92,13 @@ function Test-Assessment-25533 {
             $body = $publicIpsResponse.Content | ConvertFrom-Json
             $publicIps = $body.value
 
-             #----- Scenario : No Public IPs found (Skip)-----
-            #
-            if (-not $publicIps) {
-                continue
-            }
+            if (-not $publicIps) { continue }
 
-            # Collect Public IPs from this subscription
+            # -------------------------------
+            # Evaluate each Public IP
+            # -------------------------------
             foreach ($pip in $publicIps) {
+
                 $mode = if (
                     $pip.properties.ddosSettings -and
                     $pip.properties.ddosSettings.protectionMode
@@ -89,11 +109,37 @@ function Test-Assessment-25533 {
                     'Disabled'
                 }
 
+                $isCompliant = $false
+
+                switch ($mode) {
+
+                    'Enabled' {
+                        $isCompliant = $true
+                    }
+
+                    'VirtualNetworkInherited' {
+
+                        $subnetId = $pip.properties.ipConfiguration.subnet.id
+
+                        if ($subnetId) {
+                            $vnetId = ($subnetId -replace '/subnets/.*$', '').ToLower()
+
+                            if ($vnetMap.ContainsKey($vnetId) -and $vnetMap[$vnetId] -eq $true) {
+                                $isCompliant = $true
+                            }
+                        }
+                    }
+
+                    default {
+                        $isCompliant = $false
+                    }
+                }
+
                 $publicIpFindings += [PSCustomObject]@{
                     PublicIpName     = $pip.name
                     PublicIpId       = $pip.id
                     ProtectionMode   = $mode
-                    IsCompliant      = $mode -in @('VirtualNetworkInherited', 'Enabled')
+                    IsCompliant      = $isCompliant
                     SubscriptionName = $sub.displayName
                 }
             }
@@ -101,22 +147,19 @@ function Test-Assessment-25533 {
     }
     #endregion Data Collection
 
+
     #region Assessment Logic
     if ($subscriptions.Count -eq 0) {
-         #----- Scenario : No subscriptions found - Skip
-        $testResultMarkdown = 'The Signed in user does not have any active Azure subscription to perform test.'
+        $testResultMarkdown = 'The signed-in user does not have any active Azure subscriptions.'
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure -Result $testResultMarkdown
         return
     }
-
     elseif ($publicIpFindings.Count -eq 0) {
-         #----- Scenario :Subscriptions exist but no Public IPs - SKIP
         $testResultMarkdown = 'No Public IP addresses were found in any subscriptions.'
         Add-ZtTestResultDetail -SkippedBecause NotSupported -Result $testResultMarkdown
         return
     }
     else {
-        # Public IPs found - evaluate compliance
         $nonCompliant = $publicIpFindings | Where-Object { -not $_.IsCompliant }
 
         if ($nonCompliant.Count -eq 0) {
@@ -125,36 +168,42 @@ function Test-Assessment-25533 {
         }
         else {
             $passed = $false
-            $testResultMarkdown = "❌ DDoS Protection is not enabled for one or more Public IP addresses.`n`n%TestResult%"
+            $testResultMarkdown = "❌ DDoS Protection is NOT enabled for one or more Public IP addresses.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
+
 
     #region Report Generation
     $mdInfo = ''
 
     if ($publicIpFindings.Count -gt 0) {
+
         $mdInfo = "## Public IP Address DDoS Protection Details`n`n"
-        $mdInfo += "| | Public IP name | Protection Mode |`n"
-        $mdInfo += "| :--- | :--- | :--- |`n"
+        $mdInfo += "| | Public IP Name | Protection Mode | Subscription |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
 
         foreach ($item in $publicIpFindings | Sort-Object IsCompliant, PublicIpName) {
+
             $icon = if ($item.IsCompliant) { '✅' } else { '❌' }
             $link = "https://portal.azure.com/#@/resource$($item.PublicIpId)"
 
-            $mdInfo += "| $icon | [$($item.PublicIpName)]($link) | $($item.ProtectionMode) |`n"
+            $mdInfo += "| $icon | [$($item.PublicIpName)]($link) | $($item.ProtectionMode) | $($item.SubscriptionName) |`n"
         }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
+
+    #region Final Result
     $params = @{
         TestId = '25533'
-        Title  = 'DDoS Protection is enabled for all Public IP Addresses in VNETs'
+        Title  = 'DDoS protection is enabled for all public IP addresses in VNETs'
         Status = $passed
         Result = $testResultMarkdown
     }
 
     Add-ZtTestResultDetail @params
+    #endregion Final Result
 }
