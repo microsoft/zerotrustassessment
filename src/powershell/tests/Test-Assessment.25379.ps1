@@ -139,7 +139,7 @@ function Test-Assessment-25379 {
 
     #region Report Generation
     # Portal Links
-    $gsaLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SessionManagementMenu.ReactView/menuId~/null/sectionId~/null'
+    $gsaLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Security.ReactView'
     $namedLocationLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/NamedLocations'
     $caPoliciesLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
