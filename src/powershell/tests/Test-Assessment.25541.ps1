@@ -60,12 +60,6 @@ function Test-Assessment-25541 {
         $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
 
         Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
-
-        # Normalize null/empty values to 'Unknown'
-        foreach ($policy in $policies) {
-            if ([string]::IsNullOrWhiteSpace($policy.EnabledState)) { $policy.EnabledState = 'Unknown' }
-            if ([string]::IsNullOrWhiteSpace($policy.Mode)) { $policy.Mode = 'Unknown' }
-        }
     }
     catch {
         Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
