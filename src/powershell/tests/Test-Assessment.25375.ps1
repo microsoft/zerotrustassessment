@@ -29,7 +29,7 @@ function Test-Assessment-25375 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25375,
-        Title = 'GSA Licenses are available in the Tenant and assigned to users',
+        Title = 'GSA Licenses are available in the tenant and assigned to users',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -84,106 +84,107 @@ function Test-Assessment-25375 {
     # Handle any query failure - cannot determine license status
     if ($skuCmdletFailed -or $userCmdletFailed) {
         Write-PSFMessage "Failed to retrieve GSA license data" -Tag Test -Level Error
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Failed to retrieve GSA license data from Microsoft Graph.'
         return
     }
+
     # Filter SKUs containing GSA service plans
-    elseif ($null -ne $subscribedSkus) {
-        $gsaSkus = @($subscribedSkus | Where-Object {
-            $sku = $_
-            $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
-        })
+    $gsaSkus = @($subscribedSkus | Where-Object {
+        $sku = $_
+        $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
+    })
 
-        # Check if GSA licenses exist and are enabled
-        $enabledGsaSkus = @($gsaSkus | Where-Object { $_.CapabilityStatus -eq 'Enabled' })
+    # Check if GSA licenses exist and are enabled
+    $enabledGsaSkus = @($gsaSkus | Where-Object { $_.CapabilityStatus -eq 'Enabled' })
 
-        if ($gsaSkus.Count -eq 0 -or $enabledGsaSkus.Count -eq 0) {
-            # No GSA licenses available or not enabled - skip test
-            Write-PSFMessage 'No GSA licenses are available in this tenant.' -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No GSA licenses are available in this tenant.'
-            return
+    if ($gsaSkus.Count -eq 0 -or $enabledGsaSkus.Count -eq 0) {
+        # No GSA licenses available or not enabled - skip test
+        Write-PSFMessage 'No GSA licenses are available in this tenant.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No GSA licenses are available in this tenant.'
+        return
+    }
+
+    Write-ZtProgress -Activity $activity -Status 'Analyzing user license assignments'
+
+    # Build SKU ID to SKU mapping for user license cross-reference
+    $gsaSkuIds = @{}
+    foreach ($sku in $enabledGsaSkus) {
+        $gsaSkuIds[$sku.SkuId] = $sku
+    }
+
+    # Pre-filter GSA service plans for performance
+    $internetAccessPlansBySkuId = @{}
+    $privateAccessPlansBySkuId = @{}
+    foreach ($sku in $enabledGsaSkus) {
+        $internetPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.InternetAccess }
+        if ($internetPlan) {
+            $internetAccessPlansBySkuId[$sku.SkuId] = $internetPlan
+        }
+        $privatePlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.PrivateAccess }
+        if ($privatePlan) {
+            $privateAccessPlansBySkuId[$sku.SkuId] = $privatePlan
+        }
+    }
+
+    # Count users with GSA licenses assigned
+    $usersWithInternetAccess = [System.Collections.Generic.List[object]]::new()
+    $usersWithPrivateAccess = [System.Collections.Generic.List[object]]::new()
+    $usersWithAnyGsa = [System.Collections.Generic.List[object]]::new()
+
+    foreach ($user in $allUsers) {
+        if (-not $user.AssignedLicenses -or $user.AssignedLicenses.Count -eq 0) {
+            continue
         }
 
-        Write-ZtProgress -Activity $activity -Status 'Analyzing user license assignments'
+        $hasInternetAccess = $false
+        $hasPrivateAccess = $false
 
-        # Build SKU ID to SKU mapping for user license cross-reference
-        $gsaSkuIds = @{}
-        foreach ($sku in $enabledGsaSkus) {
-            $gsaSkuIds[$sku.SkuId] = $sku
-        }
+        foreach ($license in $user.AssignedLicenses) {
+            if ($gsaSkuIds.ContainsKey($license.SkuId)) {
+                # Defensive: treat null disabledPlans as empty array
+                $disabledPlans = if ($license.DisabledPlans) { $license.DisabledPlans } else { @() }
 
-        # Pre-filter GSA service plans for performance
-        $internetAccessPlansBySkuId = @{}
-        $privateAccessPlansBySkuId = @{}
-        foreach ($sku in $enabledGsaSkus) {
-            $internetPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.InternetAccess }
-            if ($internetPlan) {
-                $internetAccessPlansBySkuId[$sku.SkuId] = $internetPlan
-            }
-            $privatePlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.PrivateAccess }
-            if ($privatePlan) {
-                $privateAccessPlansBySkuId[$sku.SkuId] = $privatePlan
-            }
-        }
-
-        # Count users with GSA licenses assigned
-        $usersWithInternetAccess = [System.Collections.Generic.List[object]]::new()
-        $usersWithPrivateAccess = [System.Collections.Generic.List[object]]::new()
-        $usersWithAnyGsa = [System.Collections.Generic.List[object]]::new()
-
-        foreach ($user in $allUsers) {
-            if (-not $user.AssignedLicenses -or $user.AssignedLicenses.Count -eq 0) {
-                continue
-            }
-
-            $hasInternetAccess = $false
-            $hasPrivateAccess = $false
-
-            foreach ($license in $user.AssignedLicenses) {
-                if ($gsaSkuIds.ContainsKey($license.SkuId)) {
-                    $disabledPlans = $license.DisabledPlans
-
-                    # Check if Internet Access is enabled
-                    if ($internetAccessPlansBySkuId.ContainsKey($license.SkuId)) {
-                        $internetAccessPlan = $internetAccessPlansBySkuId[$license.SkuId]
-                        if ($internetAccessPlan.ServicePlanId -notin $disabledPlans) {
-                            $hasInternetAccess = $true
-                        }
+                # Check if Internet Access is enabled
+                if ($internetAccessPlansBySkuId.ContainsKey($license.SkuId)) {
+                    $internetAccessPlan = $internetAccessPlansBySkuId[$license.SkuId]
+                    if ($internetAccessPlan.ServicePlanId -notin $disabledPlans) {
+                        $hasInternetAccess = $true
                     }
+                }
 
-                    # Check if Private Access is enabled
-                    if ($privateAccessPlansBySkuId.ContainsKey($license.SkuId)) {
-                        $privateAccessPlan = $privateAccessPlansBySkuId[$license.SkuId]
-                        if ($privateAccessPlan.ServicePlanId -notin $disabledPlans) {
-                            $hasPrivateAccess = $true
-                        }
+                # Check if Private Access is enabled
+                if ($privateAccessPlansBySkuId.ContainsKey($license.SkuId)) {
+                    $privateAccessPlan = $privateAccessPlansBySkuId[$license.SkuId]
+                    if ($privateAccessPlan.ServicePlanId -notin $disabledPlans) {
+                        $hasPrivateAccess = $true
                     }
                 }
             }
-
-            if ($hasInternetAccess) {
-                $usersWithInternetAccess.Add($user)
-            }
-            if ($hasPrivateAccess) {
-                $usersWithPrivateAccess.Add($user)
-            }
-            if ($hasInternetAccess -or $hasPrivateAccess) {
-                $usersWithAnyGsa.Add($user)
-            }
         }
 
-        $gsaUserCount = $usersWithAnyGsa.Count
+        if ($hasInternetAccess) {
+            $usersWithInternetAccess.Add($user)
+        }
+        if ($hasPrivateAccess) {
+            $usersWithPrivateAccess.Add($user)
+        }
+        if ($hasInternetAccess -or $hasPrivateAccess) {
+            $usersWithAnyGsa.Add($user)
+        }
+    }
 
-        # Evaluate test result
-        if ($gsaUserCount -eq 0) {
-            # Licenses exist and enabled but not assigned to any user - fail
-            $passed = $false
-            $testResultMarkdown = "❌ GSA licenses are available in the tenant but not assigned to any user.`n`n%TestResult%"
-        }
-        else {
-            # Licenses exist, enabled, and assigned to at least one user - pass
-            $passed = $true
-            $testResultMarkdown = "✅ GSA licenses are available and assigned to at least one user.`n`n%TestResult%"
-        }
+    $gsaUserCount = $usersWithAnyGsa.Count
+
+    # Evaluate test result
+    if ($gsaUserCount -eq 0) {
+        # Licenses exist and enabled but not assigned to any user - fail
+        $passed = $false
+        $testResultMarkdown = "❌ GSA licenses are available in the tenant but not assigned to any user.`n`n%TestResult%"
+    }
+    else {
+        # Licenses exist, enabled, and assigned to at least one user - pass
+        $passed = $true
+        $testResultMarkdown = "✅ GSA licenses are available and assigned to at least one user.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -289,7 +290,7 @@ function Test-Assessment-25375 {
 
     $params = @{
         TestId = '25375'
-        Title  = 'GSA Licenses are available in the Tenant and assigned to users'
+        Title  = 'GSA Licenses are available in the tenant and assigned to users'
         Status = $passed
         Result = $testResultMarkdown
     }
