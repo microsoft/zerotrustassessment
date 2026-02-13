@@ -71,7 +71,10 @@ function Invoke-ZtGraphRequest {
 		[string] $OutputType = 'PSObject',
 		# If specified, writes the raw results to disk
 		[Parameter(Mandatory = $false)]
-		[string] $OutputFilePath
+		[string] $OutputFilePath,
+		# Additional headers to include in the request
+		[Parameter(Mandatory = $false)]
+		[hashtable] $Headers
 	)
 
 	begin {
@@ -85,8 +88,11 @@ function Invoke-ZtGraphRequest {
 
 		$batchRequests = New-Object 'System.Collections.Generic.List[psobject]'
 
+		$requestHeaders = if ($Headers) { $Headers.Clone() } else { @{} }
+		$requestHeaders['ConsistencyLevel'] = $ConsistencyLevel
+
 		$requestParam = @{
-			Headers = @{ ConsistencyLevel = $ConsistencyLevel }
+			Headers = $requestHeaders
 			OutputType = $OutputType
 			DisableCache = $DisableCache
 			OutputFilePath = $OutputFilePath
@@ -197,11 +203,14 @@ function Invoke-ZtGraphRequest {
 				$uriQueryEndpointFinal.Path = ([IO.Path]::Combine($uriQueryEndpointFinal.Path, $id))
 
 				if ($doBatch) {
+					$batchHeaders = if ($Headers) { $Headers.Clone() } else { @{} }
+					$batchHeaders['ConsistencyLevel'] = $ConsistencyLevel
+
 					$request = [PSCustomObject]@{
 						id      = $batchRequests.Count
 						method  = 'GET'
 						url     = $uriQueryEndpointFinal.Uri.AbsoluteUri -replace ('{0}{1}/' -f $GraphBaseUri.AbsoluteUri, $ApiVersion)
-						headers = @{ ConsistencyLevel = $ConsistencyLevel }
+						headers = $batchHeaders
 					}
 					$batchRequests.Add($request)
 				}
