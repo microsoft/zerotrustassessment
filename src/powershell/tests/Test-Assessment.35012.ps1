@@ -81,7 +81,7 @@ function Test-Assessment-35012 {
         $types = if ($Label.ContentType -is [array]) {
             $Label.ContentType
         } else {
-            $Label.ContentType -split ', '
+            $Label.ContentType -split ',\s*'
         }
 
         $hasSite = @($types | Where-Object { $_ -eq 'Site' }).Count -gt 0
