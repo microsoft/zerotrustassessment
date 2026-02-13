@@ -36,120 +36,45 @@ function Test-Assessment-35012 {
     function Get-ContainerLabelSummary {
         <#
         .SYNOPSIS
-            Extracts container protection settings from a sensitivity label's LabelActions JSON.
+            Extracts container label details from a sensitivity label.
         .OUTPUTS
-            PSCustomObject with container protection details.
+            PSCustomObject with container label details per spec.
         #>
         param(
-            [object]$Label,
-            [object]$ProtectGroupAction,
-            [object]$ProtectSiteAction
+            [object]$Label
         )
 
         # Extract content types from label
-        $contentType = if ($Label.ContentType) { $Label.ContentType -join ', ' } else { 'Not specified' }
-
-        # Extract Group Privacy Setting from protectgroup action
-        $groupPrivacy = 'Not configured'
-        if ($ProtectGroupAction -and $ProtectGroupAction.Settings) {
-            $privacySetting = $ProtectGroupAction.Settings | Where-Object { $_.Key -eq 'privacy' }
-            if ($privacySetting) {
-                $groupPrivacy = switch ($privacySetting.Value) {
-                    '1' { 'Public' }
-                    '2' { 'Private' }
-                    default { $privacySetting.Value }
-                }
-            }
-        }
-
-        # Extract Site External Sharing from protectsite action
-        $siteExternalSharing = 'Not configured'
-        $siteGuestAccess = 'Not configured'
-        if ($ProtectSiteAction -and $ProtectSiteAction.Settings) {
-            # External sharing setting
-            $sharingSetting = $ProtectSiteAction.Settings | Where-Object { $_.Key -eq 'externalsharingcontrol' }
-            if ($sharingSetting) {
-                $siteExternalSharing = switch ($sharingSetting.Value) {
-                    '0' { 'Full Access' }
-                    '1' { 'Limited Access' }
-                    '2' { 'Block Access' }
-                    default { $sharingSetting.Value }
-                }
-            }
-
-            # Guest access setting
-            $guestSetting = $ProtectSiteAction.Settings | Where-Object { $_.Key -eq 'allowaccesstoguestusers' }
-            if ($guestSetting) {
-                $siteGuestAccess = switch ($guestSetting.Value) {
-                    'true' { 'Allowed' }
-                    'false' { 'Blocked' }
-                    default { $guestSetting.Value }
-                }
-            }
-        }
+        $contentType = if ($Label.ContentType) { $Label.ContentType } else { 'Not specified' }
 
         return [PSCustomObject]@{
-            LabelName           = $Label.DisplayName
-            LabelId             = $Label.Guid
-            ContentType         = $contentType
-            GroupPrivacySetting = $groupPrivacy
-            SiteExternalSharing = $siteExternalSharing
-            SiteGuestAccess     = $siteGuestAccess
+            LabelName   = $Label.Name
+            ContentType = $contentType
+            DisplayName = $Label.DisplayName
+            IsParent    = $Label.IsParent
+            Priority    = $Label.Priority
         }
     }
 
     function Test-ContainerLabel {
         <#
         .SYNOPSIS
-            Tests if a label has both protectgroup and protectsite actions in LabelActions.
+            Tests if a label has both Site and UnifiedGroup scopes in ContentType.
         .OUTPUTS
-            Hashtable with IsContainer boolean and parsed actions, or $null if parsing fails.
+            Boolean indicating whether the label is a container label.
         #>
         param([object]$Label)
 
-        try {
-            if ([string]::IsNullOrWhiteSpace($Label.LabelActions)) {
-                return @{ IsContainer = $false; ProtectGroup = $null; ProtectSite = $null }
-            }
-
-            $actions = $Label.LabelActions | ConvertFrom-Json -ErrorAction Stop
-            $protectGroup = $actions | Where-Object { $_.Type -eq 'protectgroup' }
-            $protectSite = $actions | Where-Object { $_.Type -eq 'protectsite' }
-
-            return @{
-                IsContainer  = ($null -ne $protectGroup -and $null -ne $protectSite)
-                ProtectGroup = $protectGroup
-                ProtectSite  = $protectSite
-            }
+        if ([string]::IsNullOrWhiteSpace($Label.ContentType)) {
+            return $false
         }
-        catch {
-            # Emit verbose message to aid troubleshooting JSON parsing failures
-            $labelIdentifier = $null
-            if ($null -ne $Label) {
-                if ($Label.PSObject.Properties.Match('DisplayName').Count -gt 0 -and
-                    -not [string]::IsNullOrWhiteSpace($Label.DisplayName)) {
-                    $labelIdentifier = $Label.DisplayName
-                }
-                elseif ($Label.PSObject.Properties.Match('Name').Count -gt 0 -and
-                    -not [string]::IsNullOrWhiteSpace($Label.Name)) {
-                    $labelIdentifier = $Label.Name
-                }
-                elseif ($Label.PSObject.Properties.Match('Id').Count -gt 0 -and
-                    -not [string]::IsNullOrWhiteSpace($Label.Id)) {
-                    $labelIdentifier = $Label.Id
-                }
-            }
 
-            if (-not $labelIdentifier) {
-                $labelIdentifier = '<unknown label>'
-            }
+        # Split ContentType string and check for both Site and UnifiedGroup
+        $types = $Label.ContentType -split ', '
+        $hasSite = ($types | Where-Object { $_ -eq 'Site' }) -ne $null
+        $hasUnifiedGroup = ($types | Where-Object { $_ -eq 'UnifiedGroup' }) -ne $null
 
-            $errorMessage = $_.Exception.Message
-            Write-PSFMessage -Level Verbose -Tag Test -Message ("Failed to parse LabelActions JSON for label '{0}': {1}" -f $labelIdentifier, $errorMessage)
-
-            # Return null to indicate parsing failure
-            return $null
-        }
+        return ($hasSite -and $hasUnifiedGroup)
     }
 
     #endregion Helper Functions
@@ -173,30 +98,17 @@ function Test-Assessment-35012 {
         $queryError = $true
     }
 
-    # Query Q2: Filter for container-enabled labels (both protectgroup and protectsite actions)
-    $parseError = $false
-    $containerLabelData = @()
-
+    # Query Q2: Filter for container-enabled labels (both Site and UnifiedGroup scopes in ContentType)
     if ($null -ne $allLabels -and $allLabels.Count -gt 0) {
 
         Write-ZtProgress -Activity $activity -Status 'Filtering container-enabled labels'
 
         foreach ($label in $allLabels) {
-            $result = Test-ContainerLabel -Label $label
-            if ($null -eq $result) {
-                # JSON parsing failed for at least one label
-                $parseError = $true
-            }
-            elseif ($result.IsContainer) {
-                $containerLabelData += @{
-                    Label        = $label
-                    ProtectGroup = $result.ProtectGroup
-                    ProtectSite  = $result.ProtectSite
-                }
+            $isContainer = Test-ContainerLabel -Label $label
+            if ($isContainer) {
+                $containerLabels += $label
             }
         }
-
-        $containerLabels = $containerLabelData
     }
 
     #endregion Data Collection
@@ -214,7 +126,7 @@ function Test-Assessment-35012 {
 
         $customStatus = 'Investigate'
         $testResultMarkdown =
-            "⚠️ Query fails or LabelActions JSON cannot be parsed due to permissions issues or service connection failure. Ensure the Security & Compliance PowerShell module is connected and the account has appropriate permissions to retrieve label properties.`n`n%TestResult%"
+            "⚠️ Query fails or unable to retrieve label scope information due to permissions issues or service connection failure. Ensure the Security & Compliance PowerShell module is connected and the account has appropriate permissions to retrieve label properties.`n`n%TestResult%"
 
     }
     # Step 2: Check if container labels exist (count >= 1) - Pass (even if some labels had parse errors)
@@ -226,20 +138,12 @@ function Test-Assessment-35012 {
             "✅ Container labels are configured for Teams, Groups, and SharePoint sites.`n`n%TestResult%"
 
         # Build label results for reporting
-        foreach ($data in $containerLabels) {
-            $labelResults += Get-ContainerLabelSummary -Label $data.Label -ProtectGroupAction $data.ProtectGroup -ProtectSiteAction $data.ProtectSite
+        foreach ($label in $containerLabels) {
+            $labelResults += Get-ContainerLabelSummary -Label $label
         }
 
     }
-    # Step 3: Check if LabelActions JSON parsing failed for any label (only Investigate when no container labels found)
-    elseif ($parseError) {
-
-        $customStatus = 'Investigate'
-        $testResultMarkdown =
-            "⚠️ Query fails or LabelActions JSON cannot be parsed due to permissions issues or service connection failure. Some labels could not be evaluated.`n`n%TestResult%"
-
-    }
-    # Step 4: Count = 0 - Fail
+    # Step 3: Count = 0 - Fail
     else {
 
         # No container labels configured
@@ -264,7 +168,7 @@ function Test-Assessment-35012 {
         $formatTemplate = @'
 ## [Container label details](https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels)
 
-| Label name | Content type | Group privacy setting | Site external sharing | Site guest access |
+| Label name | Content type | Display name | Is parent | Priority |
 |---|---|---|---|---|
 {0}
 '@
@@ -272,7 +176,7 @@ function Test-Assessment-35012 {
             $labelLink = "https://purview.microsoft.com/informationprotection/informationprotectionlabels/sensitivitylabels"
             $linkedLabelName = "[{0}]({1})" -f (Get-SafeMarkdown $r.LabelName), $labelLink
 
-            $tableRows += "| $linkedLabelName | $($r.ContentType) | $($r.GroupPrivacySetting) | $($r.SiteExternalSharing) | $($r.SiteGuestAccess) |`n"
+            $tableRows += "| $linkedLabelName | $($r.ContentType) | $(Get-SafeMarkdown $r.DisplayName) | $($r.IsParent) | $($r.Priority) |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
