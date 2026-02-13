@@ -49,7 +49,7 @@ function Test-Assessment-25541 {
 
     # Query all Application Gateway WAF policies using Azure Resource Graph
     $argQuery = @"
-    resources
+    Resources
     | where type =~ 'microsoft.network/ApplicationGatewayWebApplicationFirewallPolicies'
     | join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions' | project subscriptionName=name, subscriptionId) on subscriptionId
     | project PolicyName=name, SubscriptionName=subscriptionName, SubscriptionId=subscriptionId, EnabledState=tostring(properties.policySettings.state), Mode=tostring(properties.policySettings.mode), PolicyId=id
