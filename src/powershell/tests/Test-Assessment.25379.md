@@ -2,13 +2,17 @@ Without compliant network controls in Conditional Access policies, organizations
 
 **Remediation actions**
 
-1. Enable Global Secure Access signaling for Conditional Access: [Enable compliant network check with Conditional Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#enable-global-secure-access-signaling-for-conditional-access)
+1. Enable Global Secure Access signaling for Conditional Access:
+- [Enable compliant network check with Conditional Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#enable-global-secure-access-signaling-for-conditional-access)
 
-2. Create a Conditional Access policy that requires compliant network for access: [Protect your resources behind the compliant network](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#protect-your-resources-behind-the-compliant-network)
+2. Create a Conditional Access policy that requires compliant network for access:
+- [Protect your resources behind the compliant network](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#protect-your-resources-behind-the-compliant-network)
 
-3. Deploy Global Secure Access clients on devices: [Global Secure Access clients overview](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-clients)
+3. Deploy Global Secure Access clients on devices:
+- [Global Secure Access clients overview](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-clients)
 
-4. Understand compliant network enforcement: [Compliant network check enforcement](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#compliant-network-check-enforcement)
+4. Understand compliant network enforcement:
+- [Compliant network check enforcement](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-compliant-network#compliant-network-check-enforcement)
 
 <!--- Results --->
 %TestResult%
