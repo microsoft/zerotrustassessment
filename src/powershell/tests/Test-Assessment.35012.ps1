@@ -139,7 +139,7 @@ function Test-Assessment-35012 {
 
         $customStatus = 'Investigate'
         $testResultMarkdown =
-            "⚠️ Query fails or unable to retrieve label scope information due to permissions issues or service connection failure. Ensure the Security & Compliance PowerShell module is connected and the account has appropriate permissions to retrieve label properties.`n`n%TestResult%"
+            "⚠️ Query fails or unable to retrieve label scope information due to permissions issues or service connection failure. Ensure the Security & Compliance PowerShell module is connected and the account has appropriate permissions to retrieve label properties."
 
     }
     # Step 2: Check if container labels exist (count >= 1) - Pass (even if some labels had parse errors)
