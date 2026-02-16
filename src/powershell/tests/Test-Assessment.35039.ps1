@@ -62,11 +62,6 @@ function Test-Assessment-35039 {
                                 try {
                                     $jsonText = $rawValue.Trim()
 
-                                    # Skip non-JSON scalar values (for example: Infinity, -Infinity, NaN)
-                                    if ($jsonText -in @('Infinity', '-Infinity', 'NaN')) {
-                                        continue
-                                    }
-
                                     # We only need object/array JSON payloads that can contain Workloads
                                     if ($jsonText -notmatch '^\s*[\{\[]') {
                                         continue
