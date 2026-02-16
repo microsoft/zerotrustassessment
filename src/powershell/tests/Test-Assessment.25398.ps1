@@ -29,6 +29,16 @@ function Test-Assessment-25398 {
 
     #region Data Collection
 
+    # Helper: Check if a specific port is included in a list of port values (discrete or range)
+    function Test-PortIncluded {
+        param([string[]]$Ports, [int]$TargetPort)
+        foreach ($portValue in $Ports) {
+            if ($portValue -eq $TargetPort.ToString()) { return $true }
+            if ($portValue -match '^(\d+)-(\d+)$' -and $TargetPort -ge [int]$Matches[1] -and $TargetPort -le [int]$Matches[2]) { return $true }
+        }
+        return $false
+    }
+
     # Q1: Get all Private Access apps
     Write-ZtProgress -Activity $activity -Status 'Retrieving Private Access applications'
 
@@ -131,39 +141,17 @@ function Test-Assessment-25398 {
                 $protocol = $segment.protocol
 
                 # Check if this segment targets a DC host AND has RDP access (port 3389 over TCP)
-                if ($dcHosts.ContainsKey($destinationHost) -and $protocol -eq 'tcp') {
-                    $hasRdp = $false
-
-                    # Check for port 3389 (discrete value or within a port range)
-                    foreach ($portValue in $ports) {
-                        # Check discrete port 3389
-                        if ($portValue -eq '3389') {
-                            $hasRdp = $true
-                            break
-                        }
-                        # Check if 3389 is within a port range (e.g., '1-5000' or '3000-4000')
-                        if ($portValue -match '^(\d+)-(\d+)$') {
-                            $start = [int]$Matches[1]
-                            $end = [int]$Matches[2]
-                            if (3389 -ge $start -and 3389 -le $end) {
-                                $hasRdp = $true
-                                break
-                            }
-                        }
+                if ($dcHosts.ContainsKey($destinationHost) -and $protocol -eq 'tcp' -and (Test-PortIncluded -Ports $ports -TargetPort 3389)) {
+                    $rdpApps += [PSCustomObject]@{
+                        AppId = $appData.App.appId
+                        AppName = $appData.App.displayName
+                        DestinationHost = $destinationHost
+                        AppType = 'DC RDP App'
                     }
 
-                    if ($hasRdp) {
-                        $rdpApps += [PSCustomObject]@{
-                            AppId = $appData.App.appId
-                            AppName = $appData.App.displayName
-                            DestinationHost = $destinationHost
-                            AppType = 'DC RDP App'
-                        }
-
-                        # Update DC host info
-                        $dcHosts[$destinationHost].RdpAppFound = $true
-                        $dcHosts[$destinationHost].RdpAppName = $appData.App.displayName
-                    }
+                    # Update DC host info
+                    $dcHosts[$destinationHost].RdpAppFound = $true
+                    $dcHosts[$destinationHost].RdpAppName = $appData.App.displayName
                 }
             }
         }
@@ -182,34 +170,12 @@ function Test-Assessment-25398 {
                 $ports = $segment.port
                 $protocol = $segment.protocol
 
-                if ($protocol -eq 'tcp') {
-                    $hasRdp = $false
-
-                    # Check for port 3389 (discrete value or within a port range)
-                    foreach ($portValue in $ports) {
-                        # Check discrete port 3389
-                        if ($portValue -eq '3389') {
-                            $hasRdp = $true
-                            break
-                        }
-                        # Check if 3389 is within a port range
-                        if ($portValue -match '^(\d+)-(\d+)$') {
-                            $start = [int]$Matches[1]
-                            $end = [int]$Matches[2]
-                            if (3389 -ge $start -and 3389 -le $end) {
-                                $hasRdp = $true
-                                break
-                            }
-                        }
-                    }
-
-                    if ($hasRdp) {
-                        $rdpApps += [PSCustomObject]@{
-                            AppId = $appData.App.appId
-                            AppName = $appData.App.displayName
-                            DestinationHost = $segment.destinationHost
-                            AppType = 'General RDP App'
-                        }
+                if ($protocol -eq 'tcp' -and (Test-PortIncluded -Ports $ports -TargetPort 3389)) {
+                    $rdpApps += [PSCustomObject]@{
+                        AppId = $appData.App.appId
+                        AppName = $appData.App.displayName
+                        DestinationHost = $segment.destinationHost
+                        AppType = 'General RDP App'
                     }
                 }
             }
@@ -235,7 +201,7 @@ function Test-Assessment-25398 {
 
     $authStrength = Invoke-ZtGraphRequest -RelativeUri 'policies/authenticationStrengthPolicies' -QueryParameters @{
         '$filter' = "policyType eq 'builtIn' and displayName eq 'Phishing-resistant MFA'"
-    } -ApiVersion 'beta'
+    } -ApiVersion beta
 
     if (-not $authStrength -or $authStrength.Count -eq 0) {
         Write-PSFMessage "Phishing-resistant MFA authentication strength not found" -Tag Test -Level Warning
@@ -248,7 +214,7 @@ function Test-Assessment-25398 {
     # Q4: Get CA policies using this authentication strength
     Write-ZtProgress -Activity $activity -Status 'Checking Conditional Access policies'
 
-    $caPolicies = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationStrengthPolicies/$authStrengthId/usage" -ApiVersion 'beta'
+    $caPolicies = Invoke-ZtGraphRequest -RelativeUri "policies/authenticationStrengthPolicies/$authStrengthId/usage" -ApiVersion beta
 
     # Filter for enabled policies only
     $enabledPolicies = $caPolicies | Where-Object { $_.state -eq 'enabled' }
@@ -263,83 +229,79 @@ function Test-Assessment-25398 {
     $results = @()
 
     foreach ($rdpApp in $rdpApps) {
-        # Initialize status variables
         $protected = $false
         $protectedBy = 'None'
         $authStrengthName = 'N/A'
-        $status = 'Fail'  # Default to Fail for DC RDP apps
+        $status = 'Fail'
         $targetingMethod = 'None'
+        $policyId = $null
 
         # Check if any enabled CA policy with phishing-resistant MFA targets this app
         foreach ($policy in $enabledPolicies) {
             $includeApps = $policy.conditions.applications.includeApplications
             $appFilter = $policy.conditions.applications.applicationFilter
 
-            # Check if policy targets this app directly or via 'All'
             if ($includeApps -contains $rdpApp.AppId -or $includeApps -contains 'All') {
                 $protected = $true
                 $protectedBy = $policy.displayName
                 $authStrengthName = 'Phishing-resistant MFA'
                 $status = 'Pass'
                 $targetingMethod = if ($includeApps -contains 'All') { 'All Apps' } else { 'Direct' }
+                $policyId = $policy.id
                 break
             }
-            # Check if policy uses custom security attributes (requires manual verification)
             elseif ($appFilter) {
                 $protected = $true
                 $protectedBy = $policy.displayName
                 $authStrengthName = 'Phishing-resistant MFA'
-                $status = 'Investigate'  # Cannot verify attribute assignment without CustomSecAttributeAssignment.Read.All
+                $status = 'Investigate'
                 $targetingMethod = 'Filter (Custom Security Attributes)'
+                $policyId = $policy.id
                 break
             }
         }
 
-        # Special handling for General RDP apps: mark as Investigate if not protected
-        # (Cannot confirm if these target DCs without additional context)
+        # General RDP apps without protection need investigation (cannot confirm if they target DCs)
         if (-not $protected -and $rdpApp.AppType -eq 'General RDP App') {
             $status = 'Investigate'
         }
 
         $results += [PSCustomObject]@{
-            AppName = $rdpApp.AppName
-            AppId = $rdpApp.AppId
+            AppName         = $rdpApp.AppName
+            AppId           = $rdpApp.AppId
             DestinationHost = $rdpApp.DestinationHost
-            AppType = $rdpApp.AppType
-            ProtectedBy = $protectedBy
-            AuthStrength = $authStrengthName
-            Status = $status
+            AppType         = $rdpApp.AppType
+            ProtectedBy     = $protectedBy
+            AuthStrength    = $authStrengthName
+            Status          = $status
             TargetingMethod = $targetingMethod
-            PolicyId = if ($protected) { ($enabledPolicies | Where-Object { $_.displayName -eq $protectedBy }).id } else { $null }
+            PolicyId        = $policyId
         }
     }
 
-    # Determine overall test status based on individual app results
+    # Determine overall test status
     $passed = $false
+    $customStatus = $null
     $testResultMarkdown = ''
 
     if ($appType -eq 'DC RDP') {
-        # DC RDP apps found - evaluate protection status
-        $passedApps = $results | Where-Object { $_.Status -eq 'Pass' }
-        $investigateApps = $results | Where-Object { $_.Status -eq 'Investigate' }
         $failedApps = $results | Where-Object { $_.Status -eq 'Fail' }
+        $investigateApps = $results | Where-Object { $_.Status -eq 'Investigate' }
 
-        # Pass: All DC RDP apps are protected by CA policies with phishing-resistant MFA
-        if ($passedApps.Count -gt 0 -and $failedApps.Count -eq 0 -and $investigateApps.Count -eq 0) {
+        if ($failedApps.Count -gt 0) {
+            $testResultMarkdown = "❌ RDP access (port 3389) to identified domain controller hosts is not protected by a Conditional Access policy requiring phishing-resistant authentication.`n`n%TestResult%"
+        }
+        elseif ($investigateApps.Count -gt 0) {
+            $customStatus = 'Investigate'
+            $testResultMarkdown = "⚠️ A Conditional Access policy requiring phishing-resistant authentication targets applications via custom security attributes - manual verification required to confirm the domain controller RDP application has the required attribute assigned (Global Admin cannot read custom security attributes by default).`n`n%TestResult%"
+        }
+        else {
             $passed = $true
             $testResultMarkdown = "✅ RDP access (port 3389) to identified domain controller hosts is protected by a Conditional Access policy requiring phishing-resistant authentication (FIDO2, Windows Hello for Business, or Certificate-based MFA).`n`n%TestResult%"
         }
-        # Investigate: CA policy targets apps via custom security attributes (cannot verify without additional permissions)
-        elseif ($investigateApps.Count -gt 0) {
-            $testResultMarkdown = "⚠️ A Conditional Access policy requiring phishing-resistant authentication targets applications via custom security attributes - manual verification required to confirm the domain controller RDP application has the required attribute assigned (Global Admin cannot read custom security attributes by default).`n`n%TestResult%"
-        }
-        # Fail: DC RDP apps exist but are not protected by CA policies with phishing-resistant MFA
-        else {
-            $testResultMarkdown = "❌ RDP access (port 3389) to identified domain controller hosts is not protected by a Conditional Access policy requiring phishing-resistant authentication.`n`n%TestResult%"
-        }
     }
     else {
-        # Investigate: General RDP apps found but no DC hosts identified (manual verification needed)
+        $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ No domain controller hosts identified, but RDP-enabled Private Access applications (port 3389) were found - manual verification recommended to confirm these are not domain controllers and to ensure appropriate protection.`n`n%TestResult%"
     }
 
@@ -347,66 +309,63 @@ function Test-Assessment-25398 {
 
     #region Report Generation
 
-    $mdInfo = ''
+    $privateAccessLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateApplications.ReactView'
+    $caPoliciesLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
-    # Table 1: Identified DC Hosts (if any)
+    # Build DC Hosts section
+    $dcHostsSection = ''
     if ($dcHosts.Count -gt 0) {
-        $mdInfo += "`n## [Identified domain controller hosts](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateApplications.ReactView)`n`n"
-        $mdInfo += "| DC host (FQDN/IP) | Source application | Ports configured | RDP app found | RDP app name |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
-
+        $dcHostRows = ''
         foreach ($dcHost in $dcHosts.Keys) {
             $info = $dcHosts[$dcHost]
             $rdpFound = if ($info.RdpAppFound) { 'Yes' } else { 'No' }
-            $hostSafe = Get-SafeMarkdown -Text $dcHost
-            $sourceSafe = Get-SafeMarkdown -Text $info.SourceApp
-            $rdpAppSafe = Get-SafeMarkdown -Text $info.RdpAppName
-
-            $mdInfo += "| $hostSafe | $sourceSafe | $($info.Ports) | $rdpFound | $rdpAppSafe |`n"
+            $dcHostRows += "| $(Get-SafeMarkdown $dcHost) | $(Get-SafeMarkdown $info.SourceApp) | $($info.Ports) | $rdpFound | $(Get-SafeMarkdown $info.RdpAppName) |`n"
         }
+
+        $dcHostsSection = @"
+
+## [Identified domain controller hosts]($privateAccessLink)
+
+| DC host (FQDN/IP) | Source application | Ports configured | RDP app found | RDP app name |
+| :--- | :--- | :--- | :--- | :--- |
+$dcHostRows
+"@
     }
 
-    # Table 2: RDP Applications
-    $mdInfo += "`n## [Private Access RDP applications requiring protection](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateApplications.ReactView)`n`n"
-    $mdInfo += "| Application name | App ID | Target host | App type | Protected by CA policy | Authentication strength | Status |`n"
-    $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
-
+    # Build RDP Apps section
+    $rdpAppRows = ''
     foreach ($result in $results) {
-        $appNameSafe = Get-SafeMarkdown -Text $result.AppName
-        $appIdSafe = Get-SafeMarkdown -Text $result.AppId
-        $hostSafe = Get-SafeMarkdown -Text $result.DestinationHost
-        $appTypeSafe = Get-SafeMarkdown -Text $result.AppType
-
-        $policyLink = if ($result.ProtectedBy -ne 'None' -and $result.PolicyId) {
-            "[$($result.ProtectedBy)](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($result.PolicyId))"
-        } else {
-            $result.ProtectedBy
-        }
+        $policyCell = if ($result.ProtectedBy -ne 'None' -and $result.PolicyId) {
+            "[$(Get-SafeMarkdown $result.ProtectedBy)](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($result.PolicyId))"
+        } else { $result.ProtectedBy }
 
         $statusIcon = switch ($result.Status) {
             'Pass' { '✅' }
             'Fail' { '❌' }
             'Investigate' { '⚠️' }
-            default { '' }
         }
 
-        $mdInfo += "| $appNameSafe | $appIdSafe | $hostSafe | $appTypeSafe | $policyLink | $($result.AuthStrength) | $statusIcon $($result.Status) |`n"
+        $rdpAppRows += "| $(Get-SafeMarkdown $result.AppName) | $(Get-SafeMarkdown $result.AppId) | $(Get-SafeMarkdown $result.DestinationHost) | $(Get-SafeMarkdown $result.AppType) | $policyCell | $($result.AuthStrength) | $statusIcon $($result.Status) |`n"
     }
 
-    # Table 3: CA Policies
+    $rdpAppsSection = @"
+
+## [Private Access RDP applications requiring protection]($privateAccessLink)
+
+| Application name | App ID | Target host | App type | Protected by CA policy | Authentication strength | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+$rdpAppRows
+"@
+
+    # Build CA Policies section
+    $caPoliciesSection = ''
     if ($enabledPolicies.Count -gt 0) {
-        $mdInfo += "`n## [Conditional Access policies requiring phishing-resistant MFA](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies)`n`n"
-        $mdInfo += "| Policy name | State | Target applications | Targeting method |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
-
+        $policyRows = ''
         foreach ($policy in $enabledPolicies) {
-            $policyNameLink = "[$($policy.displayName)](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id))"
-
+            $policyNameLink = "[$(Get-SafeMarkdown $policy.displayName)](https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id))"
+            $policyState = Get-FormattedPolicyState $policy.state
             $includeApps = $policy.conditions.applications.includeApplications
             $appFilter = $policy.conditions.applications.applicationFilter
-
-            $targetApps = ''
-            $targetingMethod = ''
 
             if ($includeApps -contains 'All') {
                 $targetApps = 'All applications'
@@ -418,22 +377,33 @@ function Test-Assessment-25398 {
             }
             else {
                 $appNames = @()
-                foreach ($appId in $includeApps) {
-                    $matchedApp = $results | Where-Object { $_.AppId -eq $appId } | Select-Object -First 1
-                    if ($matchedApp) {
-                        $appNames += $matchedApp.AppName
-                    }
+                foreach ($aid in $includeApps) {
+                    $matchedApp = $results | Where-Object { $_.AppId -eq $aid } | Select-Object -First 1
+                    if ($matchedApp) { $appNames += $matchedApp.AppName }
                 }
                 $targetApps = if ($appNames.Count -gt 0) { ($appNames | Sort-Object -Unique) -join ', ' } else { "$($includeApps.Count) application(s)" }
                 $targetingMethod = 'Direct'
             }
 
-            $targetAppsSafe = Get-SafeMarkdown -Text $targetApps
-
-            $mdInfo += "| $policyNameLink | $($policy.state) | $targetAppsSafe | $targetingMethod |`n"
+            $policyRows += "| $policyNameLink | $policyState | $(Get-SafeMarkdown $targetApps) | $targetingMethod |`n"
         }
+
+        $caPoliciesSection = @"
+
+## [Conditional Access policies requiring phishing-resistant MFA]($caPoliciesLink)
+
+| Policy name | State | Target applications | Targeting method |
+| :--- | :--- | :--- | :--- |
+$policyRows
+"@
     }
 
+    # Combine sections using format template
+    $formatTemplate = @'
+{0}{1}{2}
+'@
+
+    $mdInfo = $formatTemplate -f $dcHostsSection, $rdpAppsSection, $caPoliciesSection
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
     #endregion Report Generation
@@ -443,6 +413,8 @@ function Test-Assessment-25398 {
         Status = $passed
         Result = $testResultMarkdown
     }
-
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
+    }
     Add-ZtTestResultDetail @params
 }
