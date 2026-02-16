@@ -112,7 +112,6 @@ function Test-Assessment-25379 {
                 # Pattern 3: Targets specific apps with compliant network conditions
                 (($_.conditions.locations.excludeLocations -contains $compliantNetworkLocationId -or
                   $_.conditions.locations.includeLocations -contains $compliantNetworkLocationId) -and
-                 $_.conditions.applications.includeApplications -ne 'All' -and
                  -not ($_.conditions.applications.includeApplications -contains 'All'))
             )
         } | Where-Object { $standardPolicies -notcontains $_ } | Select-Object -Unique
