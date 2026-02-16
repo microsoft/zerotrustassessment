@@ -13,7 +13,8 @@
 .NOTES
     Test ID: 25375
     Category: Global Secure Access
-    Required API: subscribedSkus (beta), users with assignedLicenses (beta)
+    Required API: subscribedSkus (beta)
+    Required Database: User table
     GSA Service Plan IDs:
     - Entra_Premium_Internet_Access: 8d23cb83-ab07-418f-8517-d7aca77307dc
     - Entra_Premium_Private_Access: f057aab1-b184-49b2-85c0-881b02a405c5
@@ -33,7 +34,9 @@ function Test-Assessment-25375 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -50,7 +53,7 @@ function Test-Assessment-25375 {
     $skuCmdletFailed = $false
     $userCmdletFailed = $false
     $subscribedSkus = @()
-    $allUsers = @()
+    $userLicenses = @()
 
     # Query 1: Retrieve tenant licenses with GSA service plans
     try {
@@ -63,11 +66,22 @@ function Test-Assessment-25375 {
 
     Write-ZtProgress -Activity $activity -Status 'Querying user license assignments'
 
-    # Query 2: Retrieve all users with assigned licenses
+    # Query 2: Retrieve all users with assigned licenses from database
     try {
-        $allUsers = Invoke-ZtGraphRequest `
-            -RelativeUri 'users?$select=id,displayName,userPrincipalName,assignedLicenses&$count=true' `
-            -ApiVersion beta
+        $sqlUsers = @"
+SELECT
+    u.id,
+    u.displayName,
+    u.userPrincipalName,
+    unnest(u.assignedLicenses).skuId as skuId,
+    unnest(u.assignedLicenses).disabledPlans as disabledPlans
+FROM "User" u
+WHERE u.assignedLicenses IS NOT NULL
+    AND u.assignedLicenses != '[]'
+"@
+        $userLicenses = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlUsers -AsCustomObject)
+        # Filter out any records with null IDs
+        $userLicenses = @($userLicenses | Where-Object { $_.id })
     }
     catch {
         $userCmdletFailed = $true
@@ -82,7 +96,7 @@ function Test-Assessment-25375 {
     # Handle any query failure - cannot determine license status
     if ($skuCmdletFailed -or $userCmdletFailed) {
         Write-PSFMessage "Failed to retrieve GSA license data" -Tag Test -Level Error
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Failed to retrieve GSA license data from Microsoft Graph.'
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Failed to retrieve GSA license data.'
         return
     }
 
@@ -104,23 +118,24 @@ function Test-Assessment-25375 {
 
     Write-ZtProgress -Activity $activity -Status 'Analyzing user license assignments'
 
-    # Build SKU ID to SKU mapping for user license cross-reference
+    # Build SKU ID to SKU mapping and pre-filter service plans for performance
     $gsaSkuIds = @{}
-    foreach ($sku in $enabledGsaSkus) {
-        $gsaSkuIds[$sku.SkuId] = $sku
-    }
+    $internetAccessPlansBySku = @{}
+    $privateAccessPlansBySku = @{}
 
-    # Pre-filter GSA service plans for performance
-    $internetAccessPlansBySkuId = @{}
-    $privateAccessPlansBySkuId = @{}
     foreach ($sku in $enabledGsaSkus) {
+        $skuIdString = $sku.SkuId.ToString().ToLower()
+        $gsaSkuIds[$skuIdString] = $sku
+
+        # Pre-filter service plans to avoid repeated Where-Object calls
         $internetPlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.InternetAccess }
         if ($internetPlan) {
-            $internetAccessPlansBySkuId[$sku.SkuId] = $internetPlan
+            $internetAccessPlansBySku[$skuIdString] = $internetPlan
         }
+
         $privatePlan = $sku.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.PrivateAccess }
         if ($privatePlan) {
-            $privateAccessPlansBySkuId[$sku.SkuId] = $privatePlan
+            $privateAccessPlansBySku[$skuIdString] = $privatePlan
         }
     }
 
@@ -129,45 +144,59 @@ function Test-Assessment-25375 {
     $usersWithPrivateAccess = [System.Collections.Generic.List[object]]::new()
     $usersWithAnyGsa = [System.Collections.Generic.List[object]]::new()
 
-    foreach ($user in $allUsers) {
-        if (-not $user.AssignedLicenses -or $user.AssignedLicenses.Count -eq 0) {
-            continue
-        }
+    # Group licenses by user (since query returns one row per license)
+    $userGroups = $userLicenses | Group-Object -Property id
+
+    foreach ($userGroup in $userGroups) {
+        $userId = $userGroup.Name
+        $userLicenseRecords = $userGroup.Group
+        $userDisplayName = $userLicenseRecords[0].displayName
+        $userPrincipalName = $userLicenseRecords[0].userPrincipalName
 
         $hasInternetAccess = $false
         $hasPrivateAccess = $false
 
-        foreach ($license in $user.AssignedLicenses) {
-            if ($gsaSkuIds.ContainsKey($license.SkuId)) {
-                # Defensive: treat null disabledPlans as empty array
-                $disabledPlans = if ($license.DisabledPlans) { $license.DisabledPlans } else { @() }
+        foreach ($licenseRecord in $userLicenseRecords) {
+            if (-not $licenseRecord.skuId) { continue }
 
-                # Check if Internet Access is enabled
-                if ($internetAccessPlansBySkuId.ContainsKey($license.SkuId)) {
-                    $internetAccessPlan = $internetAccessPlansBySkuId[$license.SkuId]
-                    if ($internetAccessPlan.ServicePlanId -notin $disabledPlans) {
+            $userSkuId = $licenseRecord.skuId.ToString().ToLower()
+
+            if ($gsaSkuIds.ContainsKey($userSkuId)) {
+                $disabledPlans = if ($licenseRecord.disabledPlans) { $licenseRecord.disabledPlans } else { @() }
+
+                # Check if Internet Access service plan is enabled
+                if ($internetAccessPlansBySku.ContainsKey($userSkuId)) {
+                    $internetPlan = $internetAccessPlansBySku[$userSkuId]
+                    if ($internetPlan.ServicePlanId -notin $disabledPlans) {
                         $hasInternetAccess = $true
                     }
                 }
 
-                # Check if Private Access is enabled
-                if ($privateAccessPlansBySkuId.ContainsKey($license.SkuId)) {
-                    $privateAccessPlan = $privateAccessPlansBySkuId[$license.SkuId]
-                    if ($privateAccessPlan.ServicePlanId -notin $disabledPlans) {
+                # Check if Private Access service plan is enabled
+                if ($privateAccessPlansBySku.ContainsKey($userSkuId)) {
+                    $privatePlan = $privateAccessPlansBySku[$userSkuId]
+                    if ($privatePlan.ServicePlanId -notin $disabledPlans) {
                         $hasPrivateAccess = $true
                     }
                 }
             }
         }
 
+        # Create user object for display
+        $userObj = [PSCustomObject]@{
+            Id = $userId
+            DisplayName = $userDisplayName
+            UserPrincipalName = $userPrincipalName
+        }
+
         if ($hasInternetAccess) {
-            $usersWithInternetAccess.Add($user)
+            $usersWithInternetAccess.Add($userObj)
         }
         if ($hasPrivateAccess) {
-            $usersWithPrivateAccess.Add($user)
+            $usersWithPrivateAccess.Add($userObj)
         }
         if ($hasInternetAccess -or $hasPrivateAccess) {
-            $usersWithAnyGsa.Add($user)
+            $usersWithAnyGsa.Add($userObj)
         }
     }
 
