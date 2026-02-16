@@ -80,10 +80,12 @@ function Test-Assessment-35023 {
     #region Assessment Logic
     $customStatus = $null
     $passed = $false
+    $testResultMarkdown = ''
 
     if ($errorMsg) {
         $passed = $false
         $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to determine OCR configuration status due to error: $errorMsg`n`n%TestResult%"
     }
     else {
         $hasConfig = $null -ne $ocrConfig
@@ -92,57 +94,48 @@ function Test-Assessment-35023 {
 
         if ($hasConfig -and $anyLocationEnabled -and $notBlocked) {
             $passed = $true
+            $testResultMarkdown = "✅ OCR configuration is enabled at the tenant level for at least one workload, enabling policies to detect sensitive information within images.`n`n%TestResult%"
         }
         else {
             $passed = $false
+            $testResultMarkdown = "❌ OCR is not configured or is disabled for all workloads.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
+    $mdInfo = ''
 
-    if ($errorMsg) {
-        $testResultMarkdown = "### Investigate`n`n"
-        $testResultMarkdown += "Unable to determine OCR configuration status due to error: $errorMsg"
-    }
-    else {
-        $portalLink = "https://purview.microsoft.com/"
-        # Status text
-        if ($passed) {
-            $statusIcon = "✅ Pass"
-            $statusMessage = "OCR configuration is enabled at the tenant level for at least one workload, enabling policies to detect sensitive information within images."
-        }
-        else {
-            $statusIcon = "❌ Fail"
-            $statusMessage = "OCR is not configured or is disabled for all workloads."
-        }
-
+    if (-not $errorMsg) {
         # OCR Configuration Table
-        $testResultMarkdown = "$statusIcon $statusMessage`n`n"
-
-        $testResultMarkdown += "### OCR configuration status`n`n"
-        $testResultMarkdown += "| Setting | Value |`n"
-        $testResultMarkdown += "| :--- | :--- |`n"
-        $testResultMarkdown += "| OCR enabled (Tenant-Level) | $enabled |`n"
-        $testResultMarkdown += "| Exchange | $exchange |`n"
-        $testResultMarkdown += "| SharePoint | $sharePoint |`n"
-        $testResultMarkdown += "| OneDrive | $oneDrive |`n"
-        $testResultMarkdown += "| Teams | $teams |`n"
-        $testResultMarkdown += "| Endpoint | $endpoint |`n"
-        $testResultMarkdown += "| OCR usage blocked | $isBlocked |`n"
-        $testResultMarkdown += "| Blockage Reason | $(if ($blockReason) { $blockReason } else { 'None' }) |`n"
-        $testResultMarkdown += "| Azure billing status | Manual verification required |`n"
+        $mdInfo += "### OCR configuration status`n`n"
+        $mdInfo += "| Setting | Value |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        $mdInfo += "| OCR enabled (Tenant-Level) | $enabled |`n"
+        $mdInfo += "| Exchange | $exchange |`n"
+        $mdInfo += "| SharePoint | $sharePoint |`n"
+        $mdInfo += "| OneDrive | $oneDrive |`n"
+        $mdInfo += "| Teams | $teams |`n"
+        $mdInfo += "| Endpoint | $endpoint |`n"
+        $mdInfo += "| OCR usage blocked | $isBlocked |`n"
+        $mdInfo += "| Blockage Reason | $(if ($blockReason) { $blockReason } else { 'None' }) |`n"
+        $mdInfo += "| Azure billing status | Manual verification required |`n"
 
         # Summary Section (matches MD output structure)
-        $testResultMarkdown += "`n### Summary`n`n"
-        $testResultMarkdown += "* **OCR configuration:** $(if ($ocrConfig) { 'Configured' } else { 'Not Configured' })`n"
-        $testResultMarkdown += "* **Active workloads:** $($enabledLocations.Count)`n"
-        $testResultMarkdown += "* **Status:** $(if ($passed) { 'Pass' } else { 'Fail' })`n"
+        $mdInfo += "`n### Summary`n`n"
+        $mdInfo += "* **OCR configuration:** $(if ($ocrConfig) { 'Configured' } else { 'Not Configured' })`n"
+        $mdInfo += "* **Active workloads:** $($enabledLocations.Count)`n"
+        $mdInfo += "* **Status:** $(if ($passed) { 'Pass' } else { 'Fail' })`n"
 
         # Portal link
-        $testResultMarkdown += "`n**Portal access:**`n`n"
-        $testResultMarkdown += "[Microsoft purview portal > Settings > Optical character recognition (OCR)]($portalLink)`n"
+        $mdInfo += "`n**Portal access:**`n`n"
+        $PortalPath = "Microsoft purview portal > Settings > Optical character recognition (OCR)`n"
+        $SafePortalPath = Get-SafeMarkdown -Text $PortalPath
+        $portalLink = "https://purview.microsoft.com/"
+        $mdInfo += "[$safePortalPath]($portalLink)"
     }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
