@@ -54,9 +54,7 @@ function Test-Assessment-25375 {
 
     # Query 1: Retrieve tenant licenses with GSA service plans
     try {
-        $subscribedSkus = Invoke-ZtGraphRequest `
-            -RelativeUri 'subscribedSkus' `
-            -ApiVersion beta
+        $subscribedSkus = Invoke-ZtGraphRequest -RelativeUri 'subscribedSkus' -ApiVersion beta
     }
     catch {
         $skuCmdletFailed = $true
