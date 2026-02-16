@@ -10,13 +10,89 @@
     hardcoding any hostnames.
 
     Additional features over Invoke-AzRestMethod:
-    * OData query parameters: -Select, -Filter, -Top
+    * OData query parameters: -Select, -Filter
     * Additional query parameters via -QueryParameters hashtable
     * Session-scoped caching of GET results
     * Automatic pagination enabled by default for GET requests
     * Throws on non-2xx errors (consistent with Invoke-ZtGraphRequest)
     * Return full PSHttpResponse with -FullResponse for StatusCode inspection
     * Automatic unwrapping of .value array from responses
+
+ .PARAMETER Path
+    Path of target resource URL. Hostname of Resource Manager should not be added.
+
+ .PARAMETER Uri
+    Uniform Resource Identifier of the Azure resources. The target resource needs to support Azure AD authentication and the access token is derived according to resource id. If resource id is not set, its value is derived according to built-in service suffixes in current Azure Environment.
+
+ .PARAMETER ResourceId
+    Identifier URI specified by the REST API you are calling. It shouldn't be the resource id of Azure Resource Manager.
+
+ .PARAMETER SubscriptionId
+    Target Subscription Id
+
+ .PARAMETER ResourceGroupName
+    Target Resource Group Name
+
+ .PARAMETER ResourceProviderName
+    Target Resource Provider Name
+
+ .PARAMETER ResourceType
+    List of Target Resource Type
+
+ .PARAMETER Name
+    List of Target Resource Name
+
+ .PARAMETER ApiVersion
+    Api Version
+
+ .PARAMETER Method
+    Http Method
+
+ .PARAMETER Payload
+    JSON format payload
+
+ .PARAMETER AsJob
+    Run cmdlet in the background
+
+ .PARAMETER DefaultProfile
+    The credentials, account, tenant, and subscription used for communication with Azure.
+
+ .PARAMETER WaitForCompletion
+    Waits for the long-running operation to complete before returning the result.
+
+ .PARAMETER PollFrom
+    Specifies the polling header (to fetch from) for long-running operation status.
+
+ .PARAMETER FinalResultFrom
+    Specifies the header for final GET result after the long-running operation completes.
+
+ .PARAMETER NextLinkName
+    Specifies the name of the next link JSON property to follow for pagination.
+
+ .PARAMETER PageableItemName
+    Specifies the name of the JSON property that contains the items in a paginated response.
+
+ .PARAMETER MaxPageSize
+    Specifies the maximum number of pages to retrieve when following next links in a paginated response.
+
+ .PARAMETER Select
+    Filters properties (columns). Adds $select query parameter.
+
+ .PARAMETER Filter
+    Filters results (rows). Adds $filter query parameter.
+
+ .PARAMETER QueryParameters
+    Additional query parameters to append to the request URL.
+
+ .PARAMETER DisablePaging
+    Only return first page of results. By default, -Paginate is enabled.
+
+ .PARAMETER DisableCache
+    Specify if this request should skip cache and go directly to Azure.
+
+ .PARAMETER FullResponse
+    Return the full PSHttpResponse object instead of just the parsed content.
+    When specified, does not throw on non-2xx status codes.
 
  .EXAMPLE
     Invoke-ZtAzureRequest -Path "/subscriptions?api-version=2022-01-01"
@@ -122,6 +198,32 @@ function Invoke-ZtAzureRequest {
 		[Alias('AzContext', 'AzureRmContext', 'AzureCredential')]
 		[Microsoft.Azure.Commands.Common.Authentication.Abstractions.Core.IAzureContextContainer]
 		${DefaultProfile},
+
+		[Parameter(HelpMessage = 'Waits for the long-running operation to complete before returning the result.')]
+		[switch]
+		${WaitForCompletion},
+
+		[Parameter(HelpMessage = 'Specifies the polling header (to fetch from) for long-running operation status.')]
+		[ValidateSet('AzureAsyncLocation', 'Location', 'OriginalUri', 'Operation-Location')]
+		[string]
+		${PollFrom},
+
+		[Parameter(HelpMessage = 'Specifies the header for final GET result after the long-running operation completes.')]
+		[ValidateSet('FinalStateVia', 'Location', 'OriginalUri', 'Operation-Location')]
+		[string]
+		${FinalResultFrom},
+
+		[Parameter(HelpMessage = 'Specifies the name of the next link JSON property to follow for pagination.')]
+		[string]
+		${NextLinkName},
+
+		[Parameter(HelpMessage = 'Specifies the name of the JSON property that contains the items in a paginated response.')]
+		[string]
+		${PageableItemName},
+
+		[Parameter(HelpMessage = 'Specifies the maximum number of pages to retrieve when following next links in a paginated response.')]
+		[int]
+		${MaxPageSize},
 		#endregion
 
 		#region ZtAzureRequest: OData convenience parameters
@@ -134,12 +236,6 @@ function Invoke-ZtAzureRequest {
 		[Parameter()]
 		[string]
 		$Filter,
-
-		# The number of items to be included in the result. Adds $top query parameter.
-		[Parameter()]
-		[ValidateRange(1, [int]::MaxValue)]
-		[int]
-		$Top,
 
 		# Additional query parameters to append to the request URL.
 		[Parameter()]
@@ -175,7 +271,7 @@ function Invoke-ZtAzureRequest {
 		$azParams = @{} + $PSBoundParameters
 
 		# Remove ZtAzureRequest-specific parameters (not recognized by Invoke-AzRestMethod)
-		foreach ($customParam in @('Select', 'Filter', 'Top', 'QueryParameters', 'DisablePaging', 'DisableCache', 'FullResponse')) {
+		foreach ($customParam in @('Select', 'Filter', 'QueryParameters', 'DisablePaging', 'DisableCache', 'FullResponse')) {
 			$azParams.Remove($customParam) | Out-Null
 		}
 
@@ -183,7 +279,6 @@ function Invoke-ZtAzureRequest {
 		$extraQueryParams = [ordered]@{}
 		if ($Select) { $extraQueryParams['$select'] = $Select -join ',' }
 		if ($Filter) { $extraQueryParams['$filter'] = $Filter }
-		if ($Top) { $extraQueryParams['$top'] = $Top }
 		if ($QueryParameters) {
 			foreach ($key in $QueryParameters.Keys) {
 				$extraQueryParams[$key] = $QueryParameters[$key]
@@ -225,7 +320,7 @@ function Invoke-ZtAzureRequest {
 			else {
 				# ByParameters set: Invoke-AzRestMethod builds the URL internally,
 				# so we cannot append OData/custom query parameters.
-				Write-PSFMessage -Level Warning -Message "OData/query parameters (Select, Filter, Top, QueryParameters) are not supported with the ByParameters parameter set and will be ignored. Use -Path or -Uri instead."
+				Write-PSFMessage -Level Warning -Message "OData/query parameters (Select, Filter, QueryParameters) are not supported with the ByParameters parameter set and will be ignored. Use -Path or -Uri instead."
 			}
 		}
 
@@ -246,7 +341,7 @@ function Invoke-ZtAzureRequest {
 		}
 		else {
 			# ByParameters set: build a key from the components
-			$cacheKey = '{0}/{1}/{2}/{3}/{4}' -f $SubscriptionId, $ResourceGroupName, $ResourceProviderName, ($ResourceType -join '/'), ($Name -join '/')
+			$cacheKey = '{0}/{1}/{2}/{3}/{4}?api-version={5}' -f $SubscriptionId, $ResourceGroupName, $ResourceProviderName, ($ResourceType -join '/'), ($Name -join '/'), $ApiVersion
 		}
 
 		# Prefix with HTTP method for non-GET requests to prevent cache-key collisions
@@ -275,7 +370,3 @@ function Invoke-ZtAzureRequest {
 		#endregion Format Results
 	}
 }
-<#
-.ForwardHelpTargetName Az.Accounts\Invoke-AzRestMethod
-.ForwardHelpCategory Cmdlet
-#>

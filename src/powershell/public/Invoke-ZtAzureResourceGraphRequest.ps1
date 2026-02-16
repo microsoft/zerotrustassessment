@@ -23,6 +23,10 @@
     The API version for the Resource Graph endpoint.
     Defaults to '2024-04-01'.
 
+ .PARAMETER MaxPages
+    Maximum number of pages to retrieve during pagination.
+    Defaults to 100. Valid range is 1-1000.
+
  .EXAMPLE
     Invoke-ZtAzureResourceGraphRequest -Query "Resources | summarize count() by type"
 
