@@ -63,7 +63,7 @@ function Test-Assessment-35039 {
                                     $jsonText = $rawValue.Trim()
 
                                     # We only need object/array JSON payloads that can contain Workloads
-                                    if ($jsonText -notmatch '^\s*[\{\[]') {
+                                    if ($jsonText -notmatch '^[\{\[]') {
                                         continue
                                     }
 
