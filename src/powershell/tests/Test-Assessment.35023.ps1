@@ -61,13 +61,13 @@ function Test-Assessment-35023 {
 
     if ($ocrConfig) {
         $blockReason = $ocrConfig.OcrUsageBlockageReason
-        $enabled   = [bool]($ocrConfig.Enabled -eq $true)
-        $exchange  = [bool]($ocrConfig.ExchangeLocation.Name -eq 'All')
-        $sharePoint= [bool]($ocrConfig.SharePointLocation.Name -eq 'All')
-        $oneDrive  = [bool]($ocrConfig.OneDriveLocation.Name -eq 'All')
-        $teams     = [bool]($ocrConfig.TeamsLocation.Name -eq 'All')
-        $endpoint  = [bool]($ocrConfig.EndpointDlpLocation.Name -eq 'All')
-        $isBlocked = [bool]($ocrConfig.IsOcrUsageBlocked -eq $true)
+        $enabled   = $ocrConfig.Enabled -eq $true
+        $exchange  = $ocrConfig.ExchangeLocation.Name -eq 'All'
+        $sharePoint= $ocrConfig.SharePointLocation.Name -eq 'All'
+        $oneDrive  = $ocrConfig.OneDriveLocation.Name -eq 'All'
+        $teams     = $ocrConfig.TeamsLocation.Name -eq 'All'
+        $endpoint  = $ocrConfig.EndpointDlpLocation.Name -eq 'All'
+        $isBlocked = $ocrConfig.IsOcrUsageBlocked -eq $true
 
         if ($exchange) { $enabledLocations += 'Exchange' }
         if ($sharePoint) { $enabledLocations += 'SharePoint' }
