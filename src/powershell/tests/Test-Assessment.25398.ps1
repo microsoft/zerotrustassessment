@@ -210,8 +210,8 @@ function Test-Assessment-25398 {
         $appType = 'General RDP'
     }
 
-    # Remove duplicates
-    $rdpApps = $rdpApps | Sort-Object AppId -Unique
+    # Remove duplicates (per AppId and DestinationHost)
+    $rdpApps = $rdpApps | Sort-Object AppId, DestinationHost -Unique
 
     Write-PSFMessage "Found $($rdpApps.Count) RDP application(s)" -Tag Test -Level VeryVerbose
 
