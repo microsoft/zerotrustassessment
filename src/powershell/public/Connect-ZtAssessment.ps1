@@ -1,4 +1,4 @@
-﻿function Connect-ZtAssessment {
+function Connect-ZtAssessment {
 	<#
 	.SYNOPSIS
 		Helper method to connect to Microsoft Graph using Connect-MgGraph with the required scopes.
@@ -83,7 +83,7 @@
 		$SkipAzureConnection,
 
 		# The services to connect to such as Azure and ExchangeOnline. Default is Graph.
-		[ValidateSet('All', 'Azure', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
+		[ValidateSet('All', 'Azure', 'AipService', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]]$Service = 'Graph',
 
 		# The Exchange environment to connect to. Default is O365Default. Supported values include O365China, O365Default, O365GermanyCloud, O365USGovDoD, O365USGovGCCHigh.
@@ -117,7 +117,7 @@
 	}
 
 
-	$OrderedImport = Get-ModuleImportOrder -Name @('Az.Accounts', 'ExchangeOnlineManagement', 'Microsoft.Graph.Authentication', 'Microsoft.Online.SharePoint.PowerShell')
+	$OrderedImport = Get-ModuleImportOrder -Name @('Az.Accounts', 'ExchangeOnlineManagement', 'Microsoft.Graph.Authentication', 'Microsoft.Online.SharePoint.PowerShell', 'AipService')
 
 	Write-Verbose "Import Order: $($OrderedImport.Name -join ', ')"
 
@@ -348,6 +348,32 @@
 				}
 			}
 		}
+
+		'AipService' {
+			if ($Service -contains 'AipService' -or $Service -contains 'All') {
+				try {
+					# Import module with compatibility if needed
+					if ($PSVersionTable.PSEdition -ne 'Desktop') {
+						# Assume module is installed in Windows PowerShell as per instructions
+						Import-Module AipService -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop -Global
+					}
+					else {
+						Import-Module AipService -ErrorAction Stop -Global
+					}
+				}
+				catch {
+					# Provide clearer guidance when import fails, especially under PowerShell Core
+					if ($PSVersionTable.PSEdition -ne 'Desktop') {
+						$message = "Failed to import AipService module. When running in PowerShell Core, 'AipService' must be installed in Windows PowerShell 5.1 (Desktop) for -UseWindowsPowerShell to work. Underlying error: $_"
+					}
+					else {
+						$message = "Failed to import AipService module: $_"
+					}
+					Write-Host "`n$message" -ForegroundColor Red
+					Write-PSFMessage $message -Level Error
+				}
+			}
+		}
 	}
 
 	if ($Service -contains 'SharePointOnline' -or $Service -contains 'All') {
@@ -385,6 +411,26 @@
 			catch {
 				Write-Host "`nFailed to connect to SharePoint Online: $_" -ForegroundColor Red
 				Write-PSFMessage "Failed to connect to SharePoint Online: $_" -Level Error
+			}
+		}
+	}
+
+	if ($Service -contains 'AipService' -or $Service -contains 'All') {
+		# AIPService module only works on Windows (contains Windows-only DLL)
+		if (-not $IsWindows) {
+			Write-PSFMessage 'Skipping Azure Information Protection connection - AIPService module is only supported on Windows.' -Level Warning
+		}
+		else {
+			Write-Host "`nConnecting to Azure Information Protection" -ForegroundColor Yellow
+			Write-PSFMessage 'Connecting to Azure Information Protection'
+
+			try {
+				Connect-AipService -ErrorAction Stop
+				Write-Verbose "Successfully connected to Azure Information Protection."
+			}
+			catch {
+				Write-Host "`nFailed to connect to Azure Information Protection: $_" -ForegroundColor Red
+				Write-PSFMessage "Failed to connect to Azure Information Protection: $_" -Level Error
 			}
 		}
 	}

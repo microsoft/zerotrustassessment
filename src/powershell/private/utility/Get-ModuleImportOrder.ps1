@@ -122,8 +122,8 @@ function Get-ModuleImportOrder {
                 foreach ($ModuleName in $Name) {
                     # Get all available modules with this name
                     if ($RequiredVersions.ContainsKey($ModuleName)) {
-                        $reqVer = $RequiredVersions[$ModuleName]
-                        $AllModules = Get-Module -Name $ModuleName -ListAvailable | Where-Object Version -eq $reqVer
+                        $reqVer = [version]$RequiredVersions[$ModuleName]
+                        $AllModules = Get-Module -Name $ModuleName -ListAvailable | Where-Object { $_.Version -ge $reqVer }
                     }
                     else {
                         $AllModules = Get-Module -Name $ModuleName -ListAvailable
