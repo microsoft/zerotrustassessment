@@ -104,6 +104,7 @@ function Initialize-Dependencies {
         @{ModuleName = 'AipService'; GUID = 'e338ccc0-3333-4479-87fe-66382d33782d'; ModuleVersion = '3.0.0.1'; }
     ) #TODO: This needs a fix in the build process.
 
+    $allModuleDependencies = @($requiredModules) + @($externalModuleDependencies) + @($windowsPowerShellRequiredModules)
     $requiredModuleToSave = $requiredModules.Where{$_.Name -notin $externalModuleDependencies.Name}
     $requiredModuleToSave += $windowsPowerShellRequiredModules.Where{ $_.Name -notin $requiredModules.Name -and $_.Name -notin $externalModuleDependencies.Name }
     #endregion
@@ -216,7 +217,7 @@ function Initialize-Dependencies {
             . $helperPath
             Write-Verbose -Message ('Module with DLLs to load: {0}' -f (([Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleManifest.RequiredModules).Name -join ', '))
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
-            $msalToLoadInOrder = Get-ModuleImportOrder -Name $moduleManifest.RequiredModules.ModuleName
+            $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
 
             $msalToLoadInOrder.ForEach{
                 Write-Verbose -Message ('Loading MSAL v{0} for dependency {1} version {2}' -f $_.DLLVersion, $_.Name, $_.ModuleVersion)
