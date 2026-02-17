@@ -132,14 +132,13 @@ function Connect-ZtAssessment {
 					Connect-MgGraph @params -ErrorAction Stop
 					$contextTenantId = (Get-MgContext).TenantId
 				}
-
 				catch {
 					Stop-PSFFunction -Message "Failed to authenticate to Graph" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 				}
 
 				try {
 					Write-Verbose "Verifying Zero Trust context and permissions..."
-					Test-ZtContext
+					$null = Test-ZtContext
 				}
 				catch {
 					Stop-PSFFunction -Message "Authenticated to Graph, but the requirements for the ZeroTrustAssessment are not met by the established session:`n$_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
