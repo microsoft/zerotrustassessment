@@ -5,13 +5,6 @@
 .DESCRIPTION
     Evaluates whether the Azure Information Protection (AIP) super user feature is properly configured.
 
-    Evaluation Logic:
-    - Pass: Feature is DISABLED and count >= 1 (secure state with emergency access pre-configured)
-    - Fail: Feature is DISABLED and count = 0 (no emergency access capability)
-    - Fail: Feature is ENABLED and count = 0 (feature active but no members configured)
-    - Investigate: Feature is ENABLED and count >= 1 (feature actively in use—review accounts and consider Azure PIM for just-in-time access)
-    - Investigate: If cmdlets throw an error (permissions, connection issues)
-
     The cmdlets require the AipService module (v3.0+) which is only supported on Windows PowerShell 5.1. A PowerShell 7 subprocess workaround is automatically employed if running under PowerShell Core.
 
 .NOTES
@@ -155,6 +148,7 @@ function Test-Assessment-35011 {
     #endregion Assessment Logic
 
     #region Report Generation
+
     $testResultMarkdown = ""
     $mdInfo = ""
     $customStatus = $null
@@ -202,12 +196,12 @@ function Test-Assessment-35011 {
 
     # Add mdInfo to the main markdown
     $testResultMarkdown += "%TestResult%"
-    #endregion Report Generation
 
     # Replace placeholder with actual detailed info
     if ($mdInfo) {
         $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
     }
+    #endregion Report Generation
 
     $params = @{
         TestId = '35011'
