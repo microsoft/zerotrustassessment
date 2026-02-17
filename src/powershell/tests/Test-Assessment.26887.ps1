@@ -76,7 +76,7 @@ function Test-Assessment-26887 {
         # Azure REST list APIs are paginated.
         # Handling nextLink is required to avoid missing subscriptions.
         $allSubscriptions = @()
-        $subscriptionsJson = $result.Content | ConvertFrom-Json
+        $subscriptionsJson = $result.Content | ConvertFrom-Json -ErrorAction Stop
 
         if ($subscriptionsJson.value) {
             $allSubscriptions += $subscriptionsJson.value
@@ -86,7 +86,7 @@ function Test-Assessment-26887 {
         try {
             while ($nextLink) {
                 $result = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                $subscriptionsJson = $result.Content | ConvertFrom-Json
+                $subscriptionsJson = $result.Content | ConvertFrom-Json -ErrorAction Stop
                 if ($subscriptionsJson.value) {
                     $allSubscriptions += $subscriptionsJson.value
                 }
@@ -130,7 +130,7 @@ function Test-Assessment-26887 {
                 # Azure REST list APIs are paginated.
                 # Handling nextLink is required to avoid missing Azure Firewalls.
                 $allFirewallsInSub = @()
-                $firewallJson = $firewallListResult.Content | ConvertFrom-Json
+                $firewallJson = $firewallListResult.Content | ConvertFrom-Json -ErrorAction Stop
 
                 if ($firewallJson.value) {
                     $allFirewallsInSub += $firewallJson.value
@@ -140,7 +140,7 @@ function Test-Assessment-26887 {
                 try {
                     while ($nextLink) {
                         $firewallListResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                        $firewallJson = $firewallListResult.Content | ConvertFrom-Json
+                        $firewallJson = $firewallListResult.Content | ConvertFrom-Json -ErrorAction Stop
                         if ($firewallJson.value) {
                             $allFirewallsInSub += $firewallJson.value
                         }
@@ -199,7 +199,7 @@ function Test-Assessment-26887 {
             $diagResult = Invoke-AzRestMethod -Path $diagPath -ErrorAction Stop
 
             if ($diagResult.StatusCode -lt 400) {
-                $diagSettings = ($diagResult.Content | ConvertFrom-Json).value
+                $diagSettings = ($diagResult.Content | ConvertFrom-Json -ErrorAction Stop).value
             }
         }
         catch {
