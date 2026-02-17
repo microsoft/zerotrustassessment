@@ -75,5 +75,19 @@ foreach ($Module in $ModuleManifest['RequiredModules']) {
     }
 }
 
+## Save original manifest content before Update-ModuleManifest corrupts
+## custom PrivateData keys containing hashtable arrays (it serializes them as type name strings).
+$originalManifestContent = Get-Content $ModuleManifestFileInfo.FullName -Raw
+
 ## Update Module Manifest in Module Output Directory
 Update-ModuleManifest -Path $ModuleManifestFileInfo.FullName -ErrorAction Stop @paramUpdateModuleManifest
+
+## Restore WindowsPowerShellRequiredModules that Update-ModuleManifest corrupted
+if ($originalManifestContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
+    $originalBlock = $Matches[1]
+    $updatedContent = Get-Content $ModuleManifestFileInfo.FullName -Raw
+    if ($updatedContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
+        $updatedContent = $updatedContent.Replace($Matches[1], $originalBlock)
+        Set-Content $ModuleManifestFileInfo.FullName -Value $updatedContent -NoNewline
+    }
+}
