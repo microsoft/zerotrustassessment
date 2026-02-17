@@ -53,8 +53,8 @@ if (-not $SkipModuleInstallation.IsPresent)
     Write-Verbose -Message "Installing required modules to $OutputPath..."
     $moduleManifest = Import-PowerShellDataFile -Path $ModuleManifestPath -ErrorAction Stop
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$requiredModules = $moduleManifest.RequiredModules
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.PSData.ExternalModuleDependencies
-    # [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = $moduleManifest.PrivateData.PSData.WindowsPowerShellRequiredModules
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.ExternalModuleDependencies
+    # [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = $moduleManifest.PrivateData.WindowsPowerShellRequiredModules
 
     $requiredModuleToSave = $requiredModules.Where{$_.Name -notin $externalModuleDependencies.Name}
     # $requiredModuleToSave += $windowsPowerShellRequiredModules.Where{ $_.Name -notin $requiredModules.Name -and $_.Name -notin $externalModuleDependencies.Name }
