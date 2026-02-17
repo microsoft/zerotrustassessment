@@ -150,24 +150,7 @@ function Initialize-Dependencies {
         {
             Write-Verbose -Message ("Saving module {0} with version {1}..." -f $moduleSpec.Name, $moduleSpec.Version)
             $saveModuleCmdParamsClone = $saveModuleCmdParams.Clone()
-            $isModulePresent = Get-Module -Name $moduleSpec.Name -ListAvailable -ErrorAction Ignore | Where-Object {
-                $isValid = $true
-                if ($moduleSpec.Guid)
-                {
-                    $isValid = $_.Guid -eq $moduleSpec.Guid
-                }
-
-                if ($moduleSpec.Version)
-                {
-                    $isValid = $isValid -and $_.Version -ge [Version]$moduleSpec.Version
-                }
-                elseif ($moduleSpec.RequiredVersion)
-                {
-                    $isValid = $isValid -and $_.Version -eq [Version]$moduleSpec.RequiredVersion
-                }
-
-                $isValid
-            }
+            $isModulePresent = Get-Module -FullyQualifiedName $moduleSpec -ListAvailable -ErrorAction Ignore
 
             if ($isModulePresent)
             {
