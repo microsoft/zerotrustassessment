@@ -55,7 +55,7 @@ function Test-Assessment-27001 {
             return
         }
 
-        # Query 2: For each policy, retrieve policy rules
+        # Process each policy's expanded policy rules
         $policiesWithCustomBypass = @()
 
         foreach ($policy in $tlsInspectionPolicies) {
