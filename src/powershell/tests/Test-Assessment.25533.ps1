@@ -232,7 +232,7 @@ Resources
         $resourceTypeDisplay = if ($item.AssociatedResourceType -eq 'N/A') { 'N/A' } else { $item.AssociatedResourceType }
 
         # Format VNET name
-        $vnetDisplay = if ($item.AssociatedVnetName -eq 'N/A' -or [string]::IsNullOrWhiteSpace($item.AssociatedVnetName)) { 'N/A' } else { $item.AssociatedVnetName }
+        $vnetDisplay = if ($item.AssociatedVnetName -eq 'N/A' -or [string]::IsNullOrWhiteSpace($item.AssociatedVnetName)) { 'N/A' } else { Get-SafeMarkdown $item.AssociatedVnetName }
 
         # Format VNET DDoS status
         $vnetDdosDisplay = switch ($item.VnetDdosProtection) {
