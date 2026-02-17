@@ -41,7 +41,7 @@ function Test-Assessment-35017 {
 
     try {
         # Q1: Retrieve all enabled sensitivity label policies to assess default label configuration
-        $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
+        $enabledPolicies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
         $errorMsg = $_
