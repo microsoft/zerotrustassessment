@@ -38,71 +38,74 @@ function Test-Assessment-27001 {
     Write-ZtProgress -Activity $activity -Status 'Retrieving TLS inspection policies'
 
     $tlsInspectionPolicies = $null
+    $errorMsg = $null
     try {
-        $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies' -ApiVersion beta -ErrorAction Stop
+        $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies?$expand=policyRules' -ApiVersion beta -ErrorAction Stop
     }
     catch {
-        Write-PSFMessage "Unable to retrieve TLS inspection policies: $_" -Level Warning
+        $errorMsg = $_
+        Write-PSFMessage "Unable to retrieve TLS inspection policies: $errorMsg" -Level Warning
     }
 
-    # Check if we got any policies
-    if (-not $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0) {
-        Write-PSFMessage "No TLS inspection policies found or unable to retrieve policies." -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
-    # Query 2: For each policy, retrieve policy rules
-    $policiesWithCustomBypass = @()
-
-    foreach ($policy in $tlsInspectionPolicies) {
-        Write-ZtProgress -Activity $activity -Status "Checking policy: $($policy.name)"
-
-        $policyRules = $null
-        try {
-            $policyRules = Invoke-ZtGraphRequest -RelativeUri "networkAccess/tlsInspectionPolicies/$($policy.id)/policyRules" -ApiVersion beta -ErrorAction Stop
-        }
-        catch {
-            Write-PSFMessage "Unable to retrieve policy rules for policy '$($policy.name)': $_" -Level Warning
-            continue
+    if(-not $errorMsg){
+        # Check if we got any policies
+        if (-not $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0) {
+            Write-PSFMessage "No TLS inspection policies found." -Tag Test -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+            return
         }
 
-        if (-not $policyRules -or $policyRules.Count -eq 0) {
-            continue
-        }
+        # Query 2: For each policy, retrieve policy rules
+        $policiesWithCustomBypass = @()
 
-        # Filter out auto-created system rules (description starts with "Auto-created TLS rule")
-        $customRules = $policyRules | Where-Object {
-            $_.description -notlike "Auto-created TLS rule*"
-        }
+        foreach ($policy in $tlsInspectionPolicies) {
+            Write-ZtProgress -Activity $activity -Status "Checking policy: $($policy.name)"
 
-        # Count custom bypass rules
-        $customBypassRules = @($customRules | Where-Object { $_.action -eq 'bypass' })
-        $customBypassCount = $customBypassRules.Count
+            $policyRules = $policy.policyRules
 
-        # Skip policies with no custom bypass rules
-        if ($customBypassCount -eq 0) {
-            continue
-        }
+            if (-not $policyRules -or $policyRules.Count -eq 0) {
+                continue
+            }
 
-        # Calculate days since last modified
-        $daysSinceModified = ([datetime]::UtcNow - $policy.lastModifiedDateTime).Days
+            # Filter out auto-created system rules (description starts with "Auto-created TLS rule")
+            $customRules = $policyRules | Where-Object {
+                $_.description -notlike "Auto-created TLS rule*"
+            }
 
-        $policiesWithCustomBypass += [PSCustomObject]@{
-            PolicyName           = $policy.name
-            LastModifiedDateTime = $policy.lastModifiedDateTime
-            DaysSinceModified    = $daysSinceModified
-            CustomBypassCount    = $customBypassCount
-            RequiresReview       = $daysSinceModified -gt 90
+            # Count custom bypass rules
+            $customBypassRules = @($customRules | Where-Object { $_.action -eq 'bypass' })
+            $customBypassCount = $customBypassRules.Count
+
+            # Skip policies with no custom bypass rules
+            if ($customBypassCount -eq 0) {
+                continue
+            }
+
+            # Calculate days since last modified
+            $daysSinceModified = ([datetime]::UtcNow - $policy.lastModifiedDateTime).Days
+
+            $policiesWithCustomBypass += [PSCustomObject]@{
+                PolicyName           = $policy.name
+                LastModifiedDateTime = $policy.lastModifiedDateTime
+                DaysSinceModified    = $daysSinceModified
+                CustomBypassCount    = $customBypassCount
+                RequiresReview       = $daysSinceModified -gt 90
+            }
         }
     }
+
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
 
+    # Fail if there was an error retrieving policies
+    if($errorMsg) {
+        $passed = $false
+        $testResultMarkdown = "❌ Unable to retrieve TLS inspection policies due to error:`n`n$errorMsg`n`n%TestResult%"
+    }
     # Check if no policies with custom bypass rules were found
-    if ($policiesWithCustomBypass.Count -eq 0) {
+    elseif ($policiesWithCustomBypass.Count -eq 0) {
         $passed = $true
         $testResultMarkdown = "✅ No TLS inspection policies with custom bypass rules found.`n`n%TestResult%"
     }
