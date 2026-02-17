@@ -216,7 +216,7 @@ Resources
 
     # Prepare table rows
     $tableRows = ''
-    foreach ($item in $findings | Sort-Object @{Expression = 'IsCompliant'; Descending = $true}, 'PublicIpName') {
+    foreach ($item in $findings | Sort-Object @{Expression = 'IsCompliant'; Descending = $false}, 'PublicIpName') {
         $pipLink = "https://portal.azure.com/#resource$($item.PublicIpId)"
         $pipMd = "[$(Get-SafeMarkdown $item.PublicIpName)]($pipLink)"
 
