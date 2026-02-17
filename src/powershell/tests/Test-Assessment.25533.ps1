@@ -34,7 +34,7 @@ function Test-Assessment-25533 {
     # Query all Public IP addresses with their DDoS protection settings
     $argQuery = @"
 Resources
-| where type =~ 'microsoft.network/publicipaddresses' | join kind=leftouter (resourcecontainers | where type =~ 'microsoft.resources/subscriptions' | project subscriptionName=name, subscriptionId ) on subscriptionId | project PublicIpName = name, PublicIpId = id, SubscriptionName = subscriptionName, SubscriptionId = subscriptionId, Location = location, ProtectionMode = tostring(properties.ddosSettings.protectionMode), ipConfigId = tolower(properties.ipConfiguration.id)
+| where type =~ 'microsoft.network/publicipaddresses' | join kind=leftouter (ResourceContainers | where type =~ 'microsoft.resources/subscriptions' | project subscriptionName=name, subscriptionId ) on subscriptionId | project PublicIpName = name, PublicIpId = id, SubscriptionName = subscriptionName, SubscriptionId = subscriptionId, Location = location, ProtectionMode = tostring(properties.ddosSettings.protectionMode), ipConfigId = tolower(properties.ipConfiguration.id)
 "@
 
     $publicIps = @()
