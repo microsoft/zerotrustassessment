@@ -86,7 +86,7 @@ function Test-Assessment-27001 {
 
             $policiesWithCustomBypass += [PSCustomObject]@{
                 PolicyName           = $policy.name
-                LastModifiedDateTime = $policy.lastModifiedDateTime
+                LastModifiedDateTime = $policy.lastModifiedDateTime.ToString("yyyy-MM-ddTHH:mm:ss")
                 DaysSinceModified    = $daysSinceModified
                 CustomBypassCount    = $customBypassCount
                 RequiresReview       = $daysSinceModified -gt 90
