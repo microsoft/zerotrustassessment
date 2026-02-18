@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that SimplifiedClientAccessEnabled is enabled for Office 365 Message Encryption (OME).
+    Office 365 Message Encryption is configured with simplified client access
 
 .DESCRIPTION
     This test checks if SimplifiedClientAccessEnabled is enabled for OME, which controls whether the
@@ -26,7 +26,7 @@ function Test-Assessment-35026 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35026,
-        Title = 'Office 365 Message Encryption (OME) - SimplifiedClientAccessEnabled',
+        Title = 'Office 365 Message Encryption is configured with simplified client access',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]

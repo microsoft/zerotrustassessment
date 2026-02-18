@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Total Sensitivity Labels Configured
+    Sensitivity labels are configured
 
 .DESCRIPTION
     This test checks if there is at least one sensitivity label configured in the tenant.
@@ -22,7 +22,7 @@ function Test-Assessment-35003 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35003,
-        Title = 'Total Sensitivity Labels Configured',
+        Title = 'Sensitivity labels are configured',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

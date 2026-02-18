@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Auto-Labeling Enforcement Mode Enabled
+    Auto-labeling policies are in enforcement mode
 #>
 
 function Test-Assessment-35020 {
@@ -13,7 +13,7 @@ function Test-Assessment-35020 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce','External'),
         TestId = 35020,
-        Title = 'Auto-labeling enforcement mode enabled',
+        Title = 'Auto-labeling policies are in enforcement mode',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
