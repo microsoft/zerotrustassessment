@@ -1,4 +1,4 @@
-﻿﻿<#
+﻿<#
 .SYNOPSIS
    Helper method to disconnect from Microsoft Graph, Azure, and other connected services.
 
@@ -6,12 +6,11 @@
    Use this cmdlet to disconnect from Microsoft Graph, Azure, and other services.
 
    This command will disconnect from:
-   - Microsoft Graph (using Disconnect-MgGraph)
-   - Azure (using Disconnect-AzAccount)
-   - Exchange Online (using Disconnect-ExchangeOnline)
-   - Security & Compliance PowerShell (using Disconnect-IPPSSession)
-   - SharePoint Online (using Disconnect-SPOService)
-   - Azure Information Protection (using Disconnect-AipService)
+   * Microsoft Graph (using Disconnect-MgGraph)
+   * Azure (using Disconnect-AzAccount)
+   * Exchange Online and Security & Compliance PowerShell (using Disconnect-ExchangeOnline)
+   * SharePoint Online (using Disconnect-SPOService)
+   * Azure Information Protection (using Disconnect-AipService)
 
 .EXAMPLE
    Disconnect-ZtAssessment
@@ -57,28 +56,12 @@ function Disconnect-ZtAssessment
         Write-PSFMessage "Error disconnecting from Azure: $($_.Exception.Message)" -Level Warning
     }
 
-    Write-Host "`nDisconnecting from Security & Compliance PowerShell" -ForegroundColor Yellow
-    Write-PSFMessage 'Disconnecting from Security & Compliance PowerShell'
-    try
-    {
-        Disconnect-IPPSSession -Confirm:$false -ErrorAction Stop | Out-Null
-        Write-Host "Successfully disconnected from Security & Compliance PowerShell" -ForegroundColor Green
-    }
-    catch [Management.Automation.CommandNotFoundException]
-    {
-        Write-PSFMessage "The Exchange Online Management module is not installed or Disconnect-IPPSSession is not available." -Level Warning
-    }
-    catch
-    {
-        Write-PSFMessage "Error disconnecting from Security & Compliance PowerShell: $($_.Exception.Message)" -Level Warning
-    }
-
-    Write-Host "`nDisconnecting from Exchange Online" -ForegroundColor Yellow
-    Write-PSFMessage 'Disconnecting from Exchange Online'
+    Write-Host "`nDisconnecting from Exchange Online and Security & Compliance PowerShell" -ForegroundColor Yellow
+    Write-PSFMessage 'Disconnecting from Exchange Online and Security & Compliance PowerShell'
     try
     {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Stop | Out-Null
-        Write-Host "Successfully disconnected from Exchange Online" -ForegroundColor Green
+        Write-Host "Successfully disconnected from Exchange Online and Security & Compliance PowerShell" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
     {
@@ -86,7 +69,7 @@ function Disconnect-ZtAssessment
     }
     catch
     {
-        Write-PSFMessage "Error disconnecting from Exchange Online: $($_.Exception.Message)" -Level Warning
+        Write-PSFMessage "Error disconnecting from Exchange Online and Security & Compliance PowerShell: $($_.Exception.Message)" -Level Warning
     }
 
     Write-Host "`nDisconnecting from SharePoint Online" -ForegroundColor Yellow
