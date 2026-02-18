@@ -57,7 +57,7 @@ function Test-Assessment-25375 {
 
     # Query 1: Retrieve tenant licenses with GSA service plans
     try {
-        $subscribedSkus = Invoke-ZtGraphRequest -RelativeUri 'subscribedSkus' -ApiVersion beta
+        $subscribedSkus = Invoke-ZtGraphRequest -RelativeUri 'subscribedSkus' -ApiVersion beta -ErrorAction Stop
     }
     catch {
         $skuCmdletFailed = $true
@@ -79,7 +79,7 @@ FROM "User" u
 WHERE u.assignedLicenses IS NOT NULL
     AND u.assignedLicenses != '[]'
 "@
-        $userLicenses = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlUsers -AsCustomObject)
+        $userLicenses = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlUsers -AsCustomObject -ErrorAction Stop)
         # Filter out any records with null IDs
         $userLicenses = @($userLicenses | Where-Object { $_.id })
     }
@@ -92,18 +92,21 @@ WHERE u.assignedLicenses IS NOT NULL
     #region Assessment Logic
     $testResultMarkdown = ''
     $passed = $false
+    $customStatus = $null
 
     # Handle any query failure - cannot determine license status
     if ($skuCmdletFailed -or $userCmdletFailed) {
-        Write-PSFMessage "Failed to retrieve GSA license data" -Tag Test -Level Error
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Failed to retrieve GSA license data.'
+        Write-PSFMessage "Unable to retrieve GSA license data due to query failure" -Tag Test -Level Warning
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to determine GSA license availability and assignment due to query failure, connection issues, or insufficient permissions.`n`n"
+
+        Add-ZtTestResultDetail -TestId '25375' -Title 'GSA Licenses are available in the tenant and assigned to users' -Status $false -Result $testResultMarkdown -CustomStatus $customStatus
         return
     }
 
     # Filter SKUs containing GSA service plans
     $gsaSkus = @($subscribedSkus | Where-Object {
-        $sku = $_
-        $sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
+        $_.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
     })
 
     # Check if GSA licenses exist and are enabled
@@ -290,8 +293,17 @@ WHERE u.assignedLicenses IS NOT NULL
             $userListSection += "| :----------- | :------------------ | :-------------- | :------------- |`n"
 
             # Build HashSets for efficient ID lookups
-            $internetAccessIds = [System.Collections.Generic.HashSet[string]]::new([string[]]($usersWithInternetAccess.Id))
-            $privateAccessIds = [System.Collections.Generic.HashSet[string]]::new([string[]]($usersWithPrivateAccess.Id))
+            if ($usersWithInternetAccess.Count -gt 0) {
+                $internetAccessIds = [System.Collections.Generic.HashSet[string]]::new([string[]]($usersWithInternetAccess.Id))
+            } else {
+                $internetAccessIds = [System.Collections.Generic.HashSet[string]]::new()
+            }
+
+            if ($usersWithPrivateAccess.Count -gt 0) {
+                $privateAccessIds = [System.Collections.Generic.HashSet[string]]::new([string[]]($usersWithPrivateAccess.Id))
+            } else {
+                $privateAccessIds = [System.Collections.Generic.HashSet[string]]::new()
+            }
 
             $displayUsers = $usersWithAnyGsa | Select-Object -First 10
             foreach ($user in $displayUsers) {
@@ -320,6 +332,9 @@ WHERE u.assignedLicenses IS NOT NULL
         Title  = 'GSA Licenses are available in the tenant and assigned to users'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
 }
