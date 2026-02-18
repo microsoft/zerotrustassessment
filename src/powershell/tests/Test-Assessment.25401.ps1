@@ -44,11 +44,11 @@ function Test-Assessment-25401 {
     Write-ZtProgress -Activity $activity -Status 'Querying Application Proxy applications'
 
     $appProxyAppsFailed = $false
-    $appProxyAppIds = @()
+    $appProxyApps = @()
 
-    # Query 1: Retrieve the list of Application Proxy-enabled application IDs
+    # Query 1: Retrieve the list of Application Proxy-enabled applications
     try {
-        $appProxyAppIds = Invoke-ZtGraphRequest `
+        $appProxyApps = Invoke-ZtGraphRequest `
             -RelativeUri 'applications' `
             -Filter 'onPremisesPublishing/isOnPremPublishingEnabled eq true' `
             -Select 'id','displayName' `
@@ -63,77 +63,94 @@ function Test-Assessment-25401 {
     #region Assessment Logic
     $testResultMarkdown = ''
     $passed = $false
+    $customStatus = $null
+    $allApplications = [System.Collections.Generic.List[object]]::new()
 
+    # Check if query failed
+    if ($appProxyAppsFailed) {
+        Write-PSFMessage 'Failed to query Application Proxy applications due to API/permission error.' -Tag Test -Level Warning
+        $testResultMarkdown = "⚠️ Unable to determine Application Proxy pre-authentication configuration due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
+        $passed = $false
+        $customStatus = 'Investigate'
+    }
     # No Application Proxy applications found
-    if ($null -eq $appProxyAppIds -or $appProxyAppIds.Count -eq 0) {
+    elseif ($null -eq $appProxyApps -or $appProxyApps.Count -eq 0) {
         Write-PSFMessage 'No Application Proxy applications found in this tenant.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Application Proxy applications are configured in this tenant.'
         return
     }
+    else {
+        Write-ZtProgress -Activity $activity -Status 'Analyzing pre-authentication settings'
 
-    Write-ZtProgress -Activity $activity -Status 'Analyzing pre-authentication settings'
+        # Query 2: For each application, retrieve detailed configuration
+        foreach ($app in $appProxyApps) {
+            try {
+                $appDetail = Invoke-ZtGraphRequest `
+                    -RelativeUri "applications/$($app.id)" `
+                    -Select 'id','appId','displayName','onPremisesPublishing' `
+                    -ApiVersion beta
 
-    $allApplications = [System.Collections.Generic.List[object]]::new()
+                if ($null -eq $appDetail -or $null -eq $appDetail.onPremisesPublishing) {
+                    continue
+                }
 
-    # Query 2: For each application, retrieve detailed configuration
-    foreach ($appId in $appProxyAppIds) {
-        try {
-            $appDetail = Invoke-ZtGraphRequest `
-                -RelativeUri "applications/$($appId.id)" `
-                -Select 'id','appId','displayName','onPremisesPublishing' `
-                -ApiVersion beta
+                $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
+                $isCompliant = $authType -eq 'aadPreAuthentication'
 
-            if ($null -eq $appDetail -or $null -eq $appDetail.onPremisesPublishing) {
-                continue
-            }
-
-            $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
-            $isCompliant = $authType -eq 'aadPreAuthentication'
-
-            # Query database to get service principal ID using appId
-            $servicePrincipalId = $null
-            if ($appDetail.appId) {
-                try {
-                    $spQuery = "SELECT id FROM ServicePrincipal WHERE appId = '$($appDetail.appId)'"
-                    $spResult = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
-                    if ($spResult -and $spResult.Count -gt 0) {
-                        $servicePrincipalId = $spResult[0].id
+                # Query database to get service principal ID using appId
+                $servicePrincipalId = $null
+                if ($appDetail.appId) {
+                    try {
+                        $spQuery = "SELECT id FROM ServicePrincipal WHERE appId = '$($appDetail.appId)'"
+                        $spResult = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
+                        if ($spResult -and $spResult.Count -gt 0) {
+                            $servicePrincipalId = $spResult[0].id
+                        }
+                    }
+                    catch {
+                        Write-PSFMessage "Failed to retrieve service principal ID for appId $($appDetail.appId): $_" -Tag Test -Level Warning
                     }
                 }
-                catch {
-                    Write-PSFMessage "Failed to retrieve service principal ID for appId $($appDetail.appId): $_" -Tag Test -Level Warning
+
+                $appInfo = [PSCustomObject]@{
+                    Id                       = $appDetail.id
+                    AppId                    = $appDetail.appId
+                    ServicePrincipalId       = $servicePrincipalId
+                    DisplayName              = $appDetail.displayName
+                    ExternalAuthenticationType = $authType
+                    IsCompliant              = $isCompliant
+                    ComplianceStatus         = if ($isCompliant) { '✅ Yes' } else { '❌ No' }
                 }
+
+                $allApplications.Add($appInfo)
             }
-
-            $appInfo = [PSCustomObject]@{
-                Id                       = $appDetail.id
-                AppId                    = $appDetail.appId
-                ServicePrincipalId       = $servicePrincipalId
-                DisplayName              = $appDetail.displayName
-                ExternalAuthenticationType = $authType
-                IsCompliant              = $isCompliant
-                ComplianceStatus         = if ($isCompliant) { '✅ Yes' } else { '❌ No' }
+            catch {
+                Write-PSFMessage "Failed to retrieve details for application $($appId.id): $_" -Tag Test -Level Warning
             }
-
-            $allApplications.Add($appInfo)
         }
-        catch {
-            Write-PSFMessage "Failed to retrieve details for application $($appId.id): $_" -Tag Test -Level Warning
+
+        # Guard: If we couldn't retrieve details for any of the applications, treat as query failure
+        if ($allApplications.Count -eq 0 -and $appProxyApps.Count -gt 0) {
+            Write-PSFMessage 'Failed to retrieve details for any Application Proxy applications.' -Tag Test -Level Warning
+            $testResultMarkdown = "⚠️ Unable to determine Application Proxy pre-authentication configuration due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
+            $passed = $false
+            $customStatus = 'Investigate'
         }
-    }
+        # Evaluate test result
+        elseif ($allApplications.Count -gt 0) {
+            $nonCompliantCount = ($allApplications | Where-Object { -not $_.IsCompliant }).Count
 
-    # Evaluate test result
-    $passthroughCount = ($allApplications | Where-Object { $_.ExternalAuthenticationType -eq 'passthru' }).Count
-
-    if ($passthroughCount -eq 0) {
-        # All applications use pre-authentication - pass
-        $passed = $true
-        $testResultMarkdown = "✅ All Application Proxy applications are configured with Microsoft Entra pre-authentication, ensuring users must authenticate before accessing on-premises resources.`n`n%TestResult%"
-    }
-    else {
-        # One or more applications use passthrough - fail
-        $passed = $false
-        $testResultMarkdown = "❌ One or more Application Proxy applications are configured with passthrough authentication, allowing unauthenticated access to on-premises resources.`n`n%TestResult%"
+            if ($nonCompliantCount -eq 0) {
+                # All applications use pre-authentication - pass
+                $passed = $true
+                $testResultMarkdown = "✅ All Application Proxy applications are configured with Microsoft Entra pre-authentication, ensuring users must authenticate before accessing on-premises resources.`n`n%TestResult%"
+            }
+            else {
+                # One or more applications are not configured with Microsoft Entra pre-authentication - fail
+                $passed = $false
+                $testResultMarkdown = "❌ One or more Application Proxy applications are configured with passthrough authentication, allowing unauthenticated access to on-premises resources.`n`n%TestResult%"
+            }
+        }
     }
     #endregion Assessment Logic
 
@@ -186,5 +203,10 @@ function Test-Assessment-25401 {
         Status = $passed
         Result = $testResultMarkdown
     }
+
+    if ($null -ne $customStatus) {
+        $params.CustomStatus = $customStatus
+    }
+
     Add-ZtTestResultDetail @params
 }
