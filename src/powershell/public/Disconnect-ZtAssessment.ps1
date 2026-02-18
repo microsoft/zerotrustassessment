@@ -1,4 +1,4 @@
-﻿<#
+﻿﻿<#
 .SYNOPSIS
    Helper method to disconnect from Microsoft Graph, Azure, and other connected services.
 
@@ -29,7 +29,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Microsoft Graph'
     try
     {
-        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
+        Disconnect-MgGraph -ErrorAction Stop | Out-Null
         Write-Host "Successfully disconnected from Microsoft Graph" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -45,7 +45,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Azure'
     try
     {
-        Disconnect-AzAccount -ErrorAction SilentlyContinue | Out-Null
+        Disconnect-AzAccount -ErrorAction Stop | Out-Null
         Write-Host "Successfully disconnected from Azure" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -57,61 +57,69 @@ function Disconnect-ZtAssessment
         Write-PSFMessage "Error disconnecting from Azure: $($_.Exception.Message)" -Level Warning
     }
 
-    function Invoke-DisconnectService {
-        param (
-            [Parameter(Mandatory = $true)]
-            [string]
-            $ServiceName,
-
-            [Parameter(Mandatory = $true)]
-            [scriptblock]
-            $DisconnectScript,
-
-            [Parameter(Mandatory = $true)]
-            [string]
-            $MissingModuleMessage,
-
-            [Parameter(Mandatory = $true)]
-            [string]
-            $ErrorPrefix
-        )
-
-        Write-Host "`nDisconnecting from $ServiceName" -ForegroundColor Yellow
-        Write-PSFMessage "Disconnecting from $ServiceName"
-        try {
-            & $DisconnectScript
-            Write-Host "Successfully disconnected from $ServiceName" -ForegroundColor Green
-        }
-        catch [Management.Automation.CommandNotFoundException] {
-            Write-PSFMessage $MissingModuleMessage -Level Warning
-        }
-        catch {
-            Write-PSFMessage "$ErrorPrefix $($_.Exception.Message)" -Level Warning
-        }
+    Write-Host "`nDisconnecting from Security & Compliance PowerShell" -ForegroundColor Yellow
+    Write-PSFMessage 'Disconnecting from Security & Compliance PowerShell'
+    try
+    {
+        Disconnect-IPPSSession -Confirm:$false -ErrorAction Stop | Out-Null
+        Write-Host "Successfully disconnected from Security & Compliance PowerShell" -ForegroundColor Green
+    }
+    catch [Management.Automation.CommandNotFoundException]
+    {
+        Write-PSFMessage "The Exchange Online Management module is not installed or Disconnect-IPPSSession is not available." -Level Warning
+    }
+    catch
+    {
+        Write-PSFMessage "Error disconnecting from Security & Compliance PowerShell: $($_.Exception.Message)" -Level Warning
     }
 
-    Invoke-DisconnectService `
-        -ServiceName 'Security & Compliance PowerShell' `
-        -DisconnectScript { Disconnect-IPPSSession -Confirm:$false -ErrorAction SilentlyContinue | Out-Null } `
-        -MissingModuleMessage 'The Exchange Online Management module is not installed or Disconnect-IPPSSession is not available.' `
-        -ErrorPrefix 'Error disconnecting from Security & Compliance PowerShell:'
+    Write-Host "`nDisconnecting from Exchange Online" -ForegroundColor Yellow
+    Write-PSFMessage 'Disconnecting from Exchange Online'
+    try
+    {
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Stop | Out-Null
+        Write-Host "Successfully disconnected from Exchange Online" -ForegroundColor Green
+    }
+    catch [Management.Automation.CommandNotFoundException]
+    {
+        Write-PSFMessage "The Exchange Online Management module is not installed or Disconnect-ExchangeOnline is not available." -Level Warning
+    }
+    catch
+    {
+        Write-PSFMessage "Error disconnecting from Exchange Online: $($_.Exception.Message)" -Level Warning
+    }
 
-    Invoke-DisconnectService `
-        -ServiceName 'Exchange Online' `
-        -DisconnectScript { Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null } `
-        -MissingModuleMessage 'The Exchange Online Management module is not installed or Disconnect-ExchangeOnline is not available.' `
-        -ErrorPrefix 'Error disconnecting from Exchange Online:'
+    Write-Host "`nDisconnecting from SharePoint Online" -ForegroundColor Yellow
+    Write-PSFMessage 'Disconnecting from SharePoint Online'
+    try
+    {
+        Disconnect-SPOService -ErrorAction Stop | Out-Null
+        Write-Host "Successfully disconnected from SharePoint Online" -ForegroundColor Green
+    }
+    catch [Management.Automation.CommandNotFoundException]
+    {
+        Write-PSFMessage "The SharePoint Online Management module is not installed or Disconnect-SPOService is not available." -Level Warning
+    }
+    catch
+    {
+        Write-PSFMessage "Error disconnecting from SharePoint Online: $($_.Exception.Message)" -Level Warning
+    }
 
-    Invoke-DisconnectService `
-        -ServiceName 'SharePoint Online' `
-        -DisconnectScript { Disconnect-SPOService -ErrorAction SilentlyContinue | Out-Null } `
-        -MissingModuleMessage 'The SharePoint Online Management module is not installed or Disconnect-SPOService is not available.' `
-        -ErrorPrefix 'Error disconnecting from SharePoint Online:'
+    Write-Host "`nDisconnecting from Azure Information Protection" -ForegroundColor Yellow
+    Write-PSFMessage 'Disconnecting from Azure Information Protection'
+    try
+    {
+        Disconnect-AipService -ErrorAction Stop | Out-Null
+        Write-Host "Successfully disconnected from Azure Information Protection" -ForegroundColor Green
+    }
+    catch [Management.Automation.CommandNotFoundException]
+    {
+        Write-PSFMessage "The AipService module is not installed or Disconnect-AipService is not available." -Level Warning
+    }
+    catch
+    {
+        Write-PSFMessage "Error disconnecting from Azure Information Protection: $($_.Exception.Message)" -Level Warning
+    }
 
-    Invoke-DisconnectService `
-        -ServiceName 'Azure Information Protection' `
-        -DisconnectScript { Disconnect-AipService -ErrorAction SilentlyContinue | Out-Null } `
-        -MissingModuleMessage 'The AipService module is not installed or Disconnect-AipService is not available.' `
-        -ErrorPrefix 'Error disconnecting from Azure Information Protection:'
     Write-Host "`nDisconnection complete" -ForegroundColor Green
 }
