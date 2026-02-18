@@ -117,11 +117,25 @@ function Connect-ZtAssessment {
 	}
 
 
-	$OrderedImport = Get-ModuleImportOrder -Name @('Az.Accounts', 'ExchangeOnlineManagement', 'Microsoft.Graph.Authentication', 'Microsoft.Online.SharePoint.PowerShell', 'AipService')
+	$moduleNamesForImportOrder = @('Az.Accounts', 'ExchangeOnlineManagement', 'Microsoft.Graph.Authentication')
+	if ($IsWindows) {
+		$moduleNamesForImportOrder += @('Microsoft.Online.SharePoint.PowerShell', 'AipService')
+	}
+	$OrderedImport = Get-ModuleImportOrder -Name $moduleNamesForImportOrder
 
-	Write-Verbose "Import Order: $($OrderedImport.Name -join ', ')"
+	# Build the ordered list of service module names to connect.
+	# Start with the MSAL-ordered modules, then append any expected modules not found by Get-ModuleImportOrder
+	# so that connection is always attempted for requested services even if MSAL DLL detection fails.
+	$connectionOrder = @($OrderedImport.Name)
+	foreach ($name in $moduleNamesForImportOrder) {
+		if ($name -notin $connectionOrder) {
+			$connectionOrder += $name
+		}
+	}
 
-	switch ($OrderedImport.Name) {
+	Write-Verbose "Import Order: $($connectionOrder -join ', ')"
+
+	switch ($connectionOrder) {
 		'Microsoft.Graph.Authentication' {
 			if ($Service -contains 'Graph' -or $Service -contains 'All') {
 				Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
@@ -133,6 +147,22 @@ function Connect-ZtAssessment {
 					$contextTenantId = (Get-MgContext).TenantId
 				}
 				catch {
+					$isMsalConflict = $false
+					if ($_.Exception -is [System.MissingMethodException] -or $_.Exception.InnerException -is [System.MissingMethodException]) {
+						$msalException = if ($_.Exception.InnerException -is [System.MissingMethodException]) { $_.Exception.InnerException } else { $_.Exception }
+						if ($msalException.Message -like "*Microsoft.Identity.Client*") {
+							$isMsalConflict = $true
+						}
+					}
+					# Also detect the common pattern where the MissingMethodException is wrapped in another exception
+					if (-not $isMsalConflict -and $_.Exception.Message -like "*Method not found*Microsoft.Identity.Client*") {
+						$isMsalConflict = $true
+					}
+
+					if ($isMsalConflict) {
+						Write-Warning "DLL conflict detected: an incompatible version of Microsoft.Identity.Client.dll is loaded in this session."
+						Write-Warning "Please RESTART your PowerShell session and import ZeroTrustAssessment before any other module, then run Connect-ZtAssessment again."
+					}
 					Stop-PSFFunction -Message "Failed to authenticate to Graph" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 				}
 
@@ -195,7 +225,7 @@ function Connect-ZtAssessment {
 				try {
 					if ($UseDeviceCode -and $PSVersionTable.PSEdition -eq 'Desktop') {
 						Write-Host 'The Exchange Online module in Windows PowerShell does not support device code flow authentication.' -ForegroundColor Red
-						Write-Host '💡Please use the Exchange Online module in PowerShell Core.' -ForegroundColor Yellow
+						Write-Host 'Please use the Exchange Online module in PowerShell Core.' -ForegroundColor Yellow
 					}
 					elseif ($UseDeviceCode) {
 						Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName
@@ -376,40 +406,46 @@ function Connect-ZtAssessment {
 	}
 
 	if ($Service -contains 'SharePointOnline' -or $Service -contains 'All') {
-		Write-Host "`nConnecting to SharePoint Online" -ForegroundColor Yellow
-		Write-PSFMessage 'Connecting to SharePoint Online'
-
-		# Determine Admin URL
-		$adminUrl = $SharePointAdminUrl
-		if (-not $adminUrl) {
-			# Try to infer from Graph context
-			if ($contextTenantId) {
-				try {
-					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-					if ($initialDomain) {
-						$tenantName = $initialDomain.Split('.')[0]
-						$adminUrl = "https://$tenantName-admin.sharepoint.com"
-						Write-Verbose "Inferred SharePoint Admin URL: $adminUrl"
-					}
-				}
-				catch {
-					Write-Verbose "Failed to infer SharePoint Admin URL from Graph: $_"
-				}
-			}
-		}
-
-		if (-not $adminUrl) {
-			Write-Warning "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection."
+		# SharePoint Online module only works on Windows
+		if (-not $IsWindows) {
+			Write-PSFMessage 'Skipping SharePoint Online connection - Microsoft.Online.SharePoint.PowerShell module is only supported on Windows.' -Level Warning
 		}
 		else {
-			try {
-				Connect-SPOService -Url $adminUrl -ErrorAction Stop
-				Write-Verbose "Successfully connected to SharePoint Online."
+			Write-Host "`nConnecting to SharePoint Online" -ForegroundColor Yellow
+			Write-PSFMessage 'Connecting to SharePoint Online'
+
+			# Determine Admin URL
+			$adminUrl = $SharePointAdminUrl
+			if (-not $adminUrl) {
+				# Try to infer from Graph context
+				if ($contextTenantId) {
+					try {
+						$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
+						$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+						if ($initialDomain) {
+							$tenantName = $initialDomain.Split('.')[0]
+							$adminUrl = "https://$tenantName-admin.sharepoint.com"
+							Write-Verbose "Inferred SharePoint Admin URL: $adminUrl"
+						}
+					}
+					catch {
+						Write-Verbose "Failed to infer SharePoint Admin URL from Graph: $_"
+					}
+				}
 			}
-			catch {
-				Write-Host "`nFailed to connect to SharePoint Online: $_" -ForegroundColor Red
-				Write-PSFMessage "Failed to connect to SharePoint Online: $_" -Level Error
+
+			if (-not $adminUrl) {
+				Write-Warning "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection."
+			}
+			else {
+				try {
+					Connect-SPOService -Url $adminUrl -ErrorAction Stop
+					Write-Verbose "Successfully connected to SharePoint Online."
+				}
+				catch {
+					Write-Host "`nFailed to connect to SharePoint Online: $_" -ForegroundColor Red
+					Write-PSFMessage "Failed to connect to SharePoint Online: $_" -Level Error
+				}
 			}
 		}
 	}

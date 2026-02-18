@@ -131,10 +131,11 @@ function Initialize-Dependencies {
         Write-Host -Object "`r`n" -ForegroundColor Yellow
         Write-Host -Object '⚠️ Warning: The ZeroTrustAssessment module is designed to run on Windows, in PowerShell 7.'
         Write-Host -Object 'Some pillars require modules that can only run on Windows PowerShell (Windows PowerShell 5.1) with implicit remoting.' -ForegroundColor Yellow
-        # skipping module installation.
+        Write-Host -Object 'The following Windows-only modules will not be available: AipService, Microsoft.Online.SharePoint.PowerShell' -ForegroundColor Yellow
         #endregion
     }
-    elseif (-not $SkipModuleInstallation.IsPresent)
+
+    if (-not $SkipModuleInstallation.IsPresent)
     {
         Write-Host -Object "`r`n"
         Write-Host -Object ('Resolving {0} dependencies...' -f $allModuleDependencies.Count) -ForegroundColor Green
@@ -229,7 +230,7 @@ function Initialize-Dependencies {
         else {
             Write-Host -Object "`r`n"
             Write-Host -Object 'Asserting MSAL loading order for dependencies...' -ForegroundColor Green
-            $helperPath = Join-Path -Path $PSScriptRoot -ChildPath "private\utility\Get-ModuleImportOrder.ps1" -Resolve -ErrorAction Stop
+            $helperPath = Join-Path -Path $PSScriptRoot -ChildPath "private/utility/Get-ModuleImportOrder.ps1" -Resolve -ErrorAction Stop
             . $helperPath
             Write-Verbose -Message ('Module with DLLs to load: {0}' -f (([Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleManifest.RequiredModules).Name -join ', '))
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
@@ -261,6 +262,74 @@ function Initialize-Dependencies {
                     }
                 }
             }
+
+            #region Pre-load shared DLLs (newest version wins) to prevent type mismatch errors
+            # Multiple modules ship different versions of shared DLLs like Microsoft.IdentityModel.Abstractions.dll.
+            # .NET loads the first version it encounters into the default AssemblyLoadContext, and subsequent loads of
+            # the same assembly name are ignored. If an older version loads first (e.g., EXO's 8.6.0.0), then code
+            # compiled against a newer version (e.g., Graph's Azure.Identity expecting 8.6.1.0) will fail with
+            # MissingMethodException because the type signatures don't match.
+            # Fix: find and pre-load the newest version of each shared DLL across all dependency modules.
+            #
+            # IMPORTANT: Only pre-load low-level type-definition DLLs that are shared across all modules in the
+            # default AssemblyLoadContext. Do NOT pre-load higher-level libraries like Azure.Identity.dll or
+            # Azure.Core.dll here — Az.Accounts uses its own AssemblyLoadContext (ALC) to isolate its versions
+            # of those DLLs, and pre-loading them into the default context interferes with ALC type unification,
+            # causing "Entry point was not found" errors during Azure authentication.
+            $sharedDllNames = @(
+                'Microsoft.IdentityModel.Abstractions.dll'
+            )
+
+            # Collect all module base directories from the import order candidates
+            $moduleBaseDirs = $msalToLoadInOrder | ForEach-Object { Split-Path -Path $_.DLLPath -Parent }
+            # Also include all candidate modules' full ModuleBase for broader search
+            $allModuleCandidates = $msalToLoadInOrder | ForEach-Object {
+                $candidateModule = Get-Module -Name $_.Name -ListAvailable | Select-Object -First 1
+                if ($candidateModule) { $candidateModule.ModuleBase }
+            }
+            $searchDirs = @($moduleBaseDirs) + @($allModuleCandidates) | Where-Object { $_ } | Select-Object -Unique
+
+            foreach ($dllName in $sharedDllNames) {
+                $assemblyShortName = [System.IO.Path]::GetFileNameWithoutExtension($dllName)
+
+                # Skip if already loaded
+                if ([System.AppDomain]::CurrentDomain.GetAssemblies().Where{ $_.GetName().Name -eq $assemblyShortName }) {
+                    Write-Verbose -Message ("Shared DLL {0} is already loaded, skipping." -f $dllName)
+                    continue
+                }
+
+                # Search all dependency module directories recursively for this DLL
+                $allCopies = foreach ($dir in $searchDirs) {
+                    $searchRoot = $dir
+                    # Walk up to the module version root to search all subdirectories (e.g., Dependencies/, netCore/, lib/)
+                    $parentDir = Split-Path -Path $dir -Parent
+                    if ($parentDir -and (Test-Path $parentDir)) { $searchRoot = $parentDir }
+
+                    Get-ChildItem -Path $searchRoot -Filter $dllName -File -Recurse -Force -ErrorAction SilentlyContinue
+                }
+
+                if (-not $allCopies) {
+                    Write-Verbose -Message ("No copies of {0} found in dependency modules." -f $dllName)
+                    continue
+                }
+
+                # Pick the newest version
+                $newestDll = $allCopies |
+                    Where-Object { $_.VersionInfo.FileVersion } |
+                    Sort-Object -Property { [version]($_.VersionInfo.FileVersion) } -Descending |
+                    Select-Object -First 1
+
+                if ($newestDll) {
+                    try {
+                        $null = [System.Reflection.Assembly]::LoadFrom($newestDll.FullName)
+                        Write-Host -Object ('    ✅ Pre-loaded {0} v{1} from {2}' -f $dllName, $newestDll.VersionInfo.FileVersion, $newestDll.DirectoryName) -ForegroundColor Green
+                    }
+                    catch {
+                        Write-Debug -Message ("Failed to pre-load shared DLL {0}: {1}" -f $newestDll.FullName, $_)
+                    }
+                }
+            }
+            #endregion
         }
     }
     catch {
