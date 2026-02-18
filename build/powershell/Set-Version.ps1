@@ -42,7 +42,21 @@ if ( -not (Test-Path $ManifestPath )) {
 
     $previewLabel = if ($preview) { '-preview' } else { '' }
 
+    # Save original manifest content before Update-ModuleManifest corrupts
+    # custom PrivateData keys containing hashtable arrays (it serializes them as type name strings).
+    $originalManifestContent = Get-Content $ManifestPath -Raw
+
     Update-ModuleManifest -Path $ManifestPath -ModuleVersion $NewVersion -FunctionsToExport $FunctionNames -Prerelease $previewLabel
+
+    # Restore WindowsPowerShellRequiredModules that Update-ModuleManifest corrupted
+    if ($originalManifestContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
+        $originalBlock = $Matches[1]
+        $updatedContent = Get-Content $ManifestPath -Raw
+        if ($updatedContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
+            $updatedContent = $updatedContent.Replace($Matches[1], $originalBlock)
+            Set-Content $ManifestPath -Value $updatedContent -NoNewline
+        }
+    }
 }
 
 $NewVersion += $previewLabel

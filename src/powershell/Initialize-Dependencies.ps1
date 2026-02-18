@@ -97,11 +97,31 @@ function Initialize-Dependencies {
     #region Load module Manifest
     $moduleManifest = Import-PowerShellDataFile -Path $ModuleManifestPath -ErrorAction Stop
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$requiredModules = $moduleManifest.RequiredModules
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.PSData.ExternalModuleDependencies
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = $moduleManifest.PrivateData.PSData.WindowsPowerShellRequiredModules
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.ExternalModuleDependencies
 
-    $requiredModuleToSave = $requiredModules.Where{$_.Name -notin $externalModuleDependencies.Name}
-    $requiredModuleToSave += $windowsPowerShellRequiredModules.Where{ $_.Name -notin $requiredModules.Name -and $_.Name -notin $externalModuleDependencies.Name }
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$xPlatPowerShellRequiredModules = @(
+        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
+        @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
+    )
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = @(
+        @{ModuleName = 'Microsoft.Online.SharePoint.PowerShell'; GUID = 'adedde5f-e77b-4682-ab3d-a4cb4ff79b83'; ModuleVersion = '16.0.26914.12004'; },
+        @{ModuleName = 'AipService'; GUID = 'e338ccc0-3333-4479-87fe-66382d33782d'; ModuleVersion = '3.0.0.1'; }
+    )
+
+    #region Build list of RequiredModule based on OS
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$allModuleDependencies = $requiredModules + $xPlatPowerShellRequiredModules
+    if ($IsWindows) {
+        $allModuleDependencies += $windowsPowerShellRequiredModules.Where({
+            $_.Name -notin $allModuleDependencies.Name
+        })
+    }
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$requiredModuleToSave = $allModuleDependencies.Where{
+        $_.Name -notin $externalModuleDependencies.Name
+    }
     #endregion
 
     if ($IsMacOS -or $IsLinux)
@@ -117,7 +137,7 @@ function Initialize-Dependencies {
     elseif (-not $SkipModuleInstallation.IsPresent)
     {
         Write-Host -Object "`r`n"
-        Write-Host -Object 'Resolving dependencies...' -ForegroundColor Green
+        Write-Host -Object ('Resolving {0} dependencies...' -f $allModuleDependencies.Count) -ForegroundColor Green
 
         $saveModuleCmdParams = @{
             Path = $RequiredModulesPath
@@ -145,24 +165,7 @@ function Initialize-Dependencies {
         {
             Write-Verbose -Message ("Saving module {0} with version {1}..." -f $moduleSpec.Name, $moduleSpec.Version)
             $saveModuleCmdParamsClone = $saveModuleCmdParams.Clone()
-            $isModulePresent = Get-Module -Name $moduleSpec.Name -ListAvailable -ErrorAction Ignore | Where-Object {
-                $isValid = $true
-                if ($moduleSpec.Guid)
-                {
-                    $isValid = $_.Guid -eq $moduleSpec.Guid
-                }
-
-                if ($moduleSpec.Version)
-                {
-                    $isValid = $isValid -and $_.Version -ge [Version]$moduleSpec.Version
-                }
-                elseif ($moduleSpec.RequiredVersion)
-                {
-                    $isValid = $isValid -and $_.Version -eq [Version]$moduleSpec.RequiredVersion
-                }
-
-                $isValid
-            }
+            $isModulePresent = Get-Module -FullyQualifiedName $moduleSpec -ListAvailable -ErrorAction Ignore
 
             if ($isModulePresent)
             {
@@ -172,18 +175,36 @@ function Initialize-Dependencies {
 
             try
             {
-                $saveModuleCmdParamsClone['Name'] = $moduleSpec.Name
-                if ($moduleSpec.Version -and $saveModuleCmd.Name -eq 'Save-Module')
+                if ($saveModuleCmd.Name -eq 'Save-PSResource')
                 {
-                    $saveModuleCmdParamsClone['MinimumVersion'] = $moduleSpec.Version
-                }
-                elseif ($moduleSpec.Version -and $saveModuleCmd.Name -eq 'Save-PSResource')
-                {
-                    $saveModuleCmdParamsClone['Version'] = '[{0}, ]' -f $moduleSpec.Version
-                }
+                    $saveModuleCmdParamsClone['Name'] = $moduleSpec.Name
+                    # Save-PSResource uses NuGet version range syntax: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#version-ranges
+                    if ($moduleSpec.RequiredVersion) {
+                        # Absolute required version
+                        $saveModuleCmdParamsClone['Version'] = '[{0}]' -f $moduleSpec.RequiredVersion
+                    }
+                    elseif ($moduleSpec.MaximumVersion -and $moduleSpec.Version) {
+                        # Minimum and maximum version (exact range) inclusive
+                        $saveModuleCmdParamsClone['Version'] = '[{0},{1}]' -f $moduleSpec.Version, $moduleSpec.MaximumVersion
+                    }
+                    elseif ($moduleSpec.MaximumVersion) {
+                        # Maximum version inclusive
+                        $saveModuleCmdParamsClone['Version'] = '(,{0}]' -f $moduleSpec.MaximumVersion
+                    }
+                    elseif ($moduleSpec.Version) {
+                        # Minimum version inclusive
+                         $saveModuleCmdParamsClone['Version'] = '[{0}, )' -f $moduleSpec.Version
+                    }
 
-                & $saveModuleCmd @saveModuleCmdParamsClone
-                Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
+                    $saveModuleCmdParamsClone['PassThru'] = $true
+                    $savedModule = (& $saveModuleCmd @saveModuleCmdParamsClone).Where({ $_.Name -eq $moduleSpec.Name },1)
+                    Write-Host -Object ('    ⬇️ Module {0} v{1} saved successfully.' -f $moduleSpec.Name, $savedModule.Version) -ForegroundColor Green
+                }
+                elseif ($saveModuleCmd.Name -eq 'Save-Module')
+                {
+                    $moduleSpec | &$saveModuleCmd @saveModuleCmdParamsClone
+                    Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
+                }
             }
             catch
             {
@@ -212,7 +233,7 @@ function Initialize-Dependencies {
             . $helperPath
             Write-Verbose -Message ('Module with DLLs to load: {0}' -f (([Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleManifest.RequiredModules).Name -join ', '))
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
-            $msalToLoadInOrder = Get-ModuleImportOrder -Name $moduleManifest.RequiredModules.ModuleName
+            $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
 
             $msalToLoadInOrder.ForEach{
                 Write-Verbose -Message ('Loading MSAL v{0} for dependency {1} version {2}' -f $_.DLLVersion, $_.Name, $_.ModuleVersion)
