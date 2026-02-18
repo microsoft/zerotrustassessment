@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Global Scope Label Count
+    Globally published sensitivity labels don't exceed the recommended maximum
 
 .DESCRIPTION
     Sensitivity label policies control which labels are available to users and can be scoped to specific users, groups, or the entire organization. Publishing too many labels globally creates confusion and decision paralysis for end users. Microsoft recommends publishing no more than 25 labels in globally-scoped policies to maintain usability and reduce misclassification.
@@ -21,7 +21,7 @@ function Test-Assessment-35015 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35015,
-        Title = 'Global Scope Label Count',
+        Title = 'Globally published sensitivity labels don''t exceed the recommended maximum',
         UserImpact = 'High'
     )]
     [CmdletBinding()]

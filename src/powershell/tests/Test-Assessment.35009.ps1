@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Checks whether co-authoring is enabled for encrypted documents with sensitivity labels.
+    Co-authoring is enabled for encrypted documents
 #>
 
 function Test-Assessment-35009 {
@@ -13,7 +13,7 @@ function Test-Assessment-35009 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35009,
-        Title = 'Co-Authoring Enabled for Encrypted Documents',
+        Title = 'Co-authoring is enabled for encrypted documents',
         UserImpact = 'High'
     )]
     [CmdletBinding()]

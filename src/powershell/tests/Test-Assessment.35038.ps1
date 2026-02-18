@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Insider Risk Management Policies Enabled for Risky AI Usage
+    Insider Risk Management policies are enabled for risky AI usage
 
 .DESCRIPTION
     Insider Risk Management (IRM) policies with Adaptive Protection enable organizations to detect and prevent risky behavior involving sensitive data, including unauthorized sharing with external parties, mass downloads, unusual data access patterns, and data exfiltration attempts. Without IRM policies configured and enabled with Adaptive Protection integration (`OptInDrpForDlp`), organizations cannot identify insider threats or malicious actors who abuse legitimate access to exfiltrate data. IRM policies that integrate with Data Loss Prevention (DLP) create a comprehensive detection system that combines behavioral indicators (unusual access patterns) with policy-based content detection (sensitive data types), enabling rapid response to insider threats before data is compromised. Organizations must enable at least one IRM policy with Adaptive Protection enabled to detect and mitigate insider risk, including risky AI usage scenarios where users attempt to expose sensitive data to large language models or unauthorized cloud AI services. Without IRM policies, organizations cannot meet insider threat management requirements or demonstrate proactive threat detection capabilities to regulators.
@@ -22,7 +22,7 @@ function Test-Assessment-35038 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35038,
-        Title = 'Insider Risk Management Policies Enabled for Risky AI Usage',
+        Title = 'Insider Risk Management policies are enabled for risky AI usage',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]

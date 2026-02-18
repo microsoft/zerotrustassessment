@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that internal RMS licensing is enabled in Exchange Online.
+    Internal Rights Management licensing is enabled
 
 .DESCRIPTION
     This test checks if internal RMS licensing is enabled, which allows users and services within the
@@ -25,7 +25,7 @@ function Test-Assessment-35025 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35025,
-        Title = 'Internal RMS Licensing Enabled',
+        Title = 'Internal Rights Management licensing is enabled',
         UserImpact = 'High'
     )]
     [CmdletBinding()]

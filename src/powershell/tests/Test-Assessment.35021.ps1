@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Auto-Labeling Policies Enabled for SharePoint and OneDrive
+    Auto-labeling policies are enabled for SharePoint and OneDrive
 
 .DESCRIPTION
     SharePoint sites and OneDrive accounts are the primary repositories for unstructured file content in Microsoft 365. Without auto-labeling policies specifically targeting these locations, organizations cannot automatically classify files based on their content or sensitive information types, leaving sensitive data vulnerable. Auto-labeling policies deployed in enforcement mode (not simulation) for SharePoint and OneDrive locations actively scan new and modified files, automatically applying sensitivity labels when the policy conditions are met. Implementing at least one auto-labeling policy in enforcement mode for SharePoint and OneDrive ensures that file-based sensitive data is consistently classified.
@@ -21,7 +21,7 @@ function Test-Assessment-35021 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35021,
-        Title = 'Auto-Labeling Policies Enabled for SharePoint and OneDrive',
+        Title = 'Auto-labeling policies are enabled for SharePoint and OneDrive',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

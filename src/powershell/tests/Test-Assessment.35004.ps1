@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Published Label Policies
+    Sensitivity label policies are published to users
 
 .DESCRIPTION
     Creating sensitivity labels is the first step in information protection deployment.
@@ -24,7 +24,7 @@ function Test-Assessment-35004 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35004,
-        Title = 'Published Label Policies',
+        Title = 'Sensitivity label policies are published to users',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]

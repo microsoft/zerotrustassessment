@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that Exact Data Match (EDM) schemas are configured for detecting organization-specific sensitive data.
+    Exact Data Match is configured for sensitive information detection
 
 .DESCRIPTION
     This test checks if EDM schemas are configured by querying:
@@ -25,7 +25,7 @@ function Test-Assessment-35034 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35034,
-        Title = 'Exact Data Match (EDM) Configurations',
+        Title = 'Exact Data Match is configured for sensitive information detection',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
