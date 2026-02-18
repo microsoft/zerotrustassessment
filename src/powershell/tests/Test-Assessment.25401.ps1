@@ -33,7 +33,9 @@ function Test-Assessment-25401 {
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -97,9 +99,25 @@ function Test-Assessment-25401 {
             $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
             $isCompliant = $authType -eq 'aadPreAuthentication'
 
+            # Query database to get service principal ID using appId
+            $servicePrincipalId = $null
+            if ($appDetail.appId) {
+                try {
+                    $spQuery = "SELECT id FROM ServicePrincipal WHERE appId = '$($appDetail.appId)'"
+                    $spResult = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
+                    if ($spResult -and $spResult.Count -gt 0) {
+                        $servicePrincipalId = $spResult[0].id
+                    }
+                }
+                catch {
+                    Write-PSFMessage "Failed to retrieve service principal ID for appId $($appDetail.appId): $_" -Tag Test -Level Warning
+                }
+            }
+
             $appInfo = [PSCustomObject]@{
                 Id                       = $appDetail.id
                 AppId                    = $appDetail.appId
+                ServicePrincipalId       = $servicePrincipalId
                 DisplayName              = $appDetail.displayName
                 ExternalAuthenticationType = $authType
                 IsCompliant              = $isCompliant
@@ -138,7 +156,7 @@ function Test-Assessment-25401 {
 
     if ($allApplications.Count -gt 0) {
         $reportTitle = 'Application Proxy Pre-Authentication Configuration'
-        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBlade/objectType/AppProxy'
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview'
 
         $formatTemplate = @'
 
@@ -148,15 +166,24 @@ function Test-Assessment-25401 {
 '@
 
         # Build main applications table
-        $appsTable = "| Application name | Pre-authentication type | Compliant |`n"
+        $appsTable = "| Application name | Pre-Authentication type | Compliant |`n"
         $appsTable += "| :--------------- | :---------------------- | :-------- |`n"
 
         foreach ($app in $allApplications) {
             $appName = Get-SafeMarkdown -Text $app.DisplayName
+
+            # Create deep link to Application Proxy page if we have service principal ID
+            if ($app.ServicePrincipalId -and $app.AppId) {
+                $appLink = "[$appName](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/AppProxy/objectId/$($app.ServicePrincipalId)/appId/$($app.AppId)/preferredSingleSignOnMode~/null/servicePrincipalType/Application/fromNav/)"
+            }
+            else {
+                $appLink = $appName
+            }
+
             $authType = Get-SafeMarkdown -Text $app.ExternalAuthenticationType
             $compliant = $app.ComplianceStatus
 
-            $appsTable += "| $appName | $authType | $compliant |`n"
+            $appsTable += "| $appLink | $authType | $compliant |`n"
         }
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $appsTable
