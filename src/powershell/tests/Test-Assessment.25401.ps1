@@ -64,13 +64,6 @@ function Test-Assessment-25401 {
     $testResultMarkdown = ''
     $passed = $false
 
-    # Handle query failure
-    if ($appProxyAppsFailed) {
-        Write-PSFMessage 'Failed to retrieve Application Proxy applications' -Tag Test -Level Error
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Failed to retrieve Application Proxy applications.'
-        return
-    }
-
     # No Application Proxy applications found
     if ($null -eq $appProxyAppIds -or $appProxyAppIds.Count -eq 0) {
         Write-PSFMessage 'No Application Proxy applications found in this tenant.' -Tag Test -Level Verbose
@@ -81,8 +74,6 @@ function Test-Assessment-25401 {
     Write-ZtProgress -Activity $activity -Status 'Analyzing pre-authentication settings'
 
     $allApplications = [System.Collections.Generic.List[object]]::new()
-    $passthroughApplications = [System.Collections.Generic.List[object]]::new()
-    $compliantApplications = [System.Collections.Generic.List[object]]::new()
 
     # Query 2: For each application, retrieve detailed configuration
     foreach ($appId in $appProxyAppIds) {
@@ -125,13 +116,6 @@ function Test-Assessment-25401 {
             }
 
             $allApplications.Add($appInfo)
-
-            if ($authType -eq 'passthru') {
-                $passthroughApplications.Add($appInfo)
-            }
-            else {
-                $compliantApplications.Add($appInfo)
-            }
         }
         catch {
             Write-PSFMessage "Failed to retrieve details for application $($appId.id): $_" -Tag Test -Level Warning
@@ -139,7 +123,9 @@ function Test-Assessment-25401 {
     }
 
     # Evaluate test result
-    if ($passthroughApplications.Count -eq 0) {
+    $passthroughCount = ($allApplications | Where-Object { $_.ExternalAuthenticationType -eq 'passthru' }).Count
+
+    if ($passthroughCount -eq 0) {
         # All applications use pre-authentication - pass
         $passed = $true
         $testResultMarkdown = "✅ All Application Proxy applications are configured with Microsoft Entra pre-authentication, ensuring users must authenticate before accessing on-premises resources.`n`n%TestResult%"
@@ -156,25 +142,27 @@ function Test-Assessment-25401 {
 
     if ($allApplications.Count -gt 0) {
         $reportTitle = 'Application Proxy Pre-Authentication Configuration'
-        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview'
 
         $formatTemplate = @'
 
-## [{0}]({1})
 
-{2}
+## {0}
+
+| Application name | Pre-authentication type | Compliant |
+| :--------------- | :---------------------- | :-------- |
+{1}
+
 '@
 
-        # Build main applications table
-        $appsTable = "| Application name | Pre-Authentication type | Compliant |`n"
-        $appsTable += "| :--------------- | :---------------------- | :-------- |`n"
-
+        # Build table rows
+        $tableRows = ''
         foreach ($app in $allApplications) {
             $appName = Get-SafeMarkdown -Text $app.DisplayName
 
             # Create deep link to Application Proxy page if we have service principal ID
             if ($app.ServicePrincipalId -and $app.AppId) {
-                $appLink = "[$appName](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/AppProxy/objectId/$($app.ServicePrincipalId)/appId/$($app.AppId)/preferredSingleSignOnMode~/null/servicePrincipalType/Application/fromNav/)"
+                $appProxyUrl = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/AppProxy/objectId/$($app.ServicePrincipalId)/appId/$($app.AppId)/preferredSingleSignOnMode~/null/servicePrincipalType/Application/fromNav/"
+                $appLink = "[$appName]($appProxyUrl)"
             }
             else {
                 $appLink = $appName
@@ -183,10 +171,10 @@ function Test-Assessment-25401 {
             $authType = Get-SafeMarkdown -Text $app.ExternalAuthenticationType
             $compliant = $app.ComplianceStatus
 
-            $appsTable += "| $appLink | $authType | $compliant |`n"
+            $tableRows += "| $appLink | $authType | $compliant |`n"
         }
 
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $appsTable
+        $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
