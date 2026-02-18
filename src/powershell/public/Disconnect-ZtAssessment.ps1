@@ -28,7 +28,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Microsoft Graph'
     try
     {
-        Disconnect-MgGraph -ErrorAction Stop | Out-Null
+        Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
         Write-Host "Successfully disconnected from Microsoft Graph" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -44,7 +44,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Azure'
     try
     {
-        Disconnect-AzAccount -ErrorAction Stop | Out-Null
+        Disconnect-AzAccount -ErrorAction SilentlyContinue | Out-Null
         Write-Host "Successfully disconnected from Azure" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -60,7 +60,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Exchange Online and Security & Compliance PowerShell'
     try
     {
-        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction Stop | Out-Null
+        Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
         Write-Host "Successfully disconnected from Exchange Online and Security & Compliance PowerShell" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -76,7 +76,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from SharePoint Online'
     try
     {
-        Disconnect-SPOService -ErrorAction Stop | Out-Null
+        Disconnect-SPOService -ErrorAction SilentlyContinue | Out-Null
         Write-Host "Successfully disconnected from SharePoint Online" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
@@ -92,7 +92,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Azure Information Protection'
     try
     {
-        Disconnect-AipService -ErrorAction Stop | Out-Null
+        Disconnect-AipService -ErrorAction SilentlyContinue | Out-Null
         Write-Host "Successfully disconnected from Azure Information Protection" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
