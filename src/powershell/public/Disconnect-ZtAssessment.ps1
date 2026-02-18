@@ -109,7 +109,7 @@ function Disconnect-ZtAssessment
     Write-PSFMessage 'Disconnecting from Azure Information Protection'
     try
     {
-        Disconnect-AipService -ErrorAction SilentlyContinue | Out-Null
+        Disconnect-AipService -ErrorAction Stop | Out-Null
         Write-Host "Successfully disconnected from Azure Information Protection" -ForegroundColor Green
     }
     catch [Management.Automation.CommandNotFoundException]
