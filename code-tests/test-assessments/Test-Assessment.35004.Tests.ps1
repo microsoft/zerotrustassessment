@@ -107,7 +107,9 @@ Describe "Test-Assessment-35004" {
                         Name = "Global Policy"
                         Enabled = $true
                         Labels = @("Label1", "Label2")
-                        ExchangeLocation = @("All")
+                        ExchangeLocation = @(
+                            [PSCustomObject]@{ Name = "All" }
+                        )
                         ModernGroupLocation = @()
                         SharePointLocation = @()
                         OneDriveLocation = @()
@@ -135,8 +137,13 @@ Describe "Test-Assessment-35004" {
                         Name = "Specific Policy"
                         Enabled = $true
                         Labels = @("Label1")
-                        ExchangeLocation = @("user1@contoso.com", "user2@contoso.com")
-                        ModernGroupLocation = @("group1@contoso.com")
+                        ExchangeLocation = @(
+                            [PSCustomObject]@{ Name = "user1@contoso.com" },
+                            [PSCustomObject]@{ Name = "user2@contoso.com" }
+                        )
+                        ModernGroupLocation = @(
+                            [PSCustomObject]@{ Name = "group1@contoso.com" }
+                        )
                         SharePointLocation = @()
                         OneDriveLocation = @()
                     }
