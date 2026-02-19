@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Purview Audit Logging Enabled
+    Purview audit logging is enabled
 #>
 
 function Test-Assessment-35037 {
@@ -13,7 +13,7 @@ function Test-Assessment-35037 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce','External'),
         TestId = 35037,
-        Title = 'Purview audit logging enabled',
+        Title = 'Purview audit logging is enabled',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

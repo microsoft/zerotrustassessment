@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that Named Entity SITs are used in auto-labeling and DLP policies.
+    Named entity sensitive information types are used in auto-labeling and data loss prevention policies
 
 .DESCRIPTION
     This test evaluates whether the organization has deployed Named Entity Sensitive
@@ -25,7 +25,7 @@ function Test-Assessment-35035 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35035,
-        Title = 'Named Entity SITs usage in Auto-Labeling and DLP policies',
+        Title = 'Named entity sensitive information types are used in auto-labeling and data loss prevention policies',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]

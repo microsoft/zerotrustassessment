@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    PDF Labeling Support in SharePoint Online
+    PDF labeling is enabled in SharePoint Online
 
 .DESCRIPTION
     PDF files stored in SharePoint Online and OneDrive for Business require separate enablement of sensitivity label support beyond the base Office file integration. When EnableSensitivityLabelforPDF is disabled, organizations create a protection gap where PDF documents remain unclassified and unprotected despite sensitivity label policies being active for Office files.
@@ -21,7 +21,7 @@ function Test-Assessment-35006 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35006,
-        Title = 'PDF Labeling Support in SharePoint Online',
+        Title = 'PDF labeling is enabled in SharePoint Online',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
