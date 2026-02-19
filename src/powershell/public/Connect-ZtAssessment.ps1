@@ -7,12 +7,7 @@ function Connect-ZtAssessment {
 	.DESCRIPTION
 		Use this cmdlet to connect to Microsoft Graph and other services using the appropriate parameters and scopes
 		for the Zero Trust Assessment.
-
-		This command is completely optional if you are already connected to Microsoft Graph and other services using Connect-MgGraph with the required scopes.
-
-		```
-		Connect-MgGraph -Scopes (Get-ZtGraphScope)
-		```
+		This cmdlet will import the necessary modules and establish connections based on the specified parameters.
 
 	.PARAMETER UseDeviceCode
 		If specified, the cmdlet will use the device code flow to authenticate to Graph and Azure.
