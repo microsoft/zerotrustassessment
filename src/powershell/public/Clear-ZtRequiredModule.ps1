@@ -16,10 +16,17 @@ function Clear-ZtRequiredModule {
     it detects if it's being called during module loading and exits with a warning message and instructions on how to run it successfully.
 
     .EXAMPLE
+    Clear-ZtRequiredModule
+
+    # This won't remove the modules because it runs in the same session where ZeroTrustAssessment module is currently loaded
+    # Instead, it will show a warning message with instructions on how to run it successfully.
+
+    .EXAMPLE
     &'<path to module>\Clear-ZtRequiredModule.ps1'
 
-    .NOTES
-    General notes
+    # If this is run in a clean session, and you closed all other sessions where ZeroTrustAssessment module was loaded,
+    # it will remove all modules downloaded by the Zero Trust Assessment module.
+
     #>
     [CmdletBinding()]
     param (
