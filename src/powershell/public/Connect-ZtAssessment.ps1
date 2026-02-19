@@ -362,7 +362,7 @@ function Connect-ZtAssessment {
 		}
 
 		'Microsoft.Online.SharePoint.PowerShell' {
-			if ($Service -contains 'SharePointOnline' -or $Service -contains 'All') {
+			if ($Service -contains 'SharePointOnline' -or $Service -contains 'All' -and $IsWindows) {
 				try {
 					# Import module with compatibility if needed
 					if ($PSVersionTable.PSEdition -ne 'Desktop') {
@@ -388,7 +388,7 @@ function Connect-ZtAssessment {
 		}
 
 		'AipService' {
-			if ($Service -contains 'AipService' -or $Service -contains 'All') {
+			if ($Service -contains 'AipService' -or $Service -contains 'All' -and $IsWindows) {
 				try {
 					# Import module with compatibility if needed
 					if ($PSVersionTable.PSEdition -ne 'Desktop') {
@@ -414,7 +414,7 @@ function Connect-ZtAssessment {
 		}
 	}
 
-	if ($Service -contains 'SharePointOnline' -or $Service -contains 'All') {
+	if ($Service -contains 'SharePointOnline' -or $Service -contains 'All' -and $IsWindows) {
 		Write-Host "`nConnecting to SharePoint Online" -ForegroundColor Yellow
 		Write-PSFMessage 'Connecting to SharePoint Online'
 
@@ -453,7 +453,7 @@ function Connect-ZtAssessment {
 		}
 	}
 
-	if ($Service -contains 'AipService' -or $Service -contains 'All') {
+	if ($Service -contains 'AipService' -or $Service -contains 'All' -and $IsWindows) {
 		# AIPService module only works on Windows (contains Windows-only DLL)
 		if (-not $IsWindows) {
 			Write-PSFMessage 'Skipping Azure Information Protection connection - AIPService module is only supported on Windows.' -Level Warning
