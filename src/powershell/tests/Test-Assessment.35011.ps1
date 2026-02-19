@@ -171,15 +171,24 @@ function Test-Assessment-35011 {
 
     # Build detailed information section
     $mdInfo = "## Azure Information Protection Super User Configuration`n`n"
-    $mdInfo += "**Super User Feature: $superUserFeatureEnabled**`n`n"
-    $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
 
-    if ($superUserCount -gt 0) {
+    if ($errorMsg) {
+        # Show explicit "Unknown" values when an error occurred
+        $mdInfo += "**Super User Feature:** Unknown (unable to query)`n`n"
+        $mdInfo += "**Super Users Configured:** Unknown`n`n"
+    }
+    else {
+        $mdInfo += "**Super User Feature: $superUserFeatureEnabled**`n`n"
+        $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
+    }
+
+    if (-not $errorMsg -and $superUserCount -gt 0) {
         $mdInfo += "| Super User Display | Account Type |`n"
         $mdInfo += "| :--- | :--- |`n"
 
         foreach ($superUserObj in $superUserObjects) {
-            if ($superUserObj.IsServicePrincipal) {
+            if ($superUserObj.IsServicePrincipal -and $superUserObj.Id) {
+                # Only create portal link when we have a valid object ID
                 $spPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($superUserObj.Id)/appId/$($superUserObj.AppId)"
                 $displayText = "[$(Get-SafeMarkdown($superUserObj.DisplayName))]($spPortalLink)"
             }
