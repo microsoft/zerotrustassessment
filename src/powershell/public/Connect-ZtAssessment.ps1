@@ -1,10 +1,12 @@
 function Connect-ZtAssessment {
 	<#
 	.SYNOPSIS
-		Helper method to connect to Microsoft Graph using Connect-MgGraph with the required scopes.
+		Helper method to connect to Microsoft Graph and other services with the appropriate parameters
+		and scopes for the Zero Trust Assessment.
 
 	.DESCRIPTION
-		Use this cmdlet to connect to Microsoft Graph using Connect-MgGraph.
+		Use this cmdlet to connect to Microsoft Graph and other services using the appropriate parameters and scopes
+		for the Zero Trust Assessment.
 
 		This command is completely optional if you are already connected to Microsoft Graph and other services using Connect-MgGraph with the required scopes.
 
