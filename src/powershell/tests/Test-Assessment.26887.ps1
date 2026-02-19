@@ -72,11 +72,11 @@ function Test-Assessment-26887 {
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Firewalls via Resource Graph'
 
     $argQuery = @"
-Resources
+resources
 | where type =~ 'microsoft.network/azurefirewalls'
 | where properties.provisioningState =~ 'Succeeded'
 | join kind=leftouter (
-    ResourceContainers
+    resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionName=name, subscriptionId
 ) on subscriptionId
