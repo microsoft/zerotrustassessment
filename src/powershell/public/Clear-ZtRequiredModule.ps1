@@ -1,6 +1,6 @@
 param ()
 
-function Clear-ZtRequiredModules {
+function Clear-ZtRequiredModule {
     [CmdletBinding()]
     param (
     )
@@ -38,4 +38,4 @@ function Clear-ZtRequiredModules {
     }
 }
 
-Clear-ZtRequiredModules @PSBoundParameters
+Clear-ZtRequiredModule @PSBoundParameters
