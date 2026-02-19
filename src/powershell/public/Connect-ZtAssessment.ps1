@@ -82,9 +82,9 @@ function Connect-ZtAssessment {
 		[switch]
 		$SkipAzureConnection,
 
-		# The services to connect to such as Azure and ExchangeOnline. Default is Graph.
+		# The services to connect to such as Azure and ExchangeOnline. Default is All.
 		[ValidateSet('All', 'Azure', 'AipService', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
-		[string[]]$Service = 'Graph',
+		[string[]]$Service = 'All',
 
 		# The Exchange environment to connect to. Default is O365Default. Supported values include O365China, O365Default, O365GermanyCloud, O365USGovDoD, O365USGovGCCHigh.
 		[ValidateSet('O365China', 'O365Default', 'O365GermanyCloud', 'O365USGovDoD', 'O365USGovGCCHigh')]
