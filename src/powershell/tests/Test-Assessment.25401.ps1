@@ -82,7 +82,8 @@ function Test-Assessment-25401 {
     else {
         Write-ZtProgress -Activity $activity -Status 'Analyzing pre-authentication settings'
 
-        # Query 2: For each application, retrieve detailed configuration
+        # Phase 1: Collect detailed configuration for all applications
+        $appDetailsCollection = @()
         foreach ($app in $appProxyApps) {
             try {
                 $appDetail = Invoke-ZtGraphRequest `
@@ -94,39 +95,63 @@ function Test-Assessment-25401 {
                     continue
                 }
 
-                $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
-                $isCompliant = $authType -eq 'aadPreAuthentication'
-
-                # Query database to get service principal ID using appId
-                $servicePrincipalId = $null
-                if ($appDetail.appId) {
-                    try {
-                        $spQuery = "SELECT id FROM ServicePrincipal WHERE appId = '$($appDetail.appId)'"
-                        $spResult = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
-                        if ($spResult -and $spResult.Count -gt 0) {
-                            $servicePrincipalId = $spResult[0].id
-                        }
-                    }
-                    catch {
-                        Write-PSFMessage "Failed to retrieve service principal ID for appId $($appDetail.appId): $_" -Tag Test -Level Warning
-                    }
-                }
-
-                $appInfo = [PSCustomObject]@{
-                    Id                       = $appDetail.id
-                    AppId                    = $appDetail.appId
-                    ServicePrincipalId       = $servicePrincipalId
-                    DisplayName              = $appDetail.displayName
-                    ExternalAuthenticationType = $authType
-                    IsCompliant              = $isCompliant
-                    ComplianceStatus         = if ($isCompliant) { '✅ Yes' } else { '❌ No' }
-                }
-
-                $allApplications.Add($appInfo)
+                $appDetailsCollection += $appDetail
             }
             catch {
-                Write-PSFMessage "Failed to retrieve details for application $($appId.id): $_" -Tag Test -Level Warning
+                Write-PSFMessage "Failed to retrieve details for application $($app.id): $_" -Tag Test -Level Warning
             }
+        }
+
+        # Phase 2: Batch query database for service principal IDs
+        $spIdLookup = @{}
+        if ($appDetailsCollection.Count -gt 0) {
+            try {
+                # Collect unique appIds
+                $appIds = $appDetailsCollection | Where-Object { $_.appId } | Select-Object -ExpandProperty appId -Unique
+
+                if ($appIds.Count -gt 0) {
+                    # Build IN clause for all appIds
+                    $appIdInClause = ($appIds | ForEach-Object { "'$($_.Replace("'", "''"))'" }) -join ','
+
+                    # Single query to get all service principal IDs
+                    $spQuery = "SELECT id, appId FROM ServicePrincipal WHERE appId IN ($appIdInClause)"
+                    $spResults = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
+
+                    # Build lookup hashtable: appId -> service principal id
+                    foreach ($sp in $spResults) {
+                        if ($sp.appId -and $sp.id) {
+                            $spIdLookup["$($sp.appId)"] = $sp.id
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-PSFMessage "Failed to retrieve service principal IDs from database: $_" -Tag Test -Level Warning
+            }
+        }
+
+        # Phase 3: Process application details and build final list
+        foreach ($appDetail in $appDetailsCollection) {
+            $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
+            $isCompliant = $authType -eq 'aadPreAuthentication'
+
+            # Lookup service principal ID from hashtable
+            $servicePrincipalId = $null
+            if ($appDetail.appId -and $spIdLookup.ContainsKey("$($appDetail.appId)")) {
+                $servicePrincipalId = $spIdLookup["$($appDetail.appId)"]
+            }
+
+            $appInfo = [PSCustomObject]@{
+                Id                       = $appDetail.id
+                AppId                    = $appDetail.appId
+                ServicePrincipalId       = $servicePrincipalId
+                DisplayName              = $appDetail.displayName
+                ExternalAuthenticationType = $authType
+                IsCompliant              = $isCompliant
+                ComplianceStatus         = if ($isCompliant) { '✅ Yes' } else { '❌ No' }
+            }
+
+            $allApplications.Add($appInfo)
         }
 
         # Guard: If we couldn't retrieve details for any of the applications, treat as query failure
