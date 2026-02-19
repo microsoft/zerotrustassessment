@@ -132,7 +132,7 @@ Resources
 
         # Evaluate diagnostic settings
         $hasValidDiagSetting = $false
-        $destinationType = 'None'
+        $allDestinationTypes = @()
         $enabledCategories = @()
         $diagSettingNames = @()
 
@@ -168,14 +168,15 @@ Resources
                 if ($settingEnabledCategories.Count -gt 0) {
                     $hasValidDiagSetting = $true
                     $diagSettingNames += $setting.name
-                    $destinationType = $destTypes -join ', '
+                    $allDestinationTypes += $destTypes
                     $enabledCategories += $settingEnabledCategories
                 }
             }
         }
 
-        # Deduplicate enabled categories (multiple settings may enable same categories)
+        # Deduplicate enabled categories and destination types (multiple settings may have same values)
         $enabledCategories = $enabledCategories | Select-Object -Unique
+        $destinationType = if ($allDestinationTypes.Count -gt 0) { ($allDestinationTypes | Select-Object -Unique) -join ', ' } else { 'None' }
 
         $status = if ($hasValidDiagSetting) { 'Pass' } else { 'Fail' }
 
