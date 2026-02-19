@@ -230,6 +230,7 @@ function Connect-ZtAssessment {
 		'ExchangeOnlineManagement' {
 			if ($Service -contains 'ExchangeOnline' -or $Service -contains 'All') {
 				Write-Verbose 'Connecting to Microsoft Exchange Online'
+				Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
 				try {
 					if ($UseDeviceCode -and $PSVersionTable.PSEdition -eq 'Desktop') {
 						Write-Host 'The Exchange Online module in Windows PowerShell does not support device code flow authentication.' -ForegroundColor Red
@@ -256,33 +257,33 @@ function Connect-ZtAssessment {
 			}
 
 			if ($Service -contains 'SecurityCompliance' -or $Service -contains 'All') {
-				$Environments = @{
-					'O365China'        = @{
-						ConnectionUri    = 'https://ps.compliance.protection.partner.outlook.cn/powershell-liveid'
-						AuthZEndpointUri = 'https://login.chinacloudapi.cn/common'
+					$Environments = @{
+						'O365China'        = @{
+							ConnectionUri    = 'https://ps.compliance.protection.partner.outlook.cn/powershell-liveid'
+							AuthZEndpointUri = 'https://login.chinacloudapi.cn/common'
+						}
+						'O365GermanyCloud' = @{
+							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+						}
+						'O365Default'      = @{
+							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+						}
+						'O365USGovGCCHigh' = @{
+							ConnectionUri    = 'https://ps.compliance.protection.office365.us/powershell-liveid/'
+							AuthZEndpointUri = 'https://login.microsoftonline.us/common'
+						}
+						'O365USGovDoD'     = @{
+							ConnectionUri    = 'https://l5.ps.compliance.protection.office365.us/powershell-liveid/'
+							AuthZEndpointUri = 'https://login.microsoftonline.us/common'
+						}
+						Default            = @{
+							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+						}
 					}
-					'O365GermanyCloud' = @{
-						ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-						AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-					}
-					'O365Default'      = @{
-						ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-						AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-					}
-					'O365USGovGCCHigh' = @{
-						ConnectionUri    = 'https://ps.compliance.protection.office365.us/powershell-liveid/'
-						AuthZEndpointUri = 'https://login.microsoftonline.us/common'
-					}
-					'O365USGovDoD'     = @{
-						ConnectionUri    = 'https://l5.ps.compliance.protection.office365.us/powershell-liveid/'
-						AuthZEndpointUri = 'https://login.microsoftonline.us/common'
-					}
-					Default            = @{
-						ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-						AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-					}
-				}
-				Write-Verbose 'Connecting to Microsoft Security & Compliance PowerShell'
+					Write-Verbose 'Connecting to Microsoft Security & Compliance PowerShell'
 
 				if ($UseDeviceCode) {
 					Write-Host "`nThe Security & Compliance module does not support device code flow authentication." -ForegroundColor Red
