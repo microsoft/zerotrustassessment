@@ -1,6 +1,26 @@
 param ()
 
 function Clear-ZtRequiredModule {
+    <#
+    .SYNOPSIS
+    Remove all modules downloaded into the ~/.cache/ZeroTrustAssessment/Modules or %APPDATA%\ZeroTrustAssessment\Modules folder
+    by the Zero Trust Assessment module.
+
+    .DESCRIPTION
+    This cmdlet removes all modules that were downloaded and installed by the Zero Trust Assessment module into the user's
+    cache or application data directories.
+    Since these modules are imported into the global session when the Zero Trust Assessment module is imported,
+    they cannot be removed until the session is closed.
+
+    Since this command wouldn't work if running in a session where the Zero Trust Assessment module is currently loaded,
+    it detects if it's being called during module loading and exits with a warning message and instructions on how to run it successfully.
+
+    .EXAMPLE
+    &'<path to module>\Clear-ZtRequiredModule.ps1'
+
+    .NOTES
+    General notes
+    #>
     [CmdletBinding()]
     param (
     )
