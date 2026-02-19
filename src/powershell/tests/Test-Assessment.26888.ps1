@@ -72,12 +72,12 @@ function Test-Assessment-26888 {
     Write-ZtProgress -Activity $activity -Status 'Querying Application Gateways via Resource Graph'
 
     $argQuery = @"
-Resources
-| where type =~ 'microsoft.network/applicationGateways'
+resources
+| where type =~ 'microsoft.network/applicationgateways'
 | where properties.provisioningState =~ 'Succeeded'
 | where properties.sku.tier in~ ('WAF', 'WAF_v2')
 | join kind=leftouter (
-    ResourceContainers
+    resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionName=name, subscriptionId
 ) on subscriptionId
@@ -226,7 +226,7 @@ Resources
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-| Subscription | Gateway name | Location | SKU Tier | Diagnostic settings count | Destination configured | Enabled log categories | Status |
+| Subscription | Gateway name | Location | SKU tier | Diagnostic settings count | Destination configured | Enabled log categories | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
