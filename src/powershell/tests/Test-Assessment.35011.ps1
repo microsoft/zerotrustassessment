@@ -23,7 +23,7 @@ function Test-Assessment-35011 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce','External'),
         TestId = 35011,
-        Title = 'Super User Membership Configuration',
+        Title = 'Super user membership is configured for Azure Information Protection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -178,8 +178,8 @@ function Test-Assessment-35011 {
         $mdInfo += "**Super Users Configured:** Unknown`n`n"
     }
     else {
-        $mdInfo += "**Super User Feature: $superUserFeatureEnabled**`n`n"
-        $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
+        $mdInfo += "**Super User Feature:** $superUserFeatureEnabled`n`n"
+        $mdInfo += "**Super Users Configured:** $superUserCount`n`n"
     }
 
     if (-not $errorMsg -and $superUserCount -gt 0) {
