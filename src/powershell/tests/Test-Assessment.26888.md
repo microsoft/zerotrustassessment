@@ -3,19 +3,19 @@ Azure Application Gateway Web Application Firewall (WAF) protects web applicatio
 **Remediation action**
 
 Create a Log Analytics workspace for storing Application Gateway WAF logs
-    - [Create a Log Analytics workspace](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/quick-create-workspace)
+- [Create a Log Analytics workspace](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/quick-create-workspace)
 
 Configure diagnostic settings for Application Gateway to enable log collection
-    - [Create diagnostic settings in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/create-diagnostic-settings)
+- [Create diagnostic settings in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/create-diagnostic-settings)
 
 Enable WAF logging to capture firewall events and rule matches
-    - [Application Gateway WAF logs and metrics](https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-waf-metrics)
+- [Application Gateway WAF logs and metrics](https://learn.microsoft.com/en-us/azure/web-application-firewall/ag/application-gateway-waf-metrics)
 
 Monitor Application Gateway using diagnostic logs and metrics
-    - [Monitor Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-diagnostics)
+- [Monitor Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-diagnostics)
 
 Use Azure Monitor Workbooks for visualizing and analyzing WAF logs
-    - [Azure Monitor Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
+- [Azure Monitor Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
 
 <!--- Results --->
 %TestResult%
