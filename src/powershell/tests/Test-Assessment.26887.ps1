@@ -18,7 +18,7 @@ function Test-Assessment-26887 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Azure_Firewall'),
+        MinimumLicense = ('Azure_Firewall_Standard', 'Azure_Firewall_Premium'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -54,128 +54,57 @@ function Test-Assessment-26887 {
         return
     }
 
-    # Q1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
-    $subscriptions = $null
-
+    # Check Azure access token
     try {
-        $result = Invoke-AzRestMethod -Path $subscriptionsPath -ErrorAction Stop
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($result.StatusCode)"
-        }
-
-        # Azure REST list APIs are paginated.
-        # Handling nextLink is required to avoid missing subscriptions.
-        $allSubscriptions = @()
-        $subscriptionsJson = $result.Content | ConvertFrom-Json -ErrorAction Stop
-
-        if ($subscriptionsJson.value) {
-            $allSubscriptions += $subscriptionsJson.value
-        }
-
-        $nextLink = $subscriptionsJson.nextLink
-        try {
-            while ($nextLink) {
-                $result = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                $subscriptionsJson = $result.Content | ConvertFrom-Json -ErrorAction Stop
-                if ($subscriptionsJson.value) {
-                    $allSubscriptions += $subscriptionsJson.value
-                }
-                $nextLink = $subscriptionsJson.nextLink
-            }
-        }
-        catch {
-            Write-PSFMessage "Failed to retrieve next page of subscriptions: $_. Continuing with collected data." -Level Warning
-        }
-
-        $subscriptions = $allSubscriptions | Where-Object { $_.state -eq 'Enabled' }
+        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
     }
     catch {
-        Write-PSFMessage "Failed to enumerate Azure subscriptions while evaluating Azure Firewall diagnostic logging: $_" -Level Error
-        throw
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
     }
 
-    if ($null -eq $subscriptions -or $subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No enabled subscriptions found.' -Level Warning
+    if (-not $accessToken) {
+        Write-PSFMessage 'Azure authentication token not found.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Q1 & Q2: Query Azure Firewalls using Azure Resource Graph
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Firewalls via Resource Graph'
+
+    $argQuery = @"
+Resources
+| where type =~ 'microsoft.network/azurefirewalls'
+| where properties.provisioningState =~ 'Succeeded'
+| join kind=leftouter (
+    ResourceContainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionName=name, subscriptionId
+) on subscriptionId
+| project
+    FirewallName=name,
+    FirewallId=id,
+    Location=location,
+    SkuName=tostring(properties.sku.name),
+    SkuTier=tostring(properties.sku.tier),
+    SubscriptionId=subscriptionId,
+    SubscriptionName=subscriptionName
+"@
+
+    $allFirewalls = @()
+    try {
+        $allFirewalls = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($allFirewalls.Count) Azure Firewall(s)" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
-    # Collect Azure Firewall resources across all subscriptions
-    $allFirewalls = @()
-    $firewallQuerySuccess = $false
-
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-
-        # Q2: List Azure Firewalls
-        Write-ZtProgress -Activity $activity -Status "Querying Azure Firewalls in subscription $subscriptionId"
-
-        $firewallListPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/azureFirewalls?api-version=2025-03-01"
-
-        try {
-            $firewallListResult = Invoke-AzRestMethod -Path $firewallListPath -ErrorAction Stop
-
-            if ($firewallListResult.StatusCode -lt 400) {
-                $firewallQuerySuccess = $true
-                # Azure REST list APIs are paginated.
-                # Handling nextLink is required to avoid missing Azure Firewalls.
-                $allFirewallsInSub = @()
-                $firewallJson = $firewallListResult.Content | ConvertFrom-Json -ErrorAction Stop
-
-                if ($firewallJson.value) {
-                    $allFirewallsInSub += $firewallJson.value
-                }
-
-                $nextLink = $firewallJson.nextLink
-                try {
-                    while ($nextLink) {
-                        $firewallListResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                        $firewallJson = $firewallListResult.Content | ConvertFrom-Json -ErrorAction Stop
-                        if ($firewallJson.value) {
-                            $allFirewallsInSub += $firewallJson.value
-                        }
-                        $nextLink = $firewallJson.nextLink
-                    }
-                }
-                catch {
-                    Write-PSFMessage "Failed to retrieve next page of Azure Firewalls for subscription '$subscriptionId': $_. Continuing with collected data." -Level Warning
-                }
-
-                # Filter for active firewalls (provisioningState == Succeeded)
-                $activeFirewalls = $allFirewallsInSub | Where-Object { $_.properties.provisioningState -eq 'Succeeded' }
-                foreach ($firewall in $activeFirewalls) {
-                    $allFirewalls += [PSCustomObject]@{
-                        SubscriptionId   = $subscriptionId
-                        SubscriptionName = $subscription.displayName
-                        Firewall         = $firewall
-                    }
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying Azure Firewalls in subscription $subscriptionId : $_" -Level Warning
-        }
-    }
-
     # Check if any Azure Firewall resources exist
     if ($allFirewalls.Count -eq 0) {
-        if (-not $firewallQuerySuccess) {
-            Write-PSFMessage 'Unable to query Azure Firewall resources in any subscription due to access restrictions.' -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
         Write-PSFMessage 'No Azure Firewall resources found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedOrNotApplicable
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
@@ -184,23 +113,18 @@ function Test-Assessment-26887 {
 
     $evaluationResults = @()
 
-    foreach ($fwItem in $allFirewalls) {
-        $firewall = $fwItem.Firewall
-        $firewallId = $firewall.id
-        $firewallName = $firewall.name
-        $firewallLocation = $firewall.location
-        $firewallSku = "$($firewall.properties.sku.name)/$($firewall.properties.sku.tier)"
+    foreach ($firewall in $allFirewalls) {
+        $firewallId = $firewall.FirewallId
+        $firewallName = $firewall.FirewallName
+        $firewallLocation = $firewall.Location
+        $firewallSku = "$($firewall.SkuName)/$($firewall.SkuTier)"
 
-        # Q3: Query diagnostic settings
+        # Q3: Query diagnostic settings using Invoke-ZtAzureRequest
         $diagPath = $firewallId + '/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview'
 
         $diagSettings = @()
         try {
-            $diagResult = Invoke-AzRestMethod -Path $diagPath -ErrorAction Stop
-
-            if ($diagResult.StatusCode -lt 400) {
-                $diagSettings = ($diagResult.Content | ConvertFrom-Json -ErrorAction Stop).value
-            }
+            $diagSettings = @(Invoke-ZtAzureRequest -Path $diagPath)
         }
         catch {
             Write-PSFMessage "Error querying diagnostic settings for $firewallName : $_" -Level Warning
@@ -210,7 +134,7 @@ function Test-Assessment-26887 {
         $hasValidDiagSetting = $false
         $destinationType = 'None'
         $enabledCategories = @()
-        $diagSettingName = 'None'
+        $diagSettingNames = @()
 
         foreach ($setting in $diagSettings) {
             $workspaceId = $setting.properties.workspaceId
@@ -243,7 +167,7 @@ function Test-Assessment-26887 {
                 # If this setting has destination AND enabled logs, it's valid
                 if ($settingEnabledCategories.Count -gt 0) {
                     $hasValidDiagSetting = $true
-                    $diagSettingName = $setting.name
+                    $diagSettingNames += $setting.name
                     $destinationType = $destTypes -join ', '
                     $enabledCategories += $settingEnabledCategories
                 }
@@ -256,14 +180,14 @@ function Test-Assessment-26887 {
         $status = if ($hasValidDiagSetting) { 'Pass' } else { 'Fail' }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId         = $fwItem.SubscriptionId
-            SubscriptionName       = $fwItem.SubscriptionName
+            SubscriptionId         = $firewall.SubscriptionId
+            SubscriptionName       = $firewall.SubscriptionName
             FirewallName           = $firewallName
             FirewallId             = $firewallId
             Location               = $firewallLocation
             Sku                    = $firewallSku
             DiagnosticSettingCount = $diagSettings.Count
-            DiagnosticSettingName  = $diagSettingName
+            DiagnosticSettingName  = ($diagSettingNames | Select-Object -Unique) -join ', '
             DestinationType        = $destinationType
             EnabledCategories      = $enabledCategories -join ', '
             Status                 = $status
