@@ -138,7 +138,7 @@ function Initialize-Dependencies {
     if (-not $SkipModuleInstallation.IsPresent)
     {
         Write-Host -Object "`r`n"
-        Write-Host -Object ('Resolving {0} dependencies...' -f $allModuleDependencies.Count) -ForegroundColor Green
+        Write-Host -Object ('Resolving {0} dependencies...' -f $requiredModuleToSave.Count) -ForegroundColor Green
 
         if ($saveModuleCmd = (Get-Command -Name Save-PSResource -ErrorAction Ignore))
         {

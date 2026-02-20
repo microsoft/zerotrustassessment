@@ -54,17 +54,17 @@ if (!$SkipRequiredAssembliesDetection -and $ModuleRequiredAssembliesFileInfo) {
 }
 
 ## Clear Existing RequiredAssemblies, NestedModules, and FileList
-if ($paramUpdateModuleManifest.ContainsKey('RequiredAssemblies')) {
-    if (!$paramUpdateModuleManifest['RequiredAssemblies']) { $paramUpdateModuleManifest.Remove('RequiredAssemblies') }
-    (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?RequiredAssemblies\s*=\s*@\([^)]*\)", "# RequiredAssemblies = @()" | Set-Content $ModuleManifestFileInfo.FullName
-}
-if ($paramUpdateModuleManifest.ContainsKey('NestedModules') -and !$paramUpdateModuleManifest['NestedModules']) {
-    $paramUpdateModuleManifest.Remove('NestedModules')
-    (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?NestedModules\s*=\s*@\([^)]*\)", "# NestedModules = @()" | Set-Content $ModuleManifestFileInfo.FullName
-}
-if ($paramUpdateModuleManifest.ContainsKey('FileList')) {
-    (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?FileList\s*=\s*@\([^)]*\)", "# FileList = @()" | Set-Content $ModuleManifestFileInfo.FullName
-}
+# if ($paramUpdateModuleManifest.ContainsKey('RequiredAssemblies')) {
+#     if (!$paramUpdateModuleManifest['RequiredAssemblies']) { $paramUpdateModuleManifest.Remove('RequiredAssemblies') }
+#     (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?RequiredAssemblies\s*=\s*@\([^)]*\)", "# RequiredAssemblies = @()" | Set-Content $ModuleManifestFileInfo.FullName
+# }
+# if ($paramUpdateModuleManifest.ContainsKey('NestedModules') -and !$paramUpdateModuleManifest['NestedModules']) {
+#     $paramUpdateModuleManifest.Remove('NestedModules')
+#     (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?NestedModules\s*=\s*@\([^)]*\)", "# NestedModules = @()" | Set-Content $ModuleManifestFileInfo.FullName
+# }
+# if ($paramUpdateModuleManifest.ContainsKey('FileList')) {
+#     (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?FileList\s*=\s*@\([^)]*\)", "# FileList = @()" | Set-Content $ModuleManifestFileInfo.FullName
+# }
 
 ## Install Module Dependencies
 foreach ($Module in $ModuleManifest['RequiredModules']) {
@@ -77,17 +77,9 @@ foreach ($Module in $ModuleManifest['RequiredModules']) {
 
 ## Save original manifest content before Update-ModuleManifest corrupts
 ## custom PrivateData keys containing hashtable arrays (it serializes them as type name strings).
-$originalManifestContent = Get-Content $ModuleManifestFileInfo.FullName -Raw
 
 ## Update Module Manifest in Module Output Directory
-Update-ModuleManifest -Path $ModuleManifestFileInfo.FullName -ErrorAction Stop @paramUpdateModuleManifest
-
-## Restore WindowsPowerShellRequiredModules that Update-ModuleManifest corrupted
-if ($originalManifestContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
-    $originalBlock = $Matches[1]
-    $updatedContent = Get-Content $ModuleManifestFileInfo.FullName -Raw
-    if ($updatedContent -match '(?s)(WindowsPowerShellRequiredModules\s*=\s*@\([^)]*\))') {
-        $updatedContent = $updatedContent.Replace($Matches[1], $originalBlock)
-        Set-Content $ModuleManifestFileInfo.FullName -Value $updatedContent -NoNewline
-    }
+# Update-ModuleManifest -Path $ModuleManifestFileInfo.FullName -ErrorAction Stop @paramUpdateModuleManifest
+foreach ($key in $paramUpdateModuleManifest.Keys) {
+    Update-Metadata -Path $ModuleManifestFileInfo.FullName -PropertyName $key -Value $paramUpdateModuleManifest[$key]
 }
