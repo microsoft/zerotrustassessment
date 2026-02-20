@@ -81,5 +81,10 @@ foreach ($Module in $ModuleManifest['RequiredModules']) {
 ## Update Module Manifest in Module Output Directory
 # Update-ModuleManifest -Path $ModuleManifestFileInfo.FullName -ErrorAction Stop @paramUpdateModuleManifest
 foreach ($key in $paramUpdateModuleManifest.Keys) {
-    Update-Metadata -Path $ModuleManifestFileInfo.FullName -PropertyName $key -Value $paramUpdateModuleManifest[$key]
+    if ($paramUpdateModuleManifest[$key]) { # Only update manifest properties that have values
+        Update-Metadata -Path $ModuleManifestFileInfo.FullName -PropertyName $key -Value $paramUpdateModuleManifest[$key]
+    }
+    else {
+        Write-Debug -Message ('Metadata is empty for {0}, skipping update for this property.' -f $key)
+    }
 }
