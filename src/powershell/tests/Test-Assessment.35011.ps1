@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Azure Information Protection (AIP) Super User Feature Configuration
+    Super user membership is configured for Azure Information Protection
 
 .DESCRIPTION
     Evaluates whether the Azure Information Protection (AIP) super user feature is enabled and properly configured with designated super users. The super user feature allows specified service accounts or administrators to decrypt rights-managed content for auditing, search, and compliance purposes.
@@ -23,7 +23,7 @@ function Test-Assessment-35011 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce','External'),
         TestId = 35011,
-        Title = 'Super User Membership Configuration',
+        Title = 'Super user membership is configured for Azure Information Protection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

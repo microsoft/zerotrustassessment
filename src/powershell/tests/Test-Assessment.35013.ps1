@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that at least one encryption-enabled sensitivity label is configured.
+    Sensitivity labels with encryption are configured
 
 .DESCRIPTION
     This test checks if encryption-enabled sensitivity labels exist by:
@@ -25,7 +25,7 @@ function Test-Assessment-35013 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35013,
-        Title = 'Encryption-Enabled Labels',
+        Title = 'Sensitivity labels with encryption are configured',
         UserImpact = 'High'
     )]
     [CmdletBinding()]

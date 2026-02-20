@@ -51,11 +51,9 @@ PowerShellVersion = '7.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; ModuleVersion = '3.8.0'; },
-               @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
-               @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
-               @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
-               @{ModuleName = 'PSFramework'; GUID = '8028b914-132b-431f-baa9-94a6952f21ff'; ModuleVersion = '1.13.419'; })
+RequiredModules = @(
+    @{ModuleName = 'PSFramework'; GUID = '8028b914-132b-431f-baa9-94a6952f21ff'; ModuleVersion = '1.13.419'; }
+)
 
 # Assemblies that must be loaded prior to importing this module
 RequiredAssemblies = 'lib\DuckDB.NET.Data.dll'
@@ -100,8 +98,19 @@ AliasesToExport = 'Invoke-ZeroTrustAssessment'
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
 
-    PSData = @{
+    WindowsPowerShellRequiredModules = @(
+        @{ModuleName = 'Microsoft.Online.SharePoint.PowerShell'; GUID = 'adedde5f-e77b-4682-ab3d-a4cb4ff79b83'; ModuleVersion = '16.0.26914.12004'; },
+        @{ModuleName = 'AipService'; GUID = 'e338ccc0-3333-4479-87fe-66382d33782d'; ModuleVersion = '3.0.0.1'; }
+    )
 
+    XPlatPowerShellRequiredModules = @(
+        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
+        @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
+    )
+
+    PSData = @{
         # Tags applied to this module. These help with module discovery in online galleries.
         Tags = 'Microsoft','Security','ZeroTrust','Entra','Intune'
 
@@ -125,6 +134,16 @@ PrivateData = @{
 
         # External dependent modules of this module
         # ExternalModuleDependencies = @()
+
+        # TODO: Some tests depends for:
+            # Connected State
+            # Permissions
+            # Licensing
+
+        # What Valid reasons to skip, fail, error a test.
+
+        # TODO: Check commands because they may be dedicated based on permissions. And the current connection.
+        # TODO: Based on Licensing, you may have
 
     } # End of PSData hashtable
 

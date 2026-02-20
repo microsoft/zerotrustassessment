@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that trainable classifiers are integrated into auto-labeling and/or DLP policies.
+    Trainable classifiers are used in data loss prevention and auto-labeling policies
 
 .DESCRIPTION
     This test checks if trainable classifiers are being used in policies by:
@@ -25,7 +25,7 @@ function Test-Assessment-35036 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35036,
-        Title = 'Trainable Classifiers Usage in Policies',
+        Title = 'Trainable classifiers are used in data loss prevention and auto-labeling policies',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]

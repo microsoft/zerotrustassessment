@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that email label inheritance from attachments is configured.
+    Email label policies inherit sensitivity from attachments
 
 .DESCRIPTION
     This test checks if sensitivity label policies have the attachmentaction setting enabled
@@ -24,7 +24,7 @@ function Test-Assessment-35014 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35014,
-        Title = 'Email label inheritance from attachments configured',
+        Title = 'Email label policies inherit sensitivity from attachments',
         UserImpact = 'High'
     )]
     [CmdletBinding()]

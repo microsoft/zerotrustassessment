@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that Communication Compliance rules are configured to detect and monitor Copilot content.
+    Communication compliance monitoring is configured for Microsoft Copilot
 
 .DESCRIPTION
     This test verifies that Communication Compliance rules targeting Copilot interactions are properly
@@ -25,7 +25,7 @@ function Test-Assessment-35039 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35039,
-        Title = 'Copilot Communication Compliance Monitoring Configured',
+        Title = 'Communication compliance monitoring is configured for Microsoft Copilot',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -57,9 +57,17 @@ function Test-Assessment-35039 {
                     if ($ruleXml.root) {
                         $valueElements = $ruleXml.root.GetElementsByTagName('value')
                         foreach ($valueElement in $valueElements) {
-                            if (-not [string]::IsNullOrWhiteSpace($valueElement.'#text')) {
+                            $rawValue = $valueElement.'#text'
+                            if (-not [string]::IsNullOrWhiteSpace($rawValue)) {
                                 try {
-                                    $jsonData = $valueElement.'#text' | ConvertFrom-Json
+                                    $jsonText = $rawValue.Trim()
+
+                                    # We only need object/array JSON payloads that can contain Workloads
+                                    if ($jsonText -notmatch '^[\{\[]') {
+                                        continue
+                                    }
+
+                                    $jsonData = $jsonText | ConvertFrom-Json -ErrorAction Stop
                                     if ($jsonData.Workloads -and $jsonData.Workloads -contains 'Copilot') {
                                         $hasCopilotConfig = $true
                                         break

@@ -27,7 +27,7 @@ function Test-Assessment-35002 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35002,
-        Title = 'Cross-Tenant Access Policy (XTAP) RMS Inbound/Outbound Settings',
+        Title = 'Cross-tenant access settings configured to allow encrypted content sharing',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

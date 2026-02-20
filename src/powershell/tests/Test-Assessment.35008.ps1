@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    SPO Default Document Library Label (Tenant-Wide)
+    A default sensitivity label is configured for SharePoint document libraries
 
 .DESCRIPTION
     SharePoint document libraries support configuring default sensitivity labels that automatically apply baseline protection to new or edited files that lack existing labels or have lower-priority labels. When the tenant-level capability DisableDocumentLibraryDefaultLabeling is enabled (set to $true), organizations block site administrators from establishing automatic baseline classification for document libraries.
@@ -21,7 +21,7 @@ function Test-Assessment-35008 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35008,
-        Title = 'SPO Default Document Library Label (Tenant-Wide)',
+        Title = 'A default sensitivity label is configured for SharePoint document libraries',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

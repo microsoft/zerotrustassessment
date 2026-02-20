@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Conditional Access RMS Exclusions
+    Conditional Access policies don't exclude Rights Management workloads
 #>
 
 function Test-Assessment-35001 {
@@ -13,7 +13,7 @@ function Test-Assessment-35001 {
         SfiPillar = '',
         TenantType = ('Workforce','External'),
         TestId = 35001,
-        Title = 'Conditional Access RMS Exclusions',
+        Title = 'Conditional Access policies don''t exclude Rights Management workloads',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
