@@ -43,7 +43,7 @@ function Clear-ZtRequiredModule {
         Write-Warning -Message 'This command cannot be run when the module is loaded.'
         Write-Warning -Message 'Please close all sessions where ZeroTrustAssessment module is loaded, then run the following...'
         Write-Warning -Message ('&''{0}''' -f $PSCommandPath)
-        if ($isWindows -and (Get-Command -Name Set-Clipboard -ErrorAction SilentlyContinue)) {
+        if ($IsWindows -and (Get-Command -Name Set-Clipboard -ErrorAction SilentlyContinue)) {
             Set-Clipboard -Value ('&''{0}''' -f $PSCommandPath)
             Write-Warning -Message '(The command has been copied to your clipboard.)'
         }
@@ -55,7 +55,7 @@ function Clear-ZtRequiredModule {
     }
 
     # Remove all ZTA-related modules from the current session
-    if ($isWindows) {
+    if ($IsWindows) {
         $ZTAModulesFolder = Join-Path -Path $Env:APPDATA -ChildPath 'ZeroTrustAssessment\Modules'
     }
     else {
