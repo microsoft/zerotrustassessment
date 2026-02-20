@@ -73,11 +73,10 @@ SELECT
     u.id,
     u.displayName,
     u.userPrincipalName,
-    unnest(u.assignedLicenses).skuId as skuId,
-    unnest(u.assignedLicenses).disabledPlans as disabledPlans
+    unnest(u.assignedLicenses).skuId::VARCHAR AS skuId,
+    unnest(u.assignedLicenses).disabledPlans AS disabledPlans
 FROM "User" u
-WHERE u.assignedLicenses IS NOT NULL
-    AND u.assignedLicenses != '[]'
+WHERE len(u.assignedLicenses) > 0
 "@
         $userLicenses = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlUsers -AsCustomObject -ErrorAction Stop)
         # Filter out any records with null IDs
