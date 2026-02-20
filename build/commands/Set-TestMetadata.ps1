@@ -58,15 +58,17 @@ function Set-TestMetadata {
 		[string]
 		$Category,
 
-	[ValidateSet('Low', 'Medium', 'High')]
-	[string]
-	$ImplementationCost,
+		[ValidateSet('Low', 'Medium', 'High')]
+		[string]
+		$ImplementationCost,
 
-	[string[]]
-	$MinimumLicense,
+		[string[]]
+		$MinimumLicense,
 
-	[string]
-	$Pillar,		[ValidateSet('Low', 'Medium', 'High')]
+		[string]
+		$Pillar,
+
+		[ValidateSet('Low', 'Medium', 'High')]
 		[string]
 		$RiskLevel,
 

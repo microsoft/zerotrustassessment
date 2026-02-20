@@ -54,30 +54,24 @@ if (-not $SkipModuleInstallation.IsPresent)
     $moduleManifest = Import-PowerShellDataFile -Path $ModuleManifestPath -ErrorAction Stop
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$requiredModules = $moduleManifest.RequiredModules
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.ExternalModuleDependencies
-    # [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = $moduleManifest.PrivateData.WindowsPowerShellRequiredModules
 
     $requiredModuleToSave = $requiredModules.Where{$_.Name -notin $externalModuleDependencies.Name}
-    # $requiredModuleToSave += $windowsPowerShellRequiredModules.Where{ $_.Name -notin $requiredModules.Name -and $_.Name -notin $externalModuleDependencies.Name }
 
     if (-not $SkipModuleInstallation.IsPresent)
     {
-        Write-Host -Object "`r`n"
-        Write-Host -Object 'Resolving dependencies...' -ForegroundColor Green
-
         $saveModuleCmdParams = @{
             Path = $OutputPath
         }
 
+        Write-Host -Object "`r`n"
+        Write-Host -Object ('Resolving {0} dependencies...' -f $requiredModuleToSave.Count) -ForegroundColor Green
+
         if ($saveModuleCmd = (Get-Command -Name Save-PSResource -ErrorAction Ignore))
         {
-            $saveModuleCmdParams.Add('TrustRepository', $true)
-            $saveModuleCmdParams.Add('Prerelease', $AllowPrerelease.IsPresent)
             Write-Verbose -Message "Saving required modules using Save-PSResource..."
         }
         elseif ($saveModuleCmd = (Get-Command -Name Save-Module -ErrorAction Ignore))
         {
-            $saveModuleCmdParams.Add('Force', $true)
-            $saveModuleCmdParams.Add('AllowPrerelease', $AllowPrerelease.IsPresent)
             Write-Verbose -Message "Saving required modules using Save-Module..."
         }
         else
@@ -89,25 +83,7 @@ if (-not $SkipModuleInstallation.IsPresent)
         foreach ($moduleSpec in $requiredModuleToSave)
         {
             Write-Verbose -Message ("Saving module {0} with version {1}..." -f $moduleSpec.Name, $moduleSpec.Version)
-            $saveModuleCmdParamsClone = $saveModuleCmdParams.Clone()
-            $isModulePresent = Get-Module -Name $moduleSpec.Name -ListAvailable -ErrorAction Ignore | Where-Object {
-                $isValid = $true
-                if ($moduleSpec.Guid)
-                {
-                    $isValid = $_.Guid -eq $moduleSpec.Guid
-                }
-
-                if ($moduleSpec.Version)
-                {
-                    $isValid = $isValid -and $_.Version -ge [Version]$moduleSpec.Version
-                }
-                elseif ($moduleSpec.RequiredVersion)
-                {
-                    $isValid = $isValid -and $_.Version -eq [Version]$moduleSpec.RequiredVersion
-                }
-
-                $isValid
-            }
+            $isModulePresent = Get-Module -FullyQualifiedName $moduleSpec -ListAvailable -ErrorAction Ignore
 
             if ($isModulePresent)
             {
@@ -117,26 +93,66 @@ if (-not $SkipModuleInstallation.IsPresent)
 
             try
             {
-                $saveModuleCmdParamsClone['Name'] = $moduleSpec.Name
-                if ($moduleSpec.Version -and $saveModuleCmd.Name -eq 'Save-Module')
+                if ($saveModuleCmd.Name -eq 'Save-PSResource')
                 {
-                    $saveModuleCmdParamsClone['MinimumVersion'] = $moduleSpec.Version
-                }
-                elseif ($moduleSpec.Version -and $saveModuleCmd.Name -eq 'Save-PSResource')
-                {
-                    $saveModuleCmdParamsClone['Version'] = '[{0}, ]' -f $moduleSpec.Version
-                }
+                    # To Save-PSResource we need to first Find-PSResource to get the latest available in given range.
+                    $findModuleParams = @{
+                        Name = $moduleSpec.Name
+                        ErrorAction = 'Stop'
+                        'Prerelease' = $AllowPrerelease.IsPresent
+                    }
 
-                & $saveModuleCmd @saveModuleCmdParamsClone
-                Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
+                    # Find-PSResource uses NuGet version range syntax: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#version-ranges
+                    if ($moduleSpec.RequiredVersion) {
+                        # Absolute required version
+                        $findModuleParams['Version'] = '[{0}]' -f $moduleSpec.RequiredVersion
+                    }
+                    elseif ($moduleSpec.MaximumVersion -and $moduleSpec.Version) {
+                        # Minimum and maximum version (exact range) inclusive
+                        $findModuleParams['Version'] = '[{0},{1}]' -f $moduleSpec.Version, $moduleSpec.MaximumVersion
+                    }
+                    elseif ($moduleSpec.MaximumVersion) {
+                        # Maximum version inclusive
+                        $findModuleParams['Version'] = '(,{0}]' -f $moduleSpec.MaximumVersion
+                    }
+                    elseif ($moduleSpec.Version) {
+                        # Minimum version inclusive
+                         $findModuleParams['Version'] = '[{0}, )' -f $moduleSpec.Version
+                    }
+
+                    # Get the latest version of the module in the range specified in Module Specification.
+                    $latestModuleInRange = Find-PSResource @findModuleParams -ErrorAction Stop | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+                    $savePSResourceParams = @{
+                        Path = $OutputPath
+                        PassThru = $true
+                        ErrorAction = 'Stop'
+                        TrustRepository = $true
+                    }
+
+                    $savedModule = ($latestModuleInRange | Save-PSResource @savePSResourceParams).Where({ $_.Name -eq $moduleSpec.Name },1)
+                    Write-Host -Object ('    ⬇️ Module {0} v{1} saved successfully.' -f $moduleSpec.Name, $savedModule.Version) -ForegroundColor Green
+                }
+                elseif ($saveModuleCmd.Name -eq 'Save-Module')
+                {
+                    $saveModuleCmdParams = @{
+                        ErrorAction = 'Stop'
+                        Force = $true
+                        Path = $OutputPath
+                    }
+
+                    $moduleSpec | &$saveModuleCmd @saveModuleCmdParams
+                    Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
+                }
             }
             catch
             {
                 Write-Host -Object ('    ❌ Failed to save module {0}: {1}' -f $moduleSpec.Name, $_) -ForegroundColor Red
             }
         }
-    }
 
+        Write-Host -Object "`r`n"
+    }
 }
 else
 {
