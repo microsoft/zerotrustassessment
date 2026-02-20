@@ -191,7 +191,7 @@ function Initialize-Dependencies {
                     }
                     elseif ($moduleSpec.Version) {
                         # Minimum version inclusive
-                         $findModuleParams['Version'] = '[{0}, )' -f $moduleSpec.Version
+                        $findModuleParams['Version'] = '[{0}, )' -f $moduleSpec.Version
                     }
 
                     # Get the latest version of the module in the range specified in Module Specification.
