@@ -215,6 +215,10 @@ function Initialize-Dependencies {
                         Path = $RequiredModulesPath
                     }
 
+                    if ($AllowPrerelease.IsPresent)
+                    {
+                        $saveModuleCmdParams['AllowPrerelease'] = $AllowPrerelease.IsPresent
+                    }
                     $moduleSpec | &$saveModuleCmd @saveModuleCmdParams
                     Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
                 }
