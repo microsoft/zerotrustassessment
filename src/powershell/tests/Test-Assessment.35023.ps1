@@ -25,7 +25,7 @@ function Test-Assessment-35023 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35023,
-        Title = 'OCR is enabled for sensitive information detection',
+        Title = 'OCR configuration for sensitive information detection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -42,15 +42,13 @@ function Test-Assessment-35023 {
 
     # Q1: Get OCR configuration
     try {
-        $ocrConfig = Get-OcrConfiguration | Select-Object -Property Enabled, ExchangeLocation, SharePointLocation, OneDriveLocation, TeamsLocation, EndpointDlpLocation, IsOcrUsageBlocked, OcrUsageBlockageReason -ErrorAction Stop
+        $ocrConfig = Get-OcrConfiguration -ErrorAction Stop | Select-Object -Property Enabled, ExchangeLocation, SharePointLocation, OneDriveLocation, TeamsLocation, EndpointDlpLocation, IsOcrUsageBlocked, OcrUsageBlockageReason
     }
     catch {
         $errorMsg = $_
         Write-PSFMessage "Failed to retrieve OCR configuration: $_" -Tag Test -Level Warning
     }
-
     # Q2/Q3: Extract detailed properties if configuration exists
-    $configObject = $false
     $enabled = $false
     $exchange = $false
     $sharePoint = $false
@@ -59,25 +57,23 @@ function Test-Assessment-35023 {
     $endpoint = $false
     $isBlocked = $null
     $blockReason = $null
-    $billingStatus = $null
     $enabledLocationsCount = 0
 
     if ($ocrConfig) {
-        $configObject = $true
         $blockReason = $ocrConfig.OcrUsageBlockageReason
-        $enabled   = $ocrConfig.Enabled -eq $true
-        $exchange  = if($ocrConfig.ExchangeLocation){'True'} else {'False'}
-        $sharePoint= if($ocrConfig.SharePointLocation){'True'} else {'False'}
-        $oneDrive  = if($ocrConfig.OneDriveLocation){'True'} else {'False'}
-        $teams     = if($ocrConfig.TeamsLocation){'True'} else {'False'}
-        $endpoint  = if($ocrConfig.EndpointDlpLocation){'True'} else {'False'}
-        $isBlocked = $ocrConfig.IsOcrUsageBlocked -eq $true
+        $enabled   = $ocrConfig.Enabled
+        $exchange   = [bool]$ocrConfig.ExchangeLocation
+        $sharePoint = [bool]$ocrConfig.SharePointLocation
+        $oneDrive   = [bool]$ocrConfig.OneDriveLocation
+        $teams      = [bool]$ocrConfig.TeamsLocation
+        $endpoint   = [bool]$ocrConfig.EndpointDlpLocation
+        $isBlocked  = $ocrConfig.IsOcrUsageBlocked
 
-        if ($exchange -eq 'True') { $enabledLocationsCount++ }
-        if ($sharePoint -eq 'True') { $enabledLocationsCount++ }
-        if ($oneDrive -eq 'True') { $enabledLocationsCount++ }
-        if ($teams -eq 'True') { $enabledLocationsCount++ }
-        if ($endpoint -eq 'True') { $enabledLocationsCount++ }
+        if ($exchange)   { $enabledLocationsCount++ }
+        if ($sharePoint) { $enabledLocationsCount++ }
+        if ($oneDrive)   { $enabledLocationsCount++ }
+        if ($teams)      { $enabledLocationsCount++ }
+        if ($endpoint)   { $enabledLocationsCount++ }
 
         $billingStatus = if ($isBlocked) { 'Not Configured' } else { 'Configured' }
     }
@@ -86,7 +82,6 @@ function Test-Assessment-35023 {
     #region Assessment Logic
     $customStatus = $null
     $passed = $false
-    $testResultMarkdown = ''
 
     if ($errorMsg) {
         $passed = $false
@@ -96,13 +91,8 @@ function Test-Assessment-35023 {
     else {
         $hasConfig = $null -ne $ocrConfig
         $anyLocationEnabled = $enabledLocationsCount -gt 0
-        $notBlocked = $isBlocked -eq $false
 
-        if ($hasConfig -and $enabled -and $anyLocationEnabled -and $notBlocked) {
-            $passed = $true
-            $testResultMarkdown = "✅ OCR configuration is enabled at the tenant level for at least one workload, enabling policies to detect sensitive information within images.`n`n%TestResult%"
-        }
-        elseif (-not $hasConfig) {
+        if (-not $hasConfig) {
             $passed = $false
             $testResultMarkdown = "❌ OCR is not configured.`n`n%TestResult%"
         }
@@ -114,30 +104,33 @@ function Test-Assessment-35023 {
             $passed = $false
             $testResultMarkdown = "❌ OCR is enabled but not configured for any locations.`n`n%TestResult%"
         }
-        else {
+        elseif ($isBlocked) {
             $passed = $false
-            $testResultMarkdown = "❌ OCR is usage is blocked.`n`n%TestResult%"
+            $testResultMarkdown = "❌ OCR usage is blocked.`n`n%TestResult%"
+        }
+        else {
+            $passed = $true
+            $testResultMarkdown = "✅ OCR configuration is enabled at the tenant level for at least one workload, enabling policies to detect sensitive information within images.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = ''
 
     if (-not $errorMsg) {
         $reportTitle = 'OCR configuration status'
         $portalLink = 'https://purview.microsoft.com/'
         $portalPathSafe = Get-SafeMarkdown -Text 'Microsoft Purview portal > Settings > Optical character recognition (OCR)'
 
-        $configurationObjectStatus = if ($configObject) { 'Yes' } else { 'No' }
+        $configurationObjectStatus = if ($null -ne $ocrConfig) { 'Yes' } else { 'No' }
 
         $tableRows = "| Configuration object exists | $configurationObjectStatus |`n"
         $tableRows += "| OCR enabled (Tenant-level) | $enabled |`n"
-        $tableRows += "| Exchange location enabled | $exchange |`n"
-        $tableRows += "| SharePoint location enabled | $sharePoint |`n"
-        $tableRows += "| OneDrive location enabled | $oneDrive |`n"
-        $tableRows += "| Teams location enabled | $teams |`n"
-        $tableRows += "| Endpoint location enabled | $endpoint |`n"
+        $tableRows += "| Exchange location enabled | $($exchange.ToString()) |`n"
+        $tableRows += "| SharePoint location enabled | $($sharePoint.ToString()) |`n"
+        $tableRows += "| OneDrive location enabled | $($oneDrive.ToString()) |`n"
+        $tableRows += "| Teams location enabled | $($teams.ToString()) |`n"
+        $tableRows += "| Endpoint location enabled | $($endpoint.ToString()) |`n"
         $tableRows += "| OCR usage blocked | $(if ($null -eq $isBlocked) { 'N/A' } else { $isBlocked }) |`n"
         $tableRows += "| Blockage reason | $(if ($blockReason) { $blockReason } else { 'None' }) |`n"
         $tableRows += "| Azure billing status | $(if ($billingStatus) { $billingStatus } else { 'N/A' }) |`n"
@@ -168,7 +161,7 @@ function Test-Assessment-35023 {
 
     $params = @{
         TestId = '35023'
-        Title = 'OCR is enabled for sensitive information detection'
+        Title = 'OCR configuration for sensitive information detection'
         Status = $passed
         Result = $testResultMarkdown
     }
