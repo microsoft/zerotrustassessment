@@ -322,13 +322,16 @@ Resources
         }
     }
 
-    $passed = @($findings | Where-Object { $_.IsCompliant -eq $false }).Count -eq 0
+    $failedCount = @($findings | Where-Object { $_.IsCompliant -eq $false }).Count
     $unknownCount = @($findings | Where-Object { $null -eq $_.IsCompliant }).Count
 
-    if ($passed -and $unknownCount -eq 0) {
+    # A test only "passes" when there are no failures and no unknowns.
+    $passed = ($failedCount -eq 0 -and $unknownCount -eq 0)
+
+    if ($passed) {
         $testResultMarkdown = "✅ DDoS Protection is enabled for all Public IP addresses, either through DDoS IP Protection enabled directly on the public IP or through DDoS Network Protection enabled on the associated VNET.`n`n%TestResult%"
     }
-    elseif ($passed -and $unknownCount -gt 0) {
+    elseif ($failedCount -eq 0 -and $unknownCount -gt 0) {
         $testResultMarkdown = "✅ DDoS Protection is enabled for all resolvable Public IP addresses. $unknownCount public IP(s) could not be fully evaluated due to query failures and require manual verification.`n`n%TestResult%"
     }
     else {
