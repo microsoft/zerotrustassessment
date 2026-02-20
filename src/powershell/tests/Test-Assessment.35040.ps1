@@ -92,7 +92,7 @@ function Test-Assessment-35040 {
     if ($collectionPolicies -and -not $errorMsg) {
         try {
             $allRules = Get-SupervisoryReviewRule -IncludeRuleXml -ErrorAction Stop
-            $allReviewPolicy = Get-SupervisoryReviewPolicyV2
+            $allReviewPolicy = Get-SupervisoryReviewPolicyV2 -ErrorAction Stop
 
             foreach ($rule in $allRules) {
                 if (-not [string]::IsNullOrWhiteSpace($rule.RuleXml)) {
@@ -185,9 +185,9 @@ function Test-Assessment-35040 {
     $enabledPoliciesWithReviewMailbox = @()
 
     if ($enterpriseAIRules -and -not $errorMsg) {
-        $enabledPoliciesWithReviewMailbox = @($allReviewPolicy | Where-Object {
-            $_.Enabled -eq $true -and $_.ReviewMailbox -ne $null
-        })
+        $enabledPoliciesWithReviewMailbox = $allReviewPolicy | Where-Object {
+            $_.Enabled -eq $true -and $null -ne $_.ReviewMailbox
+        }
     }
 
     #endregion Data Collection
@@ -197,35 +197,34 @@ function Test-Assessment-35040 {
 
     # Evaluation logic:
     # - Fail if there was an error during data collection
-    # - Fail if no Collection Policies are configured
+    # - Fail if no Collection Policies are configured or policies are disabled
     # - Fail if no Communication Compliance rules target enterprise AI apps
     # - Fail if no enabled policies with ReviewMailbox exist
     # - Pass if Collection Policies are configured, rules target enterprise AI apps, and at least one enabled policy with ReviewMailbox exists
 
-    $q1Pass = @($collectionPolicies | Where-Object { $_.Enabled -eq $true -and $_.Activities.Count -ge 1}).Count -ge 1
-    $q2Pass = $enterpriseAIRules.Count -ge 1
-    $q3Pass = $enabledPoliciesWithReviewMailbox.Count -ge 1
+    $hasActiveCollectionPolicies = ($collectionPolicies | Where-Object { $_.Enabled -eq $true -and $_.Activities.Count -ge 1 }).Count -ge 1
+    $hasEnterpriseAIRules = $enterpriseAIRules.Count -ge 1
+    $hasEnabledPoliciesWithReviewMailbox = $enabledPoliciesWithReviewMailbox.Count -ge 1
 
-    # Fail if there was an error during data collection
     if ($errorMsg) {
         $passed = $false
         $testResultMarkdown = "❌ Unable to determine enterprise AI monitoring status due to error:`n`n$errorMsg`n`n%TestResult%"
     }
-    elseif ($q1Pass -and $q2Pass -and $q3Pass) {
-        $passed = $true
-        $testResultMarkdown = "✅ Collection Policies are configured for data ingestion, Communication Compliance rules are configured to target enterprise AI apps (ConnectedAIApp and/or UnifiedGenAIWorkloads identified in RuleXml), AND at least one Communication Compliance policy is ENABLED with a ReviewMailbox configured, enabling the organization to detect and investigate unauthorized data sharing and policy violations through enterprise AI interactions.`n`n%TestResult%"
-    }
-    elseif (-not $q1Pass) {
+    elseif (-not $hasActiveCollectionPolicies) {
         $passed = $false
         $testResultMarkdown = "❌ No enabled collection policies found for data ingestion.`n`n%TestResult%"
     }
-    elseif (-not $q2Pass) {
+    elseif (-not $hasEnterpriseAIRules) {
         $passed = $false
         $testResultMarkdown = "❌ No Communication Compliance rules targeting enterprise AI apps were found.`n`n%TestResult%"
     }
-    elseif (-not $q3Pass) {
+    elseif (-not $hasEnabledPoliciesWithReviewMailbox) {
         $passed = $false
         $testResultMarkdown = "❌ No Communication Compliance policies are enabled with ReviewMailbox configured, creating a gap where enterprise AI data exposure and policy violations cannot be detected and investigated.`n`n%TestResult%"
+    }
+    else {
+        $passed = $true
+        $testResultMarkdown = "✅ Collection Policies are configured for data ingestion, Communication Compliance rules are configured to target enterprise AI apps (ConnectedAIApp and/or UnifiedGenAIWorkloads identified in RuleXml), AND at least one Communication Compliance policy is ENABLED with a ReviewMailbox configured, enabling the organization to detect and investigate unauthorized data sharing and policy violations through enterprise AI interactions.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
