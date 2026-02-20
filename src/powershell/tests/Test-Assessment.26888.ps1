@@ -30,6 +30,16 @@ function Test-Assessment-26888 {
     [CmdletBinding()]
     param()
 
+    # Required log categories for comprehensive Application Gateway WAF monitoring
+    $REQUIRED_LOG_CATEGORIES = @(
+        'ApplicationGatewayAccessLog',
+        'ApplicationGatewayPerformanceLog',
+        'ApplicationGatewayFirewallLog'
+    )
+
+    # WAF log category to check for pass/fail criteria (per spec)
+    $WAF_LOG_CATEGORY = 'ApplicationGatewayFirewallLog'
+
     #region Data Collection
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -72,12 +82,12 @@ function Test-Assessment-26888 {
     Write-ZtProgress -Activity $activity -Status 'Querying Application Gateways via Resource Graph'
 
     $argQuery = @"
-resources
+Resources
 | where type =~ 'microsoft.network/applicationgateways'
 | where properties.provisioningState =~ 'Succeeded'
 | where properties.sku.tier in~ ('WAF', 'WAF_v2')
 | join kind=leftouter (
-    resourcecontainers
+    ResourceContainers
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionName=name, subscriptionId
 ) on subscriptionId
@@ -156,11 +166,7 @@ resources
                 $settingEnabledCategories = @()
                 foreach ($log in $logs) {
                     if ($log.enabled) {
-                        # Handle both category and categoryGroup (per spec)
-                        $categoryName = if ($log.category) { $log.category } else { $log.categoryGroup }
-                        if ($categoryName) {
-                            $settingEnabledCategories += $categoryName
-                        }
+                        $settingEnabledCategories += $log.category
                     }
                 }
 
@@ -176,22 +182,25 @@ resources
 
         # Deduplicate enabled categories and destination types (multiple settings may have same values)
         $enabledCategories = $enabledCategories | Select-Object -Unique
+        $missingRequiredCategories = $REQUIRED_LOG_CATEGORIES | Where-Object { $_ -notin $enabledCategories }
+        $wafLogEnabled = $WAF_LOG_CATEGORY -in $enabledCategories
         $destinationType = if ($allDestinationTypes.Count -gt 0) { ($allDestinationTypes | Select-Object -Unique) -join ', ' } else { 'None' }
 
-        $status = if ($hasValidDiagSetting) { 'Pass' } else { 'Fail' }
+        $status = if ($hasValidDiagSetting -and $wafLogEnabled) { 'Pass' } else { 'Fail' }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId         = $appGateway.SubscriptionId
-            SubscriptionName       = $appGateway.SubscriptionName
-            GatewayName            = $appGatewayName
-            GatewayId              = $appGatewayId
-            Location               = $appGatewayLocation
-            SkuTier                = $appGatewaySkuTier
-            DiagnosticSettingCount = $diagSettings.Count
-            DiagnosticSettingName  = ($diagSettingNames | Select-Object -Unique) -join ', '
-            DestinationType        = $destinationType
-            EnabledCategories      = $enabledCategories -join ', '
-            Status                 = $status
+            SubscriptionId            = $appGateway.SubscriptionId
+            SubscriptionName          = $appGateway.SubscriptionName
+            GatewayName               = $appGatewayName
+            GatewayId                 = $appGatewayId
+            Location                  = $appGatewayLocation
+            SkuTier                   = $appGatewaySkuTier
+            DiagnosticSettingCount    = $diagSettings.Count
+            DiagnosticSettingName     = ($diagSettingNames | Select-Object -Unique) -join ', '
+            DestinationType           = $destinationType
+            EnabledCategories         = $enabledCategories -join ', '
+            MissingRequiredCategories = $missingRequiredCategories -join ', '
+            Status                    = $status
         }
     }
 
@@ -226,8 +235,8 @@ resources
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-| Subscription | Gateway name | Location | SKU tier | Diagnostic settings count | Destination configured | Enabled log categories | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Subscription | Gateway name | Location | SKU tier | Diagnostic settings count | Destination configured | Enabled log categories | Missing required categories | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
@@ -253,9 +262,10 @@ resources
             } else {
                 'None'
             }
+            $missingCategories = if ($result.MissingRequiredCategories) { $result.MissingRequiredCategories } else { 'None' }
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
 
-            $tableRows += "| $subscriptionLink | $gatewayLink | $($result.Location) | $($result.SkuTier) | $diagCount | $destConfigured | $enabledCategories | $statusText |`n"
+            $tableRows += "| $subscriptionLink | $gatewayLink | $($result.Location) | $($result.SkuTier) | $diagCount | $destConfigured | $enabledCategories | $missingCategories | $statusText |`n"
         }
 
         # Add note if more items exist
