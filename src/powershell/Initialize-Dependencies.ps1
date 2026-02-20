@@ -134,7 +134,8 @@ function Initialize-Dependencies {
         # skipping module installation.
         #endregion
     }
-    elseif (-not $SkipModuleInstallation.IsPresent)
+
+    if (-not $SkipModuleInstallation.IsPresent)
     {
         Write-Host -Object "`r`n"
         Write-Host -Object ('Resolving {0} dependencies...' -f $allModuleDependencies.Count) -ForegroundColor Green
@@ -246,18 +247,23 @@ function Initialize-Dependencies {
                     $null = [System.Reflection.Assembly]::LoadFrom($_.DLLPath)
                 }
 
-                $brokerInteropToLoad = Get-ChildItem -Path (Split-Path -Path $_.DLLPath) -Filter "Microsoft.Identity.Client*.dll" -File | Where-Object { $_.Name -ne "Microsoft.Identity.Client.dll" }
-                foreach ($broker in $brokerInteropToLoad)
+                # Load related MSAL broker/interop DLLs and Microsoft.IdentityModel.Abstractions (required by MSAL's WithLogging method)
+                $msalDir = Split-Path -Path $_.DLLPath
+                $relatedDllsToLoad = Get-ChildItem -Path $msalDir -File | Where-Object {
+                    ($_.Name -like 'Microsoft.Identity.Client*.dll' -and $_.Name -ne 'Microsoft.Identity.Client.dll') -or
+                    $_.Name -eq 'Microsoft.IdentityModel.Abstractions.dll'
+                }
+                foreach ($relatedDll in $relatedDllsToLoad)
                 {
-                    Write-Debug -Message ('Loading related MSAL broker/interop assembly {0}' -f $broker.Name)
+                    Write-Debug -Message ('Loading related MSAL/IdentityModel assembly {0}' -f $relatedDll.Name)
                     try
                     {
-                        $null = [System.Reflection.Assembly]::LoadFrom($broker.FullName)
-                        Write-Host -Object ('    ✅ Loaded {0}' -f $broker.Name) -ForegroundColor Green
+                        $null = [System.Reflection.Assembly]::LoadFrom($relatedDll.FullName)
+                        Write-Host -Object ('    ✅ Loaded {0}' -f $relatedDll.Name) -ForegroundColor Green
                     }
                     catch
                     {
-                        Write-Debug -Message ("Failed to load related MSAL assembly {0}: {1}" -f $broker.FullName, $_)
+                        Write-Debug -Message ("Failed to load related assembly {0}: {1}" -f $relatedDll.FullName, $_)
                     }
                 }
             }
