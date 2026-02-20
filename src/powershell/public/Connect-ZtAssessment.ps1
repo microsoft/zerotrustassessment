@@ -1,16 +1,13 @@
 function Connect-ZtAssessment {
 	<#
 	.SYNOPSIS
-		Helper method to connect to Microsoft Graph using Connect-MgGraph with the required scopes.
+		Helper method to connect to Microsoft Graph and other services with the appropriate parameters
+		and scopes for the Zero Trust Assessment.
 
 	.DESCRIPTION
-		Use this cmdlet to connect to Microsoft Graph using Connect-MgGraph.
-
-		This command is completely optional if you are already connected to Microsoft Graph and other services using Connect-MgGraph with the required scopes.
-
-		```
-		Connect-MgGraph -Scopes (Get-ZtGraphScope)
-		```
+		Use this cmdlet to connect to Microsoft Graph and other services using the appropriate parameters and scopes
+		for the Zero Trust Assessment.
+		This cmdlet will import the necessary modules and establish connections based on the specified parameters.
 
 	.PARAMETER UseDeviceCode
 		If specified, the cmdlet will use the device code flow to authenticate to Graph and Azure.
@@ -35,12 +32,14 @@ function Connect-ZtAssessment {
 		If this certificate is also used for connecting to Azure, it must come from a certificate store on the local computer.
 
 	.PARAMETER SkipAzureConnection
-		If specified, skips connecting to Azure and only connects to Microsoft Graph.
+		If specified, skips connecting to Azure and only connects to other services.
 
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment
 
-		Connects to Microsoft Graph using Connect-MgGraph with the required scopes.
+		Connects to Microsoft Graph and other services using Connect-MgGraph with the required scopes and other services.
+		By default, on Windows, this connects to Graph, Azure, Exchange Online, Security & Compliance, SharePoint Online, and Azure Information Protection.
+		On other platforms, this connects to Graph, Azure, Exchange and Security & Compliance (where supported).
 
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment -UseDeviceCode
@@ -50,10 +49,10 @@ function Connect-ZtAssessment {
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment -SkipAzureConnection
 
-		Connects to Microsoft Graph only, skipping the Azure connection. The tests that require Azure connectivity will be skipped.
+		Connects to services but skipping the Azure connection. The tests that require Azure connectivity will be skipped.
 
 	.EXAMPLE
-		PS C:\> Connect-ZtAssessment -ClientID $clientID -TenantID $tenantID -Certificate 'CN=ZeroTrustAssessment'
+		PS C:\> Connect-ZtAssessment -ClientID $clientID -TenantID $tenantID -Certificate 'CN=ZeroTrustAssessment' -Service Graph,Azure
 
 		Connects to Microsoft Graph and Azure using the specified client/application ID & tenant ID, using the latest, valid certificate available with the subject 'CN=ZeroTrustAssessment'.
 		This assumes the correct scopes and permissions are assigned to the application used.
@@ -82,9 +81,9 @@ function Connect-ZtAssessment {
 		[switch]
 		$SkipAzureConnection,
 
-		# The services to connect to such as Azure and ExchangeOnline. Default is Graph.
+		# The services to connect to such as Azure and ExchangeOnline. Default is All.
 		[ValidateSet('All', 'Azure', 'AipService', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
-		[string[]]$Service = 'Graph',
+		[string[]]$Service = 'All',
 
 		# The Exchange environment to connect to. Default is O365Default. Supported values include O365China, O365Default, O365GermanyCloud, O365USGovDoD, O365USGovGCCHigh.
 		[ValidateSet('O365China', 'O365Default', 'O365GermanyCloud', 'O365USGovDoD', 'O365USGovGCCHigh')]
@@ -96,7 +95,6 @@ function Connect-ZtAssessment {
 		# The SharePoint Admin URL to use for SharePoint Online connection.
 		[string]$SharePointAdminUrl
 	)
-
 
 	# Ensure ExchangeOnline is included if SecurityCompliance is requested
 	if ($Service -contains 'SecurityCompliance' -and $Service -notcontains 'ExchangeOnline' -and $Service -notcontains 'All') {
@@ -117,8 +115,8 @@ function Connect-ZtAssessment {
 	}
 
 	[Microsoft.PowerShell.Commands.ModuleSpecification[]]$xPlatPowerShellRequiredModules = @(
-        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
-        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.35.0'; },
+        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.35.0'; },
         @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
         @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
     )

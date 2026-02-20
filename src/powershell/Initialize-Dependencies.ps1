@@ -100,8 +100,8 @@ function Initialize-Dependencies {
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$externalModuleDependencies = $moduleManifest.PrivateData.ExternalModuleDependencies
 
     [Microsoft.PowerShell.Commands.ModuleSpecification[]]$xPlatPowerShellRequiredModules = @(
-        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
-        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.35.0'; },
+        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.35.0'; },
         @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
         @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
     )
@@ -140,20 +140,12 @@ function Initialize-Dependencies {
         Write-Host -Object "`r`n"
         Write-Host -Object ('Resolving {0} dependencies...' -f $allModuleDependencies.Count) -ForegroundColor Green
 
-        $saveModuleCmdParams = @{
-            Path = $RequiredModulesPath
-        }
-
         if ($saveModuleCmd = (Get-Command -Name Save-PSResource -ErrorAction Ignore))
         {
-            $saveModuleCmdParams.Add('TrustRepository', $true)
-            $saveModuleCmdParams.Add('Prerelease', $AllowPrerelease.IsPresent)
             Write-Verbose -Message "Saving required modules using Save-PSResource..."
         }
         elseif ($saveModuleCmd = (Get-Command -Name Save-Module -ErrorAction Ignore))
         {
-            $saveModuleCmdParams.Add('Force', $true)
-            $saveModuleCmdParams.Add('AllowPrerelease', $AllowPrerelease.IsPresent)
             Write-Verbose -Message "Saving required modules using Save-Module..."
         }
         else
@@ -165,7 +157,6 @@ function Initialize-Dependencies {
         foreach ($moduleSpec in $requiredModuleToSave)
         {
             Write-Verbose -Message ("Saving module {0} with version {1}..." -f $moduleSpec.Name, $moduleSpec.Version)
-            $saveModuleCmdParamsClone = $saveModuleCmdParams.Clone()
             $isModulePresent = Get-Module -FullyQualifiedName $moduleSpec -ListAvailable -ErrorAction Ignore
 
             if ($isModulePresent)
@@ -178,32 +169,57 @@ function Initialize-Dependencies {
             {
                 if ($saveModuleCmd.Name -eq 'Save-PSResource')
                 {
-                    $saveModuleCmdParamsClone['Name'] = $moduleSpec.Name
-                    # Save-PSResource uses NuGet version range syntax: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#version-ranges
+                    # To Save-PSResource we need to first Find-PSResource to get the latest available in given range.
+                    $findModuleParams = @{
+                        Name = $moduleSpec.Name
+                        ErrorAction = 'Stop'
+                        'Prerelease' = $AllowPrerelease.IsPresent
+                    }
+
+                    # Find-PSResource uses NuGet version range syntax: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort#version-ranges
                     if ($moduleSpec.RequiredVersion) {
                         # Absolute required version
-                        $saveModuleCmdParamsClone['Version'] = '[{0}]' -f $moduleSpec.RequiredVersion
+                        $findModuleParams['Version'] = '[{0}]' -f $moduleSpec.RequiredVersion
                     }
                     elseif ($moduleSpec.MaximumVersion -and $moduleSpec.Version) {
                         # Minimum and maximum version (exact range) inclusive
-                        $saveModuleCmdParamsClone['Version'] = '[{0},{1}]' -f $moduleSpec.Version, $moduleSpec.MaximumVersion
+                        $findModuleParams['Version'] = '[{0},{1}]' -f $moduleSpec.Version, $moduleSpec.MaximumVersion
                     }
                     elseif ($moduleSpec.MaximumVersion) {
                         # Maximum version inclusive
-                        $saveModuleCmdParamsClone['Version'] = '(,{0}]' -f $moduleSpec.MaximumVersion
+                        $findModuleParams['Version'] = '(,{0}]' -f $moduleSpec.MaximumVersion
                     }
                     elseif ($moduleSpec.Version) {
                         # Minimum version inclusive
-                         $saveModuleCmdParamsClone['Version'] = '[{0}, )' -f $moduleSpec.Version
+                         $findModuleParams['Version'] = '[{0}, )' -f $moduleSpec.Version
                     }
 
-                    $saveModuleCmdParamsClone['PassThru'] = $true
-                    $savedModule = (& $saveModuleCmd @saveModuleCmdParamsClone).Where({ $_.Name -eq $moduleSpec.Name },1)
+                    # Get the latest version of the module in the range specified in Module Specification.
+                    $latestModuleInRange = Find-PSResource @findModuleParams -ErrorAction Stop | Sort-Object -Property Version -Descending | Select-Object -First 1
+
+                    $savePSResourceParams = @{
+                        Path = $RequiredModulesPath
+                        PassThru = $true
+                        ErrorAction = 'Stop'
+                        TrustRepository = $true
+                    }
+
+                    $savedModule = ($latestModuleInRange | Save-PSResource @savePSResourceParams).Where({ $_.Name -eq $moduleSpec.Name },1)
                     Write-Host -Object ('    ⬇️ Module {0} v{1} saved successfully.' -f $moduleSpec.Name, $savedModule.Version) -ForegroundColor Green
                 }
                 elseif ($saveModuleCmd.Name -eq 'Save-Module')
                 {
-                    $moduleSpec | &$saveModuleCmd @saveModuleCmdParamsClone
+                    $saveModuleCmdParams = @{
+                        ErrorAction = 'Stop'
+                        Force = $true
+                        Path = $RequiredModulesPath
+                    }
+
+                    if ($AllowPrerelease.IsPresent)
+                    {
+                        $saveModuleCmdParams['AllowPrerelease'] = $AllowPrerelease.IsPresent
+                    }
+                    $moduleSpec | &$saveModuleCmd @saveModuleCmdParams
                     Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
                 }
             }

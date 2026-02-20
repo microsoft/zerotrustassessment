@@ -75,7 +75,7 @@ FunctionsToExport = 'Connect-ZtAssessment', 'Disconnect-ZtAssessment',
                'Get-ZtExportStatistics', 'Get-ZtGraphScope', 'Get-ZtTest',
                'Get-ZtTestStatistics', 'Invoke-ZtAssessment',
                'Invoke-ZtGraphRequest', 'Invoke-ZtAzureRequest',
-               'Invoke-ZtAzureResourceGraphRequest'
+               'Invoke-ZtAzureResourceGraphRequest', 'Clear-ZtRequiredModule'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -104,8 +104,8 @@ PrivateData = @{
     )
 
     XPlatPowerShellRequiredModules = @(
-        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.32.0'; },
-        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.32.0'; },
+        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.35.0'; },
+        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.35.0'; },
         @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
         @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
     )
