@@ -34,7 +34,7 @@ Learn more: [Microsoft Purview Data Map Collection Policies](https://learn.micro
 10. Monitor alerts and adjust detection conditions as needed
 
 Via PowerShell (Collection Policy verification):
-- Connect-ExchangeOnline
+- `Connect-ExchangeOnline`
 - `Get-FeatureConfiguration -FeatureScenario KnowYourData | Format-List Name, Enabled, Workload, Mode, CreatedBy, ModificationTimeUtc`
 - Note: Activities and EnforcementPlanes are nested in ScenarioConfig JSON property
 
