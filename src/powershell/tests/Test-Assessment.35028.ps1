@@ -27,7 +27,7 @@ function Test-Assessment-35028 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce', 'External'),
         TestId = 35028,
-        Title = 'Email retention policies configured',
+        Title = 'Email retention policies are configured',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -160,7 +160,7 @@ function Test-Assessment-35028 {
 
     $params = @{
         TestId = '35028'
-        Title  = 'Email retention policies configured'
+        Title  = 'Email retention policies are configured'
         Status = $passed
         Result = $testResultMarkdown
     }
