@@ -194,7 +194,7 @@ function Test-Assessment-25401 {
 
 ## {0}
 
-| Application name | Pre-authentication type | Compliant |
+| Application name | Pre-Authentication type | Compliant |
 | :--------------- | :---------------------- | :-------- |
 {1}
 
