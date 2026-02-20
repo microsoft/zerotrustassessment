@@ -58,6 +58,58 @@ function Test-Assessment-25401 {
         $appProxyAppsFailed = $true
         Write-PSFMessage "Failed to retrieve Application Proxy applications: $_" -Tag Test -Level Warning
     }
+
+    # Query 2: Collect detailed configuration for all applications
+    $appDetailsCollection = @()
+    if (-not $appProxyAppsFailed -and $appProxyApps.Count -gt 0) {
+        Write-ZtProgress -Activity $activity -Status 'Retrieving application details'
+
+        foreach ($app in $appProxyApps) {
+            try {
+                $appDetail = Invoke-ZtGraphRequest `
+                    -RelativeUri "applications/$($app.id)" `
+                    -Select 'id','appId','displayName','onPremisesPublishing' `
+                    -ApiVersion beta
+
+                if ($null -eq $appDetail -or $null -eq $appDetail.onPremisesPublishing) {
+                    continue
+                }
+
+                $appDetailsCollection += $appDetail
+            }
+            catch {
+                Write-PSFMessage "Failed to retrieve details for application $($app.id): $_" -Tag Test -Level Warning
+            }
+        }
+    }
+
+    # Lookup service principal IDs from database for building deep links
+    $spIdLookup = @{}
+    if ($appDetailsCollection.Count -gt 0) {
+        try {
+            # Collect unique appIds
+            $appIds = $appDetailsCollection | Where-Object { $_.appId } | Select-Object -ExpandProperty appId -Unique
+
+            if ($appIds.Count -gt 0) {
+                # Build IN clause for all appIds
+                $appIdInClause = ($appIds | ForEach-Object { "'$($_.Replace("'", "''"))'" }) -join ','
+
+                # Single query to get all service principal IDs
+                $spQuery = "SELECT id, appId FROM ServicePrincipal WHERE appId IN ($appIdInClause)"
+                $spResults = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
+
+                # Build lookup hashtable: appId -> service principal id
+                foreach ($sp in $spResults) {
+                    if ($sp.appId -and $sp.id) {
+                        $spIdLookup["$($sp.appId)"] = $sp.id
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PSFMessage "Failed to retrieve service principal IDs from database: $_" -Tag Test -Level Warning
+        }
+    }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -82,55 +134,7 @@ function Test-Assessment-25401 {
     else {
         Write-ZtProgress -Activity $activity -Status 'Analyzing pre-authentication settings'
 
-        # Phase 1: Collect detailed configuration for all applications
-        $appDetailsCollection = @()
-        foreach ($app in $appProxyApps) {
-            try {
-                $appDetail = Invoke-ZtGraphRequest `
-                    -RelativeUri "applications/$($app.id)" `
-                    -Select 'id','appId','displayName','onPremisesPublishing' `
-                    -ApiVersion beta
-
-                if ($null -eq $appDetail -or $null -eq $appDetail.onPremisesPublishing) {
-                    continue
-                }
-
-                $appDetailsCollection += $appDetail
-            }
-            catch {
-                Write-PSFMessage "Failed to retrieve details for application $($app.id): $_" -Tag Test -Level Warning
-            }
-        }
-
-        # Phase 2: Batch query database for service principal IDs
-        $spIdLookup = @{}
-        if ($appDetailsCollection.Count -gt 0) {
-            try {
-                # Collect unique appIds
-                $appIds = $appDetailsCollection | Where-Object { $_.appId } | Select-Object -ExpandProperty appId -Unique
-
-                if ($appIds.Count -gt 0) {
-                    # Build IN clause for all appIds
-                    $appIdInClause = ($appIds | ForEach-Object { "'$($_.Replace("'", "''"))'" }) -join ','
-
-                    # Single query to get all service principal IDs
-                    $spQuery = "SELECT id, appId FROM ServicePrincipal WHERE appId IN ($appIdInClause)"
-                    $spResults = @(Invoke-DatabaseQuery -Database $Database -Sql $spQuery -AsCustomObject)
-
-                    # Build lookup hashtable: appId -> service principal id
-                    foreach ($sp in $spResults) {
-                        if ($sp.appId -and $sp.id) {
-                            $spIdLookup["$($sp.appId)"] = $sp.id
-                        }
-                    }
-                }
-            }
-            catch {
-                Write-PSFMessage "Failed to retrieve service principal IDs from database: $_" -Tag Test -Level Warning
-            }
-        }
-
-        # Phase 3: Process application details and build final list
+        # Process application details and build final list
         foreach ($appDetail in $appDetailsCollection) {
             $authType = $appDetail.onPremisesPublishing.externalAuthenticationType
             $isCompliant = $authType -eq 'aadPreAuthentication'
