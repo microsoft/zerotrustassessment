@@ -114,7 +114,8 @@ function Test-Assessment-35028 {
                 $retentionAction = if ($rule.RetentionComplianceAction) { Get-SafeMarkdown -Text "$($rule.RetentionComplianceAction)" } else { 'N/A' }
                 $retentionDuration = if ($rule.RetentionDuration) { "$($rule.RetentionDuration)" } else { 'Indefinite' }
                 if ($rule.RetentionDurationDisplayHint) {
-                    $retentionDuration += " ($($rule.RetentionDurationDisplayHint))"
+                    $safeRetentionDurationDisplayHint = Get-SafeMarkdown -Text "$($rule.RetentionDurationDisplayHint)"
+                    $retentionDuration += " ($safeRetentionDurationDisplayHint)"
                 }
                 $ruleRows += "| $ruleName | $parentPolicy | $ruleEnabled | $retentionAction | $retentionDuration |`n"
             }
