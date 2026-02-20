@@ -94,6 +94,11 @@ function Test-Assessment-35040 {
             $allRules = Get-SupervisoryReviewRule -IncludeRuleXml -ErrorAction Stop
             $allReviewPolicy = Get-SupervisoryReviewPolicyV2 -ErrorAction Stop
 
+            $policyMap = @{}
+            if ($allReviewPolicy) {
+                $allReviewPolicy | ForEach-Object { $policyMap[$_.Guid] = $_.Name }
+            }
+
             foreach ($rule in $allRules) {
                 if (-not [string]::IsNullOrWhiteSpace($rule.RuleXml)) {
                     try {
@@ -157,7 +162,7 @@ function Test-Assessment-35040 {
 
                             # Lookup policy name from $allReviewPolicy using Policy ID
                             $policyId = $rule.Policy
-                            $policyName = ($allReviewPolicy | Where-Object { $_.Guid -eq $policyId }).Name
+                            $policyName = if ($policyMap.ContainsKey($policyId)) { $policyMap[$policyId] } else { 'Unknown' }
 
                             $enterpriseAIRules += [PSCustomObject]@{
                                 RuleName             = $ruleNameDisplay
