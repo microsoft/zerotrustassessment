@@ -145,29 +145,37 @@ Resources
                         $resourceType = $resourceTypeRaw
                     }
 
-                    # Extract NIC/Resource ID and lookup VNET from cache
-                    $nicId = ($pip.ipConfigId -split '/ipConfigurations/')[0].ToLower()
-                    $vnetId = $nicVnetCache[$nicId]
+                    # Only NIC-attached public IPs can inherit VNET DDoS protection via this lookup
+                    if ($resourceTypeRaw.ToLower() -eq 'networkinterfaces') {
+                        # Extract NIC ID and lookup VNET from cache
+                        $nicId = ($pip.ipConfigId -split '/ipConfigurations/')[0].ToLower()
+                        $vnetId = $nicVnetCache[$nicId]
 
-                    if ($vnetId -and $vnetDdosCache.ContainsKey($vnetId)) {
-                        # Rule: If properties.enableDdosProtection == true AND properties.ddosProtectionPlan.id exists → Pass
-                        # Rule: If properties.enableDdosProtection == false OR properties.ddosProtectionPlan.id is missing → Fail
-                        $vnet = $vnetDdosCache[$vnetId]
-                        $vnetName = $vnet.vnetName
+                        if ($vnetId -and $vnetDdosCache.ContainsKey($vnetId)) {
+                            # Rule: If properties.enableDdosProtection == true AND properties.ddosProtectionPlan.id exists → Pass
+                            # Rule: If properties.enableDdosProtection == false OR properties.ddosProtectionPlan.id is missing → Fail
+                            $vnet = $vnetDdosCache[$vnetId]
+                            $vnetName = $vnet.vnetName
 
-                        if ($vnet.isDdosEnabled -eq $true -and $vnet.hasDdosPlan -eq $true) {
-                            $isCompliant = $true
-                            $vnetDdosStatus = 'Enabled'
+                            if ($vnet.isDdosEnabled -eq $true -and $vnet.hasDdosPlan -eq $true) {
+                                $isCompliant = $true
+                                $vnetDdosStatus = 'Enabled'
+                            }
+                            else {
+                                $isCompliant = $false
+                                $vnetDdosStatus = 'Disabled'
+                            }
                         }
                         else {
+                            # VNET not found in cache - no DDoS protection
                             $isCompliant = $false
                             $vnetDdosStatus = 'Disabled'
                         }
                     }
                     else {
-                        # VNET not found in cache - no DDoS protection
-                        $isCompliant = $false
-                        $vnetDdosStatus = 'Disabled'
+                        # Non-NIC associations cannot be evaluated with NIC VNET cache; mark as not applicable
+                        $isCompliant = $null
+                        $vnetDdosStatus = 'N/A'
                     }
                 }
                 else {
