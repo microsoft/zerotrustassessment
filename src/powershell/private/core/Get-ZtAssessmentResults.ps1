@@ -23,11 +23,17 @@ function Get-ZtAssessmentResults {
 		param (
 
 		)
-		if (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
-			return (Find-Module -Name ZeroTrustAssessment).Version -as [string]
-		}
 
-		return 'Unknown'
+		if ((Get-Module -Name 'Microsoft.PowerShell.PSResourceGet') -or (Get-Command 'Find-PSResource' -ErrorAction Ignore)) {
+			(Find-PSResource -Name ZeroTrustAssessment).Version -as [string]
+		}
+		elseif (Get-Command 'Find-Module' -ErrorAction SilentlyContinue) {
+			(Find-Module -Name ZeroTrustAssessment).Version -as [string]
+		}
+		else {
+			Write-Verbose -Message "Neither PowerShellGet nor PSResourceGet is available. Cannot determine latest module version."
+		    'Unknown'
+		}
 	}
 
 	function Get-TestResultSummary {

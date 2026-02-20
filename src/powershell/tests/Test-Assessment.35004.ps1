@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Published Label Policies
+    Sensitivity label policies are published to users
 
 .DESCRIPTION
     Creating sensitivity labels is the first step in information protection deployment.
@@ -24,7 +24,7 @@ function Test-Assessment-35004 {
         SfiPillar = '',
         TenantType = ('Workforce'),
         TestId = 35004,
-        Title = 'Published Label Policies',
+        Title = 'Sensitivity label policies are published to users',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -52,8 +52,11 @@ function Test-Assessment-35004 {
     #region Assessment Logic
     $enabledPolicies = @()
     $totalUsersGroupsDisplay = "0"
+    $customStatus = $null
 
     if ($errorMsg) {
+        $testResultMarkdown = "### Investigate`n`nUnable to query label policies due to error: $errorMsg`n`n%TestResult%"
+        $customStatus = 'Investigate'
         $passed = $false
     }
     else {
@@ -64,74 +67,82 @@ function Test-Assessment-35004 {
         $uniqueTargets = New-Object System.Collections.Generic.HashSet[string]
 
         foreach ($policy in $enabledPolicies) {
-            if ($policy.ExchangeLocation  -contains "All" -or
-                $policy.ModernGroupLocation -contains "All" -or
-                $policy.SharePointLocation  -contains "All" -or
-                $policy.OneDriveLocation    -contains "All") {
+            $allLocationNames = @(
+                $policy.ExchangeLocation.Name
+                $policy.ModernGroupLocation.Name
+                $policy.SharePointLocation.Name
+                $policy.OneDriveLocation.Name
+            ) | Where-Object { $_ }
+
+            if ($allLocationNames -contains 'All') {
                 $allUsersTargeted = $true
                 break
             }
 
             if ($policy.ExchangeLocation) {
-                foreach ($target in $policy.ExchangeLocation) { $null = $uniqueTargets.Add($target) }
+                foreach ($target in $policy.ExchangeLocation) { $null = $uniqueTargets.Add([string]$target.Name) }
             }
             if ($policy.ModernGroupLocation) {
-                foreach ($target in $policy.ModernGroupLocation) { $null = $uniqueTargets.Add($target) }
+                foreach ($target in $policy.ModernGroupLocation) { $null = $uniqueTargets.Add([string]$target.Name) }
             }
         }
 
         $totalUsersGroupsDisplay = if ($allUsersTargeted) { "All Users" } else { $uniqueTargets.Count }
+
+        if ($passed) {
+            $testResultMarkdown = "✅ At least one enabled label policy is published to users.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "❌ No enabled label policies exist or all policies are disabled.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    if ($errorMsg) {
-        $testResultMarkdown = "### Investigate`n`n"
-        $testResultMarkdown += "Unable to query label policies due to error: $errorMsg"
-    }
-    else {
-        if ($passed) {
-            $testResultMarkdown = "✅ At least one enabled label policy is published to users.`n`n"
-        }
-        else {
-            $testResultMarkdown = "❌ No enabled label policies exist or all policies are disabled.`n`n"
-        }
+    $mdInfo = ''
+    $mdInfo += "### Label Policy Summary`n`n"
+    $mdInfo += "* Total Policies Configured: $($policies.Count)`n"
+    $mdInfo += "* Enabled Policies: $($enabledPolicies.Count)`n"
+    $mdInfo += "* Disabled Policies: $($policies.Count - $enabledPolicies.Count)`n"
+    $mdInfo += "* Total Users/Groups with Label Access: $totalUsersGroupsDisplay`n"
 
-        $testResultMarkdown += "### Label Policy Summary`n`n"
-        $testResultMarkdown += "* Total Policies Configured: $($policies.Count)`n"
-        $testResultMarkdown += "* Enabled Policies: $($enabledPolicies.Count)`n"
-        $testResultMarkdown += "* Disabled Policies: $($policies.Count - $enabledPolicies.Count)`n"
-        $testResultMarkdown += "* Total Users/Groups with Label Access: $totalUsersGroupsDisplay`n"
+    if ($policies.Count -gt 0) {
+        $mdInfo += "`n**Policies:**`n"
+        $mdInfo += "| Policy name | Enabled | Labels included | Published to |`n"
+        $mdInfo += "|:---|:---|:---|:---|`n"
 
-        if ($policies.Count -gt 0) {
-            $testResultMarkdown += "`n**Policies:**`n"
-            $testResultMarkdown += "| Policy Name | Enabled | Labels Included | Published To |`n"
-            $testResultMarkdown += "|:---|:---|:---|:---|`n"
+        foreach ($policy in $policies) {
+            $policyName = Get-SafeMarkdown -Text $policy.Name
+            $enabled = if ($policy.Enabled) { "True" } else { "False" }
 
-            foreach ($policy in $policies) {
-                $policyName = Get-SafeMarkdown -Text $policy.Name
-                $enabled = if ($policy.Enabled) { "True" } else { "False" }
-
-                # Labels property usually contains the list of label names or GUIDs
-                $labelsIncluded = 0
-                if ($policy.Labels) {
-                    $labelsIncluded = ($policy.Labels).Count
-                } elseif ($policy.ScopedLabels) {
-                    $labelsIncluded = ($policy.ScopedLabels).Count
-                }
-
-                # Determine publication scope
-                $publishedTo = "Specific Users/Groups"
-                if ($policy.ExchangeLocation -contains "All" -or $policy.ModernGroupLocation -contains "All" -or $policy.SharePointLocation -contains "All" -or $policy.OneDriveLocation -contains "All") {
-                    $publishedTo = "All Users/Groups"
-                }
-
-                $testResultMarkdown += "| $policyName | $enabled | $labelsIncluded | $publishedTo |`n"
+            # Labels property usually contains the list of label names or GUIDs
+            $labelsIncluded = 0
+            if ($policy.Labels) {
+                $labelsIncluded = ($policy.Labels).Count
+            } elseif ($policy.ScopedLabels) {
+                $labelsIncluded = ($policy.ScopedLabels).Count
             }
-        }
 
-        $testResultMarkdown += "`n[Manage Label Policies in Microsoft Purview](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
+            # Determine publication scope
+            $publishedTo = "Specific Users/Groups"
+            $allLocationNames = @(
+                $policy.ExchangeLocation.Name
+                $policy.ModernGroupLocation.Name
+                $policy.SharePointLocation.Name
+                $policy.OneDriveLocation.Name
+            ) | Where-Object { $_ }
+
+            if ($allLocationNames -contains 'All') {
+                $publishedTo = "All Users/Groups"
+            }
+
+            $mdInfo += "| $policyName | $enabled | $labelsIncluded | $publishedTo |`n"
+        }
     }
+
+    $mdInfo += "`n[Manage Label Policies in Microsoft Purview](https://purview.microsoft.com/informationprotection/labelpolicies)`n"
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $testResultDetail = @{
@@ -140,5 +151,10 @@ function Test-Assessment-35004 {
         Status             = $passed
         Result             = $testResultMarkdown
     }
+
+    if ($null -ne $customStatus) {
+        $testResultDetail.CustomStatus = $customStatus
+    }
+
     Add-ZtTestResultDetail @testResultDetail
 }

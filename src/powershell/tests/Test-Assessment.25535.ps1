@@ -270,28 +270,29 @@ function Test-Assessment-25535 {
     }
 
     try {
-        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        $subscriptions = @(Get-AzSubscription -ErrorAction Stop | Where-Object { $_.Id -and $_.State -eq 'Enabled' })
+        if ($subscriptions.Count -eq 0) { throw "No enabled Azure subscriptions found in the current context." }
     }
     catch {
-        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
-    }
-
-    if (-not $accessToken) {
-        Write-PSFMessage "Azure authentication token not found." -Tag Test -Level Warning
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause 'NotConnectedAzure'
         return
     }
 
-    $subscriptions = Get-AzSubscription
-    $firewalls = @()
     $nicFindings = @()
 
     foreach ($sub in $subscriptions) {
-        Set-AzContext -SubscriptionId $sub.Id | Out-Null
+        try {
+            Set-AzContext -SubscriptionId $sub.Id -ErrorAction Stop | Out-Null
+        }
+        catch {
+            Write-PSFMessage "Skipping subscription $($sub.Name) ($($sub.Id)): $($_.Exception.Message)" -Tag Test -Level Warning
+            continue
+        }
 
         # Collect firewall private IPs
-        $firewalls += Get-FirewallPrivateIP -SubscriptionId $sub.Id
-        if ($firewalls.Count -eq 0) { continue }
+        $subscriptionFirewalls = @(Get-FirewallPrivateIP -SubscriptionId $sub.Id)
+        if ($subscriptionFirewalls.Count -eq 0) { continue }
 
         # Launch async operations for workload NICs
         $asyncOperations = Get-WorkloadNicOperation -Subscription $sub -SubscriptionId $sub.Id
@@ -304,7 +305,7 @@ function Test-Assessment-25535 {
 
         # Process results into findings
         foreach ($op in $completedOperations) {
-            $nicFindings += ConvertTo-NicFinding -Operation $op -Firewalls $firewalls
+            $nicFindings += ConvertTo-NicFinding -Operation $op -Firewalls $subscriptionFirewalls
         }
     }
     #endregion Data Collection

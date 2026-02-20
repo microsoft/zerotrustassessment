@@ -25,6 +25,7 @@ function Get-LabelPolicySettings {
         - SiteAndGroupMandatory: Sites/Groups mandatory labeling
         - PowerBIMandatory: Power BI mandatory labeling
         - DisableMandatoryInOutlook: Email override setting
+        - AttachmentAction: Email label inheritance from attachments setting
         - ParseError: Any error that occurred during parsing
 
     .EXAMPLE
@@ -54,6 +55,8 @@ function Get-LabelPolicySettings {
         SiteAndGroupMandatory    = $false
         PowerBIMandatory         = $false
         DisableMandatoryInOutlook = $false
+        # Optional labeling settings
+        AttachmentAction         = $null
         # Parsing metadata
         ParseError               = $null
     }
@@ -107,6 +110,10 @@ function Get-LabelPolicySettings {
                     }
                     'disablemandatoryinoutlook' {
                         $result.DisableMandatoryInOutlook = ($valueLower -eq 'true')
+                    }
+                    # Optional labeling settings
+                    'attachmentaction' {
+                        $result.AttachmentAction = $value
                     }
                     default {
                         Write-PSFMessage "Unknown setting key '$key' in policy '$PolicyName'" -Level Verbose

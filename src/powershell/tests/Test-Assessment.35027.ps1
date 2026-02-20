@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    OME Custom Branding Templates
+    Custom branding templates are configured for Office 365 Message Encryption
 
 .DESCRIPTION
     Office 365 Message Encryption (OME) allows organizations to send encrypted emails and protect sensitive information.
@@ -25,7 +25,7 @@ function Test-Assessment-35027 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35027,
-        Title = 'OME Custom Branding Templates',
+        Title = 'Custom branding templates are configured for Office 365 Message Encryption',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]

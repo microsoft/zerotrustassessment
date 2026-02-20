@@ -11,6 +11,6 @@ Container labels extend sensitivity classification beyond individual files to en
    - Unmanaged device access
    - Conditional Access policy
 - Publish label through label policy.
-- [Use sensitivity labels with Microsoft Teams, Microsoft 365 Groups, and SharePoint sites](https://learn.microsoft.com/en-us/purview/sensitivity-labels-teams-groups-sites)
+- [Use sensitivity labels with Microsoft Teams, Microsoft 365 Groups, and SharePoint sites](https://learn.microsoft.com/en-us/microsoft-365/compliance/sensitivity-labels-teams-groups-sites)
 <!--- Results --->
 %TestResult%
