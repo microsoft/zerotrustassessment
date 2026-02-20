@@ -57,6 +57,7 @@ function Test-Assessment-35023 {
     $endpoint = $false
     $isBlocked = $null
     $blockReason = $null
+    $billingStatus = $null
     $enabledLocationsCount = 0
 
     if ($ocrConfig) {
@@ -116,6 +117,7 @@ function Test-Assessment-35023 {
     #endregion Assessment Logic
 
     #region Report Generation
+    $mdInfo = ''
 
     if (-not $errorMsg) {
         $reportTitle = 'OCR configuration status'
