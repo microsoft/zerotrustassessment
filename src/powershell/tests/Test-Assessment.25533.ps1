@@ -238,8 +238,8 @@ Resources
         elseif ($protectionMode -eq 'VirtualNetworkInherited') {
             # Rule: If protectionMode is "VirtualNetworkInherited"
             if ([string]::IsNullOrWhiteSpace($pip.ipConfigId)) {
-                # Rule: If ipConfiguration is missing or null → Fail (unattached, cannot inherit protection)
-                $isCompliant = $false
+                # Rule: If ipConfiguration is missing or null → NotApplicable/Unknown (unattached, not in a VNET context)
+                $isCompliant = $null
                 $vnetDdosStatus = 'N/A'
             }
             else {
