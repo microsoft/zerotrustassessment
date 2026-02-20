@@ -140,6 +140,10 @@ if (-not $SkipModuleInstallation.IsPresent)
                         Force = $true
                         Path = $OutputPath
                     }
+                    if ($AllowPrerelease.IsPresent)
+                    {
+                        $saveModuleCmdParams['AllowPrerelease'] = $true
+                    }
 
                     $moduleSpec | &$saveModuleCmd @saveModuleCmdParams
                     Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
