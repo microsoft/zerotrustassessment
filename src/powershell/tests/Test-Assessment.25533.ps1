@@ -55,33 +55,148 @@ Resources
         return
     }
 
-    # Query Network Interfaces to VNET mapping
-    Write-ZtProgress -Activity $activity -Status 'Querying Network Interface associations'
+    # Build unified resource-to-VNET mapping cache for all supported resource types.
+    # Each query populates the same hashtable keyed by resource ID (lowercase).
+    # $resourceQueryFailed tracks whether any prerequisite query failed so we can
+    # avoid marking affected IPs as non-compliant due to transient ARG/RBAC issues.
+    Write-ZtProgress -Activity $activity -Status 'Querying resource-to-VNET associations'
 
-    $nicVnetCache = @{}
+    $resourceVnetCache = @{}
+    $resourceQueryFailed = $false
+
+    # NICs — subnet in ipConfigurations[].properties.subnet.id
     $nicQuery = @"
 Resources
 | where type =~ 'microsoft.network/networkinterfaces'
 | mvexpand ipConfigurations = properties.ipConfigurations
 | project
-    nicId = tolower(id),
+    resourceId = tolower(id),
     subnetId = tolower(ipConfigurations.properties.subnet.id)
 | extend vnetId = tolower(substring(subnetId, 0, indexof(subnetId, '/subnets/')))
-| distinct nicId, vnetId
+| distinct resourceId, vnetId
 "@
-
     try {
-        @(Invoke-ZtAzureResourceGraphRequest -Query $nicQuery) | ForEach-Object { $nicVnetCache[$_.nicId] = $_.vnetId }
-        Write-PSFMessage "NIC Query returned $($nicVnetCache.Count) records" -Tag Test -Level VeryVerbose
+        @(Invoke-ZtAzureResourceGraphRequest -Query $nicQuery) | ForEach-Object { $resourceVnetCache[$_.resourceId] = $_.vnetId }
+        Write-PSFMessage "NIC query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
     }
     catch {
         Write-PSFMessage "Network Interface query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
+    }
+
+    # Application Gateways — subnet in gatewayIPConfigurations[].properties.subnet.id
+    $appGwQuery = @"
+Resources
+| where type =~ 'microsoft.network/applicationgateways'
+| mvexpand gwIpConfig = properties.gatewayIPConfigurations
+| project
+    resourceId = tolower(id),
+    subnetId = tolower(gwIpConfig.properties.subnet.id)
+| extend vnetId = tolower(substring(subnetId, 0, indexof(subnetId, '/subnets/')))
+| distinct resourceId, vnetId
+"@
+    try {
+        @(Invoke-ZtAzureResourceGraphRequest -Query $appGwQuery) | ForEach-Object { $resourceVnetCache[$_.resourceId] = $_.vnetId }
+        Write-PSFMessage "Application Gateway query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Application Gateway query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
+    }
+
+    # Azure Firewalls — subnet in ipConfigurations[].properties.subnet.id
+    $firewallQuery = @"
+Resources
+| where type =~ 'microsoft.network/azurefirewalls'
+| mvexpand ipConfig = properties.ipConfigurations
+| project
+    resourceId = tolower(id),
+    subnetId = tolower(ipConfig.properties.subnet.id)
+| extend vnetId = tolower(substring(subnetId, 0, indexof(subnetId, '/subnets/')))
+| distinct resourceId, vnetId
+"@
+    try {
+        @(Invoke-ZtAzureResourceGraphRequest -Query $firewallQuery) | ForEach-Object { $resourceVnetCache[$_.resourceId] = $_.vnetId }
+        Write-PSFMessage "Azure Firewall query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Azure Firewall query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
+    }
+
+    # Bastion Hosts — subnet in ipConfigurations[].properties.subnet.id
+    $bastionQuery = @"
+Resources
+| where type =~ 'microsoft.network/bastionhosts'
+| mvexpand ipConfig = properties.ipConfigurations
+| project
+    resourceId = tolower(id),
+    subnetId = tolower(ipConfig.properties.subnet.id)
+| extend vnetId = tolower(substring(subnetId, 0, indexof(subnetId, '/subnets/')))
+| distinct resourceId, vnetId
+"@
+    try {
+        @(Invoke-ZtAzureResourceGraphRequest -Query $bastionQuery) | ForEach-Object { $resourceVnetCache[$_.resourceId] = $_.vnetId }
+        Write-PSFMessage "Bastion Host query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Bastion Host query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
+    }
+
+    # Virtual Network Gateways — subnet in ipConfigurations[].properties.subnet.id
+    $vnetGwQuery = @"
+Resources
+| where type =~ 'microsoft.network/virtualnetworkgateways'
+| mvexpand ipConfig = properties.ipConfigurations
+| project
+    resourceId = tolower(id),
+    subnetId = tolower(ipConfig.properties.subnet.id)
+| extend vnetId = tolower(substring(subnetId, 0, indexof(subnetId, '/subnets/')))
+| distinct resourceId, vnetId
+"@
+    try {
+        @(Invoke-ZtAzureResourceGraphRequest -Query $vnetGwQuery) | ForEach-Object { $resourceVnetCache[$_.resourceId] = $_.vnetId }
+        Write-PSFMessage "VNet Gateway query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Virtual Network Gateway query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
+    }
+
+    # Load Balancers — public LBs have no subnet on frontendIPConfigurations;
+    # resolve VNET by tracing backend pool NICs (already cached above).
+    $lbQuery = @"
+Resources
+| where type =~ 'microsoft.network/loadbalancers'
+| mvexpand backendPool = properties.backendAddressPools
+| mvexpand backendIpConfig = backendPool.properties.backendIPConfigurations
+| project
+    lbId = tolower(id),
+    nicIpConfigId = tolower(backendIpConfig.id)
+| extend nicId = tolower(substring(nicIpConfigId, 0, indexof(nicIpConfigId, '/ipconfigurations/')))
+| distinct lbId, nicId
+"@
+    try {
+        $lbNicMappings = @(Invoke-ZtAzureResourceGraphRequest -Query $lbQuery)
+        foreach ($mapping in $lbNicMappings) {
+            $nicVnet = $resourceVnetCache[$mapping.nicId]
+            if ($nicVnet -and -not $resourceVnetCache.ContainsKey($mapping.lbId)) {
+                $resourceVnetCache[$mapping.lbId] = $nicVnet
+            }
+        }
+        Write-PSFMessage "Load Balancer query: $($resourceVnetCache.Count) records in cache" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Load Balancer query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $resourceQueryFailed = $true
     }
 
     # Query VNET DDoS protection settings
     Write-ZtProgress -Activity $activity -Status 'Querying VNET DDoS settings'
 
     $vnetDdosCache = @{}
+    $vnetQueryFailed = $false
     $vnetQuery = @"
 Resources
 | where type =~ 'microsoft.network/virtualnetworks'
@@ -91,13 +206,13 @@ Resources
     isDdosEnabled = (properties.enableDdosProtection == true),
     hasDdosPlan = isnotempty(properties.ddosProtectionPlan.id)
 "@
-
     try {
         @(Invoke-ZtAzureResourceGraphRequest -Query $vnetQuery) | ForEach-Object { $vnetDdosCache[$_.vnetId] = $_ }
         Write-PSFMessage "VNET Query returned $($vnetDdosCache.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
         Write-PSFMessage "VNET DDoS query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        $vnetQueryFailed = $true
     }
     #endregion Data Collection
 
@@ -145,9 +260,20 @@ Resources
                         $resourceType = $resourceTypeRaw
                     }
 
-                    # Extract NIC/Resource ID and lookup VNET from cache
-                    $nicId = ($pip.ipConfigId -split '/ipConfigurations/')[0].ToLower()
-                    $vnetId = $nicVnetCache[$nicId]
+                    # Extract the parent resource ID from ipConfiguration.id.
+                    # Handles all three config segment names used across resource types:
+                    #   /ipConfigurations/          — NICs, Firewalls, Bastion, VNet Gateways
+                    #   /frontendIPConfigurations/  — Load Balancers, Application Gateways (public IP side)
+                    #   /gatewayIPConfigurations/   — Application Gateways (subnet side)
+                    if ($pip.ipConfigId -match '(/subscriptions/[^/]+/resourcegroups/[^/]+/providers/microsoft\.network/[^/]+/[^/]+)/(ipconfigurations|frontendipconfigurations|gatewayipconfigurations)/') {
+                        $parentResourceId = $matches[1].ToLower()
+                    }
+                    else {
+                        # Fallback split for any unrecognised pattern
+                        $parentResourceId = ($pip.ipConfigId -split '/(ipconfigurations|frontendipconfigurations|gatewayipconfigurations)/')[0].ToLower()
+                    }
+
+                    $vnetId = $resourceVnetCache[$parentResourceId]
 
                     if ($vnetId -and $vnetDdosCache.ContainsKey($vnetId)) {
                         # Rule: If properties.enableDdosProtection == true AND properties.ddosProtectionPlan.id exists → Pass
@@ -164,8 +290,14 @@ Resources
                             $vnetDdosStatus = 'Disabled'
                         }
                     }
+                    elseif ($resourceQueryFailed -or $vnetQueryFailed) {
+                        # A prerequisite query failed — mark Unknown to avoid a false non-compliance
+                        # result caused by a transient ARG or RBAC error.
+                        $isCompliant = $null
+                        $vnetDdosStatus = 'Unknown'
+                    }
                     else {
-                        # VNET not found in cache - no DDoS protection
+                        # Queries succeeded but resource not in cache — VNET has no DDoS protection
                         $isCompliant = $false
                         $vnetDdosStatus = 'Disabled'
                     }
@@ -190,10 +322,14 @@ Resources
         }
     }
 
-    $passed = @($findings | Where-Object { -not $_.IsCompliant }).Count -eq 0
+    $passed = @($findings | Where-Object { $_.IsCompliant -eq $false }).Count -eq 0
+    $unknownCount = @($findings | Where-Object { $null -eq $_.IsCompliant }).Count
 
-    if ($passed) {
+    if ($passed -and $unknownCount -eq 0) {
         $testResultMarkdown = "✅ DDoS Protection is enabled for all Public IP addresses, either through DDoS IP Protection enabled directly on the public IP or through DDoS Network Protection enabled on the associated VNET.`n`n%TestResult%"
+    }
+    elseif ($passed -and $unknownCount -gt 0) {
+        $testResultMarkdown = "✅ DDoS Protection is enabled for all resolvable Public IP addresses. $unknownCount public IP(s) could not be fully evaluated due to query failures and require manual verification.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ DDoS Protection is not enabled for one or more Public IP addresses. This includes public IPs with DDoS protection explicitly disabled, and public IPs that inherit from a VNET that does not have a DDoS Protection Plan enabled.`n`n%TestResult%"
@@ -236,14 +372,15 @@ Resources
 
         # Format VNET DDoS status
         $vnetDdosDisplay = switch ($item.VnetDdosProtection) {
-            'Enabled' { '✅ Enabled' }
+            'Enabled'  { '✅ Enabled' }
             'Disabled' { '❌ Disabled' }
-            'N/A' { 'N/A' }
-            default { $item.VnetDdosProtection }
+            'Unknown'  { '⚠️ Unknown' }
+            'N/A'      { 'N/A' }
+            default    { $item.VnetDdosProtection }
         }
 
         # Format overall status
-        $statusDisplay = if ($item.IsCompliant) { '✅ Pass' } else { '❌ Fail' }
+        $statusDisplay = if ($null -eq $item.IsCompliant) { '⚠️ Unknown' } elseif ($item.IsCompliant) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $pipMd | $protectionDisplay | $resourceTypeDisplay | $vnetDisplay | $vnetDdosDisplay | $statusDisplay |`n"
     }
