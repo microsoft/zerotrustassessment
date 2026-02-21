@@ -25,7 +25,7 @@ function Test-Assessment-35023 {
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35023,
-        Title = 'OCR configuration for sensitive information detection',
+        Title = 'OCR is enabled for sensitive information detection',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -46,7 +46,7 @@ function Test-Assessment-35023 {
     }
     catch {
         $errorMsg = $_
-        Write-PSFMessage "Failed to retrieve OCR configuration: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Failed to retrieve OCR configuration: $_" -Tag Test -Level Error
     }
     # Q2/Q3: Extract detailed properties if configuration exists
     $enabled = $false
@@ -163,7 +163,7 @@ function Test-Assessment-35023 {
 
     $params = @{
         TestId = '35023'
-        Title = 'OCR configuration for sensitive information detection'
+        Title = 'OCR is enabled for sensitive information detection'
         Status = $passed
         Result = $testResultMarkdown
     }
