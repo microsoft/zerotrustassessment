@@ -1,16 +1,19 @@
 <#
 .SYNOPSIS
-    Browser DLP Policies Configured
+    Browser data loss prevention is enabled for AI apps via Edge for Business
 
 .DESCRIPTION
-    Data Loss Prevention (DLP) policies with Browser enforcement protect sensitive information in web
-    browsers by monitoring and controlling data interactions in supported browsers like Microsoft Edge.
-    When Browser DLP is enabled, organizations can prevent sensitive data from being copied, pasted,
-    printed, or uploaded to unauthorized locations through browser-based applications.
+    Browser Data Loss Prevention (DLP) for cloud apps in Microsoft Edge for Business prevents users
+    from uploading, downloading, copying, or pasting sensitive data to and from unmanaged cloud AI
+    services (ChatGPT, Google Gemini, Claude, etc.) directly through the browser. Without Browser DLP
+    policies for AI apps configured, users can access consumer AI services through Edge for Business
+    and exfiltrate sensitive organizational data. Browser DLP acts as the final enforcement point at
+    the browser level, blocking data transfers to AI services even if data governance policies allow
+    access to the service itself.
 
 .NOTES
     Test ID: 35041
-    Category: Data Loss Prevention (DLP)
+    Category: Data Security Posture Management
     Pillar: Data
     Required Module: ExchangeOnlineManagement
     Required Connection: Security & Compliance PowerShell
@@ -18,15 +21,15 @@
 
 function Test-Assessment-35041 {
     [ZtTest(
-        Category = 'Data Loss Prevention (DLP)',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Microsoft 365 E5'),
+        Category = 'Data Security Posture Management',
+        ImplementationCost = 'High',
+        MinimumLicense = ('Microsoft 365 E5', 'Microsoft Purview PAYG'),
         Pillar = 'Data',
-        RiskLevel = 'High',
+        RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
         TestId = 35041,
-        Title = 'Browser DLP Policies Configured',
+        Title = 'Browser data loss prevention is enabled for AI apps via Edge for Business',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -35,12 +38,11 @@ function Test-Assessment-35041 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Browser DLP Policies'
+    $activity = 'Checking Browser DLP for AI Apps'
     Write-ZtProgress -Activity $activity -Status 'Getting DLP policies with Browser enforcement'
 
     $browserDlpPolicies = @()
     $browserDlpRules = @()
-    $errorMsg = $null
 
     try {
         # Q1: Find DLP policies with Browser enforcement plane (indicates Browser DLP configured)
@@ -55,131 +57,90 @@ function Test-Assessment-35041 {
         }
     }
     catch {
-        $errorMsg = $_
         Write-PSFMessage "Failed to retrieve DLP policies: $_" -Tag Test -Level Warning
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $investigateFlag = $false
     $passed = $false
-    $failureReason = $null
     $enabledBrowserPolicies = @()
 
-    if ($errorMsg) {
-        $investigateFlag = $true
+    # Step 1: Discover Browser DLP Policies
+    # If no Browser enforcement plane policies found → FAIL (Browser DLP not configured)
+    if ($browserDlpPolicies.Count -eq 0) {
+        $passed = $false
     }
+    # Step 2: Verify Rules Exist
+    # If no Browser DLP rules found → FAIL (policies exist but lack enforcement rules)
+    elseif ($browserDlpRules.Count -eq 0) {
+        $passed = $false
+    }
+    # Step 3: Check Enablement
+    # If count ≥ 1 enabled browser DLP policy → PASS
+    # If count = 0 or all policies disabled → FAIL
     else {
-        # Step 1: Discover Browser DLP Policies
-        # If no Browser enforcement plane policies found → FAIL (Browser DLP not configured)
-        if ($browserDlpPolicies.Count -eq 0) {
-            $passed = $false
-            $failureReason = 'NoPolicies'
+        $enabledBrowserPolicies = @($browserDlpPolicies | Where-Object { $_.Enabled -eq $true })
+        if ($enabledBrowserPolicies.Count -ge 1) {
+            $passed = $true
         }
-        # Step 2: Verify Rules Exist
-        # If no Browser DLP rules found → FAIL (policies exist but lack enforcement rules)
-        elseif ($browserDlpRules.Count -eq 0) {
-            $passed = $false
-            $failureReason = 'NoRules'
-        }
-        # Step 3: Check Enablement
-        # If count ≥ 1 enabled browser DLP policy → PASS
-        # If count = 0 or all policies disabled → FAIL
         else {
-            $enabledBrowserPolicies = @($browserDlpPolicies | Where-Object { $_.Enabled -eq $true })
-            if ($enabledBrowserPolicies.Count -ge 1) {
-                $passed = $true
-            }
-            else {
-                $passed = $false
-                $failureReason = 'AllDisabled'
-            }
+            $passed = $false
         }
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $testResultMarkdown = ''
+    $mdInfo = ''
 
-    if ($investigateFlag) {
-        $testResultMarkdown = "⚠️ Unable to determine Browser DLP policy status due to permissions issues or service connection failure.`n`n"
+    if ($passed) {
+        $testResultMarkdown = "✅ Browser Data Loss Prevention for AI Apps is configured and enabled via at least one active DLP policy with Browser enforcement, preventing sensitive data from being uploaded to or copied from unmanaged AI services through Edge for Business.`n`n%TestResult%"
     }
     else {
-        if ($passed) {
-            $testResultMarkdown = "✅ Browser DLP policies are configured and enabled, providing protection against sensitive data disclosure through web browsers.`n`n"
-        }
-        else {
-            # Provide specific failure message based on the failure reason
-            switch ($failureReason) {
-                'NoPolicies' {
-                    $testResultMarkdown = "❌ No Browser DLP policies found. Browser DLP is not configured; this implies PAYG is either inactive or not used for browser protection.`n`n"
-                }
-                'NoRules' {
-                    $testResultMarkdown = "❌ Browser DLP policies exist but lack enforcement rules. Policies without rules cannot protect against data exfiltration.`n`n"
-                }
-                'AllDisabled' {
-                    $testResultMarkdown = "❌ Browser DLP policies exist but are all disabled. Enable at least one policy to protect against unmanaged AI app data exfiltration.`n`n"
-                }
-                default {
-                    $testResultMarkdown = "❌ No Browser DLP policies are enabled or configured in the organization.`n`n"
-                }
-            }
-        }
-
-        $testResultMarkdown += "## Browser DLP Policy Summary`n`n"
-        $testResultMarkdown += "**Total Browser DLP Policies:** $($browserDlpPolicies.Count)`n`n"
-        $testResultMarkdown += "**Enabled Policies:** $($enabledBrowserPolicies.Count)`n`n"
-        $testResultMarkdown += "**Total Rules:** $($browserDlpRules.Count)`n`n"
-
-        # Browser DLP Policies section
-        if ($browserDlpPolicies.Count -gt 0) {
-            $testResultMarkdown += "### Browser DLP Policies`n`n"
-            $testResultMarkdown += "| Policy Name | Enabled | Mode | Enforcement Planes | Policy Category | Created |`n"
-            $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- |`n"
-
-            foreach ($policy in $browserDlpPolicies | Sort-Object Name) {
-                $enabledStatus = if ($policy.Enabled) { '✅ Yes' } else { '❌ No' }
-                $mode = if ($policy.Mode) { $policy.Mode } else { 'N/A' }
-                $enforcementPlanes = if ($policy.EnforcementPlanes) { ($policy.EnforcementPlanes -join ', ') } else { 'N/A' }
-                $policyCategory = if ($policy.PolicyCategory) { $policy.PolicyCategory } else { 'N/A' }
-                $createdDate = if ($policy.CreationTimeUtc) { $policy.CreationTimeUtc.ToString('yyyy-MM-dd') } else { 'N/A' }
-                $testResultMarkdown += "| $($policy.Name) | $enabledStatus | $mode | $enforcementPlanes | $policyCategory | $createdDate |`n"
-            }
-            $testResultMarkdown += "`n"
-        }
-        else {
-            $testResultMarkdown += "### Browser DLP Policies`n`nNo Browser DLP policies found.`n`n"
-        }
-
-        # Browser DLP Rules section
-        if ($browserDlpRules.Count -gt 0) {
-            $testResultMarkdown += "### Browser DLP Rules`n`n"
-            $testResultMarkdown += "| Rule Name | Policy | Disabled | Actions |`n"
-            $testResultMarkdown += "| :--- | :--- | :--- | :--- |`n"
-
-            foreach ($rule in $browserDlpRules | Sort-Object Name) {
-                $disabledStatus = if ($rule.Disabled) { '❌ Yes' } else { '✅ No' }
-                $policyName = if ($rule.Policy) { $rule.Policy } else { 'N/A' }
-                $actions = if ($rule.Actions) { ($rule.Actions -join ', ') } else { 'N/A' }
-                $testResultMarkdown += "| $($rule.Name) | $policyName | $disabledStatus | $actions |`n"
-            }
-            $testResultMarkdown += "`n"
-        }
-        else {
-            $testResultMarkdown += "### Browser DLP Rules`n`nNo Browser DLP rules found.`n`n"
-        }
+        $testResultMarkdown = "❌ Browser DLP for AI apps is not configured. Either no Browser DLP policies exist, policies exist but have no rules, or all Browser DLP policies are disabled.`n`n%TestResult%"
     }
 
-    $testResultMarkdown += "[View DLP Policies in Microsoft Purview Portal](https://purview.microsoft.com/datalossprevention/policies)`n"
+    # Build detailed information section (always displayed)
+    $mdInfo = "`n**Browser DLP Configuration Summary:**`n`n"
+    $mdInfo += "* Browser DLP Policies Found: $($browserDlpPolicies.Count)`n"
+    $mdInfo += "* Browser DLP Policies Enabled: $($enabledBrowserPolicies.Count)`n"
+    $mdInfo += "* Browser DLP Rules: $($browserDlpRules.Count)`n`n"
+
+    # Browser DLP Policies section
+    if ($browserDlpPolicies.Count -gt 0) {
+        $tableRows = ""
+        $formatTemplate = @'
+## [Discovered Policies](https://purview.microsoft.com/datalossprevention/policies)
+
+| Policy Name | Enabled | Mode | EnforcementPlanes | PolicyCategory | CreatedBy | CreationTimeUtc | Rules Count |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+{0}
+'@
+        foreach ($policy in $browserDlpPolicies | Sort-Object Name) {
+            $policyName = Get-SafeMarkdown($policy.Name)
+            $enabledStatus = if ($policy.Enabled) { 'True' } else { 'False' }
+            $mode = if ($policy.Mode) { Get-SafeMarkdown($policy.Mode) } else { 'N/A' }
+            $enforcementPlanes = if ($policy.EnforcementPlanes) {  (Get-SafeMarkdown(($policy.EnforcementPlanes -join ', '))) } else { 'N/A' }
+            $policyCategory = if ($policy.PolicyCategory) { Get-SafeMarkdown($policy.PolicyCategory) } else { 'N/A' }
+            $createdBy = if ($policy.CreatedBy) { Get-SafeMarkdown($policy.CreatedBy) } else { 'N/A' }
+            $createdDate = if ($policy.CreationTimeUtc) { $policy.CreationTimeUtc.ToString('yyyy-MM-ddTHH:mm:ssZ') } else { 'N/A' }
+            $rulesCount = @($browserDlpRules | Where-Object { $_.ParentPolicyName -eq $policy.Name -or $_.Policy -eq $policy.Identity }).Count
+            $tableRows += "| $policyName | $enabledStatus | $mode | $enforcementPlanes | $policyCategory | $createdBy | $createdDate | $rulesCount |`n"
+        }
+        $mdInfo += $formatTemplate -f $tableRows
+    }
+
+    # Replace the placeholder with detailed information
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+
     #endregion Report Generation
 
     $params = @{
         TestId = '35041'
+        Title  = 'Browser data loss prevention is enabled for AI apps via Edge for Business'
         Status = $passed
         Result = $testResultMarkdown
     }
-    if ($investigateFlag -eq $true) {
-        $params.CustomStatus = 'Investigate'
-    }
+
     Add-ZtTestResultDetail @params
 }
