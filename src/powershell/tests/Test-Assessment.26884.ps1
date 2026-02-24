@@ -142,6 +142,8 @@ resources
     }
     catch {
         Write-PSFMessage "WAF policies query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
     }
 
     # Build a hashtable for quick WAF policy lookup by ID
@@ -229,6 +231,11 @@ resources
                             }
                         }
                     }
+                }
+
+                # Stop iterating if valid bot protection is found to preserve the correct WAF policy details
+                if ($hasValidBotProtection) {
+                    break
                 }
             }
         }
@@ -323,7 +330,7 @@ resources
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/securityPolicies)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
 
-            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $($result.WAFPolicyName) | $($result.BotManagerEnabled) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
+            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $(Get-SafeMarkdown $result.WAFPolicyName) | $($result.BotManagerEnabled) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
         }
 
         # Add note if more items exist
@@ -337,7 +344,7 @@ resources
 
     # Standard SKU profiles table (if any)
     if ($skippedResults.Count -gt 0) {
-        $mdInfo += "`n### Standard SKU Profiles (Skipped - Bot protection not available)`n`n"
+        $mdInfo += "`n### Standard SKU profiles (Skipped - bot protection not available)`n`n"
 
         $skippedTableRows = ""
         $skippedFormatTemplate = @'
