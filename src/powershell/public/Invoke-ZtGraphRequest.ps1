@@ -83,8 +83,8 @@ function Invoke-ZtGraphRequest {
 				Write-PSFMessage -Message 'Setting GraphBaseUri to default value from MgContext.'
 				$script:__ZtSession.GraphBaseUri = (Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint
 			}
+			$GraphBaseUri = $script:__ZtSession.GraphBaseUri
 		}
-		$GraphBaseUri = $script:__ZtSession.GraphBaseUri
 
 		$batchRequests = New-Object 'System.Collections.Generic.List[psobject]'
 
