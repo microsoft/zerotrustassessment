@@ -10,6 +10,7 @@
     * Caching of results for the duration of the session
     * Ability to skip cache and go directly to Graph
     * Specify consistency level as a parameter
+    * Additional custom headers via the Headers parameter
 
     :::info
     Note: Batch requests don't support caching.
