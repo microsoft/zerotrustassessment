@@ -236,7 +236,7 @@ function Test-Assessment-26889 {
             return
         }
         Write-PSFMessage 'No Azure Front Door Standard/Premium resources found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedOrNotApplicable
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
@@ -269,7 +269,7 @@ function Test-Assessment-26889 {
     # Skip if no Azure Front Door profiles with WAF exist (per spec step 6)
     if ($profilesWithWaf.Count -eq 0) {
         Write-PSFMessage 'No Azure Front Door profiles with WAF found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedOrNotApplicable
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
