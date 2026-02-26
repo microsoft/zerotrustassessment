@@ -64,8 +64,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $false
-            $script:capturedResult | Should Match "Browser DLP for AI apps is not configured"
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
         }
     }
 
@@ -98,8 +98,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $false
-            $script:capturedResult | Should Match "Browser DLP for AI apps is not configured"
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
         }
     }
 
@@ -159,8 +159,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $false
-            $script:capturedResult | Should Match "Browser DLP for AI apps is not configured"
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
         }
     }
 
@@ -244,8 +244,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $true
-            $script:capturedResult | Should Match "Browser Data Loss Prevention for AI Apps is configured and enabled"
+            $script:capturedStatus | Should -Be $true
+            $script:capturedResult | Should -Match "Browser Data Loss Prevention for AI Apps is configured and enabled"
         }
 
         It "Should pass with single enabled policy and single rule" {
@@ -286,8 +286,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $true
-            $script:capturedResult | Should Match "Browser Data Loss Prevention for AI Apps is configured and enabled"
+            $script:capturedStatus | Should -Be $true
+            $script:capturedResult | Should -Match "Browser Data Loss Prevention for AI Apps is configured and enabled"
         }
     }
 
@@ -330,8 +330,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $false
-            $script:capturedResult | Should Match "Browser DLP for AI apps is not configured"
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
         }
     }
 
@@ -350,8 +350,8 @@ Describe "Test-Assessment-35041" {
 
             Test-Assessment-35041
 
-            $script:capturedStatus | Should Be $false
-            $script:capturedResult | Should Match "Browser DLP for AI apps is not configured"
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
         }
     }
 }
