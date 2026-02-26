@@ -5,11 +5,7 @@
 .DESCRIPTION
     Browser Data Loss Prevention (DLP) for cloud apps in Microsoft Edge for Business prevents users
     from uploading, downloading, copying, or pasting sensitive data to and from unmanaged cloud AI
-    services (ChatGPT, Google Gemini, Claude, etc.) directly through the browser. Without Browser DLP
-    policies for AI apps configured, users can access consumer AI services through Edge for Business
-    and exfiltrate sensitive organizational data. Browser DLP acts as the final enforcement point at
-    the browser level, blocking data transfers to AI services even if data governance policies allow
-    access to the service itself.
+    services (ChatGPT, Google Gemini, Claude, etc.) directly through the browser.
 
 .NOTES
     Test ID: 35041
