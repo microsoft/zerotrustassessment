@@ -58,10 +58,9 @@ function Test-Assessment-27020 {
     Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
 
     $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
-    $subscriptions = $null
 
     try {
-        $result = Invoke-AzRestMethod -Path $subscriptionsPath -ErrorAction Stop
+        $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
 
         if ($result.StatusCode -eq 403) {
             Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
@@ -73,38 +72,15 @@ function Test-Assessment-27020 {
             throw "Subscriptions request failed with status code $($result.StatusCode)"
         }
 
-        $allSubscriptions = @()
         $subscriptionsJson = $result.Content | ConvertFrom-Json
-
-        if ($subscriptionsJson.value) {
-            $allSubscriptions += $subscriptionsJson.value
-        }
-
-        # Handle pagination
-        $nextLink = $subscriptionsJson.nextLink
-        while ($nextLink) {
-            try {
-                $result = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                $subscriptionsJson = $result.Content | ConvertFrom-Json
-                if ($subscriptionsJson.value) {
-                    $allSubscriptions += $subscriptionsJson.value
-                }
-                $nextLink = $subscriptionsJson.nextLink
-            }
-            catch {
-                Write-PSFMessage "Failed to retrieve next page of subscriptions: $_. Continuing with collected data." -Tag Test -Level Warning
-                break
-            }
-        }
-
-        $subscriptions = $allSubscriptions | Where-Object { $_.state -eq 'Enabled' }
+        $subscriptions = @($subscriptionsJson.value | Where-Object { $_.state -eq 'Enabled' })
     }
     catch {
         Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
         throw
     }
 
-    if ($null -eq $subscriptions -or $subscriptions.Count -eq 0) {
+    if ($subscriptions.Count -eq 0) {
         Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
@@ -123,40 +99,14 @@ function Test-Assessment-27020 {
         $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2024-02-01"
 
         try {
-            $wafResult = Invoke-AzRestMethod -Path $wafPath -ErrorAction Stop
+            $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
+            $wafQuerySuccess = $true
 
-            if ($wafResult.StatusCode -lt 400) {
-                $wafQuerySuccess = $true
-                $wafPoliciesInSub = @()
-                $wafJson = $wafResult.Content | ConvertFrom-Json
-
-                if ($wafJson.value) {
-                    $wafPoliciesInSub += $wafJson.value
-                }
-
-                # Handle pagination
-                $nextLink = $wafJson.nextLink
-                while ($nextLink) {
-                    try {
-                        $wafResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                        $wafJson = $wafResult.Content | ConvertFrom-Json
-                        if ($wafJson.value) {
-                            $wafPoliciesInSub += $wafJson.value
-                        }
-                        $nextLink = $wafJson.nextLink
-                    }
-                    catch {
-                        Write-PSFMessage "Failed to retrieve next page of WAF policies for subscription '$subscriptionId': $_. Continuing with collected data." -Tag Test -Level Warning
-                        break
-                    }
-                }
-
-                foreach ($policy in $wafPoliciesInSub) {
-                    $allWafPolicies += [PSCustomObject]@{
-                        SubscriptionId   = $subscriptionId
-                        SubscriptionName = $subscriptionName
-                        Policy           = $policy
-                    }
+            foreach ($policy in $wafPoliciesInSub) {
+                $allWafPolicies += [PSCustomObject]@{
+                    SubscriptionId   = $subscriptionId
+                    SubscriptionName = $subscriptionName
+                    Policy           = $policy
                 }
             }
         }
