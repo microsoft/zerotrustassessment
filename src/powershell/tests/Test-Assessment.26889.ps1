@@ -10,7 +10,7 @@
 .NOTES
     Test ID: 26889
     Category: Azure Network Security
-    Required APIs: Azure Management REST API (subscriptions, profiles, WAF policies, diagnostic settings)
+    Required APIs: Azure Resource Graph (profiles, WAF policies), Azure Management REST API (diagnostic settings)
 #>
 
 function Test-Assessment-26889 {
@@ -40,9 +40,6 @@ function Test-Assessment-26889 {
     # WAF log category to check for pass/fail criteria (per spec)
     $WAF_LOG_CATEGORY = 'FrontDoorWebApplicationFirewallLog'
 
-    # Valid Azure Front Door SKUs
-    $VALID_FRONT_DOOR_SKUS = @('Standard_AzureFrontDoor', 'Premium_AzureFrontDoor')
-
     #region Data Collection
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -67,203 +64,60 @@ function Test-Assessment-26889 {
         return
     }
 
-    # Q1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
-    $subscriptions = $null
-
+    # Check Azure access token
     try {
-        $result = Invoke-AzRestMethod -Path $subscriptionsPath -ErrorAction Stop
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($result.StatusCode)"
-        }
-
-        # Azure REST list APIs are paginated.
-        # Handling nextLink is required to avoid missing subscriptions.
-        $allSubscriptions = @()
-        $subscriptionsJson = $result.Content | ConvertFrom-Json
-
-        if ($subscriptionsJson.value) {
-            $allSubscriptions += $subscriptionsJson.value
-        }
-
-        $nextLink = $subscriptionsJson.nextLink
-        try {
-            while ($nextLink) {
-                $result = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                $subscriptionsJson = $result.Content | ConvertFrom-Json
-                if ($subscriptionsJson.value) {
-                    $allSubscriptions += $subscriptionsJson.value
-                }
-                $nextLink = $subscriptionsJson.nextLink
-            }
-        }
-        catch {
-            Write-PSFMessage "Failed to retrieve next page of subscriptions: $_. Continuing with collected data." -Level Warning
-        }
-
-        $subscriptions = $allSubscriptions | Where-Object { $_.state -eq 'Enabled' }
+        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
     }
     catch {
-        Write-PSFMessage "Failed to enumerate Azure subscriptions while evaluating Front Door WAF diagnostic logging: $_" -Level Error
-        throw
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
     }
 
-    if ($null -eq $subscriptions -or $subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No enabled subscriptions found.' -Level Warning
+    if (-not $accessToken) {
+        Write-PSFMessage 'Azure authentication token not found.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Q1, Q2, Q3: Query Azure Front Door profiles with WAF associations using Azure Resource Graph
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door profiles via Resource Graph'
+
+    # ARG query to get Front Door Standard/Premium profiles with their associated WAF policies
+    # Uses securityPolicyLinks from WAF policies to correlate with Front Door profiles
+    $argQuery = @"
+resources
+| where type =~ 'microsoft.cdn/profiles'
+| where sku.name in~ ('Standard_AzureFrontDoor', 'Premium_AzureFrontDoor')
+| project
+    FrontDoorId = tolower(id),
+    FrontDoorName = name,
+    SkuName = tostring(sku.name),
+    subscriptionId
+| join kind=inner (
+    resources
+    | where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
+    | mv-expand securityPolicyLink = properties.securityPolicyLinks
+    | extend LinkedProfileId = tostring(securityPolicyLink.id)
+    | extend LinkedProfileIdLower = tolower(extract('(.+/providers/Microsoft.Cdn/profiles/[^/]+)', 1, LinkedProfileId))
+    | project WafPolicyName = name, LinkedProfileIdLower
+) on `$left.FrontDoorId == `$right.LinkedProfileIdLower
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionId, SubscriptionName = name
+) on subscriptionId
+| summarize WafPolicyNames = make_set(WafPolicyName) by FrontDoorId, FrontDoorName, SkuName, subscriptionId, SubscriptionName
+| project FrontDoorId, FrontDoorName, SkuName, subscriptionId, SubscriptionName, WafPolicyName = strcat_array(WafPolicyNames, ', ')
+"@
+
+    $profilesWithWaf = @()
+    try {
+        $profilesWithWaf = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($profilesWithWaf.Count) Azure Front Door profile(s) with WAF" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
-    }
-
-    # Collect Front Door resources and WAF policies across all subscriptions
-    $allAfdResources = @()
-    $allWafPolicies = @()
-    $frontDoorQuerySuccess = $false
-    $wafQuerySuccess = $false
-
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-
-        # Q2: List Azure Front Door resources
-        Write-ZtProgress -Activity $activity -Status "Querying Front Door resources in subscription $subscriptionId"
-
-        $afdListPath = "/subscriptions/$subscriptionId/providers/Microsoft.Cdn/profiles?api-version=2024-02-01"
-
-        try {
-            $afdListResult = Invoke-AzRestMethod -Path $afdListPath -ErrorAction Stop
-
-            if ($afdListResult.StatusCode -lt 400) {
-                $frontDoorQuerySuccess = $true
-                # Azure REST list APIs are paginated.
-                # Handling nextLink is required to avoid missing Front Door profiles.
-                $allCdnResources = @()
-                $cdnJson = $afdListResult.Content | ConvertFrom-Json
-
-                if ($cdnJson.value) {
-                    $allCdnResources += $cdnJson.value
-                }
-
-                $nextLink = $cdnJson.nextLink
-                try {
-                    while ($nextLink) {
-                        $afdListResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                        $cdnJson = $afdListResult.Content | ConvertFrom-Json
-                        if ($cdnJson.value) {
-                            $allCdnResources += $cdnJson.value
-                        }
-                        $nextLink = $cdnJson.nextLink
-                    }
-                }
-                catch {
-                    Write-PSFMessage "Failed to retrieve next page of Front Door profiles for subscription '$subscriptionId': $_. Continuing with collected data." -Level Warning
-                }
-
-                # Filter for Standard/Premium Azure Front Door SKUs
-                $afdResources = $allCdnResources | Where-Object { $_.sku.name -in $VALID_FRONT_DOOR_SKUS }
-                foreach ($afdResource in $afdResources) {
-                    $allAfdResources += [PSCustomObject]@{
-                        SubscriptionId    = $subscriptionId
-                        SubscriptionName  = $subscription.displayName
-                        FrontDoor         = $afdResource
-                    }
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying Front Door resources in subscription $subscriptionId : $_" -Level Warning
-        }
-
-        # Q3: List WAF policies
-        Write-ZtProgress -Activity $activity -Status "Querying WAF policies in subscription $subscriptionId"
-
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=2024-02-01"
-
-        try {
-            $wafResult = Invoke-AzRestMethod -Path $wafPath -ErrorAction Stop
-
-            if ($wafResult.StatusCode -lt 400) {
-                $wafQuerySuccess = $true
-                # Azure REST list APIs are paginated.
-                # Handling nextLink is required to avoid missing WAF policies.
-                $allWafPoliciesInSub = @()
-                $wafJson = $wafResult.Content | ConvertFrom-Json
-
-                if ($wafJson.value) {
-                    $allWafPoliciesInSub += $wafJson.value
-                }
-
-                $nextLink = $wafJson.nextLink
-                try {
-                    while ($nextLink) {
-                        $wafResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
-                        $wafJson = $wafResult.Content | ConvertFrom-Json
-                        if ($wafJson.value) {
-                            $allWafPoliciesInSub += $wafJson.value
-                        }
-                        $nextLink = $wafJson.nextLink
-                    }
-                }
-                catch {
-                    Write-PSFMessage "Failed to retrieve next page of WAF policies for subscription '$subscriptionId': $_. Continuing with collected data." -Level Warning
-                }
-
-                foreach ($policy in $allWafPoliciesInSub) {
-                    $allWafPolicies += [PSCustomObject]@{
-                        SubscriptionId = $subscriptionId
-                        Policy         = $policy
-                    }
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Level Warning
-        }
-    }
-
-    # Check if any Front Door resources exist
-    if ($allAfdResources.Count -eq 0) {
-        if (-not $frontDoorQuerySuccess) {
-            Write-PSFMessage 'Unable to query Front Door resources in any subscription due to access restrictions.' -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-        Write-PSFMessage 'No Azure Front Door Standard/Premium resources found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
-    # Check if WAF policies could be queried
-    if ($allWafPolicies.Count -eq 0 -and -not $wafQuerySuccess) {
-        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
-    }
-
-    # Filter profiles to only those with associated WAF policies (per spec step 3)
-    # Use Q3's securityPolicyLinks to find WAF associations
-    $profilesWithWaf = @()
-    foreach ($fdItem in $allAfdResources) {
-        $frontDoorId = $fdItem.FrontDoor.id
-        # Check if any WAF policy has securityPolicyLinks pointing to this Front Door
-        $matchedWafPolicy = $allWafPolicies | Where-Object {
-            $_.Policy.properties.securityPolicyLinks | Where-Object { $_.id -match [regex]::Escape($frontDoorId) }
-        }
-        if ($matchedWafPolicy) {
-            $profilesWithWaf += [PSCustomObject]@{
-                SubscriptionId   = $fdItem.SubscriptionId
-                SubscriptionName = $fdItem.SubscriptionName
-                FrontDoor        = $fdItem.FrontDoor
-                WafPolicyName    = ($matchedWafPolicy.Policy.name | Select-Object -Unique) -join ', '
-            }
-        }
     }
 
     # Skip if no Azure Front Door profiles with WAF exist (per spec step 6)
@@ -278,49 +132,40 @@ function Test-Assessment-26889 {
 
     $evaluationResults = @()
 
-    # Iterate only over profiles with WAF (filtered above using Q3 securityPolicyLinks)
+    # Iterate only over profiles with WAF (from ARG query above)
     foreach ($fdItem in $profilesWithWaf) {
-        $frontDoor = $fdItem.FrontDoor
-        $frontDoorId = $frontDoor.id
-        $frontDoorName = $frontDoor.name
-        $wafPolicyName = $fdItem.WafPolicyName  # WAF policy name from Q3 securityPolicyLinks
+        $frontDoorId = $fdItem.FrontDoorId
+        $frontDoorName = $fdItem.FrontDoorName
+        $wafPolicyName = $fdItem.WafPolicyName
 
-        # Q4: Query diagnostic settings
+        # Q4: Query diagnostic settings using Invoke-ZtAzureRequest
         $diagPath = $frontDoorId + '/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview'
 
         $diagSettings = @()
         try {
-            $diagResult = Invoke-AzRestMethod -Path $diagPath -ErrorAction Stop
-
-            if ($diagResult.StatusCode -lt 400) {
-                $diagSettings = ($diagResult.Content | ConvertFrom-Json).value
-            }
+            $diagSettings = @(Invoke-ZtAzureRequest -Path $diagPath)
         }
         catch {
             Write-PSFMessage "Error querying diagnostic settings for $frontDoorName : $_" -Level Warning
         }
 
-        # Fallback: If WAF policy name not found via Q3 securityPolicyLinks, query security policies endpoint
+        # Fallback: If WAF policy name not found via ARG, query security policies endpoint
         if (-not $wafPolicyName -or $wafPolicyName -eq 'None') {
             $securityPoliciesPath = $frontDoorId + '/securityPolicies?api-version=2024-02-01'
 
             try {
-                $secPolicyResult = Invoke-AzRestMethod -Path $securityPoliciesPath -ErrorAction Stop
+                $securityPolicies = @(Invoke-ZtAzureRequest -Path $securityPoliciesPath)
+                # Get WAF policy references from security policies
+                $wafPolicyIds = $securityPolicies | ForEach-Object {
+                    $_.properties.parameters.wafPolicy.id
+                } | Where-Object { $_ }
 
-                if ($secPolicyResult.StatusCode -lt 400) {
-                    $securityPolicies = ($secPolicyResult.Content | ConvertFrom-Json).value
-                    # Get WAF policy references from security policies
-                    $wafPolicyIds = $securityPolicies | ForEach-Object {
-                        $_.properties.parameters.wafPolicy.id
-                    } | Where-Object { $_ }
-
-                    if ($wafPolicyIds) {
-                        # Extract WAF policy names and join if multiple
-                        $wafPolicyNames = $wafPolicyIds | ForEach-Object {
-                            ($_ -split '/')[-1]
-                        }
-                        $wafPolicyName = ($wafPolicyNames | Select-Object -Unique) -join ', '
+                if ($wafPolicyIds) {
+                    # Extract WAF policy names and join if multiple
+                    $wafPolicyNames = $wafPolicyIds | ForEach-Object {
+                        ($_ -split '/')[-1]
                     }
+                    $wafPolicyName = ($wafPolicyNames | Select-Object -Unique) -join ', '
                 }
             }
             catch {
@@ -380,11 +225,11 @@ function Test-Assessment-26889 {
         $status = if ($hasValidDiagSetting -and $wafLogEnabled) { 'Pass' } else { 'Fail' }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId        = $fdItem.SubscriptionId
+            SubscriptionId        = $fdItem.subscriptionId
             SubscriptionName      = $fdItem.SubscriptionName
             FrontDoorName         = $frontDoorName
             FrontDoorId           = $frontDoorId
-            Sku                   = $frontDoor.sku.name
+            Sku                   = $fdItem.SkuName
             WafPolicy             = $wafPolicyName
             DiagnosticSettingCount = $diagSettings.Count
             DiagnosticSettingName = $diagSettingName
