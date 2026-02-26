@@ -1,0 +1,231 @@
+<#
+.SYNOPSIS
+    Validates that Port 53 is published or private DNS is configured for Private Access applications.
+
+.DESCRIPTION
+    This test checks whether DNS resolution for internal domains is properly configured in
+    Global Secure Access Private Access. When Private Access is enabled but neither port 53
+    (DNS) is published nor private DNS suffixes are configured, DNS queries for internal
+    domain names cannot be routed through the tunnel. This causes:
+    - FQDN-based application segments to fail
+    - DNS leakage to local networks (potential information disclosure)
+    - Possible bypass of Conditional Access and security policies
+
+    The test verifies that at least one application segment either:
+    - Uses destinationType 'dnsSuffix' (private DNS configured), OR
+    - Publishes port 53 with UDP protocol to an internal DNS server
+
+.NOTES
+    Test ID: 25400
+    Category: Private Access
+    Required API: networkAccess/forwardingProfiles (beta), applications (beta), applications/{id}/onPremisesPublishing/segmentsConfiguration (beta)
+#>
+
+function Test-Assessment-25400 {
+    [ZtTest(
+        Category = 'Private Access',
+        ImplementationCost = 'Low',
+        MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Private_Access'),
+        Pillar = 'Network',
+        RiskLevel = 'Low',
+        SfiPillar = 'Protect networks',
+        TenantType = ('Workforce'),
+        TestId = 25400,
+        Title = 'Port 53 is published or private DNS is configured for Private Access',
+        UserImpact = 'Low'
+    )]
+    [CmdletBinding()]
+    param()
+
+    #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    $activity = 'Checking DNS configuration for Private Access applications'
+    Write-ZtProgress -Activity $activity -Status 'Querying Private Access forwarding profile'
+
+    # Query 1: Check if Private Access forwarding profile is enabled
+    $forwardingProfiles = @()
+    $privateProfile = $null
+    $errorMsg = $null
+
+    try {
+        $forwardingProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/forwardingProfiles' -Filter "trafficForwardingType eq 'private'" -ApiVersion beta
+        if ($forwardingProfiles -and $forwardingProfiles.Count -gt 0) {
+            $privateProfile = $forwardingProfiles[0]
+        }
+    }
+    catch {
+        $errorMsg = $_
+        Write-PSFMessage "Failed to retrieve Private Access forwarding profile: $errorMsg" -Tag Test -Level Warning
+    }
+    #endregion Data Collection
+
+    #region Assessment Logic
+    $testResultMarkdown = ''
+    $passed = $false
+    $customStatus = $null
+
+    if ($errorMsg) {
+        # API call failed - unable to determine status
+        $passed = $false
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to retrieve Private Access forwarding profile due to API error or insufficient permissions.`n`n%TestResult%"
+    }
+    elseif (-not $privateProfile -or $privateProfile.state -ne 'enabled') {
+        # Private Access is not enabled - test is not applicable
+        Write-PSFMessage 'Private Access forwarding profile is not enabled in this tenant.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Private Access is not enabled in this tenant. This check is not applicable until Private Access is configured and enabled.'
+        return
+    }
+    else {
+        # Private Access is enabled - proceed with application segment checks
+        Write-ZtProgress -Activity $activity -Status 'Querying Private Access applications'
+
+        # Query 2: Get Private Access applications
+        $privateAccessApps = @()
+        try {
+            $privateAccessApps = Invoke-ZtGraphRequest `
+                -RelativeUri 'applications' `
+                -Select 'id,displayName,tags' `
+                -Filter "(tags/any(c:c eq 'PrivateAccessNonWebApplication') or tags/any(c:c eq 'NetworkAccessQuickAccessApplication'))" `
+                -ApiVersion beta
+        }
+        catch {
+            Write-PSFMessage "Failed to retrieve Private Access applications: $_" -Tag Test -Level Warning
+            $passed = $false
+            $customStatus = 'Investigate'
+            $testResultMarkdown = "⚠️ Unable to retrieve Private Access applications due to API error.`n`n%TestResult%"
+        }
+
+        if (-not $customStatus) {
+            if (-not $privateAccessApps -or $privateAccessApps.Count -eq 0) {
+                # No Private Access applications configured
+                $passed = $false
+                $testResultMarkdown = "❌ No Private Access applications are configured. DNS resolution cannot be established without application segments.`n`n%TestResult%"
+            }
+            else {
+                # Query 3: Get application segments for each application
+                Write-ZtProgress -Activity $activity -Status 'Analyzing application segments for DNS configuration'
+
+                $allSegments = [System.Collections.Generic.List[object]]::new()
+                $hasDnsSuffix = $false
+                $hasPort53 = $false
+
+                foreach ($app in $privateAccessApps) {
+                    try {
+                        $segments = Invoke-ZtGraphRequest `
+                            -RelativeUri "applications/$($app.id)/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" `
+                            -ApiVersion beta
+
+                        if ($null -ne $segments -and $segments.Count -gt 0) {
+                            foreach ($segment in $segments) {
+                                # Determine DNS resolution method
+                                $dnsResolution = 'None'
+
+                                # Check for dnsSuffix destination type
+                                if ($segment.destinationType -eq 'dnsSuffix') {
+                                    $dnsResolution = 'dnsSuffix'
+                                    $hasDnsSuffix = $true
+                                }
+                                # Check for port 53 with UDP protocol
+                                elseif ($segment.ports -and $segment.protocol) {
+                                    # Parse ports field (format: "startPort-endPort" or "port")
+                                    $portsArray = $segment.ports -split ','
+                                    foreach ($portRange in $portsArray) {
+                                        $portRange = $portRange.Trim()
+                                        if ($portRange -match '^(\d+)-(\d+)$') {
+                                            # Port range
+                                            $startPort = [int]$Matches[1]
+                                            $endPort = [int]$Matches[2]
+                                            if (53 -ge $startPort -and 53 -le $endPort -and $segment.protocol -match 'udp') {
+                                                $dnsResolution = 'Port 53'
+                                                $hasPort53 = $true
+                                            }
+                                        }
+                                        elseif ($portRange -match '^\d+$') {
+                                            # Single port
+                                            if ([int]$portRange -eq 53 -and $segment.protocol -match 'udp') {
+                                                $dnsResolution = 'Port 53'
+                                                $hasPort53 = $true
+                                            }
+                                        }
+                                    }
+                                }
+
+                                # Store segment information
+                                $allSegments.Add([PSCustomObject]@{
+                                    ApplicationName  = $app.displayName
+                                    DestinationHost  = $segment.destinationHost
+                                    DestinationType  = $segment.destinationType
+                                    Ports           = $segment.ports
+                                    Protocol        = $segment.protocol
+                                    DnsResolution   = $dnsResolution
+                                })
+                            }
+                        }
+                    }
+                    catch {
+                        Write-PSFMessage "Failed to retrieve segments for application $($app.id): $_" -Tag Test -Level Warning
+                    }
+                }
+
+                # Evaluate pass/fail per spec
+                if ($hasDnsSuffix -or $hasPort53) {
+                    $passed = $true
+                    $testResultMarkdown = "✅ DNS resolution for Private Access resources is configured through Global Secure Access using private DNS suffixes or published DNS endpoints.`n`n%TestResult%"
+                }
+                else {
+                    $passed = $false
+                    $testResultMarkdown = "❌ No private DNS suffix or port 53 application segment is configured for Private Access applications. DNS queries for internal domains cannot be routed through the tunnel.`n`n%TestResult%"
+                }
+            }
+        }
+    }
+    #endregion Assessment Logic
+
+    #region Report Generation
+    $mdInfo = ''
+
+    if ($allSegments.Count -gt 0) {
+        $reportTitle = 'Private Access Application Segments'
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/PrivateAccessQuickAccess'
+
+        # Build segments table
+        $segmentsTable = "| Application name | Segment destination host | Destination type | Ports | Protocol | DNS resolution |`n"
+        $segmentsTable += "| :--------------- | :----------------------- | :--------------- | :---- | :------- | :------------- |`n"
+
+        foreach ($segment in ($allSegments | Sort-Object ApplicationName, DestinationHost)) {
+            $appName = Get-SafeMarkdown -Text $segment.ApplicationName
+            $destHost = Get-SafeMarkdown -Text $segment.DestinationHost
+            $destType = if ($segment.DestinationType) { $segment.DestinationType } else { 'N/A' }
+            $ports = if ($segment.Ports) { $segment.Ports } else { 'N/A' }
+            $protocol = if ($segment.Protocol) { $segment.Protocol } else { 'N/A' }
+            $dnsResolution = $segment.DnsResolution
+
+            $segmentsTable += "| $appName | $destHost | $destType | $ports | $protocol | $dnsResolution |`n"
+        }
+
+        $formatTemplate = @"
+
+#### [$reportTitle]($portalLink)
+
+$segmentsTable
+"@
+
+        $mdInfo = $formatTemplate
+    }
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    #endregion Report Generation
+
+    $params = @{
+        TestId = '25400'
+        Title  = 'Port 53 is published or private DNS is configured for Private Access'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
+    }
+    Add-ZtTestResultDetail @params
+}
