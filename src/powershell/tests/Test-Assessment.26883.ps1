@@ -93,14 +93,16 @@ function Test-Assessment-26883 {
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
 
     $allWafPolicies = @()
+    $wafQuerySuccess = $false
     foreach ($subscription in $subscriptions) {
         $subscriptionId = $subscription.subscriptionId
         $subscriptionName = $subscription.displayName
 
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
+        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
 
         try {
             $wafPolicies = @(Invoke-ZtAzureRequest -Path $wafPath)
+            $wafQuerySuccess = $true
             foreach ($policy in $wafPolicies) {
                 $policy | Add-Member -NotePropertyName 'SubscriptionId' -NotePropertyValue $subscriptionId -Force
                 $policy | Add-Member -NotePropertyName 'SubscriptionName' -NotePropertyValue $subscriptionName -Force
@@ -130,6 +132,11 @@ function Test-Assessment-26883 {
     Write-PSFMessage "Found $($attachedWafPolicies.Count) WAF policy(ies) attached to Azure Front Door" -Tag Test -Level VeryVerbose
 
     if ($attachedWafPolicies.Count -eq 0) {
+        if (-not $wafQuerySuccess) {
+            Write-PSFMessage 'Failed to query WAF policies from any subscription.' -Tag Test -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
         Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
