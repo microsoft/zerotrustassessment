@@ -1,0 +1,303 @@
+<#
+.SYNOPSIS
+    Validates that CAPTCHA challenge is enabled in Azure Front Door WAF.
+
+.DESCRIPTION
+    This test evaluates Azure Front Door WAF policies to ensure at least one custom rule
+    with CAPTCHA challenge action is configured and enabled. CAPTCHA challenge provides
+    interactive human verification against sophisticated automated bots at the global edge.
+
+.NOTES
+    Test ID: 27020
+    Category: Azure Network Security
+    Required APIs: Azure Management REST API (subscriptions, WAF policies)
+#>
+
+function Test-Assessment-27020 {
+
+    [ZtTest(
+        Category = 'Azure Network Security',
+        ImplementationCost = 'Low',
+        MinimumLicense = 'Azure_WAF',
+        Pillar = 'Network',
+        RiskLevel = 'Medium',
+        SfiPillar = 'Protect networks',
+        TenantType = ('Workforce'),
+        TestId = 27020,
+        Title = 'CAPTCHA challenge is enabled in Azure Front Door WAF',
+        UserImpact = 'Medium'
+    )]
+    [CmdletBinding()]
+    param()
+
+    #region Data Collection
+
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+    $activity = 'Evaluating Azure Front Door WAF CAPTCHA challenge configuration'
+
+    # Check Azure connection
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
+
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    if (-not $azContext) {
+        Write-PSFMessage 'Not connected to Azure.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Check supported environment (Global cloud only)
+    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
+        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
+
+    # Q1: List all subscriptions
+    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
+
+    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
+    $subscriptions = $null
+
+    try {
+        $result = Invoke-AzRestMethod -Path $subscriptionsPath -ErrorAction Stop
+
+        if ($result.StatusCode -eq 403) {
+            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
+
+        if ($result.StatusCode -ge 400) {
+            throw "Subscriptions request failed with status code $($result.StatusCode)"
+        }
+
+        $allSubscriptions = @()
+        $subscriptionsJson = $result.Content | ConvertFrom-Json
+
+        if ($subscriptionsJson.value) {
+            $allSubscriptions += $subscriptionsJson.value
+        }
+
+        # Handle pagination
+        $nextLink = $subscriptionsJson.nextLink
+        while ($nextLink) {
+            try {
+                $result = Invoke-AzRestMethod -Uri $nextLink -Method GET
+                $subscriptionsJson = $result.Content | ConvertFrom-Json
+                if ($subscriptionsJson.value) {
+                    $allSubscriptions += $subscriptionsJson.value
+                }
+                $nextLink = $subscriptionsJson.nextLink
+            }
+            catch {
+                Write-PSFMessage "Failed to retrieve next page of subscriptions: $_. Continuing with collected data." -Tag Test -Level Warning
+                break
+            }
+        }
+
+        $subscriptions = $allSubscriptions | Where-Object { $_.state -eq 'Enabled' }
+    }
+    catch {
+        Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
+        throw
+    }
+
+    if ($null -eq $subscriptions -or $subscriptions.Count -eq 0) {
+        Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
+
+    # Q2: List WAF policies across all subscriptions
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
+
+    $allWafPolicies = @()
+    $wafQuerySuccess = $false
+
+    foreach ($subscription in $subscriptions) {
+        $subscriptionId = $subscription.subscriptionId
+        $subscriptionName = $subscription.displayName
+
+        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2024-02-01"
+
+        try {
+            $wafResult = Invoke-AzRestMethod -Path $wafPath -ErrorAction Stop
+
+            if ($wafResult.StatusCode -lt 400) {
+                $wafQuerySuccess = $true
+                $wafPoliciesInSub = @()
+                $wafJson = $wafResult.Content | ConvertFrom-Json
+
+                if ($wafJson.value) {
+                    $wafPoliciesInSub += $wafJson.value
+                }
+
+                # Handle pagination
+                $nextLink = $wafJson.nextLink
+                while ($nextLink) {
+                    try {
+                        $wafResult = Invoke-AzRestMethod -Uri $nextLink -Method GET
+                        $wafJson = $wafResult.Content | ConvertFrom-Json
+                        if ($wafJson.value) {
+                            $wafPoliciesInSub += $wafJson.value
+                        }
+                        $nextLink = $wafJson.nextLink
+                    }
+                    catch {
+                        Write-PSFMessage "Failed to retrieve next page of WAF policies for subscription '$subscriptionId': $_. Continuing with collected data." -Tag Test -Level Warning
+                        break
+                    }
+                }
+
+                foreach ($policy in $wafPoliciesInSub) {
+                    $allWafPolicies += [PSCustomObject]@{
+                        SubscriptionId   = $subscriptionId
+                        SubscriptionName = $subscriptionName
+                        Policy           = $policy
+                    }
+                }
+            }
+        }
+        catch {
+            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Tag Test -Level Warning
+        }
+    }
+
+    if (-not $wafQuerySuccess) {
+        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        return
+    }
+
+    # Q3: Filter to only attached WAF policies
+    $attachedWafPolicies = @()
+
+    foreach ($wafItem in $allWafPolicies) {
+        $policy = $wafItem.Policy
+        $frontendLinks = $policy.properties.frontendEndpointLinks
+        $securityPolicyLinks = $policy.properties.securityPolicyLinks
+
+        # Include only if either array has at least one entry
+        $hasAttachment = ($frontendLinks -and $frontendLinks.Count -gt 0) -or ($securityPolicyLinks -and $securityPolicyLinks.Count -gt 0)
+
+        if ($hasAttachment) {
+            $attachedWafPolicies += $wafItem
+        }
+    }
+
+    if ($attachedWafPolicies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    Write-PSFMessage "Found $($attachedWafPolicies.Count) attached WAF policy/policies" -Tag Test -Level VeryVerbose
+
+    # Evaluate each attached WAF policy
+    $evaluationResults = @()
+
+    foreach ($wafItem in $attachedWafPolicies) {
+        $policy = $wafItem.Policy
+        $policySettings = $policy.properties.policySettings
+        $customRules = $policy.properties.customRules.rules
+
+        $enabledState = $policySettings.enabledState
+        $wafMode = $policySettings.mode
+        $captchaExpiration = $policySettings.captchaExpirationInMinutes
+
+        # Count enabled CAPTCHA rules
+        $captchaRules = @()
+        if ($customRules) {
+            $captchaRules = @($customRules | Where-Object { $_.action -eq 'Captcha' -and $_.enabledState -eq 'Enabled' })
+        }
+        $captchaRuleCount = $captchaRules.Count
+        $captchaRuleState = if ($captchaRuleCount -gt 0) { 'Enabled' } else { 'Disabled' }
+
+        # Determine status based on spec criteria
+        $status = 'Fail'
+        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $captchaRuleCount -gt 0) {
+            $status = 'Pass'
+        }
+
+        $evaluationResults += [PSCustomObject]@{
+            SubscriptionId       = $wafItem.SubscriptionId
+            SubscriptionName     = $wafItem.SubscriptionName
+            PolicyName           = $policy.name
+            PolicyId             = $policy.id
+            Sku                  = $policy.sku.name
+            EnabledState         = $enabledState
+            WafMode              = $wafMode
+            CaptchaRuleCount     = $captchaRuleCount
+            CaptchaRuleState     = $captchaRuleState
+            CaptchaExpiration    = if ($captchaExpiration) { $captchaExpiration } else { 'N/A' }
+            Status               = $status
+        }
+    }
+
+    #endregion Data Collection
+
+    #region Assessment Logic
+
+    $passedItems = $evaluationResults | Where-Object { $_.Status -eq 'Pass' }
+    $failedItems = $evaluationResults | Where-Object { $_.Status -eq 'Fail' }
+
+    $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
+
+    if ($passed) {
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have at least one custom rule with CAPTCHA challenge action configured and enabled.`n`n%TestResult%"
+    }
+    else {
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have any CAPTCHA challenge rules configured, leaving applications without interactive human verification against sophisticated automated bots at the global edge.`n`n%TestResult%"
+    }
+
+    #endregion Assessment Logic
+
+    #region Report Generation
+
+    $portalWafBrowseLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FfrontdoorWebApplicationFirewallPolicies'
+    $portalResourceBaseLink = 'https://portal.azure.com/#resource'
+    $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
+
+    $mdInfo = "`n## [Azure Front Door WAF policies]($portalWafBrowseLink)`n`n"
+
+    if ($evaluationResults.Count -gt 0) {
+        $tableRows = ''
+        $formatTemplate = @'
+| Policy name | Subscription | Enabled state | WAF mode | CAPTCHA rules count | Rule state | Cookie expiration (mins) | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+{0}
+
+'@
+
+        foreach ($result in $evaluationResults) {
+            $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
+            $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
+            $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+
+            $tableRows += "| $policyLink | $subscriptionLink | $($result.EnabledState) | $($result.WafMode) | $($result.CaptchaRuleCount) | $($result.CaptchaRuleState) | $($result.CaptchaExpiration) | $statusText |`n"
+        }
+
+        $mdInfo += $formatTemplate -f $tableRows
+    }
+
+    # Summary
+    $mdInfo += "**Summary:**`n`n"
+    $mdInfo += "- Total attached WAF policies evaluated: $($evaluationResults.Count)`n"
+    $mdInfo += "- Policies with CAPTCHA challenge enabled: $($passedItems.Count)`n"
+    $mdInfo += "- Policies without CAPTCHA challenge: $($failedItems.Count)`n"
+
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+
+    #endregion Report Generation
+
+    $params = @{
+        TestId = '27020'
+        Title  = 'CAPTCHA challenge is enabled in Azure Front Door WAF'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+
+    Add-ZtTestResultDetail @params
+}
