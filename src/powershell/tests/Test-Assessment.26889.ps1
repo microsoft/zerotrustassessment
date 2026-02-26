@@ -332,7 +332,7 @@ function Test-Assessment-26889 {
         $hasValidDiagSetting = $false
         $destinationType = 'None'
         $enabledCategories = @()
-        $diagSettingName = 'None'
+        $diagSettingNames = @()
 
         foreach ($setting in $diagSettings) {
             $workspaceId = $setting.properties.workspaceId
@@ -344,7 +344,7 @@ function Test-Assessment-26889 {
 
             if ($hasDestination) {
                 $hasValidDiagSetting = $true
-                $diagSettingName = $setting.name
+                $diagSettingNames += $setting.name
 
                 # Determine destination type
                 $destTypes = @()
@@ -357,11 +357,20 @@ function Test-Assessment-26889 {
                 $logs = $setting.properties.logs
                 foreach ($log in $logs) {
                     if ($log.enabled) {
-                        $enabledCategories += $log.category
+                        if ($log.categoryGroup -eq 'allLogs' -or $log.categoryGroup -eq 'audit') {
+                            # categoryGroup covers all categories in the group
+                            $enabledCategories += $REQUIRED_LOG_CATEGORIES
+                        }
+                        elseif ($log.category) {
+                            $enabledCategories += $log.category
+                        }
                     }
                 }
             }
         }
+
+        # Join diagnostic setting names after evaluating all settings
+        $diagSettingName = if ($diagSettingNames.Count -gt 0) { ($diagSettingNames | Select-Object -Unique) -join ', ' } else { 'None' }
 
         # Check which required log categories are enabled and if WAF log is enabled for pass criteria
         $enabledCategories = $enabledCategories | Select-Object -Unique
