@@ -10,7 +10,8 @@
 .NOTES
     Test ID: 26883
     Category: Azure Network Security
-    Required APIs: Azure Management REST API (subscriptions, frontDoorWebApplicationFirewallPolicies)
+    Pillar: Network
+    Required API: Azure Resource Graph - FrontDoorWebApplicationFirewallPolicies
 #>
 
 function Test-Assessment-26883 {
@@ -31,8 +32,8 @@ function Test-Assessment-26883 {
     param()
 
     #region Data Collection
-
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
     $activity = 'Evaluating Azure Front Door WAF default ruleset configuration'
 
     # Check if connected to Azure
@@ -45,153 +46,65 @@ function Test-Assessment-26883 {
         return
     }
 
-    # Check the supported environment
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph'
 
-    if ($azContext.Environment.Name -ne 'AzureCloud') {
-        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+    # Query Front Door WAF policies attached to Front Door (Classic or Standard/Premium)
+    # - frontendEndpointLinks: Classic Front Door attachments
+    # - securityPolicyLinks: Standard/Premium Front Door attachments
+    # mv-expand flattens the managedRuleSets array to check for Microsoft_DefaultRuleSet
+    # summarize collects back to one row per policy with HasDefaultRuleset flag
+    $argQuery = @"
+resources
+| where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
+| where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
+| extend ManagedRuleSets = properties.managedRules.managedRuleSets
+| extend EnabledState = tostring(properties.policySettings.enabledState)
+| extend WafMode = tostring(properties.policySettings.mode)
+| extend SkuName = tostring(sku.name)
+| mv-expand ManagedRuleSet = ManagedRuleSets to typeof(dynamic)
+| extend RuleSetType = tostring(ManagedRuleSet.ruleSetType)
+| extend RuleSetVersion = tostring(ManagedRuleSet.ruleSetVersion)
+| summarize
+    HasDefaultRuleset = max(RuleSetType == 'Microsoft_DefaultRuleSet'),
+    DefaultRulesetVersion = maxif(RuleSetVersion, RuleSetType == 'Microsoft_DefaultRuleSet'),
+    EnabledState = any(EnabledState),
+    WafMode = any(WafMode),
+    SkuName = any(SkuName),
+    PolicyId = any(id),
+    PolicyName = any(name),
+    subscriptionId = any(subscriptionId)
+    by tolower(id)
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionId, SubscriptionName = name
+) on subscriptionId
+| project PolicyName, PolicyId, subscriptionId, SubscriptionName, SkuName, EnabledState, WafMode, HasDefaultRuleset, DefaultRulesetVersion
+"@
+
+    $policies = @()
+    try {
+        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
-
-    # Check Azure access token
-    try {
-        $accessToken = Get-AzAccessToken -AsSecureString -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-    }
-    catch {
-        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
-    }
-
-    if (-not $accessToken) {
-        Write-PSFMessage 'Azure authentication token not found.' -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
-        return
-    }
-
-    # Step 1: Get all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2025-03-01'
-    $subscriptions = @()
-    try {
-        $subscriptions = @(Invoke-ZtAzureRequest -Path $subscriptionsPath)
-        Write-PSFMessage "Found $($subscriptions.Count) subscription(s)" -Tag Test -Level VeryVerbose
-    }
-    catch {
-        Write-PSFMessage "Failed to query subscriptions: $($_.Exception.Message)" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
-    }
-
-    if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No subscriptions found or user does not have access.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
-    }
-
-    # Step 2: Get all Azure Front Door WAF policies from all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
-
-    $allWafPolicies = @()
-    $wafQuerySuccess = $false
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-        $subscriptionName = $subscription.displayName
-
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
-
-        try {
-            $wafPolicies = @(Invoke-ZtAzureRequest -Path $wafPath)
-            $wafQuerySuccess = $true
-            foreach ($policy in $wafPolicies) {
-                $policy | Add-Member -NotePropertyName 'SubscriptionId' -NotePropertyValue $subscriptionId -Force
-                $policy | Add-Member -NotePropertyName 'SubscriptionName' -NotePropertyValue $subscriptionName -Force
-            }
-            $allWafPolicies += $wafPolicies
-            Write-PSFMessage "Found $($wafPolicies.Count) WAF policy(ies) in subscription $subscriptionName" -Tag Test -Level VeryVerbose
-        }
-        catch {
-            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionName : $_" -Level Warning
-        }
-    }
-
-    # Step 3: Filter to only policies attached to Azure Front Door
-    $attachedWafPolicies = @()
-    foreach ($policy in $allWafPolicies) {
-        $frontendEndpointLinks = $policy.properties.frontendEndpointLinks
-        $securityPolicyLinks = $policy.properties.securityPolicyLinks
-
-        $hasAttachment = ($frontendEndpointLinks -and $frontendEndpointLinks.Count -gt 0) -or
-                         ($securityPolicyLinks -and $securityPolicyLinks.Count -gt 0)
-
-        if ($hasAttachment) {
-            $attachedWafPolicies += $policy
-        }
-    }
-
-    Write-PSFMessage "Found $($attachedWafPolicies.Count) WAF policy(ies) attached to Azure Front Door" -Tag Test -Level VeryVerbose
-
-    if ($attachedWafPolicies.Count -eq 0) {
-        if (-not $wafQuerySuccess) {
-            Write-PSFMessage 'Failed to query WAF policies from any subscription.' -Tag Test -Level Warning
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
-    # Step 4: Evaluate each attached WAF policy for default ruleset
-    Write-ZtProgress -Activity $activity -Status 'Evaluating WAF policy configurations'
-
-    $evaluationResults = @()
-
-    foreach ($policy in $attachedWafPolicies) {
-        $policyName = $policy.name
-        $policyId = $policy.id
-        $subscriptionId = $policy.SubscriptionId
-        $subscriptionName = $policy.SubscriptionName
-        $enabledState = $policy.properties.policySettings.enabledState
-        $wafMode = $policy.properties.policySettings.mode
-        $skuName = $policy.sku.name
-
-        # Check for Microsoft_DefaultRuleSet in managedRuleSets
-        $managedRuleSets = $policy.properties.managedRules.managedRuleSets
-        $defaultRuleset = $null
-        $hasDefaultRuleset = $false
-
-        if ($managedRuleSets -and $managedRuleSets.Count -gt 0) {
-            $defaultRuleset = $managedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_DefaultRuleSet' } | Select-Object -First 1
-            if ($defaultRuleset) {
-                $hasDefaultRuleset = $true
-            }
-        }
-
-        $rulesetType = if ($hasDefaultRuleset) { $defaultRuleset.ruleSetType } else { 'None' }
-        $rulesetVersion = if ($hasDefaultRuleset) { $defaultRuleset.ruleSetVersion } else { 'N/A' }
-        $status = if ($hasDefaultRuleset) { 'Pass' } else { 'Fail' }
-
-        $evaluationResults += [PSCustomObject]@{
-            SubscriptionId   = $subscriptionId
-            SubscriptionName = $subscriptionName
-            PolicyName       = $policyName
-            PolicyId         = $policyId
-            SkuName          = $skuName
-            EnabledState     = $enabledState
-            WafMode          = $wafMode
-            RulesetType      = $rulesetType
-            RulesetVersion   = $rulesetVersion
-            Status           = $status
-        }
-    }
-
     #endregion Data Collection
 
     #region Assessment Logic
+    # Skip test if no policies found
+    if ($policies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Azure Front Door WAF policies attached to Azure Front Door found across subscriptions.'
+        return
+    }
 
-    $passedItems = $evaluationResults | Where-Object { $_.Status -eq 'Pass' }
-    $failedItems = $evaluationResults | Where-Object { $_.Status -eq 'Fail' }
+    # Check if all policies have default ruleset enabled
+    $passedItems = @($policies | Where-Object { $_.HasDefaultRuleset -eq $true })
+    $failedItems = @($policies | Where-Object { $_.HasDefaultRuleset -ne $true })
 
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
@@ -201,63 +114,53 @@ function Test-Assessment-26883 {
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have a default managed ruleset configured.`n`n%TestResult%"
     }
-
     #endregion Assessment Logic
 
     #region Report Generation
+    $mdInfo = ''
 
-    # Portal link variables
-    $portalWafBrowseLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FfrontdoorWebApplicationFirewallPolicies'
-    $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
-    $portalResourceBaseLink = 'https://portal.azure.com/#resource'
+    # Table title
+    $reportTitle = 'Azure Front Door WAF Policies'
+    $portalLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FfrontdoorWebApplicationFirewallPolicies'
 
-    $mdInfo = "`n## [Azure Front Door WAF policies]($portalWafBrowseLink)`n`n"
+    # Prepare table rows
+    $tableRows = ''
+    foreach ($item in $policies | Sort-Object SubscriptionName, PolicyName) {
+        $policyLink = "https://portal.azure.com/#resource$($item.PolicyId)"
+        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.subscriptionId)"
+        $policyMd = "[$(Get-SafeMarkdown $item.PolicyName)]($policyLink)"
+        $subMd = "[$(Get-SafeMarkdown $item.SubscriptionName)]($subLink)"
 
-    # WAF Policies Status table
-    if ($evaluationResults.Count -gt 0) {
-        $tableRows = ""
-        $formatTemplate = @'
-| Policy name | Subscription name | Attached to AFD | Enabled state | WAF mode | Default ruleset type | Ruleset version | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-{0}
+        # Calculate status indicators
+        $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
+        $modeDisplay = if ($item.WafMode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.WafMode)" }
+        $rulesetType = if ($item.HasDefaultRuleset -eq $true) { 'Microsoft_DefaultRuleSet' } else { 'None' }
+        $rulesetVersion = if ($item.HasDefaultRuleset -eq $true -and $item.DefaultRulesetVersion) { $item.DefaultRulesetVersion } else { 'N/A' }
+        $status = if ($item.HasDefaultRuleset -eq $true) { '✅ Pass' } else { '❌ Fail' }
+
+        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
+    }
+
+    $formatTemplate = @'
+
+
+## [{0}]({1})
+
+| Policy name | Subscription name | Enabled state | WAF mode | Default ruleset type | Ruleset version | Status |
+| :---------- | :---------------- | :-----------: | :------: | :------------------- | :-------------- | :----: |
+{2}
 
 '@
 
-        # Limit display to first 5 items if there are many policies
-        $maxItemsToDisplay = 5
-        $displayResults = $evaluationResults
-        $hasMoreItems = $false
-        if ($evaluationResults.Count -gt $maxItemsToDisplay) {
-            $displayResults = $evaluationResults | Select-Object -First $maxItemsToDisplay
-            $hasMoreItems = $true
-        }
-
-        foreach ($result in $displayResults) {
-            $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
-            $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
-            $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
-
-            $tableRows += "| $policyLink | $subscriptionLink | Yes | $($result.EnabledState) | $($result.WafMode) | $($result.RulesetType) | $($result.RulesetVersion) | $statusText |`n"
-        }
-
-        # Add note if more items exist
-        if ($hasMoreItems) {
-            $remainingCount = $evaluationResults.Count - $maxItemsToDisplay
-            $tableRows += "`n... and $remainingCount more. [View all WAF Policies in the portal]($portalWafBrowseLink)`n"
-        }
-
-        $mdInfo += $formatTemplate -f $tableRows
-    }
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
     # Summary
     $mdInfo += "**Summary:**`n`n"
-    $mdInfo += "- Total Azure Front Door WAF policies evaluated: $($evaluationResults.Count)`n"
+    $mdInfo += "- Total Azure Front Door WAF policies evaluated: $($policies.Count)`n"
     $mdInfo += "- Policies with default ruleset enabled: $($passedItems.Count)`n"
     $mdInfo += "- Policies without default ruleset: $($failedItems.Count)`n"
 
-    # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
-
     #endregion Report Generation
 
     $params = @{
