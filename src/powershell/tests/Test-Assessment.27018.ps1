@@ -18,7 +18,7 @@ function Test-Assessment-27018 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('Azure_WAF'),
+        MinimumLicense = 'Azure_WAF',
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -40,7 +40,7 @@ function Test-Assessment-27018 {
 
     $azContext = Get-AzContext -ErrorAction SilentlyContinue
     if (-not $azContext) {
-        Write-PSFMessage 'Not connected to Azure.' -Level Warning
+        Write-PSFMessage 'Not connected to Azure.' -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
         return
     }
@@ -54,81 +54,74 @@ function Test-Assessment-27018 {
         return
     }
 
-    # Step 1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Enumerating subscriptions'
+    # Q1: List all subscriptions
+    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
 
-    $subscriptions = @()
+    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
+
     try {
-        $subscriptions = Get-AzSubscription -ErrorAction Stop
+        $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
+
+        if ($result.StatusCode -eq 403) {
+            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+            return
+        }
+
+        if ($result.StatusCode -ge 400) {
+            throw "Subscriptions request failed with status code $($result.StatusCode)"
+        }
+
+        $subscriptionsJson = $result.Content | ConvertFrom-Json
+        $subscriptions = @($subscriptionsJson.value | Where-Object { $_.state -eq 'Enabled' })
     }
     catch {
-        Write-PSFMessage "Unable to retrieve Azure subscriptions: $_" -Level Warning
+        Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
+        throw
     }
 
     if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No Azure subscriptions found.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
-    # Step 2: Collect Front Door WAF policies from all subscriptions
+    # Q2: List WAF policies across all subscriptions
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
+
     $allPolicies = @()
-    $anySuccessfulAccess = 0
-    $apiVersion = '2025-03-01'
+    $wafQuerySuccess = $false
 
-    foreach ($sub in $subscriptions) {
-        Write-ZtProgress -Activity $activity -Status "Checking subscription: $($sub.Name)"
+    foreach ($subscription in $subscriptions) {
+        $subscriptionId = $subscription.subscriptionId
+        $subscriptionName = $subscription.displayName
 
-        $path = "/subscriptions/$($sub.Id)/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=$apiVersion"
-        $response = Invoke-AzRestMethod -Path $path -ErrorAction SilentlyContinue
+        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
 
-        # Skip if request failed completely
-        if (-not $response -or $null -eq $response.StatusCode) {
-            Write-PSFMessage "Failed to query subscription '$($sub.Name)'. Skipping." -Level Warning
-            continue
-        }
+        try {
+            $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
+            $wafQuerySuccess = $true
 
-        # Handle access denied - skip to next subscription
-        if ($response.StatusCode -eq 403) {
-            Write-PSFMessage "Access denied to subscription '$($sub.Name)': HTTP $($response.StatusCode). Skipping." -Level Verbose
-            continue
-        }
-
-        # Handle other HTTP errors - skip this subscription
-        if ($response.StatusCode -ge 400) {
-            Write-PSFMessage "Error querying subscription '$($sub.Name)': HTTP $($response.StatusCode). Skipping." -Level Warning
-            continue
-        }
-
-        $anySuccessfulAccess++
-
-        if (-not $response.Content) {
-            continue
-        }
-
-        $policiesJson = $response.Content | ConvertFrom-Json
-
-        if (-not $policiesJson.value -or $policiesJson.value.Count -eq 0) {
-            continue
-        }
-
-        foreach ($policy in $policiesJson.value) {
-            $allPolicies += [PSCustomObject]@{
-                SubscriptionId   = $sub.Id
-                SubscriptionName = $sub.Name
-                Policy           = $policy
+            foreach ($policy in $wafPoliciesInSub) {
+                $allPolicies += [PSCustomObject]@{
+                    SubscriptionId   = $subscriptionId
+                    SubscriptionName = $subscriptionName
+                    Policy           = $policy
+                }
             }
         }
+        catch {
+            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Tag Test -Level Warning
+        }
     }
 
-    # Skip if no accessible subscriptions
-    if ($anySuccessfulAccess -eq 0) {
-        Write-PSFMessage 'No accessible Azure subscriptions found.' -Level Warning
+    if (-not $wafQuerySuccess) {
+        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Step 3: Filter to only policies attached to Azure Front Door and evaluate
+    # Q3: Filter to only policies attached to Azure Front Door and evaluate
     $evaluationResults = @()
 
     foreach ($item in $allPolicies) {
@@ -157,28 +150,24 @@ function Test-Assessment-27018 {
         }
 
         $rateLimitCount = $rateLimitRules.Count
-        $hasRateLimiting = $rateLimitCount -gt 0
+        $rateLimitRuleState = if ($rateLimitCount -gt 0) { 'Enabled' } else { 'Disabled' }
 
-        # Get the lowest threshold from enabled rate limit rules (for display)
-        $rateLimitThreshold = 'N/A'
-        if ($hasRateLimiting) {
-            $lowestThreshold = ($rateLimitRules | Sort-Object { $_.rateLimitThreshold } | Select-Object -First 1).rateLimitThreshold
-            $rateLimitThreshold = $lowestThreshold.ToString()
+        # Status requires all three: policy enabled, Prevention mode, and at least one RateLimitRule
+        $status = 'Fail'
+        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $rateLimitCount -gt 0) {
+            $status = 'Pass'
         }
 
-        $status = if ($hasRateLimiting) { 'Pass' } else { 'Fail' }
-
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId    = $item.SubscriptionId
-            SubscriptionName  = $item.SubscriptionName
-            PolicyName        = $policy.name
-            PolicyId          = $policy.id
-            AttachedToAFD     = 'Yes'
-            EnabledState      = $enabledState
-            WafMode           = $wafMode
-            RateLimitCount    = $rateLimitCount
-            RateLimitThreshold = $rateLimitThreshold
-            Status            = $status
+            SubscriptionId   = $item.SubscriptionId
+            SubscriptionName = $item.SubscriptionName
+            PolicyName       = $policy.name
+            PolicyId         = $policy.id
+            EnabledState     = $enabledState
+            WafMode          = $wafMode
+            RateLimitCount   = $rateLimitCount
+            RateLimitRuleState = $rateLimitRuleState
+            Status           = $status
         }
     }
 
@@ -209,39 +198,37 @@ function Test-Assessment-27018 {
 
     #region Report Generation
 
-    $portalWafLink = 'https://portal.azure.com/#view/Microsoft_Azure_HybridNetworking/FirewallManagerMenuBlade/~/wafMenuItem'
+    $portalWafBrowseLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FfrontdoorWebApplicationFirewallPolicies'
     $portalResourceBaseLink = 'https://portal.azure.com/#resource'
     $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
 
-    $mdInfo = ''
+    $mdInfo = "`n## [Azure Front Door WAF policies]($portalWafBrowseLink)`n`n"
 
-    $reportTitle = 'Azure Front Door WAF Policies'
-    $formatTemplate = @'
-
-
-## [{0}]({1})
-
-| Policy name | Subscription name | Attached to AFD | Enabled state | WAF mode | Rate limit rules count | Rate limit threshold | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-{2}
+    if ($evaluationResults.Count -gt 0) {
+        $tableRows = ''
+        $formatTemplate = @'
+| Policy name | Subscription | Rule state | Enabled state | WAF mode | Rate limit rules count | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+{0}
 
 '@
 
-    $tableRows = ''
-    foreach ($result in $evaluationResults) {
-        $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
-        $subLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
-        $attachedDisplay = $result.AttachedToAFD
-        $enabledStateDisplay = if ($result.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
-        $wafModeDisplay = if ($result.WafMode -eq 'Prevention') { 'Prevention' } else { 'Detection' }
-        $rateLimitCountDisplay = $result.RateLimitCount
-        $thresholdDisplay = $result.RateLimitThreshold
-        $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+        foreach ($result in $evaluationResults) {
+            $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
+            $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
+            $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
 
-        $tableRows += "| $policyLink | $subLink | $attachedDisplay | $enabledStateDisplay | $wafModeDisplay | $rateLimitCountDisplay | $thresholdDisplay | $statusText |`n"
+            $tableRows += "| $policyLink | $subscriptionLink | $($result.RateLimitRuleState) | $($result.EnabledState) | $($result.WafMode) | $($result.RateLimitCount) | $statusText |`n"
+        }
+
+        $mdInfo += $formatTemplate -f $tableRows
     }
 
-    $mdInfo = $formatTemplate -f $reportTitle, $portalWafLink, $tableRows.TrimEnd("`n")
+    # Summary
+    $mdInfo += "**Summary:**`n`n"
+    $mdInfo += "- Total attached WAF policies evaluated: $($evaluationResults.Count)`n"
+    $mdInfo += "- Policies with rate limiting enabled: $($passedItems.Count)`n"
+    $mdInfo += "- Policies without rate limiting: $($failedItems.Count)`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
