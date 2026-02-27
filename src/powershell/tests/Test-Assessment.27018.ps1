@@ -129,9 +129,8 @@ function Test-Assessment-27018 {
         $frontendLinks = $policy.properties.frontendEndpointLinks
         $securityPolicyLinks = $policy.properties.securityPolicyLinks
 
-        # Exclude policies not attached to any Azure Front Door
-        $isAttached = ($frontendLinks -and $frontendLinks.Count -gt 0) -or
-                      ($securityPolicyLinks -and $securityPolicyLinks.Count -gt 0)
+
+        $isAttached = (@($frontendLinks).Count -gt 0) -or (@($securityPolicyLinks).Count -gt 0)
 
         if (-not $isAttached) {
             continue
