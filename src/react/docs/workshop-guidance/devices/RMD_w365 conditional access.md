@@ -17,7 +17,7 @@ Conditional Access for Windows 365 allows organizations to enforce access contro
 
 - Windows Cloud Login
 
-Conditional Access policies are configured using Microsoft Entra ID (formerly Azure AD) and can be managed through Microsoft Intune. These policies help ensure that only trusted users and devices can access Cloud PCs, reducing the risk of unauthorized access. If not implemented, organizations risk exposing sensitive resources to compromised accounts or unmanaged devices.
+Conditional Access policies are configured using Microsoft Entra ID and can be managed through Microsoft Intune. These policies help ensure that only trusted users and devices can access Cloud PCs, reducing the risk of unauthorized access. If not implemented, organizations risk exposing sensitive resources to compromised accounts or unmanaged devices.
 
 This feature supports the Zero Trust principle of **\"Verify explicitly\"** by requiring authentication and authorization based on real-time signals such as user risk, device health, and location.
 

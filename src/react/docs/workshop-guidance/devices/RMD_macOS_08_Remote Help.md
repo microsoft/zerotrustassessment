@@ -32,7 +32,7 @@ From a Zero Trust perspective: Ensures that **only managed, compliant devices** 
 
 ### Identity Verification
 
-- Both the helper and the user must sign in with Microsoft Entra ID (formerly Azure AD).
+- Both the helper and the user must sign in with Microsoft Entra ID.
 - Sessions are authenticated and authorized through Intune and Entra ID.
 
 From a Zero Trust perspective: This enforces **explicit verification** of both parties before any remote access is granted.

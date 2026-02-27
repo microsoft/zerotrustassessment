@@ -7,7 +7,7 @@
 Submitting false positives (legitimate mail incorrectly blocked) and false negatives (malicious mail incorrectly delivered) helps Microsoft Defender for Office 365 improve its filtering logic and better protect your organization. Admins can submit messages directly through the Submissions portal, and users can report emails from Outlook using built‑in reporting tools. If this capability is not used regularly, threat filters may remain inaccurate, increasing the risk of phishing, malware exposure, or productivity loss. This supports the Zero Trust principle of **Assume Breach**, because continuous classification feedback improves detection quality and reduces repeated attacker success.
 
 ### Where to configure or use this capability
-- **Microsoft 365 Defender Portal → Email & Collaboration → Submissions**  
+- **Microsoft Defender XDR → Email & Collaboration → Submissions**  
   Admins can submit false positives/negatives for emails, URLs, and attachments.  
   (No images available in the Microsoft Learn articles surfaced.)  
 - **Outlook (desktop/web/mobile)**  

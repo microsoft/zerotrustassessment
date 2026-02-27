@@ -83,7 +83,7 @@ This section helps administrators understand and evaluate the available SSO opti
 - Platform SSO requires:
   - macOS 13.0 or later (macOS 14.6+ for Kerberos SSO)
   - Intune Company Portal version 5.2404.0 or later
-  - Microsoft Entra ID (formerly Azure AD)
+  - Microsoft Entra ID
 - Devices must be **Entra-joined** and enrolled in Intune to enable full SSO capabilities.
 
 ---

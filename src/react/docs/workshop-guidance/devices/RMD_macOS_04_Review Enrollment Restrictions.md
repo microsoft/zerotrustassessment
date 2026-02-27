@@ -39,7 +39,7 @@ This guidance applies to both new deployments and environments where macOS devic
 
 ### Group-Based Targeting
 
-- Enrollment restrictions can be scoped to **Azure AD groups** to apply different rules for different user populations.
+- Enrollment restrictions can be scoped to **Microsoft Entra groups** to apply different rules for different user populations.
 - Use this to enforce tighter restrictions for high-risk roles or departments.
 
 ### Reviewing Existing Enrollments

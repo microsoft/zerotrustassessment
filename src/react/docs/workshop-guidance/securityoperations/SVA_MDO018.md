@@ -8,7 +8,7 @@ The Microsoft Defender for Office 365 Incidents page provides a consolidated vie
 
 ### Where to Access or Configure
 You can access incidents in the Microsoft Defender portal:  
-**Microsoft 365 Defender → Incidents & alerts → Incidents**  
+**Microsoft Defender XDR → Incidents & alerts → Incidents**  
 Here you can filter by alert source (including Defender for Office 365), review suspicious entities, drill into email details, and launch or view automated investigations.  
 
 ## Reference

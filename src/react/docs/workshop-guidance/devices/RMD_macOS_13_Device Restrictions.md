@@ -23,7 +23,7 @@ This guidance applies to corporate-owned macOS devices enrolled in Intune.
 ### Configuration Scope
 
 - Device restrictions are applied using **device configuration profiles** in Intune.
-- These profiles can be scoped using **Azure AD groups** to target specific device types or user roles.
+- These profiles can be scoped using **Microsoft Entra groups** to target specific device types or user roles.
 
 ### Zero Trust-Aligned Restriction Settings
 

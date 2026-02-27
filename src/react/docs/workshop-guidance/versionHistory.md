@@ -12,3 +12,4 @@ sidebar_position: 9
 |2.2| September 2025| • Refreshed Network Pillar to reflect latest feature and guidance updates |
 |2.3| October 2025| • Updates to Identity, Devices, and Security Operations Pillars to reflect latest feature and guidance updates |
 |2.4| February 2026| • Updates to Network, Infrastructure, and Operations Pillars to reflect latest feature and guidance updates |
+|2.5| February 2026| • Updates to Identity and Network Pillars to reflect latest feature and guidance updates |

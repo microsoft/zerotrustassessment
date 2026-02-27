@@ -34,7 +34,7 @@ This section helps administrators evaluate whether and how they are using enroll
 ### Supported Channels
 
 - Notifications are sent via **email** to the user associated with the enrolled device.  
-- The email address must be available in Azure AD and associated with the user’s Intune enrollment.  
+- The email address must be available in Microsoft Entra ID and associated with the user's Intune enrollment.  
 
 ### Customizing the Message
 

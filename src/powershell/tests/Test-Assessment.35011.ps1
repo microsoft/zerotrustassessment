@@ -3,7 +3,7 @@
     Super user membership is configured for Azure Information Protection
 
 .DESCRIPTION
-    Evaluates whether the Azure Information Protection (AIP) super user feature is enabled and properly configured with designated super users. The super user feature allows specified service accounts or administrators to decrypt rights-managed content for auditing, search, and compliance purposes.
+    Evaluates whether the Azure Information Protection (AIP) super user feature is properly configured.
 
     The cmdlets require the AipService module (v3.0+) which is only supported on Windows PowerShell 5.1. A PowerShell 7 subprocess workaround is automatically employed if running under PowerShell Core.
 
@@ -116,22 +116,29 @@ function Test-Assessment-35011 {
     #region Assessment Logic
     $passed = $false
     $investigateFlag = $false
+    $superUserCount = if ($superUsers) { @($superUsers).Count } else { 0 }
 
     if ($errorMsg) {
         $investigateFlag = $true
     }
     else {
         # Evaluation logic:
-        # 1. If feature is disabled, test fails
-        if ($superUserFeatureEnabled -eq "Disabled") {
-            $passed = $false
-        }
-        # 2. If feature is enabled, check if at least one super user is configured
-        elseif ($superUserFeatureEnabled -eq "Enabled") {
-            $superUserCount = if ($superUsers) { @($superUsers).Count } else { 0 }
+        # - Pass: Feature is DISABLED and count >= 1 (secure state with emergency access pre-configured)
+        # - Fail: Feature is DISABLED and count = 0 (no emergency access capability)
+        # - Fail: Feature is ENABLED and count = 0 (feature active but no members configured)
+        # - Investigate: Feature is ENABLED and count >= 1 (feature actively in use)
 
+        if ($superUserFeatureEnabled -eq "Disabled") {
             if ($superUserCount -ge 1) {
                 $passed = $true
+            }
+            else {
+                $passed = $false
+            }
+        }
+        elseif ($superUserFeatureEnabled -eq "Enabled") {
+            if ($superUserCount -ge 1) {
+                $investigateFlag = $true
             }
             else {
                 $passed = $false
@@ -141,63 +148,64 @@ function Test-Assessment-35011 {
     #endregion Assessment Logic
 
     #region Report Generation
+
     $testResultMarkdown = ""
     $mdInfo = ""
     $customStatus = $null
 
     if ($investigateFlag) {
-        $testResultMarkdown = "⚠️ Unable to determine super user configuration due to permissions or connection issues.`n`n"
-        $customStatus = 'Investigate'
-    }
-    else {
-        if ($passed) {
-            $testResultMarkdown = "✅ Super user feature is enabled with at least one member configured.`n`n"
+        if ($errorMsg) {
+            $testResultMarkdown = "⚠️ Unable to determine super user configuration due to permissions or connection issues.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "❌ Super user feature is disabled OR enabled but no members configured.`n`n"
+            $testResultMarkdown = "⚠️ Super user feature is enabled with members configured (review accounts and consider using Azure PIM for just-in-time access instead of permanent enablement).`n`n%TestResult%"
         }
-
-        # Build detailed information section
-        $mdInfo = "## Azure Information Protection Super User Configuration`n`n"
-
-        $mdInfo += "**Super User Feature: $superUserFeatureEnabled**`n`n"
-
-        if ($superUserFeatureEnabled -eq "Enabled") {
-            $superUserCount = $superUserObjects.Count
-            $mdInfo += "**Super Users Configured: $superUserCount**`n`n"
-
-            if ($superUserCount -gt 0) {
-                $mdInfo += "| Super User Display | Account Type |`n"
-                $mdInfo += "| :--- | :--- |`n"
-
-                foreach ($superUserObj in $superUserObjects) {
-                    if ($superUserObj.IsServicePrincipal) {
-                        $spPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($superUserObj.Id)/appId/$($superUserObj.AppId)"
-                        $displayText = "[$(Get-SafeMarkdown($superUserObj.DisplayName))]($spPortalLink)"
-                    }
-                    else {
-                        $displayText = Get-SafeMarkdown($superUserObj.DisplayName)
-                    }
-                    $mdInfo += "| $displayText | $($superUserObj.AccountType) |`n"
-                }
-
-                $mdInfo += "`n"
-            }
-        }
-
-        $mdInfo += "**Note:** Super user configuration is not available through the Azure portal and must be managed via PowerShell using the AipService module.`n"
-
-        # Add mdInfo to the main markdown if there's content
-        if ($mdInfo) {
-            $testResultMarkdown += "%TestResult%"
-        }
+        $customStatus = 'Investigate'
     }
-    #endregion Report Generation
+    elseif ($passed) {
+        $testResultMarkdown = "✅ Super user feature is disabled with at least one member pre-configured for emergency access (review members to ensure they're still needed).`n`n%TestResult%"
+    }
+    else {
+        $testResultMarkdown = "❌ Super user feature is disabled with no members configured, OR feature is enabled with no members.`n`n%TestResult%"
+    }
+
+    # Build detailed information section
+    $mdInfo = "## Azure Information Protection Super User Configuration`n`n"
+
+    if ($errorMsg) {
+        # Show explicit "Unknown" values when an error occurred
+        $mdInfo += "**Super User Feature:** Unknown (unable to query)`n`n"
+        $mdInfo += "**Super Users Configured:** Unknown`n`n"
+    }
+    else {
+        $mdInfo += "**Super User Feature:** $superUserFeatureEnabled`n`n"
+        $mdInfo += "**Super Users Configured:** $superUserCount`n`n"
+    }
+
+    if (-not $errorMsg -and $superUserCount -gt 0) {
+        $mdInfo += "| Super User Display | Account Type |`n"
+        $mdInfo += "| :--- | :--- |`n"
+
+        foreach ($superUserObj in $superUserObjects) {
+            if ($superUserObj.IsServicePrincipal -and $superUserObj.Id) {
+                # Only create portal link when we have a valid object ID
+                $spPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($superUserObj.Id)/appId/$($superUserObj.AppId)"
+                $displayText = "[$(Get-SafeMarkdown $superUserObj.DisplayName)]($spPortalLink)"
+            }
+            else {
+                $displayText = Get-SafeMarkdown $superUserObj.DisplayName
+            }
+            $mdInfo += "| $displayText | $($superUserObj.AccountType) |`n"
+        }
+
+        $mdInfo += "`n"
+    }
+
+    $mdInfo += "**Note:** Super user configuration is not available through the Azure portal and must be managed via PowerShell using the AipService module.`n"
 
     # Replace placeholder with actual detailed info
-    if ($mdInfo) {
-        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
-    }
+    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    #endregion Report Generation
 
     $params = @{
         TestId = '35011'

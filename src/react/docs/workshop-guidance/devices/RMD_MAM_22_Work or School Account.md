@@ -8,7 +8,7 @@ Users must sign in with their organizational account, and may need guidance if t
 
 ## Overview
 
-In Microsoft Intune App Protection Policies (APP), a **Work or School Account** refers to the Azure Active Directory (AAD) identity used to access corporate resources. These accounts are essential for applying app-level protections to corporate data on both managed and unmanaged devices. Intune APP can distinguish between corporate and personal identities in multi-identity apps (like Outlook), ensuring that protections apply only to work or school data.
+In Microsoft Intune App Protection Policies (APP), a **Work or School Account** refers to the Microsoft Entra ID identity used to access corporate resources. These accounts are essential for applying app-level protections to corporate data on both managed and unmanaged devices. Intune APP can distinguish between corporate and personal identities in multi-identity apps (like Outlook), ensuring that protections apply only to work or school data.
 
 Admins can configure policies to prevent data transfer between work/school accounts and personal accounts, enforce encryption, and require authentication (e.g., PIN or biometric) for access. This helps protect sensitive data even on BYOD (Bring Your Own Device) scenarios.
 
