@@ -54,91 +54,41 @@ function Test-Assessment-27019 {
         return
     }
 
-    # Q1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2025-03-01'
-
-    try {
-        $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($result.StatusCode)"
-        }
-
-        $subscriptionsJson = $result.Content | ConvertFrom-Json
-        $subscriptions = @($subscriptionsJson.value | Where-Object { $_.state -eq 'Enabled' })
-    }
-    catch {
-        Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
-        throw
-    }
-
-    if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
-
-    # Q2: List WAF policies across all subscriptions
+    # Query all Front Door WAF policies attached to an Azure Front Door via Azure Resource Graph
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
 
+    $argQuery = @"
+resources
+| where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
+| where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName=name
+) on subscriptionId
+| project id, name, subscriptionId, subscriptionName, properties
+"@
+
     $allPolicies = @()
-    $wafQuerySuccess = $false
-
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-        $subscriptionName = $subscription.displayName
-
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
-
-        try {
-            $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
-            $wafQuerySuccess = $true
-
-            foreach ($policy in $wafPoliciesInSub) {
-                $allPolicies += [PSCustomObject]@{
-                    SubscriptionId   = $subscriptionId
-                    SubscriptionName = $subscriptionName
-                    Policy           = $policy
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Tag Test -Level Warning
-        }
+    try {
+        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
     }
-
-    if (-not $wafQuerySuccess) {
-        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Tag Test -Level Warning
+    catch {
+        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $_" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Q3: Filter to only policies attached to Azure Front Door and evaluate
+    if ($allPolicies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    # Evaluate each policy for JavaScript challenge rules
     $evaluationResults = @()
 
-    foreach ($item in $allPolicies) {
-        $policy = $item.Policy
-        $frontendLinks = $policy.properties.frontendEndpointLinks
-        $securityPolicyLinks = $policy.properties.securityPolicyLinks
-
-        # Exclude policies not attached to any Azure Front Door
-        # Use @() to force array coercion - ConvertFrom-Json in PS 5.1 returns a single PSCustomObject
-        # (not an array) for single-item JSON arrays, so .Count would be $null without this.
-        $isAttached = (@($frontendLinks).Count -gt 0) -or (@($securityPolicyLinks).Count -gt 0)
-
-        if (-not $isAttached) {
-            continue
-        }
-
-        # Evaluate JavaScript challenge rules
+    foreach ($policy in $allPolicies) {
         $enabledState = $policy.properties.policySettings.enabledState
         $wafMode = $policy.properties.policySettings.mode
         $cookieExpiration = $policy.properties.policySettings.javascriptChallengeExpirationInMinutes
@@ -162,8 +112,8 @@ function Test-Assessment-27019 {
         }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId       = $item.SubscriptionId
-            SubscriptionName     = $item.SubscriptionName
+            SubscriptionId       = $policy.subscriptionId
+            SubscriptionName     = $policy.subscriptionName
             PolicyName           = $policy.name
             PolicyId             = $policy.id
             EnabledState         = $enabledState
@@ -173,13 +123,6 @@ function Test-Assessment-27019 {
             CookieExpiration     = $cookieExpirationDisplay
             Status               = $status
         }
-    }
-
-    # Skip if no attached WAF policies found
-    if ($evaluationResults.Count -eq 0) {
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found across subscriptions.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
     }
 
     #endregion Data Collection
