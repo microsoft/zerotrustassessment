@@ -153,7 +153,7 @@ resources
         $captchaExpiration = if ($policy.CaptchaExpirationInMins) { $policy.CaptchaExpirationInMins } else { 'N/A' }
         $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $wafModeDisplay = if ($policy.WafMode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
-        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledCaptchaRules.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
+        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledCaptchaRules.Count -ge 1) { '✅' } else { '❌' }
 
         $tableRows += "| $policyLink | $subscriptionLink | $enabledStateDisplay | $wafModeDisplay | $captchaRuleCountDisplay | $ruleStateDisplay | $captchaExpiration | $statusText |`n"
     }
