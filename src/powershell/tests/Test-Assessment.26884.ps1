@@ -317,27 +317,12 @@ resources
 
 '@
 
-        # Limit display to first 5 items if there are many profiles
-        $maxItemsToDisplay = 5
-        $displayResults = $evaluationResults
-        $hasMoreItems = $false
-        if ($evaluationResults.Count -gt $maxItemsToDisplay) {
-            $displayResults = $evaluationResults | Select-Object -First $maxItemsToDisplay
-            $hasMoreItems = $true
-        }
-
-        foreach ($result in $displayResults) {
+        foreach ($result in $evaluationResults) {
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/securityPolicies)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
 
             $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $(Get-SafeMarkdown $result.WAFPolicyName) | $($result.BotManagerEnabled) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
-        }
-
-        # Add note if more items exist
-        if ($hasMoreItems) {
-            $remainingCount = $evaluationResults.Count - $maxItemsToDisplay
-            $tableRows += "`n... and $remainingCount more. [View all Azure Front Door profiles in the portal]($portalFrontDoorBrowseLink)`n"
         }
 
         $mdInfo += $formatTemplate -f $tableRows
@@ -355,24 +340,11 @@ resources
 
 '@
 
-        $maxSkippedDisplay = 3
-        $displaySkipped = $skippedResults
-        $hasMoreSkipped = $false
-        if ($skippedResults.Count -gt $maxSkippedDisplay) {
-            $displaySkipped = $skippedResults | Select-Object -First $maxSkippedDisplay
-            $hasMoreSkipped = $true
-        }
-
-        foreach ($result in $displaySkipped) {
+        foreach ($result in $skippedResults) {
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/overview)"
 
-            $skippedTableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | ⏭️ Skipped |`n"
-        }
-
-        if ($hasMoreSkipped) {
-            $remainingSkipped = $skippedResults.Count - $maxSkippedDisplay
-            $skippedTableRows += "`n... and $remainingSkipped more Standard SKU profiles.`n"
+            $skippedTableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | Skipped - Standard SKU |`n"
         }
 
         $mdInfo += $skippedFormatTemplate -f $skippedTableRows
