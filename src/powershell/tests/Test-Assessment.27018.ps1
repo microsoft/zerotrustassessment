@@ -151,9 +151,9 @@ function Test-Assessment-27018 {
         $rateLimitCount = $rateLimitRules.Count
         $rateLimitRuleState = if ($rateLimitCount -gt 0) { 'Enabled' } else { 'Disabled' }
 
-        # Status requires all three: policy enabled, Prevention mode, and at least one RateLimitRule
+        # Status is based on the presence of at least one enabled RateLimitRule
         $status = 'Fail'
-        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $rateLimitCount -gt 0) {
+        if ($rateLimitCount -gt 0) {
             $status = 'Pass'
         }
 
