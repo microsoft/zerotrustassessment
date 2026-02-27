@@ -207,6 +207,7 @@ resources
                         $wafPolicy = $wafPolicyLookup[$associatedWafPolicyId]
                         $associatedWafPolicyName = $wafPolicy.PolicyName
                         $wafEnabled = $wafPolicy.EnabledState
+                        $wafIsPremium = $wafPolicy.SkuName -eq 'Premium_AzureFrontDoor'
 
                         # Check for Bot Manager rule set
                         $managedRuleSets = $wafPolicy.ManagedRuleSets
@@ -223,7 +224,7 @@ resources
                                     }
 
                                     # Check if WAF policy is enabled and Bot Manager is present
-                                    if ($wafEnabled -eq 'Enabled') {
+                                    if ($wafIsPremium -and $wafEnabled -eq 'Enabled') {
                                         $hasValidBotProtection = $true
                                     }
                                     break
