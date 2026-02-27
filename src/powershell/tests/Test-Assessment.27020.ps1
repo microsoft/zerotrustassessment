@@ -10,7 +10,7 @@
 .NOTES
     Test ID: 27020
     Category: Azure Network Security
-    Required APIs: Azure Management REST API (subscriptions, WAF policies)
+    Required APIs: Azure Resource Graph (microsoft.network/frontdoorwebapplicationfirewallpolicies)
 #>
 
 function Test-Assessment-27020 {
@@ -54,108 +54,45 @@ function Test-Assessment-27020 {
         return
     }
 
-    # Q1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
-
-    try {
-        $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($result.StatusCode)"
-        }
-
-        $subscriptionsJson = $result.Content | ConvertFrom-Json
-        $subscriptions = @($subscriptionsJson.value | Where-Object { $_.state -eq 'Enabled' })
-    }
-    catch {
-        Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
-        throw
-    }
-
-    if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
-
-    # Q2: List WAF policies across all subscriptions
+    # Query all Front Door WAF policies attached to an Azure Front Door via Azure Resource Graph
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
 
-    $allWafPolicies = @()
-    $wafQuerySuccess = $false
+    $argQuery = @"
+resources
+| where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
+| where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName=name
+) on subscriptionId
+| project id, name, subscriptionId, subscriptionName, properties
+"@
 
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-        $subscriptionName = $subscription.displayName
-
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2024-02-01"
-
-        try {
-            $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
-            $wafQuerySuccess = $true
-
-            foreach ($policy in $wafPoliciesInSub) {
-                $allWafPolicies += [PSCustomObject]@{
-                    SubscriptionId   = $subscriptionId
-                    SubscriptionName = $subscriptionName
-                    Policy           = $policy
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Tag Test -Level Warning
-        }
+    $allPolicies = @()
+    try {
+        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
     }
-
-    if (-not $wafQuerySuccess) {
-        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Tag Test -Level Warning
+    catch {
+        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $_" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Q3: Filter to only attached WAF policies
-    $attachedWafPolicies = @()
-
-    foreach ($wafItem in $allWafPolicies) {
-        $policy = $wafItem.Policy
-        $frontendLinks = $policy.properties.frontendEndpointLinks
-        $securityPolicyLinks = $policy.properties.securityPolicyLinks
-
-        # Include only if either array has at least one entry
-        $hasAttachment = ($frontendLinks -and $frontendLinks.Count -gt 0) -or ($securityPolicyLinks -and $securityPolicyLinks.Count -gt 0)
-
-        if ($hasAttachment) {
-            $attachedWafPolicies += $wafItem
-        }
-    }
-
-    if ($attachedWafPolicies.Count -eq 0) {
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level VeryVerbose
+    if ($allPolicies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
-    Write-PSFMessage "Found $($attachedWafPolicies.Count) attached WAF policy/policies" -Tag Test -Level VeryVerbose
-
-    # Evaluate each attached WAF policy
+    # Evaluate each policy for CAPTCHA challenge rules
     $evaluationResults = @()
 
-    foreach ($wafItem in $attachedWafPolicies) {
-        $policy = $wafItem.Policy
-        $policySettings = $policy.properties.policySettings
+    foreach ($policy in $allPolicies) {
+        $enabledState = $policy.properties.policySettings.enabledState
+        $wafMode = $policy.properties.policySettings.mode
+        $captchaExpiration = $policy.properties.policySettings.captchaExpirationInMinutes
         $customRules = $policy.properties.customRules.rules
-
-        $enabledState = $policySettings.enabledState
-        $wafMode = $policySettings.mode
-        $captchaExpiration = $policySettings.captchaExpirationInMinutes
 
         # Count enabled CAPTCHA rules
         $captchaRules = @()
@@ -165,24 +102,23 @@ function Test-Assessment-27020 {
         $captchaRuleCount = $captchaRules.Count
         $captchaRuleState = if ($captchaRuleCount -gt 0) { 'Enabled' } else { 'Disabled' }
 
-        # Determine status based on spec criteria
+        # Status requires all three: policy enabled, Prevention mode, and at least one CAPTCHA rule
         $status = 'Fail'
         if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $captchaRuleCount -gt 0) {
             $status = 'Pass'
         }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId       = $wafItem.SubscriptionId
-            SubscriptionName     = $wafItem.SubscriptionName
-            PolicyName           = $policy.name
-            PolicyId             = $policy.id
-            Sku                  = $policy.sku.name
-            EnabledState         = $enabledState
-            WafMode              = $wafMode
-            CaptchaRuleCount     = $captchaRuleCount
-            CaptchaRuleState     = $captchaRuleState
-            CaptchaExpiration    = if ($captchaExpiration) { $captchaExpiration } else { 'N/A' }
-            Status               = $status
+            SubscriptionId    = $policy.subscriptionId
+            SubscriptionName  = $policy.subscriptionName
+            PolicyName        = $policy.name
+            PolicyId          = $policy.id
+            EnabledState      = $enabledState
+            WafMode           = $wafMode
+            CaptchaRuleCount  = $captchaRuleCount
+            CaptchaRuleState  = $captchaRuleState
+            CaptchaExpiration = if ($captchaExpiration) { $captchaExpiration } else { 'N/A' }
+            Status            = $status
         }
     }
 
@@ -196,7 +132,7 @@ function Test-Assessment-27020 {
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have at least one custom rule with CAPTCHA challenge action configured and enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one CAPTCHA challenge rule configured and enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have any CAPTCHA challenge rules configured, leaving applications without interactive human verification against sophisticated automated bots at the global edge.`n`n%TestResult%"
@@ -215,7 +151,7 @@ function Test-Assessment-27020 {
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ''
         $formatTemplate = @'
-| Policy name | Subscription | Enabled state | WAF mode | CAPTCHA rules count | Rule state | Cookie expiration (mins) | Status |
+| Policy name | Subscription name | Enabled state | WAF mode | CAPTCHA challenge rules count | Rule state | Cookie expiration (mins) | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
