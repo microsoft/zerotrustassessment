@@ -111,7 +111,7 @@ resources
         $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one CAPTCHA challenge rule configured and enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have any CAPTCHA challenge rules configured, leaving applications without interactive human verification against sophisticated automated bots at the global edge.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, not running in Prevention mode, or do not have any CAPTCHA challenge rules configured and enabled, leaving applications without interactive human verification against sophisticated automated bots at the global edge.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
