@@ -10,7 +10,7 @@
 .NOTES
     Test ID: 27019
     Category: Azure Network Security
-    Required APIs: Azure Management REST API (subscriptions, Front Door WAF policies)
+    Required APIs: Azure Resource Graph (Front Door WAF policies)
 #>
 
 function Test-Assessment-27019 {
