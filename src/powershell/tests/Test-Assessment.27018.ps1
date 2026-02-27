@@ -96,7 +96,7 @@ function Test-Assessment-27018 {
         $subscriptionId = $subscription.subscriptionId
         $subscriptionName = $subscription.displayName
 
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
+        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
 
         try {
             $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
