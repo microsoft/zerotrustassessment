@@ -18,7 +18,7 @@ function Test-Assessment-27019 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
-        MinimumLicense = 'Azure_WAF',
+        MinimumLicense = 'Azure WAF',
         Pillar = 'Network',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect networks',
