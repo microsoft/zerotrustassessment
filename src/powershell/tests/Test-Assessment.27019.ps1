@@ -57,7 +57,7 @@ function Test-Assessment-27019 {
     # Q1: List all subscriptions
     Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
 
-    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
+    $subscriptionsPath = '/subscriptions?api-version=2025-03-01'
 
     try {
         $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
@@ -130,8 +130,9 @@ function Test-Assessment-27019 {
         $securityPolicyLinks = $policy.properties.securityPolicyLinks
 
         # Exclude policies not attached to any Azure Front Door
-        $isAttached = ($frontendLinks -and $frontendLinks.Count -gt 0) -or
-                      ($securityPolicyLinks -and $securityPolicyLinks.Count -gt 0)
+        # Use @() to force array coercion - ConvertFrom-Json in PS 5.1 returns a single PSCustomObject
+        # (not an array) for single-item JSON arrays, so .Count would be $null without this.
+        $isAttached = (@($frontendLinks).Count -gt 0) -or (@($securityPolicyLinks).Count -gt 0)
 
         if (-not $isAttached) {
             continue
@@ -191,7 +192,7 @@ function Test-Assessment-27019 {
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have at least one custom rule with JavaScript challenge action configured and enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one JavaScript Challenge rule configured and enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have any JavaScript challenge rules configured, leaving applications without browser verification against automated bots at the global edge.`n`n%TestResult%"
@@ -210,7 +211,7 @@ function Test-Assessment-27019 {
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ''
         $formatTemplate = @'
-| Policy name | Subscription | Enabled state | WAF mode | JS challenge rules count | Rule state | Cookie expiration (mins) | Status |
+| Policy name | Subscription name | Enabled state | WAF mode | JS challenge rules count | Rule state | Cookie expiration (mins) | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
