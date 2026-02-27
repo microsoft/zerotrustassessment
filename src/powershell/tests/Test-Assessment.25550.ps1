@@ -180,7 +180,9 @@ function Test-Assessment-25550 {
     $testResultMarkdown = ''
 
     if ($firewallPoliciesWithTLS.Count -eq 0) {
-        $testResultMarkdown = "❌ No Azure Firewall Premium policies found in any subscription.`n`n"
+        Write-PSFMessage 'No Azure Firewall Premium policies found in any subscription.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
     }
     elseif (($firewallPoliciesWithTLS | Where-Object { $_.PassesCriteria }).Count -gt 0) {
         $passed = $true
