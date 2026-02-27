@@ -134,12 +134,20 @@ resources
 
     foreach ($policy in ($policies | Sort-Object SubscriptionName, PolicyName)) {
         $policyLink = "[$(Get-SafeMarkdown $policy.PolicyName)]($portalResourceBaseLink$($policy.PolicyId))"
-        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId))"
+        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId)/overview)"
 
         $allCaptchaRules = @($policy.CustomRules | Where-Object { $_.action -eq 'Captcha' })
         $enabledCaptchaRules = @($allCaptchaRules | Where-Object { $_.enabledState -eq 'Enabled' })
 
-        $captchaRuleCountDisplay = if ($allCaptchaRules.Count -gt 0) { "✅ $($allCaptchaRules.Count)" } else { '❌ 0' }
+        $captchaRuleCountDisplay = if ($enabledCaptchaRules.Count -gt 0) {
+            "✅ $($enabledCaptchaRules.Count)"
+        }
+        elseif ($allCaptchaRules.Count -gt 0) {
+            "⚠️ $($allCaptchaRules.Count) (disabled)"
+        }
+        else {
+            '❌ 0'
+        }
         $ruleStateDisplay = if ($allCaptchaRules.Count -eq 0) {
             'N/A'
         }
@@ -153,7 +161,7 @@ resources
         $captchaExpiration = if ($policy.CaptchaExpirationInMins) { $policy.CaptchaExpirationInMins } else { 'N/A' }
         $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $wafModeDisplay = if ($policy.WafMode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
-        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledCaptchaRules.Count -ge 1) { '✅' } else { '❌' }
+        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledCaptchaRules.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyLink | $subscriptionLink | $enabledStateDisplay | $wafModeDisplay | $captchaRuleCountDisplay | $ruleStateDisplay | $captchaExpiration | $statusText |`n"
     }
