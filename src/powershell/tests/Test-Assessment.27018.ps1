@@ -54,89 +54,41 @@ function Test-Assessment-27018 {
         return
     }
 
-    # Q1: List all subscriptions
-    Write-ZtProgress -Activity $activity -Status 'Querying subscriptions'
-
-    $subscriptionsPath = '/subscriptions?api-version=2022-12-01'
-
-    try {
-        $result = Invoke-ZtAzureRequest -Path $subscriptionsPath -FullResponse
-
-        if ($result.StatusCode -eq 403) {
-            Write-PSFMessage 'The signed in user does not have access to list subscriptions.' -Tag Test -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
-
-        if ($result.StatusCode -ge 400) {
-            throw "Subscriptions request failed with status code $($result.StatusCode)"
-        }
-
-        $subscriptionsJson = $result.Content | ConvertFrom-Json
-        $subscriptions = @($subscriptionsJson.value | Where-Object { $_.state -eq 'Enabled' })
-    }
-    catch {
-        Write-PSFMessage "Failed to enumerate Azure subscriptions: $_" -Tag Test -Level Error
-        throw
-    }
-
-    if ($subscriptions.Count -eq 0) {
-        Write-PSFMessage 'No enabled subscriptions found.' -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
-
-    # Q2: List WAF policies across all subscriptions
+    # Query all Front Door WAF policies attached to an Azure Front Door via Azure Resource Graph
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Front Door WAF policies'
 
+    $argQuery = @"
+resources
+| where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
+| where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionId, subscriptionName=name
+) on subscriptionId
+| project id, name, subscriptionId, subscriptionName, properties
+"@
+
     $allPolicies = @()
-    $wafQuerySuccess = $false
-
-    foreach ($subscription in $subscriptions) {
-        $subscriptionId = $subscription.subscriptionId
-        $subscriptionName = $subscription.displayName
-
-        $wafPath = "/subscriptions/$subscriptionId/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies?api-version=2025-03-01"
-
-        try {
-            $wafPoliciesInSub = @(Invoke-ZtAzureRequest -Path $wafPath)
-            $wafQuerySuccess = $true
-
-            foreach ($policy in $wafPoliciesInSub) {
-                $allPolicies += [PSCustomObject]@{
-                    SubscriptionId   = $subscriptionId
-                    SubscriptionName = $subscriptionName
-                    Policy           = $policy
-                }
-            }
-        }
-        catch {
-            Write-PSFMessage "Error querying WAF policies in subscription $subscriptionId : $_" -Tag Test -Level Warning
-        }
+    try {
+        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
     }
-
-    if (-not $wafQuerySuccess) {
-        Write-PSFMessage 'Unable to query WAF policies in any subscription due to access restrictions.' -Tag Test -Level Warning
+    catch {
+        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $_" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Q3: Filter to only policies attached to Azure Front Door and evaluate
+    if ($allPolicies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    # Evaluate each policy for rate limiting rules
     $evaluationResults = @()
 
-    foreach ($item in $allPolicies) {
-        $policy = $item.Policy
-        $frontendLinks = $policy.properties.frontendEndpointLinks
-        $securityPolicyLinks = $policy.properties.securityPolicyLinks
-
-
-        $isAttached = (@($frontendLinks).Count -gt 0) -or (@($securityPolicyLinks).Count -gt 0)
-
-        if (-not $isAttached) {
-            continue
-        }
-
-        # Evaluate rate limiting rules
+    foreach ($policy in $allPolicies) {
         $enabledState = $policy.properties.policySettings.enabledState
         $wafMode = $policy.properties.policySettings.mode
         $customRules = $policy.properties.customRules.rules
@@ -151,30 +103,23 @@ function Test-Assessment-27018 {
         $rateLimitCount = $rateLimitRules.Count
         $rateLimitRuleState = if ($rateLimitCount -gt 0) { 'Enabled' } else { 'Disabled' }
 
-        # Status is based on the presence of at least one enabled RateLimitRule
+        # Status requires all three: policy enabled, Prevention mode, and at least one RateLimitRule
         $status = 'Fail'
-        if ($rateLimitCount -gt 0) {
+        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $rateLimitCount -gt 0) {
             $status = 'Pass'
         }
 
         $evaluationResults += [PSCustomObject]@{
-            SubscriptionId   = $item.SubscriptionId
-            SubscriptionName = $item.SubscriptionName
-            PolicyName       = $policy.name
-            PolicyId         = $policy.id
-            EnabledState     = $enabledState
-            WafMode          = $wafMode
-            RateLimitCount   = $rateLimitCount
+            SubscriptionId     = $policy.subscriptionId
+            SubscriptionName   = $policy.subscriptionName
+            PolicyName         = $policy.name
+            PolicyId           = $policy.id
+            EnabledState       = $enabledState
+            WafMode            = $wafMode
+            RateLimitCount     = $rateLimitCount
             RateLimitRuleState = $rateLimitRuleState
-            Status           = $status
+            Status             = $status
         }
-    }
-
-    # Skip if no attached WAF policies found
-    if ($evaluationResults.Count -eq 0) {
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found across subscriptions.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
     }
 
     #endregion Data Collection
@@ -187,7 +132,7 @@ function Test-Assessment-27018 {
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have at least one rate limiting rule configured and enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one rate limiting rule configured and enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have any rate limiting rules configured, leaving applications vulnerable to brute force and volumetric attacks at the global edge.`n`n%TestResult%"
@@ -206,7 +151,7 @@ function Test-Assessment-27018 {
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ''
         $formatTemplate = @'
-| Policy name | Subscription | Rule state | Enabled state | WAF mode | Rate limit rules count | Status |
+| Policy name | Subscription name | Rule state | Enabled state | WAF mode | Rate limit rules count | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
