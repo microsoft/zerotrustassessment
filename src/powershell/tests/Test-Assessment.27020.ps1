@@ -134,7 +134,7 @@ resources
 
     foreach ($policy in ($policies | Sort-Object SubscriptionName, PolicyName)) {
         $policyLink = "[$(Get-SafeMarkdown $policy.PolicyName)]($portalResourceBaseLink$($policy.PolicyId))"
-        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId)/overview)"
+        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId))"
 
         $allCaptchaRules = @($policy.CustomRules | Where-Object { $_.action -eq 'Captcha' })
         $enabledCaptchaRules = @($allCaptchaRules | Where-Object { $_.enabledState -eq 'Enabled' })
