@@ -66,15 +66,20 @@ resources
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionId, subscriptionName=name
 ) on subscriptionId
-| project id, name, subscriptionId, subscriptionName,
-    enabledState=tostring(properties.policySettings.enabledState),
-    wafMode=tostring(properties.policySettings.mode),
-    customRules=properties.customRules.rules
+| project
+    PolicyName = name,
+    PolicyId = id,
+    SubscriptionName = subscriptionName,
+    SubscriptionId = subscriptionId,
+    EnabledState = tostring(properties.policySettings.enabledState),
+    WafMode = tostring(properties.policySettings.mode),
+    CustomRules = properties.customRules.rules
 "@
 
-    $allPolicies = @()
+    $policies = @()
     try {
-        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
         Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $($_.Exception.Message)" -Tag Test -Level Warning
@@ -82,57 +87,25 @@ resources
         return
     }
 
-    if ($allPolicies.Count -eq 0) {
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
     #endregion Data Collection
 
     #region Assessment Logic
 
-    # Evaluate each policy for rate limiting rules
-    $evaluationResults = @()
-
-    foreach ($policy in $allPolicies) {
-        $enabledState = $policy.enabledState
-        $wafMode = $policy.wafMode
-        $customRules = $policy.customRules
-
-        $rateLimitRules = @()
-        if ($customRules) {
-            $rateLimitRules = @($customRules | Where-Object {
-                $_.ruleType -eq 'RateLimitRule' -and $_.enabledState -eq 'Enabled'
-            })
-        }
-
-        $rateLimitCount = $rateLimitRules.Count
-        $rateLimitRuleState = if ($rateLimitCount -gt 0) { 'Enabled' } else { 'Disabled' }
-
-        # Status requires all three: policy enabled, Prevention mode, and at least one RateLimitRule
-        $status = 'Fail'
-        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $rateLimitCount -gt 0) {
-            $status = 'Pass'
-        }
-
-        $evaluationResults += [PSCustomObject]@{
-            SubscriptionId     = $policy.subscriptionId
-            SubscriptionName   = $policy.subscriptionName
-            PolicyName         = $policy.name
-            PolicyId           = $policy.id
-            EnabledState       = $enabledState
-            WafMode            = $wafMode
-            RateLimitCount     = $rateLimitCount
-            RateLimitRuleState = $rateLimitRuleState
-            Status             = $status
-        }
+    # Skip test if no policies found
+    if ($policies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Azure Front Door WAF policies attached to Azure Front Door found.'
+        return
     }
 
-    $passedItems = $evaluationResults | Where-Object { $_.Status -eq 'Pass' }
-    $failedItems = $evaluationResults | Where-Object { $_.Status -eq 'Fail' }
+    # Fail if any policy is disabled, not in Prevention mode, or has no enabled rate limiting custom rule
+    $failingPolicies = $policies | Where-Object {
+        $_.EnabledState -ne 'Enabled' -or
+        $_.WafMode -ne 'Prevention' -or
+        @($_.CustomRules | Where-Object { $_.ruleType -eq 'RateLimitRule' -and $_.enabledState -eq 'Enabled' }).Count -eq 0
+    }
 
-    $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
+    $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
         $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one rate limiting rule configured and enabled.`n`n%TestResult%"
@@ -151,25 +124,40 @@ resources
 
     $mdInfo = "`n## [Azure Front Door WAF policies]($portalWafBrowseLink)`n`n"
 
-    if ($evaluationResults.Count -gt 0) {
-        $tableRows = ''
-        $formatTemplate = @'
+    $tableRows = ''
+    $formatTemplate = @'
 | Policy name | Subscription name | Rule state | Enabled state | WAF mode | Rate limit rules count | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
 
-        foreach ($result in ($evaluationResults | Sort-Object SubscriptionName, PolicyName)) {
-            $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
-            $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
-            $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+    foreach ($policy in ($policies | Sort-Object SubscriptionName, PolicyName)) {
+        $policyLink = "[$(Get-SafeMarkdown $policy.PolicyName)]($portalResourceBaseLink$($policy.PolicyId))"
+        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId)/overview)"
 
-            $tableRows += "| $policyLink | $subscriptionLink | $($result.RateLimitRuleState) | $($result.EnabledState) | $($result.WafMode) | $($result.RateLimitCount) | $statusText |`n"
+        $allRateRules = @($policy.CustomRules | Where-Object { $_.ruleType -eq 'RateLimitRule' })
+        $enabledRateRules = @($allRateRules | Where-Object { $_.enabledState -eq 'Enabled' })
+
+        $rateRuleCountDisplay = if ($allRateRules.Count -gt 0) { "✅ $($allRateRules.Count)" } else { '❌ 0' }
+        $ruleStateDisplay = if ($allRateRules.Count -eq 0) {
+            'N/A'
+        }
+        elseif ($enabledRateRules.Count -ge 1) {
+            '✅ Enabled'
+        }
+        else {
+            '❌ Disabled'
         }
 
-        $mdInfo += $formatTemplate -f $tableRows
+        $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
+        $wafModeDisplay = if ($policy.WafMode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
+        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledRateRules.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
+
+        $tableRows += "| $policyLink | $subscriptionLink | $ruleStateDisplay | $enabledStateDisplay | $wafModeDisplay | $rateRuleCountDisplay | $statusText |`n"
     }
+
+    $mdInfo += $formatTemplate -f $tableRows
 
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
