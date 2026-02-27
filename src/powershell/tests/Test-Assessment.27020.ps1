@@ -66,70 +66,46 @@ resources
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionId, subscriptionName=name
 ) on subscriptionId
-| project id, name, subscriptionId, subscriptionName, properties
+| project
+    PolicyName = name,
+    PolicyId = id,
+    SubscriptionName = subscriptionName,
+    SubscriptionId = subscriptionId,
+    EnabledState = tostring(properties.policySettings.enabledState),
+    WafMode = tostring(properties.policySettings.mode),
+    CaptchaExpirationInMins = toint(properties.policySettings.captchaExpirationInMinutes),
+    CustomRules = properties.customRules.rules
 "@
 
-    $allPolicies = @()
+    $policies = @()
     try {
-        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
-        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $($_.Exception.Message)" -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
-    }
-
-    if ($allPolicies.Count -eq 0) {
-        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
-    # Evaluate each policy for CAPTCHA challenge rules
-    $evaluationResults = @()
-
-    foreach ($policy in $allPolicies) {
-        $enabledState = $policy.properties.policySettings.enabledState
-        $wafMode = $policy.properties.policySettings.mode
-        $captchaExpiration = $policy.properties.policySettings.captchaExpirationInMinutes
-        $customRules = $policy.properties.customRules.rules
-
-        # Count enabled CAPTCHA rules
-        $captchaRules = @()
-        if ($customRules) {
-            $captchaRules = @($customRules | Where-Object { $_.action -eq 'Captcha' -and $_.enabledState -eq 'Enabled' })
-        }
-        $captchaRuleCount = $captchaRules.Count
-        $captchaRuleState = if ($captchaRuleCount -gt 0) { 'Enabled' } else { 'Disabled' }
-
-        # Status requires all three: policy enabled, Prevention mode, and at least one CAPTCHA rule
-        $status = 'Fail'
-        if ($enabledState -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $captchaRuleCount -gt 0) {
-            $status = 'Pass'
-        }
-
-        $evaluationResults += [PSCustomObject]@{
-            SubscriptionId    = $policy.subscriptionId
-            SubscriptionName  = $policy.subscriptionName
-            PolicyName        = $policy.name
-            PolicyId          = $policy.id
-            EnabledState      = $enabledState
-            WafMode           = $wafMode
-            CaptchaRuleCount  = $captchaRuleCount
-            CaptchaRuleState  = $captchaRuleState
-            CaptchaExpiration = if ($captchaExpiration) { $captchaExpiration } else { 'N/A' }
-            Status            = $status
-        }
     }
 
     #endregion Data Collection
 
     #region Assessment Logic
 
-    $passedItems = $evaluationResults | Where-Object { $_.Status -eq 'Pass' }
-    $failedItems = $evaluationResults | Where-Object { $_.Status -eq 'Fail' }
+    if ($policies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Azure Front Door WAF policies attached to Azure Front Door found.'
+        return
+    }
 
-    $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
+    # Fail if any policy is disabled, not in Prevention mode, or has no enabled CAPTCHA custom rule
+    $failingPolicies = $policies | Where-Object {
+        $_.EnabledState -ne 'Enabled' -or
+        $_.WafMode -ne 'Prevention' -or
+        @($_.CustomRules | Where-Object { $_.action -eq 'Captcha' -and $_.enabledState -eq 'Enabled' }).Count -eq 0
+    }
+
+    $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
         $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one CAPTCHA challenge rule configured and enabled.`n`n%TestResult%"
@@ -148,31 +124,41 @@ resources
 
     $mdInfo = "`n## [Azure Front Door WAF policies]($portalWafBrowseLink)`n`n"
 
-    if ($evaluationResults.Count -gt 0) {
-        $tableRows = ''
-        $formatTemplate = @'
-| Policy name | Subscription name | Enabled state | WAF mode | CAPTCHA challenge rules count | Rule state | Cookie expiration (mins) | Status |
+    $tableRows = ''
+    $formatTemplate = @'
+| Policy name | Subscription name | Enabled state | WAF mode | CAPTCHA challenge rules count | Rule state | CAPTCHA expiration (mins) | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
 
-        foreach ($result in $evaluationResults) {
-            $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
-            $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
-            $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+    foreach ($policy in ($policies | Sort-Object SubscriptionName, PolicyName)) {
+        $policyLink = "[$(Get-SafeMarkdown $policy.PolicyName)]($portalResourceBaseLink$($policy.PolicyId))"
+        $subscriptionLink = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($portalSubscriptionBaseLink/$($policy.SubscriptionId)/overview)"
 
-            $tableRows += "| $policyLink | $subscriptionLink | $($result.EnabledState) | $($result.WafMode) | $($result.CaptchaRuleCount) | $($result.CaptchaRuleState) | $($result.CaptchaExpiration) | $statusText |`n"
+        $allCaptchaRules = @($policy.CustomRules | Where-Object { $_.action -eq 'Captcha' })
+        $enabledCaptchaRules = @($allCaptchaRules | Where-Object { $_.enabledState -eq 'Enabled' })
+
+        $captchaRuleCountDisplay = if ($allCaptchaRules.Count -gt 0) { "✅ $($allCaptchaRules.Count)" } else { '❌ 0' }
+        $ruleStateDisplay = if ($allCaptchaRules.Count -eq 0) {
+            'N/A'
+        }
+        elseif ($enabledCaptchaRules.Count -ge 1) {
+            '✅ Enabled'
+        }
+        else {
+            '❌ Disabled'
         }
 
-        $mdInfo += $formatTemplate -f $tableRows
+        $captchaExpiration = if ($policy.CaptchaExpirationInMins) { $policy.CaptchaExpirationInMins } else { 'N/A' }
+        $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
+        $wafModeDisplay = if ($policy.WafMode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
+        $statusText = if ($policy.EnabledState -eq 'Enabled' -and $policy.WafMode -eq 'Prevention' -and $enabledCaptchaRules.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
+
+        $tableRows += "| $policyLink | $subscriptionLink | $enabledStateDisplay | $wafModeDisplay | $captchaRuleCountDisplay | $ruleStateDisplay | $captchaExpiration | $statusText |`n"
     }
 
-    # Summary
-    $mdInfo += "**Summary:**`n`n"
-    $mdInfo += "- Total attached WAF policies evaluated: $($evaluationResults.Count)`n"
-    $mdInfo += "- Policies with CAPTCHA challenge enabled: $($passedItems.Count)`n"
-    $mdInfo += "- Policies without CAPTCHA challenge: $($failedItems.Count)`n"
+    $mdInfo += $formatTemplate -f $tableRows
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
