@@ -2,13 +2,13 @@ Azure Front Door Web Application Firewall (WAF) provides centralized, edge-based
 
 **Remediation action**
 
-Enable the Microsoft Default Ruleset on Azure Front Door WAF policies
+Overview of WAF capabilities on Azure Front Door including managed rulesets
 - [Azure Web Application Firewall on Azure Front Door](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview)
 
-Configure Default Rule Set groups and rules for comprehensive protection
+Detailed documentation of Default Rule Set groups and rules for Azure Front Door
 - [Web Application Firewall DRS rule groups and rules](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-drs)
 
-Create and configure WAF policies with managed rulesets
+Step-by-step guidance on creating and configuring WAF policies with managed rulesets
 - [Tutorial: Create a Web Application Firewall policy on Azure Front Door](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-create-portal)
 
 <!--- Results --->

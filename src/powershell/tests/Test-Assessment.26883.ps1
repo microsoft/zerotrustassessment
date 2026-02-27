@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that the Default Ruleset is enabled and assigned in Azure Front Door WAF.
+    Validates that the Default Ruleset is assigned in Azure Front Door WAF.
 
 .DESCRIPTION
     This test evaluates Azure Front Door WAF policies attached to Azure Front Door
@@ -25,7 +25,7 @@ function Test-Assessment-26883 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 26883,
-        Title = 'Default Ruleset is enabled and assigned in Azure Front Door WAF',
+        Title = 'Default Ruleset is assigned in Azure Front Door WAF',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -51,35 +51,23 @@ function Test-Assessment-26883 {
     # Query Front Door WAF policies attached to Front Door (Classic or Standard/Premium)
     # - frontendEndpointLinks: Classic Front Door attachments
     # - securityPolicyLinks: Standard/Premium Front Door attachments
-    # mv-expand flattens the managedRuleSets array to check for Microsoft_DefaultRuleSet
-    # summarize collects back to one row per policy with HasDefaultRuleset flag
+    # Uses string-contains check to avoid mv-expand dropping policies with empty managedRuleSets
     $argQuery = @"
 resources
 | where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
 | where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
-| extend ManagedRuleSets = properties.managedRules.managedRuleSets
+| extend ManagedRuleSetsStr = tostring(properties.managedRules.managedRuleSets)
 | extend EnabledState = tostring(properties.policySettings.enabledState)
 | extend WafMode = tostring(properties.policySettings.mode)
 | extend SkuName = tostring(sku.name)
-| mv-expand ManagedRuleSet = ManagedRuleSets to typeof(dynamic)
-| extend RuleSetType = tostring(ManagedRuleSet.ruleSetType)
-| extend RuleSetVersion = tostring(ManagedRuleSet.ruleSetVersion)
-| summarize
-    HasDefaultRuleset = max(RuleSetType == 'Microsoft_DefaultRuleSet'),
-    DefaultRulesetVersion = maxif(RuleSetVersion, RuleSetType == 'Microsoft_DefaultRuleSet'),
-    EnabledState = any(EnabledState),
-    WafMode = any(WafMode),
-    SkuName = any(SkuName),
-    PolicyId = any(id),
-    PolicyName = any(name),
-    subscriptionId = any(subscriptionId)
-    by tolower(id)
+| extend HasDefaultRuleset = ManagedRuleSetsStr contains 'Microsoft_DefaultRuleSet'
+| extend DefaultRulesetVersion = extract('"ruleSetType":"Microsoft_DefaultRuleSet","ruleSetVersion":"([^"]+)"', 1, ManagedRuleSetsStr)
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionId, SubscriptionName = name
 ) on subscriptionId
-| project PolicyName, PolicyId, subscriptionId, SubscriptionName, SkuName, EnabledState, WafMode, HasDefaultRuleset, DefaultRulesetVersion
+| project PolicyName=name, PolicyId=id, subscriptionId, SubscriptionName, SkuName, EnabledState, WafMode, HasDefaultRuleset, DefaultRulesetVersion
 "@
 
     $policies = @()
@@ -106,12 +94,12 @@ resources
     $passedItems = @($policies | Where-Object { $_.HasDefaultRuleset -eq $true })
     $failedItems = @($policies | Where-Object { $_.HasDefaultRuleset -ne $true })
 
-    $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
-
-    if ($passed) {
+    if ($failedItems.Count -eq 0) {
+        $passed = $true
         $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have a default managed ruleset (Microsoft_DefaultRuleSet) enabled.`n`n%TestResult%"
     }
     else {
+        $passed = $false
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have a default managed ruleset configured.`n`n%TestResult%"
     }
     #endregion Assessment Logic
@@ -138,7 +126,7 @@ resources
         $rulesetVersion = if ($item.HasDefaultRuleset -eq $true -and $item.DefaultRulesetVersion) { $item.DefaultRulesetVersion } else { 'N/A' }
         $status = if ($item.HasDefaultRuleset -eq $true) { '✅ Pass' } else { '❌ Fail' }
 
-        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
+        $tableRows += "| $policyMd | $subMd | Yes | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
     }
 
     $formatTemplate = @'
@@ -146,8 +134,8 @@ resources
 
 ## [{0}]({1})
 
-| Policy name | Subscription name | Enabled state | WAF mode | Default ruleset type | Ruleset version | Status |
-| :---------- | :---------------- | :-----------: | :------: | :------------------- | :-------------- | :----: |
+| Policy name | Subscription name | Attached to AFD | Enabled state | WAF mode | Default ruleset type | Ruleset version | Status |
+| :---------- | :---------------- | :-------------: | :-----------: | :------: | :------------------- | :-------------- | :----: |
 {2}
 
 '@
@@ -165,7 +153,7 @@ resources
 
     $params = @{
         TestId = '26883'
-        Title  = 'Default Ruleset is enabled and assigned in Azure Front Door WAF'
+        Title  = 'Default Ruleset is assigned in Azure Front Door WAF'
         Status = $passed
         Result = $testResultMarkdown
     }
