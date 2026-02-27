@@ -66,7 +66,10 @@ resources
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionId, subscriptionName=name
 ) on subscriptionId
-| project id, name, subscriptionId, subscriptionName, properties
+| project id, name, subscriptionId, subscriptionName,
+    enabledState=tostring(properties.policySettings.enabledState),
+    wafMode=tostring(properties.policySettings.mode),
+    customRules=properties.customRules.rules
 "@
 
     $allPolicies = @()
@@ -74,8 +77,8 @@ resources
         $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
     }
     catch {
-        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Write-PSFMessage "Failed to query Azure Front Door WAF policies via Resource Graph: $($_.Exception.Message)" -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
@@ -85,13 +88,17 @@ resources
         return
     }
 
+    #endregion Data Collection
+
+    #region Assessment Logic
+
     # Evaluate each policy for rate limiting rules
     $evaluationResults = @()
 
     foreach ($policy in $allPolicies) {
-        $enabledState = $policy.properties.policySettings.enabledState
-        $wafMode = $policy.properties.policySettings.mode
-        $customRules = $policy.properties.customRules.rules
+        $enabledState = $policy.enabledState
+        $wafMode = $policy.wafMode
+        $customRules = $policy.customRules
 
         $rateLimitRules = @()
         if ($customRules) {
@@ -121,10 +128,6 @@ resources
             Status             = $status
         }
     }
-
-    #endregion Data Collection
-
-    #region Assessment Logic
 
     $passedItems = $evaluationResults | Where-Object { $_.Status -eq 'Pass' }
     $failedItems = $evaluationResults | Where-Object { $_.Status -eq 'Fail' }
@@ -157,7 +160,7 @@ resources
 
 '@
 
-        foreach ($result in $evaluationResults) {
+        foreach ($result in ($evaluationResults | Sort-Object SubscriptionName, PolicyName)) {
             $policyLink = "[$(Get-SafeMarkdown $result.PolicyName)]($portalResourceBaseLink$($result.PolicyId))"
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
