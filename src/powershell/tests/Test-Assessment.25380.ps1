@@ -43,18 +43,24 @@ function Test-Assessment-25380 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $caSettings.signalingStatus -eq 'enabled'
-
-    if ($passed) {
-        $testResultMarkdown = "✅ Global Secure Access signaling for Conditional Access is enabled. Source IP restoration and compliant network checks are active.`n`n%TestResult%"
+    if (-not $caSettings) {
+        $passed = $false
+        $testResultMarkdown = "❌ Unable to retrieve Global Secure Access Conditional Access signaling status. The API response was null or failed.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ Global Secure Access signaling for Conditional Access is disabled. Conditional Access policies do not receive source IP or compliant network signals.`n`n%TestResult%"
+        $passed = $caSettings.signalingStatus -eq 'enabled'
+
+        if ($passed) {
+            $testResultMarkdown = "✅ Global Secure Access signaling for Conditional Access is enabled. Source IP restoration and compliant network checks are active.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "❌ Global Secure Access signaling for Conditional Access is disabled. Conditional Access policies do not receive source IP or compliant network signals.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $signalingIcon = if ($caSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
+    $signalingIcon = if ($caSettings -and $caSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
     $mdInfo = "`n`n### [Global Secure Access Conditional Access settings](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Security.ReactView)`n"
     $mdInfo += "| Property | Value |`n"
