@@ -139,7 +139,15 @@ resources
         $allJsRules = @($policy.CustomRules | Where-Object { $_.action -eq 'JSChallenge' })
         $enabledJsRules = @($allJsRules | Where-Object { $_.enabledState -eq 'Enabled' })
 
-        $jsRuleCountDisplay = if ($allJsRules.Count -gt 0) { "✅ $($allJsRules.Count)" } else { '❌ 0' }
+        $jsRuleCountDisplay = if ($enabledJsRules.Count -gt 0) {
+            "✅ $($enabledJsRules.Count)"
+        }
+        elseif ($allJsRules.Count -gt 0) {
+            "⚠️ $($allJsRules.Count) (disabled)"
+        }
+        else {
+            '❌ 0'
+        }
         $ruleStateDisplay = if ($allJsRules.Count -eq 0) {
             'N/A'
         }
