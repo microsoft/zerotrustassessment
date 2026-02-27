@@ -171,11 +171,6 @@ resources
         $mdInfo += $formatTemplate -f $tableRows
     }
 
-    # Summary
-    $mdInfo += "**Summary:**`n`n"
-    $mdInfo += "- Total attached WAF policies evaluated: $($evaluationResults.Count)`n"
-    $mdInfo += "- Policies with rate limiting enabled: $($passedItems.Count)`n"
-    $mdInfo += "- Policies without rate limiting: $($failedItems.Count)`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
