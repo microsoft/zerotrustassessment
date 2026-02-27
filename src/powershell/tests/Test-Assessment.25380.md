@@ -2,11 +2,11 @@ When Global Secure Access routes user traffic through Microsoft's Security Servi
 
 **Remediation actions**
 
-1. [Enable Global Secure Access signaling for Conditional Access in the Microsoft Entra admin center under Global Secure Access > Settings > Session management > Adaptive Access](https://learn.microsoft.com/en-gb/entra/global-secure-access/how-to-source-ip-restoration)
+1. [Enable Global Secure Access signaling for Conditional Access in the Microsoft Entra admin center under Global Secure Access > Settings > Session management > Adaptive Access](https://learn.microsoft.com/entra/global-secure-access/how-to-source-ip-restoration)
 
-2. [Understand how Universal Conditional Access works with Global Secure Access traffic profiles](https://learn.microsoft.com/en-gb/entra/global-secure-access/concept-universal-conditional-access)
+2. [Understand how Universal Conditional Access works with Global Secure Access traffic profiles](https://learn.microsoft.com/entra/global-secure-access/concept-universal-conditional-access)
 
-3. [Configure compliant network check to require users to connect through Global Secure Access](https://learn.microsoft.com/en-gb/entra/global-secure-access/how-to-compliant-network)
+3. [Configure compliant network check to require users to connect through Global Secure Access](https://learn.microsoft.com/entra/global-secure-access/how-to-compliant-network)
 
 <!--- Results --->
 %TestResult%
