@@ -51,7 +51,7 @@ Apply **Intune compliance policies** immediately to enforce security baselines.
 
 ### Automation and Group Targeting
 
-- **Dynamic Azure AD groups** can be used to assign policies and apps based on device attributes (e.g., ownership, OS version, enrollment profile).  
+- **Dynamic Microsoft Entra groups** can be used to assign policies and apps based on device attributes (e.g., ownership, OS version, enrollment profile).  
   ⚠️ **Note**: Dynamic group membership updates can have **latency**, which may delay policy or app deployment during provisioning.
 
 **Alternatives**:
