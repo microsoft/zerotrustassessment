@@ -14,6 +14,9 @@ Enable the Bot Manager rule set in the WAF policy
 Associate the WAF policy with your Azure Front Door profile via security policies
 - [Security policies in Azure Front Door](https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/how-to-configure-https-custom-domain#associate-the-custom-domain-with-your-azure-front-door-profile)
 
+Configure bot protection rules to customize actions for different bot categories
+- [Bot protection rule set on Azure Front Door](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview#bot-protection-rule-set)
+
 Monitor bot traffic using Azure Front Door logs and metrics
 - [Monitor metrics and logs in Azure Front Door](https://learn.microsoft.com/en-us/azure/frontdoor/front-door-diagnostics)
 

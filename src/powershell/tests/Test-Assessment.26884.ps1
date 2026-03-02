@@ -187,6 +187,8 @@ resources
             $securityPolicyConfigured = 'Yes'
 
             foreach ($secPolicy in $securityPolicies) {
+                # Reset domain count for each security policy to avoid accumulation
+                $currentPolicyDomainCount = 0
                 $wafPolicyRef = $secPolicy.properties.parameters.wafPolicy.id
 
                 if ($wafPolicyRef) {
@@ -197,7 +199,7 @@ resources
                     if ($associations) {
                         foreach ($assoc in $associations) {
                             if ($assoc.domains) {
-                                $domainsProtected += $assoc.domains.Count
+                                $currentPolicyDomainCount += $assoc.domains.Count
                             }
                         }
                     }
@@ -220,12 +222,14 @@ resources
                                         $ruleSetAction = $ruleSet.ruleSetAction
                                     }
                                     else {
-                                        $ruleSetAction = 'Block (default)'
+                                        $ruleSetAction = 'Per-rule defaults'
                                     }
 
                                     # Check if WAF policy is enabled and Bot Manager is present
                                     if ($wafIsPremium -and $wafEnabled -eq 'Enabled') {
                                         $hasValidBotProtection = $true
+                                        # Only count domains from security policy with valid bot protection
+                                        $domainsProtected = $currentPolicyDomainCount
                                     }
                                     break
                                 }
