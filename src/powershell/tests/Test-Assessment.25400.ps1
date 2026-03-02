@@ -111,7 +111,7 @@ function Test-Assessment-25400 {
                                 else {
                                     $portsArray = $segment.ports -split ','
                                 }
-                                
+
                                 foreach ($portRange in $portsArray) {
                                     $portRange = $portRange.Trim()
                                     if ($portRange -match '^(\d+)-(\d+)$') {
