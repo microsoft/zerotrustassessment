@@ -164,6 +164,60 @@ Describe "Test-Assessment-35041" {
         }
     }
 
+    Context "When enabled policy has no rules but disabled policy has rules" {
+        It "Should fail when enabled policy has no rules and only disabled policy has rules" {
+            Mock Get-DlpCompliancePolicy {
+                return @(
+                    [PSCustomObject]@{
+                        Name              = "AI Apps Browser Protection - Enabled No Rules"
+                        Identity          = "ai-apps-browser-enabled-no-rules"
+                        Enabled           = $true
+                        Mode              = "Enable"
+                        EnforcementPlanes = @("Browser")
+                        PolicyCategory    = "ApplicableToAI"
+                        CreatedBy         = "admin@contoso.com"
+                        CreationTimeUtc   = [DateTime]::Parse("2025-11-15T10:30:00Z")
+                    },
+                    [PSCustomObject]@{
+                        Name              = "AI Apps Browser Protection - Disabled With Rules"
+                        Identity          = "ai-apps-browser-disabled-with-rules"
+                        Enabled           = $false
+                        Mode              = "Enable"
+                        EnforcementPlanes = @("Browser")
+                        PolicyCategory    = "ApplicableToAI"
+                        CreatedBy         = "admin@contoso.com"
+                        CreationTimeUtc   = [DateTime]::Parse("2025-10-01T08:00:00Z")
+                    }
+                )
+            }
+            Mock Get-DlpComplianceRule {
+                return @(
+                    [PSCustomObject]@{
+                        Name             = "Block Sensitive Data to AI Apps"
+                        Policy           = "ai-apps-browser-disabled-with-rules"
+                        ParentPolicyName = "AI Apps Browser Protection - Disabled With Rules"
+                        Disabled         = $false
+                        Actions          = @("BlockAccess", "NotifyUser")
+                    }
+                )
+            }
+
+            $script:capturedStatus = $null
+            $script:capturedResult = $null
+            Mock Add-ZtTestResultDetail {
+                param($TestId, $Title, $Status, $Result)
+                $script:capturedStatus = $Status
+                $script:capturedResult = $Result
+                "## Scenario: Enabled policy no rules, disabled policy has rules`n`n$Result`n" | Add-Content $script:outputFile
+            }
+
+            Test-Assessment-35041
+
+            $script:capturedStatus | Should -Be $false
+            $script:capturedResult | Should -Match "Browser DLP for AI apps is not configured"
+        }
+    }
+
     Context "When Browser DLP is properly configured" {
         It "Should pass when at least one enabled policy with rules exists" {
             Mock Get-DlpCompliancePolicy {

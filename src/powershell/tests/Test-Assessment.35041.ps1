@@ -60,6 +60,7 @@ function Test-Assessment-35041 {
     #region Assessment Logic
     $passed = $false
     $enabledBrowserPolicies = @()
+    $enabledPoliciesWithRules = @()
 
     # Step 1: Discover Browser DLP Policies
     # If no Browser enforcement plane policies found → FAIL (Browser DLP not configured)
@@ -71,12 +72,18 @@ function Test-Assessment-35041 {
     elseif ($browserDlpRules.Count -eq 0) {
         $passed = $false
     }
-    # Step 3: Check Enablement
-    # If count ≥ 1 enabled browser DLP policy → PASS
-    # If count = 0 or all policies disabled → FAIL
+    # Step 3: Check Enablement with Rules
+    # Must have at least one ENABLED policy that has rules attached
+    # If enabled policies exist but none have rules → FAIL
     else {
         $enabledBrowserPolicies = @($browserDlpPolicies | Where-Object { $_.Enabled -eq $true })
-        if ($enabledBrowserPolicies.Count -ge 1) {
+        # Filter to only enabled policies that have at least one rule
+        $enabledPoliciesWithRules = @($enabledBrowserPolicies | Where-Object {
+            $policyIdentity = $_.Identity
+            $policyName = $_.Name
+            @($browserDlpRules | Where-Object { $_.ParentPolicyName -eq $policyName -or $_.Policy -eq $policyIdentity }).Count -gt 0
+        })
+        if ($enabledPoliciesWithRules.Count -ge 1) {
             $passed = $true
         }
         else {
@@ -100,6 +107,7 @@ function Test-Assessment-35041 {
     $mdInfo = "`n**Browser DLP Configuration Summary:**`n`n"
     $mdInfo += "* Browser DLP Policies Found: $($browserDlpPolicies.Count)`n"
     $mdInfo += "* Browser DLP Policies Enabled: $($enabledBrowserPolicies.Count)`n"
+    $mdInfo += "* Enabled Policies with Rules: $($enabledPoliciesWithRules.Count)`n"
     $mdInfo += "* Browser DLP Rules: $($browserDlpRules.Count)`n`n"
 
     # Browser DLP Policies section
