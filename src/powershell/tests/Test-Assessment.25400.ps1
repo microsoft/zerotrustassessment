@@ -96,15 +96,22 @@ function Test-Assessment-25400 {
                             # Determine DNS resolution method
                             $dnsResolution = 'None'
 
-                            # Check for dnsSuffix destination type
-                            if ($segment.destinationType -eq 'dnsSuffix') {
+                            # Check for dnsSuffix destination type with a valid destinationHost
+                            if ($segment.destinationType -eq 'dnsSuffix' -and -not [string]::IsNullOrWhiteSpace($segment.destinationHost)) {
                                 $dnsResolution = '✅ dnsSuffix'
                                 $hasDnsSuffix = $true
                             }
                             # Check for port 53 with UDP protocol
                             elseif ($segment.ports -and $segment.protocol) {
                                 # Parse ports field (format: "startPort-endPort" or "port")
-                                $portsArray = $segment.ports -split ','
+                                # Handle both array and string formats
+                                if ($segment.ports -is [System.Array]) {
+                                    $portsArray = $segment.ports
+                                }
+                                else {
+                                    $portsArray = $segment.ports -split ','
+                                }
+                                
                                 foreach ($portRange in $portsArray) {
                                     $portRange = $portRange.Trim()
                                     if ($portRange -match '^(\d+)-(\d+)$') {
