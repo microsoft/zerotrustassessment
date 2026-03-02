@@ -65,6 +65,7 @@ function Test-Assessment-25400 {
     $hasDnsSuffix = $false
     $hasPort53 = $false
     $errorMsgQ2 = $null
+    $segmentQueryFailures = 0
 
     if (-not $errorMsgQ1 -and $privateProfile -and $privateProfile.state -eq 'enabled') {
         Write-ZtProgress -Activity $activity -Status 'Querying Private Access applications'
@@ -85,6 +86,7 @@ function Test-Assessment-25400 {
         if (-not $errorMsgQ2 -and $privateAccessApps -and $privateAccessApps.Count -gt 0) {
             Write-ZtProgress -Activity $activity -Status 'Analyzing application segments for DNS configuration'
 
+            $segmentQueryFailures = 0
             foreach ($app in $privateAccessApps) {
                 try {
                     $segments = Invoke-ZtGraphRequest `
@@ -148,6 +150,7 @@ function Test-Assessment-25400 {
                     }
                 }
                 catch {
+                    $segmentQueryFailures++
                     Write-PSFMessage "Failed to retrieve segments for application $($app.id): $_" -Tag Test -Level Warning
                 }
             }
@@ -182,6 +185,12 @@ function Test-Assessment-25400 {
         # No Private Access applications configured
         $passed = $false
         $testResultMarkdown = "❌ No Private Access applications are configured. DNS resolution cannot be established without application segments.`n`n%TestResult%"
+    }
+    elseif ($segmentQueryFailures -gt 0 -and $allSegments.Count -eq 0) {
+        # All segment queries failed - cannot evaluate reliably
+        $passed = $false
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to retrieve application segments for Private Access applications ($segmentQueryFailures of $($privateAccessApps.Count) apps failed). This may indicate API errors or insufficient permissions to read segment configurations.`n`n%TestResult%"
     }
     elseif ($hasDnsSuffix -or $hasPort53) {
         # Pass: DNS resolution is configured
