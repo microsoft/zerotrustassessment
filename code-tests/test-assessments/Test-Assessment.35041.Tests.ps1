@@ -5,22 +5,22 @@ Describe "Test-Assessment-35041" {
 
         # Mock external module dependencies if they are not present
         if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
-            function global:Write-PSFMessage {}
+            function Write-PSFMessage {}
         }
         if (-not (Get-Command Write-ZtProgress -ErrorAction SilentlyContinue)) {
-            function global:Write-ZtProgress {}
+            function Write-ZtProgress {}
         }
         if (-not (Get-Command Get-SafeMarkdown -ErrorAction SilentlyContinue)) {
-            function global:Get-SafeMarkdown { param($Text) return $Text }
+            function Get-SafeMarkdown { param($Text) return $Text }
         }
         if (-not (Get-Command Get-DlpCompliancePolicy -ErrorAction SilentlyContinue)) {
-            function global:Get-DlpCompliancePolicy {}
+            function Get-DlpCompliancePolicy {}
         }
         if (-not (Get-Command Get-DlpComplianceRule -ErrorAction SilentlyContinue)) {
-            function global:Get-DlpComplianceRule {}
+            function Get-DlpComplianceRule {}
         }
         if (-not (Get-Command Add-ZtTestResultDetail -ErrorAction SilentlyContinue)) {
-            function global:Add-ZtTestResultDetail {}
+            function Add-ZtTestResultDetail {}
         }
 
         # Load the class
