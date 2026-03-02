@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns } from "lucide-react"
+import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns, ShieldAlert } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -49,12 +49,14 @@ import {
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StatusIcon } from "../status-icon"
+import { useESM } from "@/contexts/ESMContext"
 
 export function DataTable<TData extends Test, TValue>({
     columns,
     data,
     pillar,
 }: DataTableProps<TData, TValue>) {
+    const { isESM } = useESM();
     const [sorting, setSorting] = React.useState<SortingState>(
         pillar === "Devices"
             ? [
@@ -81,11 +83,20 @@ export function DataTable<TData extends Test, TValue>({
         TestMinimumLicense: false,
         // Category visible for Devices, hidden for Identity
         TestCategory: pillar === "Devices" ? true : false,
-        // Optionally specify other columns here (true => visible, false => hidden)
-        // TestRisk: true,
-        // TestStatus: true,
+        // ESM-only columns: hidden by default, shown when ESM is active
+        TestRegulatory: isESM,
+        TestZtPrinciple: isESM,
     })
     const [rowSelection, setRowSelection] = React.useState({})
+
+    // Sync ESM column visibility when ESM mode toggles
+    React.useEffect(() => {
+        setColumnVisibility(prev => ({
+            ...prev,
+            TestRegulatory: isESM,
+            TestZtPrinciple: isESM,
+        }));
+    }, [isESM]);
 
     // First filter by pillar if specified (for unique value calculations)
     const pillarFilteredData = React.useMemo(() => {
@@ -100,6 +111,13 @@ export function DataTable<TData extends Test, TValue>({
     // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
     const filteredData = React.useMemo(() => {
         let result = pillarFilteredData;
+
+        // ESM mode: show only High risk items, limit to top 10
+        if (isESM) {
+            result = result.filter(item => item.TestRisk === "High");
+            result = result.slice(0, 10);
+            return result;
+        }
 
         // Filter by SFI pillars if any are selected
         if (selectedSfiPillars.length > 0) {
@@ -126,7 +144,7 @@ export function DataTable<TData extends Test, TValue>({
         }
 
         return result;
-    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses]);
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses, isESM]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
@@ -219,6 +237,14 @@ export function DataTable<TData extends Test, TValue>({
     return (
 
         <div>
+            {isESM && (
+                <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+                    <ShieldAlert className="h-4 w-4 flex-shrink-0" />
+                    <span>
+                        <strong>Enhanced Security Mode</strong> — Guidance on advanced security configuration and hardening recommendations for your environment.
+                    </span>
+                </div>
+            )}
             <div className="flex items-center py-4 justify-between">
                 <div className="flex items-center gap-4">
                     <Input

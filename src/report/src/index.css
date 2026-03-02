@@ -57,6 +57,24 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+
+  /* Enhanced Security Mode - Light */
+  .esm {
+    --primary: 25 95% 40%;
+    --primary-foreground: 40 100% 97%;
+    --accent: 38 92% 90%;
+    --accent-foreground: 25 95% 25%;
+    --ring: 25 95% 50%;
+  }
+
+  /* Enhanced Security Mode - Dark */
+  .dark.esm {
+    --primary: 38 92% 50%;
+    --primary-foreground: 25 95% 10%;
+    --accent: 25 80% 20%;
+    --accent-foreground: 38 92% 80%;
+    --ring: 38 92% 50%;
+  }
 }
 
 /* Sankey chart text styling for better readability */

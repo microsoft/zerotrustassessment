@@ -15,6 +15,9 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Switch } from "@/components/ui/switch";
+import { useESM } from "@/contexts/ESMContext";
+import { ShieldCheck } from "lucide-react";
 
 import { mainMenu } from "@/config/menu";
 import { ChevronDownIcon, ViewVerticalIcon } from "@radix-ui/react-icons";
@@ -25,9 +28,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export function Header() {
     const [open, setOpen] = useState(false)
     const location = useLocation();
+    const { isESM, setIsESM } = useESM();
     console.log(reportData);
     return (
-        <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur">
+            <header className={cn("supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur", isESM && "border-b-amber-500 border-b-2")}>
             <div className="container px-4 md:px-8 flex h-14 items-center">
                 <div className="mr-4 hidden md:flex">
                     <NavLink to="/" className="mr-6 flex items-center space-x-2">
@@ -167,6 +171,18 @@ export function Header() {
                         {/* <CommandMenu /> */}
                     </div>
                     <nav className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className={cn("h-4 w-4", isESM ? "text-amber-500" : "text-muted-foreground")} />
+                            <label htmlFor="esm-toggle" className={cn("text-xs font-medium cursor-pointer select-none", isESM ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                                ESM
+                            </label>
+                            <Switch
+                                id="esm-toggle"
+                                checked={isESM}
+                                onCheckedChange={setIsESM}
+                                className="data-[state=checked]:bg-amber-500"
+                            />
+                        </div>
                         <ModeToggle />
                         <a
                             href={ztAppConfig.github.url}

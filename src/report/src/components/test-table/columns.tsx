@@ -4,6 +4,14 @@ import { ArrowUpDown } from "lucide-react"
 import { Button } from "../ui/button"
 import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
+import { Badge } from "../ui/badge"
+
+const regulatoryColors: Record<string, string> = {
+    NIST: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    CISA: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    CIS: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    ISO: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+}
 
 export const columns: ColumnDef<Test>[] = [
     {
@@ -232,6 +240,60 @@ export const columns: ColumnDef<Test>[] = [
             return (
                 <StatusIcon Item={row.original} />
             )
+        },
+    },
+    {
+        accessorKey: "TestRegulatory",
+        meta: { label: "Regulatory" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Regulatory
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const tags = row.getValue("TestRegulatory") as string[] | null | undefined;
+            if (!tags || tags.length === 0) {
+                return <span className="text-muted-foreground">-</span>;
+            }
+            return (
+                <div className="flex items-center gap-1 flex-wrap">
+                    {tags.map((tag) => (
+                        <Badge
+                            key={tag}
+                            variant="outline"
+                            className={regulatoryColors[tag] ?? ""}
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "TestZtPrinciple",
+        meta: { label: "Principle" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Principle
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const principle = row.getValue("TestZtPrinciple") as string | null | undefined;
+            if (!principle) {
+                return <span className="text-muted-foreground">-</span>;
+            }
+            return (
+                <Badge variant="warning" className="whitespace-nowrap">
+                    {principle}
+                </Badge>
+            );
         },
     },
 
