@@ -38,36 +38,54 @@ function Test-Assessment-25380 {
 
     # Q1: Retrieve Global Secure Access Conditional Access signaling status
     Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access signaling settings'
-    $caSettings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta
-    Write-PSFMessage "Signaling status: $($caSettings.signalingStatus)" -Level Verbose
+    $caSettings = $null
+    $errorMsg = $null
+
+    try {
+        $caSettings = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/settings/conditionalAccess' -ApiVersion beta -ErrorAction Stop
+        Write-PSFMessage "Signaling status: $($caSettings.signalingStatus)" -Level Verbose
+    }
+    catch {
+        $errorMsg = $_
+        Write-PSFMessage "Failed to retrieve CA signaling settings: $_" -Level Error
+    }
     #endregion Data Collection
 
     #region Assessment Logic
-    if (-not $caSettings) {
+    if ($errorMsg) {
         $passed = $false
-        $testResultMarkdown = "❌ Unable to retrieve Global Secure Access Conditional Access signaling status. The API response was null or failed.`n`n%TestResult%"
+    }
+    elseif (-not $caSettings -or -not $caSettings.signalingStatus) {
+        # null, blank or missing property likely indicates GSA is not deployed in this tenant
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
     }
     else {
         $passed = $caSettings.signalingStatus -eq 'enabled'
+    }
+    #endregion Assessment Logic
 
+    #region Report Generation
+    if ($errorMsg) {
+        $testResultMarkdown = "❌ Unable to retrieve Global Secure Access Conditional Access signaling status.`n`nError: $errorMsg"
+    }
+    else {
         if ($passed) {
             $testResultMarkdown = "✅ Global Secure Access signaling for Conditional Access is enabled. Source IP restoration and compliant network checks are active.`n`n%TestResult%"
         }
         else {
             $testResultMarkdown = "❌ Global Secure Access signaling for Conditional Access is disabled. Conditional Access policies do not receive source IP or compliant network signals.`n`n%TestResult%"
         }
+
+        $signalingIcon = if ($caSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
+
+        $mdInfo = "`n`n### [Global Secure Access Conditional Access settings](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Security.ReactView)`n"
+        $mdInfo += "| Property | Value |`n"
+        $mdInfo += "| :--- | :--- |`n"
+        $mdInfo += "| Signaling status | $signalingIcon |`n"
+
+        $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     }
-    #endregion Assessment Logic
-
-    #region Report Generation
-    $signalingIcon = if ($caSettings -and $caSettings.signalingStatus -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
-
-    $mdInfo = "`n`n### [Global Secure Access Conditional Access settings](https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/Security.ReactView)`n"
-    $mdInfo += "| Property | Value |`n"
-    $mdInfo += "| :--- | :--- |`n"
-    $mdInfo += "| Signaling status | $signalingIcon |`n"
-
-    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
