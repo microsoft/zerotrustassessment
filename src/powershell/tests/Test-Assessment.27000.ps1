@@ -128,6 +128,12 @@ function Test-Assessment-27000 {
                 foreach ($policyLink in $filteringProfile.policies) {
                     if ($policyLink.policy.id -ne $policy.id) { continue }
 
+                    # Skip disabled policy links
+                    if ($policyLink.state -ne 'enabled') {
+                        Write-PSFMessage "Skipping disabled policy link in profile '$($filteringProfile.name)' for policy '$($policy.name)'" -Level Verbose
+                        continue
+                    }
+
                     $linkPriority = try { [int]$policyLink.priority } catch { [int]::MaxValue }
 
                     # Get action from the expanded policy object (not the link itself)
@@ -158,7 +164,7 @@ function Test-Assessment-27000 {
 
         # Find effective profile per spec logic
         $effectiveProfileName = 'None'
-        $caEnforced = 'No'
+        $caEnforced = 'N/A'  # Default to N/A when no profile found
         $status = 'Not Blocked'
 
         foreach ($pc in $profileCandidates) {
@@ -196,10 +202,10 @@ function Test-Assessment-27000 {
 
     #region Report Generation
     if ($passed) {
-        $testResultMarkdown = "✅ High-risk web content filtering categories (Criminal activity, Hacking, Illegal software) are blocked.`n`n%TestResult%"
+        $testResultMarkdown = "✅ High-risk web content filtering categories (Criminal activity, Hacking, Illegal software) are blocked across enabled security profiles, protecting users from liability risks and malicious content.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ One or more high-risk web content filtering categories (Criminal activity, Hacking, Illegal software) are not blocked.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more high-risk web content filtering categories (Criminal activity, Hacking, Illegal software) are not blocked. Configure web content filtering policies to block these Liability categories to protect against security risks and policy violations.`n`n%TestResult%"
     }
 
     $reportTitle = 'Web Content Filtering – Category block status'
