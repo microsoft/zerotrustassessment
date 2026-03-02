@@ -54,27 +54,6 @@ function Test-Assessment-25393 {
         $profileState = $profileData.state
     }
 
-    if ($profileState -ne 'enabled') {
-        Write-PSFMessage "Private Access forwarding profile state: $profileState" -Tag Test -Level VeryVerbose
-
-        $testResultMarkdown = "❌ Quick Access is not bound to a connector group with active connectors, or the Private Access traffic forwarding profile is not enabled.`n`n%TestResult%"
-
-        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess'
-        $mdInfo = "`n## [Quick Access Connector Binding Status]($portalLink)`n`n"
-        $mdInfo += "| Property | Value |`n"
-        $mdInfo += "| :--- | :--- |`n"
-        $mdInfo += "| Private Access Profile State | $profileState |`n"
-        $mdInfo += "| Connector Group Name | N/A |`n"
-        $mdInfo += "| Quick Access App Assigned | No |`n`n"
-
-        $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
-
-        Add-ZtTestResultDetail -TestId '25393' `
-            -Title 'Quick Access is enabled and bound to a connector' `
-            -Status $false -Result $testResultMarkdown
-        return
-    }
-
     # Q2: List all connector groups
     Write-ZtProgress -Activity $activity -Status 'Querying connector groups'
 
@@ -114,8 +93,7 @@ function Test-Assessment-25393 {
 
         # Identify the Quick Access application by the NetworkAccessQuickAccessApplication tag
         foreach ($app in $apps) {
-            $tags = @($app.tags)
-            if ($tags -contains 'NetworkAccessQuickAccessApplication') {
+            if (@($app.tags) -contains 'NetworkAccessQuickAccessApplication') {
                 $quickAccessGroupId = $group.id
                 $quickAccessGroupName = $group.name
                 break
@@ -148,12 +126,8 @@ function Test-Assessment-25393 {
 
     #region Assessment Logic
 
-    $passed = $false
-
     # Pass: Profile enabled + Quick Access assigned to a group + at least one active connector
-    if ($profileState -eq 'enabled' -and $quickAccessGroupId -and $activeConnectorCount -gt 0) {
-        $passed = $true
-    }
+    $passed = ($profileState -eq 'enabled' -and $null -ne $quickAccessGroupId -and $activeConnectorCount -gt 0)
 
     if ($passed) {
         $testResultMarkdown = "✅ Quick Access is bound to a connector group with at least one active connector, and the Private Access traffic forwarding profile is enabled.`n`n%TestResult%"
