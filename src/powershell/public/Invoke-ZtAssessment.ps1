@@ -351,6 +351,10 @@ function Invoke-ZtAssessment {
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
+	# Create the logs folder for per-test log files
+	$logsPath = Join-Path $exportPath 'logs'
+	New-Item -ItemType Directory -Path $logsPath -Force -ErrorAction Stop | Out-Null
+
 
 	# Send telemetry if not disabled
 	if (-not $DisableTelemetry) {
@@ -392,7 +396,7 @@ function Invoke-ZtAssessment {
 
 	# Run the tests
 	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
+	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath
 	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
 	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
