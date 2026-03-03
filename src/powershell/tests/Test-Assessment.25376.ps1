@@ -14,9 +14,9 @@
 
 function Test-Assessment-25376 {
     [ZtTest(
-        Category = 'Traffic Acquisition',
+        Category = 'Network security',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('P1','E3'),
+        MinimumLicense = 'Entra_Suite',
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
@@ -39,12 +39,13 @@ function Test-Assessment-25376 {
     $startDateTime = $endDateTime.AddDays(-7)
     $startDateTimeStr = $startDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $endDateTimeStr = $endDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $activityPivotDateTime = $endDateTime.AddDays(-1)
+    $activityPivotDateTimeStr = $activityPivotDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
 
     # Query 3: Verify Microsoft 365 traffic forwarding profile is enabled
     $m365Profile = $null
     try {
-        $allProfiles = Invoke-ZtGraphRequest -RelativeUri "networkAccess/forwardingProfiles" -ApiVersion beta
-        $m365Profile = $allProfiles | Where-Object { $_.trafficForwardingType -eq 'm365' }
+        $m365Profile = Invoke-ZtGraphRequest -RelativeUri "networkAccess/forwardingProfiles?`$filter=trafficForwardingType eq 'm365'" -ApiVersion beta
     } catch {
         Write-PSFMessage "Unable to retrieve M365 forwarding profile: $_" -Level Warning
     }
@@ -63,7 +64,9 @@ function Test-Assessment-25376 {
     # Query 2: Get device usage summary
     $deviceUsage = $null
     try {
-        $deviceUsage = Invoke-ZtGraphRequest -RelativeUri "networkAccess/reports/getDeviceUsageSummary(startDateTime=$startDateTimeStr,endDateTime=$endDateTimeStr)" -ApiVersion beta
+        $deviceUsage = Invoke-ZtGraphRequest `
+            -RelativeUri "networkAccess/reports/getDeviceUsageSummary(startDateTime=$startDateTimeStr,endDateTime=$endDateTimeStr,activityPivotDateTime=$activityPivotDateTimeStr)" `
+            -ApiVersion beta
     } catch {
         Write-PSFMessage "Unable to retrieve device usage summary: $_" -Level Warning
     }
@@ -123,7 +126,7 @@ function Test-Assessment-25376 {
         $warnings.Add("No active devices detected despite $totalDeviceCount total devices registered")
     }
 
-    if ($activeDeviceCount -lt 10 -and $profileEnabled) {
+    if ($activeDeviceCount -lt 10 -and $profileEnabled -and $totalDeviceCount -gt 0) {
         $warnings.Add("Low active device count ($activeDeviceCount) - verify client deployment across endpoints")
     }
 
@@ -183,13 +186,15 @@ function Test-Assessment-25376 {
         $mdInfo += "`n"
         $mdInfo += "*Evaluation Period: $($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))*`n`n"
 
-        # Device Usage Section
-        $mdInfo += "`n## Device Usage`n`n"
-        $mdInfo += "| Metric | Count |`n"
-        $mdInfo += "| :--- | ---: |`n"
-        $mdInfo += "| Total Devices | $totalDeviceCount |`n"
-        $mdInfo += "| Active Devices | $activeDeviceCount |`n"
-        $mdInfo += "| Inactive Devices | $inactiveDeviceCount |`n`n"
+        # Device Usage Section (only shown when API returned data)
+        if ($deviceUsage) {
+            $mdInfo += "`n## Device Usage`n`n"
+            $mdInfo += "| Metric | Count |`n"
+            $mdInfo += "| :--- | ---: |`n"
+            $mdInfo += "| Total Devices | $totalDeviceCount |`n"
+            $mdInfo += "| Active Devices | $activeDeviceCount |`n"
+            $mdInfo += "| Inactive Devices | $inactiveDeviceCount |`n`n"
+        }
     }
 
     # Warnings Section
