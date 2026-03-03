@@ -47,7 +47,9 @@ function Test-Assessment-27000 {
     # Q3: Get CA policies (following 25407 pattern)
     Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
     $policies = Get-ZtConditionalAccessPolicy
+    #endregion Data Collection
 
+    #region Assessment Logic
     # Process CA policies to find those with enabled GSA security profiles (following 25407 pattern)
     $gsaPolicies = $policies | Where-Object { ($_.state -eq 'enabled') -and ($null -ne $_.sessionControls.globalSecureAccessFilteringProfile) }
     $gsaPolicyDetails = @()
@@ -73,9 +75,7 @@ function Test-Assessment-27000 {
     foreach ($item in $caPolicyWithGsaProfilesEnabled) {
         $caEnforcementMap[$item.ProfileId] = $true
     }
-    #endregion Data Collection
 
-    #region Assessment Logic
     # Required categories (exact API names - case sensitive)
     $requiredCategories = @('CriminalActivity', 'Hacking', 'IllegalSoftware')
     $categoryDisplayNames = @{
