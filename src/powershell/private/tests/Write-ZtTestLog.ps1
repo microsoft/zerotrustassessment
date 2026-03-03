@@ -77,7 +77,8 @@ function Write-ZtTestLog {
 			[System.IO.File]::WriteAllLines($logMarkdownPath, $lines)
 		}
 		catch {
-			Write-PSFMessage -Level Warning -Message "Failed to write test log for test '{0}': {1}" -StringValues $Result.TestID, $_ -Tag log
+			$errorMessage = if ($null -ne $_.Exception -and $null -ne $_.Exception.Message) { $_.Exception.Message } else { 'Unknown error while writing test log.' }
+			Write-PSFMessage -Level Warning -Message "Failed to write test log for test '{0}': {1}" -StringValues $Result.TestID, $errorMessage -Tag log
 		}
 	}
 }
