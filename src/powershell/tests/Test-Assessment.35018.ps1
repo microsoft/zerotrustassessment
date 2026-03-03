@@ -37,7 +37,7 @@ function Test-Assessment-35018 {
     $errorMsg = $null
 
     try {
-        $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
+        $enabledPolicies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
         $errorMsg = $_

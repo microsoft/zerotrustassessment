@@ -41,7 +41,7 @@ function Test-Assessment-35004 {
 
     try {
         # Query: Get all label policies
-        $policies = Get-LabelPolicy -ErrorAction Stop
+        $policies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop
     }
     catch {
         $errorMsg = $_

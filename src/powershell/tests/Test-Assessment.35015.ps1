@@ -39,7 +39,7 @@ function Test-Assessment-35015 {
 
     try {
         # Get all enabled label policies
-        $labelPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
+        $labelPolicies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
     }
     catch {
         $errorMsg = $_

@@ -42,7 +42,7 @@ function Test-Assessment-35014 {
 
     try {
         # Q1: Retrieve all enabled sensitivity label policies to check attachmentaction setting
-        $enabledPolicies = Get-LabelPolicy -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
+        $enabledPolicies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop | Where-Object { $_.Enabled -eq $true }
 
         # Q2: Retrieve all labels to check for Files & Emails scope
         Write-ZtProgress -Activity $activity -Status 'Getting sensitivity labels'
