@@ -200,7 +200,7 @@ function Test-Assessment-25400 {
     else {
         # Fail: No DNS configuration found
         $passed = $false
-        $testResultMarkdown = "❌ No private DNS suffix or port 53 application segment is configured for Private Access applications. DNS queries for internal domains cannot be routed through the tunnel.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No private DNS suffix or port 53 application segment is configured for Private Access applications.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
