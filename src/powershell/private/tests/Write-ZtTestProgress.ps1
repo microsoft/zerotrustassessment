@@ -111,7 +111,7 @@ function Write-ZtTestProgress {
 			}
 		}
 		catch {
-			Write-PSFMessage -Level Warning -Message "Failed to write progress log for test '{0}': {1}" -StringValues $TestID, $_ -Tag log
+			Write-PSFMessage -Level Warning -Message "Failed to write progress log for test '{0}': {1}" -StringValues $TestID, $_.Exception.Message -Tag log
 		}
 	}
 }
