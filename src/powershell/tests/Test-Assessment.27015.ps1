@@ -160,8 +160,8 @@ resources
 
 ## [{0}]({1})
 
-| Policy name | Subscription name | Status | Mode | HTTP DDoS ruleset | Ruleset version | Status |
-| :---------- | :---------------- | :----- | :--- | :---------------- | :-------------- | :----- |
+| Policy name | Subscription name | Policy state | Mode | HTTP DDoS ruleset | Ruleset version | Status |
+| :---------- | :---------------- | :----------- | :--- | :---------------- | :-------------- | :----- |
 {2}
 
 '@
