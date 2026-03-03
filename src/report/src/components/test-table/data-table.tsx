@@ -241,7 +241,7 @@ export function DataTable<TData extends Test, TValue>({
                 <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
                     <ShieldAlert className="h-4 w-4 flex-shrink-0" />
                     <span>
-                        <strong>Enhanced Security Mode</strong> — Guidance on advanced security configuration and hardening recommendations for your environment.
+                        <strong>Elevated Security Mode</strong> — Guidance on advanced security configuration and hardening recommendations for your environment.
                     </span>
                 </div>
             )}

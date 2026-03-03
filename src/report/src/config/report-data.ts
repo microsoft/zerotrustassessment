@@ -230,6 +230,7 @@ export interface Test {
   TestDescription: string;
   TestRegulatory?: string[] | null;
   TestZtPrinciple?: string | null;
+  TestIndustry?: string | null;
 }
 
 export const reportData: ZeroTrustAssessmentReport = {
@@ -268,7 +269,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "10001",
@@ -287,7 +289,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10002",
@@ -306,7 +309,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10003",
@@ -325,7 +329,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Admins"],
       "TestRegulatory": ["NIST", "CIS", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "10004",
@@ -344,7 +349,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Admins"],
       "TestRegulatory": ["NIST", "CISA", "CIS", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "10005",
@@ -363,7 +369,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "10006",
@@ -382,7 +389,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "10007",
@@ -401,7 +409,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["CIS"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10008",
@@ -420,7 +429,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10009",
@@ -439,7 +449,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Guests"],
       "TestRegulatory": ["ISO", "CIS"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "10010",
@@ -458,7 +469,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Admins"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "10011",
@@ -477,7 +489,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Admins"],
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "10012",
@@ -496,7 +509,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10013",
@@ -515,7 +529,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "10014",
@@ -534,7 +549,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Admins"],
       "TestRegulatory": ["NIST", "CISA", "ISO"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "10015",
@@ -553,7 +569,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST"],
-      "TestZtPrinciple": "Verify explicitly"
+      "TestZtPrinciple": "Verify explicitly",
+      "TestIndustry": "Healthcare"
     },
     {
       "TestId": "20001",
@@ -572,7 +589,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Devices"],
       "TestRegulatory": ["NIST", "CIS", "ISO"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20002",
@@ -591,7 +609,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Windows"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20003",
@@ -610,7 +629,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Users"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20004",
@@ -629,7 +649,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Mobile"],
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20005",
@@ -648,7 +669,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Windows"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20006",
@@ -667,7 +689,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Devices"],
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "20007",
@@ -686,7 +709,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Mobile"],
       "TestRegulatory": ["CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20008",
@@ -705,7 +729,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Devices"],
       "TestRegulatory": ["ISO", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20009",
@@ -724,7 +749,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Windows"],
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20010",
@@ -743,7 +769,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["Windows"],
       "TestRegulatory": ["CIS", "NIST"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20011",
@@ -762,7 +789,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Devices"],
       "TestRegulatory": ["ISO"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20012",
@@ -781,7 +809,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["macOS"],
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "20013",
@@ -800,7 +829,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": ["All Devices"],
       "TestRegulatory": ["NIST", "CIS", "ISO"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "30001",
@@ -819,7 +849,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "ISO"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30002",
@@ -838,7 +869,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS", "ISO"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30003",
@@ -857,7 +889,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30004",
@@ -876,7 +909,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30005",
@@ -895,7 +929,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "ISO"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30006",
@@ -914,7 +949,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30007",
@@ -933,7 +969,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "ISO"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30008",
@@ -952,7 +989,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "CIS"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "30009",
@@ -971,7 +1009,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "30010",
@@ -990,7 +1029,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "CIS", "ISO"],
-      "TestZtPrinciple": "Verify and secure every network"
+      "TestZtPrinciple": "Verify and secure every network",
+      "TestIndustry": "Manufacturing"
     },
     {
       "TestId": "40001",
@@ -1009,7 +1049,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40002",
@@ -1028,7 +1069,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40003",
@@ -1047,7 +1089,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40004",
@@ -1066,7 +1109,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA", "CIS", "ISO"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "40005",
@@ -1085,7 +1129,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40006",
@@ -1104,7 +1149,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "ISO"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40007",
@@ -1123,7 +1169,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CIS"],
-      "TestZtPrinciple": "Use least privilege access"
+      "TestZtPrinciple": "Use least privilege access",
+      "TestIndustry": "Finance"
     },
     {
       "TestId": "40008",
@@ -1142,7 +1189,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Verify and secure every device"
+      "TestZtPrinciple": "Verify and secure every device",
+      "TestIndustry": "Technology"
     },
     {
       "TestId": "40009",
@@ -1161,7 +1209,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["NIST", "CISA"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     },
     {
       "TestId": "40010",
@@ -1180,7 +1229,8 @@ export const reportData: ZeroTrustAssessmentReport = {
       "SkippedReason": null,
       "TestAppliesTo": null,
       "TestRegulatory": ["ISO"],
-      "TestZtPrinciple": "Assume breach"
+      "TestZtPrinciple": "Assume breach",
+      "TestIndustry": "Retail"
     }
   ],
   "TenantInfo": {

@@ -296,5 +296,28 @@ export const columns: ColumnDef<Test>[] = [
             );
         },
     },
+    {
+        accessorKey: "TestIndustry",
+        meta: { label: "Industry" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Industry
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const industry = row.getValue("TestIndustry") as string | null | undefined;
+            if (!industry) {
+                return <span className="text-muted-foreground">N/A</span>;
+            }
+            return (
+                <div className="flex items-center">
+                    <span>{industry}</span>
+                </div>
+            );
+        },
+    },
 
 ]
