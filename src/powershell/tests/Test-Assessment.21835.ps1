@@ -72,14 +72,17 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             Write-PSFMessage "Checking auth methods for cloud-only user: $($user.userPrincipalName)" -Level Verbose
 
             # Use Get-ZtUserAuthenticationMethod helper to get authentication methods
-            # Wrap in try/catch: user may have been deleted after the export was taken
+            # Wrap in try/catch: user may have been deleted after the export was taken (returns 403 accessDenied or 404 ResourceNotFound)
             $userAuthInfo = $null
             try {
                 $userAuthInfo = Get-ZtUserAuthenticationMethod -UserId $user.id
             }
             catch {
-                Write-PSFMessage "Skipping user $($user.userPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
-                continue
+                if ($_.Exception.Message -match '403|Forbidden|accessDenied|404|Request_ResourceNotFound') {
+                    Write-PSFMessage "Skipping user $($user.userPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
+                    continue
+                }
+                throw
             }
             $authMethods = $userAuthInfo.AuthenticationMethods
 
@@ -139,7 +142,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
         Write-PSFMessage "Checking CA policy targeting for: $($candidate.UserPrincipalName)" -Level Verbose
 
         # Query 6: Get transitive group memberships
-        # Wrap in try/catch: user may have been deleted after the export was taken
+        # Wrap in try/catch: user may have been deleted after the export was taken (returns 403 accessDenied or 404 ResourceNotFound)
         $userGroups = $null
         $userRoles = $null
         try {
@@ -151,8 +154,11 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                 -Select 'id,roleTemplateId' -ApiVersion v1.0
         }
         catch {
-            Write-PSFMessage "Skipping candidate $($candidate.UserPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
-            continue
+            if ($_.Exception.Message -match '403|Forbidden|accessDenied|404|Request_ResourceNotFound') {
+                Write-PSFMessage "Skipping candidate $($candidate.UserPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
+                continue
+            }
+            throw
         }
         $userGroupIds = @($userGroups | Select-Object -ExpandProperty id)
         $userRoleIds = @($userRoles | Select-Object -ExpandProperty id)
