@@ -83,7 +83,8 @@ function Write-ZtTestProgress {
 			$line += [System.Environment]::NewLine
 
 			$progressFilePath = Join-Path $LogsPath '_progress.log'
-			$normalizedPath = [System.IO.Path]::GetFullPath($progressFilePath).ToLowerInvariant()
+			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
+			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 			$pathBytes = [System.Text.Encoding]::UTF8.GetBytes($normalizedPath)
 			$pathHashBytes = [System.Security.Cryptography.SHA256]::HashData($pathBytes)
 			$pathHash = [System.BitConverter]::ToString($pathHashBytes).Replace('-', '')
