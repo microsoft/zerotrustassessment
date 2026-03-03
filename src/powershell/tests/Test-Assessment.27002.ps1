@@ -33,75 +33,10 @@ function Test-Assessment-27002 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking TLS inspection certificate validity'
 
-    #region Mock Data (TEMPORARY - Remove before production)
-    $useMockData = $true  # Set to $false to use live Graph API
-    $currentDateForMock = Get-Date
-
-    $mockTlsInspectionPolicies = @(
-        @{
-            id          = 'policy-001'
-            displayName = 'Default TLS Inspection Policy'
-            state       = 'enabled'
-        }
-    )
-
-    $mockCertificates = @(
-        @{
-            id               = 'cert-001'
-            name             = 'Contoso Root CA'
-            commonName       = 'CN=Contoso Root CA'
-            organizationName = 'Contoso Ltd'
-            status           = 'active'
-            validity         = @{
-                startDateTime = $currentDateForMock.AddYears(-1).ToString('o')
-                endDateTime   = $currentDateForMock.AddDays(365).ToString('o')
-            }
-        },
-        @{
-            id               = 'cert-002'
-            name             = 'Expiring Certificate'
-            commonName       = 'CN=Expiring Cert'
-            organizationName = 'Contoso Ltd'
-            status           = 'expiring'
-            validity         = @{
-                startDateTime = $currentDateForMock.AddYears(-2).ToString('o')
-                endDateTime   = $currentDateForMock.AddDays(30).ToString('o')
-            }
-        },
-        @{
-            id               = 'cert-003'
-            name             = 'Soon Expiring Active'
-            commonName       = 'CN=Soon Expiring'
-            organizationName = 'Contoso Ltd'
-            status           = 'active'
-            validity         = @{
-                startDateTime = $currentDateForMock.AddYears(-1).ToString('o')
-                endDateTime   = $currentDateForMock.AddDays(45).ToString('o')
-            }
-        },
-        @{
-            id               = 'cert-004'
-            name             = 'Disabled Certificate'
-            commonName       = 'CN=Disabled'
-            organizationName = 'Contoso Ltd'
-            status           = 'disabled'
-            validity         = @{
-                startDateTime = $currentDateForMock.AddYears(-2).ToString('o')
-                endDateTime   = $currentDateForMock.AddDays(-100).ToString('o')
-            }
-        }
-    )
-    #endregion Mock Data
-
     # Prerequisite check: Verify TLS inspection is configured
     Write-ZtProgress -Activity $activity -Status 'Checking if TLS inspection is configured'
 
-    if ($useMockData) {
-        $tlsInspectionPolicies = $mockTlsInspectionPolicies
-    }
-    else {
-        $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies' -ApiVersion beta
-    }
+    $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies' -ApiVersion beta
 
     # If no TLS inspection policies exist, skip the test
     if (-not $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0) {
@@ -114,12 +49,7 @@ function Test-Assessment-27002 {
     # Note: The Prefer header is required to get actual status values instead of unknownFutureValue
     Write-ZtProgress -Activity $activity -Status 'Retrieving TLS inspection certificates'
 
-    if ($useMockData) {
-        $certificates = $mockCertificates
-    }
-    else {
-        $certificates = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tls/externalCertificateAuthorityCertificates' -ApiVersion beta -Headers @{ 'Prefer' = 'include-unknown-enum-members' }
-    }
+    $certificates = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tls/externalCertificateAuthorityCertificates' -ApiVersion beta -Headers @{ 'Prefer' = 'include-unknown-enum-members' }
 
     # If no certificates exist, TLS inspection policies exist but no certificates uploaded yet - Pass
     if (-not $certificates -or $certificates.Count -eq 0) {
@@ -183,8 +113,6 @@ function Test-Assessment-27002 {
     $activeCount = @($evaluatedResults | Where-Object { $_.Status -in @('active', 'enabled') }).Count
     $expiringWithin90Days = @($evaluatedResults | Where-Object { $_.RenewalRequired -and $_.Status -in @('active', 'enabled') }).Count
     $expiredCount = @($evaluatedResults | Where-Object { $_.Status -eq 'expired' }).Count
-    $expiringStatusCount = @($evaluatedResults | Where-Object { $_.Status -eq 'expiring' }).Count
-    $skippedCount = @($results | Where-Object { $_.IsSkipped }).Count
     #endregion Data Collection
 
     #region Assessment Logic
@@ -207,7 +135,7 @@ function Test-Assessment-27002 {
         $testResultMarkdown = "TLS inspection certificate requires renewal; expiration is within 90 days or certificate status indicates expiring/expired.`n`n%TestResult%"
     }
 
-    # Build certificate summary table
+    # Build certificate summary list
     $tlsInspectionLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/TLSInspectionPolicy.ReactView'
 
     $mdInfo += @"
@@ -216,12 +144,9 @@ function Test-Assessment-27002 {
 
 **Summary:**
 
-| Metric | Value |
-| :--- | :--- |
-| Total Certificates | $totalCount |
-| Active Certificates | $activeCount |
-| Expiring Within 90 Days | $expiringWithin90Days |
-| Already Expired | $expiredCount |
+- Total active certificates: $activeCount
+- Certificates expiring within 90 days: $expiringWithin90Days
+- Certificates already expired: $expiredCount
 
 "@
 
