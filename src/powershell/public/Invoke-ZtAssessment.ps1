@@ -352,8 +352,10 @@ function Invoke-ZtAssessment {
 	}
 
 	# Create the logs folder for per-test log files
-	$logsPath = Join-Path $exportPath 'logs'
-	New-Item -ItemType Directory -Path $logsPath -Force -ErrorAction Stop | Out-Null
+	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
+	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
+	# differs from PowerShell's Get-Location after Set-Location / cd.
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
 
 
 	# Send telemetry if not disabled
