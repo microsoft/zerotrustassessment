@@ -85,10 +85,21 @@ function Write-ZtTestProgress {
 			$progressFilePath = Join-Path $LogsPath '_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
-			$pathBytes = [System.Text.Encoding]::UTF8.GetBytes($normalizedPath)
-			$pathHashBytes = [System.Security.Cryptography.SHA256]::HashData($pathBytes)
-			$pathHash = [System.BitConverter]::ToString($pathHashBytes).Replace('-', '')
-			$mutexName = "Local\ZtProgress_$pathHash"
+
+			# Cache the mutex name per resolved path to avoid repeated SHA256 hashing
+			if (-not $script:ZtProgressMutexCache) {
+				$script:ZtProgressMutexCache = @{}
+			}
+			if ($script:ZtProgressMutexCache.ContainsKey($normalizedPath)) {
+				$mutexName = $script:ZtProgressMutexCache[$normalizedPath]
+			}
+			else {
+				$pathBytes = [System.Text.Encoding]::UTF8.GetBytes($normalizedPath)
+				$pathHashBytes = [System.Security.Cryptography.SHA256]::HashData($pathBytes)
+				$pathHash = [System.BitConverter]::ToString($pathHashBytes).Replace('-', '')
+				$mutexName = "Local\ZtProgress_$pathHash"
+				$script:ZtProgressMutexCache[$normalizedPath] = $mutexName
+			}
 
 			$mutex = $null
 			$lockAcquired = $false
@@ -99,7 +110,7 @@ function Write-ZtTestProgress {
 					throw "Timed out waiting for progress log mutex '$mutexName'."
 				}
 
-				[System.IO.File]::AppendAllText($progressFilePath, $line)
+				[System.IO.File]::AppendAllText($fullPath, $line)
 			}
 			finally {
 				if ($lockAcquired -and $null -ne $mutex) {

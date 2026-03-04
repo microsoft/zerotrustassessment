@@ -72,8 +72,8 @@
 		}
 
 		# Write stub log file and progress entry so hanging tests are visible
-		Write-ZtTestProgress -TestID $Test.TestID -LogsPath $LogsPath -Action Started
 		if ($LogsPath) {
+			Write-ZtTestProgress -TestID $Test.TestID -LogsPath $LogsPath -Action Started
 			try {
 				$stubPath = Join-Path $LogsPath "$($Test.TestID).md"
 				[System.IO.File]::WriteAllText($stubPath, "# Test: $($Test.TestID) - Started at $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff'))$([System.Environment]::NewLine)")
@@ -109,10 +109,12 @@
 		Write-ZtTestStatistics -Result $result
 
 		# Write per-test log file (overwrites stub) and progress entry
-		Write-ZtTestLog -Result $result -LogsPath $LogsPath
-		$progressAction = if ($result.Success) { 'Completed' } else { 'Failed' }
-		$progressError = if (-not $result.Success -and $result.Error) { "$($result.Error)" } else { $null }
-		Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action $progressAction -Duration $result.Duration -ErrorMessage $progressError
+		if ($LogsPath) {
+			Write-ZtTestLog -Result $result -LogsPath $LogsPath
+			$progressAction = if ($result.Success) { 'Completed' } else { 'Failed' }
+			$progressError = if (-not $result.Success -and $result.Error) { "$($result.Error)" } else { $null }
+			Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action $progressAction -Duration $result.Duration -ErrorMessage $progressError
+		}
 
 		$result
 	}
