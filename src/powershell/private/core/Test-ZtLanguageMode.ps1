@@ -17,6 +17,7 @@ function Test-ZtLanguageMode {
 		Returns $true if running in Full Language Mode, $false otherwise.
 	#>
 	[CmdletBinding()]
+	[OutputType([bool])]
 	param ()
 
 	$fullLanguage = [System.Management.Automation.PSLanguageMode]::FullLanguage
