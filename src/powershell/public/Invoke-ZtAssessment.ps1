@@ -192,6 +192,10 @@ function Invoke-ZtAssessment {
 	#region Preparation
 	Show-ZtiBanner
 
+	if (-not (Test-ZtLanguageMode)) {
+		return
+	}
+
 	# Validate preview pillar requirements
 	if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
 		Write-Host
