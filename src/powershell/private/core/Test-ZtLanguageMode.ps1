@@ -19,9 +19,11 @@ function Test-ZtLanguageMode {
 	[CmdletBinding()]
 	param ()
 
+	$fullLanguage = [System.Management.Automation.PSLanguageMode]::FullLanguage
+
 	# Check 1: Module's own language mode (works in real WDAC/AppLocker CLM where the module loads in CLM)
 	$languageMode = $ExecutionContext.SessionState.LanguageMode
-	if ($languageMode -ne 'FullLanguage') {
+	if ($languageMode -ne $fullLanguage) {
 		Write-ZtLanguageModeError -LanguageMode $languageMode
 		return $false
 	}
@@ -29,14 +31,14 @@ function Test-ZtLanguageMode {
 	# Check 2: Global session state language mode (catches manual CLM testing where module was imported in FLM)
 	try {
 		$globalLanguageMode = [runspace]::DefaultRunspace.SessionStateProxy.GetVariable('ExecutionContext').SessionState.LanguageMode
-		if ($globalLanguageMode -ne 'FullLanguage') {
+		if ($globalLanguageMode -ne $fullLanguage) {
 			Write-ZtLanguageModeError -LanguageMode $globalLanguageMode
 			return $false
 		}
 	}
 	catch {
 		# If we can't read the global language mode, assume it's not FullLanguage
-		Write-ZtLanguageModeError -LanguageMode 'Constrained Language'
+		Write-ZtLanguageModeError -LanguageMode ([System.Management.Automation.PSLanguageMode]::ConstrainedLanguage)
 		return $false
 	}
 
@@ -56,6 +58,7 @@ function Write-ZtLanguageModeError {
 	#>
 	[CmdletBinding()]
 	param (
+		[System.Management.Automation.PSLanguageMode]
 		$LanguageMode
 	)
 
