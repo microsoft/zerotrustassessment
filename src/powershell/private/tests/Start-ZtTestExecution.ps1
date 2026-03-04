@@ -35,13 +35,17 @@
 		$DbPath,
 
 		[int]
-		$ThrottleLimit = 5
+		$ThrottleLimit = 5,
+
+		[string]
+		$LogsPath
 	)
 	begin {
 		#region Calculate Resources to Import
 		$variables = @{
 			databasePath = $DbPath
 			moduleRoot   = $script:ModuleRoot
+			logsPath     = $LogsPath
 		}
 		# Explicitly including all modules required, as we later import the psm1, not the psd1 file
 		$modulePsd1Path = Join-Path $script:ModuleRoot "$($PSCmdlet.MyInvocation.MyCommand.Module.Name).psd1"
@@ -83,7 +87,7 @@
 			$script:ModuleRoot = $moduleRoot
 			$global:database = Connect-Database -Path $databasePath -PassThru
 		} -ScriptBlock {
-			Invoke-ZtTest -Test $_ -Database $global:database
+			Invoke-ZtTest -Test $_ -Database $global:database -LogsPath $logsPath
 		} -End {
 			Disconnect-Database -Database $global:database
 		}

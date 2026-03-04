@@ -351,6 +351,12 @@ function Invoke-ZtAssessment {
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
+	# Create the logs folder for per-test log files
+	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
+	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
+	# differs from PowerShell's Get-Location after Set-Location / cd.
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
+
 
 	# Send telemetry if not disabled
 	if (-not $DisableTelemetry) {
@@ -392,7 +398,7 @@ function Invoke-ZtAssessment {
 
 	# Run the tests
 	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
+	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath
 	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
 	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 

@@ -38,7 +38,10 @@
 		$Pillar = 'All',
 
 		[int]
-		$ThrottleLimit = 5
+		$ThrottleLimit = 5,
+
+		[string]
+		$LogsPath
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -70,12 +73,12 @@
 	try {
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			Invoke-ZtTest -Test $test -Database $Database
+			Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
 		}
 
 		# Run Parallel Tests
 		if ($parallelTests) {
-			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
+			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath
 			Wait-ZtTest -Workflow $workflow
 		}
 	}
