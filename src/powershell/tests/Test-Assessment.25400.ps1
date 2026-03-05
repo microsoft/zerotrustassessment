@@ -52,7 +52,7 @@ function Test-Assessment-25400 {
         $forwardingProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/forwardingProfiles' -Filter "trafficForwardingType eq 'private'" -ApiVersion beta
         if ($forwardingProfiles -and $forwardingProfiles.Count -gt 0) {
             # Prefer an enabled forwarding profile instead of assuming the first one is correct
-            $enabledForwardingProfiles = $forwardingProfiles | Where-Object { $_.isEnabled -eq $true -or $_.state -eq 'enabled' }
+            $enabledForwardingProfiles = $forwardingProfiles | Where-Object { $_.state -eq 'enabled' }
             if ($enabledForwardingProfiles -and $enabledForwardingProfiles.Count -gt 0) {
                 $privateProfile = $enabledForwardingProfiles[0]
             }
@@ -63,6 +63,9 @@ function Test-Assessment-25400 {
         Write-PSFMessage "Failed to retrieve Private Access forwarding profile: $errorMsgQ1" -Tag Test -Level Warning
     }
 
+    # Normalize enabled check
+    $isPrivateAccessEnabled = ($privateProfile -and $privateProfile.state -eq 'enabled')
+
     # Query 2 & 3: Get Private Access applications and their segments (only if Private Access is enabled)
     $privateAccessApps = @()
     $allSegments = [System.Collections.Generic.List[object]]::new()
@@ -71,7 +74,7 @@ function Test-Assessment-25400 {
     $errorMsgQ2 = $null
     $segmentQueryFailures = 0
 
-    if (-not $errorMsgQ1 -and $privateProfile -and $privateProfile.state -eq 'enabled') {
+    if (-not $errorMsgQ1 -and $isPrivateAccessEnabled) {
         Write-ZtProgress -Activity $activity -Status 'Querying Private Access applications'
 
         try {
@@ -173,7 +176,7 @@ function Test-Assessment-25400 {
         $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ Unable to retrieve Private Access forwarding profile due to API error or insufficient permissions.`n`n%TestResult%"
     }
-    elseif (-not $privateProfile -or $privateProfile.state -ne 'enabled') {
+    elseif (-not $isPrivateAccessEnabled) {
         # Private Access is not enabled - test is not applicable
         Write-PSFMessage 'Private Access forwarding profile is not enabled in this tenant.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Private Access is not enabled in this tenant. This check is not applicable until Private Access is configured and enabled.'
