@@ -153,19 +153,14 @@ function Test-Assessment-27000 {
         foreach ($catName in $requiredCategories) {
             $catDisplay = $categoryDisplayNames[$catName]
 
-            # Find all policies that cover this category
-            $policiesCoveringCategory = @()
-            foreach ($policy in $filteringPolicies) {
+            # Find all policies that cover this category using filtering
+            $policiesCoveringCategory = @($filteringPolicies | Where-Object {
+                $policy = $_
                 $webCatRules = @($policy.policyRules | Where-Object { $_.ruleType -eq 'webCategory' })
-                foreach ($rule in $webCatRules) {
-                    foreach ($dest in @($rule.destinations)) {
-                        if ($dest.name -eq $catName) {
-                            $policiesCoveringCategory += $policy
-                            break
-                        }
-                    }
+                $webCatRules | Where-Object {
+                    $_.destinations | Where-Object { $_.name -eq $catName }
                 }
-            }
+            })
 
             # Find all profiles linked to these policies using Find-ZtProfilesLinkedToPolicy
             $profileCandidates = @()
