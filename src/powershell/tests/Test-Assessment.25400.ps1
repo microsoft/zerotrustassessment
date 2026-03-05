@@ -13,7 +13,7 @@
 
     The test verifies that at least one application segment either:
     - Uses destinationType 'dnsSuffix' (private DNS configured), OR
-    - Publishes port 53 with UDP protocol to an internal DNS server
+    - Publishes port 53 with UDP or TCP protocol to an internal DNS server
 
 .NOTES
     Test ID: 25400
@@ -103,7 +103,7 @@ function Test-Assessment-25400 {
                                 $dnsResolution = '✅ dnsSuffix'
                                 $hasDnsSuffix = $true
                             }
-                            # Check for port 53 with UDP protocol
+                            # Check for port 53 with UDP or TCP protocol
                             elseif ($segment.ports -and $segment.protocol) {
                                 # Parse ports field (format: "startPort-endPort" or "port")
                                 # Handle both array and string formats
@@ -120,7 +120,7 @@ function Test-Assessment-25400 {
                                         # Port range
                                         $startPort = [int]$Matches[1]
                                         $endPort = [int]$Matches[2]
-                                        if (53 -ge $startPort -and 53 -le $endPort -and $segment.protocol -match 'udp') {
+                                        if (53 -ge $startPort -and 53 -le $endPort -and $segment.protocol -match 'udp|tcp') {
                                             $dnsResolution = '✅ Port 53'
                                             $hasPort53 = $true
                                             break
@@ -128,7 +128,7 @@ function Test-Assessment-25400 {
                                     }
                                     elseif ($portRange -match '^\d+$') {
                                         # Single port
-                                        if ([int]$portRange -eq 53 -and $segment.protocol -match 'udp') {
+                                        if ([int]$portRange -eq 53 -and $segment.protocol -match 'udp|tcp') {
                                             $dnsResolution = '✅ Port 53'
                                             $hasPort53 = $true
                                             break
@@ -195,7 +195,7 @@ function Test-Assessment-25400 {
     elseif ($hasDnsSuffix -or $hasPort53) {
         # Pass: DNS resolution is configured
         $passed = $true
-        $testResultMarkdown = "✅ DNS resolution for Private Access resources is configured through Global Secure Access using private DNS suffixes or published DNS endpoints.`n`n%TestResult%"
+        $testResultMarkdown = "✅ DNS resolution for private access resources is configured through Global Secure Access using private DNS suffixes or published DNS endpoints.`n`n%TestResult%"
     }
     else {
         # Fail: No DNS configuration found
@@ -209,7 +209,7 @@ function Test-Assessment-25400 {
 
     if ($allSegments.Count -gt 0) {
         $reportTitle = 'Private Access Application Segments'
-        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess'
 
         # Build segments table
         $segmentsTable = "| Application name | Segment destination host | Destination type | Ports | Protocol | DNS resolution |`n"
