@@ -37,88 +37,55 @@ function Test-Assessment-25393 {
 
     # Q1: Retrieve the Private Access traffic forwarding profile
     Write-ZtProgress -Activity $activity -Status 'Checking Private Access forwarding profile'
-
-    $privateProfile = $null
+    $forwardingProfiles = $null
     try {
-        $privateProfile = Invoke-ZtGraphRequest `
-            -RelativeUri "networkAccess/forwardingProfiles?`$filter=trafficForwardingType eq 'private'" `
-            -ApiVersion beta
+        $forwardingProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/forwardingProfiles' -ApiVersion beta
     }
     catch {
-        Write-PSFMessage "Unable to retrieve Private Access forwarding profile: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Unable to retrieve Private Access forwarding profile: $($_.Exception.Message)" -Tag Test -Level Warning
     }
-
-    $profileState = 'Not found'
-    if ($privateProfile) {
-        $profileData = @($privateProfile) | Select-Object -First 1
-        $profileState = $profileData.state
-    }
+    $privateProfile = $forwardingProfiles | Where-Object { $_.trafficForwardingType -eq 'private' } | Select-Object -First 1
+    $profileState = if ($privateProfile) { $privateProfile.state } else { 'Not found' }
 
     # Q2: List all connector groups
     Write-ZtProgress -Activity $activity -Status 'Querying connector groups'
-
     $connectorGroups = @()
     try {
-        $connectorGroups = @(Invoke-ZtGraphRequest `
-            -RelativeUri 'onPremisesPublishingProfiles/applicationProxy/connectorGroups' `
-            -ApiVersion beta)
+        $connectorGroups = @(Invoke-ZtGraphRequest -RelativeUri 'onPremisesPublishingProfiles/applicationProxy/connectorGroups' -ApiVersion beta)
     }
     catch {
-        Write-PSFMessage "Unable to retrieve connector groups: $_" -Tag Test -Level Warning
-    }
-
-    if ($connectorGroups.Count -eq 0) {
-        Write-PSFMessage 'No connector groups found.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
+        Write-PSFMessage "Unable to retrieve connector groups: $($_.Exception.Message)" -Tag Test -Level Warning
     }
 
     # Q3: Find the connector group that has the Quick Access application assigned
     Write-ZtProgress -Activity $activity -Status 'Checking Quick Access application assignment'
-
-    $quickAccessGroupId = $null
-    $quickAccessGroupName = $null
-
+    $quickAccessGroup = $null
     foreach ($group in $connectorGroups) {
         $apps = @()
         try {
-            $apps = @(Invoke-ZtGraphRequest `
-                -RelativeUri "onPremisesPublishingProfiles/applicationProxy/connectorGroups/$($group.id)/applications" `
-                -ApiVersion beta)
+            $apps = @(Invoke-ZtGraphRequest -RelativeUri "onPremisesPublishingProfiles/applicationProxy/connectorGroups/$($group.id)/applications" -ApiVersion beta)
         }
         catch {
-            Write-PSFMessage "Unable to list applications for connector group $($group.name): $_" -Tag Test -Level Warning
+            Write-PSFMessage "Unable to list applications for connector group $($group.name): $($_.Exception.Message)" -Tag Test -Level Warning
             continue
         }
-
-        # Identify the Quick Access application by the NetworkAccessQuickAccessApplication tag
-        foreach ($app in $apps) {
-            if (@($app.tags) -contains 'NetworkAccessQuickAccessApplication') {
-                $quickAccessGroupId = $group.id
-                $quickAccessGroupName = $group.name
-                break
-            }
+        if ($apps | Where-Object { @($_.tags) -contains 'NetworkAccessQuickAccessApplication' }) {
+            $quickAccessGroup = $group
+            break
         }
-
-        if ($quickAccessGroupId) { break }
     }
 
     # Q4: List connectors in the Quick Access connector group
     $connectors = @()
     $activeConnectorCount = 0
-
-    if ($quickAccessGroupId) {
+    if ($quickAccessGroup) {
         Write-ZtProgress -Activity $activity -Status 'Checking connectors in Quick Access connector group'
-
         try {
-            $connectors = @(Invoke-ZtGraphRequest `
-                -RelativeUri "onPremisesPublishingProfiles/applicationProxy/connectorGroups/$quickAccessGroupId/members" `
-                -ApiVersion beta)
+            $connectors = @(Invoke-ZtGraphRequest -RelativeUri "onPremisesPublishingProfiles/applicationProxy/connectorGroups/$($quickAccessGroup.id)/members" -ApiVersion beta)
         }
         catch {
-            Write-PSFMessage "Unable to list connectors for group $quickAccessGroupName : $_" -Tag Test -Level Warning
+            Write-PSFMessage "Unable to list connectors for group $($quickAccessGroup.name): $($_.Exception.Message)" -Tag Test -Level Warning
         }
-
         $activeConnectorCount = @($connectors | Where-Object { $_.status -eq 'active' }).Count
     }
 
@@ -126,50 +93,72 @@ function Test-Assessment-25393 {
 
     #region Assessment Logic
 
-    # Pass: Profile enabled + Quick Access assigned to a group + at least one active connector
-    $passed = ($profileState -eq 'enabled' -and $null -ne $quickAccessGroupId -and $activeConnectorCount -gt 0)
+    $passed = $false
 
-    if ($passed) {
-        $testResultMarkdown = "✅ Quick Access is bound to a connector group with at least one active connector, and the Private Access traffic forwarding profile is enabled.`n`n%TestResult%"
+    if ($profileState -ne 'enabled') {
+        Write-PSFMessage "Q1 Fail: Private Access forwarding profile state is '$profileState'" -Tag Test -Level VeryVerbose
+    }
+    elseif ($connectorGroups.Count -eq 0) {
+        Write-PSFMessage 'Q2 Fail: No connector groups found' -Tag Test -Level VeryVerbose
+    }
+    elseif ($null -eq $quickAccessGroup) {
+        Write-PSFMessage 'Q3 Fail: No connector group has the Quick Access application assigned' -Tag Test -Level VeryVerbose
+    }
+    elseif ($activeConnectorCount -eq 0) {
+        Write-PSFMessage 'Q4 Fail: No active connectors in the Quick Access connector group' -Tag Test -Level VeryVerbose
     }
     else {
-        $testResultMarkdown = "❌ Quick Access is not bound to a connector group with active connectors, or the Private Access traffic forwarding profile is not enabled.`n`n%TestResult%"
+        $passed = $true
+    }
+
+    $testResultMarkdown = if ($passed) {
+        "Quick Access is bound to a connector group with at least one active connector, and the Private Access traffic forwarding profile is enabled.`n`n%TestResult%"
+    }
+    else {
+        "Quick Access is not bound to a connector group with active connectors, or the Private Access traffic forwarding profile is not enabled.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
 
     #region Report Generation
 
+    $mdInfo = ''
+
     $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/QuickAccessMenuBlade/~/GlobalSecureAccess'
+    $groupName  = if ($quickAccessGroup) { Get-SafeMarkdown -Text $quickAccessGroup.name } else { 'N/A' }
+    $groupId    = if ($quickAccessGroup) { $quickAccessGroup.id } else { 'N/A' }
+    $qaAssigned = if ($quickAccessGroup) { 'Yes' } else { 'No' }
 
-    $mdInfo = "`n## [Quick Access Connector Binding Status]($portalLink)`n`n"
-    $mdInfo += "| Property | Value |`n"
-    $mdInfo += "| :--- | :--- |`n"
-    $mdInfo += "| Private Access Profile State | $profileState |`n"
-    $mdInfo += "| Connector Group Name | $(if ($quickAccessGroupName) { Get-SafeMarkdown -Text $quickAccessGroupName } else { 'N/A' }) |`n"
-    $mdInfo += "| Connector Group ID | $(if ($quickAccessGroupId) { $quickAccessGroupId } else { 'N/A' }) |`n"
-    $mdInfo += "| Quick Access App Assigned | $(if ($quickAccessGroupId) { 'Yes' } else { 'No' }) |`n`n"
+    $mdInfo += @"
 
-    # Connector Status table (only if a Quick Access group was found)
-    if ($quickAccessGroupId) {
-        $mdInfo += "## Connector Status`n`n"
-        $mdInfo += "| Connector Name | Status | External IP | Version |`n"
-        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
+## [Quick Access Connector Binding Status]($portalLink)
 
-        if ($connectors.Count -gt 0) {
-            foreach ($connector in $connectors) {
-                $connectorName = Get-SafeMarkdown -Text $connector.machineName
-                $statusText = if ($connector.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
-                $externalIp = if ($connector.externalIp) { $connector.externalIp } else { 'N/A' }
-                $version = if ($connector.version) { $connector.version } else { 'N/A' }
+| Property | Value |
+| :--- | :--- |
+| Private Access Profile State | $profileState |
+| Connector Group Name | $groupName |
+| Connector Group ID | $groupId |
+| Quick Access App Assigned | $qaAssigned |
 
-                $mdInfo += "| $connectorName | $statusText | $externalIp | $version |`n"
-            }
+"@
+
+    if ($connectors.Count -gt 0) {
+        $connectorRows = ''
+        foreach ($connector in $connectors) {
+            $name    = Get-SafeMarkdown -Text $connector.machineName
+            $status  = if ($connector.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
+            $ip      = if ($connector.externalIp) { $connector.externalIp } else { 'N/A' }
+            $version = if ($connector.version) { $connector.version } else { 'N/A' }
+            $connectorRows += "| $name | $status | $ip | $version |`n"
         }
-        else {
-            $mdInfo += "| - | No connectors found | - | - |`n"
-        }
-        $mdInfo += "`n"
+
+        $mdInfo += @'
+## Connector Status
+
+| Connector Name | Status | External IP | Version |
+| :--- | :--- | :--- | :--- |
+{0}
+'@ -f $connectorRows
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
