@@ -41,7 +41,12 @@
 		$ThrottleLimit = 5,
 
 		[string]
-		$LogsPath
+		$LogsPath,
+
+		[Parameter(DontShow)]
+		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
+		[string[]]
+		$Service = $script:ConnectedService
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -60,23 +65,29 @@
 	# Filter based on preview feature flag
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		# Non-preview mode: Only include stable/released pillars
-		$stablePillars = @('Identity', 'Devices')
-		$testsToRun = $testsToRun | Where-Object { $_.Pillar -in $stablePillars }
+		$stablePillars = @('Identity', 'Devices','Devices', 'Network', 'Data')
+		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
 	}
 
+	# Filter based on service connection.
+	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service -notin $Service }
+	$testsToRun = $testsToRun.Where{ $_.Service.count -eq 0 -or $_.Service -in $Service }
+
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	$syncTestIds = @($testsToRun | Where-Object { $_.Pillar -eq 'Data' } | Select-Object -ExpandProperty TestId)
-	$syncTests = $testsToRun | Where-Object { $_.TestId -in $syncTestIds }
-	$parallelTests = $testsToRun | Where-Object { $_.TestId -notin $syncTestIds }
+	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId #@($testsToRun | Where-Object { $_.Pillar -eq 'Data' } | Select-Object -ExpandProperty TestId)
+	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
+	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
+
+	#TODO: Remove tests that depend service connection not available
 
 	$workflow = $null
 	try {
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
 		}
 
-		# Run Parallel Tests
+		# Then run Parallel Tests
 		if ($parallelTests) {
 			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath
 			Wait-ZtTest -Workflow $workflow

@@ -9,6 +9,7 @@ function Test-Assessment-21771 {
     	Category = 'Application management',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('P1'),
+        Service = ('Graph'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect engineering systems',

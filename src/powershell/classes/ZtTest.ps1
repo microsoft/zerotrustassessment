@@ -4,6 +4,11 @@ class ZtTest : System.Attribute
 	[string]$Category
 	[ValidateSet('Low','Medium','High')][string]$ImplementationCost
 	[string[]]$MinimumLicense
+
+	[string[]]$CompatibleLicense
+
+	[string[]]$Service
+
 	[string]$Pillar
 	[ValidateSet('Low','Medium','High')][string]$RiskLevel
 	[string]$SfiPillar
@@ -11,6 +16,7 @@ class ZtTest : System.Attribute
 	[int]$TestId
 	[string]$Title
 	[ValidateSet('Low','Medium','High')][string]$UserImpact
+
 }
 <#
 Example Usage:

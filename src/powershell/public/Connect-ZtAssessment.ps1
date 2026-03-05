@@ -58,7 +58,7 @@ function Connect-ZtAssessment {
 		This assumes the correct scopes and permissions are assigned to the application used.
 	#>
 	[CmdletBinding()]
-	param(
+	param (
 		[switch]
 		$UseDeviceCode,
 
@@ -66,8 +66,9 @@ function Connect-ZtAssessment {
 		[string]
 		$Environment = 'Global',
 
+		[Parameter(DontShow)]
 		[switch]
-		$UseTokenCache,
+		$UseTokenCache, # Latest Graph module broke it...
 
 		[string]
 		$TenantId,
@@ -78,11 +79,8 @@ function Connect-ZtAssessment {
 		[PSFramework.Parameter.CertificateParameter]
 		$Certificate,
 
-		[switch]
-		$SkipAzureConnection,
-
 		# The services to connect to such as Azure and ExchangeOnline. Default is All.
-		[ValidateSet('All', 'Azure', 'AipService', 'ExchangeOnline', 'Graph', 'SecurityCompliance', 'SharePointOnline')]
+		[ValidateSet('All', 'Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]]$Service = 'All',
 
 		# The Exchange environment to connect to. Default is O365Default. Supported values include O365China, O365Default, O365GermanyCloud, O365USGovDoD, O365USGovGCCHigh.
@@ -101,377 +99,428 @@ function Connect-ZtAssessment {
 		return
 	}
 
-	# Ensure ExchangeOnline is included if SecurityCompliance is requested
-	if ($Service -contains 'SecurityCompliance' -and $Service -notcontains 'ExchangeOnline' -and $Service -notcontains 'All') {
-		Write-Verbose "Adding ExchangeOnline to the list of services to connect to as it is required for SecurityCompliance."
-		$Service += 'ExchangeOnline'
+	if ($Service -contains 'All') {
+		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
+	}
+	else
+	{
+		# Connecting to Graph is mandatory or the report will fail.
+		$Service += 'Graph'
 	}
 
-	$params = $PSBoundParameters | ConvertTo-PSFHashtable -Include UseDeviceCode, Environment, TenantId, ClientId
-	$params.NoWelcome = $true
-	if ($Certificate) {
-		$params.Certificate = $Certificate
-	}
-	else {
-		$params.Scopes = Get-ZtGraphScope
-	}
-	if (-not $UseTokenCache) {
-		$params.ContextScope = 'Process'
-	}
+	#TODO: UseDeviceCode does not work with ExchangeOnline
 
-	[Microsoft.PowerShell.Commands.ModuleSpecification[]]$xPlatPowerShellRequiredModules = @(
-        @{ModuleName = 'Microsoft.Graph.Authentication'; GUID = '883916f2-9184-46ee-b1f8-b6a2fb784cee'; ModuleVersion = '2.35.0'; },
-        @{ModuleName = 'Microsoft.Graph.Beta.Teams'; GUID = 'e264919d-7ae2-4a89-ba8b-524bd93ddc08'; ModuleVersion = '2.35.0'; },
-        @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
-        @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
-    )
-
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$windowsPowerShellRequiredModules = @(
-        @{ModuleName = 'Microsoft.Online.SharePoint.PowerShell'; GUID = 'adedde5f-e77b-4682-ab3d-a4cb4ff79b83'; ModuleVersion = '16.0.26914.12004'; },
-        @{ModuleName = 'AipService'; GUID = 'e338ccc0-3333-4479-87fe-66382d33782d'; ModuleVersion = '3.0.0.1'; }
-    )
-
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$allModuleDependencies = $requiredModules + $xPlatPowerShellRequiredModules
-    if ($IsWindows) {
-        $allModuleDependencies += $windowsPowerShellRequiredModules.Where({
-            $_.Name -notin $allModuleDependencies.Name
-        })
-    }
-
-	$OrderedImport = Get-ModuleImportOrder -Name $allModuleDependencies.Name
-	$modulesToImport = $OrderedImport.Name
-	$allModuleDependencies.ForEach({
-		if ($modulesToImport -notcontains $_.Name) {
-			# append module even if they don't have MSAL
-			$modulesToImport += $_.Name
+	#region Validate Services
+	$Service = $Service | Select-Object -Unique
+	$resolvedRequiredModules = Resolve-ZtServiceRequiredModule -Service $Service
+	$resolvedRequiredModules.ServiceAvailable.ForEach{
+		# TODO: When we display, add the module details (Name, version, etc.) for the available modules for each service.
+		Write-PSFMessage -Message ("Service '{0}' is available with its required modules:" -f $_) -Level Debug
+		$resolvedRequiredModules.($_).Foreach{
+			Write-PSFMessage -Message (" - {0} v{1}" -f $_.Name,$_.Version) -Level Debug
 		}
-	})
+	}
 
-	Write-Verbose -Message "Import Order: $($modulesToImport -join ', ')"
+	$resolvedRequiredModules.ServiceUnavailable.ForEach{
+		Write-Host -Object (' ⚠️ Service "{0}" is not available due to missing required modules: {1}.' -f $_, ($resolvedRequiredModules.Errors.Where({ $_.Service -eq $_ }).ModuleSpecification -join ', ')) -ForegroundColor Yellow
+	}
 
-	switch ($modulesToImport) {
-		'Microsoft.Graph.Authentication' {
-			if ($Service -contains 'Graph' -or $Service -contains 'All') {
-				Write-Host "`nConnecting to Microsoft Graph" -ForegroundColor Yellow
-				Write-PSFMessage 'Connecting to Microsoft Graph'
+	#endregion
 
-				try {
-					Write-PSFMessage "Connecting to Microsoft Graph with params: $($params | Out-String)" -Level Verbose
-					Connect-MgGraph @params -ErrorAction Stop
-					$contextTenantId = (Get-MgContext).TenantId
-				}
-				catch {
-					$graphException = $_
-					$methodNotFound = $null
-					if ($graphException.Exception.InnerException -is [System.MissingMethodException]) {
-						$methodNotFound = $graphException.Exception.InnerException
-					} elseif ($graphException.Exception -is [System.MissingMethodException]) {
-						$methodNotFound = $graphException.Exception
-					}
-
-					if ($methodNotFound -and $methodNotFound.Message -like '*Microsoft.Identity*') {
-						Write-Warning "DLL conflict detected (MissingMethodException in Microsoft.Identity). This typically occurs when incompatible versions of Microsoft.Identity.Client or Microsoft.IdentityModel.Abstractions are loaded."
-						Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again, ensuring no other Microsoft modules are imported first."
-					}
-
-					Stop-PSFFunction -Message "Failed to authenticate to Graph" -ErrorRecord $graphException -EnableException $true -Cmdlet $PSCmdlet
-				}
-
-				try {
-					Write-Verbose "Verifying Zero Trust context and permissions..."
-					$null = Test-ZtContext
-				}
-				catch {
-					Stop-PSFFunction -Message "Authenticated to Graph, but the requirements for the ZeroTrustAssessment are not met by the established session:`n$_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
-				}
-			}
-		}
-
-		'Az.Accounts' {
-			if ($SkipAzureConnection) {
-				continue
+	# For services where their requiredModules are available, attempt to import and connect.
+	# If errors occurs, mark them as service unavailable and continue with the rest, instead of stopping the entire connection process.
+	# if the connection is successful, add them to service available (module scope).
+	switch ($resolvedRequiredModules.ServiceAvailable) {
+		'Graph' {
+			Write-Debug -Message ('Loading graph required modules: {0}' -f ($resolvedRequiredModules.Graph.Name -join ', '))
+			$loadedGraphModules = $resolvedRequiredModules.Graph.ForEach{
+				$_ | Import-Module -Global -ErrorAction Stop -PassThru
 			}
 
-			if ($Service -contains 'Azure' -or $Service -contains 'All') {
-				Write-Host "`nConnecting to Azure" -ForegroundColor Yellow
-				Write-PSFMessage 'Connecting to Azure'
-
-				$azEnvironment = 'AzureCloud'
-				if ($Environment -eq 'China') {
-					$azEnvironment = Get-AzEnvironment -Name AzureChinaCloud
-				}
-				elseif ($Environment -in 'USGov', 'USGovDoD') {
-					$azEnvironment = 'AzureUSGovernment'
-				}
-
-				$tenantParam = $TenantId
-				if (-not $tenantParam) {
-					if ($contextTenantId) {
-						$tenantParam = $contextTenantId
-					}
-				}
-
-				$azParams = @{
-					UseDeviceAuthentication = $UseDeviceCode
-					Environment             = $azEnvironment
-					Tenant                  = $tenantParam
-				}
-				if ($ClientId -and $Certificate) {
-					$azParams.ApplicationId = $ClientId
-					$azParams.CertificateThumbprint = $Certificate.Certificate.Thumbprint
-				}
-
-				try {
-					Connect-AzAccount @azParams -ErrorAction Stop
-				}
-				catch {
-					Stop-PSFFunction -Message "Failed to authenticate to Azure: $_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
-				}
-			}
-		}
-
-		'ExchangeOnlineManagement' {
-			if ($Service -contains 'ExchangeOnline' -or $Service -contains 'All') {
-				Write-Verbose 'Connecting to Microsoft Exchange Online'
-				Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
-				try {
-					if ($UseDeviceCode -and $PSVersionTable.PSEdition -eq 'Desktop') {
-						Write-Host 'The Exchange Online module in Windows PowerShell does not support device code flow authentication.' -ForegroundColor Red
-						Write-Host '💡Please use the Exchange Online module in PowerShell Core.' -ForegroundColor Yellow
-					}
-					elseif ($UseDeviceCode) {
-						Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName
-					}
-					else {
-						Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName
-					}
-
-					# Fix for Get-Label visibility in other scopes
-					if (Get-Command Get-Label -ErrorAction SilentlyContinue) {
-						$module = Get-Command Get-Label | Select-Object -ExpandProperty Module
-						if ($module -and $module.Name -like 'tmp_*') {
-							Import-Module $module -Global -Force
-						}
-					}
-				}
-				catch {
-					Write-Host "`nFailed to connect to Exchange Online: $_" -ForegroundColor Red
-				}
+			$loadedGraphModules.ForEach{
+				Write-Debug -Message ('Module ''{0}'' v{1} loaded for Graph.' -f $_.Name, $_.Version)
 			}
 
-			if ($Service -contains 'SecurityCompliance' -or $Service -contains 'All') {
-					$Environments = @{
-						'O365China'        = @{
-							ConnectionUri    = 'https://ps.compliance.protection.partner.outlook.cn/powershell-liveid'
-							AuthZEndpointUri = 'https://login.chinacloudapi.cn/common'
-						}
-						'O365GermanyCloud' = @{
-							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-						}
-						'O365Default'      = @{
-							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-						}
-						'O365USGovGCCHigh' = @{
-							ConnectionUri    = 'https://ps.compliance.protection.office365.us/powershell-liveid/'
-							AuthZEndpointUri = 'https://login.microsoftonline.us/common'
-						}
-						'O365USGovDoD'     = @{
-							ConnectionUri    = 'https://l5.ps.compliance.protection.office365.us/powershell-liveid/'
-							AuthZEndpointUri = 'https://login.microsoftonline.us/common'
-						}
-						Default            = @{
-							ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
-							AuthZEndpointUri = 'https://login.microsoftonline.com/common'
-						}
-					}
-					Write-Verbose 'Connecting to Microsoft Security & Compliance PowerShell'
+			Write-Host -Object "`nConnecting to Microsoft Graph" -ForegroundColor Cyan
+			Write-PSFMessage -Message 'Connecting to Microsoft Graph'
 
-				if ($UseDeviceCode) {
-					Write-Host "`nThe Security & Compliance module does not support device code flow authentication." -ForegroundColor Red
+			try {
+				$connectMgGraphParams = @{
+					NoWelcome = $true
+					UseDeviceCode = $UseDeviceCode.IsPresent
+					Environment = $Environment
+					# TenantId = $TenantId
+					# ClientId = $ClientId
+				}
+
+				if ($ClientId) {
+					$connectMgGraphParams.ClientId = $ClientId
+				}
+
+				if ($TenantId) {
+					$connectMgGraphParams.TenantId = $TenantId
+				}
+
+				if ($Certificate) {
+					$connectMgGraphParams.Certificate = $Certificate
 				}
 				else {
-					# Get UPN from Exchange connection or Graph context
-					$ExoUPN = $UserPrincipalName
-
-					# Attempt to resolve UPN before any connection to avoid token acquisition failures without identity
-					$connectionInformation = $null
-					try {
-						$connectionInformation = Get-ConnectionInformation
-					}
-					catch {
-						# Intentionally swallow errors here; fall back to provided UPN if any
-						$connectionInfoError = $_
-						Write-Verbose "Get-ConnectionInformation failed; falling back to provided UserPrincipalName if available. Error: $($connectionInfoError.Exception.Message)"
-					}
-
-					if (-not $ExoUPN) {
-						$ExoUPN = $connectionInformation | Where-Object { $_.IsEopSession -ne $true -and $_.State -eq 'Connected' } | Select-Object -ExpandProperty UserPrincipalName -First 1 -ErrorAction SilentlyContinue
-					}
-
-					if (-not $ExoUPN) {
-						Write-Host "`nUnable to determine a UserPrincipalName for Security & Compliance. Please supply -UserPrincipalName or connect to Exchange Online first." -ForegroundColor Yellow
-						continue
-					}
-
-					try {
-						$ippSessionParams = @{
-							BypassMailboxAnchoring = $true
-							UserPrincipalName      = $ExoUPN
-							ShowBanner             = $false
-							ErrorAction            = 'Stop'
-						}
-
-						# Only override endpoints for non-default clouds to reduce token acquisition failures in Default
-						if ($ExchangeEnvironmentName -ne 'O365Default') {
-							$ippSessionParams.ConnectionUri = $Environments[$ExchangeEnvironmentName].ConnectionUri
-							$ippSessionParams.AzureADAuthorizationEndpointUri = $Environments[$ExchangeEnvironmentName].AuthZEndpointUri
-						}
-
-						Write-Verbose "Connecting to Security & Compliance with UPN: $ExoUPN"
-						Connect-IPPSSession @ippSessionParams
-					}
-
-					catch {
-						$exception = $_
-						$methodNotFoundException = $null
-
-						# Detect DLL conflict via a specific MissingMethodException, preferring the inner exception when present
-						if ($exception.Exception.InnerException -is [System.MissingMethodException]) {
-							$methodNotFoundException = $exception.Exception.InnerException
-						}
-						elseif ($exception.Exception -is [System.MissingMethodException]) {
-							$methodNotFoundException = $exception.Exception
-						}
-
-						if ($methodNotFoundException -and $methodNotFoundException.Message -like "*Microsoft.Identity.Client*") {
-							Write-Warning "DLL Conflict detected (Method not found in Microsoft.Identity.Client). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
-							Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
-						}
-
-						Write-Host "`nFailed to connect to the Security & Compliance PowerShell: $exception" -ForegroundColor Red
-					}
+					$connectMgGraphParams.Scopes = Get-ZtGraphScope
 				}
 
-				# Fix for Get-Label visibility in other scopes
-				if (Get-Command Get-Label -ErrorAction SilentlyContinue) {
-					$module = Get-Command Get-Label | Select-Object -ExpandProperty Module
-					if ($module -and $module.Name -like 'tmp_*') {
-						Import-Module $module -Global -Force
-					}
+				if (-not $UseTokenCache) {
+					$connectMgGraphParams.ContextScope = 'Process'
 				}
+
+				Write-PSFMessage -Message "Connecting to Microsoft Graph with params: $($connectMgGraphParams | Out-String)" -Level Verbose
+				$null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop -InformationAction SilentlyContinue
+				$contextTenantId = (Get-MgContext).TenantId
+				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+				$script:ConnectedService += 'Graph'
+			}
+			catch {
+				# TODO: Remove service from available.
+				$graphException = $_
+				$methodNotFound = $null
+				if ($graphException.Exception.InnerException -is [System.MissingMethodException]) {
+					$methodNotFound = $graphException.Exception.InnerException
+				}
+				elseif ($graphException.Exception -is [System.MissingMethodException]) {
+					$methodNotFound = $graphException.Exception
+				}
+
+				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Microsoft Graph will not be executed." -ForegroundColor Yellow
+				if ($methodNotFound -and $methodNotFound.Message -like '*Microsoft.Identity*') {
+					Write-Warning -Message "DLL conflict detected (MissingMethodException in Microsoft.Identity). This typically occurs when incompatible versions of Microsoft.Identity.Client or Microsoft.IdentityModel.Abstractions are loaded."
+					Write-Warning -Message "Please RESTART your PowerShell session and run Connect-ZtAssessment again, ensuring no other Microsoft modules are imported first."
+				}
+
+				Stop-PSFFunction -Message "Failed to authenticate to Graph" -ErrorRecord $graphException -EnableException $true -Cmdlet $PSCmdlet
+			}
+
+			try {
+				Write-Verbose "Verifying Zero Trust context and permissions..."
+				$null = Test-ZtContext
+			}
+			catch {
+				# TODO: Remove service from available.
+				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'Graph' }
+				Stop-PSFFunction -Message "Authenticated to Graph, but the requirements for the ZeroTrustAssessment are not met by the established session:`n$_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 			}
 		}
 
-		'Microsoft.Online.SharePoint.PowerShell' {
-			if (($Service -contains 'SharePointOnline' -or $Service -contains 'All') -and $IsWindows) {
-				try {
-					# Import module with compatibility if needed
-					if ($PSVersionTable.PSEdition -ne 'Desktop') {
-						# Assume module is installed in Windows PowerShell as per instructions
-						Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop -Global
-					}
-					else {
-						Import-Module Microsoft.Online.SharePoint.PowerShell -ErrorAction Stop -Global
-					}
+		'Azure' {
+			$loadedAzureModules = $resolvedRequiredModules.Azure.ForEach{
+				$_ | Import-Module -Global -ErrorAction Stop -PassThru
+			}
+
+			$loadedAzureModules.ForEach{
+				Write-Debug -Message ('Module ''{0}'' v{1} loaded for Azure.' -f $_.Name, $_.Version)
+			}
+
+			Write-Host "`nConnecting to Azure" -ForegroundColor Cyan
+			Write-PSFMessage 'Connecting to Azure'
+
+			$azEnvironment = 'AzureCloud'
+			if ($Environment -eq 'China') {
+				$azEnvironment = Get-AzEnvironment -Name AzureChinaCloud
+			}
+			elseif ($Environment -in 'USGov', 'USGovDoD') {
+				$azEnvironment = 'AzureUSGovernment'
+			}
+
+			$tenantParam = $TenantId
+			if (-not $tenantParam) {
+				if ($contextTenantId) {
+					$tenantParam = $contextTenantId
 				}
-				catch {
-					# Provide clearer guidance when import fails, especially under PowerShell Core
-					if ($PSVersionTable.PSEdition -ne 'Desktop') {
-						$message = "Failed to import SharePoint Online module. When running in PowerShell Core, 'Microsoft.Online.SharePoint.PowerShell' must be installed in Windows PowerShell 5.1 (Desktop) for -UseWindowsPowerShell to work. Underlying error: $_"
-					}
-					else {
-						$message = "Failed to import SharePoint Online module: $_"
-					}
-					Write-Host "`n$message" -ForegroundColor Red
-					Write-PSFMessage $message -Level Error
-				}
+			}
+
+			$azParams = @{
+				UseDeviceAuthentication = $UseDeviceCode
+				Environment             = $azEnvironment
+				# Tenant                  = $tenantParam
+			}
+
+			if ($tenantParam) {
+				Write-Verbose -Message ("Using tenant ID '{0}' for Azure connection." -f $tenantParam)
+				$azParams.Tenant = $tenantParam
+			}
+
+			if ($ClientId -and $Certificate) {
+				$azParams.ApplicationId = $ClientId
+				$azParams.CertificateThumbprint = $Certificate.Certificate.Thumbprint
+			}
+
+			try {
+				Write-Verbose -Message ("Connecting to Azure with parameters: {0}" -f ($azParams | Out-String))
+				$null = Connect-AzAccount @azParams -ErrorAction Stop -InformationAction Ignore
+				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+				$script:ConnectedService += 'Azure'
+			}
+			catch {
+				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Azure will not be executed." -ForegroundColor Yellow
+				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'Azure' }
+				Stop-PSFFunction -Message "Failed to authenticate to Azure: $_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 			}
 		}
 
 		'AipService' {
-			if (($Service -contains 'AipService' -or $Service -contains 'All') -and $IsWindows) {
-				try {
-					# Import module with compatibility if needed
-					if ($PSVersionTable.PSEdition -ne 'Desktop') {
-						# Assume module is installed in Windows PowerShell as per instructions
-						Import-Module AipService -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop -Global
-					}
-					else {
-						Import-Module AipService -ErrorAction Stop -Global
-					}
-				}
-				catch {
-					# Provide clearer guidance when import fails, especially under PowerShell Core
-					if ($PSVersionTable.PSEdition -ne 'Desktop') {
-						$message = "Failed to import AipService module. When running in PowerShell Core, 'AipService' must be installed in Windows PowerShell 5.1 (Desktop) for -UseWindowsPowerShell to work. Underlying error: $_"
-					}
-					else {
-						$message = "Failed to import AipService module: $_"
-					}
-					Write-Host "`n$message" -ForegroundColor Red
-					Write-PSFMessage $message -Level Error
-				}
-			}
-		}
-	}
-
-	if (($Service -contains 'SharePointOnline' -or $Service -contains 'All') -and $IsWindows) {
-		Write-Host "`nConnecting to SharePoint Online" -ForegroundColor Yellow
-		Write-PSFMessage 'Connecting to SharePoint Online'
-
-		# Determine Admin URL
-		$adminUrl = $SharePointAdminUrl
-		if (-not $adminUrl) {
-			# Try to infer from Graph context
-			if ($contextTenantId) {
-				try {
-					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-					if ($initialDomain) {
-						$tenantName = $initialDomain.Split('.')[0]
-						$adminUrl = "https://$tenantName-admin.sharepoint.com"
-						Write-Verbose "Inferred SharePoint Admin URL: $adminUrl"
-					}
-				}
-				catch {
-					Write-Verbose "Failed to infer SharePoint Admin URL from Graph: $_"
-				}
-			}
-		}
-
-		if (-not $adminUrl) {
-			Write-Warning "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection."
-		}
-		else {
+			Write-Host -Object "`nConnecting to Azure Information Protection" -ForegroundColor Cyan
 			try {
-				Connect-SPOService -Url $adminUrl -ErrorAction Stop
-				Write-Verbose "Successfully connected to SharePoint Online."
+				$loadedAipServiceModules = $resolvedRequiredModules.AipService.ForEach{
+					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
+					$_ | Import-Module -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
+				}
+
+				$loadedAipServiceModules.ForEach{
+					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Azure Information Protection.' -f $_.Name, $_.Version)
+				}
 			}
 			catch {
-				Write-Host "`nFailed to connect to SharePoint Online: $_" -ForegroundColor Red
-				Write-PSFMessage "Failed to connect to SharePoint Online: $_" -Level Error
+				Write-Host -Object "Error loading AipService Module in WindowsPowerShell. $_" -ForegroundColor Red
+				Write-PSFMessage $_ -Level Error
+				#TODO: Mark service as unavailable and skip connection attempt.
 			}
-		}
-	}
-
-	if (($Service -contains 'AipService' -or $Service -contains 'All') -and $IsWindows) {
-		# AIPService module only works on Windows (contains Windows-only DLL)
-		if (-not $IsWindows) {
-			Write-PSFMessage 'Skipping Azure Information Protection connection - AIPService module is only supported on Windows.' -Level Warning
-		}
-		else {
-			Write-Host "`nConnecting to Azure Information Protection" -ForegroundColor Yellow
-			Write-PSFMessage 'Connecting to Azure Information Protection'
 
 			try {
-				Connect-AipService -ErrorAction Stop
-				Write-Verbose "Successfully connected to Azure Information Protection."
+				$null = Connect-AipService -ErrorAction Stop
+				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+				$script:ConnectedService += 'AipService'
 			}
 			catch {
+				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Microsoft Graph will not be executed." -ForegroundColor Yellow
 				Write-Host "`nFailed to connect to Azure Information Protection: $_" -ForegroundColor Red
 				Write-PSFMessage "Failed to connect to Azure Information Protection: $_" -Level Error
+				#TODO: Mark service as unavailable.
+				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'AipService' }
+			}
+		}
+
+		'ExchangeOnline' {
+			Write-Host -Object "`nConnecting to Exchange Online" -ForegroundColor Cyan
+			try {
+				$loadedExoModules = $resolvedRequiredModules.ExchangeOnline.ForEach{
+					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
+					$_ | Import-Module -Global -ErrorAction Stop -PassThru -WarningAction SilentlyContinue
+					# Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
+				}
+
+				$loadedExoModules.ForEach{
+					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Exchange Online.' -f $_.Name, $_.Version)
+				}
+
+				Write-Verbose -Message 'Connecting to Microsoft Exchange Online'
+
+
+				if ($UseDeviceCode) {
+					Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName
+				}
+				else {
+					Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName
+				}
+
+				# Fix for Get-Label visibility in other scopes
+				if (Get-Command -Name Get-Label -ErrorAction Ignore) {
+					$module = Get-Command -Name Get-Label | Select-Object -ExpandProperty Module
+					if ($module -and $module.Name -like 'tmp_*') {
+						Import-Module $module -Global -Force
+					}
+				}
+
+				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+				$script:ConnectedService += 'ExchangeOnline'
+			}
+			catch {
+				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Exchange Online will not be executed." -ForegroundColor Yellow
+				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'ExchangeOnline' }
+			}
+		}
+
+		'SecurityCompliance' {
+			Write-Host -Object "`nConnecting to Microsoft Security & Compliance PowerShell" -ForegroundColor Cyan
+			$Environments = @{
+				'O365China'        = @{
+					ConnectionUri    = 'https://ps.compliance.protection.partner.outlook.cn/powershell-liveid'
+					AuthZEndpointUri = 'https://login.chinacloudapi.cn/common'
+				}
+				'O365GermanyCloud' = @{
+					ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+					AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+				}
+				'O365Default'      = @{
+					ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+					AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+				}
+				'O365USGovGCCHigh' = @{
+					ConnectionUri    = 'https://ps.compliance.protection.office365.us/powershell-liveid/'
+					AuthZEndpointUri = 'https://login.microsoftonline.us/common'
+				}
+				'O365USGovDoD'     = @{
+					ConnectionUri    = 'https://l5.ps.compliance.protection.office365.us/powershell-liveid/'
+					AuthZEndpointUri = 'https://login.microsoftonline.us/common'
+				}
+				Default            = @{
+					ConnectionUri    = 'https://ps.compliance.protection.outlook.com/powershell-liveid/'
+					AuthZEndpointUri = 'https://login.microsoftonline.com/common'
+				}
+			}
+
+			try {
+				$loadedExoSnPModules = $resolvedRequiredModules.SecurityCompliance.ForEach{
+					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
+					$_ | Import-Module -Global -ErrorAction Stop -PassThru
+					# Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
+				}
+
+				$loadedExoSnPModules.ForEach{
+					Write-PSFMessage -Message ('Module ''{0}'' v{1} loaded for Security & Compliance.' -f $_.Name, $_.Version) -Level Debug
+				}
+
+			}
+			catch {
+				Write-Host -Object "   ❌ Failed to load required modules for Security & Compliance." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Security & Compliance will not be executed." -ForegroundColor Yellow
+				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SecurityCompliance' }
+				Write-PSFMessage -Message "Failed to load required modules for Security & Compliance: $_" -Level Error
+			}
+
+			if ($UseDeviceCode) {
+				Write-Host -Object "`nThe Security & Compliance module does not support device code flow authentication." -ForegroundColor Red
+			}
+			else {
+				# Get UPN from Exchange connection or Graph context
+				#TODO: is that a nice to have or a hard dependency?
+				$ExoUPN = $UserPrincipalName
+
+				# Attempt to resolve UPN before any connection to avoid token acquisition failures without identity
+				$connectionInformation = $null
+				try {
+					$connectionInformation = Get-ConnectionInformation
+				}
+				catch {
+					# Intentionally swallow errors here; fall back to provided UPN if any
+					$connectionInfoError = $_
+					Write-Verbose -Message "Get-ConnectionInformation failed; falling back to provided UserPrincipalName if available. Error: $($connectionInfoError.Exception.Message)"
+				}
+
+				if (-not $ExoUPN) {
+					$ExoUPN = $connectionInformation | Where-Object { $_.IsEopSession -ne $true -and $_.State -eq 'Connected' } | Select-Object -ExpandProperty UserPrincipalName -First 1 -ErrorAction SilentlyContinue
+				}
+
+				if (-not $ExoUPN) {
+					Write-Host "`nUnable to determine a UserPrincipalName for Security & Compliance. Please supply -UserPrincipalName or connect to Exchange Online first." -ForegroundColor Yellow
+					continue
+				}
+
+				try {
+					$ippSessionParams = @{
+						BypassMailboxAnchoring = $true
+						UserPrincipalName      = $ExoUPN
+						ShowBanner             = $false
+						ErrorAction            = 'Stop'
+					}
+
+					# Only override endpoints for non-default clouds to reduce token acquisition failures in Default
+					if ($ExchangeEnvironmentName -ne 'O365Default') {
+						$ippSessionParams.ConnectionUri = $Environments[$ExchangeEnvironmentName].ConnectionUri
+						$ippSessionParams.AzureADAuthorizationEndpointUri = $Environments[$ExchangeEnvironmentName].AuthZEndpointUri
+					}
+
+					Write-Verbose -Message "Connecting to Security & Compliance with UPN: $ExoUPN"
+					Connect-IPPSSession @ippSessionParams
+					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+					$script:ConnectedService += 'SecurityCompliance'
+				}
+				catch {
+					$exception = $_
+					$methodNotFoundException = $null
+
+					# Detect DLL conflict via a specific MissingMethodException, preferring the inner exception when present
+					if ($exception.Exception.InnerException -is [System.MissingMethodException]) {
+						$methodNotFoundException = $exception.Exception.InnerException
+					}
+					elseif ($exception.Exception -is [System.MissingMethodException]) {
+						$methodNotFoundException = $exception.Exception
+					}
+
+					if ($methodNotFoundException -and $methodNotFoundException.Message -like "*Microsoft.Identity.Client*") {
+						Write-Warning "DLL Conflict detected (Method not found in Microsoft.Identity.Client). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
+						Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
+					}
+
+					Write-Host "`nFailed to connect to the Security & Compliance PowerShell: $exception" -ForegroundColor Red
+					$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SecurityCompliance' }
+				}
+			}
+
+			# Fix for Get-Label visibility in other scopes
+			if (Get-Command -Name Get-Label -ErrorAction Ignore) {
+				$module = Get-Command -Name Get-Label | Select-Object -ExpandProperty Module
+				if ($module -and $module.Name -like 'tmp_*') {
+					Import-Module $module -Global -Force
+				}
+			}
+		}
+
+		'SharePointOnline' {
+			Write-Host -Object "`nConnecting to SharePoint Online" -ForegroundColor Cyan
+			try {
+				# TODO: Use resolved module to load.
+				$loadedSharePointOnlineModules = $resolvedRequiredModules.SharePointOnline.ForEach{
+					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
+					$_ | Import-Module -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
+					# Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop -Global
+					# Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
+				}
+
+				$loadedSharePointOnlineModules.ForEach{
+					Write-Debug -Message ('Module ''{0}'' v{1} loaded for SharePoint Online.' -f $_.Name, $_.Version)
+				}
+			}
+			catch {
+				Write-Host "$_" -ForegroundColor Red
+				Write-PSFMessage $_ -Level Error
+				#TODO: Mark service as unavailable
+			}
+
+			$adminUrl = $SharePointAdminUrl
+			if (-not $adminUrl) {
+				# Try to infer from Graph context
+				if ($contextTenantId) {
+					try {
+						$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
+						$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+						if ($initialDomain) {
+							$tenantName = $initialDomain.Split('.')[0]
+							$adminUrl = "https://$tenantName-admin.sharepoint.com"
+							Write-Verbose "Inferred SharePoint Admin URL: $adminUrl"
+						}
+					}
+					catch {
+						Write-Verbose "Failed to infer SharePoint Admin URL from Graph: $_"
+					}
+				}
+			}
+
+			if (-not $adminUrl) {
+				Write-Warning "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection."
+			}
+			else {
+				try {
+					Connect-SPOService -Url $adminUrl -ErrorAction Stop
+					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+					$script:ConnectedService += 'SharePointOnline'
+				}
+				catch {
+					Write-Host "`nFailed to connect to SharePoint Online: $_" -ForegroundColor Red
+					Write-PSFMessage "Failed to connect to SharePoint Online: $_" -Level Error
+					$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SharePointOnline' }
+				}
 			}
 		}
 	}

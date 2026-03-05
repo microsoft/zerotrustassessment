@@ -136,6 +136,7 @@ function Invoke-ZtAssessment {
 		[string]
 		$ConfigurationFile,
 
+		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
 		[string]
@@ -197,20 +198,21 @@ function Invoke-ZtAssessment {
 		return
 	}
 
+	# TODO: Cleanup below (aligning -Preview with all pillars)
 	# Validate preview pillar requirements
-	if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
-		Write-Host
-		Write-Host "❌ " -NoNewline -ForegroundColor Red
-		Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
-		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-		Write-Host " switch." -ForegroundColor Red
-		Write-Host
-		Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
-		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-		Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
-		Write-Host
-		return
-	}
+	# if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
+	# 	Write-Host
+	# 	Write-Host "❌ " -NoNewline -ForegroundColor Red
+	# 	Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+	# 	Write-Host " switch." -ForegroundColor Red
+	# 	Write-Host
+	# 	Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
+	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+	# 	Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
+	# 	Write-Host
+	# 	return
+	# }
 
 	# Handle configuration file parameter
 	if ($ConfigurationFile) {
@@ -381,7 +383,7 @@ function Invoke-ZtAssessment {
 	$script:__ZtSession.PreviewEnabled = $Preview.IsPresent
 
 	Write-PSFMessage 'Creating report folder $Path'
-	New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
+	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
 	# Move the interactive configuration file to the report directory if it exists
 	if ($Interactive -and $tempConfigFile) {

@@ -28,6 +28,7 @@
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
+		[PSTypeName('ZeroTrustAssessment.Test')]
 		$Test,
 
 		[DuckDB.NET.Data.DuckDBConnection]
@@ -59,7 +60,6 @@
 	}
 	process {
 		Write-PSFMessage -Message "Processing test '{0}'" -StringValues $Test.TestID -Target $Test -Tag start
-
 		# Check if the function exists and what parameters it has
 		$command = Get-Command $Test.Command -ErrorAction SilentlyContinue
 		if (-not $command) {
@@ -88,7 +88,15 @@
 			$script:__ztCurrentTest = $Test
 
 			$result.Start = Get-Date
-			$result.Output = & $command @dbParam -ErrorAction Stop
+
+			# TODO: Add code path to test where $Service not in $script:ConnectedService
+			if ($Test.Service.count -gt 0 -and $Test.Service -notin $script:ConnectedService) {
+				Write-PSFMessage -Level Warning -Message ("Required service(s) '{0}' for test '{1}' not found. Skipping test." -f ($Test.Service -join ', '), $Test.TestID) -Target $Test
+				throw "Required service '$($Test.Service)' for test '$($Test.TestID)' is not available."
+			}
+			else {
+				$result.Output = & $command @dbParam -ErrorAction Stop
+			}
 		}
 		catch {
 			Write-PSFMessage -Level Warning -Message "Error executing test '{0}'" -StringValues $Test.TestID -Target $Test -ErrorRecord $_
