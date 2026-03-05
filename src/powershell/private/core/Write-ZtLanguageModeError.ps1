@@ -15,6 +15,9 @@
 		$LanguageMode
 	)
 
+	$message = "UNSUPPORTED: PowerShell is running in $LanguageMode mode. ZeroTrustAssessment requires Full Language Mode to function properly."
+	Write-PSFMessage -Level Error -Message $message
+
 	Write-Host
 	Write-Host "UNSUPPORTED: PowerShell is running in $LanguageMode mode" -ForegroundColor Red
 	Write-Host "ZeroTrustAssessment requires Full Language Mode to function properly." -ForegroundColor Yellow

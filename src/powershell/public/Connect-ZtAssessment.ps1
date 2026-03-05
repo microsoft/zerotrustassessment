@@ -98,6 +98,7 @@ function Connect-ZtAssessment {
 
 	if (-not (Test-ZtLanguageMode)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
+		return
 	}
 
 	# Ensure ExchangeOnline is included if SecurityCompliance is requested
