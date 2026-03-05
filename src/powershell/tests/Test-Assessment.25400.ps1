@@ -51,7 +51,11 @@ function Test-Assessment-25400 {
     try {
         $forwardingProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/forwardingProfiles' -Filter "trafficForwardingType eq 'private'" -ApiVersion beta
         if ($forwardingProfiles -and $forwardingProfiles.Count -gt 0) {
-            $privateProfile = $forwardingProfiles[0]
+            # Prefer an enabled forwarding profile instead of assuming the first one is correct
+            $enabledForwardingProfiles = $forwardingProfiles | Where-Object { $_.isEnabled -eq $true -or $_.state -eq 'enabled' }
+            if ($enabledForwardingProfiles -and $enabledForwardingProfiles.Count -gt 0) {
+                $privateProfile = $enabledForwardingProfiles[0]
+            }
         }
     }
     catch {
@@ -219,7 +223,15 @@ function Test-Assessment-25400 {
             $appName = Get-SafeMarkdown -Text $segment.ApplicationName
             $destHost = Get-SafeMarkdown -Text $segment.DestinationHost
             $destType = if ($segment.DestinationType) { $segment.DestinationType } else { 'N/A' }
-            $ports = if ($segment.Ports) { $segment.Ports } else { 'N/A' }
+            $ports = if ($segment.Ports) {
+                if ($segment.Ports -is [System.Array]) {
+                    $segment.Ports -join ', '
+                } else {
+                    $segment.Ports
+                }
+            } else {
+                'N/A'
+            }
             $protocol = if ($segment.Protocol) { $segment.Protocol } else { 'N/A' }
             $dnsResolution = $segment.DnsResolution
 
