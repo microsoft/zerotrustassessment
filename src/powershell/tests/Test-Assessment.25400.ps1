@@ -31,7 +31,7 @@ function Test-Assessment-25400 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25400,
-        Title = 'Is Port 53 published and private DNS is not used',
+        Title = 'Is port 53 published or private DNS configured for Private Access applications',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -256,7 +256,7 @@ $segmentsTable
 
     $params = @{
         TestId = '25400'
-        Title  = 'Is Port 53 published and private DNS is not used'
+        Title  = 'Is port 53 published or private DNS configured for Private Access applications'
         Status = $passed
         Result = $testResultMarkdown
     }
