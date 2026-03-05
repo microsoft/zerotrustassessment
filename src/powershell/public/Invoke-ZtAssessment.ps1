@@ -192,6 +192,11 @@ function Invoke-ZtAssessment {
 	#region Preparation
 	Show-ZtiBanner
 
+	if (-not (Test-ZtLanguageMode)) {
+		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
+		return
+	}
+
 	# Validate preview pillar requirements
 	if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
 		Write-Host
