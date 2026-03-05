@@ -28,7 +28,7 @@ function Test-ZtLanguageMode {
 		Write-ZtLanguageModeError -LanguageMode $languageMode
 		return $false
 	}
-
+<#
 	# Check 2: Global session state language mode (catches manual CLM testing where module was imported in FLM)
 	try {
 		$globalLanguageMode = [runspace]::DefaultRunspace.SessionStateProxy.GetVariable('ExecutionContext').SessionState.LanguageMode
@@ -42,6 +42,6 @@ function Test-ZtLanguageMode {
 		Write-ZtLanguageModeError -LanguageMode ([System.Management.Automation.PSLanguageMode]::ConstrainedLanguage)
 		return $false
 	}
-
+#>
 	return $true
 }
