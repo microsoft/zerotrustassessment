@@ -54,6 +54,7 @@ function Test-Assessment-25384 {
             if ($scopeId -match '^servicePrincipals/(.+)') {
                 $spIds += $Matches[1]
             } elseif ($scopeId -match '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') {
+                $spIds += $scopeId
                 $appIds += $scopeId
             }
         }
@@ -69,17 +70,19 @@ function Test-Assessment-25384 {
     $uniqueSpIds = $spIds | Select-Object -Unique
 
     if ($uniqueSpIds) {
-        $sps = Invoke-ZtGraphBatchRequest -Path "servicePrincipals/{0}?`$select=id,displayName,appId,appOwnerOrganizationId" -ArgumentList $uniqueSpIds -ApiVersion beta
-        foreach ($sp in $sps) { $spLookup[$sp.id] = $sp }
+        $sps = Invoke-ZtGraphBatchRequest -Path "servicePrincipals/{0}?`$select=id,displayName,appId,appOwnerOrganizationId" -ArgumentList $uniqueSpIds -ApiVersion beta -ErrorAction SilentlyContinue
+        foreach ($sp in $sps) {
+            if ($sp.id) { $spLookup[$sp.id] = $sp }
+        }
     }
 
     # Fetch applications directly referenced in scoped assignments (app registrations)
     $uniqueAppIds = $appIds | Select-Object -Unique
 
        if ($uniqueAppIds) {
-        $apps = Invoke-ZtGraphBatchRequest -Path "applications/{0}?`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $uniqueAppIds -ApiVersion beta
+        $apps = Invoke-ZtGraphBatchRequest -Path "applications/{0}?`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $uniqueAppIds -ApiVersion beta -ErrorAction SilentlyContinue
         foreach ($app in $apps) {
-            $appLookup[$app.id] = $app
+            if ($app.id) { $appLookup[$app.id] = $app }
             if ($app.appId) { $appLookup[$app.appId] = $app }
         }
     }
@@ -103,11 +106,11 @@ function Test-Assessment-25384 {
     $appIdsToFetch = $spAppIds | Where-Object { -not $paQaAppLookup.ContainsKey($_) -and -not $appLookup.ContainsKey($_) }
 
     if ($appIdsToFetch) {
-        $apps = Invoke-ZtGraphBatchRequest -Path "applications?`$filter=appId eq '{0}'&`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $appIdsToFetch -ApiVersion beta
+        $apps = Invoke-ZtGraphBatchRequest -Path "applications?`$filter=appId eq '{0}'&`$select=id,displayName,appId,tags,appOwnerOrganizationId" -ArgumentList $appIdsToFetch -ApiVersion beta -ErrorAction SilentlyContinue
         foreach ($app in $apps) {
             if ($app) {
-                $appLookup[$app.id] = $app
-                $appLookup[$app.appId] = $app
+                if ($app.id) { $appLookup[$app.id] = $app }
+                if ($app.appId) { $appLookup[$app.appId] = $app }
             }
         }
     }
@@ -120,6 +123,7 @@ function Test-Assessment-25384 {
     $tenantWideAssignments = @()
     $scopedAssignments = @()
     $problematicAssignments = @()
+    $unresolvedScopedAssignments = @()
     $warnings = @()
 
     foreach ($assignment in $assignments) {
@@ -151,9 +155,11 @@ function Test-Assessment-25384 {
                     $sp = $spLookup[$spId]
                     $assignmentInfo.AppDisplayName = $sp.displayName
                     $assignmentInfo.AppId = $sp.appId
-                    $app = $paQaAppLookup[$sp.appId] ?? $appLookup[$sp.appId]
-                    if ($app) {
-                        $assignmentInfo.IsPAApp = ($app.tags -contains 'PrivateAccessNonWebApplication') -or ($app.tags -contains 'NetworkAccessQuickAccessApplication')
+                    if ($sp.appId) {
+                        $app = $paQaAppLookup[$sp.appId] ?? $appLookup[$sp.appId]
+                        if ($app) {
+                            $assignmentInfo.IsPAApp = ($app.tags -contains 'PrivateAccessNonWebApplication') -or ($app.tags -contains 'NetworkAccessQuickAccessApplication')
+                        }
                     }
                 }
             } else {
@@ -162,9 +168,23 @@ function Test-Assessment-25384 {
                     $assignmentInfo.AppDisplayName = $app.displayName
                     $assignmentInfo.AppId = $app.appId
                     $assignmentInfo.IsPAApp = ($app.tags -contains 'PrivateAccessNonWebApplication') -or ($app.tags -contains 'NetworkAccessQuickAccessApplication')
+                } elseif ($spLookup.ContainsKey($scopeId)) {
+                    $sp = $spLookup[$scopeId]
+                    $assignmentInfo.AppDisplayName = $sp.displayName
+                    $assignmentInfo.AppId = $sp.appId
+                    if ($sp.appId) {
+                        $resolvedApp = $paQaAppLookup[$sp.appId] ?? $appLookup[$sp.appId]
+                        if ($resolvedApp) {
+                            $assignmentInfo.IsPAApp = ($resolvedApp.tags -contains 'PrivateAccessNonWebApplication') -or ($resolvedApp.tags -contains 'NetworkAccessQuickAccessApplication')
+                        }
+                    }
                 }
             }
             $scopedAssignments += $assignmentInfo
+
+            if (-not $assignmentInfo.AppDisplayName) {
+                $unresolvedScopedAssignments += $assignmentInfo
+            }
         }
 
         if ($principalType -in @('group', 'servicePrincipal') -or $assignment.principal.userType -eq 'Guest') {
@@ -180,6 +200,11 @@ function Test-Assessment-25384 {
     $scopedNonPACount = ($scopedAssignments | Where-Object { -not $_.IsPAApp -and $_.AppDisplayName }).Count
     if ($scopedNonPACount -gt 0) {
         $warnings += "$scopedNonPACount scoped assignment(s) to apps that are not confirmed as Private Access or Quick Access apps"
+    }
+
+    $unresolvedScopedCount = $unresolvedScopedAssignments.Count
+    if ($unresolvedScopedCount -gt 0) {
+        $warnings += "$unresolvedScopedCount scoped assignment(s) could not be resolved to application objects; see details in 'Unresolved Scoped Assignments' below"
     }
     #endregion Assessment Logic
 
@@ -327,6 +352,25 @@ function Test-Assessment-25384 {
         $mdInfo += "`n## ⚠️ Warnings`n`n"
         foreach ($warning in $warnings) {
             $mdInfo += "- $warning`n"
+        }
+        $mdInfo += "`n"
+    }
+
+    if ($unresolvedScopedAssignments.Count -gt 0) {
+        $mdInfo += "`n## ⚠️ Unresolved Scoped Assignments`n`n"
+        $mdInfo += "The following scoped assignments reference application or service principal objects that could not be resolved:`n`n"
+        $mdInfo += "| Principal | Type | Scope Target Kind | DirectoryScopeId |`n"
+        $mdInfo += "| :--- | :--- | :--- | :--- |`n"
+        foreach ($a in $unresolvedScopedAssignments | Sort-Object PrincipalDisplayName) {
+            $principalName = if ($a.PrincipalUPN) { $a.PrincipalUPN } else { $a.PrincipalDisplayName }
+            $scope = if ($a.DirectoryScopeId) { $a.DirectoryScopeId } else { 'Unknown' }
+            $scopeTargetKind = 'Unknown'
+            if ($scope -match '^/servicePrincipals/') {
+                $scopeTargetKind = 'servicePrincipal'
+            } elseif ($scope -match '^/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') {
+                $scopeTargetKind = 'application'
+            }
+            $mdInfo += "| $(Get-SafeMarkdown -Text $principalName) | $($a.PrincipalType) | $scopeTargetKind | $(Get-SafeMarkdown -Text $scope) |`n"
         }
         $mdInfo += "`n"
     }

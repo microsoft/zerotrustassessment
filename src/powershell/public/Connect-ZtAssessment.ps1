@@ -96,6 +96,11 @@ function Connect-ZtAssessment {
 		[string]$SharePointAdminUrl
 	)
 
+	if (-not (Test-ZtLanguageMode)) {
+		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
+		return
+	}
+
 	# Ensure ExchangeOnline is included if SecurityCompliance is requested
 	if ($Service -contains 'SecurityCompliance' -and $Service -notcontains 'ExchangeOnline' -and $Service -notcontains 'All') {
 		Write-Verbose "Adding ExchangeOnline to the list of services to connect to as it is required for SecurityCompliance."

@@ -16,10 +16,14 @@
 	.PARAMETER Database
 		The Database used for accessing cached tenant data.
 
-	.EXAMPLE
-		PS C:\> Invoke-ZtTest -Test $_ -Database $global:database
+	.PARAMETER LogsPath
+		Path to the logs folder where per-test log files are written.
+		If not specified, no log files are written.
 
-		Executes the current test with the globally cached database connection.
+	.EXAMPLE
+		PS C:\> Invoke-ZtTest -Test $_ -Database $global:database -LogsPath $logsPath
+
+		Executes the current test with the globally cached database connection and writes a log file.
 	#>
 	[CmdletBinding()]
 	param (
@@ -27,7 +31,10 @@
 		$Test,
 
 		[DuckDB.NET.Data.DuckDBConnection]
-		$Database
+		$Database,
+
+		[string]
+		$LogsPath
 	)
 	begin {
 		$previousMessages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId)
@@ -60,8 +67,20 @@
 		}
 
 		$dbParam = @{}
-		if ($command.Parameters.ContainsKey("Database") -and $Database) {
+		if (($null -ne $command) -and $command.Parameters.ContainsKey("Database") -and $Database) {
 			$dbParam.Database = $Database
+		}
+
+		# Write stub log file and progress entry so hanging tests are visible
+		if ($LogsPath) {
+			Write-ZtTestProgress -TestID $Test.TestID -LogsPath $LogsPath -Action Started
+			try {
+				$stubPath = Join-Path $LogsPath "$($Test.TestID).md"
+				[System.IO.File]::WriteAllText($stubPath, "# Test: $($Test.TestID) - Started at $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff'))$([System.Environment]::NewLine)")
+			}
+			catch {
+				Write-PSFMessage -Level Warning -Message "Failed to write stub test log for test '{0}': {1}" -StringValues $Test.TestID, $_ -Tag log
+			}
 		}
 
 		try {
@@ -88,6 +107,15 @@
 	end {
 		$result.Messages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId) | Where-Object { $_ -notin $previousMessages }
 		Write-ZtTestStatistics -Result $result
+
+		# Write per-test log file (overwrites stub) and progress entry
+		if ($LogsPath) {
+			Write-ZtTestLog -Result $result -LogsPath $LogsPath
+			$progressAction = if ($result.Success) { 'Completed' } else { 'Failed' }
+			$progressError = if (-not $result.Success -and $result.Error) { "$($result.Error)" } else { $null }
+			Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action $progressAction -Duration $result.Duration -ErrorMessage $progressError
+		}
+
 		$result
 	}
 }
