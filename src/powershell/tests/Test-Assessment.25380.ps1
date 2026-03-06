@@ -53,6 +53,21 @@ function Test-Assessment-25380 {
 
     #region Assessment Logic
     if ($errorMsg) {
+        # Check if error indicates GSA is not provisioned/accessible (404, 403, etc.)
+        $httpStatusCode = $null
+        if ($errorMsg.Exception.Response.StatusCode) {
+            $httpStatusCode = [int]$errorMsg.Exception.Response.StatusCode.value__
+        }
+
+        # 404 (Not Found) or 403 (Forbidden) typically means GSA not provisioned or no permissions
+        if ($httpStatusCode -in @(404, 403)) {
+            Write-PSFMessage "GSA not accessible (HTTP $httpStatusCode) - marking as not applicable" -Level Verbose
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+            return
+        }
+
+        # Other errors are actual failures (network issues, API problems, etc.)
+        Write-PSFMessage "Error retrieving GSA settings (not a 404/403) - marking as failed" -Level Error
         $passed = $false
     }
     elseif (-not $caSettings -or -not $caSettings.signalingStatus) {
