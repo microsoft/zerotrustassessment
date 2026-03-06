@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that all Private Network Connectors are running the latest version.
 
@@ -15,16 +15,16 @@
 
 function Test-Assessment-25392 {
     [ZtTest(
-        Category = 'Private Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Premium_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25392,
-        Title = 'Private Access Connectors are running the latest version',
-        UserImpact = 'Low'
+    	Category = 'Private Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25392,
+    	Title = 'Private network connectors are running the latest version',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

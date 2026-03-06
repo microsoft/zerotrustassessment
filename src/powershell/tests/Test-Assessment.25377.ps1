@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Universal Tenant Restrictions (UTR) are configured to block access to unauthorized external tenants.
 
@@ -15,16 +15,16 @@
 
 function Test-Assessment-25377 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
-        TestId = 25377,
-        Title = 'Users accessing external applications from corporate devices are blocked unless explicitly authorized by tenant restrictions policies',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('AAD_PREMIUM','Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25377,
+    	Title = 'Universal tenant restrictions block unauthorized external tenant access',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param($Database)

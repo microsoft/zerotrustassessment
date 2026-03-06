@@ -7,9 +7,10 @@ function Test-Assessment-21789{
     [ZtTest(
     	Category = 'Monitoring',
     	ImplementationCost = 'Low',
-    	Pillar = '',
+    	MinimumLicense = $null,
+    	Pillar = 'Identity',
     	RiskLevel = 'Medium',
-    	SfiPillar = '',
+    	SfiPillar = 'Monitor and detect cyberthreats',
     	TenantType = ('Workforce'),
     	TestId = 21789,
     	Title = 'Tenant creation events are triaged',

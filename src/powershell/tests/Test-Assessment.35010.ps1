@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Double Key Encryption labels are configured
 
@@ -23,15 +23,16 @@
 
 function Test-Assessment-35010 {
     [ZtTest(
-        Category = 'Encryption',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Microsoft 365 E5'),
-        Pillar = 'Data',
-        RiskLevel = 'Low',
-        TenantType = ('Workforce'),
-        TestId = 35010,
-        Title = 'Double Key Encryption labels are configured',
-        UserImpact = 'High'
+    	Category = 'Encryption',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Microsoft 365 E5'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35010,
+    	Title = 'Double Key Encryption labels are configured',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

@@ -5,15 +5,15 @@
 
 function Test-Assessment-21954{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Devices',
     	ImplementationCost = 'Low',
-        MinimumLicense = ('Free'),
+    	MinimumLicense = ('Free'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect identities and secrets',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 21954,
-    	Title = 'Restrict non-administrator users from recovering the BitLocker keys for their owned devices',
+    	Title = 'Restrict nonadministrator users from recovering the BitLocker keys for their owned devices',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

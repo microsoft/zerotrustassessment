@@ -7,6 +7,7 @@ With valid on-premises credentials, attackers laterally move by reusing password
 
 **Remediation action**
 
-- [Deploy Microsoft Entra password protection](https://learn.microsoft.com/en-us/entra/identity/authentication/howto-password-ban-bad-on-premises-deploy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Deploy Microsoft Entra password protection](https://learn.microsoft.com/entra/identity/authentication/howto-password-ban-bad-on-premises-deploy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

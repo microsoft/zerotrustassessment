@@ -7,6 +7,6 @@ Enable TAP and use it with security info registration to secure this potential g
 - [Learn how to enable Temporary Access Pass in the Authentication methods policy](https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-the-temporary-access-pass-policy)
 - [Learn how to update authentication strength policies to include Temporary Access Pass](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strength-advanced-options?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Learn how to create a Conditional Access policy for security info registration with authentication strength enforcement](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-security-info-registration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
- <!--- Results --->
+<!--- Results --->
 %TestResult%
 

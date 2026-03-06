@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if Application Administrator rights are constrained to specific Private Access apps.
 
@@ -14,7 +14,7 @@
 
 function Test-Assessment-25384 {
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Role management',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('P1'),
     	Pillar = 'Network',
@@ -22,7 +22,7 @@ function Test-Assessment-25384 {
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce'),
     	TestId = 25384,
-    	Title = 'Application admin rights are constrained to specific Private Access apps, not tenant-wide',
+    	Title = 'Application admin rights are constrained to specific Private Access apps',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

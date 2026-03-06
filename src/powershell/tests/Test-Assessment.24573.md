@@ -6,6 +6,7 @@ Applying security baselines ensures Windows devices are configured with hardened
 
 Configure and assign Intune security baselines to Windows devices to enforce standardized security settings and monitor compliance:
 - [Deploy security baselines to help secure Windows devices](https://learn.microsoft.com/intune/intune-service/protect/security-baselines-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-profile-for-a-security-baseline)
-- [Monitor security baseline compliance](https://learn.microsoft.com/intune/intune-service/protect/security-baselines-monitor?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Monitor security baseline compliance](https://learn.microsoft.com/intune/intune-service/protect/security-baselines-monitor?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

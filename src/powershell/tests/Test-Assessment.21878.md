@@ -2,6 +2,7 @@ Entitlement management policies without expiration dates create persistent acces
 
 **Remediation action**
 
-- [Configure expiration settings for access packages](https://learn.microsoft.com/entra/id-governance/entitlement-management-access-package-lifecycle-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#specify-a-lifecycle)<!--- Results --->
+- [Configure expiration settings for access packages](https://learn.microsoft.com/entra/id-governance/entitlement-management-access-package-lifecycle-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#specify-a-lifecycle)
+<!--- Results --->
 %TestResult%
 
