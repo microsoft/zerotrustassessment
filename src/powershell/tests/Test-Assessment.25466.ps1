@@ -24,7 +24,7 @@ function Test-Assessment-25466 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25466,
-        Title = 'At least two Private Access Connectors are active and healthy per region',
+        Title = 'At least two Private Access connectors are active and healthy per connector group',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -63,7 +63,7 @@ function Test-Assessment-25466 {
         if ($applicationProxyGroups.Count -eq 0 -and -not $query1Failed) {
             # No applicationProxy groups found - Private Access not configured
             # Note: If Query 1 failed, don't return NotApplicable - let it fall through to assessment logic for Investigate status
-            Add-ZtTestResultDetail -TestId '25466' -Title 'At least two Private Access Connectors are active and healthy per region' -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
             return
         }
 
@@ -109,7 +109,7 @@ function Test-Assessment-25466 {
     elseif (-not $query1Failed) {
         # No connector groups found at all - Private Access / Application Proxy not configured
         # Note: If Query 1 failed, don't return NotApplicable - let it fall through to assessment logic for Investigate status
-        Add-ZtTestResultDetail -TestId '25466' -Title 'At least two Private Access Connectors are active and healthy per region' -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
         return
     }
     #endregion Data Collection
@@ -208,8 +208,7 @@ function Test-Assessment-25466 {
                         $machineName = Get-SafeMarkdown -Text $member.machineName
                         $externalIpRaw = if ($member.externalIp) { $member.externalIp } else { 'N/A' }
                         $externalIp = Get-SafeMarkdown -Text $externalIpRaw
-                        $statusRaw = if ($member.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
-                        $status = Get-SafeMarkdown -Text $statusRaw
+                        $status = if ($member.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
                         $versionRaw = if ($member.version) { $member.version } else { 'N/A' }
                         $version = Get-SafeMarkdown -Text $versionRaw
                         $mdInfo += "| $groupName | $machineName | $externalIp | $status | $version |`n"
@@ -241,7 +240,7 @@ function Test-Assessment-25466 {
 
     $params = @{
         TestId = '25466'
-        Title  = 'At least two Private Access Connectors are active and healthy per region'
+        Title  = 'At least two Private Access connectors are active and healthy per connector group'
         Status = $passed
         Result = $testResultMarkdown
     }
