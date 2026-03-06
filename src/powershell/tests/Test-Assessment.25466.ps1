@@ -60,8 +60,9 @@ function Test-Assessment-25466 {
         # Filter for applicationProxy type groups only (API returns mixed types despite being scoped to applicationProxy profile)
         $applicationProxyGroups = @($connectorGroups | Where-Object { $_.connectorGroupType -eq 'applicationProxy' })
 
-        if ($applicationProxyGroups.Count -eq 0) {
+        if ($applicationProxyGroups.Count -eq 0 -and -not $query1Failed) {
             # No applicationProxy groups found - Private Access not configured
+            # Note: If Query 1 failed, don't return NotApplicable - let it fall through to assessment logic for Investigate status
             Add-ZtTestResultDetail -TestId '25466' -Title 'At least two Private Access Connectors are active and healthy per region' -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
             return
         }
@@ -77,7 +78,8 @@ function Test-Assessment-25466 {
                 $activeCount = $activeConnectors.Count
                 $totalCount = if ($members) { $members.Count } else { 0 }
 
-                $regionDisplay = if ($group.region) { $group.region } else { 'Default' }
+                $regionDisplayRaw = if ($group.region) { $group.region } else { 'Default' }
+                $regionDisplay = Get-SafeMarkdown -Text $regionDisplayRaw
                 $groupStatus = if ($activeCount -ge 2) { 'Pass' } else { 'Fail' }
 
                 $groupInfo = [PSCustomObject]@{
@@ -101,8 +103,9 @@ function Test-Assessment-25466 {
             }
         }
     }
-    else {
+    elseif (-not $query1Failed) {
         # No connector groups found at all - Private Access / Application Proxy not configured
+        # Note: If Query 1 failed, don't return NotApplicable - let it fall through to assessment logic for Investigate status
         Add-ZtTestResultDetail -TestId '25466' -Title 'At least two Private Access Connectors are active and healthy per region' -SkippedBecause NotApplicable -Result 'No Private Access connector groups are configured in the tenant. This check applies only when Microsoft Entra Private Access or Application Proxy is deployed.'
         return
     }
@@ -139,7 +142,8 @@ function Test-Assessment-25466 {
         $mdInfo += "`n**⚠️ Failed to query connectors for the following group(s):**`n`n"
         foreach ($failedGroup in $query2FailedGroups) {
             $groupName = Get-SafeMarkdown -Text $failedGroup.name
-            $regionDisplay = if ($failedGroup.region) { $failedGroup.region } else { 'Default' }
+            $regionDisplayRaw = if ($failedGroup.region) { $failedGroup.region } else { 'Default' }
+            $regionDisplay = Get-SafeMarkdown -Text $regionDisplayRaw
             $mdInfo += "- $groupName (Region: $regionDisplay)`n"
         }
         $mdInfo += "`n"
@@ -165,8 +169,9 @@ function Test-Assessment-25466 {
 
         foreach ($group in $groupsToDisplay) {
             $groupName = Get-SafeMarkdown -Text $group.Name
+            $region = Get-SafeMarkdown -Text $group.Region
             $statusIcon = if ($group.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
-            $tableRows += "| $groupName | $($group.Region) | $($group.ActiveCount) | $($group.TotalCount) | $statusIcon |`n"
+            $tableRows += "| $groupName | $region | $($group.ActiveCount) | $($group.TotalCount) | $statusIcon |`n"
         }
 
         $mdInfo += $formatTemplate -f $reportTitle, $portalLink, $tableRows
@@ -187,7 +192,8 @@ function Test-Assessment-25466 {
 
             foreach ($failedGroup in $failingGroupsToDisplay) {
                 $groupName = Get-SafeMarkdown -Text $failedGroup.Name
-                $mdInfo += "**Connector Group: $groupName** (Region: $($failedGroup.Region))`n`n"
+                $failedRegion = Get-SafeMarkdown -Text $failedGroup.Region
+                $mdInfo += "**Connector Group: $groupName** (Region: $failedRegion)`n`n"
 
                 if ($failedGroup.Members -and $failedGroup.Members.Count -gt 0) {
                     $mdInfo += "| Group Name | Machine Name | External IP | Connector Status | Version |`n"
