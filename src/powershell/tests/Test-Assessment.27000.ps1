@@ -123,31 +123,6 @@ function Test-Assessment-27000 {
     }
     else {
         [int]$BASELINE_PROFILE_PRIORITY = 65000
-        # Process CA policies to find those with enabled GSA security profiles (following 25407 pattern)
-        $gsaPolicies = $caPolicies | Where-Object { ($_.state -eq 'enabled') -and ($null -ne $_.sessionControls.globalSecureAccessFilteringProfile) }
-        $gsaPolicyDetails = @()
-
-        foreach ($policy in $gsaPolicies) {
-            $profileId = $policy.sessionControls.globalSecureAccessFilteringProfile.profileId
-            $caLinkageEnabled = $policy.sessionControls.globalSecureAccessFilteringProfile.isEnabled
-            $matchedProfile = $filteringProfiles | Where-Object { $_.id -eq $profileId }
-            $gsaPolicyDetails += [PSCustomObject]@{
-                PolicyId         = $policy.id
-                PolicyDisplayName= $policy.displayName
-                PolicyState      = $policy.state
-                ProfileId        = $profileId
-                CALinkageEnabled = $caLinkageEnabled
-                ProfileName      = $matchedProfile.name
-                ProfileState     = $matchedProfile.state
-            }
-        }
-
-        # Build CA enforcement map: profileId -> has active CA enforcement
-        $caEnforcementMap = @{}
-        $caPolicyWithGsaProfilesEnabled = $gsaPolicyDetails | Where-Object { $_.ProfileState -eq 'enabled' -and $_.CALinkageEnabled -eq $true }
-        foreach ($item in $caPolicyWithGsaProfilesEnabled) {
-            $caEnforcementMap[$item.ProfileId] = $true
-        }
 
         # Evaluate each category
         foreach ($catName in $requiredCategories) {
