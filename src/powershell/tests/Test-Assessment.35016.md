@@ -4,7 +4,7 @@ If DLP policies rely on label detection, unclassified data bypasses these contro
 
 **Remediation action**
 
-- [Publish sensitivity labels](https://learn.microsoft.com/purview/create-sensitivity-labels?tabs=modern-label-scheme&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#publish-sensitivity-labels-by-creating-a-label-policy)
-- [Requiring users to apply a label](https://learn.microsoft.com/purview/sensitivity-labels-office-apps?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-users-to-apply-a-label-to-their-email-and-documents)
+- [Publish sensitivity labels](https://learn.microsoft.com/purview/create-sensitivity-labels?tabs=modern-label-scheme&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#publish-sensitivity-labels-by-creating-a-label-policy) [Requiring users to apply a label](https://learn.microsoft.com/purview/sensitivity-labels-office-apps?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-users-to-apply-a-label-to-their-email-and-documents).
 <!--- Results --->
 %TestResult%
+

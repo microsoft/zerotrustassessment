@@ -8,9 +8,9 @@ Without this protection:
 - Token replay attacks from different IP addresses aren't blocked without Strict Enforcement mode.
 
 **Remediation action**
-
 - Review the [Universal CAE](https://learn.microsoft.com/entra/global-secure-access/concept-universal-continuous-access-evaluation?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) capabilities for Global Secure Access.
 - Remove or modify Conditional Access policies that disable CAE for Global Secure Access workloads. For more information, see [Continuous access evaluation](https://learn.microsoft.com/entra/identity/conditional-access/concept-continuous-access-evaluation?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 - Configure Universal CAE to use Strict Enforcement mode for enhanced token replay protection. For more information, see [Universal Continuous Access Evaluation](https://learn.microsoft.com/entra/global-secure-access/concept-universal-continuous-access-evaluation?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#strict-enforcement-mode).
 <!--- Results --->
 %TestResult%
+

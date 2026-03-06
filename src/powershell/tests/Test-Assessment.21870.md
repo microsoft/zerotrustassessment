@@ -7,3 +7,4 @@ When users are unable to reset their own passwords through secure, automated pro
 - [Enable Self-Service Password Reset](https://learn.microsoft.com/entra/identity/authentication/tutorial-enable-sspr?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

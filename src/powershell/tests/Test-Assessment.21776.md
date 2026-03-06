@@ -9,6 +9,7 @@ Unrestricted user consent also limits an organization's ability to enforce centr
 
 **Remediation action**
 
--  [Configure restricted user consent settings](https://learn.microsoft.com/entra/identity/enterprise-apps/configure-user-consent?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to prevent illicit consent grants by disabling user consent or limiting it to verified publishers with low-risk permissions only.<!--- Results --->
+-  [Configure restricted user consent settings](https://learn.microsoft.com/entra/identity/enterprise-apps/configure-user-consent?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to prevent illicit consent grants by disabling user consent or limiting it to verified publishers with low-risk permissions only.
+<!--- Results --->
 %TestResult%
 

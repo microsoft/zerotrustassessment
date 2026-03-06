@@ -7,3 +7,4 @@ Without audit logging enabled, threat actors can often operate undetected, and i
 - [Turn auditing on or off](https://learn.microsoft.com/purview/audit-log-enable-disable?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

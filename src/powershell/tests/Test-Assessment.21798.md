@@ -2,7 +2,7 @@ If you don't enable ID Protection notifications, your organization loses critica
 
 **Remediation action**
 
-- [Configure users at risk detected alerts](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-configure-notifications?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-users-at-risk-detected-alerts)  
+- [Configure users at risk detected alerts](https://learn.microsoft.com/entra/id-protection/howto-identity-protection-configure-notifications?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-users-at-risk-detected-alerts)
 <!--- Results --->
 %TestResult%
 

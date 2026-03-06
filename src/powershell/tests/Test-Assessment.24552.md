@@ -10,6 +10,7 @@ Configure and assign **macOS Firewall** profiles in Intune to block unauthorized
 - [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 
 For more information, see:  
--  [Available macOS firewall settings](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-firewall-profile-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#macos-firewall-profile)<!--- Results --->
+-  [Available macOS firewall settings](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-firewall-profile-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#macos-firewall-profile)
+<!--- Results --->
 %TestResult%
 

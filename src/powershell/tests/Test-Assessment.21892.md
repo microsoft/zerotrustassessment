@@ -6,3 +6,4 @@ Requiring sign-ins from managed devices ensures that users access organizational
 - [Configure device compliance policies in Microsoft Intune](https://learn.microsoft.com/mem/intune/protect/device-compliance-get-started?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

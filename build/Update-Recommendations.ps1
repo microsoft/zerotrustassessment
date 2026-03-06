@@ -464,6 +464,9 @@ foreach ($file in $testFiles) {
 
 	Write-Host "$testId Title: $docsTitle"
 	# Find everything before <!--- Results ---> and replace it with the recommendations from the docs
+	# Ensure docsContent ends with exactly one newline so the separator starts at column 0
+	$docsContent = $docsContent.TrimEnd() + "`n"
+
 	$seperator = $content.IndexOf('<!--- Results --->')
 	if ($seperator -gt 0) {
 		$prevContent = $content.Substring(0, $seperator)
@@ -476,7 +479,8 @@ foreach ($file in $testFiles) {
 		}
 	}
 	else {
-		$content = $docsContent
+		# Separator missing — add it along with the result placeholder
+		$content = $docsContent + "<!--- Results --->`n%TestResult%`n"
 	}
 
 	# Split the content into lines, start from the last line and remove

@@ -5,7 +5,7 @@ Once created, self-provisioned guest accounts provide persistent access to organ
 Additionally, compromised guest identities can be used to establish credential persistence and potentially escalate privileges. Attackers can exploit trust relationships between guest accounts and internal resources, or use the guest account as a staging ground for lateral movement toward more privileged organizational assets.
 
 **Remediation action**
-
 - [Configure guest self-service sign-up With Microsoft Entra External ID](https://learn.microsoft.com/entra/external-id/external-collaboration-settings-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#to-configure-guest-self-service-sign-up)
 <!--- Results --->
 %TestResult%
+

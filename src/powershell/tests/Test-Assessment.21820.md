@@ -5,7 +5,6 @@ Monitoring these activation alerts can help security teams distinguish between a
 **Remediation action**
 
 - [Configure notifications for privileged roles](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#require-justification-on-active-assignment)
-
 <!--- Results --->
 %TestResult%
 

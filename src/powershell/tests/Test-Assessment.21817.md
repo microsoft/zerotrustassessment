@@ -8,6 +8,7 @@ The Global Administrator role provides access to administrative features in Micr
 **Remediation action**
 
 - [Configure role settings to require approval for Global Administrator activation](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Set up approval workflow for privileged roles](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-approval-workflow?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Set up approval workflow for privileged roles](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-approval-workflow?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

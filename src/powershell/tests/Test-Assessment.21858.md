@@ -6,7 +6,7 @@ When guest identities remain active but unused for extended periods, threat acto
 The prolonged dormancy of these accounts provides attackers with extended dwell time to conduct reconnaissance, exfiltrate sensitive data, and establish backdoors without detection, as organizations typically focus monitoring efforts on active internal users rather than external guest accounts.
 
 **Remediation action**
-
 - [Monitor and clean up stale guest accounts](https://learn.microsoft.com/entra/identity/users/clean-up-stale-guest-accounts?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

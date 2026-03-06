@@ -4,7 +4,6 @@ FIDO2 security keys provide hardware-backed, phishing-resistant authentication t
 
 - [Enable FIDO2 security key authentication method](https://learn.microsoft.com/entra/identity/authentication/how-to-enable-passkey-fido2?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-passkey-fido2-authentication-method)
 - [Manage authentication methods](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-methods-manage?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
 <!--- Results --->
 %TestResult%
 

@@ -5,7 +5,6 @@ Tenant creation events should be monitored and triaged to detect unauthorized te
 - [Review and restrict permissions to create tenants](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Stream audit logs to an event hub for SIEM integration](https://learn.microsoft.com/entra/identity/monitoring-health/howto-stream-logs-to-event-hub?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Configure monitoring and alerting for audit events](https://learn.microsoft.com/entra/identity/monitoring-health/overview-monitoring-health?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
 <!--- Results --->
 %TestResult%
 

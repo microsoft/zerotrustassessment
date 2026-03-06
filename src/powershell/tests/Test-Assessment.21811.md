@@ -12,6 +12,7 @@ Research shows that users create weaker, more predictable passwords when they ar
     - Sign in to the [Microsoft 365 admin center](https://admin.microsoft.com/). Go to **Settings** > **Org Settings** >** Security & Privacy** > **Password expiration policy**. Ensure the **Set passwords to never expire** setting is checked.
 - [Disable password expiration using Microsoft Graph](https://learn.microsoft.com/graph/api/domain-update?view=graph-rest-1.0&preserve-view=true&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 - [Set individual user passwords to never expire using Microsoft Graph PowerShell](https://learn.microsoft.com/microsoft-365/admin/add-users/set-password-to-never-expire?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-    - `Update-MgUser -UserId <UserID> -PasswordPolicies DisablePasswordExpiration`<!--- Results --->
+    - `Update-MgUser -UserId <UserID> -PasswordPolicies DisablePasswordExpiration`
+<!--- Results --->
 %TestResult%
 
