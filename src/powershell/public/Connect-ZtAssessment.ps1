@@ -262,10 +262,10 @@ function Connect-ZtAssessment {
 				Add-ZtConnectedService -Service 'Azure'
 			}
 			catch {
-				Write-PSFMessage -Message ("Failed to authenticate to Azure: {0}" -f $_) -Level Error -ErrorRecord $_
+				Write-PSFMessage -Message ("Failed to authenticate to Azure: {0}" -f $_) -Level Debug -ErrorRecord $_
 				Remove-ZtConnectedService -Service 'Azure'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
-				Write-Host -Object "       Tests requiring Azure will be skipped." -ForegroundColor Yellow
+				Write-Host -Object "      Tests requiring Azure will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 			}
 		}
@@ -291,7 +291,7 @@ function Connect-ZtAssessment {
 				Write-Host -Object "   ❌ Failed to load Azure Information Protection modules." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure Information Protection will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Error loading AipService Module in WindowsPowerShell: {0}" -f $_) -Level Error -ErrorRecord $_
+				Write-PSFMessage -Message ("Error loading AipService Module in WindowsPowerShell: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable and skip connection attempt.
 				Remove-ZtConnectedService -Service 'AipService'
 			}
@@ -309,7 +309,7 @@ function Connect-ZtAssessment {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure Information Protection will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Failed to connect to Azure Information Protection: {0}" -f $_) -Level Error -ErrorRecord $_
+				Write-PSFMessage -Message ("Failed to connect to Azure Information Protection: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable.
 				Remove-ZtConnectedService -Service 'AipService'
 			}
@@ -333,7 +333,7 @@ function Connect-ZtAssessment {
 					Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName
 				}
 				else {
-					Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName
+					$null = Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop -InformationAction Ignore
 				}
 
 				# Fix for Get-Label visibility in other scopes
@@ -349,9 +349,9 @@ function Connect-ZtAssessment {
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
-				Write-Host -Object "       Tests requiring Exchange Online will be skipped." -ForegroundColor Yellow
+				Write-Host -Object "      Tests requiring Exchange Online will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Failed to connect to Exchange Online: {0}" -f $_) -Level Error -ErrorRecord $_
+				Write-PSFMessage -Message ("Failed to connect to Exchange Online: {0}" -f $_) -Level Debug -ErrorRecord $_
 				Remove-ZtConnectedService -Service 'ExchangeOnline'
 			}
 		}
@@ -400,10 +400,10 @@ function Connect-ZtAssessment {
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to load required modules for Security & Compliance." -ForegroundColor Yellow
-				Write-Host -Object "       Tests requiring Security & Compliance will be skipped." -ForegroundColor Yellow
+				Write-Host -Object "      Tests requiring Security & Compliance will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 				Remove-ZtConnectedService -Service 'SecurityCompliance'
-				Write-PSFMessage -Message "Failed to load required modules for Security & Compliance: $_" -Level Error
+				Write-PSFMessage -Message "Failed to load required modules for Security & Compliance: $_" -Level Debug -ErrorRecord $_
 			}
 
 			if ($UseDeviceCode) {
@@ -462,6 +462,12 @@ function Connect-ZtAssessment {
 					Add-ZtConnectedService -Service 'SecurityCompliance'
 				}
 				catch {
+					Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
+					Write-Host -Object "      Tests requiring Security & Compliance will be skipped." -ForegroundColor Yellow
+					Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+					Write-PSFMessage -Message ("Failed to connect to Security & Compliance PowerShell: {0}" -f $_) -Level Debug -ErrorRecord $_
+
+					Remove-ZtConnectedService -Service 'SecurityCompliance'
 					$exception = $_
 					$methodNotFoundException = $null
 
@@ -478,8 +484,6 @@ function Connect-ZtAssessment {
 						Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
 					}
 
-					Write-Host "`nFailed to connect to the Security & Compliance PowerShell: $exception" -ForegroundColor Red
-					Remove-ZtConnectedService -Service 'SecurityCompliance'
 				}
 			}
 		}
@@ -500,9 +504,9 @@ function Connect-ZtAssessment {
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to load required modules for SharePoint Online." -ForegroundColor Yellow
-				Write-Host -Object "       Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
+				Write-Host -Object "      Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
 				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Failed to load required modules for SharePoint Online: {0}" -f $_) -Level Error -ErrorRecord $_
+				Write-PSFMessage -Message ("Failed to load required modules for SharePoint Online: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable
 				Remove-ZtConnectedService -Service 'SharePointOnline'
 				break
@@ -539,9 +543,10 @@ function Connect-ZtAssessment {
 					Add-ZtConnectedService -Service 'SharePointOnline'
 				}
 				catch {
-					Write-PSFMessage -Message ('Failed to connect to SharePoint Online: {0}' -f $_.Message) -Level Error -ErrorRecord $_
+					Write-PSFMessage -Message ('Failed to connect to SharePoint Online: {0}' -f $_.Message) -Level Debug -ErrorRecord $_
 					Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
-					Write-Host -Object "       Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
+					Write-Host -Object "      Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
+					Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 					Remove-ZtConnectedService -Service 'SharePointOnline'
 				}
 			}
