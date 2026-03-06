@@ -89,14 +89,7 @@
 
 			$result.Start = Get-Date
 
-			# TODO: Add code path to test where $Service not in $script:ConnectedService
-			if ($Test.Service.count -gt 0 -and $Test.Service -notin $script:ConnectedService) {
-				Write-PSFMessage -Level Warning -Message ("Required service(s) '{0}' for test '{1}' not found. Skipping test." -f ($Test.Service -join ', '), $Test.TestID) -Target $Test
-				throw "Required service '$($Test.Service)' for test '$($Test.TestID)' is not available."
-			}
-			else {
-				$result.Output = & $command @dbParam -ErrorAction Stop
-			}
+			$result.Output = & $command @dbParam -ErrorAction Stop
 		}
 		catch {
 			Write-PSFMessage -Level Warning -Message "Error executing test '{0}'" -StringValues $Test.TestID -Target $Test -ErrorRecord $_

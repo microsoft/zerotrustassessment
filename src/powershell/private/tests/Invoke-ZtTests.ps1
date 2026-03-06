@@ -20,6 +20,12 @@
 		Maximum number of tests processed in parallel.
 		Defaults to: 5
 
+	.PARAMETER ConnectedService
+		The services that are connected and can be used for testing.
+		This is used to skip tests that require a service connection when the service is not connected.
+		If not specified, it will use the value from $script:ConnectedService, which is set based on the
+		connected services populated by Connect-ZtAssessment.
+
 	.EXAMPLE
 		PS C:\> Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
 
@@ -46,7 +52,7 @@
 		[Parameter(DontShow)]
 		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]]
-		$Service = $script:ConnectedService
+		$ConnectedService = $script:ConnectedService
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -65,20 +71,33 @@
 	# Filter based on preview feature flag
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		# Non-preview mode: Only include stable/released pillars
-		$stablePillars = @('Identity', 'Devices','Devices', 'Network', 'Data')
+		$stablePillars = @('Identity', 'Devices', 'Network', 'Data')
 		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
 	}
 
-	# Filter based on service connection.
-	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service -notin $Service }
-	$testsToRun = $testsToRun.Where{ $_.Service.count -eq 0 -or $_.Service -in $Service }
+	# Filter based on service connection. If no service is specified in the tets metadata, it will be run.
+	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service.Count -notin $_.Service.Where{ $_ -in $ConnectedService}.count }
+	$skippedTestsForService.ForEach{
+		$notConnectedService = ($_).Service.Where{ $_ -notin $ConnectedService }
+		# Mark the test as skipped.
+		Add-ZtTestResultDetail -SkippedBecause NotConnectedToService -TestId $_.TestId -NotConnectedService $notConnectedService
+	}
+
+	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
+
+	# Filter based on Compatible licenses
+	$skippedTestsForLicense = $testsToRun.Where{$_.CompatibleLicense.Count -gt 0 -and (-not (Test-ZtLicense -CompatibleLicense $_.CompatibleLicense)) }
+	$skippedTestsForLicense.ForEach{
+		Write-Warning -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId)
+		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
+	}
+
+	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForLicense.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId #@($testsToRun | Where-Object { $_.Pillar -eq 'Data' } | Select-Object -ExpandProperty TestId)
+	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
-
-	#TODO: Remove tests that depend service connection not available
 
 	$workflow = $null
 	try {
