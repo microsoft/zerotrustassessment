@@ -35,7 +35,9 @@ function Test-Assessment-25400 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -77,12 +79,15 @@ function Test-Assessment-25400 {
     if (-not $errorMsgQ1 -and $isPrivateAccessEnabled) {
         Write-ZtProgress -Activity $activity -Status 'Querying Private Access applications'
 
+        $sql = @"
+select id, displayName
+from main.Application
+where list_contains(tags, 'PrivateAccessNonWebApplication')
+   or list_contains(tags, 'NetworkAccessQuickAccessApplication')
+"@
+
         try {
-            $privateAccessApps = Invoke-ZtGraphRequest `
-                -RelativeUri 'applications' `
-                -Select 'id,displayName,tags' `
-                -Filter "(tags/any(c:c eq 'PrivateAccessNonWebApplication') or tags/any(c:c eq 'NetworkAccessQuickAccessApplication'))" `
-                -ApiVersion beta
+            $privateAccessApps = Invoke-DatabaseQuery -Database $Database -Sql $sql
         }
         catch {
             $errorMsgQ2 = $_
