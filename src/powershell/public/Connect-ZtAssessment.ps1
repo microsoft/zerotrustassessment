@@ -114,7 +114,6 @@ function Connect-ZtAssessment {
 	Write-Host -Object ('🔑 Authentification to {0}.' -f ($Service -join ', ')) -ForegroundColor DarkGray
 	Write-Host -Object ('During the next steps, you may be prompted to authenticate separately for several services.') -ForegroundColor DarkGray
 	$resolvedRequiredModules.ServiceAvailable.ForEach{
-		# TODO: When we display, add the module details (Name, version, etc.) for the available modules for each service.
 		Write-PSFMessage -Message ("Service '{0}' is available with its required modules:" -f $_) -Level Debug
 		$resolvedRequiredModules.($_).Foreach{
 			Write-PSFMessage -Message (" - {0} v{1}" -f $_.Name,$_.Version) -Level Debug
@@ -180,7 +179,7 @@ function Connect-ZtAssessment {
 			catch {
 				Write-PSFMessage -Message ("Failed to authenticate to Graph: {0}" -f $graphException.Message) -Level Error -ErrorRecord $_
 				# Remove service from the connected list.
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'Graph' }
+				Remove-ZtConnectedService -Service 'Graph'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Microsoft Graph will not be executed." -ForegroundColor Yellow
 				$graphException = $_
@@ -208,7 +207,7 @@ function Connect-ZtAssessment {
 				}
 			}
 			catch {
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'Graph' }
+				Remove-ZtConnectedService -Service 'Graph'
 				Stop-PSFFunction -Message "Authenticated to Graph, but the requirements for the ZeroTrustAssessment are not met by the established session:`n$_" -ErrorRecord $_ -EnableException $true -Cmdlet $PSCmdlet
 			}
 		}
@@ -264,9 +263,10 @@ function Connect-ZtAssessment {
 			}
 			catch {
 				Write-PSFMessage -Message ("Failed to authenticate to Azure: {0}" -f $_) -Level Error -ErrorRecord $_
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'Azure' }
+				Remove-ZtConnectedService -Service 'Azure'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure will be skipped." -ForegroundColor Yellow
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 			}
 		}
 
@@ -290,9 +290,10 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to load Azure Information Protection modules." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure Information Protection will be skipped." -ForegroundColor Yellow
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 				Write-PSFMessage -Message ("Error loading AipService Module in WindowsPowerShell: {0}" -f $_) -Level Error -ErrorRecord $_
 				# Mark service as unavailable and skip connection attempt.
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'AipService' }
+				Remove-ZtConnectedService -Service 'AipService'
 			}
 
 			try {
@@ -307,10 +308,10 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure Information Protection will be skipped." -ForegroundColor Yellow
-				Write-Host "`nFailed to connect to Azure Information Protection: $_" -ForegroundColor Red
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
 				Write-PSFMessage -Message ("Failed to connect to Azure Information Protection: {0}" -f $_) -Level Error -ErrorRecord $_
 				# Mark service as unavailable.
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'AipService' }
+				Remove-ZtConnectedService -Service 'AipService'
 			}
 		}
 
@@ -349,7 +350,9 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Exchange Online will be skipped." -ForegroundColor Yellow
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'ExchangeOnline' }
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+				Write-PSFMessage -Message ("Failed to connect to Exchange Online: {0}" -f $_) -Level Error -ErrorRecord $_
+				Remove-ZtConnectedService -Service 'ExchangeOnline'
 			}
 		}
 
@@ -387,7 +390,6 @@ function Connect-ZtAssessment {
 				$loadedExoSnCModules = $resolvedRequiredModules.SecurityCompliance.ForEach{
 					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
 					$_ | Import-Module -Global -ErrorAction Stop -PassThru -WarningAction SilentlyContinue
-					# Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop -Global
 				}
 
 				$loadedExoSnCModules.ForEach{
@@ -399,7 +401,8 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to load required modules for Security & Compliance." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Security & Compliance will be skipped." -ForegroundColor Yellow
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SecurityCompliance' }
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+				Remove-ZtConnectedService -Service 'SecurityCompliance'
 				Write-PSFMessage -Message "Failed to load required modules for Security & Compliance: $_" -Level Error
 			}
 
@@ -476,7 +479,7 @@ function Connect-ZtAssessment {
 					}
 
 					Write-Host "`nFailed to connect to the Security & Compliance PowerShell: $exception" -ForegroundColor Red
-					$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SecurityCompliance' }
+					Remove-ZtConnectedService -Service 'SecurityCompliance'
 				}
 			}
 		}
@@ -484,7 +487,7 @@ function Connect-ZtAssessment {
 		'SharePointOnline' {
 			Write-Host -Object "`nConnecting to SharePoint Online" -ForegroundColor Cyan
 			try {
-				# TODO: Use resolved module to load.
+				Write-PSFMessage -Message ('Loading SharePoint Online required modules: {0}' -f ($resolvedRequiredModules.SharePointOnline.Name -join ', ')) -Level Verbose
 				$loadedSharePointOnlineModules = $resolvedRequiredModules.SharePointOnline.ForEach{
 					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
 					$_ | Import-Module -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
@@ -496,12 +499,12 @@ function Connect-ZtAssessment {
 				}
 			}
 			catch {
-				Write-Host "$_" -ForegroundColor Red
-				Write-PSFMessage -Message ('Failed to load required modules for SharePoint Online: {0}' -f $_.Message) -Level Error
 				Write-Host -Object "   ❌ Failed to load required modules for SharePoint Online." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
+				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+				Write-PSFMessage -Message ("Failed to load required modules for SharePoint Online: {0}" -f $_) -Level Error -ErrorRecord $_
 				# Mark service as unavailable
-				$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SharePointOnline' }
+				Remove-ZtConnectedService -Service 'SharePointOnline'
 				break
 			}
 
@@ -525,7 +528,9 @@ function Connect-ZtAssessment {
 			}
 
 			if (-not $adminUrl) {
-				Write-Warning "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection."
+				Write-Host -Object "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -ForegroundColor Yellow
+				Write-PSFMessage -Message "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -Level Warning
+				Remove-ZtConnectedService -Service 'SharePointOnline'
 			}
 			else {
 				try {
@@ -537,7 +542,7 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message ('Failed to connect to SharePoint Online: {0}' -f $_.Message) -Level Error -ErrorRecord $_
 					Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 					Write-Host -Object "       Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
-					$script:ConnectedService = $script:ConnectedService.Where{ $_ -ne 'SharePointOnline' }
+					Remove-ZtConnectedService -Service 'SharePointOnline'
 				}
 			}
 		}
