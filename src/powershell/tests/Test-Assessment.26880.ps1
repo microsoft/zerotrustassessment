@@ -60,8 +60,7 @@ resources
 | extend RequestBodyCheck = tostring(properties.policySettings.requestBodyCheck)
 | extend EnabledState = tostring(properties.policySettings.enabledState)
 | extend Mode = tostring(properties.policySettings.mode)
-| extend SkuName = tostring(sku.name)
-| project PolicyId, PolicyName, subscriptionId, RequestBodyCheck, EnabledState, Mode, SkuName
+| project PolicyId, PolicyName, subscriptionId, RequestBodyCheck, EnabledState, Mode
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
