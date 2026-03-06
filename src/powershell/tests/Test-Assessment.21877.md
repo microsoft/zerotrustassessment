@@ -12,5 +12,5 @@ Mandating that every guest account is assigned to a sponsor directly mitigates t
 - For each guest user that has no sponsor, assign a sponsor in Microsoft Entra ID.
     - [Add a sponsor to a guest user in the Microsoft Entra admin center](https://learn.microsoft.com/entra/external-id/b2b-sponsors?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
     - [Add a sponsor to a guest user using Microsoft Graph](https://learn.microsoft.com/graph/api/user-post-sponsors?view=graph-rest-1.0&preserve-view=true&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-    <!--- Results --->
+<!--- Results --->
 %TestResult%

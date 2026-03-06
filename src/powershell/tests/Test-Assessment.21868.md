@@ -3,7 +3,8 @@ Without restrictions preventing guest users from registering and owning applicat
 This attack vector is dangerous because guest-owned applications can be configured to request high-privilege permissions and, once granted consent, provide threat actors with legitimate OAuth tokens. Furthermore, guest-owned applications can serve as command and control infrastructure, so threat actors can maintain access even after the compromised guest account is detected and remediated. Application credentials and permissions might persist independently of the original guest user account, so threat actors can retain access. Guest-owned applications also complicate security auditing and governance efforts, as organizations might have limited visibility into the purpose and security posture of applications registered by external users. These hidden weaknesses in the application lifecycle management make it difficult to assess the true scope of data access granted to non-Microsoft entities through seemingly legitimate application registrations.
 
 **Remediation action**
-- Remove guest users as owners from applications and service principals, and implement controls to prevent future guest user application ownership.
-- [Restrict guest user access permissions](https://learn.microsoft.com/entra/identity/users/users-restrict-guest-permissions?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
-%TestResult%
 
+- Remove guest users as owners from applications and service principals, and implement controls to prevent future guest user application ownership.
+- [Restrict guest user access permissions](https://learn.microsoft.com/entra/identity/users/users-restrict-guest-permissions?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
+%TestResult%

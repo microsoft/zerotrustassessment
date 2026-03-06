@@ -9,6 +9,6 @@ Use Intune to configure macOS ADE profiles that provision a local admin account 
 - [Rotate local admin password (macOS)](https://learn.microsoft.com/intune/intune-service/remote-actions/device-rotate-local-admin-password?pivots=macos&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 
 For more information, see:  
-- [macOS ADE setup guide](https://learn.microsoft.com/intune/intune-service/enrollment/device-enrollment-program-enroll-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [macOS ADE setup guide](https://learn.microsoft.com/intune/intune-service/enrollment/device-enrollment-program-enroll-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
-
