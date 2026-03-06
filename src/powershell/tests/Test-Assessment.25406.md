@@ -8,8 +8,8 @@ Without this protection:
 - Threat actors can use compromised accounts to blend with typical user behavior and access external resources without triggering security alerts based on user context, device compliance, or location.
 
 **Remediation action**
+
 - Enable the Internet Access forwarding profile to route traffic through the Secure Web Gateway. For more information, see [How to manage the Internet Access traffic forwarding profile](https://learn.microsoft.com/entra/global-secure-access/how-to-manage-internet-access-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 - Assign users and groups to the Internet Access profile to limit traffic forwarding to specific users. For more information, see [Global Secure Access traffic forwarding profiles](https://learn.microsoft.com/entra/global-secure-access/concept-traffic-forwarding?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
-
