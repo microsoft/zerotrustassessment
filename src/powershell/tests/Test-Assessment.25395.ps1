@@ -35,6 +35,10 @@ function Test-Assessment-25395 {
     # Active Directory well-known ports
     $AD_WELL_KNOWN_PORTS = @('53','88','135','389','445','464','636','3268','3269')
 
+    # Portal link templates
+    $portalLinkAppList = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
+    $portalLinkAppTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/{0}'
+
     #region Helper Functions
 
     function Test-IsBroadCidr {
@@ -149,10 +153,22 @@ function Test-Assessment-25395 {
     Write-ZtProgress -Activity $activity -Status 'Querying applications'
 
     # Query Q1: List all Private Access enterprise applications
-    $apps = Invoke-ZtGraphRequest -RelativeUri "applications?`$filter=(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))&`$select=id,displayName,appId,tags" -ApiVersion beta
+    try {
+        $apps = Invoke-ZtGraphRequest -RelativeUri "applications?`$filter=tags/any(t:t eq 'PrivateAccessNonWebApplication')&`$select=id,displayName,appId,tags" -ApiVersion beta -ErrorAction Stop
+    }
+    catch {
+        Write-PSFMessage -Level Warning -Message "Failed to retrieve Private Access applications: $_"
+        $apps = $null
+    }
 
     # Query Q2: Retrieve service principals with Custom Security Attributes
-    $servicePrincipals = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))&`$select=id,appId,displayName,customSecurityAttributes&`$count=true" -ApiVersion beta -ConsistencyLevel eventual
+    try {
+        $servicePrincipals = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(t:t eq 'PrivateAccessNonWebApplication')&`$select=id,appId,displayName,customSecurityAttributes&`$count=true" -ApiVersion beta -ConsistencyLevel eventual -ErrorAction Stop
+    }
+    catch {
+        Write-PSFMessage -Level Warning -Message "Failed to retrieve service principals: $_"
+        $servicePrincipals = @()
+    }
 
     # Query Q3: Retrieve enabled Conditional Access policies
     $caPolicies     = $null
@@ -192,7 +208,13 @@ function Test-Assessment-25395 {
         foreach ($app in $apps) {
 
             # Query Q4: Retrieve application segments for the current app
-            $segments = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -ApiVersion beta
+            try {
+                $segments = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -ApiVersion beta -ErrorAction Stop
+            }
+            catch {
+                Write-PSFMessage -Level Warning -Message "Failed to retrieve segments for app $($app.displayName): $_"
+                $segments = $null
+            }
 
             $hasBroadSegment = $false
             $hasWildcardDns  = $false
@@ -291,7 +313,7 @@ function Test-Assessment-25395 {
                 AppObjectId  = $app.id
                 AppId        = $app.appId
                 SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
-                SegmentScope = ($segmentSummary -join ' | ')
+                SegmentScope = ($segmentSummary -join '<br>')
                 HasCSA       = [bool]$sp.customSecurityAttributes
                 Status       = $appStatus
             }
@@ -351,20 +373,20 @@ function Test-Assessment-25395 {
     if ($appResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-## [Application details](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication)
+## [Application details]({0})
 
 | App name | Segment type | Segment scope | Has CSAs | Status |
 |---|---|---|---|---|
-{0}
+{1}
 
 '@
         foreach ($r in $appResults) {
-            $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($r.AppId)"
+            $appLink = $portalLinkAppTemplate -f $r.AppId
             $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $r.AppName), $appLink
             $hasCSAText = if ($r.HasCSA) {'Yes'} else {'No'}
             $tableRows += "| $linkedAppName | $($r.SegmentType) | $($r.SegmentScope) | $hasCSAText | $($r.Status) |`n"
         }
-        $mdInfo += $formatTemplate -f $tableRows
+        $mdInfo += $formatTemplate -f $portalLinkAppList, $tableRows
     }
 
 
@@ -379,7 +401,7 @@ function Test-Assessment-25395 {
 
 '@
         foreach ($f in $segmentFindings) {
-            $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($f.AppId)"
+            $appLink = $portalLinkAppTemplate -f $f.AppId
             $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $f.AppName), $appLink
             $tableRows += "| $linkedAppName | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
         }
