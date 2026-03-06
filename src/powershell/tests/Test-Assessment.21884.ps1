@@ -10,7 +10,7 @@ function Test-Assessment-21884 {
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
-    	SfiPillar = 'Protect tenants and production systems',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 21884,
     	Title = 'Conditional Access policies for workload identities based on known networks are configured',
