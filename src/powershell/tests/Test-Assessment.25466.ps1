@@ -73,10 +73,13 @@ function Test-Assessment-25466 {
                     -RelativeUri "onPremisesPublishingProfiles/applicationProxy/connectorGroups/$($group.id)/members" `
                     -ApiVersion beta
 
+                # Normalize to array to ensure .Count works correctly with single objects
+                $members = @($members)
+
                 # Count active connectors
                 $activeConnectors = @($members | Where-Object { $_.status -eq 'active' })
                 $activeCount = $activeConnectors.Count
-                $totalCount = if ($members) { $members.Count } else { 0 }
+                $totalCount = $members.Count
 
                 $regionDisplayRaw = if ($group.region) { $group.region } else { 'Default' }
                 $regionDisplay = Get-SafeMarkdown -Text $regionDisplayRaw
@@ -169,7 +172,7 @@ function Test-Assessment-25466 {
 
         foreach ($group in $groupsToDisplay) {
             $groupName = Get-SafeMarkdown -Text $group.Name
-            $region = Get-SafeMarkdown -Text $group.Region
+            $region = $group.Region
             $statusIcon = if ($group.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
             $tableRows += "| $groupName | $region | $($group.ActiveCount) | $($group.TotalCount) | $statusIcon |`n"
         }
@@ -192,7 +195,7 @@ function Test-Assessment-25466 {
 
             foreach ($failedGroup in $failingGroupsToDisplay) {
                 $groupName = Get-SafeMarkdown -Text $failedGroup.Name
-                $failedRegion = Get-SafeMarkdown -Text $failedGroup.Region
+                $failedRegion = $failedGroup.Region
                 $mdInfo += "**Connector Group: $groupName** (Region: $failedRegion)`n`n"
 
                 if ($failedGroup.Members -and $failedGroup.Members.Count -gt 0) {
@@ -203,9 +206,12 @@ function Test-Assessment-25466 {
 
                     foreach ($member in $connectorsToDisplay) {
                         $machineName = Get-SafeMarkdown -Text $member.machineName
-                        $externalIp = if ($member.externalIp) { $member.externalIp } else { 'N/A' }
-                        $status = if ($member.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
-                        $version = if ($member.version) { $member.version } else { 'N/A' }
+                        $externalIpRaw = if ($member.externalIp) { $member.externalIp } else { 'N/A' }
+                        $externalIp = Get-SafeMarkdown -Text $externalIpRaw
+                        $statusRaw = if ($member.status -eq 'active') { '✅ Active' } else { '❌ Inactive' }
+                        $status = Get-SafeMarkdown -Text $statusRaw
+                        $versionRaw = if ($member.version) { $member.version } else { 'N/A' }
+                        $version = Get-SafeMarkdown -Text $versionRaw
                         $mdInfo += "| $groupName | $machineName | $externalIp | $status | $version |`n"
                     }
 
