@@ -2,7 +2,7 @@ App instance property lock prevents changes to sensitive properties of a multite
 
 **Remediation action**
 Enable the app instance property lock for all multitenant applications and specify the properties to lock.
-- [Configure an app instance lock](https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-app-instance-property-locks?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-an-app-instance-lock)   
+- [Configure an app instance lock](https://learn.microsoft.com/entra/identity-platform/howto-configure-app-instance-property-locks?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-an-app-instance-lock)   
 <!--- Results --->
 %TestResult%
 

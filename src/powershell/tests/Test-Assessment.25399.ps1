@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks that Private DNS is configured for internal name resolution in Entra Private Access (Quick Access)
 .DESCRIPTION
@@ -12,16 +12,16 @@
 
 function Test-Assessment-25399 {
     [ZtTest(
-        Category = 'Private Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Premium_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce','External'),
-        TestId = '25399',
-        Title = 'Private DNS is configured for internal name resolution',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25399,
+    	Title = 'Private DNS is configured for internal name resolution',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

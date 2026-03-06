@@ -2,7 +2,7 @@ Set up risk-based Conditional Access policies for workload identities based on r
 
 **Remediation action**
 Create a risk-based Conditional Access policy for workload identities.
-- [Create a risk-based Conditional Access policy](https://learn.microsoft.com/en-us/entra/identity/conditional-access/workload-identity?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-risk-based-conditional-access-policy)   
+- [Create a risk-based Conditional Access policy](https://learn.microsoft.com/entra/identity/conditional-access/workload-identity?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-risk-based-conditional-access-policy)   
 <!--- Results --->
 %TestResult%
 

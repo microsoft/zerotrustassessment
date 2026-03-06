@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks that Global Secure Access source IP restoration (Conditional Access signaling) is enabled.
 .DESCRIPTION
@@ -7,16 +7,16 @@
 
 function Test-Assessment-25370 {
     [ZtTest(
-        Category = 'Network',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Free'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce','External'),
-        TestId = 25370,
-        Title = 'User source IP addresses are preserved for Conditional Access and risk detection',
-        UserImpact = 'Low'
+    	Category = 'Network',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Free'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25370,
+    	Title = 'Source IP restoration is enabled',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

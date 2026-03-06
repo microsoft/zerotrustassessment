@@ -4,6 +4,6 @@ This attack vector is dangerous because guest-owned applications can be configur
 
 **Remediation action**
 - Remove guest users as owners from applications and service principals, and implement controls to prevent future guest user application ownership.
-- [Restrict guest user access permissions](https://learn.microsoft.com/en-us/entra/identity/users/users-restrict-guest-permissions?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Restrict guest user access permissions](https://learn.microsoft.com/entra/identity/users/users-restrict-guest-permissions?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
 

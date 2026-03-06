@@ -10,6 +10,6 @@ The lack of centralized identity lifecycle management also makes it difficult fo
 
 **Remediation action**
 
-- [Configure application provisioning for missing applications](https://learn.microsoft.com/en-us/entra/identity/app-provisioning/configure-automatic-user-provisioning-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Configure application provisioning for missing applications](https://learn.microsoft.com/entra/identity/app-provisioning/configure-automatic-user-provisioning-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
 

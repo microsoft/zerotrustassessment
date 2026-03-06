@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Azure Rights Management licensing is enabled
 
@@ -17,16 +17,16 @@
 
 function Test-Assessment-35024 {
     [ZtTest(
-        Category = 'Rights Management Service (RMS)',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Microsoft 365 E3'),
-        Pillar = 'Data',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce'),
-        TestId = 35024,
-        Title = 'Azure Rights Management licensing is enabled',
-        UserImpact = 'High'
+    	Category = 'Rights Management Service',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E3'),
+    	Pillar = 'Data',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35024,
+    	Title = 'Azure Rights Management licensing is enabled',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

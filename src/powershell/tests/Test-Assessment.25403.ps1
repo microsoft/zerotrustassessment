@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Private Access Sensors are deployed on domain controllers and enforcing strong authentication policies.
 
@@ -14,16 +14,16 @@
 
 function Test-Assessment-25403 {
     [ZtTest(
-        Category = 'Private Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Suite', 'Entra_Premium_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25403,
-        Title = 'DC Agent is deployed and enforcing strong authentication policies',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Suite','Entra_Premium_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25403,
+    	Title = 'Private Access sensors are enforcing strong authentication policies on domain controllers',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

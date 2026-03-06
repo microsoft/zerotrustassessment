@@ -6,6 +6,6 @@ If this check passes, your tenant has a Conditional Access policy that restricts
 
 - [Deploy a privileged access workstation solution](https://learn.microsoft.com/security/privileged-access-workstations/privileged-access-deployment?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
     - Provides guidance for configuring the Conditional Access and Intune device configuration and compliance policies.
-- [Configure device filters in Conditional Access to restrict privileged access](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-condition-filters-for-devices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Configure device filters in Conditional Access to restrict privileged access](https://learn.microsoft.com/entra/identity/conditional-access/concept-condition-filters-for-devices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
 %TestResult%
 

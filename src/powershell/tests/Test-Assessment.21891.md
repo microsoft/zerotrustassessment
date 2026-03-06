@@ -2,7 +2,7 @@ Configuring password reset notifications for administrator roles in Microsoft En
 
 **Remediation action**
 
-- [Notify all admins when other admins reset their passwords](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-sspr-howitworks?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#notify-all-admins-when-other-admins-reset-their-passwords) 
+- [Notify all admins when other admins reset their passwords](https://learn.microsoft.com/entra/identity/authentication/concept-sspr-howitworks?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#notify-all-admins-when-other-admins-reset-their-passwords) 
 <!--- Results --->
 %TestResult%
 

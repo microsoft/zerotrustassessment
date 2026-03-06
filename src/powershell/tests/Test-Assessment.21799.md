@@ -2,7 +2,7 @@ When high-risk sign-ins are not properly restricted through Conditional Access p
 
 **Remediation action**
 
-- [Deploy a Conditional Access policy to require MFA for elevated sign-in risk](https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-risk-based-sign-in?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Deploy a Conditional Access policy to require MFA for elevated sign-in risk](https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 
