@@ -4,4 +4,5 @@ Requiring sign-ins from managed devices ensures that users access organizational
 
 - [Require compliant or hybrid joined devices with Conditional Access](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-device-compliance?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 - [Configure device compliance policies in Microsoft Intune](https://learn.microsoft.com/mem/intune/protect/device-compliance-get-started?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
+<!--- Results --->
+%TestResult%
