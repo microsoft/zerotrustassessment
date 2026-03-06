@@ -370,9 +370,15 @@ $recommendations = @{}
 foreach ($source in $docsSources) {
 	$sourceRecs = Get-DocsRecommendations -recommendationsFolder $source.Folder
 	foreach ($id in $sourceRecs.Keys) {
+		if ($recommendations.ContainsKey($id)) {
+			Write-Warning ("Duplicate recommendation ID '{0}' encountered. " +
+				"Existing source: '{1}'. New source: '{2}'. Overwriting existing recommendation." -f `
+				$id, $recommendations[$id].SourceName, $source.Name)
+		}
 		$recommendations[$id] = @{
 			Content     = $sourceRecs[$id]
 			DocsBaseUrl = $source.DocsBaseUrl
+			SourceName  = $source.Name
 		}
 	}
 }
