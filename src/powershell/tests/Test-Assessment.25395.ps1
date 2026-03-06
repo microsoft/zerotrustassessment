@@ -313,7 +313,7 @@ function Test-Assessment-25395 {
                 AppObjectId  = $app.id
                 AppId        = $app.appId
                 SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
-                SegmentScope = ($segmentSummary -join '<br>')
+                SegmentScope = ($segmentSummary -join ', ')
                 HasCSA       = [bool]$sp.customSecurityAttributes
                 Status       = $appStatus
             }
