@@ -22,7 +22,7 @@ function Test-Assessment-21812 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = "Checking Maximum number of Global Administrators doesn't exceed five users"
+    $activity = "Checking Maximum number of Global Administrators doesn't exceed eight users"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
     # Retrieve all Global Administrators
@@ -36,7 +36,7 @@ function Test-Assessment-21812 {
     $passed = $false
     $testResultMarkdown = ""
 
-if ($globalAdmins.Count -gt 5) {
+if ($globalAdmins.Count -gt 8) {
         $passed = $false
     }
     else {
@@ -44,10 +44,10 @@ if ($globalAdmins.Count -gt 5) {
     }
 
     if ($passed) {
-        $testResultMarkdown = "Maximum number of Global Administrators doesn't exceed five users/service principals.`n`n%TestResult%"
+        $testResultMarkdown = "Maximum number of Global Administrators doesn't exceed eight users/service principals.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "Maximum number of Global Administrators exceeds five users/service principals.`n`n%TestResult%"
+        $testResultMarkdown = "Maximum number of Global Administrators exceeds eight users/service principals.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -105,7 +105,7 @@ if ($globalAdmins.Count -gt 5) {
 
     $params = @{
         TestId = '21812'
-        Title  = "Maximum number of Global Administrators doesn't exceed five users"
+        Title  = "Maximum number of Global Administrators doesn't exceed eight users"
         Status = $passed
         Result = $testResultMarkdown
     }
