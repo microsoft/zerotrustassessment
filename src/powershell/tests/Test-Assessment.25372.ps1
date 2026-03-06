@@ -4,13 +4,13 @@
 
 .DESCRIPTION
     This test compares the count of devices connected to Global Secure Access with the total
-    count of Intune-managed devices to determine deployment coverage. Endpoints without the
-    GSA client operate outside the organization's Security Service Edge controls.
+    count of Entra ID managed devices (joined and hybrid joined) to determine deployment coverage.
+    Endpoints without the GSA client operate outside the organization's Security Service Edge controls.
 
 .NOTES
     Test ID: 25372
     Category: Global Secure Access
-    Required API: networkAccess/reports/getDeviceUsageSummary (beta), deviceManagement/managedDevices (beta)
+    Required API: networkAccess/reports/getDeviceUsageSummary (beta), devices (v1.0)
 #>
 
 function Test-Assessment-25372 {
@@ -55,37 +55,40 @@ function Test-Assessment-25372 {
         Write-PSFMessage "Failed to get GSA device usage summary: $_" -Tag Test -Level Warning
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Getting Intune managed device count'
+    Write-ZtProgress -Activity $activity -Status 'Getting Entra ID managed device count'
 
-    # Query Q2: Count Intune-managed devices
-    $intuneDeviceCount = $null
+    # Query Q2: Count Entra ID managed devices (joined and hybrid joined)
+    $entraDeviceCount = $null
     try {
-        $intuneResponse = Invoke-ZtGraphRequest `
-            -RelativeUri 'deviceManagement/managedDevices' `
-            -ApiVersion beta
-        $intuneDeviceCount = $intuneResponse.Count
+        $entraDevices = Invoke-ZtGraphRequest `
+            -RelativeUri "devices?`$filter=trustType eq 'AzureAd' or trustType eq 'ServerAd'&`$count=true&`$top=999&`$select=id,displayName,operatingSystem,operatingSystemVersion,trustType" `
+            -ApiVersion v1.0 `
+            -ConsistencyLevel eventual
+        # Invoke-ZtGraphRequest returns the unpacked array, so count the results directly
+        $entraDeviceCount = if ($entraDevices) { $entraDevices.Count } else { 0 }
     }
     catch {
-        Write-PSFMessage "Failed to get Intune device count: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Failed to get Entra ID device count: $_" -Tag Test -Level Warning
     }
 
     # Extract values
     $totalGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.totalDeviceCount } else { 0 }
     $activeGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.activeDeviceCount } else { 0 }
     $inactiveGsaDevices = if ($gsaDeviceSummary) { $gsaDeviceSummary.inactiveDeviceCount } else { 0 }
-    $totalManagedDevices = if ($intuneDeviceCount) { $intuneDeviceCount } else { 0 }
+    $totalManagedDevices = if ($entraDeviceCount) { $entraDeviceCount } else { 0 }
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
     $customStatus = $null
 
-    # Edge case: GSA devices > Intune devices (data inconsistency; GSA has more devices than Intune)
+    # Edge case: GSA devices > Entra ID devices (data inconsistency; GSA has more devices than Entra ID)
+    # Per spec: Still calculate percentage and gap to help diagnose the issue
     if ($totalGsaDevices -gt $totalManagedDevices -and $totalManagedDevices -gt 0) {
         $customStatus = 'Investigate'
-        $deploymentPercentage = 'N/A'
-        $gap = 'N/A'
-        $testResultMarkdown = "⚠️ Global Secure Access device count exceeds the Intune-managed device count. This indicates stale GSA device records, devices removed from Intune management, or data synchronization issues between systems. Review both data sources to reconcile counts.`n`n%TestResult%"
+        $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
+        $gap = $totalManagedDevices - $totalGsaDevices
+        $testResultMarkdown = "⚠️ Global Secure Access device count exceeds the Entra ID managed device count. This indicates stale GSA device records, devices removed from Entra ID, or data synchronization issues between systems. Review both data sources to reconcile counts.`n`n%TestResult%"
     }
     # Edge case: No devices at all (both = 0) - Fail per spec
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -eq 0) {
@@ -93,12 +96,12 @@ function Test-Assessment-25372 {
         $gap = 'N/A'
         $testResultMarkdown = "❌ Global Secure Access client deployment is insufficient or cannot be verified. Either deployment coverage is below 70%, no devices are detected, or services may not be in scope for this environment.`n`n%TestResult%"
     }
-    # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Intune baseline unavailable)
+    # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Entra ID baseline unavailable)
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -gt 0) {
         $customStatus = 'Investigate'
         $deploymentPercentage = 'N/A'
         $gap = 'N/A'
-        $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Intune-managed devices were found. Deployment coverage cannot be calculated. This may indicate your organization uses a different MDM solution, Intune data is inaccessible, or the required permissions are missing.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Global Secure Access devices were detected but no Entra ID joined or Hybrid joined devices were found. Deployment coverage cannot be calculated. This may indicate device registration data is inaccessible or the required permissions are missing.`n`n%TestResult%"
     }
     # Normal scenario: Calculate deployment percentage and assess
     else {
