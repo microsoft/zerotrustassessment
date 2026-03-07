@@ -75,7 +75,7 @@
 		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
 	}
 
-	# Filter based on service connection. If no service is specified in the tets metadata, it will be run.
+	# Filter based on service connection. If no service is specified in the test metadata, it will be run.
 	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service.Count -notin $_.Service.Where{ $_ -in $ConnectedService}.count }
 	$skippedTestsForService.ForEach{
 		$notConnectedService = ($_).Service.Where{ $_ -notin $ConnectedService }
