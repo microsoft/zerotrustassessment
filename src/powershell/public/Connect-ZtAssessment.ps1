@@ -111,7 +111,7 @@ function Connect-ZtAssessment {
 	#region Validate Services
 	$Service = $Service | Select-Object -Unique
 	$resolvedRequiredModules = Resolve-ZtServiceRequiredModule -Service $Service
-	Write-Host -Object ('🔑 Authentification to {0}.' -f ($Service -join ', ')) -ForegroundColor DarkGray
+	Write-Host -Object ('🔑 Authentication to {0}.' -f ($Service -join ', ')) -ForegroundColor DarkGray
 	Write-Host -Object ('During the next steps, you may be prompted to authenticate separately for several services.') -ForegroundColor DarkGray
 	$resolvedRequiredModules.ServiceAvailable.ForEach{
 		Write-PSFMessage -Message ("Service '{0}' is available with its required modules:" -f $_) -Level Debug
