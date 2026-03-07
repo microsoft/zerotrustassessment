@@ -121,7 +121,8 @@ function Connect-ZtAssessment {
 	}
 
 	$resolvedRequiredModules.ServiceUnavailable.ForEach{
-		Write-Host -Object (' ⚠️ Service "{0}" is not available due to missing required modules: {1}.' -f $_, ($resolvedRequiredModules.Errors.Where({ $_.Service -eq $_ }).ModuleSpecification -join ', ')) -ForegroundColor Yellow
+		$serviceName = $_
+		Write-Host -Object (' ⚠️ Service "{0}" is not available due to missing required modules: {1}.' -f $serviceName, ($resolvedRequiredModules.Errors.Where({ $_.Service -eq $serviceName }).ModuleSpecification -join ', ')) -ForegroundColor Yellow
 	}
 
 	#endregion
