@@ -178,12 +178,12 @@ function Connect-ZtAssessment {
 				Add-ZtConnectedService -Service 'Graph'
 			}
 			catch {
+				$graphException = $_
 				Write-PSFMessage -Message ("Failed to authenticate to Graph: {0}" -f $graphException.Message) -Level Error -ErrorRecord $_
 				# Remove service from the connected list.
 				Remove-ZtConnectedService -Service 'Graph'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Microsoft Graph will not be executed." -ForegroundColor Yellow
-				$graphException = $_
 				$methodNotFound = $null
 				if ($graphException.Exception.InnerException -is [System.MissingMethodException]) {
 					$methodNotFound = $graphException.Exception.InnerException
