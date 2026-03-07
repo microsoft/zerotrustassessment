@@ -14,8 +14,8 @@ function Get-ZtCurrentLicense {
 
     .EXAMPLE
         PS C:\> Get-ZtCurrentLicense -Force
-        # This will retrieve the current licenses for the tenant, bypassing any cached information.
 
+        This will retrieve the current licenses for the tenant, bypassing any cached information.
     #>
     [CmdletBinding()]
     [OutputType([string[]])]
