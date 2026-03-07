@@ -511,7 +511,7 @@ function Connect-ZtAssessment {
 				Write-PSFMessage -Message ("Failed to load required modules for SharePoint Online: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable
 				Remove-ZtConnectedService -Service 'SharePointOnline'
-				break
+				continue
 			}
 
 			$adminUrl = $SharePointAdminUrl
