@@ -121,7 +121,7 @@ function Add-ZtTestResultDetail {
 			$SkippedReason = (Get-ZtSkippedReason -SkippedBecause $SkippedBecause) -f ($NotConnectedService -join '", "')
 		}
 		elseif ($SkippedBecause -eq 'NoCompatibleLicenseFound') {
-			[string[]] $licenseGroupString = $testMeta.CompatibleLicense.ForEach{ ($_ -split '&') -join '" AND "' }
+			[string[]] $licenseGroupString = @($testMeta.CompatibleLicense).ForEach{ ($_ -split '&') -join '" AND "' }
 			$SkippedReason = (Get-ZtSkippedReason -SkippedBecause $SkippedBecause) -f ($licenseGroupString -join '") OR ("')
 		}
 		else {
