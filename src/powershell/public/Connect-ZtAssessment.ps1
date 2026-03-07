@@ -183,7 +183,8 @@ function Connect-ZtAssessment {
 				# Remove service from the connected list.
 				Remove-ZtConnectedService -Service 'Graph'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
-				Write-Host -Object "       Tests requiring Microsoft Graph will not be executed." -ForegroundColor Yellow
+				Write-Host -Object "       Tests requiring Microsoft Graph cannot be executed." -ForegroundColor Yellow
+				Write-Host -Object "       Graph is critical to the ZeroTrustAssessment report. Aborting." -ForegroundColor Yellow
 				$methodNotFound = $null
 				if ($graphException.Exception.InnerException -is [System.MissingMethodException]) {
 					$methodNotFound = $graphException.Exception.InnerException
@@ -465,8 +466,8 @@ function Connect-ZtAssessment {
 				catch {
 					Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 					Write-Host -Object "      Tests requiring Security & Compliance will be skipped." -ForegroundColor Yellow
-					Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-					Write-PSFMessage -Message ("Failed to connect to Security & Compliance PowerShell: {0}" -f $_) -Level Debug -ErrorRecord $_
+					Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
+					Write-PSFMessage -Message ("Failed to connect to Security & Compliance PowerShell: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 
 					Remove-ZtConnectedService -Service 'SecurityCompliance'
 					$exception = $_
@@ -506,7 +507,7 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to load required modules for SharePoint Online." -ForegroundColor Yellow
 				Write-Host -Object "      Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
-				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+				Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
 				Write-PSFMessage -Message ("Failed to load required modules for SharePoint Online: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable
 				Remove-ZtConnectedService -Service 'SharePointOnline'
@@ -544,10 +545,10 @@ function Connect-ZtAssessment {
 					Add-ZtConnectedService -Service 'SharePointOnline'
 				}
 				catch {
-					Write-PSFMessage -Message ('Failed to connect to SharePoint Online: {0}' -f $_.Message) -Level Debug -ErrorRecord $_
+					Write-PSFMessage -Message ('Failed to connect to SharePoint Online: {0}' -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 					Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 					Write-Host -Object "      Tests requiring SharePoint Online will be skipped." -ForegroundColor Yellow
-					Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+					Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
 					Remove-ZtConnectedService -Service 'SharePointOnline'
 				}
 			}
