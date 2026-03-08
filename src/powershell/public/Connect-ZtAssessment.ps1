@@ -332,7 +332,7 @@ function Connect-ZtAssessment {
 
 				Write-Verbose -Message 'Connecting to Microsoft Exchange Online'
 				if ($UseDeviceCode) {
-					Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName
+					$null = Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop -InformationAction Ignore
 				}
 				else {
 					$null = Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop -InformationAction Ignore
