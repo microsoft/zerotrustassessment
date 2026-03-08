@@ -75,7 +75,8 @@ FunctionsToExport = 'Connect-ZtAssessment', 'Disconnect-ZtAssessment',
                'Get-ZtExportStatistics', 'Get-ZtGraphScope', 'Get-ZtTest',
                'Get-ZtTestStatistics', 'Invoke-ZtAssessment',
                'Invoke-ZtGraphRequest', 'Invoke-ZtAzureRequest',
-               'Invoke-ZtAzureResourceGraphRequest', 'Clear-ZtRequiredModule'
+               'Invoke-ZtAzureResourceGraphRequest', 'Clear-ZtRequiredModule',
+               'Get-ZtCurrentLicense'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -109,6 +110,17 @@ PrivateData = @{
         @{ModuleName = 'Az.Accounts'; GUID = '17a2feff-488b-47f9-8729-e2cec094624c'; ModuleVersion = '4.0.2'; },
         @{ModuleName = 'ExchangeOnlineManagement'; GUID = 'b5eced50-afa4-455b-847a-d8fb64140a22'; RequiredVersion = '3.9.0'; }
     )
+
+    ServiceToRequiredModuleMap = @{
+        'Graph'              = @('Microsoft.Graph.Authentication', 'Microsoft.Graph.Beta.Teams')
+        'Azure'              = @('Az.Accounts')
+        'AipService'         = @('AipService')
+        'SharePointOnline'   = @('Microsoft.Online.SharePoint.PowerShell')
+        'ExchangeOnline'     = @('ExchangeOnlineManagement')
+        'SecurityCompliance' = @('ExchangeOnlineManagement')
+    }
+
+    serviceConnectionOrder = @('Graph', 'Azure', 'AipService', 'SharePointOnline', 'ExchangeOnline', 'SecurityCompliance')
 
     PSData = @{
         # Tags applied to this module. These help with module discovery in online galleries.

@@ -20,6 +20,12 @@
 		Maximum number of tests processed in parallel.
 		Defaults to: 5
 
+	.PARAMETER ConnectedService
+		The services that are connected and can be used for testing.
+		This is used to skip tests that require a service connection when the service is not connected.
+		If not specified, it will use the value from $script:ConnectedService, which is set based on the
+		connected services populated by Connect-ZtAssessment.
+
 	.EXAMPLE
 		PS C:\> Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
 
@@ -41,7 +47,12 @@
 		$ThrottleLimit = 5,
 
 		[string]
-		$LogsPath
+		$LogsPath,
+
+		[Parameter(DontShow)]
+		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
+		[string[]]
+		$ConnectedService = $script:ConnectedService
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -60,23 +71,42 @@
 	# Filter based on preview feature flag
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		# Non-preview mode: Only include stable/released pillars
-		$stablePillars = @('Identity', 'Devices')
-		$testsToRun = $testsToRun | Where-Object { $_.Pillar -in $stablePillars }
+		$stablePillars = @('Identity', 'Devices', 'Network', 'Data')
+		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
 	}
 
+	# Filter based on service connection. If no service is specified in the test metadata, it will be run.
+	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service.Count -notin $_.Service.Where{ $_ -in $ConnectedService}.count }
+	$skippedTestsForService.ForEach{
+		$notConnectedService = ($_).Service.Where{ $_ -notin $ConnectedService }
+		# Mark the test as skipped.
+		Add-ZtTestResultDetail -SkippedBecause NotConnectedToService -TestId $_.TestId -NotConnectedService $notConnectedService
+	}
+
+	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
+
+	# Filter based on Compatible licenses
+	$skippedTestsForLicense = $testsToRun.Where{$_.CompatibleLicense.Count -gt 0 -and (-not (Test-ZtLicense -CompatibleLicense $_.CompatibleLicense)) }
+	$skippedTestsForLicense.ForEach{
+		Write-Warning -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId)
+		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
+	}
+
+	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForLicense.TestId }
+
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	$syncTestIds = @($testsToRun | Where-Object { $_.Pillar -eq 'Data' } | Select-Object -ExpandProperty TestId)
-	$syncTests = $testsToRun | Where-Object { $_.TestId -in $syncTestIds }
-	$parallelTests = $testsToRun | Where-Object { $_.TestId -notin $syncTestIds }
+	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId
+	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
+	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
 
 	$workflow = $null
 	try {
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
 		}
 
-		# Run Parallel Tests
+		# Then run Parallel Tests
 		if ($parallelTests) {
 			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath
 			Wait-ZtTest -Workflow $workflow
