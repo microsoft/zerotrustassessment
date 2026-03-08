@@ -47,7 +47,7 @@ if ( -not (Test-Path $ManifestPath )) {
     Write-Debug -Message ('Updating ModuleVersion...')
     Update-Metadata -Path $ManifestPath -PropertyName ModuleVersion -Value $NewVersion
     Write-Debug -Message ('Updating Prerelease...')
-    Update-Metadata -Path $ManifestPath -PropertyName Prerelease -Value $previewLabel
+    Update-Metadata -Path $ManifestPath -PropertyName Prerelease -Value $previewLabel.TrimStart('-')
 }
 
 $NewVersion += $previewLabel

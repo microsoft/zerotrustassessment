@@ -35,7 +35,7 @@ if ($ModuleManifest.PrivateData.PSData['Prerelease'] -eq 'source') { $paramUpdat
 ## Override from Parameters
 if ($Guid) { $paramUpdateModuleManifest['Guid'] = $Guid }
 if ($ModuleVersion) { $paramUpdateModuleManifest['ModuleVersion'] = $ModuleVersion }
-if ($Prerelease) { $paramUpdateModuleManifest['Prerelease'] = $Prerelease }
+if (-not [string]::IsNullOrEmpty($Prerelease)) { $paramUpdateModuleManifest['Prerelease'] = $Prerelease.TrimStart('-') }
 
 ## Get Module Output FileList
 $ModuleFileListFileInfo = Get-ChildItem $ModuleManifestFileInfo.DirectoryName -Recurse -File

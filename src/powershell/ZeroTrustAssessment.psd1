@@ -94,7 +94,7 @@ AliasesToExport = 'Invoke-ZeroTrustAssessment'
 # ModuleList = @()
 
 # List of all files packaged with this module
-# FileList = @()
+FileList = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -146,16 +146,6 @@ PrivateData = @{
 
         # External dependent modules of this module
         # ExternalModuleDependencies = @()
-
-        # TODO: Some tests depends for:
-            # Connected State
-            # Permissions
-            # Licensing
-
-        # What Valid reasons to skip, fail, error a test.
-
-        # TODO: Check commands because they may be dedicated based on permissions. And the current connection.
-        # TODO: Based on Licensing, you may have
 
     } # End of PSData hashtable
 
