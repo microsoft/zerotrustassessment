@@ -92,7 +92,7 @@ function Get-ZtRequiredModuleSpecByService {
         # So we need to remove services that are invalid for the OS from the list of services with available modules.
         $invalidServices = $requiredModuleSpecsByService['ServiceInvalidForOS']
         $invalidServices.ForEach({
-            if ($requiredModuleSpecsByService.ContainsKey($_)) {
+            if ($requiredModuleSpecsByService.keys -contains $_) {
                 $requiredModuleSpecsByService.Remove($_)
             }
         })
