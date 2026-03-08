@@ -154,6 +154,10 @@ function Invoke-ZtAssessment {
 		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5)
 	)
 
+	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
+		Connect-ZtAssessment
+	}
+
 	#region Utility Functions
 	function Show-ZtiSecurityWarning {
 		[CmdletBinding()]

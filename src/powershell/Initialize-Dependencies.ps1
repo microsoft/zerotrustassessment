@@ -119,8 +119,9 @@ function Initialize-Dependencies {
         #region The ZeroTrustAssessment report should be run in Windows.
         # on Non-windows platform, some pillars won't be available, because some required modules only work on Windows PowerShell.
         Write-Host -Object "`r`n" -ForegroundColor Yellow
-        Write-Host -Object '⚠️ Warning: The ZeroTrustAssessment module is designed to run on Windows, in PowerShell 7.'
-        Write-Host -Object 'Some pillars require modules that can only run on Windows PowerShell (Windows PowerShell 5.1) with implicit remoting.' -ForegroundColor Yellow
+        Write-Host -Object '⚠️ Warning: The ZeroTrustAssessment report can only be fully generated on Windows.' -ForegroundColor Yellow
+        Write-Host -Object 'Some assessment pillars rely on modules that require Windows PowerShell (5.1) with implicit remoting.' -ForegroundColor Yellow
+        Write-Host -Object 'Please run this tool from a Windows machine using PowerShell 7.' -ForegroundColor Yellow
         # skipping module installation.
         #endregion
     }
