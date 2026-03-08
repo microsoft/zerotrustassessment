@@ -20,6 +20,14 @@
 		Maximum number of tests processed in parallel.
 		Defaults to: 5
 
+	.PARAMETER LogsPath
+		Optional path to output logs for each test. If not specified, logs will not be written
+		to disk but will still be available in the database.
+
+	.PARAMETER Timeout
+		The maximum time to wait for all tests to complete before giving up and writing a warning message.
+		Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
+
 	.PARAMETER ConnectedService
 		The services that are connected and can be used for testing.
 		This is used to skip tests that require a service connection when the service is not connected.
@@ -52,7 +60,10 @@
 		[Parameter(DontShow)]
 		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]]
-		$ConnectedService = $script:ConnectedService
+		$ConnectedService = $script:ConnectedService,
+
+		[TimeSpan]
+		$Timeout = '00:24:00:00'
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -99,6 +110,7 @@
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
 
+	[dateTime] $startTime = [datetime]::Now
 	$workflow = $null
 	try {
 		# Run Sync Tests in the main thread
@@ -109,7 +121,11 @@
 		# Then run Parallel Tests
 		if ($parallelTests) {
 			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath
-			Wait-ZtTest -Workflow $workflow
+			Wait-ZtTest -Workflow $workflow -StartedAt $startTime -Timeout $Timeout
+			$workflow.Queues['Input'].ForEach{
+				Write-PSFMessage -Level Debug -Message "Test $_ was not processed before timeout was reached."
+				Add-ZtTestResultDetail -SkippedBecause TimeoutReached -TestId $_
+			}
 		}
 	}
 	finally {

@@ -24,6 +24,7 @@ function Get-ZtSkippedReason {
         "NotApplicable" { "This test is not applicable to the current environment."; break}
         "NotConnectedToService" { "This test requires connection to the service(s) `"{0}`" currently disconnected.  Please use _Connect-ZtAssessment_ to connect."; break}
         "NoCompatibleLicenseFound" { "This test requires one of the following licenses: (`"{0}`").  Please ensure your tenant has the appropriate licenses to run this test."; break}
+        "TimeoutReached" { "This test was not completed because the report execution exceeded the expected time frame. This could be due to a large number of objects in the tenants. Please consider adding ``-Timeout '03:00:00:00'`` to ``Invoke-ZtAssessment``."; break}
         default { $SkippedBecause; break}
     }
 }

@@ -85,6 +85,7 @@
 			Variables     = $variables
 			CloseOutQueue = $true
 			Modules       = $modules
+			KillToStop	  = $true
 		}
 	}
 

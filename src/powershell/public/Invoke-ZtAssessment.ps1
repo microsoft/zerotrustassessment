@@ -41,6 +41,10 @@ Raising this number may improve performance, but risk hitting throttling limits.
 Maximum number of tests processed in parallel.
 Raising this number may improve performance, but risk hitting throttling limits.
 
+.PARAMETER Timeout
+	The maximum time to wait for all tests to complete before giving up and writing a warning message.
+	Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -151,7 +155,10 @@ function Invoke-ZtAssessment {
 		$ExportThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
 
 		[int]
-		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5)
+		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5),
+
+		[TimeSpan]
+		$Timeout = '00:24:00:00'
 	)
 
 	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
@@ -409,7 +416,7 @@ function Invoke-ZtAssessment {
 
 	# Run the tests
 	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath
+	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout
 	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
 	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
