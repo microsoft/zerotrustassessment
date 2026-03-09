@@ -1,4 +1,4 @@
-# 033: Configure publishingapproach fordeploying to Azure​
+# 033: Configure publishing approach for deploying to Azure​
 
 ## Overview
 

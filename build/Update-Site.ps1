@@ -1,5 +1,11 @@
-﻿function CreateMarkdown($list, $folder)
+function CreateMarkdown
 {
+	[CmdletBinding()]
+	param (
+		$list,
+
+		$folder
+	)
     New-Item -ItemType Directory -Force -Path $folder
     foreach($item in $list)
     {

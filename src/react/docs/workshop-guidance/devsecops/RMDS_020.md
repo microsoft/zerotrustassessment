@@ -1,4 +1,4 @@
-# 020: Deploy Github AdvancedSecurity - CodeQL​
+# 020: Deploy Github Advanced Security - CodeQL​
 
 ## Overview
 

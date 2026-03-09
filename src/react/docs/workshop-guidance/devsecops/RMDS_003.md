@@ -1,4 +1,4 @@
-# 003: Harden servers/infra forbuild/deploy code 
+# 003: Harden servers/infra for build/deploy code 
 
 ## Overview
 

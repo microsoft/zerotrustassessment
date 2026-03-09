@@ -1,4 +1,4 @@
-# 009: Define GovernanceApproach for Groups with DevSecOps priveleges​
+# 009: Define governance approach for groups with DevSecOps privileges​
 
 ## Overview
 

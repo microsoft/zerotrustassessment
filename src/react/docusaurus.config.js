@@ -74,7 +74,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/social-card.png',
       navbar: {
         title: 'Zero Trust Workshop',
         logo: {
@@ -157,7 +157,7 @@ const config = {
                 to: 'https://aka.ms/zero-trust-partner-kit',
               },
               {
-                label: 'Zero Trust Asssessment Checks',
+                label: 'Zero Trust Assessment Checks',
                 to: '/docs/intro',
               },
               {

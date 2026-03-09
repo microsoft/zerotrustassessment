@@ -1,0 +1,20 @@
+{
+  "value": [
+    {
+      "isZtModelRow": true,
+      "createdUsing": null,
+      "scheduleInfo": null,
+      "assignmentType": null,
+      "memberType": null,
+      "roleDefinitionId": null,
+      "modifiedDateTime": null,
+      "appScopeId": null,
+      "createdDateTime": null,
+      "status": null,
+      "principalId": null,
+      "directoryScopeId": null,
+      "id": null,
+      "principal": null
+    }
+  ]
+}

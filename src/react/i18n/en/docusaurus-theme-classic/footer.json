@@ -19,9 +19,9 @@
     "message": "Zero Trust Partner Kit",
     "description": "The label of footer link with label=Zero Trust Partner Kit linking to https://aka.ms/zero-trust-partner-kit"
   },
-  "link.item.label.Zero Trust Asssessment Checks": {
-    "message": "Zero Trust Asssessment Checks",
-    "description": "The label of footer link with label=Zero Trust Asssessment Checks linking to /docs/intro"
+  "link.item.label.Zero Trust Assessment Checks": {
+    "message": "Zero Trust Assessment Checks",
+    "description": "The label of footer link with label=Zero Trust Assessment Checks linking to /docs/intro"
   },
   "link.item.label.Zero Trust App Permissions": {
     "message": "Zero Trust App Permissions",

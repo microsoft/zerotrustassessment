@@ -1,0 +1,34 @@
+name: Build and Publish PowerShell Module (Preview)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/powershell/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Prerequisites
+        run: .\build\powershell\Install-Prerequisites.ps1
+        shell: pwsh
+
+      - name: Build PowerShell Module (Preview)
+        run: |
+          .\build\powershell\Build-PSModule.ps1 -BaseDirectory $PWD
+        shell: pwsh
+
+      - name: Publish PowerShell Module (Preview)
+        run: |
+          $secureApiKey = ConvertTo-SecureString -String $env:NUGET_API_KEY -AsPlainText -Force
+          .\build\powershell\Publish-PSModule.ps1 -NuGetApiKey $secureApiKey
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

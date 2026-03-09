@@ -1,4 +1,4 @@
-# 034: Deploy GitHub AdvancedSecurity for Azure DevOps​
+# 034: Deploy GitHub Advanced Security for Azure DevOps​
 
 ## Overview
 

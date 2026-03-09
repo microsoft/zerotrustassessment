@@ -1,0 +1,11 @@
+When Microsoft 365 traffic bypasses Global Secure Access, organizations lose visibility and control over their most critical productivity workloads. Threat actors who exploit unmonitored Microsoft 365 connections can exfiltrate sensitive data through SharePoint, OneDrive, or Exchange without triggering security policies or generating actionable telemetry. Token theft and replay attacks become more difficult to detect when traffic doesn't flow through the Security Service Edge because source IP correlation with sign-in logs and Conditional Access evaluation can't be applied consistently.
+
+Organizations with significant bypassed traffic, whether due to incomplete client deployment, misconfigured forwarding profiles, or users on unmanaged devices, create blind spots where adversary-in-the-middle attacks, credential harvesting, and unauthorized data transfers can proceed undetected. Traffic that bypasses Global Secure Access also can't benefit from compliant network checks in Conditional Access policies, tenant restrictions, or source IP restoration, leaving significant security controls ineffective.
+
+**Remediation action**
+- Enable and configure the Microsoft traffic profile. For more information, see [Enable Microsoft traffic profile](https://learn.microsoft.com/entra/global-secure-access/how-to-manage-microsoft-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- Deploy the Global Secure Access client to all managed devices. For more information, see [Deploy Global Secure Access client](https://learn.microsoft.com/entra/global-secure-access/how-to-install-windows-client?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- Review and configure traffic forwarding rules appropriately. For more information, see [Review traffic forwarding rules](https://learn.microsoft.com/entra/global-secure-access/concept-microsoft-traffic-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+<!--- Results --->
+%TestResult%
+

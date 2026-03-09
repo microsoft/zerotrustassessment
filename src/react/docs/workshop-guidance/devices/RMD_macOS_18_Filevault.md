@@ -1,10 +1,13 @@
 # FileVault
 
-**Last Updated:** May 2025  
+**Last Updated:** Jan 2026  
 **Implementation Effort:** Low – Admins only need to configure and assign a device configuration profile in Intune.  
 **User Impact:** Low – Encryption is silent and automatic; users are not required to take any action.
 
 ---
+## Video Walkthrough
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/0lZg1NjJin8?si=V1KSRyemTh9cggXb" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Introduction
 

@@ -1,4 +1,4 @@
-# 032: Design codepublishingapproach​
+# 032: Design code publishing approach​
 
 ## Overview
 

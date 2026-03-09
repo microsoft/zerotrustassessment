@@ -1,6 +1,6 @@
 # Assign Roles and Permissions for Microsoft Defender for Endpoint
 
-**Implementation Effort:** Medium – This requires IT and Security Operations teams to plan and configure role-based access control (RBAC) or Unified RBAC (URBAC), including defining roles, mapping them to Microsoft Entra groups, and managing access reviews.
+**Implementation Effort:** Low – This requires IT and Security Operations teams to plan and configure role-based access control (RBAC) or Unified RBAC (URBAC), including defining roles, mapping them to Microsoft Entra groups, and managing access reviews.
 
 **User Impact:** Low – Only administrators and security personnel are affected; end users do not need to take any action or be notified.
 

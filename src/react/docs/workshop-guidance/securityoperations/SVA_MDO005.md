@@ -1,6 +1,6 @@
 # Configure Antimalware Policies
 
-**Implementation Effort:** Medium  
+**Implementation Effort:** Low
 Creating and managing custom anti-malware policies requires IT teams to define rules, assign scopes (users/groups/domains), and maintain them over time, especially if not using preset security policies.
 
 **User Impact:** Low  

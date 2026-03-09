@@ -1,4 +1,4 @@
-# 024: Triage results andremediate​
+# 024: Triage results and remediate​
 
 ## Overview
 

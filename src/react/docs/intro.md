@@ -19,5 +19,9 @@ For more information, check out the [Introduction to the Zero Trust Workshop](./
 
 ## Microsoft Zero Trust Assessment
 The Zero Trust Assessment is a PowerShell module that can be run on your environment to confirm a strong security baseline. This is an automated tool, where running the PowerShell module on your tenant will provide you with a set of recommendations that are auto generated based on your tenant's current configuration and activity data.
+* * *
+ 
+### **Video Walkthrough**
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-6XG3ha68r8?si=fqLYmhu7UFCO-pZH" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 For more information, check out the [Zero Trust Assessment Tool](./app-permissions) page and the [Zero Trust Assessment Video](./videos/Assessment.md) page.

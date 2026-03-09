@@ -16,7 +16,10 @@ MAM is supported across Android, iOS/iPadOS, and Windows platforms. It can be us
 Administrators configure apps in the Intune admin center, then apply protection policies. Users can access apps via the Company Portal or directly from app stores, depending on how the organization distributes them.
 
 MAM supports the Zero Trust principle of **least privilege access** by ensuring that only approved apps can access corporate data, and that data remains protected even on unmanaged devices. Without MAM, organizations risk data leakage, especially when users access sensitive content from personal devices without any policy enforcement [1](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe).
-
+* * *
+ 
+### **Video Walkthrough**
+<iframe width="560" height="315" src="https://www.youtube.com/embed/VWPLn1nel8g?si=21Yr1a17dSMhq8h8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 ## Reference
 
 - [Mobile Application Management (MAM) for unenrolled devices in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe)  

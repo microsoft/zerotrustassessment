@@ -1,0 +1,246 @@
+# Microsoft Zero Trust Assessment V2 - Private Preview
+
+> The shortlink to this page is: [aka.ms/zerotrust/v2/privatepreview](https://aka.ms/zerotrust/v2/privatepreview)
+
+## About the Zero Trust Assessment tool
+
+As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
+
+Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entra/security) and [Intune Security Recommendations](https://aka.ms/intune/security) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+
+Manually checking a tenant's configuration against the published guidance can be time consuming and error-prone. The Zero Trust Assessment PowerShell module was built to help with this activity.
+
+The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
+
+_This initial release is limited to Microsoft Entra and Microsoft Intune._
+
+## Prerequisites
+
+- PowerShell v7
+
+> The assessment uses PowerShell modules that are only compatible with
+> PowerShell 7. Install PowerShell v7 if not already installed:
+> [Installing PowerShell on Windows - PowerShell \| Microsoft
+> Learn](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#installing-the-msi-package)
+
+- Global Administrator role
+  - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
+
+- Uninstall previous versions
+  - If you have installed previous versions of the Zero Trust Assessment, [uninstall](#how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment) before continuing.
+  
+## Install the PowerShell modules
+
+Follow these steps to install the assessment and connect to Microsoft Graph and your tenant. 
+
+### Open PowerShell 7
+
+Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open PowerShell 7 directly via the path: `C:\Program Files\PowerShell\7\pwsh.exe`
+
+*When prompted to install modules from an untrusted repository, choose `Yes to All`.*
+
+### Install Zero Trust Assessment module
+
+Install the `ZeroTrustAssessment` module using the following command.
+
+```powershell
+Install-Module ZeroTrustAssessment -Scope CurrentUser
+```
+
+## Connect to Microsoft Graph and Azure
+
+To run this assessment, you must connect to Microsoft Graph and
+optionally to Azure. When connecting using Microsoft Graph PowerShell, the following permissions are requested. You are presented with a permissions requested page that you must consent to be able to run the assessment.
+
+The consent prompt is only displayed if the Graph PowerShell app does not already have these permissions.
+
+- AuditLog.Read.All
+- CrossTenantInformation.ReadBasic.All
+- DeviceManagementApps.Read.All
+- DeviceManagementConfiguration.Read.All
+- DeviceManagementManagedDevices.Read.All
+- DeviceManagementRBAC.Read.All
+- DeviceManagementServiceConfig.Read.All
+- Directory.Read.All
+- DirectoryRecommendations.Read.All
+- EntitlementManagement.Read.All
+- IdentityRiskEvent.Read.All
+- IdentityRiskyUser.Read.All
+- Policy.Read.All
+- Policy.Read.ConditionalAccess
+- Policy.Read.PermissionGrant
+- PrivilegedAccess.Read.AzureAD
+- Reports.Read.All
+- RoleManagement.Read.All
+- UserAuthenticationMethod.Read.All
+
+Run the following command to connect to Microsoft Graph and consent to the permissions using a Global Administrator account.
+
+```powershell
+Connect-ZtAssessment
+```
+
+### Sign into Microsoft Graph
+
+When prompted, sign into Microsoft Graph as a Global Administrator.
+
+The assessment first connects to Microsoft Graph and then to Azure. A second window will open to perform the Azure sign in.
+
+When prompted, review and accept the requested permissions.
+
+The next time you connect, you won't be required to reconsent to the permissions.
+
+### Sign into Azure
+
+When prompted, sign into Azure as a Global Administrator.
+
+The Azure sign in is required to check for export of Audit and sign in logs. If you don't have Azure, you can close the window without signing in and ignore the warning. The test that relies on Azure will be skipped.
+
+If you have multiple subscriptions, select a tenant and subscription when prompted.
+
+## Run the assessment
+
+This assessment is a read-only assessment, and all data is run and
+stored locally on the desktop. We recommend storing this report securely and deleting the generated folder and its contents from the local drive once the assessment is complete.
+
+After providing Administrator consent to the permissions, you can run the assessment with an account that has been assigned the **Global Reader** role.
+
+Use the following command to run the assessment.
+
+```powershell
+Invoke-ZtAssessment
+```
+
+> The assessment may take more than 24 hours to run on large
+tenants. Please do not abort the assessment while it is running (even if warnings and errors are logged)
+
+If you are only interested in the Devices (Intune) pillar (which takes less than 5 minutes to run), you can use the following command:
+
+```powershell
+Invoke-ZtAssessment -Pillar Devices
+```
+
+The results are created in the current working folder `.\ZeroTrustReport\ZeroTrustAssessmentReport.html`. After the
+assessment completes, the report is automatically opened in the default browser.
+
+You can use the `-Path` parameter to provide a custom location to
+store the assessment report. For example, the following command produces the report in the folder
+`C:\MyAssessment01\ZeroTrustAssessmentReport.html`
+
+```powershell
+Invoke-ZtAssessment -Path C:\MyAssessment01
+```
+
+## Review assessment results
+
+After the assessment completes, you are redirected to the **Overview** tab of the report in your default browser. The **Overview** tab displays key Zero Trust related information about the tenant.
+
+![Screenshot of Results](media/image5.png)
+
+The **Identity** and **Devices** tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
+
+![Screenshot of test results](media/image6.png)
+
+Select a result to see more information and remediation actions.
+
+![Screenshot of details page](media/image7.png)
+
+## Reporting issues
+
+If you run into any issues or have queries about the results, reach out to your account contact that suggested you run the assessment.
+
+### Export troubleshooting logs
+
+If an issue occurs, export a log using these instructions.
+
+Run the following command in the same session where you ran the
+assessment to create the export package (update the date to reflect the date of your run).
+
+```powershell
+New-PSFSupportPackage -Path C:\AssessmentLog_2025_01_01 -Force
+```
+
+Zip this folder along with the folder that was created by
+Invoke-ZtAssessment (default is `ZeroTrustAssessment`) and share it with your contact at Microsoft.
+
+## Removing the Zero Trust assessment
+
+To remove the assessment, follow these steps.
+
+- Remove PowerShell module.
+- Remove App Reg + consent.
+- Delete the folder that was created by the assessment.
+
+## Feedback / Issues
+
+The **Identity** tab shows the results of the assessment on your tenant.
+
+The other tabs are in progress. Feel free to share feedback on the
+report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
+
+## FAQs
+
+### How can I uninstall previous versions of the Zero Trust Assessment?
+
+Run the following commands to ensure all versions of the past modules are uninstalled.
+
+Next restart PowerShell and follow the instructions in this page to install the latest version.
+
+```powershell
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+```
+
+### Could not load file or assembly Microsoft.Graph.Authentication
+
+This error happens when you have conflicting versions of Microsoft Graph PowerShell installed.
+
+To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
+
+When uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment, restart PowerShell and then try a fresh install. 
+
+This is the order of running the cmdlets.
+
+```powershell
+Install-Module Uninstall-Graph
+Uninstall-Module ZeroTrustAssessment -Force -AllVersions
+Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Uninstall-Graph
+```
+Close all open PowerShell windows.
+
+Start a new PowerShell session.
+
+```powershell
+Install-Module ZeroTrustAssessment -Scope CurrentUser
+```
+
+Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
+
+### How can I know what the script is doing?
+
+- The code for this assessment is open source and can be reviewed at `https://github.com/microsoft/zerotrustassessment/tree/psnext/src/powershell`
+
+### Error: The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception
+
+On a new installation of Windows you may run into the following error.
+
+```text
+The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception.
+Inner exception: Unable to load DLL 'duckdb' or one of its dependencies: The specified module could not be found. (0x8007007E)
+Inner exception type: DllNotFoundException
+```
+
+This error occurs because you are running on a system that does not include Microsoft Visual C++ 2015-2022 Redistributable (x64) - Microsoft.VCRedist.2015+.x64.
+
+VCRedist is usually installed when you install Microsoft products like Microsoft Office or Entra Connect Sync. If this is a new device you may need to manually install this component using the link below.
+
+[VCRedistributable Download](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version)
+
+### Is this an official Microsoft product?
+
+No. It is a community project that is maintained by Microsoft employees. The app is provided as-is and is not supported through any Microsoft support program or service. Please do not contact Microsoft support with any issues or concerns.
+
+### How do I get support?
+
+Please raise an issue on the [Zero Trust Assessment GitHub repo](https://github.com/microsoft/zerotrustassessment/issues).

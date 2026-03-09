@@ -6,7 +6,7 @@
 
 ## Introduction
 
-Conditional Access (CA) is a core enforcement mechanism in Microsoft Entra ID (formerly Azure AD) that allows organizations to control access to apps and resources based on real-time conditions. For macOS devices managed by Intune, Conditional Access ensures that only trusted, compliant, and identity-verified endpoints can access corporate data. This section helps administrators evaluate their Conditional Access strategy for macOS and align it with Zero Trust principles.
+Conditional Access is a core enforcement mechanism in Microsoft Entra ID that allows organizations to control access to apps and resources based on real-time conditions. For macOS devices managed by Intune, Conditional Access ensures that only trusted, compliant, and identity-verified endpoints can access corporate data. This section helps administrators evaluate their Conditional Access strategy for macOS and align it with Zero Trust principles.
 
 ## Why This Matters
 
@@ -27,7 +27,7 @@ From a Zero Trust perspective: This enforces **explicit verification** of device
 
 ### App-Based Targeting
 
-- CA policies can be scoped to specific apps (e.g., Microsoft 365, Salesforce, ServiceNow).
+- Conditional Access policies can be scoped to specific apps (e.g., Microsoft 365, Salesforce, ServiceNow).
 - This allows you to apply stricter controls to high-risk or high-value applications.
 
 From a Zero Trust perspective: This supports **least privilege** by tailoring access controls to the sensitivity of the resource.
@@ -71,10 +71,10 @@ From a Zero Trust perspective: Monitoring supports **continuous trust evaluation
 ## Zero Trust Considerations
 
 - **Verify explicitly**: Access is granted only after confirming user identity, device compliance, and session context.
-- **Assume breach**: CA policies block access from unmanaged or risky endpoints.
+- **Assume breach**: Conditional Access policies block access from unmanaged or risky endpoints.
 - **Least privilege**: Access is scoped to the user, device, and app context.
 - **Continuous trust**: Policies are evaluated at every sign-in, not just at enrollment.
-- **Defense in depth**: CA works alongside compliance policies, SSO, and device restrictions to enforce layered security.
+- **Defense in depth**: Conditional Access works alongside compliance policies, SSO, and device restrictions to enforce layered security.
 
 ## Recommendations
 

@@ -102,7 +102,7 @@ public class InvokeAssessment : PSCmdlet
             }
 
             var scopes = new[] {"Agreement.Read.All", "CrossTenantInformation.ReadBasic.All", "Directory.Read.All", "Policy.Read.All", "User.Read", "DeviceManagementServiceConfig.Read.All",
-            "DeviceManagementConfiguration.Read.All", "DeviceManagementRBAC.Read.All", "DeviceManagementConfiguration.Read.All", "DeviceManagementApps.Read.All",
+            "DeviceManagementConfiguration.Read.All", "DeviceManagementRBAC.Read.All", "DeviceManagementApps.Read.All",
             "RoleAssignmentSchedule.Read.Directory","RoleEligibilitySchedule.Read.Directory", "PrivilegedEligibilitySchedule.Read.AzureADGroup" };
 
             AccessToken = SignInUserAndGetTokenUsingMsal(app, scopes).GetAwaiter().GetResult();

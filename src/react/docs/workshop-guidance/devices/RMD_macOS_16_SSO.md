@@ -1,10 +1,13 @@
 # Single Sign-On (SSO)
 
-**Last Updated:** May 2025  
+**Last Updated:** Jan 2026  
 **Implementation Effort:** Medium – Requires Intune profile configuration and deployment, but no ongoing user or infrastructure changes.  
 **User Impact:** Low – Users benefit from seamless sign-in without needing to take action.
 
 ---
+## Video Walkthrough
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/blJ9O5jT0UM?si=phmvfKG01fpqn9lT" title="YouTube video player" frameborder="0" allow="accelerometer; fullscreen; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Introduction
 
@@ -80,7 +83,7 @@ This section helps administrators understand and evaluate the available SSO opti
 - Platform SSO requires:
   - macOS 13.0 or later (macOS 14.6+ for Kerberos SSO)
   - Intune Company Portal version 5.2404.0 or later
-  - Microsoft Entra ID (formerly Azure AD)
+  - Microsoft Entra ID
 - Devices must be **Entra-joined** and enrolled in Intune to enable full SSO capabilities.
 
 ---

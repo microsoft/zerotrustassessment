@@ -1,11 +1,25 @@
-# Remediate risks and unblock users
+# Swiftly remediate compromised identities with Response Actions to prevent further damage (daily)
 
-**Implementation Effort:** Medium: Customer IT and Security Operations teams need to drive projects to set up risk-based policies and configure self-remediation options.
-
-**User Impact:** Medium: A subset of non-privileged users have to take action or be notified of changes, such as performing MFA or secure password changes to self-remediate risks.
+**Implementation Effort:** Low — Administrators only need to take targeted response actions such as disabling accounts or resetting passwords when identities are compromised, which requires no large project or ongoing program.  
+**User Impact:** Low — Remediation actions are taken by administrators; end users do not need to take action unless their password is reset.
 
 ## Overview
-Microsoft Entra ID Protection helps organizations detect, investigate, and remediate identity-based risks. It provides options for automated and manual remediation, including self-remediation by users through risk-based policies and secure password changes. This capability fits into the Zero Trust framework by ensuring that identity risks are continuously monitored and mitigated, maintaining secure access.
+
+Swift remediation of compromised identities is critical to stopping attacker movement and preventing further damage. Microsoft Defender for Identity provides **Response Actions** that allow security teams to quickly disable compromised user accounts or reset their passwords to stop active misuse. These actions appear directly within the investigation workflow, allowing analysts to rapidly contain threats as soon as suspicious or confirmed malicious activity is detected. After actions are taken, teams can review activity details in the **Action Center** to validate that containment was successful. If these response actions are not performed promptly, attackers may continue using compromised identities for lateral movement, data theft, privilege escalation, or persistence.
+
+This activity strongly aligns with the Zero Trust principle **Assume Breach**, because it focuses on rapid containment of high‑risk identities based on real‑time analytics and detections.
+
+### Where to configure or take these response actions
+
+- **Microsoft Defender for Identity → Response Actions**  
+  You can disable compromised accounts or reset user passwords directly from the Defender for Identity portal, and review results in the Action Center.  
+  [1](https://learn.microsoft.com/en-us/defender-for-identity/remediation-actions)
+
 
 ## Reference
-[Remediate risks and unblock users - Microsoft Entra ID Protection](https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-remediate-unblock)
+
+- Remediation actions — Microsoft Defender for Identity  
+  https://learn.microsoft.com/en-us/defender-for-identity/remediation-actions [1](https://learn.microsoft.com/en-us/defender-for-identity/remediation-actions)
+
+- Remediate risky users — Microsoft Entra ID Protection (optional additional remediation guidance)  
+  https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-remediate-unblock [2](https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-remediate-unblock)

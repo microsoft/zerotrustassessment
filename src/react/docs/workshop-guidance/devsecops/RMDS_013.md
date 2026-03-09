@@ -1,4 +1,4 @@
-# 013: Discover, review and adjust permissionsbased on role​
+# 013: Discover, review and adjust permissions based on role​
 
 ## Overview
 
