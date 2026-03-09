@@ -28,7 +28,9 @@ function Test-Assessment-25393 {
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
 
@@ -65,13 +67,22 @@ function Test-Assessment-25393 {
     # The NetworkAccessQuickAccessApplication tag is on the servicePrincipal, not the application object.
     Write-ZtProgress -Activity $activity -Status 'Checking Quick Access application assignment'
     $quickAccessSp = $null
-    $q3Error = $null
-    try {
-        $quickAccessSp = @(Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(t:t eq 'NetworkAccessQuickAccessApplication')" -ApiVersion beta) | Select-Object -First 1
+    if ($Database) {
+        $sql = @"
+SELECT id, appId, displayName
+FROM ServicePrincipal
+WHERE list_contains(tags, 'NetworkAccessQuickAccessApplication')
+LIMIT 1
+"@
+        $quickAccessSp = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
     }
-    catch {
-        $q3Error = $_
-        Write-PSFMessage "Unable to query service principals for Quick Access tag: $($_.Exception.Message)" -Tag Test -Level Error
+    else {
+        try {
+            $quickAccessSp = @(Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(t:t eq 'NetworkAccessQuickAccessApplication')" -ApiVersion beta) | Select-Object -First 1
+        }
+        catch {
+            Write-PSFMessage "Unable to query service principals for Quick Access tag: $($_.Exception.Message)" -Tag Test -Level Warning
+        }
     }
 
     $quickAccessGroup = $null
@@ -120,9 +131,6 @@ function Test-Assessment-25393 {
     }
     elseif ($q2Error) {
         $apiError = "Unable to determine Quick Access status. An error occurred while retrieving connector groups: $q2Error"
-    }
-    elseif ($q3Error) {
-        $apiError = "Unable to determine Quick Access status. An error occurred while querying for the Quick Access service principal: $q3Error"
     }
     elseif ($q4Error) {
         $apiError = "Unable to determine Quick Access status. An error occurred while retrieving connectors: $q4Error"
