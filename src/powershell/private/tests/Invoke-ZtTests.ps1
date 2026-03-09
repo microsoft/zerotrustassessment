@@ -63,7 +63,7 @@
 		$ConnectedService = $script:ConnectedService,
 
 		[TimeSpan]
-		$Timeout = '00:24:00:00'
+		$Timeout = '1.00:00:00'
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)

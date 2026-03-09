@@ -158,7 +158,7 @@ function Invoke-ZtAssessment {
 		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5),
 
 		[TimeSpan]
-		$Timeout = '00:24:00:00'
+		$Timeout = '1.00:00:00'
 	)
 
 	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
