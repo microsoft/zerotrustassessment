@@ -34,6 +34,12 @@
 		If not specified, it will use the value from $script:ConnectedService, which is set based on the
 		connected services populated by Connect-ZtAssessment.
 
+	.PARAMETER TestTimeout
+		Maximum time in minutes a single test is allowed to run.
+		Defaults to: 60. Set to 0 to disable.
+		For Data pillar tests and external-module/remoting-heavy operations,
+		this is a best-effort interruption rather than a guaranteed hard stop.
+
 	.EXAMPLE
 		PS C:\> Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
 
@@ -63,7 +69,10 @@
 		$ConnectedService = $script:ConnectedService,
 
 		[TimeSpan]
-		$Timeout = '1.00:00:00'
+		$Timeout = '1.00:00:00',
+
+		[int]
+		$TestTimeout = 60
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -113,14 +122,17 @@
 	[dateTime] $startTime = [datetime]::Now
 	$workflow = $null
 	try {
+		# Convert timeout minutes to timespan (0 = disabled)
+		$timeoutSpan = if ($TestTimeout -gt 0) { [timespan]::FromMinutes($TestTimeout) } else { [timespan]::Zero }
+
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $timeoutSpan
 		}
 
 		# Then run Parallel Tests
 		if ($parallelTests) {
-			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath
+			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath -TestTimeout $timeoutSpan
 			Wait-ZtTest -Workflow $workflow -StartedAt $startTime -Timeout $Timeout
 			$workflow.Queues['Input'].ForEach{
 				Write-PSFMessage -Level Debug -Message "Test $_ was not processed before timeout was reached."

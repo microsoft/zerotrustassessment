@@ -33,6 +33,9 @@
 			$Database.Close()
 		}
 		$Database.Dispose()
+		if ($script:_DatabaseConnection -eq $Database) {
+			$script:_DatabaseConnection = $null
+		}
 	}
 	elseif ($script:_DatabaseConnection) {
 		if ($script:_DatabaseConnection.State -eq 'Open') {

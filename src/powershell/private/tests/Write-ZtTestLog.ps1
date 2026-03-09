@@ -38,7 +38,7 @@ function Write-ZtTestLog {
 
 			$testId = $Result.TestID
 			$title = $Result.Test.Title
-			$status = if ($Result.Success) { 'Pass' } else { 'Fail' }
+			$status = if ($Result.TimedOut) { 'TimedOut' } elseif ($Result.Success) { 'Pass' } else { 'Fail' }
 			$duration = if ($null -ne $Result.Duration) { $Result.Duration.ToString('hh\:mm\:ss\.fff') } else { 'N/A' }
 			$startTime = if ($Result.Start) { $Result.Start.ToString('yyyy-MM-dd HH:mm:ss.fff') } else { 'N/A' }
 			$endTime = if ($Result.End) { $Result.End.ToString('yyyy-MM-dd HH:mm:ss.fff') } else { 'N/A' }

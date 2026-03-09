@@ -120,7 +120,7 @@ function New-ZtInteractiveConfig {
             "Enable detailed logging" = "Shows verbose output during assessment execution"
             "Export logs to support package" = "Creates diagnostic files for troubleshooting"
             "Disable telemetry collection" = "Prevents sending anonymous usage data to Microsoft"
-            "Resume from previous export" = "Continues from a previously interrupted assessment"
+            "Resume from previous export" = "Reuses the existing export and database, skipping data collection and database rebuild"
         }
 
         Write-SpectreHost "[bold yellow]Available Options:[/]"
