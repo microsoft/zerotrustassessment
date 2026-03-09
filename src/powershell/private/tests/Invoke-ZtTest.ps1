@@ -132,7 +132,7 @@
 					$null = $ps.AddParameter('ErrorAction', 'Stop')
 
 					# Schedule a .NET timer to call ps.Stop() when the timeout expires
-					$timeoutController = [ZeroTrustAssessment.TimeoutHelperV2]::CreateTimeoutController($ps, [int]$TestTimeout.TotalMilliseconds)
+					$timeoutController = [ZeroTrustAssessment.TimeoutHelper]::CreateTimeoutController($ps, [int]$TestTimeout.TotalMilliseconds)
 
 					$result.Output = $ps.Invoke()
 
