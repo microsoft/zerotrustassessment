@@ -10,7 +10,7 @@ The Zero Trust Workshop aligns with [Microsoft's Zero Trust Architecture](https:
 
 ## What permissions do I need for the Microsoft Zero Trust Assessment?
 
-The app requires **read-only** permissions to read your tenant configuration. See the [App Permissions](/docs/app-permissions) page for more details.
+The app requires **read-only** permissions to read your tenant configuration. See the [ZT Assessment Guide](https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started) page for more details.
 
 ## Is this an official Microsoft product?
 
