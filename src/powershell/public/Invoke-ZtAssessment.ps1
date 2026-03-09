@@ -41,6 +41,10 @@ Raising this number may improve performance, but risk hitting throttling limits.
 Maximum number of tests processed in parallel.
 Raising this number may improve performance, but risk hitting throttling limits.
 
+.PARAMETER Timeout
+	The maximum time to wait for all tests to complete before giving up and writing a warning message.
+	Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -136,6 +140,7 @@ function Invoke-ZtAssessment {
 		[string]
 		$ConfigurationFile,
 
+		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
 		[string]
@@ -150,8 +155,15 @@ function Invoke-ZtAssessment {
 		$ExportThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
 
 		[int]
-		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5)
+		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5),
+
+		[TimeSpan]
+		$Timeout = '1.00:00:00'
 	)
+
+	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
+		Connect-ZtAssessment
+	}
 
 	#region Utility Functions
 	function Show-ZtiSecurityWarning {
@@ -192,20 +204,26 @@ function Invoke-ZtAssessment {
 	#region Preparation
 	Show-ZtiBanner
 
-	# Validate preview pillar requirements
-	if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
-		Write-Host
-		Write-Host "❌ " -NoNewline -ForegroundColor Red
-		Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
-		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-		Write-Host " switch." -ForegroundColor Red
-		Write-Host
-		Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
-		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-		Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
-		Write-Host
+	if (-not (Test-ZtLanguageMode)) {
+		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}
+
+	# TODO: Cleanup below (aligning -Preview with all pillars)
+	# Validate preview pillar requirements
+	# if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
+	# 	Write-Host
+	# 	Write-Host "❌ " -NoNewline -ForegroundColor Red
+	# 	Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+	# 	Write-Host " switch." -ForegroundColor Red
+	# 	Write-Host
+	# 	Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
+	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+	# 	Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
+	# 	Write-Host
+	# 	return
+	# }
 
 	# Handle configuration file parameter
 	if ($ConfigurationFile) {
@@ -351,6 +369,12 @@ function Invoke-ZtAssessment {
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
+	# Create the logs folder for per-test log files
+	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
+	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
+	# differs from PowerShell's Get-Location after Set-Location / cd.
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
+
 
 	# Send telemetry if not disabled
 	if (-not $DisableTelemetry) {
@@ -370,7 +394,7 @@ function Invoke-ZtAssessment {
 	$script:__ZtSession.PreviewEnabled = $Preview.IsPresent
 
 	Write-PSFMessage 'Creating report folder $Path'
-	New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
+	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
 	# Move the interactive configuration file to the report directory if it exists
 	if ($Interactive -and $tempConfigFile) {
@@ -392,7 +416,7 @@ function Invoke-ZtAssessment {
 
 	# Run the tests
 	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit
+	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout
 	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
 	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 

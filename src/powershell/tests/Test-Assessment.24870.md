@@ -10,6 +10,7 @@ Use Intune to configure and assign secure Wi-Fi profiles for macOS devices to en
 
 For more information, see:
 
-- [Review the available Wi-Fi settings for macOS devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Review the available Wi-Fi settings for macOS devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

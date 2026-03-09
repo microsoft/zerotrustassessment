@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks if Intelligent Local Access is enabled and configured by verifying private networks exist.
 
@@ -14,7 +14,7 @@
 
 function Test-Assessment-25405 {
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
     	Pillar = 'Network',

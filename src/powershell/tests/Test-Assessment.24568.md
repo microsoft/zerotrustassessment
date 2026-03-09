@@ -7,6 +7,7 @@ Enforcing Platform SSO policies on macOS devices ensures consistent, secure auth
 Use Intune to configure and assign Platform SSO policies for macOS devices to enforce secure authentication and strengthen identity protection, see:
 
 - [Configure Platform SSO for macOS in Intune](https://learn.microsoft.com/intune/intune-service/configuration/platform-sso-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) – *Step-by-step guidance for enabling Platform SSO on macOS devices.*
-- [Single sign-on (SSO) overview and options for Apple devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/use-enterprise-sso-plug-in-ios-ipados-macos?pivots=macos&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) – *Overview of SSO options available for Apple platforms.*<!--- Results --->
+- [Single sign-on (SSO) overview and options for Apple devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/use-enterprise-sso-plug-in-ios-ipados-macos?pivots=macos&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) – *Overview of SSO options available for Apple platforms.*
+<!--- Results --->
 %TestResult%
 

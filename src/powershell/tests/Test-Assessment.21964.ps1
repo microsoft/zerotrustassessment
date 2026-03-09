@@ -123,16 +123,16 @@ function Get-ProtectedActionCAPolicy {
 }
 function Test-Assessment-21964 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('P1'),
-        Pillar = 'Identity',
-        RiskLevel = 'Low',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 21964,
-        Title = 'Enable protected actions to secure Conditional Access policy creation and changes',
-        UserImpact = 'Low'
+    	Category = 'Access control',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('P1'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and isolate production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21964,
+    	Title = 'Enable protected actions to secure Conditional Access policy creation and changes',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

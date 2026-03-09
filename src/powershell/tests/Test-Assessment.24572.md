@@ -6,11 +6,6 @@ Enrollment notifications provide users with improved visibility into device onbo
 
 Configure Intune enrollment notifications to alert users when their device is enrolled and reinforce secure onboarding practices:  
 - [Set up enrollment notifications in Intune](https://learn.microsoft.com/intune/intune-service/enrollment/enrollment-notifications?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
-
-
-
-
 <!--- Results --->
 %TestResult%
 

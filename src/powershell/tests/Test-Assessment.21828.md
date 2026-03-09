@@ -2,7 +2,7 @@ Blocking authentication transfer in Microsoft Entra ID is a critical security co
 
 **Remediation action**
 
-- [Deploy a Conditional Access policy to block authentication transfer](https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-block-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#authentication-transfer-policies)
+- [Deploy a Conditional Access policy to block authentication transfer](https://learn.microsoft.com/entra/identity/conditional-access/policy-block-authentication-flows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#authentication-transfer-policies)
 <!--- Results --->
 %TestResult%
 

@@ -61,7 +61,7 @@ function Remove-BuildDirectories {
 
 	$binPath = Get-OutputDirectory
 	if ( Test-Path $binPath ) {
-		$binPath | Remove-Item -Recurse -Force 
+		$binPath | Remove-Item -Recurse -Force
 	}
 
 	$devRepoLocation = Get-DevRepoDirectory
@@ -78,7 +78,7 @@ function Register-LocalGallery {
 	$repoPath = Get-DevRepoDirectory
 	if ($Path) {
 		$repoPath = $Path
-	}    
+	}
 	if (-not(Test-Path $repoPath)) {
 		$null = New-Item -Path $repoPath -ItemType Directory
 	}
@@ -87,7 +87,7 @@ function Register-LocalGallery {
 	$null = Register-PSResourceRepository -Name (Get-LocalPSRepoName) -Uri ($repoPath)
 }
 
-function Unregister-LocalGallery {    
+function Unregister-LocalGallery {
 	$null = Unregister-PSRepository (Get-LocalPSRepoName)
 	$null = Unregister-PSResourceRepository (Get-LocalPSRepoName)
 }
@@ -101,12 +101,12 @@ function Update-ModuleVersion {
 	)
 
 	$version = Get-ModuleVersion
-	$v = @{        
+	$v = @{
 		Major = $version.Major
 		Minor = $version.Minor
-		Build = $version.Build            
+		Build = $version.Build
 	}
- 
+
 	if ($Build.IsPresent) {
 		$v.Build++
 	}
@@ -120,7 +120,8 @@ function Update-ModuleVersion {
 	}
 
 	$ver = $v.Major, $v.Minor, $v.Build -Join "."
-	Update-ModuleManifest -Path (Get-ModuleManifestFile).FullName -ModuleVersion $ver
+	# Update-ModuleManifest -Path (Get-ModuleManifestFile).FullName -ModuleVersion $ver
+	Update-Metadata -Path (Get-ModuleManifestFile).FullName -PropertyName ModuleVersion -Value $ver
 }
 
 function Create-ModuleFolder {
@@ -222,16 +223,16 @@ function Get-CustomizationFiles {
 		$path = Join-Path $path (Get-ConfigValue -Name CustomizationPath)
 	}
 	else {
-		$path = Join-Path $path 'module_legacy'      
+		$path = Join-Path $path 'module_legacy'
 		$path = Join-Path $path $Module
 		$path = Join-Path $path $Directory
 	}
 	$customizationFileList = @()
 	$files = Get-ChildItem -Path $path -Filter '*.ps1'
 	foreach ($file in $files) {
-		$customizationFileList += $file.FullName        
+		$customizationFileList += $file.FullName
 	}
-    
+
 	$customizationFileList
 }
 

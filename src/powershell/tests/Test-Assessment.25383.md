@@ -1,15 +1,10 @@
-Excessive assignment of tenant-wide roles like Global Administrator (GA) and Global Secure Access Administrator (GSA) creates a single-step escalation path for threat actors who compromise any assigned identity. This check reviews all GA and GSA role assignments in your tenant and flags any assignments to groups, guest users, or service principals, as well as excessive assignment counts.
-
-Over-privileged assignments also increase blast radius when credentials are phished or session tokens are stolen. Limiting these roles to a small, vetted set of administrators—and monitoring assignments for groups, guests, and service principals—reduces the tenant-wide attack surface and enforces least privilege.
+Excessive assignment of roles like Global Administrator and Global Secure Access Administrator create a path for threat actors to compromise these identities. With these roles an attacker can authenticate, manipulate security policies, create or elevate accounts, disable monitoring, access all corporate data, and more. Limit access to these roles to a small set of administrators, and enable monitoring of assignments and activation for groups, guests, service principals, and disabled accounts to reduce the attack surface and enforce least privilege.
 
 **Remediation action**
 
-Review and limit GA/GSA assignments:
-- [Role-based access control permissions reference](https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference)
-
-Remove group and guest assignments; assign directly to vetted admins.
-
-Use PIM for just-in-time eligibility:
-- [Privileged Identity Management](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure)
+- [Emergency access accounts are configured appropriately](https://learn.microsoft.com/entra/fundamentals/zero-trust-protect-engineering-systems?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#emergency-access-accounts-are-configured-appropriately)
+- [Limit Global Administrator and Global Secure Access Administrator role assignments to a small set of administrators.](https://learn.microsoft.com/entra/fundamentals/zero-trust-protect-identities?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#high-global-administrator-to-privileged-user-ratio)
+- [Configure role settings to require approval for Global Administrator activation](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

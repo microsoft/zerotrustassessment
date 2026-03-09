@@ -10,7 +10,7 @@ function Test-Assessment-24802 {
     	MinimumLicense = ('Intune'),
     	Pillar = 'Devices',
     	RiskLevel = 'Low',
-    	SfiPillar = 'Protect tenants and isolate production',
+    	SfiPillar = 'Protect tenants and isolate production systems',
     	TenantType = ('Workforce'),
     	TestId = 24802,
     	Title = 'Device cleanup rules maintain tenant hygiene by hiding inactive devices',

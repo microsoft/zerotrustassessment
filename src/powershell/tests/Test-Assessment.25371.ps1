@@ -20,16 +20,16 @@
 
 function Test-Assessment-25371 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('AAD_PREMIUM'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25371,
-        Title = 'Network access is validated in real-time through Universal Continuous Access Evaluation',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('AAD_PREMIUM'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25371,
+    	Title = 'Network validation is configured through Universal Continuous Access Evaluation',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

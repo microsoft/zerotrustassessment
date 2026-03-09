@@ -2,7 +2,7 @@ Without sign-in context, threat actors can exploit authentication fatigue by flo
 
 **Remediation action**
 Give users the context they need to make informed approval decisions. Configure Microsoft Authenticator notifications by setting the Authentication methods policy to include the application name and geographic location.  
-- [Use additional context in Authenticator notifications - Authentication methods policy](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-mfa-additional-context?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Use additional context in Authenticator notifications - Authentication methods policy](https://learn.microsoft.com/entra/identity/authentication/how-to-mfa-additional-context?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

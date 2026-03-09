@@ -8,6 +8,7 @@ If this check doesn't pass, the recommendation is to "investigate" because you n
 
 - Confirm if the credentials added are still valid use cases. If not, remove credentials from Microsoft service applications to reduce security risk. 
     - In the Microsoft Entra admin center, browse to **Entra ID** > **App registrations** and select the affected application.
-    - Go to the **Certificates & secrets** section and remove any credentials that are no longer needed.<!--- Results --->
+    - Go to the **Certificates & secrets** section and remove any credentials that are no longer needed.
+<!--- Results --->
 %TestResult%
 

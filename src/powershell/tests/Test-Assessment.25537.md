@@ -1,11 +1,14 @@
-Azure Firewall Threat intelligence-based filtering alerts and denies traffic from/to known malicious IP addresses, FQDNs, and URLs. The IP addresses, domains, and URLs are sourced from the Microsoft Threat Intelligence feed, which includes multiple sources including the Microsoft Cyber Security team. When threat intelligence-based filtering is enabled, Azure Firewall evaluates traffic against the threat intelligence rules before applying NAT, network, or application rules.
+Azure Firewall threat intelligence-based filtering alerts on and denies traffic to and from known malicious IP addresses, fully qualified domain names (FQDNs), and URLs sourced from the Microsoft Threat Intelligence feed. When you don't enable threat intelligence in `Alert and deny` mode, Azure Firewall doesn't actively block traffic to known malicious destinations.
 
-This check verifies that Threat Intelligence feature is enabled in “Alert and Deny” mode in the Azure Firewall policy configuration. The check will fail if Threat Intelligence is either “Disabled” or if it is not configured in “Alert and Deny” mode, in the firewall policy attached to the firewall.
+If you don't enable threat intelligence in `Alert and deny` mode:
+
+- Threat actors can communicate with known malicious infrastructure, enabling data exfiltration and command-and-control communication without active blocking.
+- Organizations that use `Alert only` mode can see threat activity in logs but can't prevent connections to known bad destinations.
+- All firewall policy tiers remain exposed to threats that the Microsoft Threat Intelligence feed already identified.
 
 **Remediation action**
 
-Please check this article for guidance on how to enable Threat Intelligence in “Alert and Deny” mode in the Azure Firewall Policy:
-- [Azure Firewall threat intelligence configuration | Microsoft Learn](https://learn.microsoft.com/en-us/azure/firewall-manager/threat-intelligence-settings)
-
+- [Configure threat intelligence settings in Azure Firewall Manager](https://learn.microsoft.com/azure/firewall-manager/threat-intelligence-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to set the threat intelligence mode to `Alert and deny` in the firewall policy.
 <!--- Results --->
 %TestResult%
+

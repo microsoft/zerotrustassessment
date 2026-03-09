@@ -1,16 +1,19 @@
-When administrators use Microsoft Entra Private Access to reach domain controllers via Remote Desktop Protocol (RDP), they authenticate through Microsoft Entra ID before the Global Secure Access client tunnels their connection to the on-premises network. If this authentication step relies solely on password-based or standard multifactor authentication, threat actors can intercept credentials during phishing campaigns or adversary-in-the-middle attacks, replay stolen session tokens, and establish persistent RDP connections to domain controllers.
+When administrators use Microsoft Entra Private Access to reach domain controllers through Remote Desktop Protocol (RDP), they authenticate through Microsoft Entra ID before the Global Secure Access client tunnels their connection to the on-premises network. Domain controllers hold the cryptographic keys to the entire Active Directory forest. Compromising one domain controller offers a way to compromise every identity and resource in the organization.
 
-Once connected, the threat actor can execute DCSync attacks to harvest all password hashes in the domain, create golden tickets for indefinite domain persistence, modify Group Policy Objects to deploy ransomware or backdoors across all domain-joined machines, and extract DPAPI master keys that decrypt enterprise secrets. Domain controllers hold the cryptographic keys to the entire Active Directory forest; compromising one domain controller typically means compromising every identity and resource in the organization.
+Without phishing-resistant authentication:
 
-By requiring phishing-resistant authentication—FIDO2 security keys, Windows Hello for Business, or certificate-based multifactor authentication—organizations ensure that even if users are successfully phished, threat actors cannot replay credentials because these methods require cryptographic proof of possession that is bound to the legitimate sign-in session and cannot be intercepted or forwarded.
+- Threat actors can intercept credentials during phishing campaigns or adversary-in-the-middle attacks.
+- Stolen session tokens can be replayed to establish RDP connections to domain controllers.
+- Once connected, threat actors can execute DCSync attacks to harvest all password hashes in the domain.
+- Attackers can create golden tickets for indefinite domain persistence.
+- Group Policy Objects can be modified to deploy ransomware or backdoors across all domain-joined machines.
+
+By requiring phishing-resistant authentication, organizations ensure that even if users are successfully phished, threat actors can't replay credentials because these methods require cryptographic proof of possession.
 
 **Remediation action**
 
-- [Create a Private Access application for domain controller RDP access with appropriate application segments](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-per-app-access)
-- [Configure authentication strength policies to require phishing-resistant MFA](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths)
-- [Create a Conditional Access policy targeting Private Access applications with authentication strength grant control](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-grant#require-authentication-strength)
-- [Deploy FIDO2 security keys or configure Windows Hello for Business for administrators](https://learn.microsoft.com/en-us/entra/identity/authentication/howto-authentication-passwordless-security-key)
-- [Configure certificate-based authentication for phishing-resistant access](https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-certificate-based-authentication)
-
+- [Deploy phishing-resistant authentication methods to domain controller administrators](https://learn.microsoft.com/entra/identity/authentication/how-to-deploy-phishing-resistant-passwordless-authentication?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- [Require phishing-resistant authentication for administrators accessing domain controllers via RDP](https://learn.microsoft.com/entra/global-secure-access/how-to-configure-domain-controllers?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
+

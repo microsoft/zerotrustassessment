@@ -5,6 +5,7 @@ Implementing TRv2 enforces policies that restrict access to specified tenants, m
 If this check passes, your tenant has a TRv2 policy configured but more steps are required to validate the scenario end-to-end.
 
 **Remediation action**
-- [Set up Tenant Restrictions v2](https://learn.microsoft.com/en-us/entra/external-id/tenant-restrictions-v2?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Set up Tenant Restrictions v2](https://learn.microsoft.com/entra/external-id/tenant-restrictions-v2?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

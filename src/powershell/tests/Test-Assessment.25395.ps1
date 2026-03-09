@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Entra Private Access applications enforce least-privilege
     using granular network segments and Custom Security Attributes (CSA).
@@ -17,16 +17,16 @@
 function Test-Assessment-25395 {
 
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'High',
-        MinimumLicense = 'Entra_Premium_Private_Access',
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = 'Workforce',
-        TestId = 25395,
-        Title = 'Private Access application segments enforce least-privilege access',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'High',
+    	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25395,
+    	Title = 'Entra Private Access Application segments are defined to enforce least-privilege access',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

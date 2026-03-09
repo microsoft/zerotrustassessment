@@ -5,6 +5,7 @@ Enforcing Terms and Conditions ensures users acknowledge and accept company poli
 **Remediation action**
 
 Create and assign Terms and Conditions policies in Intune to require user acceptance before granting access to corporate resources:  
-- [Create terms and conditions policy](https://learn.microsoft.com/intune/intune-service/enrollment/terms-and-conditions-create?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Create terms and conditions policy](https://learn.microsoft.com/intune/intune-service/enrollment/terms-and-conditions-create?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Branch office internet traffic is protected by Cloud Firewall policies through Global Secure Access
 
@@ -17,16 +17,16 @@
 
 function Test-Assessment-25416 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
-        TestId = '25416',
-        Title = 'Branch office internet traffic is protected by Cloud Firewall policies through Global Secure Access',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25416,
+    	Title = 'Global Secure Access cloud firewall protects branch office internet traffic',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
