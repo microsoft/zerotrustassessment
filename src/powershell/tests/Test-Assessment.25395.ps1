@@ -44,17 +44,17 @@ function Test-Assessment-25395 {
     function Test-IsBroadCidr {
         <#
         .SYNOPSIS
-            Checks if a CIDR range is overly permissive (/16 or broader).
+            Checks if a CIDR range is overly permissive (broader than /24).
         .DESCRIPTION
-            CIDR ranges with prefix length <= 16 are treated as overly permissive.
-            This includes /16 itself (65,536 IPs) and any broader ranges such as /15, /14, etc.
+            CIDR ranges with prefix length < 24 are treated as overly permissive.
+            This includes /23 (512 IPs), /22 (1,024 IPs), and any broader ranges.
         .OUTPUTS
             System.Boolean
-            True  - CIDR prefix length <= 16
-            False - CIDR prefix length > 16 or invalid format
+            True  - CIDR prefix length < 24
+            False - CIDR prefix length >= 24 or invalid format
         #>
         param([string]$Cidr)
-        if ($Cidr -match '/(\d+)$') { return ([int]$matches[1] -le 16) }
+        if ($Cidr -match '/(\d+)$') { return ([int]$matches[1] -lt 24) }
         return $false
     }
 
@@ -298,10 +298,10 @@ function Test-Assessment-25395 {
             }
 
             # Determine per-app status including Manual Review when filterPolicies exist
-            $appStatus = if (-not $sp.customSecurityAttributes) {
-                'Fail – Missing CSA'
-            } elseif ($hasBroadSegment -or $hasWildcardDns -or $hasBroadPorts) {
+            $appStatus = if ($hasBroadSegment -or $hasWildcardDns -or $hasBroadPorts) {
                 'Fail – Broad segment'
+            } elseif (-not $sp.customSecurityAttributes) {
+                'Investigate – Missing CSA'
             } elseif ($filterPolicies.Count -gt 0) {
                 'Manual Review'
             } else {
@@ -350,11 +350,19 @@ function Test-Assessment-25395 {
         }
 
     }
-    else {
+    elseif ($broadAccessApps.Count -gt 0) {
 
         $passed = $false
         $testResultMarkdown =
-            "❌ One or more Private Access applications have overly broad network segments or lack Custom Security Attribute-based Conditional Access policies, potentially allowing excessive network access.`n`n%TestResult%"
+            "❌ One or more Private Access applications have overly broad network segments, potentially allowing excessive network access.`n`n%TestResult%"
+
+    }
+    else {
+
+        # broadAccessApps = 0 but appsWithoutCSA > 0 → Investigate
+        $customStatus = 'Investigate'
+        $testResultMarkdown =
+            "⚠️ Private Access applications are missing Custom Security Attributes. Consider adding Custom Security Attributes to enable attribute-based Conditional Access targeting.`n`n%TestResult%"
 
     }
 

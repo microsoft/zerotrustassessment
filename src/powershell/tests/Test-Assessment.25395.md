@@ -4,6 +4,8 @@ With visibility into the network topology, they can escalate privileges by targe
 
 This approach aligns with the Zero Trust "verify explicitly" principle by ensuring each access request is evaluated against the specific security requirements of the target application rather than applying uniform policies to broad network segments.
 
+**Investigate**: Private Access applications are missing Custom Security Attributes, have CA policies using applicationFilter that require manual review, or no per-app Private Access applications are configured.
+
 **Remediation action**
 - [Transition from Quick Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-per-app-access) to per-app Private Access by creating individual Global Secure Access enterprise applications with specific FQDNs, IP addresses, and ports for each private resource.
 - [Use Application Discovery](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-application-discovery) to identify which resources users access through Quick Access, then create targeted Private Access apps for those resources.
