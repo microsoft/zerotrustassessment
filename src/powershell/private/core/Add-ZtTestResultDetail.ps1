@@ -67,7 +67,7 @@ function Add-ZtTestResultDetail {
 
 		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotConnectedSecurityCompliance', 'NotConnectedToService', 'NotLicensedEntraIDP1',
 		    'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', 'NotSupported', 'UnderConstruction',
-			'NotLicensedIntune', 'NoAzureAccess', 'NotApplicable', 'NotDotGovDomain', 'NoCompatibleLicenseFound'
+			'NotLicensedIntune', 'NoAzureAccess', 'NotApplicable', 'NotDotGovDomain', 'NoCompatibleLicenseFound', 'TimeoutReached'
 		)]
 		[string] $SkippedBecause,
 

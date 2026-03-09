@@ -9,6 +9,12 @@
 	.PARAMETER Workflow
 		The PSFramework Runspace Workflow executing the tests.
 
+	.PARAMETER Timeout
+		The maximum time to wait for the workflow to complete before giving up and writing a warning message
+
+	.PARAMETER StartedAt
+		The DateTime when the workflow started. This is used in combination with Timeout to determine if the workflow has exceeded the allowed time.
+
 	.EXAMPLE
 		PS C:\> Wait-ZtTest -Workflow $workflow
 
@@ -18,7 +24,13 @@
 	param (
 		[Parameter(Mandatory = $true)]
 		[PSFramework.Runspace.RSWorkflow]
-		$Workflow
+		$Workflow,
+
+		[TimeSpan]
+		$Timeout = '00:24:00:00',
+
+		[datetime]
+		$StartedAt = [DateTime]::Now
 	)
 	Begin {
 		$failedTests = @{}
@@ -27,8 +39,7 @@
 	}
 	process {
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -PercentComplete 0
-		$lastTest = "Starting..."
-		while (-not $Workflow.Queues["Results"].Closed) {
+		while (-not $Workflow.Queues["Results"].Closed -and $Timeout -gt ([DateTime]::Now - $StartedAt)) {
 			Start-Sleep -Milliseconds 500
 
 			$failed = Get-ZtTestStatistics | Where-Object Success -eq $false
@@ -44,6 +55,10 @@
 			$status = "Completed: $($Workflow.Queues["Results"].Count) / $totalCount"
 
 			Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -Status $status -PercentComplete $percent
+		}
+
+		if ($Timeout -le ([DateTime]::Now - $StartedAt)) {
+			Write-PSFMessage -Level Warning -Message "Timeout of $($Timeout) reached while waiting for tests to complete. Processed $($Workflow.Queues["Results"].Count) out of $totalCount tests (left $($Workflow.Queues["Input"].Count) to process)." -Target $Workflow
 		}
 
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -Completed
