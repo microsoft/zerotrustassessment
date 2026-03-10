@@ -36,10 +36,18 @@ function Test-Assessment-27002 {
     # Prerequisite check: Verify TLS inspection is configured
     Write-ZtProgress -Activity $activity -Status 'Checking if TLS inspection is configured'
 
-    $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies' -ApiVersion beta
+    $tlsInspectionPolicies = $null
+    $errorMsg = $null
+    try {
+        $tlsInspectionPolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tlsInspectionPolicies' -ApiVersion beta -ErrorAction Stop
+    }
+    catch {
+        $errorMsg = $_
+        Write-PSFMessage "Unable to retrieve TLS inspection policies: $errorMsg" -Level Warning
+    }
 
     # If no TLS inspection policies exist, skip the test
-    if (-not $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0) {
+    if (-not $errorMsg -and (-not $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0)) {
         Write-PSFMessage 'TLS inspection not configured - skipping test.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
@@ -47,12 +55,28 @@ function Test-Assessment-27002 {
 
     # Q1: Retrieve all TLS inspection certificates
     # Note: The Prefer header is required to get actual status values instead of unknownFutureValue
-    Write-ZtProgress -Activity $activity -Status 'Retrieving TLS inspection certificates'
+    $certificates = $null
+    $results = @()
+    $evaluatedResults = @()
+    $totalCount = 0
+    $activeCount = 0
+    $expiringWithin90Days = 0
+    $expiredCount = 0
 
-    $certificates = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tls/externalCertificateAuthorityCertificates' -ApiVersion beta -Headers @{ 'Prefer' = 'include-unknown-enum-members' }
+    if (-not $errorMsg) {
+        Write-ZtProgress -Activity $activity -Status 'Retrieving TLS inspection certificates'
+
+        try {
+            $certificates = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/tls/externalCertificateAuthorityCertificates' -ApiVersion beta -Headers @{ 'Prefer' = 'include-unknown-enum-members' } -ErrorAction Stop
+        }
+        catch {
+            $errorMsg = $_
+            Write-PSFMessage "Unable to retrieve TLS inspection certificates: $errorMsg" -Level Warning
+        }
+    }
 
     # If no certificates exist, TLS inspection policies exist but no certificates uploaded yet - Pass
-    if (-not $certificates -or $certificates.Count -eq 0) {
+    if (-not $errorMsg -and (-not $certificates -or $certificates.Count -eq 0)) {
         Write-PSFMessage 'TLS inspection policies exist but no certificates uploaded yet.' -Tag Test -Level Verbose
         $testResultMarkdown = "TLS inspection policies are configured but no certificates have been uploaded yet."
         Add-ZtTestResultDetail -TestId '27002' -Title 'TLS inspection certificates have sufficient validity period to prevent service disruption' -Status $true -Result $testResultMarkdown
@@ -60,80 +84,85 @@ function Test-Assessment-27002 {
     }
 
     # Process certificates and calculate expiration details
-    $currentDate = Get-Date
-    $warningThresholdDays = 90
-    $results = @()
-
-    foreach ($cert in $certificates) {
+    if (-not $errorMsg) {
+        $currentDate = Get-Date
+        $warningThresholdDays = 90
         # Skip certificates that are not actively in use (csrGenerated, enrolling, disabled)
         $skipStatuses = @('csrGenerated', 'enrolling', 'disabled')
-        $isSkipped = $cert.status -in $skipStatuses
 
-        $expirationDate = if ($cert.validity.endDateTime) {
-            [datetime]$cert.validity.endDateTime
-        }
-        else {
-            $null
-        }
+        foreach ($cert in $certificates) {
+            $isSkipped = $cert.status -in $skipStatuses
 
-        $daysUntilExpiration = if ($expirationDate) {
-            [math]::Floor(($expirationDate - $currentDate).TotalDays)
-        }
-        else {
-            $null
-        }
-
-        # Determine if renewal is required
-        $renewalRequired = $false
-        if (-not $isSkipped) {
-            if ($cert.status -in @('expiring', 'expired')) {
-                $renewalRequired = $true
+            $expirationDate = if ($cert.validity.endDateTime) {
+                [datetime]$cert.validity.endDateTime
             }
-            elseif ($cert.status -in @('active', 'enabled') -and $null -ne $daysUntilExpiration -and $daysUntilExpiration -le $warningThresholdDays) {
-                $renewalRequired = $true
+            else {
+                $null
+            }
+
+            $daysUntilExpiration = if ($expirationDate) {
+                [math]::Floor(($expirationDate - $currentDate).TotalDays)
+            }
+            else {
+                $null
+            }
+
+            # Determine if renewal is required
+            $renewalRequired = $false
+            if (-not $isSkipped) {
+                if ($cert.status -in @('expiring', 'expired')) {
+                    $renewalRequired = $true
+                }
+                elseif ($cert.status -in @('active', 'enabled') -and $null -ne $daysUntilExpiration -and $daysUntilExpiration -le $warningThresholdDays) {
+                    $renewalRequired = $true
+                }
+            }
+
+            $results += [PSCustomObject]@{
+                Id                  = $cert.id
+                Name                = $cert.name
+                CommonName          = $cert.commonName
+                OrganizationName    = $cert.organizationName
+                Status              = $cert.status
+                ExpirationDate      = $expirationDate
+                DaysUntilExpiration = $daysUntilExpiration
+                RenewalRequired     = $renewalRequired
+                IsSkipped           = $isSkipped
             }
         }
 
-        $results += [PSCustomObject]@{
-            Id                  = $cert.id
-            Name                = $cert.name
-            CommonName          = $cert.commonName
-            OrganizationName    = $cert.organizationName
-            Status              = $cert.status
-            ExpirationDate      = $expirationDate
-            DaysUntilExpiration = $daysUntilExpiration
-            RenewalRequired     = $renewalRequired
-            IsSkipped           = $isSkipped
-        }
+        # Calculate statistics (only for non-skipped certificates)
+        $evaluatedResults = @($results | Where-Object { -not $_.IsSkipped })
+        $totalCount = $results.Count
+        $activeCount = @($evaluatedResults | Where-Object { $_.Status -in @('active', 'enabled') }).Count
+        $expiringWithin90Days = @($evaluatedResults | Where-Object { $_.RenewalRequired -and $_.Status -in @('active', 'enabled') }).Count
+        $expiredCount = @($evaluatedResults | Where-Object { $_.Status -eq 'expired' }).Count
     }
-
-    # Calculate statistics (only for non-skipped certificates)
-    $evaluatedResults = @($results | Where-Object { -not $_.IsSkipped })
-    $totalCount = $results.Count
-    $activeCount = @($evaluatedResults | Where-Object { $_.Status -in @('active', 'enabled') }).Count
-    $expiringWithin90Days = @($evaluatedResults | Where-Object { $_.RenewalRequired -and $_.Status -in @('active', 'enabled') }).Count
-    $expiredCount = @($evaluatedResults | Where-Object { $_.Status -eq 'expired' }).Count
     #endregion Data Collection
 
     #region Assessment Logic
     $passed = $false
 
-    # Pass if no evaluated certificates require renewal
-    $certificatesRequiringRenewal = @($evaluatedResults | Where-Object { $_.RenewalRequired })
-    if ($certificatesRequiringRenewal.Count -eq 0) {
-        $passed = $true
+    # Fail if there was an error retrieving data
+    if ($errorMsg) {
+        $passed = $false
+        $testResultMarkdown = "❌ Unable to retrieve TLS inspection certificates due to error:`n`n$errorMsg`n`n%TestResult%"
+    }
+    else {
+        # Pass if no evaluated certificates require renewal
+        $certificatesRequiringRenewal = @($evaluatedResults | Where-Object { $_.RenewalRequired })
+        if ($certificatesRequiringRenewal.Count -eq 0) {
+            $passed = $true
+            $testResultMarkdown = "✅ All TLS inspection certificates have more than 90 days until expiration.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "❌ TLS inspection certificate requires renewal; expiration is within 90 days or certificate status indicates expiring/expired.`n`n%TestResult%"
+        }
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $mdInfo = ''
-
-    if ($passed) {
-        $testResultMarkdown = "All TLS inspection certificates have more than 90 days until expiration.`n`n%TestResult%"
-    }
-    else {
-        $testResultMarkdown = "TLS inspection certificate requires renewal; expiration is within 90 days or certificate status indicates expiring/expired.`n`n%TestResult%"
-    }
 
     # Build certificate summary list
     $tlsInspectionLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/TLSInspectionPolicy.ReactView'
@@ -156,7 +185,7 @@ function Test-Assessment-27002 {
 
 **Certificate Details:**
 
-| Certificate Name | Common Name | Status | Expiration Date | Days Until Expiration | Renewal Required |
+| Certificate name | Common name | Status | Expiration date | Days until expiration | Renewal required |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
