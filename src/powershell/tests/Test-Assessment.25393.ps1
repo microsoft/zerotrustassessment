@@ -66,24 +66,13 @@ function Test-Assessment-25393 {
     # Q3: Find the Quick Access service principal by its tag, then locate its connector group
     # The NetworkAccessQuickAccessApplication tag is on the servicePrincipal, not the application object.
     Write-ZtProgress -Activity $activity -Status 'Checking Quick Access application assignment'
-    $quickAccessSp = $null
-    if ($Database) {
-        $sql = @"
+    $sql = @"
 SELECT id, appId, displayName
 FROM ServicePrincipal
 WHERE list_contains(tags, 'NetworkAccessQuickAccessApplication')
 LIMIT 1
 "@
-        $quickAccessSp = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
-    }
-    else {
-        try {
-            $quickAccessSp = @(Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(t:t eq 'NetworkAccessQuickAccessApplication')" -ApiVersion beta) | Select-Object -First 1
-        }
-        catch {
-            Write-PSFMessage "Unable to query service principals for Quick Access tag: $($_.Exception.Message)" -Tag Test -Level Warning
-        }
-    }
+    $quickAccessSp = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
 
     $quickAccessGroup = $null
     if ($quickAccessSp) {
