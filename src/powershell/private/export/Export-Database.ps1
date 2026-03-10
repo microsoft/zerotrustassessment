@@ -126,14 +126,14 @@ as
 
 	if (Test-Path $dbFolder) {
 		Write-PSFMessage "Clearing previous db $dbFolder" -Tag Import
-		$database = Connect-Database -Path $dbPath -PassThru
+		$database = Connect-Database -Path $dbPath -Transient
 		Invoke-DatabaseQuery -Database $database -Sql "FORCE CHECKPOINT;" -NonQuery
 		Disconnect-Database -Database $database
 		Remove-Item $dbFolder -Recurse -Force # Remove the existing database
 	}
 	$null = New-Item -ItemType Directory -Path $dbFolder -Force -ErrorAction Stop
 
-	$database = Connect-Database -Path $dbPath -PassThru
+	$database = Connect-Database -Path $dbPath -Transient
 
 	trap {
 		Disconnect-Database -Database $database
