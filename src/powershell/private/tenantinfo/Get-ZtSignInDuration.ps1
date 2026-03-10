@@ -15,9 +15,9 @@ function Get-ZtSignInDuration {
 
 	$sql = @"
 select
-    datediff('minute', min(createdDateTime), max(createdDateTime)) as 'minutes',
-    datediff('hour', min(createdDateTime), max(createdDateTime)) as 'hours',
-    datediff('day', min(createdDateTime), max(createdDateTime)) as 'days',
+    datediff('minute', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'minutes',
+    datediff('hour', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'hours',
+    datediff('day', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'days',
 from SignIn
 "@
 
