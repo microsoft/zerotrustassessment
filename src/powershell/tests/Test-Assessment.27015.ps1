@@ -127,7 +127,7 @@ resources
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled in Prevention mode and have the HTTP DDoS Protection ruleset (Microsoft_HTTPDDoSRuleSet) with at least one rule enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have the HTTP DDoS Protection ruleset (Microsoft_HTTPDDoSRuleSet) with at least one rule enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled, running in Detection mode, do not have the HTTP DDoS Protection ruleset configured, or have all HTTP DDoS Protection rules disabled, leaving applications vulnerable to volumetric HTTP-based attacks.`n`n%TestResult%"
