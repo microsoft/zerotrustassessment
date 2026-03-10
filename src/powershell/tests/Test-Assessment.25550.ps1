@@ -38,136 +38,80 @@ function Test-Assessment-25550 {
         return
     }
 
-    # Check the supported environment, 'AzureCloud' in (Get-AzContext).Environment.Name maps to 'Global' in (Get-MgContext).Environment
+    # Check the supported environment, 'AzureCloud' maps to 'Global'
     Write-ZtProgress -Activity $activity -Status 'Checking Azure environment'
 
     if ($azContext.Environment.Name -ne 'AzureCloud') {
-        Write-PSFMessage "This test is only applicable to the Global (AzureCloud) environment." -Tag Test -Level VeryVerbose
+        Write-PSFMessage 'This test is only applicable to the Global (AzureCloud) environment.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Querying Azure subscriptions'
-    $subscriptions = Get-AzSubscription
-    $resourceManagementUrl = $azContext.Environment.ResourceManagerUrl
+    # Q1-Q3: Query all firewall policies via Azure Resource Graph
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Firewall policies via Resource Graph'
 
-    $firewallPoliciesWithTLS = @()
+    $policyQuery = @"
+resources
+| where type =~ 'microsoft.network/firewallpolicies'
+| join kind=leftouter (
+    resourcecontainers
+    | where type =~ 'microsoft.resources/subscriptions'
+    | project subscriptionName=name, subscriptionId
+) on subscriptionId
+| project
+    PolicyName=name,
+    PolicyId=id,
+    SubscriptionName=subscriptionName,
+    SkuTier=tostring(properties.sku.tier),
+    FirewallCount=coalesce(array_length(properties.firewalls), 0),
+    CertName=tostring(properties.transportSecurity.certificateAuthority.name),
+    CertKeyVaultSecretId=tostring(properties.transportSecurity.certificateAuthority.keyVaultSecretId)
+"@
 
-    foreach ($subscription in $subscriptions) {
-        Write-ZtProgress -Activity $activity -Status "Checking subscription: $($subscription.Name)"
+    $allPolicies = @()
+    try {
+        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $policyQuery)
+        Write-PSFMessage "ARG returned $($allPolicies.Count) firewall policy(ies)" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        return
+    }
 
-        # List all firewall policies in subscription (handle possible pagination via nextLink)
-        $fwPoliciesUri = "$resourceManagementUrl/subscriptions/$($subscription.Id)/providers/Microsoft.Network/firewallPolicies?api-version=2025-03-01"
-        $fwPolicies = @()
+    # No firewall policies at all → Skipped
+    if ($allPolicies.Count -eq 0) {
+        Write-PSFMessage 'No Azure Firewall policies found in any subscription.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    # Filter for Premium SKU policies
+    $premiumPolicies = @($allPolicies | Where-Object { $_.SkuTier -eq 'Premium' })
+
+    # Q4-Q5: Find policies with at least one application rule that has terminateTLS enabled
+    $tlsPolicyIds = @()
+    if ($premiumPolicies.Count -gt 0) {
+        Write-ZtProgress -Activity $activity -Status 'Checking application rules for TLS inspection'
+
+        $tlsRuleQuery = @"
+resources
+| where type =~ 'microsoft.network/firewallpolicies/rulecollectiongroups'
+| mvexpand ruleCollection = properties.ruleCollections
+| where ruleCollection.ruleCollectionType =~ 'FirewallPolicyFilterRuleCollection'
+| mvexpand rule = ruleCollection.rules
+| where rule.ruleType =~ 'ApplicationRule' and rule.terminateTLS == true
+| extend lowerId = tolower(id)
+| extend policyId = substring(lowerId, 0, indexof(lowerId, '/rulecollectiongroups/'))
+| distinct policyId
+"@
 
         try {
-            do {
-                $fwPoliciesResp = Invoke-AzRestMethod -Method GET -Uri $fwPoliciesUri
-
-                if ($fwPoliciesResp.StatusCode -eq 403) {
-                    Write-PSFMessage "The signed in user does not have access to query firewall policies in subscription $($subscription.Name)." -Level Verbose
-                    break
-                }
-
-                if ($fwPoliciesResp.StatusCode -ge 400) {
-                    throw "Firewall policies request failed with status code $($fwPoliciesResp.StatusCode)"
-                }
-
-                $fwPoliciesJson = $fwPoliciesResp.Content | ConvertFrom-Json
-                if ($fwPoliciesJson.value) {
-                    $fwPolicies += $fwPoliciesJson.value
-                }
-                $fwPoliciesUri = $fwPoliciesJson.nextLink
-            } while ($fwPoliciesUri)
+            $tlsPolicyIds = @(Invoke-ZtAzureResourceGraphRequest -Query $tlsRuleQuery | ForEach-Object { $_.policyId })
+            Write-PSFMessage "ARG found $($tlsPolicyIds.Count) policy(ies) with TLS-enabled rules" -Tag Test -Level VeryVerbose
         }
         catch {
-            Write-PSFMessage "Unable to list firewall policies in subscription $($subscription.Name): $_" -Tag Test -Level Warning
-            continue
-        }
-
-        # Filter for Premium SKU policies only
-        $premiumPolicies = $fwPolicies | Where-Object { $_.properties.sku.tier -eq 'Premium' }
-
-        foreach ($policy in $premiumPolicies) {
-            Write-ZtProgress -Activity $activity -Status "Evaluating policy: $($policy.name)"
-
-            # Get detailed policy configuration
-            try {
-                $policyDetailResp = Invoke-AzRestMethod -Method GET -Uri "$resourceManagementUrl$($policy.id)?api-version=2025-03-01"
-                $policyDetail = $policyDetailResp.Content | ConvertFrom-Json
-            }
-            catch {
-                Write-PSFMessage "Unable to get details for policy $($policy.name): $_" -Tag Test -Level Warning
-                continue
-            }
-
-            # Check if global TLS certificate is configured
-            $tlsGloballyConfigured = $false
-            $certName = 'N/A'
-            $certKeyVaultSecretId = 'N/A'
-            $certKeyVaultSecretIdDisplay = 'N/A'
-
-            $certAuth = $policyDetail.properties.transportSecurity.certificateAuthority
-            if ($certAuth.name -and $certAuth.keyVaultSecretId) {
-                $tlsGloballyConfigured = $true
-                $certName = $certAuth.name
-                $certKeyVaultSecretId = $certAuth.keyVaultSecretId
-                $certKeyVaultSecretIdDisplay = $certAuth.keyVaultSecretId
-            }
-
-            # Check for application rules with terminateTLS enabled
-            $tlsEnabledRulesFound = $false
-            $ruleCollectionGroups = $policyDetail.properties.ruleCollectionGroups
-
-            foreach ($rcgRef in $ruleCollectionGroups) {
-                if ($tlsEnabledRulesFound) { break }
-
-                try {
-                    $rcgDetailResp = Invoke-AzRestMethod -Method GET -Uri "$resourceManagementUrl$($rcgRef.id)?api-version=2025-03-01"
-                    $rcgDetail = $rcgDetailResp.Content | ConvertFrom-Json
-                }
-                catch {
-                    Write-PSFMessage "Unable to get details for rule collection group $($rcgRef.id): $_" -Tag Test -Level Warning
-                    continue
-                }
-
-                foreach ($ruleCollection in $rcgDetail.properties.ruleCollections) {
-                    if ($tlsEnabledRulesFound) { break }
-                    if ($ruleCollection.ruleCollectionType -ne 'FirewallPolicyFilterRuleCollection') { continue }
-
-                    foreach ($rule in $ruleCollection.rules) {
-                        if ($rule.ruleType -eq 'ApplicationRule' -and $rule.terminateTLS -eq $true) {
-                            $tlsEnabledRulesFound = $true
-                            break
-                        }
-                    }
-                }
-            }
-
-            # Parse policy ID to extract components for portal URL
-            # Format: /subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{provider}/{resourceType}/{resourceName}
-            $policyIdParts = $policy.id -split '/'
-            $subscriptionId = $policyIdParts[2]
-            $resourceGroupName = $policyIdParts[4]
-            $resourceName = $policyIdParts[-1]
-
-            # Create Azure portal URL for the firewall policy
-            $portalUrl = "https://portal.azure.com/#@/resource$($policy.id)"
-
-            # Store results
-            $firewallPoliciesWithTLS += [PSCustomObject]@{
-                SubscriptionId                     = $subscription.Id
-                SubscriptionName                   = $subscription.Name
-                PolicyName                         = $policy.name
-                PolicyId                           = $policy.id
-                PortalUrl                          = $portalUrl
-                TLSGloballyConfigured              = if ($tlsGloballyConfigured) { 'Yes' } else { 'No' }
-                CertificateAuthorityName           = $certName
-                CertificateKeyVaultSecretId        = $certKeyVaultSecretId
-                CertificateKeyVaultSecretIdDisplay  = $certKeyVaultSecretIdDisplay
-                ApplicationRuleWithTLS             = if ($tlsEnabledRulesFound) { 'Yes' } else { 'No' }
-                PassesCriteria                     = $tlsGloballyConfigured -and $tlsEnabledRulesFound
-            }
+            Write-PSFMessage "TLS rule query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         }
     }
 
@@ -175,21 +119,50 @@ function Test-Assessment-25550 {
 
     #region Assessment Logic
 
-    # Determine pass/fail
+    # Build evaluation results for each Premium policy
+    $evaluationResults = @()
+    foreach ($policy in $premiumPolicies) {
+        $policyIdLower = $policy.PolicyId.ToLower()
+        $attachedToFirewall = $policy.FirewallCount -gt 0
+        $tlsGloballyConfigured = [bool]$policy.CertName -and [bool]$policy.CertKeyVaultSecretId
+        $hasTlsRules = $policyIdLower -in $tlsPolicyIds
+        $portalUrl = "https://portal.azure.com/#@/resource$($policy.PolicyId)"
+
+        $evaluationResults += [PSCustomObject]@{
+            SubscriptionName      = $policy.SubscriptionName
+            PolicyName            = $policy.PolicyName
+            PortalUrl             = $portalUrl
+            AttachedToFirewall    = $attachedToFirewall
+            TLSGloballyConfigured = $tlsGloballyConfigured
+            CertName              = if ($policy.CertName) { $policy.CertName } else { 'N/A' }
+            HasTlsRules           = $hasTlsRules
+            PassesCriteria        = $attachedToFirewall -and $tlsGloballyConfigured -and $hasTlsRules
+        }
+    }
+
+    # Determine overall result
     $passed = $false
     $testResultMarkdown = ''
 
-    if ($firewallPoliciesWithTLS.Count -eq 0) {
-        Write-PSFMessage 'No Azure Firewall Premium policies found in any subscription.' -Tag Test -Level VeryVerbose
+    # Separate attached (evaluable) policies from unattached (skipped) ones
+    $attachedResults = @($evaluationResults | Where-Object { $_.AttachedToFirewall })
+
+    if ($premiumPolicies.Count -eq 0) {
+        # Policies exist but none are Premium → Fail
+        $testResultMarkdown = "TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n%TestResult%"
+    }
+    elseif ($attachedResults.Count -eq 0) {
+        # All Premium policies are not attached to any firewall → Skipped
+        Write-PSFMessage 'All Premium firewall policies are not attached to any Azure Firewall.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
-    elseif (($firewallPoliciesWithTLS | Where-Object { $_.PassesCriteria }).Count -gt 0) {
+    elseif ($attachedResults | Where-Object { $_.PassesCriteria }) {
         $passed = $true
-        $testResultMarkdown = "✅ TLS inspection is globally configured in the Azure Firewall policy and at least one application rule explicitly enables TLS inspection with `"terminateTLS: true`".`n`n%TestResult%"
+        $testResultMarkdown = "TLS inspection is enabled on Azure Firewall Premium. Global TLS certificate authority is configured and at least one application rule has TLS inspection enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ TLS inspection is not enabled. Either the transportSecurity.certificateAuthority is missing in the firewall policy, or TLS inspection is globally configured but no application rule enables TLS inspection (application rules have `"terminateTLS: false`").`n`n%TestResult%"
+        $testResultMarkdown = "TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -199,22 +172,23 @@ function Test-Assessment-25550 {
 
 ## Azure Firewall policies TLS inspection status
 
-| Subscription name | Azure Firewall policy name | TLS inspection globally configured | Certificate authority name | Certificate authority Key Vault secret ID | Application rule with TLS inspection enabled |
-| :------------- | :------------------------- | :--------------------------------- | :------------------------- | :------------------------------------- | :------------------------------------------- |
+| Subscription name | Azure Firewall policy name | Attached to Firewall | TLS inspection globally configured | Certificate authority name | Application rule with TLS inspection enabled |
+| :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
 
     $tableRows = ''
-    foreach ($policyInfo in $firewallPoliciesWithTLS) {
-        $policyName = Get-SafeMarkdown -Text $policyInfo.PolicyName
-        $portalUrl = $policyInfo.PortalUrl
-        $policyNameWithLink = "[$policyName]($portalUrl)"
-        $subName = Get-SafeMarkdown -Text $policyInfo.SubscriptionName
-        $certName = Get-SafeMarkdown -Text $policyInfo.CertificateAuthorityName
-        $certKeyVault = Get-SafeMarkdown -Text $policyInfo.CertificateKeyVaultSecretIdDisplay
+    foreach ($result in $evaluationResults) {
+        $policyName = Get-SafeMarkdown -Text $result.PolicyName
+        $policyNameWithLink = "[$policyName]($($result.PortalUrl))"
+        $subName = Get-SafeMarkdown -Text $result.SubscriptionName
+        $attached = if ($result.AttachedToFirewall) { 'Yes' } else { 'No' }
+        $tlsConfigured = if ($result.TLSGloballyConfigured) { 'Yes' } else { 'No' }
+        $certName = Get-SafeMarkdown -Text $result.CertName
+        $tlsRules = if ($result.HasTlsRules) { 'Yes' } else { 'No' }
 
-        $tableRows += "| $subName | $policyNameWithLink | $($policyInfo.TLSGloballyConfigured) | $certName | $certKeyVault | $($policyInfo.ApplicationRuleWithTLS) |`n"
+        $tableRows += "| $subName | $policyNameWithLink | $attached | $tlsConfigured | $certName | $tlsRules |`n"
     }
 
     $mdInfo = $formatTemplate -f $tableRows
@@ -224,6 +198,7 @@ function Test-Assessment-25550 {
 
     $params = @{
         TestId = '25550'
+        Title  = 'Inspection of Outbound TLS Traffic is Enabled on Azure Firewall'
         Status = $passed
         Result = $testResultMarkdown
     }
