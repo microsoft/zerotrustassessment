@@ -12,7 +12,7 @@ const Steps = [
                 <ul>
                     <li>Identify and notify the right stakeholders from your organization and your deployment partners for each zero trust pillar</li>
                     <li>Review the <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">delivery guide</a></li>
-                    <li>(Optional) Run the <a href="docs/app-permissions" title="Learn about the Zero Trust Assessment">Zero Trust Assessment</a> to make sure you are starting with a healthy configuration</li>
+                    <li>(Optional) Run the <a href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started" title="Learn about the Zero Trust Assessment">Zero Trust Assessment</a> to make sure you are starting with a healthy configuration</li>
                 </ul>
             </>
         ),
@@ -34,32 +34,32 @@ const Steps = [
                         <ul>
                             <li>
                                 <a href="docs/videos/IdentityPillar" title="Identity Pillar Info">
-                                    Identity (Recently Updated)
+                                    Identity
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/DevicesPillar" title="Devices Pillar Info">
-                                    Devices (Recently Updated)
+                                    Devices
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/DataPillar" title="Data Pillar Info">
-                                    Data (Recently Updated)
+                                    Data
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/NetworkPillar" title="Network Pillar Info">
-                                    Network (New)
+                                    Network
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/InfrastructurePillar" title="Infrastructure Pillar Info">
-                                    Infrastructure (New)
+                                    Infrastructure
                                 </a>
                             </li>
                             <li>
                                 <a href="docs/videos/SecurityOperationsPillar" title="Security Operations Pillar Info">
-                                    Security Operations (New)
+                                    Security Operations
                                 </a>
                             </li>
                         </ul>

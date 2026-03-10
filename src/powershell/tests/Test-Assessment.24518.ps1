@@ -1,4 +1,4 @@
-<#!
+﻿<#!
 .SYNOPSIS
 Checks that all enterprise applications have owners assigned and lists permission names with classifications.
 #>
@@ -6,16 +6,16 @@ Checks that all enterprise applications have owners assigned and lists permissio
 function Test-Assessment-24518 {
 
     [ZtTest(
-        Category = 'Application management',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Free'),
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce'),
-        TestId = 24518,
-        Title = 'Enterprise applications have owners',
-        UserImpact = 'Low'
+    	Category = 'Application management',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Free'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect engineering systems',
+    	TenantType = ('Workforce'),
+    	TestId = 24518,
+    	Title = 'Enterprise applications have owners',
+    	UserImpact = 'Low'
     )]
 
     [CmdletBinding()]

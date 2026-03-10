@@ -23,6 +23,9 @@ function Set-TestMetadata {
 	.PARAMETER MinimumLicense
 		What minimum license(s) are required for this test?
 
+	.PARAMETER CompatibleLicense
+		What compatible license(s) are required for this test?
+
 	.PARAMETER Pillar
 		What pillar does the test belong to?
 
@@ -58,15 +61,20 @@ function Set-TestMetadata {
 		[string]
 		$Category,
 
-	[ValidateSet('Low', 'Medium', 'High')]
-	[string]
-	$ImplementationCost,
+		[ValidateSet('Low', 'Medium', 'High')]
+		[string]
+		$ImplementationCost,
 
-	[string[]]
-	$MinimumLicense,
+		[string[]]
+		$MinimumLicense,
 
-	[string]
-	$Pillar,		[ValidateSet('Low', 'Medium', 'High')]
+		[string[]]
+		$CompatibleLicense,
+
+		[string]
+		$Pillar,
+
+		[ValidateSet('Low', 'Medium', 'High')]
 		[string]
 		$RiskLevel,
 
@@ -206,16 +214,17 @@ function Set-TestMetadata {
 		#endregion Utility Functions
 
 		$properties = [ordered]@{
-			Category           = 'string'
-			ImplementationCost = 'string'
-			MinimumLicense     = 'string[]'
-			Pillar             = 'string'
-			RiskLevel          = 'string'
-			SfiPillar          = 'string'
-			TenantType         = 'string[]'
-			TestId             = 'int'
-			Title              = 'string'
-			UserImpact         = 'string'
+			Category           	= 'string'
+			ImplementationCost 	= 'string'
+			MinimumLicense     	= 'string[]'
+			CompatibleLicense  	= 'string[]'
+			Pillar             	= 'string'
+			RiskLevel          	= 'string'
+			SfiPillar          	= 'string'
+			TenantType         	= 'string[]'
+			TestId             	= 'int'
+			Title              	= 'string'
+			UserImpact         	= 'string'
 		}
 	}
 	process {

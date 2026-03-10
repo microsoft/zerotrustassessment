@@ -4,6 +4,7 @@ When threat actors obtain access through compromised guest accounts with elevate
 
 **Remediation action**
 
-- [Remove Guest users from privileged roles](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/best-practices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Remove Guest users from privileged roles](https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

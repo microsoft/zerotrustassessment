@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that traffic forwarding profiles are enabled in Global Secure Access.
 
@@ -15,16 +15,16 @@
 
 function Test-Assessment-25381 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Suite', 'Entra_Premium_Private_Access', 'Entra_Premium_Internet_Access', 'P2'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25381,
-        Title = 'Network traffic is routed through Global Secure Access for security policy enforcement',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Suite','Entra_Premium_Private_Access','Entra_Premium_Internet_Access','P2'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25381,
+    	Title = 'Network traffic is routed through Global Secure Access for security policy enforcement',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

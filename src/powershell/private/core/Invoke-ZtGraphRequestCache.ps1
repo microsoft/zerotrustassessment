@@ -76,8 +76,12 @@
 	if ($cacheBlocked) { $DisableCache = $true }
 	$results = $null
 	$isBatch = $uri.AbsoluteUri.EndsWith('$batch')
-	$isInCache = $script:__ZtSession.GraphCache.Value.ContainsKey($Uri.AbsoluteUri)
 	$cacheKey = $Uri.AbsoluteUri
+	if ($Headers -and $Headers.Count -gt 0) {
+		$headerString = ($Headers.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '&'
+		$cacheKey = "$cacheKey|$headerString"
+	}
+	$isInCache = $script:__ZtSession.GraphCache.Value.ContainsKey($cacheKey)
 	$isMethodGet = $Method -eq 'GET'
 
 	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isInCache -and $isMethodGet) {

@@ -72,7 +72,18 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             Write-PSFMessage "Checking auth methods for cloud-only user: $($user.userPrincipalName)" -Level Verbose
 
             # Use Get-ZtUserAuthenticationMethod helper to get authentication methods
-            $userAuthInfo = Get-ZtUserAuthenticationMethod -UserId $user.id
+            # Wrap in try/catch: user may have been deleted after the export was taken (returns 403 accessDenied or 404 ResourceNotFound)
+            $userAuthInfo = $null
+            try {
+                $userAuthInfo = Get-ZtUserAuthenticationMethod -UserId $user.id
+            }
+            catch {
+                if ($_.Exception.Message -match '403|Forbidden|accessDenied|404|Request_ResourceNotFound') {
+                    Write-PSFMessage "Skipping user $($user.userPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
+                    continue
+                }
+                throw
+            }
             $authMethods = $userAuthInfo.AuthenticationMethods
 
             if ($authMethods) {
@@ -131,13 +142,25 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
         Write-PSFMessage "Checking CA policy targeting for: $($candidate.UserPrincipalName)" -Level Verbose
 
         # Query 6: Get transitive group memberships
-        $userGroups = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/transitiveMemberOf/microsoft.graph.group" `
-            -Select 'id' -ApiVersion v1.0
-        $userGroupIds = @($userGroups | Select-Object -ExpandProperty id)
+        # Wrap in try/catch: user may have been deleted after the export was taken (returns 403 accessDenied or 404 ResourceNotFound)
+        $userGroups = $null
+        $userRoles = $null
+        try {
+            $userGroups = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/transitiveMemberOf/microsoft.graph.group" `
+                -Select 'id' -ApiVersion v1.0
 
-        # Query 7: Get directory role memberships
-        $userRoles = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/memberOf/microsoft.graph.directoryRole" `
-            -Select 'id,roleTemplateId' -ApiVersion v1.0
+            # Query 7: Get directory role memberships
+            $userRoles = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/memberOf/microsoft.graph.directoryRole" `
+                -Select 'id,roleTemplateId' -ApiVersion v1.0
+        }
+        catch {
+            if ($_.Exception.Message -match '403|Forbidden|accessDenied|404|Request_ResourceNotFound') {
+                Write-PSFMessage "Skipping candidate $($candidate.UserPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
+                continue
+            }
+            throw
+        }
+        $userGroupIds = @($userGroups | Select-Object -ExpandProperty id)
         $userRoleIds = @($userRoles | Select-Object -ExpandProperty id)
 
         $policiesTargetingUser = 0

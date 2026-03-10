@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that web content filtering policies are configured and enforced in Global Secure Access.
 
@@ -17,16 +17,16 @@
 
 function Test-Assessment-25410 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
-        TestId = 25410,
-        Title = 'Internet traffic is protected by web content filtering policies in Global Secure Access',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25410,
+    	Title = 'Web content filtering policies are linked to security profiles',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

@@ -158,11 +158,7 @@ const config = {
               },
               {
                 label: 'Zero Trust Assessment Checks',
-                to: '/docs/intro',
-              },
-              {
-                label: 'Zero Trust App Permissions',
-                to: '/docs/app-permissions',
+                to: 'https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started',
               },
             ],
           },

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitivity label policies are published to users
 
@@ -16,16 +16,16 @@
 
 function Test-Assessment-35004 {
     [ZtTest(
-        Category = 'Sensitivity Labels',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Microsoft 365 E3'),
-        Pillar = 'Data',
-        RiskLevel = 'Low',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35004,
-        Title = 'Sensitivity label policies are published to users',
-        UserImpact = 'Medium'
+    	Category = 'Sensitivity Labels Configuration',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E3'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35004,
+    	Title = 'Sensitivity label policies are published to users',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()
@@ -41,7 +41,7 @@ function Test-Assessment-35004 {
 
     try {
         # Query: Get all label policies
-        $policies = Get-LabelPolicy -ErrorAction Stop
+        $policies = Get-LabelPolicy -WarningAction SilentlyContinue -ErrorAction Stop
     }
     catch {
         $errorMsg = $_

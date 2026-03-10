@@ -1,13 +1,14 @@
-Azure Front Door is a global, edge-based application delivery service that provides Layer 7 load balancing and acceleration. Web Application Firewall (WAF) in Azure Front Door protects web applications from common exploits and vulnerabilities such as SQL injection, cross-site scripting, and other OWASP Top 10 threats. 
+Azure Front Door Web Application Firewall (WAF) protects web applications from common exploits and vulnerabilities, including SQL injection, cross-site scripting, and other OWASP Top 10 threats. WAF operates in two modes: Detection and Prevention. Detection mode evaluates and logs requests that match WAF rules but doesn't block traffic, while Prevention mode actively blocks malicious requests before they reach the backend application. When WAF is in Detection mode, web applications remain exposed to exploitation even though threats are being identified.
 
-Azure Front Door WAF operates in two modes: Detection and Prevention. Detection mode evaluates incoming HTTP/S requests against managed and custom WAF rules and logs matched requests for visibility and analysis, but it does not block traffic. Prevention mode evaluates requests in the same way but also actively blocks malicious requests that violate WAF rules, preventing them from reaching the backend application. Running WAF in Prevention mode is crucial for actively protecting applications against common web attacks. 
+Without WAF in Prevention mode:
 
-This check verifies that WAF is configured in Prevention mode, ensuring that identified threats are blocked before reaching your application. If WAF is in Detection mode, the check fails because malicious traffic will only be logged, not prevented, leaving applications exposed to exploitation. 
+- Threat actors can exploit web application vulnerabilities because matched requests are only logged, not blocked.
+- Organizations lose active protection at the global edge that managed and custom WAF rules provide, which reduces WAF to an observation tool rather than a security control.
 
 **Remediation action**
 
-- [Configure Web Application Firewall (WAF) for Azure Front Door](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview)
-- [Policy settings for Web Application Firewall in Azure Front Door](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-policy-settings#waf-mode)
-
+- [Configure WAF for Azure Front Door](https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to switch the WAF policy from **Detection mode** to **Prevention mode**.
+- [Configure WAF policy settings for Azure Front Door](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-policy-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#waf-mode) to enable **Prevention mode** in the policy settings.
 <!--- Results --->
 %TestResult%
+

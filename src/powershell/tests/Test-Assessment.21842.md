@@ -4,7 +4,7 @@ Once compromised, attackers can immediately reset the password to lock out legit
 
 **Remediation action**
 
-- [Disable SSPR for administrators by updating the authorization policy](https://learn.microsoft.com/entra/identity/authentication/concept-sspr-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#administrator-reset-policy-differences)  
+- [Disable SSPR for administrators by updating the authorization policy](https://learn.microsoft.com/entra/identity/authentication/concept-sspr-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#administrator-reset-policy-differences)
 <!--- Results --->
 %TestResult%
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks that Quick Access has assigned users or groups
 .DESCRIPTION
@@ -12,16 +12,16 @@
 
 function Test-Assessment-25480 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce','External'),
-        TestId = '25480',
-        Title = 'Quick Access has assigned users or groups',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Entra_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25480,
+    	Title = 'Quick Access has user or group assignments',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

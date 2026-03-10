@@ -4,7 +4,7 @@ Token protection, also called token binding, helps prevent token theft by making
 
 **Remediation action**
 
-- [Deploy a Conditional Access policy to require token protection](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Deploy a Conditional Access policy to require token protection](https://learn.microsoft.com/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

@@ -1,9 +1,8 @@
-TLS Inspection empowers Microsoft Entra Global Secure Access to securely interpret encrypted traffic, enabling advanced protection. While basic Web Content Filtering works without it, TLS Inspection is required for many Internet Access features like URL Filtering. By decrypting and inspecting TLS sessions, organizations gain deeper visibility and control, ensuring policies are applied effectively to safeguard users and data.
+TLS inspection decrypts and inspects HTTPS traffic, enabling visibility into encrypted sessions. Without it, many Microsoft Entra Internet Access features can't function, including URL filtering and advanced threat detection. Most internet traffic is encrypted, so TLS inspection is essential for applying security policies to most user activity.
 
 **Remediation action**
 
-Please check the article below for guidance on configuring the TLS Inspection Policy. 
-- [Configure Transport Layer Security Inspection Policies - Global Secure Access | Microsoft Learn](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-transport-layer-security)
-
+- [Configure Transport Layer Security Inspection Policies](https://learn.microsoft.com/entra/global-secure-access/how-to-transport-layer-security?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
