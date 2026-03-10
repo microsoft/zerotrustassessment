@@ -116,17 +116,17 @@ function Test-Assessment-35041 {
         $formatTemplate = @'
 ## [Discovered Policies](https://purview.microsoft.com/datalossprevention/policies)
 
-| Policy Name | Enabled | Mode | EnforcementPlanes | PolicyCategory | CreatedBy | CreationTimeUtc | Rules Count |
+| Policy name | Enabled | Mode | Enforcement planes | Policy category | Created by | Creation time (UTC) | Rules count |
 |:---|:---|:---|:---|:---|:---|:---|:---|
 {0}
 '@
         foreach ($policy in $browserDlpPolicies | Sort-Object Name) {
-            $policyName = Get-SafeMarkdown($policy.Name)
+            $policyName = Get-SafeMarkdown -Text $policy.Name
             $enabledStatus = if ($policy.Enabled) { 'True' } else { 'False' }
-            $mode = if ($policy.Mode) { Get-SafeMarkdown($policy.Mode) } else { 'N/A' }
-            $enforcementPlanes = if ($policy.EnforcementPlanes) {  (Get-SafeMarkdown(($policy.EnforcementPlanes -join ', '))) } else { 'N/A' }
-            $policyCategory = if ($policy.PolicyCategory) { Get-SafeMarkdown($policy.PolicyCategory) } else { 'N/A' }
-            $createdBy = if ($policy.CreatedBy) { Get-SafeMarkdown($policy.CreatedBy) } else { 'N/A' }
+            $mode = if ($policy.Mode) { $policy.Mode } else { 'N/A' }
+            $enforcementPlanes = if ($policy.EnforcementPlanes) { $policy.EnforcementPlanes -join ', ' } else { 'N/A' }
+            $policyCategory = if ($policy.PolicyCategory) { $policy.PolicyCategory } else { 'N/A' }
+            $createdBy = if ($policy.CreatedBy) { $policy.CreatedBy } else { 'N/A' }
             $createdDate = if ($policy.CreationTimeUtc) { $policy.CreationTimeUtc.ToString('yyyy-MM-ddTHH:mm:ssZ') } else { 'N/A' }
             $rulesCount = @($browserDlpRules | Where-Object { $_.ParentPolicyName -eq $policy.Name -or $_.Policy -eq $policy.Identity }).Count
             $tableRows += "| $policyName | $enabledStatus | $mode | $enforcementPlanes | $policyCategory | $createdBy | $createdDate | $rulesCount |`n"
