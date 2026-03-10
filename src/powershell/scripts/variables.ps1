@@ -2,10 +2,10 @@
 ## Update Clear-ModuleVariable function in private/Clear-ModuleVariable.ps1 if you add new variables here
 
 # Read module version from the manifest once, including any prerelease suffix (e.g. "2.1.8-preview")
-$__ztManifest = Import-PSFPowerShellDataFile -Path (Join-Path $script:ModuleRoot 'ZeroTrustAssessment.psd1')
-$__ztModuleVersion = $__ztManifest.ModuleVersion
-$__ztPrerelease = $__ztManifest.PrivateData.PSData.Prerelease
-if ($__ztPrerelease) { $__ztModuleVersion = "$__ztModuleVersion-$__ztPrerelease" }
+$manifest = Import-PSFPowerShellDataFile -Path (Join-Path $script:ModuleRoot 'ZeroTrustAssessment.psd1')
+$moduleVersion = $manifest.ModuleVersion
+$prerelease = $manifest.PrivateData.PSData.Prerelease
+if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
 
 $script:__ZtSession = @{
 	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
@@ -16,7 +16,7 @@ $script:__ZtSession = @{
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
 	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru
-	ModuleVersion = $__ztModuleVersion
+	ModuleVersion = $moduleVersion
 }
 
 $script:__ZtThrottling = Set-PSFDynamicContentObject -Name "ZtAssessment.Throttles" -Dictionary -PassThru
