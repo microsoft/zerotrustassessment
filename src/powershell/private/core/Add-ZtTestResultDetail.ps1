@@ -203,7 +203,7 @@ function Add-ZtTestResultDetail {
 	}
 
 	if ($testMeta.CompatibleLicense) {
-		$testInfo.TestMinimumLicense = $testMeta.CompatibleLicense.ForEach{ ($_ -split '&') -join ' AND ' } -join ' OR '
+		$testInfo.TestMinimumLicense = $testMeta.CompatibleLicense.ForEach{ ($_ -split '&') -join ' AND ' }
 	}
 
 	Write-ZtProgress -Activity "Running tests" -Status $docsTitle
