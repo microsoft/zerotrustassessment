@@ -82,8 +82,14 @@ function Invoke-ZtGraphRequest {
 		if (-not $GraphBaseUri) {
 			if (-not $script:__ZtSession.GraphBaseUri) {
 				Write-PSFMessage -Message 'Setting GraphBaseUri to default value from MgContext.'
-				$script:__ZtSession.GraphBaseUri = (Get-MgEnvironment -Name (Get-MgContext).Environment).GraphEndpoint
+				$mgContext = Get-MgContext
+				if (-not $mgContext) {
+					throw 'No Microsoft Graph context found. Please connect to Microsoft Graph using Connect-ZtAssessment.'
+				}
+
+				$script:__ZtSession.GraphBaseUri = (Get-MgEnvironment -Name $mgContext.Environment).GraphEndpoint
 			}
+
 			$GraphBaseUri = $script:__ZtSession.GraphBaseUri
 		}
 
