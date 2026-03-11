@@ -108,7 +108,7 @@ resources
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one rate limiting rule configured and enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have at least one rate limiting rule configured and enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are either disabled, not in Prevention mode, or do not have rate limiting rules configured and enabled, leaving applications vulnerable to brute force and volumetric attacks at the global edge.`n`n%TestResult%"

@@ -51,11 +51,11 @@ function Clear-ZtRequiredModule {
     }
     else
     {
-        Write-Verbose -Message 'Clearing ZTA required modules from the current session.'
+        Write-Verbose -Message 'Clearing ZTA required module files from disk.'
     }
 
-    # Remove all ZTA-related modules from the current session
-    if ($IsWindows) {
+    # Remove all ZTA-related module files from disk
+    if ($isWindows) {
         $ZTAModulesFolder = Join-Path -Path $Env:APPDATA -ChildPath 'ZeroTrustAssessment\Modules'
     }
     else {

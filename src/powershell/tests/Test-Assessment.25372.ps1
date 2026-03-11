@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Global Secure Access client is deployed on all managed endpoints.
 

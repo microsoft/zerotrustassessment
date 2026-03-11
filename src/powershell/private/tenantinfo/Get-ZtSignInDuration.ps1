@@ -15,13 +15,19 @@ function Get-ZtSignInDuration {
 
 	$sql = @"
 select
-    datediff('minute', min(createdDateTime), max(createdDateTime)) as 'minutes',
-    datediff('hour', min(createdDateTime), max(createdDateTime)) as 'hours',
-    datediff('day', min(createdDateTime), max(createdDateTime)) as 'days',
+    datediff('minute', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'minutes',
+    datediff('hour', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'hours',
+    datediff('day', min(createdDateTime::TIMESTAMP), max(createdDateTime::TIMESTAMP)) as 'days',
 from SignIn
 "@
 
 	$results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+
+	# Handle empty SignIn table (e.g., when export times out)
+	if ($null -eq $results -or $results.minutes -is [System.DBNull]) {
+		$script:__ZtSession.SignInLogDuration = "0 duration"
+		return $script:__ZtSession.SignInLogDuration
+	}
 
 	$duration = 0
 	if ($results.days -gt 0) {

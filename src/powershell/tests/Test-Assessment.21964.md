@@ -1,6 +1,10 @@
-Configure protected actions for Conditional Access policy create, update and delete permissions, and Authentication Context update permission. Refer to the guidance on common stronger Conditional Access policies:
+Threat actors who gain privileged access to a tenant can manipulate Conditional Access policies, potentially disabling critical security controls and enabling persistent access or lateral movement. This type of attack can result in environment-wide compromise by bypassing authentication and authorization barriers.
+
+Protected actions let administrators secure Conditional Access policy creation and modification with extra security controls, such as stronger authentication methods (passwordless MFA or phishing-resistant MFA), the use of Privileged Access Workstation (PAW) devices, or shorter session timeouts.
 
 **Remediation action**
-[What are protected actions in Microsoft Entra ID? - Microsoft Entra ID | Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/protected-actions-overview)
+
+- [Add, test, or remove protected actions in Microsoft Entra ID](https://learn.microsoft.com/entra/identity/role-based-access-control/protected-actions-add?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+

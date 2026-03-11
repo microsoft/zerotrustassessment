@@ -165,7 +165,7 @@ function Export-ZtGraphEntity {
 	$hasTimeLimit = $MaximumQueryTime -gt 0
 
 	do {
-		$results = Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable
+		$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 
 		# Track file size for SignIn logs

@@ -1,8 +1,15 @@
-When the Internet Access forwarding profile remains disabled, users access internet resources without routing traffic through the Secure Web Gateway, bypassing security controls that block threats, malicious content, and unsafe destinations. Threat actors exploit this gap by delivering malware, establishing command and control connections, or exfiltrating data through unmonitored internet channels. Without sufficient controls to prevent unauthorized access, threat actors leverage compromised credentials or social engineering to establish initial access, then use unfiltered internet connectivity to download tools, establish persistence mechanisms, or communicate with external infrastructure. Organizations lose visibility into internet traffic patterns through Traffic Logs, preventing detection of data exfiltration attempts, connections to known malicious domains, or unauthorized access to external resources. The absence of identity-based access controls for internet traffic enables threat actors operating from compromised accounts to blend with normal user behavior, accessing external resources to stage attacks, download exploitation frameworks, or communicate with adversary infrastructure without triggering security alerts based on user context, device compliance, or location.
+When the Internet Access forwarding profile isn't enabled, users can access internet resources without routing traffic through the Secure Web Gateway. This gap allows threat actors to bypass security controls that block threats, malicious content, and unsafe destinations.
+
+Without this protection:
+
+- Organizations lose visibility into traffic patterns. They can't detect data exfiltration, connections to malicious domains, or unauthorized external access.
+- Threat actors can deliver malware, establish command and control connections, or exfiltrate data through unmonitored channels.
+- Threat actors can use compromised credentials or social engineering to gain initial access, download tools, establish persistence, or communicate with external infrastructure.
+- Threat actors can use compromised accounts to blend with typical user behavior and access external resources without triggering security alerts based on user context, device compliance, or location.
 
 **Remediation action**
-
-- [Enable Internet Access forwarding profile to route traffic through the Secure Web Gateway](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile)
-- [Assign users and groups to the Internet Access profile to scope traffic forwarding to specific users](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+- Enable the Internet Access forwarding profile to route traffic through the Secure Web Gateway. For more information, see [How to manage the Internet Access traffic forwarding profile](https://learn.microsoft.com/entra/global-secure-access/how-to-manage-internet-access-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- Assign users and groups to the Internet Access profile to limit traffic forwarding to specific users. For more information, see [Global Secure Access traffic forwarding profiles](https://learn.microsoft.com/entra/global-secure-access/concept-traffic-forwarding?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
+

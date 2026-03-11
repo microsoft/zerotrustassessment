@@ -108,7 +108,7 @@ resources
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled in Prevention mode and have at least one JavaScript Challenge rule configured and enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have at least one JavaScript Challenge rule configured and enabled.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, running in Detection mode, have no JavaScript challenge rules configured, or have JavaScript challenge rules configured but all set to Disabled state, leaving applications without browser verification against automated bots at the global edge.`n`n%TestResult%"

@@ -5,8 +5,9 @@ Once basic credentials are compromised, threat actors use these weaknesses in SM
 **Remediation action**
 
 - [Deploy authentication method registration campaigns to encourage stronger methods](https://learn.microsoft.com/graph/api/authenticationmethodspolicy-update?view=graph-rest-beta&preserve-view=true&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Disable authentication methods](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Disable phone-based methods in legacy MFA settings](https://learn.microsoft.com/en-us/entra/identity/authentication/howto-mfa-mfasettings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Deploy Conditional Access policies using authentication strength](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strength-how-it-works?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)<!--- Results --->
+- [Disable authentication methods](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-methods-manage?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Disable phone-based methods in legacy MFA settings](https://learn.microsoft.com/entra/identity/authentication/howto-mfa-mfasettings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Deploy Conditional Access policies using authentication strength](https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strength-how-it-works?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
 %TestResult%
 

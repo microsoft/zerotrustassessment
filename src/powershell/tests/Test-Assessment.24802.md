@@ -9,7 +9,6 @@ Configure Intune device cleanup rules to automatically hide inactive devices fro
 
 For more information, see:  
 - [Using Intune device cleanup rules](https://techcommunity.microsoft.com/blog/devicemanagementmicrosoft/using-intune-device-cleanup-rules-updated-version/3760854) *on the Microsoft Tech Community blog*
-
 <!--- Results --->
 %TestResult%
 

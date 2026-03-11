@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitivity labels are configured
 
@@ -14,16 +14,16 @@
 
 function Test-Assessment-35003 {
     [ZtTest(
-        Category = 'sensitivity-labels',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Microsoft 365 E3'),
-        Pillar = 'Data',
-        RiskLevel = 'High',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35003,
-        Title = 'Sensitivity labels are configured',
-        UserImpact = 'Low'
+    	Category = 'Sensitivity Labels Configuration',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Microsoft 365 E3'),
+    	Pillar = 'Data',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35003,
+    	Title = 'Sensitivity labels are configured',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

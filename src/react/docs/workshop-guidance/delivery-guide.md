@@ -7,12 +7,12 @@ sidebar_position: 1
 ## Overview
 The Zero Trust Workshop helps customers to develop an actionable and orderly strategy for implementing a secure Zero Trust posture. There are two parts to the Zero Trust Workshop. The first is assessing the customer's current environment with programmatic checks that will help to identify gaps and areas for improvement. The second is helping the customer to identify projects and initiatives that they need to implement to further advance their adoption of capabilities to transform their environment.
 There are currently six different workshops available for the following pillars: 
-- Identity (Recently Updated)
-- Devices  (Recently Updated)
-- Data (Recently Updated)
-- Network (New)
-- Infrastructure (New)
-- Security Operations (New)
+- Identity
+- Devices
+- Data
+- Network
+- Infrastructure
+- Security Operations
 
 Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, and Security Operations (and any future modules as they become available).
 
