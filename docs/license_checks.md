@@ -2,13 +2,13 @@
 
 The `[ZtTest()]` attribute can be used to mark the licenses required for a test with the property `CompatibleLicense`. This property accepts an array of strings representing the licenses that are required for the test to be executed.
 
-This `CompatibleLicense` property replaces `MinimumLicense`, and supports multiple licenses and combination.
+This `CompatibleLicense` property replaces `MinimumLicense`, and supports multiple licenses and combinations.
 
 ## Behavior of license checks
 
 Before executing the test, the checks will compare the required licenses with the current licenses to determine if the test can be executed or if it should be skipped.  
 
-The license are referenced here "[Licensing & Service Plans](https://learn.microsoft.com/en-gb/entra/identity/users/licensing-service-plan-reference)".
+The licenses are referenced here "[Licensing & Service Plans](https://learn.microsoft.com/en-gb/entra/identity/users/licensing-service-plan-reference)".
 
 ## Licenses are Service Plan Names
 
