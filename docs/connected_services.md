@@ -55,14 +55,14 @@ This command will connect to the Graph, Azure, and AipService services, which wi
 
 ## Under the hood
 
-From the PowerShell module standpoint, the connected services are populated during the call to Connect-ZtAssessment, and stored in the `$script:ConnectedServices` module-scoped variable.
+From the PowerShell module standpoint, the connected services are populated during the call to Connect-ZtAssessment, and stored in the `$script:ConnectedService` module-scoped variable.
 
-Each call to `Connect-ZtAssessment` will update the `$script:ConnectedServices` variable with the services specified in the `-Services` parameter if the connection does not raise an exception.
+Each call to `Connect-ZtAssessment` will update the `$script:ConnectedService` variable with the services specified in the `-Services` parameter if the connection does not raise an exception.
 
-If the `-Services` parameter is not specified, it will default to connecting to all available services, which will be reflected in the `$script:ConnectedServices` variable.
+If the `-Services` parameter is not specified, it will default to connecting to all available services, which will be reflected in the `$script:ConnectedService` variable.
 
 ## Logic
 
-When a test is executed, the checks will compare the required services specified in the `[ZtTest()]` attribute with the services listed in `$script:ConnectedServices`. If any required service is not present in `$script:ConnectedServices`, the test will be skipped, and a message will be displayed indicating which services are required and which services are currently connected.
+When a test is executed, the checks will compare the required services specified in the `[ZtTest()]` attribute with the services listed in `$script:ConnectedService`. If any required service is not present in `$script:ConnectedService`, the test will be skipped, and a message will be displayed indicating which services are required and which services are currently connected.
 
 If the attribute does not specify any required services, the test will be executed regardless of the connected services.
