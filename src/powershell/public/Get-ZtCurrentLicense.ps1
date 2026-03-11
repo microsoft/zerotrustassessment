@@ -26,8 +26,15 @@ function Get-ZtCurrentLicense {
     )
 
     process {
-        if (-not $script:CurrentLicense -or $Force.IsPresent) {
-            [string[]] $script:CurrentLicense = (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus").servicePlans.servicePlanName | Sort-Object -Unique
+        try
+        {
+            if (-not $script:CurrentLicense -or $Force.IsPresent) {
+                [string[]] $script:CurrentLicense = Invoke-ZtRetry -RetryCount 3 -ScriptBlock { (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" -ErrorAction Stop).servicePlans.servicePlanName | Sort-Object -Unique }
+            }
+        }
+        catch {
+            Write-PSFMessage -Level Warning -Message ('Failed to retrieve current licenses. Error: {0}' -f $_.Exception.Message) -ErrorRecord $_
+            $script:CurrentLicense = @()
         }
 
         return $script:CurrentLicense
