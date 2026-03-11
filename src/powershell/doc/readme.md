@@ -189,8 +189,8 @@ Run the following commands to ensure all versions of the past modules are uninst
 Next restart PowerShell and follow the instructions in this page to install the latest version.
 
 ```powershell
-Uninstall-Module ZeroTrustAssessment -Force -AllVersions
-Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Uninstall-PSResource ZeroTrustAssessment -Force -AllVersions
+Uninstall-PSResource ZeroTrustAssessmentv2 -Force -AllVersions
 ```
 
 ### Could not load file or assembly Microsoft.Graph.Authentication
@@ -204,9 +204,9 @@ When uninstalling Microsoft Graph you should also uninstall versions of Zero Tru
 This is the order of running the cmdlets.
 
 ```powershell
-Install-Module Uninstall-Graph
-Uninstall-Module ZeroTrustAssessment -Force -AllVersions
-Uninstall-Module ZeroTrustAssessmentv2 -Force -AllVersions
+Install-PSResource Uninstall-Graph
+Uninstall-PSResource ZeroTrustAssessment -Force -AllVersions
+Uninstall-PSResource ZeroTrustAssessmentv2 -Force -AllVersions
 Uninstall-Graph
 ```
 Close all open PowerShell windows.
@@ -214,7 +214,7 @@ Close all open PowerShell windows.
 Start a new PowerShell session.
 
 ```powershell
-Install-Module ZeroTrustAssessment -Scope CurrentUser
+Install-PSResource ZeroTrustAssessment -Scope CurrentUser
 ```
 
 Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.

@@ -64,7 +64,7 @@ Both configs use the `GraphRandomErrorPlugin`, which is specifically designed fo
 
 2. **Microsoft Graph PowerShell SDK** (already a module dependency):
    ```powershell
-   Install-Module Microsoft.Graph.Authentication -Scope CurrentUser
+   Install-PSResource Microsoft.Graph.Authentication -Scope CurrentUser
    ```
 
 3. **First-time setup**: The first time you run Dev Proxy, it will ask you to trust its SSL certificate. This is required to intercept HTTPS traffic. Press `y` (macOS/Linux) or click `Yes` (Windows) when prompted.
