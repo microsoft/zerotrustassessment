@@ -46,7 +46,7 @@
 
 	$currentDelay = $RetryDelay
 
-	foreach ($attempt in 1..$RetryCount) {
+	foreach ($attempt in 1..($RetryCount+1)) {
 		try {
 			return & $ScriptBlock
 		}
