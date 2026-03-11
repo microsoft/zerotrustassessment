@@ -4,9 +4,10 @@ function Get-ZtCurrentLicense {
         Returns the list of Licenses/skus subscribed to.
 
     .DESCRIPTION
-        This function retrieves the list of licenses or service plans that the tenant is currently subscribed to.
+        This function retrieves the list of licenses or service plans names that the tenant is currently subscribed to.
         It uses the Microsoft Graph API to fetch the subscribed SKUs and filters out any deleted service plans.
-        It will only return the licenses that are relevant for the Zero Trust Assessment, based on a predefined mapping of SKUs to license names.
+        It will only return all licenses if the user has the necessary permissions to read this information from Microsoft Graph.
+        If the API call fails for any reason, it will return an empty array and log a warning message.
 
     .PARAMETER Force
         If specified, forces a refresh of the cached license information. By default, the function caches the license information in the
