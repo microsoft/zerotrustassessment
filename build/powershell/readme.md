@@ -11,7 +11,7 @@ Lookup /src/powershell/ZeroTrustAssessment.psd1 and install all the required mod
 From the /src/powershell directory, run:
 
 ```powershell
-Import-PSResource ./src/powershell/ZeroTrustAssessment.psd1 -Force
+Import-Module ./ZeroTrustAssessment.psd1 -Force
 ```
 
 ### Invoke-ZtAssessment tips
