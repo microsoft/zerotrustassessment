@@ -19,6 +19,7 @@ function Test-Assessment-35035 {
     [ZtTest(
     	Category = 'Advanced Classification',
     	ImplementationCost = 'Low',
+    	Service = 'SecurityCompliance',
     	MinimumLicense = ('Microsoft 365 E3'),
     	Pillar = 'Data',
     	RiskLevel = 'High',

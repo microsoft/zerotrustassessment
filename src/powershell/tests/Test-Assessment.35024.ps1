@@ -19,6 +19,7 @@ function Test-Assessment-35024 {
     [ZtTest(
     	Category = 'Rights Management Service',
     	ImplementationCost = 'Low',
+    	Service = 'ExchangeOnline',
     	MinimumLicense = ('Microsoft 365 E3'),
     	Pillar = 'Data',
     	RiskLevel = 'High',

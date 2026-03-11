@@ -23,6 +23,7 @@ function Test-Assessment-35032 {
     [ZtTest(
         Category = 'Data Loss Prevention (DLP)',
         ImplementationCost = 'Low',
+        Service = 'SecurityCompliance',
         MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
         RiskLevel = 'Medium',

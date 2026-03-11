@@ -21,6 +21,7 @@ function Test-Assessment-35002 {
     [ZtTest(
     	Category = 'Identity',
     	ImplementationCost = 'Low',
+    	Service = 'Graph',
     	MinimumLicense = ('Microsoft 365 E5'),
     	Pillar = 'Data',
     	RiskLevel = 'High',
