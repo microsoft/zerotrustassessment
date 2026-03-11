@@ -12,7 +12,7 @@ To learn more see [aka.ms/zerotrust/assessment](https://aka.ms/zerotrust/assessm
 Use PowerShell 7 to install, sign in and run the assessment against your tenant.
 
 ```powershell
-Install-Module ZeroTrustAssessment -Scope CurrentUser
+Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
 Connect-ZtAssessment
 Invoke-ZtAssessment
 ```

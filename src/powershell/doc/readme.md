@@ -37,14 +37,14 @@ Follow these steps to install the assessment and connect to Microsoft Graph and 
 
 Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open PowerShell 7 directly via the path: `C:\Program Files\PowerShell\7\pwsh.exe`
 
-*When prompted to install modules from an untrusted repository, choose `Yes to All`.*
+_When prompted to install modules from an untrusted repository, choose `Yes to All`._
 
 ### Install Zero Trust Assessment module
 
 Install the `ZeroTrustAssessment` module using the following command.
 
 ```powershell
-Install-Module ZeroTrustAssessment -Scope CurrentUser
+Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
 ```
 
 ## Connect to Microsoft Graph and Azure
@@ -73,6 +73,8 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - Reports.Read.All
 - RoleManagement.Read.All
 - UserAuthenticationMethod.Read.All
+- NetworkAccess.Read.All
+- IdentityRiskyServicePrincipal.Read.All
 
 Run the following command to connect to Microsoft Graph and consent to the permissions using a Global Administrator account.
 
