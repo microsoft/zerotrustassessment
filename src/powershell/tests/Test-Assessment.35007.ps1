@@ -15,7 +15,7 @@ function Test-Assessment-35007 {
     [ZtTest(
         Category = 'SharePoint Online',
         ImplementationCost = 'Low',
-        Service = 'SharePointOnline',
+        Service = ('SharePointOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'Low',

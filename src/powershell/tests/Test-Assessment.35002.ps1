@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks if Microsoft Rights Management Services (RMS) is allowed in Cross-Tenant Access Policies (XTAP).
 
@@ -21,7 +21,7 @@ function Test-Assessment-35002 {
     [ZtTest(
     	Category = 'Identity',
     	ImplementationCost = 'Low',
-    	Service = 'Graph',
+    	Service = ('Graph'),
     	MinimumLicense = ('Microsoft 365 E5'),
     	Pillar = 'Data',
     	RiskLevel = 'High',

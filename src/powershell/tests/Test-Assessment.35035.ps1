@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Named entity sensitive information types are used in auto-labeling and data loss prevention policies
 
@@ -19,7 +19,7 @@ function Test-Assessment-35035 {
     [ZtTest(
     	Category = 'Advanced Classification',
     	ImplementationCost = 'Low',
-    	Service = 'SecurityCompliance',
+    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E3'),
     	Pillar = 'Data',
     	RiskLevel = 'High',

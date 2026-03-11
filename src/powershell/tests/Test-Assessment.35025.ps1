@@ -19,7 +19,7 @@ function Test-Assessment-35025 {
     [ZtTest(
         Category = 'Rights Management Service (RMS)',
         ImplementationCost = 'Low',
-        Service = 'ExchangeOnline',
+        Service = ('ExchangeOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'High',

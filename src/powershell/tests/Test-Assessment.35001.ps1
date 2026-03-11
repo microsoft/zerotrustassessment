@@ -7,7 +7,7 @@ function Test-Assessment-35001 {
     [ZtTest(
         Category = 'Entra',
         ImplementationCost = 'Low',
-        Service = 'Graph',
+        Service = ('Graph'),
         MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
         RiskLevel = 'High',
