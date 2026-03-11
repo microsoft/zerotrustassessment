@@ -58,7 +58,7 @@
 				$PSCmdlet.ThrowTerminatingError($_)
 			}
 
-			if ($attempt -ge $RetryCount) {
+			if ($attempt -gt $RetryCount) { # 1 initial attempt + RetryCount retries = attempt number > RetryCount on the final failure
 				$PSCmdlet.ThrowTerminatingError($_)
 			}
 
