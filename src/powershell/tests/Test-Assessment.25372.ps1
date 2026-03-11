@@ -55,17 +55,17 @@ function Test-Assessment-25372 {
         Write-PSFMessage "Failed to get GSA device usage summary: $_" -Tag Test -Level Warning
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Getting Entra ID managed device count'
+    Write-ZtProgress -Activity $activity -Status 'Getting Entra ID joined and hybrid joined device count'
 
-    # Query Q2: Count Entra ID managed devices (joined and hybrid joined)
+    # Query Q2: Count Entra ID joined and hybrid joined devices
     $entraDeviceCount = $null
     try {
         $entraDevices = Invoke-ZtGraphRequest `
             -RelativeUri "devices?`$filter=trustType eq 'AzureAd' or trustType eq 'ServerAd'&`$count=true&`$top=999&`$select=id,displayName,operatingSystem,operatingSystemVersion,trustType" `
             -ApiVersion v1.0 `
             -ConsistencyLevel eventual
-        # Invoke-ZtGraphRequest returns the unpacked array, so count the results directly
-        $entraDeviceCount = if ($entraDevices) { $entraDevices.Count } else { 0 }
+        # Normalize to an array before counting to handle single-item results correctly
+        $entraDeviceCount = if ($entraDevices) { @($entraDevices).Count } else { 0 }
     }
     catch {
         Write-PSFMessage "Failed to get Entra ID device count: $_" -Tag Test -Level Warning
@@ -87,7 +87,7 @@ function Test-Assessment-25372 {
     if ($totalGsaDevices -gt $totalManagedDevices -and $totalManagedDevices -gt 0) {
         $customStatus = 'Investigate'
         $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
-        $gap = $totalManagedDevices - $totalGsaDevices
+        $gap = [math]::Abs($totalManagedDevices - $totalGsaDevices)
         $testResultMarkdown = "⚠️ Global Secure Access device count exceeds the Entra ID managed device count. This indicates stale GSA device records, devices removed from Entra ID, or data synchronization issues between systems. Review both data sources to reconcile counts.`n`n%TestResult%"
     }
     # Edge case: No devices at all (both = 0) - Fail per spec
