@@ -78,7 +78,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = $null # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -91,7 +91,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @('oauth2PermissionGrants')
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = $null # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -117,7 +117,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = $null # 'Global'
 	# IncludePlan = @() # P2, Governance
 	ExcludePlan = @('Free') # Free
@@ -130,7 +130,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = $null # 'Global'
 	IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -156,7 +156,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -169,7 +169,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -182,7 +182,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -195,7 +195,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -237,7 +237,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleAssignment'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -249,7 +249,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleEligibilityScheduleInstance'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -262,7 +262,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleAssignmentScheduleInstance'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'Network')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free

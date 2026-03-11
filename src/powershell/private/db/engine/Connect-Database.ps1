@@ -60,7 +60,13 @@
 
 	Write-PSFMessage -Level System -Message 'Establishing a DuckDB connection against {0}' -StringValues $Path -Tag DB
     $database = [DuckDB.NET.Data.DuckDBConnection]::new("Data Source=$Path")
-    $database.Open()
+    try {
+        $database.Open()
+    }
+    catch {
+        $database.Dispose()
+        throw
+    }
     if ($PassThru -or $Transient) {$database}
 	if (-not $Transient) {
 		if ($script:_DatabaseConnection) {
