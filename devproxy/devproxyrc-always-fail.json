@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/dev-proxy/main/schemas/v2.1.0/rc.schema.json",
+  "plugins": [
+    {
+      "name": "GraphRandomErrorPlugin",
+      "enabled": true,
+      "pluginPath": "~appFolder/plugins/DevProxy.Plugins.dll",
+      "configSection": "graphRandomErrorPlugin"
+    }
+  ],
+  "urlsToWatch": [
+    "https://graph.microsoft.com/v1.0/*",
+    "https://graph.microsoft.com/beta/*"
+  ],
+  "rate": 100,
+  "graphRandomErrorPlugin": {
+    "$schema": "https://raw.githubusercontent.com/dotnet/dev-proxy/main/schemas/v2.1.0/graphrandomerrorplugin.schema.json",
+    "allowedErrors": [429, 500, 502, 503, 504],
+    "retryAfterInSeconds": 3
+  }
+}
