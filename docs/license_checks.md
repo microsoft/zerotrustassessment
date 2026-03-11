@@ -89,7 +89,7 @@ From the PowerShell module standpoint, the available licenses are populated duri
 For development and testing purposes, you can also set the `$script:CurrentLicense` variable manually to simulate different license scenarios without needing to connect to a tenant or call the Microsoft Graph API:
 
 ```powershell
-$ztaModule = Get-Module -Name "ZtAssessment"
+$ztaModule = Get-Module -Name "ZeroTrustAssessment"
 &$ztaModule { $script:CurrentLicense = $script:CurrentLicense.Where{$_ -notin @('AAD_PREMIUM')} }
 ```
 
