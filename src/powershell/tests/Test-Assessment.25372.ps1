@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that Global Secure Access (GSA) client is deployed on all managed endpoints.
+    Validates that Global Secure Access client is deployed on all managed endpoints.
 
 .DESCRIPTION
     This test compares the count of devices connected to Global Secure Access with the total
@@ -23,7 +23,7 @@ function Test-Assessment-25372 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25372,
-        Title = 'Global Secure Access (GSA) client is deployed on all managed endpoints',
+        Title = 'Global Secure Access client is deployed on all managed endpoints',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -92,8 +92,8 @@ function Test-Assessment-25372 {
     }
     # Edge case: No devices at all (both = 0) - Fail per spec
     elseif ($totalManagedDevices -eq 0 -and $totalGsaDevices -eq 0) {
-        $deploymentPercentage = 'N/A'
-        $gap = 'N/A'
+        $deploymentPercentage = 0
+        $gap = 0
         $testResultMarkdown = "❌ Global Secure Access client deployment is insufficient or cannot be verified. Either deployment coverage is below 70%, no devices are detected, or services may not be in scope for this environment.`n`n%TestResult%"
     }
     # Edge case: No managed devices but GSA devices exist (cannot calculate percentage; Entra ID baseline unavailable)
@@ -156,7 +156,7 @@ function Test-Assessment-25372 {
 
     $params = @{
         TestId = '25372'
-        Title  = 'Global Secure Access (GSA) client is deployed on all managed endpoints'
+        Title  = 'Global Secure Access client is deployed on all managed endpoints'
         Status = $passed
         Result = $testResultMarkdown
     }
