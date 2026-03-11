@@ -45,9 +45,8 @@
 	$ErrorActionPreference = 'Stop'
 
 	$currentDelay = $RetryDelay
-	[int] $attempt = 0
 
-	foreach ($attempt in 1..$RetryCount) {
+	foreach ([int]$attempt in 1..$RetryCount) {
 		try {
 			return & $ScriptBlock
 		}
