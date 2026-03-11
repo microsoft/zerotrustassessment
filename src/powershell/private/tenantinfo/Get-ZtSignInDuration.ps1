@@ -23,6 +23,12 @@ from SignIn
 
 	$results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
+	# Handle empty SignIn table (e.g., when export times out)
+	if ($null -eq $results -or $results.minutes -is [System.DBNull]) {
+		$script:__ZtSession.SignInLogDuration = "0 duration"
+		return $script:__ZtSession.SignInLogDuration
+	}
+
 	$duration = 0
 	if ($results.days -gt 0) {
 		$duration = $results.days
