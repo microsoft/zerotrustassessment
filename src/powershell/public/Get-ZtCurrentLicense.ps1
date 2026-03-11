@@ -29,7 +29,9 @@ function Get-ZtCurrentLicense {
         try
         {
             if (-not $script:CurrentLicense -or $Force.IsPresent) {
-                [string[]] $script:CurrentLicense = Invoke-ZtRetry -RetryCount 3 -ScriptBlock { (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" -ErrorAction Stop).servicePlans.servicePlanName | Sort-Object -Unique }
+                [string[]] $script:CurrentLicense = Invoke-ZtRetry -RetryCount 3 -ScriptBlock {
+                    (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" -ErrorAction Stop).servicePlans.Where{ $_.capabilityStatus -ne 'Deleted' }.servicePlanName | Sort-Object -Unique
+                }
             }
         }
         catch {
