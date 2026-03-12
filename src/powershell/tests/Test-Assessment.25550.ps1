@@ -112,6 +112,8 @@ resources
         }
         catch {
             Write-PSFMessage "TLS rule query failed: $($_.Exception.Message)" -Tag Test -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NotSupported
+            return
         }
     }
 
@@ -149,7 +151,7 @@ resources
 
     if ($premiumPolicies.Count -eq 0) {
         # Policies exist but none are Premium → Fail
-        $testResultMarkdown = "TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n"
     }
     elseif ($attachedResults.Count -eq 0) {
         # All Premium policies are not attached to any firewall → Skipped
@@ -159,10 +161,10 @@ resources
     }
     elseif ($attachedResults | Where-Object { $_.PassesCriteria }) {
         $passed = $true
-        $testResultMarkdown = "TLS inspection is enabled on Azure Firewall Premium. Global TLS certificate authority is configured and at least one application rule has TLS inspection enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ TLS inspection is enabled on Azure Firewall Premium. Global TLS certificate authority is configured and at least one application rule has TLS inspection enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ TLS inspection is not properly configured on Azure Firewall. Either the global certificate authority is missing, or no application rules have TLS inspection enabled.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
