@@ -4,14 +4,14 @@
 
 ### Install dependencies
 
-Lookup /src/powershell/ZeroTrustAssessment.psd1 and install all the required modules using `Install-Module <ModuleName>`.
+Lookup /src/powershell/ZeroTrustAssessment.psd1 and install all the required modules using `Install-PSResource <ModuleName>`.
 
 ### Import the module
 
 From the /src/powershell directory, run:
 
 ```powershell
-Import-Module ./src/powershell/ZeroTrustAssessment.psd1 -Force
+Import-Module ./ZeroTrustAssessment.psd1 -Force
 ```
 
 ### Invoke-ZtAssessment tips

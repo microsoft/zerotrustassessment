@@ -1,6 +1,7 @@
 ﻿# To give a module-wide constant point of reference
 $script:ModuleRoot = $PSScriptRoot
-$script:ConnectedService = @()
+[string[]] $script:ConnectedService = @()
+[string[]] $script:CurrentLicense = @()
 
 # Load PowerShell Classes
 foreach ($file in Get-ChildItem -Path "$script:ModuleRoot\classes" -Recurse -Filter "*.ps1") {

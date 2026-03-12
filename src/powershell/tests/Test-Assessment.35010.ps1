@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Double Key Encryption labels are configured
 
@@ -25,6 +25,7 @@ function Test-Assessment-35010 {
     [ZtTest(
     	Category = 'Encryption',
     	ImplementationCost = 'Medium',
+    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E5'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',

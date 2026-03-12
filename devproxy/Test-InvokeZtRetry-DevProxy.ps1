@@ -8,7 +8,7 @@
 
 	Prerequisites:
 	  1. Dev Proxy installed: https://learn.microsoft.com/en-us/microsoft-cloud/dev/dev-proxy/get-started/set-up
-	  2. Microsoft Graph PowerShell SDK: Install-Module Microsoft.Graph.Authentication
+	  2. Microsoft Graph PowerShell SDK: Install-PSResource Microsoft.Graph.Authentication
 	  3. Connected to a tenant: Connect-MgGraph -Scopes "User.Read"
 
 	Usage:
@@ -55,7 +55,7 @@ $srcRoot = Join-Path $PSScriptRoot "../src/powershell"
 # Check for PSFramework (needed for Write-PSFMessage)
 if (-not (Get-Module PSFramework -ListAvailable)) {
 	Write-Warning "PSFramework module not found. Installing for logging support..."
-	Install-Module PSFramework -Scope CurrentUser -Force
+	Install-PSResource PSFramework -Scope CurrentUser -Force
 }
 Import-Module PSFramework -ErrorAction Stop
 #endregion

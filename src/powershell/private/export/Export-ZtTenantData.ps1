@@ -85,6 +85,7 @@ function Export-ZtTenantData {
 		Stop-PSFFunction -Message "Error resuming export! Previously exported data was created for another tenant then the currently connected one! Previous: $($previousTenantID) | Current: $($graphContext.TenantId)" -EnableException $true -Cmdlet $PSCmdlet
 	}
 	Set-ZtConfig -ExportPath $ExportPath -Property TenantID -Value $graphContext.TenantId
+	Set-ZtConfig -ExportPath $ExportPath -Property Pillar -Value $Pillar
 
 
 	# Data that may be inserted into configured exports with placeholders
@@ -111,7 +112,7 @@ https://github.com/microsoft/zerotrustassessment/issues
 "@ -Target $exportCfg -Tag config, error, fail, devfail
 			continue
 		}
-		if ($Pillar -notcontains 'All' -and $Pillar -notcontains $exportCfg.Pillar) { continue }
+		if ($Pillar -ne 'All' -and $exportCfg.Pillar -notcontains $Pillar) { continue }
 		if ($exportCfg.Environment -and $exportCfg.Environment -notcontains $azureEnvironment) { continue }
 		if ($exportCfg.IncludePlan -and $entraIDPlan -notin $exportCfg.IncludePlan) { continue }
 		if ($exportCfg.ExcludePlan -and $entraIDPlan -in $exportCfg.IncludePlan) { continue }
