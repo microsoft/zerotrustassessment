@@ -106,17 +106,18 @@ function Test-Assessment-27000 {
     $categoryResults = @()
 
     if($errorMsg) {
+        # Error occured during data collection, cannot proceed with assessment -> Fail
         Write-PSFMessage "Error during data collection: $errorMsg" -Level Error
         $testResultMarkdown = "❌ Failed to retrieve necessary data for assessment.`n`nError: $errorMsg"
     }
     elseif(-not $filteringPolicies -or $filteringPolicies.Count -eq 0 ){
-        Write-PSFMessage "No WCF policies found" -Level Warning
+        Write-PSFMessage "No WCF policies found -> Fail" -Level Warning
         $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
         $blockedCount = 0
         $notBlockedCount = $requiredCategories.Count
     }
     elseif (-not $filteringProfiles -or $filteringProfiles.Count -eq 0) {
-        Write-PSFMessage "No filtering profiles found" -Level Warning
+        Write-PSFMessage "No filtering profiles found -> Fail" -Level Warning
         $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
         $blockedCount = 0
         $notBlockedCount = $requiredCategories.Count
@@ -172,8 +173,8 @@ function Test-Assessment-27000 {
                             $policyLink.policy.action.ToString().ToLower()
                         }
                         else {
-                            # Default to block for WCF policies
-                            'block'
+                            # Default to 'unknown' to avoid false positives - treat as not blocked
+                            'unknown'
                         }
 
                         $profileCandidates += [PSCustomObject]@{
