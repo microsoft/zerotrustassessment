@@ -27,7 +27,9 @@ function Test-Assessment-25372 {
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -44,31 +46,34 @@ function Test-Assessment-25372 {
     $endDateTimeStr = $endDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $activityPivotDateTimeStr = $activityPivotDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
 
+    $gsaCmdletFailed = $false
+    $deviceQueryFailed = $false
+
     # Query Q1: Retrieve Global Secure Access device usage summary
     $gsaDeviceSummary = $null
     try {
         $gsaDeviceSummary = Invoke-ZtGraphRequest `
             -RelativeUri "networkAccess/reports/getDeviceUsageSummary(startDateTime=$startDateTimeStr,endDateTime=$endDateTimeStr,activityPivotDateTime=$activityPivotDateTimeStr)" `
-            -ApiVersion beta
+            -ApiVersion beta `
+            -ErrorAction Stop
     }
     catch {
+        $gsaCmdletFailed = $true
         Write-PSFMessage "Failed to get GSA device usage summary: $_" -Tag Test -Level Warning
     }
 
     Write-ZtProgress -Activity $activity -Status 'Getting Entra ID joined and hybrid joined device count'
 
-    # Query Q2: Count Entra ID joined and hybrid joined devices
-    $entraDeviceCount = $null
+    # Query Q2: Count Entra ID joined and hybrid joined devices from database
+    $entraDeviceCount = 0
     try {
-        $entraDevices = Invoke-ZtGraphRequest `
-            -RelativeUri "devices?`$filter=trustType eq 'AzureAd' or trustType eq 'ServerAd'&`$count=true&`$top=999&`$select=id,displayName,operatingSystem,operatingSystemVersion,trustType" `
-            -ApiVersion v1.0 `
-            -ConsistencyLevel eventual
-        # Normalize to an array before counting to handle single-item results correctly
-        $entraDeviceCount = if ($entraDevices) { @($entraDevices).Count } else { 0 }
+        $sql = "SELECT COUNT(*) as DeviceCount FROM Device WHERE trustType == 'AzureAd' OR trustType == 'ServerAd'"
+        $result = Invoke-DatabaseQuery -Database $Database -Sql $sql -ErrorAction Stop
+        $entraDeviceCount = if ($result) { $result.DeviceCount } else { 0 }
     }
     catch {
-        Write-PSFMessage "Failed to get Entra ID device count: $_" -Tag Test -Level Warning
+        $deviceQueryFailed = $true
+        Write-PSFMessage "Failed to query device count from database: $_" -Tag Test -Level Warning
     }
 
     # Extract values
@@ -82,9 +87,15 @@ function Test-Assessment-25372 {
     $passed = $false
     $customStatus = $null
 
+    # Handle any query failure - cannot determine deployment status
+    if ($gsaCmdletFailed -or $deviceQueryFailed) {
+        Write-PSFMessage "Unable to retrieve GSA deployment data due to query failure" -Tag Test -Level Warning
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Unable to determine GSA client deployment coverage due to query failure, connection issues, or insufficient permissions.`n`n"
+    }
     # Edge case: GSA devices > Entra ID devices (data inconsistency; GSA has more devices than Entra ID)
     # Per spec: Still calculate percentage and gap to help diagnose the issue
-    if ($totalGsaDevices -gt $totalManagedDevices -and $totalManagedDevices -gt 0) {
+    elseif ($totalGsaDevices -gt $totalManagedDevices -and $totalManagedDevices -gt 0) {
         $customStatus = 'Investigate'
         $deploymentPercentage = [math]::Round(($totalGsaDevices / $totalManagedDevices) * 100, 1)
         $gap = [math]::Abs($totalManagedDevices - $totalGsaDevices)
@@ -126,12 +137,14 @@ function Test-Assessment-25372 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $reportTitle = 'Deployment Summary'
-    $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/AdminDashboard.ReactView'
-    $deploymentPercentageDisplay = if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }
-    $evaluationPeriod = "$($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))"
+    # Only generate report table if we have data (not in error state)
+    if (-not ($gsaCmdletFailed -or $deviceQueryFailed)) {
+        $reportTitle = 'Deployment Summary'
+        $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/AdminDashboard.ReactView'
+        $deploymentPercentageDisplay = if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }
+        $evaluationPeriod = "$($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))"
 
-    $formatTemplate = @'
+        $formatTemplate = @'
 
 ## [{0}]({1})
 
@@ -141,17 +154,18 @@ function Test-Assessment-25372 {
 
 '@
 
-    $tableRows = "| Total GSA devices | $totalGsaDevices |`n"
-    $tableRows += "| Active devices | $activeGsaDevices |`n"
-    $tableRows += "| Inactive devices | $inactiveGsaDevices |`n"
-    $tableRows += "| Total managed device count | $totalManagedDevices |`n"
-    $tableRows += "| Deployment percentage | $deploymentPercentageDisplay |`n"
-    $tableRows += "| Gap | $gap |`n"
-    $tableRows += "| Evaluation period | $evaluationPeriod |`n"
+        $tableRows = "| Total GSA devices | $totalGsaDevices |`n"
+        $tableRows += "| Active devices | $activeGsaDevices |`n"
+        $tableRows += "| Inactive devices | $inactiveGsaDevices |`n"
+        $tableRows += "| Total managed device count | $totalManagedDevices |`n"
+        $tableRows += "| Deployment percentage | $deploymentPercentageDisplay |`n"
+        $tableRows += "| Gap | $gap |`n"
+        $tableRows += "| Evaluation period | $evaluationPeriod |`n"
 
-    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
-    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+        $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    }
     #endregion Report Generation
 
     $params = @{
