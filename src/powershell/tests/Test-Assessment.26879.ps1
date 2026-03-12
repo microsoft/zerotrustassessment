@@ -61,7 +61,7 @@ resources
     | extend wafPolicyId = tolower(tostring(properties.firewallPolicy.id))
     | project wafPolicyId, GatewayName=name
 ) on wafPolicyId
-| summarize ApplicationGateways=make_list(GatewayName), PolicyName=any(name), subscriptionId=any(subscriptionId), PolicyId=any(id), RequestBodyCheck=any(properties.policySettings.requestBodyCheck), EnabledState=any(tostring(properties.policySettings.state)), Mode=any(tostring(properties.policySettings.mode)) by wafPolicyId
+| summarize ApplicationGateways=make_list(GatewayName), PolicyName=any(name), subscriptionId=any(subscriptionId), PolicyId=any(id), RequestBodyCheck=any(tobool(properties.policySettings.requestBodyCheck)), EnabledState=any(tostring(properties.policySettings.state)), Mode=any(tostring(properties.policySettings.mode)) by wafPolicyId
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
@@ -93,7 +93,7 @@ resources
     $passed = ($policies | Where-Object {
         $_.EnabledState -ne 'Enabled' -or
         $_.Mode -ne 'Prevention' -or
-        -not $_.RequestBodyCheck
+        $_.RequestBodyCheck -ne $true
     }).Count -eq 0
 
     if ($passed) {
@@ -123,10 +123,10 @@ resources
         $appGwMd = @($item.ApplicationGateways | ForEach-Object { Get-SafeMarkdown $_ }) -join ', '
 
         # Calculate status indicators
-        $requestBodyCheckDisplay = if ($item.RequestBodyCheck) { '✅ Enabled' } else { '❌ Disabled' }
+        $requestBodyCheckDisplay = if ($item.RequestBodyCheck -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
         $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.Mode)" }
-        $status = if ($item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention' -and $item.RequestBodyCheck) { '✅ Pass' } else { '❌ Fail' }
+        $status = if ($item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention' -and $item.RequestBodyCheck -eq $true) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | $appGwMd | $enabledStateDisplay | $modeDisplay | $requestBodyCheckDisplay | $status |`n"
     }
