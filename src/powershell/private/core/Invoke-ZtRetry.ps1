@@ -45,10 +45,8 @@
 	$ErrorActionPreference = 'Stop'
 
 	$currentDelay = $RetryDelay
-	$attempt = 0
 
-	while ($true) {
-		$attempt++
+	foreach ($attempt in 1..($RetryCount+1)) {
 		try {
 			return & $ScriptBlock
 		}
@@ -60,7 +58,7 @@
 				$PSCmdlet.ThrowTerminatingError($_)
 			}
 
-			if ($attempt -gt $RetryCount) {
+			if ($attempt -gt $RetryCount) { # 1 initial attempt + RetryCount retries = attempt number > RetryCount on the final failure
 				$PSCmdlet.ThrowTerminatingError($_)
 			}
 
