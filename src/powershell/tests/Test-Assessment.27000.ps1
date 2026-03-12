@@ -116,6 +116,12 @@ function Test-Assessment-27000 {
         $blockedCount = 0
         $notBlockedCount = $requiredCategories.Count
     }
+    elseif ($filteringPolicies -and $filteringPolicies.count -eq 1 -and $filteringPolicies[0].name -eq 'All Websites'){
+        Write-PSFMessage "Only default 'All Websites' policy exists -> Fail" -Level Warning
+        $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
+        $blockedCount = 0
+        $notBlockedCount = $requiredCategories.Count
+    }
     elseif (-not $filteringProfiles -or $filteringProfiles.Count -eq 0) {
         Write-PSFMessage "No filtering profiles found -> Fail" -Level Warning
         $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
