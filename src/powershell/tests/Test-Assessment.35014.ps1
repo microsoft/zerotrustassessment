@@ -18,6 +18,7 @@ function Test-Assessment-35014 {
     [ZtTest(
         Category = 'Label Policy Configuration',
         ImplementationCost = 'Low',
+        Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'Medium',

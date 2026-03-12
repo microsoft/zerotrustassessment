@@ -64,7 +64,7 @@ Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
 
 .PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', or 'Devices'. Defaults to 'All' which runs all tests.
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
 
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
@@ -346,6 +346,10 @@ function Invoke-ZtAssessment {
 		return
 	}
 
+	# Resolve to absolute paths so .NET APIs (DuckDB, System.IO) use the correct location.
+	# .NET resolves relative paths against [Environment]::CurrentDirectory, which can differ
+	# from PowerShell's Get-Location after Set-Location / cd.
+	$Path = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($Path)
 	$exportPath = Join-Path $Path "zt-export"
 	$dbPath = Join-Path $exportPath 'db' 'zt.db'
 
@@ -428,6 +432,17 @@ function Invoke-ZtAssessment {
 	if ($Resume) {
 		if (-not (Test-Path $dbPath -PathType Leaf)) {
 			throw "Resume requested, but no existing database was found at '$dbPath'. Run without -Resume first, or restore the previous export/database."
+		}
+
+		# Guard: verify the requested pillar is compatible with the exported data
+		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
+		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
+			if ($Pillar -eq 'All' -and $exportedPillar -ne 'All') {
+				throw "Resume requested with -Pillar All, but the existing export only contains '$exportedPillar' data. Run without -Resume to export all pillars."
+			}
+			if ($exportedPillar -ne 'All' -and $Pillar -ne $exportedPillar) {
+				throw "Resume requested with -Pillar $Pillar, but the existing export was created with -Pillar $exportedPillar. Run without -Resume or use -Pillar $exportedPillar."
+			}
 		}
 
 		Write-PSFMessage -Message "Stage 1: Reusing Existing Export and Database" -Tag stage

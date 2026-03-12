@@ -8,8 +8,7 @@ function Test-Assessment-21770 {
 	[ZtTest(
 		Category = 'Access control',
 		ImplementationCost = 'Low',
-		CompatibleLicense = ('P1'),
-		MinimumLicense = ('P1'),
+		CompatibleLicense = ('AAD_PREMIUM'),
         Service = ('Graph'),
 		Pillar = 'Identity',
 		RiskLevel = 'Medium',

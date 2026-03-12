@@ -19,7 +19,7 @@ System.IO.FileInfo. Returns the created configuration file object.
 
 .NOTES
 Requires PowerShell 7+ and the PwshSpectreConsole module.
-Use 'Install-Module PwshSpectreConsole' to install the required module.
+Use 'Install-PSResource PwshSpectreConsole' to install the required module.
 #>
 
 function New-ZtInteractiveConfig {

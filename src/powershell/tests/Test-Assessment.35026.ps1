@@ -20,6 +20,7 @@ function Test-Assessment-35026 {
     [ZtTest(
         Category = 'Office 365 Message Encryption (OME)',
         ImplementationCost = 'Low',
+        Service = ('ExchangeOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'Medium',
