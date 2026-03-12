@@ -8,7 +8,7 @@ This `CompatibleLicense` property replaces `MinimumLicense`, and supports multip
 
 Before executing the test, the checks will compare the required licenses with the current licenses to determine if the test can be executed or if it should be skipped.  
 
-The licenses are referenced here "[Licensing & Service Plans](https://learn.microsoft.com/en-gb/entra/identity/users/licensing-service-plan-reference)".
+The licenses are referenced here "[Licensing & Service Plans](https://learn.microsoft.com/en-gb/entra/identity/users/licensing-service-plan-reference)". Use the **Service plans included** column from that table to identify the correct service plan names.
 
 ## Licenses are Service Plan Names
 
