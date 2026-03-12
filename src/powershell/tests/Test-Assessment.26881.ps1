@@ -4,11 +4,11 @@
 
 .DESCRIPTION
     This test checks if all Azure Application Gateway WAF policies attached to Application Gateways
-    are enabled, running in Prevention mode, and have at least one rule enabled in a default managed
-    ruleset (ruleSetType of Microsoft_DefaultRuleSet or OWASP). A policy fails if it is disabled,
-    running in Detection mode, or has all Default Ruleset rules explicitly disabled via ruleGroupOverrides.
-    Without an active default ruleset, the WAF cannot detect or block common web application attacks
-    including SQL injection, cross-site scripting, and other OWASP Top 10 vulnerabilities.
+    are enabled and running in Prevention mode, and have a default managed ruleset configured
+    (ruleSetType of Microsoft_DefaultRuleSet or OWASP). A policy fails if it is disabled or
+    running in Detection mode. Without an active WAF policy in Prevention mode, applications are
+    left unprotected against common web attacks including SQL injection, cross-site scripting,
+    and other OWASP Top 10 vulnerabilities.
 
 .NOTES
     Test ID: 26881
@@ -80,22 +80,6 @@ resources
         return
     }
 
-    # Enrich each policy with default ruleset state
-    foreach ($policy in $policies) {
-        $managedRuleSets = @($policy.ManagedRuleSets)
-        $defaultRuleSet = $managedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_DefaultRuleSet' -or $_.ruleSetType -eq 'OWASP' }
-
-        $ruleOverrides = @($defaultRuleSet.ruleGroupOverrides.rules | Where-Object { $null -ne $_ })
-        $disabledRuleOverrides = @($ruleOverrides | Where-Object { $_.state -eq 'Disabled' })
-        $hasOnlyDisabledRuleOverrides = $ruleOverrides.Count -gt 0 -and $disabledRuleOverrides.Count -eq $ruleOverrides.Count
-
-        # RuleSetState is disabled if all rules are explicitly set to Disabled
-        # If there are no rule overrides, or at least one rule override is not disabled, then the ruleset is considered enabled
-        $defaultRuleSetState = if ($hasOnlyDisabledRuleOverrides) { 'Disabled' } else { 'Enabled' }
-
-        $policy | Add-Member -NotePropertyName DefaultRuleSetState -NotePropertyValue $defaultRuleSetState
-        $policy | Add-Member -NotePropertyName DefaultRuleSetVersion -NotePropertyValue $defaultRuleSet.ruleSetVersion
-    }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -108,21 +92,19 @@ resources
         return
     }
 
-    # Fail if any policy is not enabled, not in Prevention mode, or has all Default Ruleset rules disabled
+    # Fail if any policy is not enabled or not in Prevention mode
     # Default ruleset is always present for all Application Gateway WAF policies as it is mandatory during WAF policy creation
     $failingPolicies = $policies | Where-Object {
         $_.EnabledState -ne 'Enabled' -or
-        $_.Mode -ne 'Prevention' -or
-        $_.DefaultRuleSetState -ne 'Enabled'
+        $_.Mode -ne 'Prevention'
     }
 
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have the Default Ruleset (Microsoft_DefaultRuleSet or OWASP) with at least one rule enabled.`n`n%TestResult%"
-    }
+        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have a Default Ruleset (Microsoft_DefaultRuleSet or OWASP) assigned.`n`n%TestResult%"    }
     else {
-        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled, running in Detection mode, or have all Default Ruleset rules disabled, leaving applications vulnerable to common web exploits and OWASP Top 10 attacks.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled or running in Detection mode, leaving applications vulnerable to common web exploits and OWASP Top 10 attacks.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -143,20 +125,18 @@ resources
         $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $modeDisplay = if ($policy.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
         $defaultRuleSetType = $defaultRuleSet.ruleSetType
-        $defaultRuleSetStateDisplay = if ($policy.DefaultRuleSetState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
+        $versionDisplay = if ($defaultRuleSet.ruleSetVersion) { $defaultRuleSet.ruleSetVersion } else { 'N/A' }
+        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention') { '✅' } else { '❌' }
 
-        $versionDisplay = if ($policy.DefaultRuleSetVersion) { $policy.DefaultRuleSetVersion } else { 'N/A' }
-        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and $policy.DefaultRuleSetState -eq 'Enabled') { '✅' } else { '❌' }
-
-        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $defaultRuleSetType | $versionDisplay | $defaultRuleSetStateDisplay | $statusDisplay |`n"
+        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $defaultRuleSetType | $versionDisplay | $statusDisplay |`n"
     }
 
     $formatTemplate = @'
 
 ## [{0}]({1})
 
-| Policy name | Subscription name | Policy state | Mode | Default ruleset type | Ruleset version | Default ruleset state | Status |
-| :---------- | :---------------- | :----------- | :--- | :------------------- | :-------------- | :-------------------- | :----- |
+| Policy name | Subscription name | Policy state | Mode | Default ruleset type | Ruleset version | Status |
+| :---------- | :---------------- | :----------- | :--- | :------------------- | :-------------- | :----- |
 {2}
 
 '@
