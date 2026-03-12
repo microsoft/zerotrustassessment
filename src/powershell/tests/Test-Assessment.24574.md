@@ -9,6 +9,7 @@ Use Intune to deploy **Attack Surface Reduction Rules** profiles for Windows dev
 - [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 
 For more information, see:  
-- [Attack surface reduction rules reference](https://learn.microsoft.com/defender-endpoint/attack-surface-reduction-rules-reference?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) in the Microsoft Defender documentation.<!--- Results --->
+- [Attack surface reduction rules reference](https://learn.microsoft.com/defender-endpoint/attack-surface-reduction-rules-reference?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) in the Microsoft Defender documentation.
+<!--- Results --->
 %TestResult%
 

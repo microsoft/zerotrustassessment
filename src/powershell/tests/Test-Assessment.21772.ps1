@@ -8,6 +8,7 @@ function Test-Assessment-21772 {
     	Category = 'Application management',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Free'),
+        Service = ('Graph'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

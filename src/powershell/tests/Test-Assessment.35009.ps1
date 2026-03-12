@@ -7,6 +7,7 @@ function Test-Assessment-35009 {
     [ZtTest(
         Category = 'Sensitivity Labels',
         ImplementationCost = 'Low',
+        Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E5'),
         Pillar = 'Data',
         RiskLevel = 'Low',

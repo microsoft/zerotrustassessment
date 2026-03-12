@@ -65,9 +65,9 @@ function Add-ZtTestResultDetail {
 		[Parameter(Mandatory = $false)]
 		[string] $Title,
 
-		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotDotGovDomain', 'NotLicensedEntraIDP1', 'NotConnectedSecurityCompliance',
+		[ValidateSet('NotConnectedAzure', 'NotConnectedExchange', 'NotConnectedSecurityCompliance', 'NotConnectedToService', 'NotLicensedEntraIDP1',
 		    'NotLicensedEntraIDP2', 'NotLicensedEntraIDGovernance', 'NotLicensedEntraWorkloadID', 'NotSupported', 'UnderConstruction',
-			'NotLicensedIntune', 'NoAzureAccess', 'NotApplicable'
+			'NotLicensedIntune', 'NoAzureAccess', 'NotApplicable', 'NotDotGovDomain', 'NoCompatibleLicenseFound', 'TimeoutReached'
 		)]
 		[string] $SkippedBecause,
 
@@ -91,7 +91,10 @@ function Add-ZtTestResultDetail {
 		# Optional. Custom status to return instead of the default status.
 		[Parameter(Mandatory = $false)]
 		[ValidateSet('Investigate')]
-		[string] $CustomStatus
+		[string] $CustomStatus,
+
+		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
+		[string[]] $NotConnectedService
 	)
 
 	#region Resolve Test Item
@@ -114,7 +117,16 @@ function Add-ZtTestResultDetail {
 	$hasGraphResults = $GraphObjects -and $GraphObjectType
 
 	if ($SkippedBecause) {
-		$SkippedReason = Get-ZtSkippedReason -SkippedBecause $SkippedBecause
+		if ($SkippedBecause -eq 'NotConnectedToService') {
+			$SkippedReason = (Get-ZtSkippedReason -SkippedBecause $SkippedBecause) -f ($NotConnectedService -join '", "')
+		}
+		elseif ($SkippedBecause -eq 'NoCompatibleLicenseFound') {
+			[string[]] $licenseGroupString = @($testMeta.CompatibleLicense).ForEach{ ($_ -split '&') -join '" AND "' }
+			$SkippedReason = (Get-ZtSkippedReason -SkippedBecause $SkippedBecause) -f ($licenseGroupString -join '") OR ("')
+		}
+		else {
+			$SkippedReason = Get-ZtSkippedReason -SkippedBecause $SkippedBecause
+		}
 
 		if (-not $Result) {
 			$Result = "Skipped. $SkippedReason"
@@ -188,6 +200,10 @@ function Add-ZtTestResultDetail {
 		TestResult             = $Result
 		TestSkipped            = $SkippedBecause
 		SkippedReason          = $SkippedReason
+	}
+
+	if ($testMeta.CompatibleLicense) {
+		$testInfo.TestMinimumLicense = $testMeta.CompatibleLicense.ForEach{ ($_ -split '&') -join ' AND ' }
 	}
 
 	Write-ZtProgress -Activity "Running tests" -Status $docsTitle

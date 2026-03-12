@@ -161,6 +161,8 @@ function Get-ZtTestMetadata {
 				Category           = $null
 				ImplementationCost = $null
 				MinimumLicense     = $null
+				CompatibleLicense  = $null
+				Service            = $null
 				Pillar             = $null
 				RiskLevel          = $null
 				SfiPillar          = $null

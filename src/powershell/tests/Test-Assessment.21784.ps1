@@ -11,16 +11,16 @@ Pass/Fail Hook:
 
 function Test-Assessment-21784 {
     [ZtTest(
-        Category = 'Access control',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('P1'),
-        Pillar = 'Identity',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce', 'External'),
-        TestId = 21784,
-        Title = 'All user sign in activity uses phishing-resistant authentication methods',
-        UserImpact = 'Low'
+    	Category = 'Access control; Credential management',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P1'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce','External'),
+    	TestId = 21784,
+    	Title = 'All user sign in activity uses phishing-resistant authentication methods',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that all Private Network Connectors are active and healthy.
 
@@ -14,16 +14,16 @@
 
 function Test-Assessment-25391 {
     [ZtTest(
-        Category = 'Private Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Premium_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25391,
-        Title = 'Private network connectors are active and healthy to maintain Zero Trust access to internal resources',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25391,
+    	Title = 'Private network connectors are active and healthy to maintain Zero Trust access to internal resources',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

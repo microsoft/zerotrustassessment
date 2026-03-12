@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Application Proxy applications require pre-authentication to block anonymous access.
 
@@ -21,16 +21,16 @@
 
 function Test-Assessment-25401 {
     [ZtTest(
-        Category = 'Application Proxy',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('AAD_PREMIUM'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce'),
-        TestId = 25401,
-        Title = 'Application Proxy applications require pre-authentication to block anonymous access to on-premises resources',
-        UserImpact = 'Medium'
+    	Category = 'Application Proxy',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('AAD_PREMIUM'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 25401,
+    	Title = 'Application Proxy applications require preauthentication to block anonymous access',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param(

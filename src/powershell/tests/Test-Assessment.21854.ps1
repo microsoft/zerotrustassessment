@@ -5,10 +5,11 @@
 
 function Test-Assessment-21854{
     [ZtTest(
-    	Category = 'Access control',
+    	Category = 'Privileged access',
     	ImplementationCost = 'Medium',
+    	MinimumLicense = $null,
     	Pillar = 'Identity',
-    	RiskLevel = 'Medium',
+    	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
     	TenantType = ('Workforce','External'),
     	TestId = 21854,

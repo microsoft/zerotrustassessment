@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Super user membership is configured for Azure Information Protection
 
@@ -15,16 +15,17 @@
 
 function Test-Assessment-35011 {
     [ZtTest(
-        Category = 'Advanced Label Features',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Microsoft 365 E5'),
-        Pillar = 'Data',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce','External'),
-        TestId = 35011,
-        Title = 'Super user membership is configured for Azure Information Protection',
-        UserImpact = 'Low'
+    	Category = 'Advanced Label Features',
+    	ImplementationCost = 'Medium',
+    	Service = ('AipService', 'Graph'),
+    	MinimumLicense = ('Microsoft 365 E5'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 35011,
+    	Title = 'Superuser membership is configured for Microsoft Purview Information Protection',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

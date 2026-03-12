@@ -3,13 +3,14 @@
 <#
 
 .SYNOPSIS
-    Updates the tests recommendations from the Entra docs
+    Updates the tests recommendations from the Entra, Intune, and Purview docs
 
 .DESCRIPTION
-    Updates the tests recommendations from the Entra docs
+    Updates the tests recommendations from the Entra, Intune, and Purview docs
 
-	Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs-pr'
-	Assume the path to the Intune docs is in a parent directory to this repo with the name 'memdocs-pr'
+	Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs'
+	Assume the path to the Intune docs is in a parent directory to this repo with the name 'memdocs'
+	Assume the path to the Purview docs is in a parent directory to this repo with the name 'purview-pr'
 #>
 [CmdletBinding()]
 param (
@@ -65,7 +66,9 @@ function Get-DocsRecommendations {
 function Get-MarkDownContent {
 	[CmdletBinding()]
 	param (
-		$fileContent
+		$fileContent,
+
+		[string]$docsBaseUrl = 'https://learn.microsoft.com/en-us/entra/'
 	)
 
 	$markdownContent = $fileContent # Default to the original content
@@ -78,7 +81,7 @@ function Get-MarkDownContent {
 
 	# Fix relative links to include the full path
 	$markdownContent = $markdownContent.replace('](/', '](https://learn.microsoft.com/')
-	$markdownContent = $markdownContent.replace('](../../', '](https://learn.microsoft.com/en-us/entra/')
+	$markdownContent = $markdownContent.replace('](../../', "]($docsBaseUrl")
 
 	$markdownContent = Update-MarkdownLinks -Content $markdownContent
 
@@ -345,13 +348,40 @@ function Remove-TrailingEmptyLines {
 }
 #endregion Functions
 
-$entraDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../entra-docs-pr" -ChildPath 'docs/includes/secure-recommendations'
-$intuneDocsFolder = Join-Path -Path "$($PSScriptRoot)/../../memdocs-pr" -ChildPath 'intune/intune-service/protect/includes/secure-recommendations'
+$docsSources = @(
+	@{
+		Name        = 'Entra'
+		Folder      = Join-Path -Path "$($PSScriptRoot)/../../entra-docs" -ChildPath 'docs/includes/secure-recommendations'
+		DocsBaseUrl = 'https://learn.microsoft.com/en-us/entra/'
+	}
+	@{
+		Name        = 'Intune'
+		Folder      = Join-Path -Path "$($PSScriptRoot)/../../memdocs" -ChildPath 'intune/intune-service/protect/includes/secure-recommendations'
+		DocsBaseUrl = 'https://learn.microsoft.com/en-us/intune/'
+	}
+	@{
+		Name        = 'Purview'
+		Folder      = Join-Path -Path "$($PSScriptRoot)/../../purview-pr" -ChildPath 'Purview/includes/secure-recommendations'
+		DocsBaseUrl = 'https://learn.microsoft.com/en-us/purview/'
+	}
+)
 
-$entraRecommendations = Get-DocsRecommendations -recommendationsFolder $entraDocsFolder
-$intuneRecommendations = Get-DocsRecommendations -recommendationsFolder $intuneDocsFolder
-
-$recommendations = $entraRecommendations + $intuneRecommendations
+$recommendations = @{}
+foreach ($source in $docsSources) {
+	$sourceRecs = Get-DocsRecommendations -recommendationsFolder $source.Folder
+	foreach ($id in $sourceRecs.Keys) {
+		if ($recommendations.ContainsKey($id)) {
+			Write-Warning ("Duplicate recommendation ID '{0}' encountered. " +
+				"Existing source: '{1}'. New source: '{2}'. Overwriting existing recommendation." -f `
+				$id, $recommendations[$id].SourceName, $source.Name)
+		}
+		$recommendations[$id] = @{
+			Content     = $sourceRecs[$id]
+			DocsBaseUrl = $source.DocsBaseUrl
+			SourceName  = $source.Name
+		}
+	}
+}
 
 # Update the recommendations in the tests
 $testFiles = Get-ChildItem -Path "$($PSScriptRoot)/../src/powershell/tests" -Filter *.md
@@ -377,11 +407,11 @@ foreach ($file in $testFiles) {
 
 	$content = Get-Content -Path $file.FullName -Raw
 
-	$docRawContent = $recommendations[$testId] # Includes front matter and markdown content
+	$docRawContent = $recommendations[$testId].Content # Includes front matter and markdown content
 	$frontMatter = Get-FrontMatterList -content $docRawContent
 	$docsTitle = $frontMatter['title']
 
-	$docsContent = Get-MarkDownContent $docRawContent
+	$docsContent = Get-MarkDownContent $docRawContent -docsBaseUrl $recommendations[$testId].DocsBaseUrl
 
 	#region Update MetaData for Test
 	$testData = Get-ZtTest -Tests $testId
@@ -420,7 +450,7 @@ foreach ($file in $testFiles) {
 			$currentLicenses = ($testData.MinimumLicense | Sort-Object) -join ','
 			$newLicenses = ($minimumLicenseArray | Sort-Object) -join ','
 			if ($currentLicenses -ne $newLicenses) {
-				$update.MinimumLicense = $minimumLicenseArray
+				$update.CompatibleLicense = $minimumLicenseArray
 			}
 		}
 		#$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
@@ -444,9 +474,12 @@ foreach ($file in $testFiles) {
 
 	Write-Host "$testId Title: $docsTitle"
 	# Find everything before <!--- Results ---> and replace it with the recommendations from the docs
+	# Ensure docsContent ends with exactly one newline so the separator starts at column 0
+	$docsContent = $docsContent.TrimEnd() + "`n"
+
 	$seperator = $content.IndexOf('<!--- Results --->')
-	$prevContent = $content.Substring(0, $seperator)
 	if ($seperator -gt 0) {
+		$prevContent = $content.Substring(0, $seperator)
 		if ($docsContent -eq $prevContent) {
 			Write-Host " → No change."
 			continue
@@ -456,7 +489,8 @@ foreach ($file in $testFiles) {
 		}
 	}
 	else {
-		$content = $docsContent
+		# Separator missing — add it along with the result placeholder
+		$content = $docsContent + "<!--- Results --->`n%TestResult%`n"
 	}
 
 	# Split the content into lines, start from the last line and remove

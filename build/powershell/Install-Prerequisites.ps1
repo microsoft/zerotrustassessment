@@ -10,6 +10,7 @@ $modules = @(
 	"Pester" # Test Framework, runs the tests
 	"PSScriptAnalyzer" # PowerShell Best Practices analyzer, will be used in tests
 	'Refactor' # Used to update the metadata for individual test commands
+	"Metadata" # Used to update psd1 files instead of the broken Update-ModuleManifest command
 )
 
 # Automatically add missing dependencies

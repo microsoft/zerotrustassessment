@@ -5,16 +5,16 @@
 
 function Test-Assessment-21816 {
     [ZtTest(
-        Category = 'Identity',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('P2'),
-        Pillar = 'Identity',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce'),
-        TestId = 21816,
-        Title = 'All Microsoft Entra privileged role assignments are managed with PIM',
-        UserImpact = 'Low'
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('P2'),
+    	Pillar = 'Identity',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 21816,
+    	Title = 'All Microsoft Entra privileged role assignments are managed with PIM',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

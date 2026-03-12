@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks that Global Secure Access web content filtering is enabled and configured
 .DESCRIPTION
@@ -15,16 +15,16 @@
 
 function Test-Assessment-25408 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce','External'),
-        TestId = '25408',
-        Title = 'Global Secure Access web content filtering is enabled and configured',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 25408,
+    	Title = 'Web content filtering policies are configured',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

@@ -6,6 +6,7 @@ Enforcing Defender Antivirus policies ensures that macOS devices are consistentl
 
 Use Intune to configure and assign Microsoft Defender Antivirus policies for macOS devices to enforce real-time protection, maintain up-to-date definitions, and reduce exposure to malware:  
 - [Configure Intune policies to manage Microsoft Defender Antivirus](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-antivirus-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#macos)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)<!--- Results --->
+- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+<!--- Results --->
 %TestResult%
 

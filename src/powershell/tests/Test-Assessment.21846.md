@@ -2,7 +2,7 @@ When Temporary Access Pass (TAP) is configured to allow multiple uses, threat ac
 
 **Remediation action**
 
-- [Configure Temporary Access Pass for one-time use in authentication methods policy](https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-the-temporary-access-pass-policy) 
+- [Configure Temporary Access Pass for one-time use in authentication methods policy](https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-the-temporary-access-pass-policy)
 <!--- Results --->
 %TestResult%
 

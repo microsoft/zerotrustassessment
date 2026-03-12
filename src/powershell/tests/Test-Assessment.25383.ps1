@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Global Administrator and Global Secure Access Administrator roles are tightly limited.
 
@@ -15,16 +15,16 @@
 
 function Test-Assessment-25383 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('AAD_PREMIUM'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
-        TenantType = ('Workforce'),
-        TestId = 25383,
-        Title = 'Global and GSA admin privileges are tightly limited to prevent tenant-wide compromise',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('AAD_PREMIUM'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 25383,
+    	Title = 'Administrative privileges are tightly limited to prevent compromise',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(

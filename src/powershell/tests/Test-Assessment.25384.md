@@ -1,19 +1,17 @@
-An Application Administrator role scoped at the tenant can manage every app registration and enterprise app. If a threat actor compromises an App Admin with tenant-wide scope, they can add credentials to any service principal (Persistence), consent malicious APIs (Defence Evasion), modify or create applications that proxy data exfiltration (Exfiltration), and disable or tamper with Private Access (PA) apps (Impact). Scoping the role to only required Private Access enterprise apps enforces least privilege and limits blast radius.
+An Application Administrator role scoped at the tenant level can manage every app registration and enterprise application. If a threat actor compromises an Application Administrator with tenant-wide scope, they can add credentials to any service principal, consent to malicious APIs, modify or create applications that enable data exfiltration, and disable or tamper with Private Access apps. Scoping the role to only required Private Access enterprise apps enforces least privilege and limits the blast radius.
 
-Additionally, assigning Application Administrator to groups, service principals, or guest users increases risk. Groups make it difficult to track who has access, service principals can be compromised through stolen credentials, and guest users may have different security controls. Assignments should be made directly to member users only.
+If you don't scope Application Administrator assignments to specific apps:
+
+- A compromised Application Administrator can manage every app registration and enterprise application in your tenant.
+- Threat actors can add credentials to any service principal, enabling persistence and lateral movement.
+- There's no blast radius containment; a single compromised identity can affect all applications.
 
 **Remediation action**
 
-To constrain Application Administrator rights to specific Private Access apps:
-
-1. **Scope App Admin to specific apps**: Remove tenant-wide assignments and reassign with `directoryScopeId` pointing to the required Private Access or Quick Access apps.
-   - [Assign roles with app registration scope](https://learn.microsoft.com/entra/identity/role-based-access-control/assign-roles-different-scopes?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#app-registration-scope)
-
-2. **Remove problematic assignments**: Remove assignments to groups, service principals, or guest users. Assign directly to member user accounts instead.
-   - [Manage directory role assignments](https://learn.microsoft.com/graph/api/rbacapplication-list-roleassignments?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
-3. **Use PIM for JIT elevation**: Implement Privileged Identity Management to provide just-in-time access for Application Administrator role.
-   - [Privileged Identity Management](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-
+- [Assign Application Administrator roles scoped to specific app registrations](https://learn.microsoft.com/entra/identity/role-based-access-control/custom-enterprise-app-permissions?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) instead of tenant-wide.
+- [Assign Microsoft Entra roles](https://learn.microsoft.com/entra/identity/role-based-access-control/manage-roles-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) with the least privilege necessary to perform required tasks.
+- [Use Privileged Identity Management to manage just-in-time role activation](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
+- [Manage Microsoft Entra role assignments in the admin center](https://learn.microsoft.com/entra/identity/role-based-access-control/manage-roles-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci).
 <!--- Results --->
 %TestResult%
+
