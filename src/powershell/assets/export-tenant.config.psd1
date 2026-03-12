@@ -138,7 +138,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 }
 @{
 	Name = 'ServicePrincipalSignIn'
-	Uri = 'v1.0/reports/servicePrincipalSignInActivities'
+	Uri = 'beta/reports/servicePrincipalSignInActivities'
 	QueryString = ''
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
