@@ -16,7 +16,8 @@ Optional. Number of days (between 1 and 30) to query sign-in logs. Defaults to 3
 Optional. The maximum time (in minutes) the assessment should spend on querying sign-in logs. Defaults to 60 minutes. Set to 0 for no limit.
 
 .PARAMETER Resume
-If specified, the previously exported data will be used to generate the report.
+If specified, the assessment reuses the previously exported data and existing database,
+skipping data export and database rebuild.
 
 .PARAMETER ShowLog
 If specified, the script will output a high level summary of log messages. Useful for debugging. Use -Verbose and -Debug for more detailed logs.
@@ -45,6 +46,13 @@ Raising this number may improve performance, but risk hitting throttling limits.
 	The maximum time to wait for all tests to complete before giving up and writing a warning message.
 	Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
 
+.PARAMETER TestTimeout
+Maximum time in minutes a single test is allowed to run before it is stopped.
+Defaults to 60 minutes. Set to 0 to disable the timeout.
+Tests that exceed this limit are recorded as timed out and execution continues with the next test.
+For Data pillar tests and other external-module/remoting-heavy operations, timeout is a
+best-effort interruption rather than a guaranteed hard stop of the underlying operation.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -56,7 +64,7 @@ Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
 
 .PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', or 'Devices'. Defaults to 'All' which runs all tests.
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
 
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
@@ -158,7 +166,13 @@ function Invoke-ZtAssessment {
 		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5),
 
 		[TimeSpan]
-		$Timeout = '1.00:00:00'
+		$Timeout = '1.00:00:00',
+
+		# Maximum time in minutes a single test is allowed to run. Defaults to 60 minutes. Set to 0 to disable.
+		# For Data pillar tests, timeout is best-effort because some external modules/remoting
+		# operations cannot be deterministically hard-stopped from within the current process.
+		[int]
+		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes)
 	)
 
 	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
@@ -234,7 +248,7 @@ function Invoke-ZtAssessment {
 			$configContent = Get-Content -Path $ConfigurationFile -Raw | ConvertFrom-Json
 
 			# Define parameters that can be configured
-			$configurableParameters = @('Path', 'Days', 'MaximumSignInLogQueryTime', 'ShowLog', 'ExportLog', 'DisableTelemetry', 'Resume', 'Tests')
+			$configurableParameters = @('Path', 'Days', 'MaximumSignInLogQueryTime', 'ShowLog', 'ExportLog', 'DisableTelemetry', 'Resume', 'Tests', 'TestTimeout')
 
 			# Apply configuration values only if parameters weren't explicitly provided
 			foreach ($paramName in $configurableParameters) {
@@ -332,7 +346,12 @@ function Invoke-ZtAssessment {
 		return
 	}
 
+	# Resolve to absolute paths so .NET APIs (DuckDB, System.IO) use the correct location.
+	# .NET resolves relative paths against [Environment]::CurrentDirectory, which can differ
+	# from PowerShell's Get-Location after Set-Location / cd.
+	$Path = $PSCmdlet.GetUnresolvedProviderPathFromPSPath($Path)
 	$exportPath = Join-Path $Path "zt-export"
+	$dbPath = Join-Path $exportPath 'db' 'zt.db'
 
 	# Stop if folder has items inside it
 	if (-not $Resume -and (Test-Path $Path)) {
@@ -410,20 +429,45 @@ function Invoke-ZtAssessment {
 	#endregion Preparation
 
 	# Collect data
-	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
-	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	if ($Resume) {
+		if (-not (Test-Path $dbPath -PathType Leaf)) {
+			throw "Resume requested, but no existing database was found at '$dbPath'. Run without -Resume first, or restore the previous export/database."
+		}
 
-	# Run the tests
-	Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
-	Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout
-	Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
-	Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
+		# Guard: verify the requested pillar is compatible with the exported data
+		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
+		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
+			if ($Pillar -eq 'All' -and $exportedPillar -ne 'All') {
+				throw "Resume requested with -Pillar All, but the existing export only contains '$exportedPillar' data. Run without -Resume to export all pillars."
+			}
+			if ($exportedPillar -ne 'All' -and $Pillar -ne $exportedPillar) {
+				throw "Resume requested with -Pillar $Pillar, but the existing export was created with -Pillar $exportedPillar. Run without -Resume or use -Pillar $exportedPillar."
+			}
+		}
 
-	Write-PSFMessage -Message "Stage 4: Generating Test-Results" -Tag stage
-	$assessmentResults = Get-ZtAssessmentResults
+		Write-PSFMessage -Message "Stage 1: Reusing Existing Export and Database" -Tag stage
+		$database = Connect-Database -Path $dbPath -Transient
+	}
+	else {
+		Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
+		Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	}
+	try {
+		# Run the tests
+		Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
+		Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout -TestTimeout $TestTimeout
+		Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
+		Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
-	Disconnect-Database -Database $database
+		Write-PSFMessage -Message "Stage 4: Generating Test-Results" -Tag stage
+		$assessmentResults = Get-ZtAssessmentResults
+	}
+	finally {
+		if ($database) {
+			Disconnect-Database -Database $database
+		}
+	}
 
 	Write-PSFMessage -Message "Stage 5: Writing Assessment report data" -Tag stage
 	$assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10

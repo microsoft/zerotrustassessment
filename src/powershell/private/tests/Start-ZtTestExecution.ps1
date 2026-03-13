@@ -20,6 +20,10 @@
 		How many Runspaces to run in parallel to optimize tests processing.
 		Defaults to: 5
 
+	.PARAMETER TestTimeout
+		Maximum time a single test is allowed to run.
+		Passed through to Invoke-ZtTest for per-test timeout enforcement.
+
 	.EXAMPLE
 		PS C:\> Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
 
@@ -38,7 +42,10 @@
 		$ThrottleLimit = 5,
 
 		[string]
-		$LogsPath
+		$LogsPath,
+
+		[timespan]
+		$TestTimeout = [timespan]::Zero
 	)
 	begin {
 		#region Calculate Resources to Import
@@ -46,6 +53,7 @@
 			databasePath = $DbPath
 			moduleRoot   = $script:ModuleRoot
 			logsPath     = $LogsPath
+			testTimeout  = $TestTimeout
 		}
 		# Explicitly including all modules required, as we later import the psm1, not the psd1 file
 		#TODO: This is brittle
@@ -95,7 +103,7 @@
 			$script:ModuleRoot = $moduleRoot
 			$global:database = Connect-Database -Path $databasePath -PassThru
 		} -ScriptBlock {
-			Invoke-ZtTest -Test $_ -Database $global:database -LogsPath $logsPath
+			Invoke-ZtTest -Test $_ -Database $global:database -LogsPath $logsPath -TestTimeout $testTimeout
 		} -End {
 			Disconnect-Database -Database $global:database
 		}

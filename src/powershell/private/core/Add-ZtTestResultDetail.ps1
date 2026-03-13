@@ -202,6 +202,10 @@ function Add-ZtTestResultDetail {
 		SkippedReason          = $SkippedReason
 	}
 
+	if ($testMeta.CompatibleLicense) {
+		$testInfo.TestMinimumLicense = $testMeta.CompatibleLicense.ForEach{ ($_ -split '&') -join ' AND ' }
+	}
+
 	Write-ZtProgress -Activity "Running tests" -Status $docsTitle
 	Write-PSFMessage "Adding test result detail for $docsTitle" -Tag Test
 	Write-PSFMessage "Result: $Result" -Level Debug -Tag Test

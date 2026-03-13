@@ -94,7 +94,7 @@ function Export-Database {
 		)
 
 		$sql = @"
-create view vwRole
+create or replace view vwRole
 as
 
 "@
@@ -126,14 +126,14 @@ as
 
 	if (Test-Path $dbFolder) {
 		Write-PSFMessage "Clearing previous db $dbFolder" -Tag Import
-		$database = Connect-Database -Path $dbPath -PassThru
+		$database = Connect-Database -Path $dbPath -Transient
 		Invoke-DatabaseQuery -Database $database -Sql "FORCE CHECKPOINT;" -NonQuery
 		Disconnect-Database -Database $database
 		Remove-Item $dbFolder -Recurse -Force # Remove the existing database
 	}
 	$null = New-Item -ItemType Directory -Path $dbFolder -Force -ErrorAction Stop
 
-	$database = Connect-Database -Path $dbPath -PassThru
+	$database = Connect-Database -Path $dbPath -Transient
 
 	trap {
 		Disconnect-Database -Database $database
@@ -162,6 +162,21 @@ as
 	if ($Pillar -in ('All', 'Devices')) {
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
 		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy'
+	}
+
+	if ($Pillar -in ('All', 'Network')) {
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance'
+		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup'
+
+		New-ViewRole -Database $database
 	}
 
 	$database

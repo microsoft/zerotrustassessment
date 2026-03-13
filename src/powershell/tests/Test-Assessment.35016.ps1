@@ -7,6 +7,7 @@ function Test-Assessment-35016 {
     [ZtTest(
         Category = 'Information Protection',
         ImplementationCost = 'Medium',
+        Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'High',

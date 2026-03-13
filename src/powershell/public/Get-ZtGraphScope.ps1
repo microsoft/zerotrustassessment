@@ -36,12 +36,12 @@ Function Get-ZtGraphScope {
         'CrossTenantInformation.ReadBasic.All'
         'DeviceManagementApps.Read.All'
         'DeviceManagementConfiguration.Read.All'
-        'DeviceManagementManagedDevices.Read.All',
+        'DeviceManagementManagedDevices.Read.All'
         'DeviceManagementRBAC.Read.All'
         'DeviceManagementServiceConfig.Read.All'
         'Directory.Read.All'
         'DirectoryRecommendations.Read.All'
-        'EntitlementManagement.Read.All',
+        'EntitlementManagement.Read.All'
         'IdentityRiskEvent.Read.All'
         'IdentityRiskyUser.Read.All'
         'Policy.Read.All'
@@ -51,6 +51,8 @@ Function Get-ZtGraphScope {
         'Reports.Read.All'
         'RoleManagement.Read.All'
         'UserAuthenticationMethod.Read.All'
+        'NetworkAccess.Read.All'
+        'IdentityRiskyServicePrincipal.Read.All'
     )
 
     $scopes | Sort-Object -Unique

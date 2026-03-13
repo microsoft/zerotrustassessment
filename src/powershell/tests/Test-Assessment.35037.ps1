@@ -7,6 +7,7 @@ function Test-Assessment-35037 {
     [ZtTest(
         Category = 'Data Security Posture Management',
         ImplementationCost = 'Low',
+        Service = ('ExchangeOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
         Pillar = 'Data',
         RiskLevel = 'High',

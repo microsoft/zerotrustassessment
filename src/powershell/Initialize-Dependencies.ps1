@@ -118,17 +118,17 @@ function Initialize-Dependencies {
     {
         #region The ZeroTrustAssessment report should be run in Windows.
         # on Non-windows platform, some pillars won't be available, because some required modules only work on Windows PowerShell.
-        Write-Host -Object "`r`n" -ForegroundColor Yellow
-        Write-Host -Object '⚠️ Warning: The ZeroTrustAssessment report can only be fully generated on Windows.' -ForegroundColor Yellow
-        Write-Host -Object 'Some assessment pillars rely on modules that require Windows PowerShell (5.1) with implicit remoting.' -ForegroundColor Yellow
-        Write-Host -Object 'Please run this tool from a Windows machine using PowerShell 7.' -ForegroundColor Yellow
+        Write-Host
+        Write-Host -Object '⚠️ Warning: For the most complete Zero Trust Assessment results, run this tool on Windows.' -ForegroundColor Yellow
+        Write-Host -Object 'Some assessment tests rely on modules (SPO, AIP) that only work with Windows PowerShell (5.1).' -ForegroundColor Yellow
+        Write-Host -Object 'If you run the tool on macOS or Linux, a few tests may be skipped.' -ForegroundColor Yellow
         # skipping module installation.
         #endregion
     }
 
     if (-not $SkipModuleInstallation.IsPresent)
     {
-        Write-Host -Object "`r`n"
+        Write-Host
         Write-Host -Object ('Resolving {0} dependencies...' -f $requiredModuleToSave.Count) -ForegroundColor Green
 
         if ($saveModuleCmd = (Get-Command -Name Save-PSResource -ErrorAction Ignore))
@@ -226,7 +226,7 @@ function Initialize-Dependencies {
         $loadedAssemblies = [System.AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GetName().Name -eq 'Microsoft.Identity.Client' }
 
         if ($loadedAssemblies) {
-            Write-Warning -Message "MSAL assembly is already loaded. This may cause DLL conflicts."
+            Write-Verbose -Message "MSAL assembly is already loaded. This may cause DLL conflicts."
             Write-Verbose -Message "  Loaded versions:"
             foreach ($asm in $loadedAssemblies) {
                 Write-Verbose -Message ("  - {0} from {1}" -f $asm.GetName().Version, $asm.Location)
