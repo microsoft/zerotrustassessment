@@ -91,11 +91,11 @@ resources
         return
     }
 
-    # Fail if any policy is not enabled or not in Prevention mode
-    # Default ruleset is always present for all Application Gateway WAF policies as it is mandatory during WAF policy creation
+    # Fail if any policy is not enabled, not in Prevention mode, or missing a default managed ruleset
     $failingPolicies = $policies | Where-Object {
         $_.EnabledState -ne 'Enabled' -or
-        $_.Mode -ne 'Prevention'
+        $_.Mode -ne 'Prevention' -or
+        ($_.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_DefaultRuleSet' -or $_.ruleSetType -eq 'OWASP' }).Count -eq 0
     }
 
     $passed = $failingPolicies.Count -eq 0
