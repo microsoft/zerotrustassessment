@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that all Private Network Connectors are running the latest version.
 
@@ -18,6 +18,7 @@ function Test-Assessment-25392 {
     	Category = 'Private Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that GSA licenses are available in the tenant and assigned to users.
 
@@ -25,6 +25,7 @@ function Test-Assessment-25375 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Entra_Premium_Internet_Access','Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access','Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',

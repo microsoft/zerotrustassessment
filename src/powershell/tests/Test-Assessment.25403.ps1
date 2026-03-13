@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that Private Access Sensors are deployed on domain controllers and enforcing strong authentication policies.
 
@@ -17,6 +17,7 @@ function Test-Assessment-25403 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Suite','Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
