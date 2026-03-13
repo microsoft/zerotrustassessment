@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that Universal Continuous Access Evaluation (Universal CAE) is enabled for network access.
 
@@ -23,6 +23,7 @@ function Test-Assessment-25371 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('AAD_PREMIUM'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',

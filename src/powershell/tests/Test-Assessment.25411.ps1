@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     TLS inspection is enabled and correctly configured for outbound traffic in Global Secure Access.
 .DESCRIPTION
@@ -10,6 +10,7 @@ function Test-Assessment-25411 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'High',
     	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',

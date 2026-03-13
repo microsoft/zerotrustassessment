@@ -24,6 +24,7 @@ function Test-Assessment-27004 {
         Category = 'Global Secure Access',
         ImplementationCost = 'Low',
         MinimumLicense = ('Entra_Premium_Internet_Access'),
+        CompatibleLicense = ('Entra_Premium_Internet_Access'),
         Pillar = 'Network',
         RiskLevel = 'Low',
         SfiPillar = 'Protect networks',

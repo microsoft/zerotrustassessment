@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Internet Access security profiles are applied to users via Conditional Access policies.
 #>
@@ -8,6 +8,7 @@ function Test-Assessment-25407 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',

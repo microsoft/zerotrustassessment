@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks that Global Secure Access web content filtering is enabled and configured
 .DESCRIPTION
@@ -18,6 +18,7 @@ function Test-Assessment-25408 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

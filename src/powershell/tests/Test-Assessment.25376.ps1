@@ -17,6 +17,7 @@ function Test-Assessment-25376 {
         Category = 'Network security',
         ImplementationCost = 'Medium',
         MinimumLicense = 'Entra_Suite',
+        CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',

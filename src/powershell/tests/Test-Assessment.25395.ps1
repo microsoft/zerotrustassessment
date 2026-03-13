@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that Entra Private Access applications enforce least-privilege
     using granular network segments and Custom Security Attributes (CSA).
@@ -20,6 +20,7 @@ function Test-Assessment-25395 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'High',
     	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
