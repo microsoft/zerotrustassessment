@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that all Private Network Connectors are active and healthy.
 
@@ -17,6 +17,7 @@ function Test-Assessment-25391 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

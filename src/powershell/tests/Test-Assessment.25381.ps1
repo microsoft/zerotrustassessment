@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that traffic forwarding profiles are enabled in Global Secure Access.
 
@@ -18,6 +18,7 @@ function Test-Assessment-25381 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Suite','Entra_Premium_Private_Access','Entra_Premium_Internet_Access','P2'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
