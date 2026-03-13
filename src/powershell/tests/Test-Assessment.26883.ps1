@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Validates that the Default Ruleset is assigned in Azure Front Door WAF.
+    Validates that the Default rule set is assigned in Azure Front Door WAF.
 
 .DESCRIPTION
     This test evaluates Azure Front Door WAF policies attached to Azure Front Door
@@ -93,7 +93,6 @@ resources
     $policies = @()
     foreach ($policy in $rawPolicies) {
         # Find the Microsoft_DefaultRuleSet in managedRuleSets
-        $defaultRuleset = $null
         $hasDefaultRuleset = $false
         $defaultRulesetVersion = $null
         $allRulesDisabled = $false
@@ -102,7 +101,6 @@ resources
             foreach ($ruleset in $policy.ManagedRuleSets) {
                 if ($ruleset.ruleSetType -eq 'Microsoft_DefaultRuleSet') {
                     $hasDefaultRuleset = $true
-                    $defaultRuleset = $ruleset
                     $defaultRulesetVersion = $ruleset.ruleSetVersion
 
                     # Check if all rules are disabled via ruleGroupOverrides
@@ -214,8 +212,8 @@ resources
     # Summary
     $mdInfo += "**Summary:**`n`n"
     $mdInfo += "- Total Azure Front Door WAF policies evaluated: $($policies.Count)`n"
-    $mdInfo += "- Policies with default ruleset enabled: $($passedItems.Count)`n"
-    $mdInfo += "- Policies without default ruleset: $($failedItems.Count)`n"
+    $mdInfo += "- Policies passing all criteria: $($passedItems.Count)`n"
+    $mdInfo += "- Policies failing one or more criteria: $($failedItems.Count)`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
