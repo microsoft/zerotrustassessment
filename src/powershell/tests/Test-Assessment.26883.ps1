@@ -25,7 +25,7 @@ function Test-Assessment-26883 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 26883,
-        Title = 'Default Ruleset is assigned in Azure Front Door WAF',
+        Title = 'Default rule set is assigned in Azure Front Door WAF',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -51,29 +51,28 @@ function Test-Assessment-26883 {
     # Query Front Door WAF policies attached to Front Door (Classic or Standard/Premium)
     # - frontendEndpointLinks: Classic Front Door attachments
     # - securityPolicyLinks: Standard/Premium Front Door attachments
-    # Uses string-contains check to avoid mv-expand dropping policies with empty managedRuleSets
+    # NOTE: Complex regex patterns in ARG extract() fail through REST API due to escaping issues.
+    # We retrieve the managedRuleSets as an array and process in PowerShell instead.
     $argQuery = @"
 resources
 | where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
 | where array_length(properties.frontendEndpointLinks) > 0 or array_length(properties.securityPolicyLinks) > 0
-| extend ManagedRuleSetsStr = tostring(properties.managedRules.managedRuleSets)
 | extend EnabledState = tostring(properties.policySettings.enabledState)
 | extend WafMode = tostring(properties.policySettings.mode)
 | extend SkuName = tostring(sku.name)
-| extend HasDefaultRuleset = ManagedRuleSetsStr contains 'Microsoft_DefaultRuleSet'
-| extend DefaultRulesetVersion = extract('"ruleSetType":"Microsoft_DefaultRuleSet","ruleSetVersion":"([^"]+)"', 1, ManagedRuleSetsStr)
+| extend ManagedRuleSets = properties.managedRules.managedRuleSets
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
     | project subscriptionId, SubscriptionName = name
 ) on subscriptionId
-| project PolicyName=name, PolicyId=id, subscriptionId, SubscriptionName, SkuName, EnabledState, WafMode, HasDefaultRuleset, DefaultRulesetVersion
+| project PolicyName=name, PolicyId=id, subscriptionId, SubscriptionName, SkuName, EnabledState, WafMode, ManagedRuleSets
 "@
 
-    $policies = @()
+    $rawPolicies = @()
     try {
-        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
-        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
+        $rawPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($rawPolicies.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
         Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
@@ -84,23 +83,87 @@ resources
 
     #region Assessment Logic
     # Skip test if no policies found
-    if ($policies.Count -eq 0) {
+    if ($rawPolicies.Count -eq 0) {
         Write-PSFMessage 'No Azure Front Door WAF policies attached to Azure Front Door found.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Azure Front Door WAF policies attached to Azure Front Door found across subscriptions.'
         return
     }
 
-    # Check if all policies have default ruleset enabled
-    $passedItems = @($policies | Where-Object { $_.HasDefaultRuleset -eq $true })
-    $failedItems = @($policies | Where-Object { $_.HasDefaultRuleset -ne $true })
+    # Process each policy to extract default ruleset information
+    $policies = @()
+    foreach ($policy in $rawPolicies) {
+        # Find the Microsoft_DefaultRuleSet in managedRuleSets
+        $defaultRuleset = $null
+        $hasDefaultRuleset = $false
+        $defaultRulesetVersion = $null
+        $allRulesDisabled = $false
+
+        if ($policy.ManagedRuleSets) {
+            foreach ($ruleset in $policy.ManagedRuleSets) {
+                if ($ruleset.ruleSetType -eq 'Microsoft_DefaultRuleSet') {
+                    $hasDefaultRuleset = $true
+                    $defaultRuleset = $ruleset
+                    $defaultRulesetVersion = $ruleset.ruleSetVersion
+
+                    # Check if all rules are disabled via ruleGroupOverrides
+                    if ($ruleset.ruleGroupOverrides -and $ruleset.ruleGroupOverrides.Count -gt 0) {
+                        $hasEnabledRule = $false
+                        $hasDisabledRule = $false
+                        foreach ($override in $ruleset.ruleGroupOverrides) {
+                            if ($override.rules) {
+                                foreach ($rule in $override.rules) {
+                                    if ($rule.state -eq 'Enabled') { $hasEnabledRule = $true }
+                                    if ($rule.state -eq 'Disabled') { $hasDisabledRule = $true }
+                                }
+                            }
+                        }
+                        # AllRulesDisabled is true only if there are disabled rules and no enabled rules
+                        $allRulesDisabled = $hasDisabledRule -and (-not $hasEnabledRule)
+                    }
+                    break
+                }
+            }
+        }
+
+        $policies += [PSCustomObject]@{
+            PolicyName            = $policy.PolicyName
+            PolicyId              = $policy.PolicyId
+            subscriptionId        = $policy.subscriptionId
+            SubscriptionName      = $policy.SubscriptionName
+            SkuName               = $policy.SkuName
+            EnabledState          = $policy.EnabledState
+            WafMode               = $policy.WafMode
+            HasDefaultRuleset     = $hasDefaultRuleset
+            DefaultRulesetVersion = $defaultRulesetVersion
+            AllRulesDisabled      = $allRulesDisabled
+        }
+    }
+
+    # Evaluate each policy against all four pass criteria per spec:
+    # 1. EnabledState is 'Enabled'
+    # 2. WafMode is 'Prevention'
+    # 3. HasDefaultRuleset is true
+    # 4. At least one rule in DefaultRuleSet is enabled (AllRulesDisabled is false)
+    $passedItems = @($policies | Where-Object {
+        $_.EnabledState -eq 'Enabled' -and
+        $_.WafMode -eq 'Prevention' -and
+        $_.HasDefaultRuleset -eq $true -and
+        $_.AllRulesDisabled -ne $true
+    })
+    $failedItems = @($policies | Where-Object {
+        $_.EnabledState -ne 'Enabled' -or
+        $_.WafMode -ne 'Prevention' -or
+        $_.HasDefaultRuleset -ne $true -or
+        $_.AllRulesDisabled -eq $true
+    })
 
     if ($failedItems.Count -eq 0) {
         $passed = $true
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have a default managed ruleset (Microsoft_DefaultRuleSet) enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have the Default Ruleset (Microsoft_DefaultRuleSet) with at least one rule enabled.`n`n%TestResult%"
     }
     else {
         $passed = $false
-        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door do not have a default managed ruleset configured.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, running in Detection mode, do not have a default managed ruleset configured, or have all Default Ruleset rules disabled, leaving applications vulnerable to common web exploits and OWASP Top 10 attacks.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -121,10 +184,16 @@ resources
 
         # Calculate status indicators
         $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
-        $modeDisplay = if ($item.WafMode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.WafMode)" }
+        $modeDisplay = if ($item.WafMode -eq 'Prevention') { '✅ Prevention' } else { "❌ $($item.WafMode)" }
         $rulesetType = if ($item.HasDefaultRuleset -eq $true) { 'Microsoft_DefaultRuleSet' } else { 'None' }
         $rulesetVersion = if ($item.HasDefaultRuleset -eq $true -and $item.DefaultRulesetVersion) { $item.DefaultRulesetVersion } else { 'N/A' }
-        $status = if ($item.HasDefaultRuleset -eq $true) { '✅ Pass' } else { '❌ Fail' }
+
+        # Determine pass/fail status based on all four criteria
+        $isPassed = $item.EnabledState -eq 'Enabled' -and
+                    $item.WafMode -eq 'Prevention' -and
+                    $item.HasDefaultRuleset -eq $true -and
+                    $item.AllRulesDisabled -ne $true
+        $status = if ($isPassed) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | Yes | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
     }
@@ -153,7 +222,7 @@ resources
 
     $params = @{
         TestId = '26883'
-        Title  = 'Default Ruleset is assigned in Azure Front Door WAF'
+        Title  = 'Default rule set is assigned in Azure Front Door WAF'
         Status = $passed
         Result = $testResultMarkdown
     }
