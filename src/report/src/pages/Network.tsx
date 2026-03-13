@@ -14,7 +14,16 @@ export default function Network() {
                 <CardHeader>
                     <CardTitle className="mb-3">Assessment results</CardTitle>
                     <CardDescription>
-                        The results presented below are based on network security principles.
+                        The results presented below are based on the security principles detailed in the{" "}
+                        <a
+                            href="https://learn.microsoft.com/en-us/entra/fundamentals/configure-security"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary font-medium underline underline-offset-4 hover:underline"
+                        >
+                            Configuring Microsoft Entra and Azure for increased security
+                        </a>
+                        {" "}guide.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="gap-4 px-4 pb-4 pt-1">
