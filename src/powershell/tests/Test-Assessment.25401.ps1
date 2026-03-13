@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that Application Proxy applications require pre-authentication to block anonymous access.
 
@@ -24,6 +24,7 @@ function Test-Assessment-25401 {
     	Category = 'Application Proxy',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('AAD_PREMIUM'),
+    	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

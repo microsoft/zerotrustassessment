@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks if Application Administrator rights are constrained to specific Private Access apps.
 
@@ -17,6 +17,7 @@ function Test-Assessment-25384 {
     	Category = 'Role management',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('P1'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',

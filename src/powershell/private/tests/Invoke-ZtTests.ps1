@@ -108,7 +108,7 @@
 	# Filter based on Compatible licenses
 	$skippedTestsForLicense = $testsToRun.Where{$_.CompatibleLicense.Count -gt 0 -and (-not (Test-ZtLicense -CompatibleLicense $_.CompatibleLicense)) }
 	$skippedTestsForLicense.ForEach{
-		Write-Warning -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId)
+		Write-PSFMessage -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId) -Level Verbose
 		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
 	}
 

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that the Internet Access forwarding profile is enabled with user assignments.
 #>
@@ -8,6 +8,7 @@ function Test-Assessment-25406 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Entra_Premium_Global_Secure_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that web content filtering policies based on website categories are configured in Global Secure Access.
 
@@ -17,6 +17,7 @@ function Test-Assessment-25409 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',
