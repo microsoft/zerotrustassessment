@@ -126,7 +126,7 @@ resources
         $modeDisplay = if ($policy.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
         $defaultRuleSetType = $defaultRuleSet.ruleSetType
         $versionDisplay = if ($defaultRuleSet.ruleSetVersion) { $defaultRuleSet.ruleSetVersion } else { 'N/A' }
-        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention') { '✅' } else { '❌' }
+        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and $defaultRuleSet) { '✅' } else { '❌' }
 
         $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $defaultRuleSetType | $versionDisplay | $statusDisplay |`n"
     }
