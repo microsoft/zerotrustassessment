@@ -88,8 +88,17 @@ resources
         return
     }
 
-    # Check if all policies meet all 3 conditions: enabled, prevention mode, and request body inspection
-    $passed = ($policies | Where-Object { $_.RequestBodyCheck -ne 'Enabled' -or $_.EnabledState -ne 'Enabled' -or $_.Mode -ne 'Prevention' }).Count -eq 0
+    # Compute compliance once per policy to avoid duplicating the predicate logic
+    foreach ($policy in $policies) {
+        $policy | Add-Member -NotePropertyName 'IsCompliant' -NotePropertyValue (
+            $policy.RequestBodyCheck -eq 'Enabled' -and
+            $policy.EnabledState -eq 'Enabled' -and
+            $policy.Mode -eq 'Prevention'
+        )
+    }
+
+    # Check if all policies are compliant
+    $passed = ($policies | Where-Object { -not $_.IsCompliant }).Count -eq 0
 
     if ($passed) {
         $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have request body inspection enabled.`n`n%TestResult%"
@@ -117,8 +126,8 @@ resources
         # Calculate status indicators
         $requestBodyCheckDisplay = if ($item.RequestBodyCheck -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
-        $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.Mode)" }
-        $status = if ($item.RequestBodyCheck -eq 'Enabled' -and $item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention') { '✅ Pass' } else { '❌ Fail' }
+        $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "❌ $($item.Mode)" }
+        $status = if ($item.IsCompliant) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $requestBodyCheckDisplay | $status |`n"
     }
