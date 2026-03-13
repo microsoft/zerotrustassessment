@@ -226,7 +226,7 @@ function Initialize-Dependencies {
         $loadedAssemblies = [System.AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GetName().Name -eq 'Microsoft.Identity.Client' }
 
         if ($loadedAssemblies) {
-            Write-Warning -Message "MSAL assembly is already loaded. This may cause DLL conflicts."
+            Write-Verbose -Message "MSAL assembly is already loaded. This may cause DLL conflicts."
             Write-Verbose -Message "  Loaded versions:"
             foreach ($asm in $loadedAssemblies) {
                 Write-Verbose -Message ("  - {0} from {1}" -f $asm.GetName().Version, $asm.Location)
