@@ -79,7 +79,6 @@ resources
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
-
     #endregion Data Collection
 
     #region Assessment Logic
@@ -102,7 +101,8 @@ resources
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have a Default Ruleset (Microsoft_DefaultRuleSet or OWASP) assigned.`n`n%TestResult%"    }
+        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have a Default Ruleset (Microsoft_DefaultRuleSet or OWASP) assigned.`n`n%TestResult%"
+    }
     else {
         $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled or running in Detection mode, leaving applications vulnerable to common web exploits and OWASP Top 10 attacks.`n`n%TestResult%"
     }
