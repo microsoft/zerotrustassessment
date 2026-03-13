@@ -160,14 +160,14 @@ function Start-ZtProgressServer {
 							if ($key.StartsWith('worker_')) {
 								$w = $null
 								if ($ProgressDict.TryGetValue($key, [ref]$w) -and $null -ne $w) {
-								$workers.Add(@{
-									id        = $w.Id
-									name      = $w.Name
-									status    = $w.Status
-									detail    = $w.Detail
-									startedAt = $w.StartedAt
-									updatedAt = $w.UpdatedAt
-								})
+									$workers.Add(@{
+										id        = $w.Id
+										name      = $w.Name
+										status    = $w.Status
+										detail    = $w.Detail
+										startedAt = $w.StartedAt
+										updatedAt = $w.UpdatedAt
+									})
 								}
 							}
 						}
