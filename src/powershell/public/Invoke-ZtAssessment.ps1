@@ -25,6 +25,10 @@ If specified, the script will output a high level summary of log messages. Usefu
 .PARAMETER ExportLog
 If specified, writes the log to a file.
 
+.PARAMETER NoBrowser
+If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
+The progress dashboard server will not be started and the report will not be opened in the browser at the end.
+
 .PARAMETER DisableTelemetry
 If specified, disables the collection of telemetry. The only telemetry collected is the tenant id. Defaults to false.
 
@@ -62,10 +66,6 @@ Run the Zero Trust Assessment against the signed in tenant and generates a repor
 Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
-
-.PARAMETER NoBrowser
-If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
-The progress dashboard server will not be started and the report will not be opened in the browser at the end.
 
 .PARAMETER Pillar
 The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
