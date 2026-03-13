@@ -435,6 +435,7 @@ function Invoke-ZtAssessment {
 		}
 	}
 
+	try {
 	# Move the interactive configuration file to the report directory if it exists
 	if ($Interactive -and $tempConfigFile) {
 		try {
@@ -535,6 +536,9 @@ function Invoke-ZtAssessment {
 
 	# Give the progress dashboard a moment to show the completion state before shutting down
 	Start-Sleep -Seconds 2
-	Stop-ZtProgressServer
 	#endregion Post Processing
+	}
+	finally {
+		Stop-ZtProgressServer
+	}
 }
