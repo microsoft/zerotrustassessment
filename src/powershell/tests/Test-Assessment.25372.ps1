@@ -142,7 +142,7 @@ function Test-Assessment-25372 {
         $reportTitle = 'Deployment Summary'
         $portalLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/AdminDashboard.ReactView'
         $deploymentPercentageDisplay = if ($deploymentPercentage -ne 'N/A') { "$deploymentPercentage%" } else { $deploymentPercentage }
-        $evaluationPeriod = "$($startDateTime.ToString('yyyy-MM-dd')) to $($endDateTime.ToString('yyyy-MM-dd'))"
+        $evaluationPeriod = "$(Get-FormattedDate -DateString $startDateTime.ToString()) to $(Get-FormattedDate -DateString $endDateTime.ToString())"
 
         $formatTemplate = @'
 
