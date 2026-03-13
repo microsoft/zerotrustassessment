@@ -34,6 +34,7 @@ Function Get-ZtGraphScope {
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
         'AuditLog.Read.All'
         'CrossTenantInformation.ReadBasic.All'
+        'CustomSecAttributeAssignment.Read.All'
         'DeviceManagementApps.Read.All'
         'DeviceManagementConfiguration.Read.All'
         'DeviceManagementManagedDevices.Read.All',
