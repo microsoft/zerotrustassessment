@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks that compliant network controls are configured in Conditional Access policies
 
@@ -17,6 +17,7 @@ function Test-Assessment-25379 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('AAD_PREMIUM'),
+    	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

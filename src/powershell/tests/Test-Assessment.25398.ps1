@@ -11,6 +11,7 @@ function Test-Assessment-25398 {
         Category = 'Global Secure Access',
         ImplementationCost = 'Medium',
         MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Private_Access'),
+        CompatibleLicense = ('Entra_Premium_Private_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',

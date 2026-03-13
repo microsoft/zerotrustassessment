@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Validates that Global Administrator and Global Secure Access Administrator roles are tightly limited.
 
@@ -18,6 +18,7 @@ function Test-Assessment-25383 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('AAD_PREMIUM'),
+    	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect identities and secrets',
