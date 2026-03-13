@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Trust Assessment - Progress</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23 23'%3E%3Crect x='0' y='0' width='11' height='11' fill='%23f25022'/%3E%3Crect x='12' y='0' width='11' height='11' fill='%237fba00'/%3E%3Crect x='0' y='12' width='11' height='11' fill='%2300a4ef'/%3E%3Crect x='12' y='12' width='11' height='11' fill='%23ffb900'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2e3345;
+    --text: #e1e4ed;
+    --text-dim: #8b90a0;
+    --text-muted: #585d70;
+    --accent: #4f8ff7;
+    --accent-glow: rgba(79,143,247,0.15);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --yellow: #fbbf24;
+    --yellow-dim: rgba(251,191,36,0.12);
+    --orange: #fb923c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .container { max-width: 820px; margin: 0 auto; padding: 24px 20px; }
+
+  /* Main card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .header-icon { flex-shrink: 0; display: flex; align-items: center; }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .pulse-dot.done { animation: none; }
+  .pulse-dot.waiting { background: var(--yellow); }
+  .pulse-dot.error { background: var(--red); animation: none; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* Stages section */
+  .stages {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+  .stage-icon {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .stage-label {
+    flex: 1;
+    min-width: 0;
+  }
+  .stage-label.completed { color: var(--text-dim); }
+  .stage-label.active { color: var(--text); font-weight: 600; }
+  .stage-label.pending { color: var(--text-muted); }
+
+  /* Inline progress bar for active stage */
+  .stage-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .stage-bar {
+    width: 120px;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .stage-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #7c3aed);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .stage-percent {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    width: 32px;
+    text-align: right;
+  }
+
+  /* Spinner */
+  .spinner-sm {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid var(--accent-glow);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Workers section */
+  .workers-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .workers-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+  .worker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .worker-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .worker-icon {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .worker-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .worker-name.running { color: var(--text); }
+  .worker-name.waiting { color: var(--yellow); }
+  .worker-name.done { color: var(--text-dim); }
+  .worker-name.failed { color: var(--red); }
+  .worker-status-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    width: 80px;
+  }
+  .worker-time {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    width: 62px;
+    text-align: right;
+  }
+  .worker-detail-row {
+    display: flex;
+    align-items: baseline;
+    padding: 0 0 4px 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .worker-detail-indent {
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .worker-detail-tree {
+    color: var(--border);
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .worker-detail-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .worker-detail-text.flash {
+    animation: detail-flash 0.6s ease;
+  }
+  @keyframes detail-flash {
+    0% { color: var(--accent); }
+    100% { color: var(--text-muted); }
+  }
+
+  .no-workers {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 8px 0;
+  }
+
+  /* Summary footer */
+  .summary-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-footer .sep {
+    color: var(--border);
+  }
+  .summary-footer .val {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .summary-footer .val-fail {
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  /* Completion banner */
+  .done-banner {
+    padding: 20px;
+    text-align: center;
+    background: var(--green-dim);
+    border-top: 1px solid rgba(52,211,153,0.2);
+  }
+  .done-banner h2 {
+    color: var(--green);
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .done-banner p {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* Waiting state */
+  .waiting-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-dim);
+  }
+  .waiting-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--accent-glow);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 14px auto;
+  }
+  .waiting-state p { font-size: 13px; }
+
+  /* Error banner */
+  .error-banner {
+    background: var(--red-dim);
+    border-bottom: 1px solid rgba(248,113,113,0.2);
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--red);
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon"><svg width="20" height="20" viewBox="0 0 23 23"><rect x="0" y="0" width="11" height="11" fill="#f25022"/><rect x="12" y="0" width="11" height="11" fill="#7fba00"/><rect x="0" y="12" width="11" height="11" fill="#00a4ef"/><rect x="12" y="12" width="11" height="11" fill="#ffb900"/></svg></div>
+      <div class="header-title">Microsoft Zero Trust Assessment</div>
+      <div class="header-status">
+        <div class="pulse-dot waiting" id="pulseDot"></div>
+        <span id="statusText">Connecting...</span>
+      </div>
+    </div>
+
+    <!-- Error banner -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Content -->
+    <div id="content">
+      <div class="waiting-state">
+        <div class="waiting-spinner"></div>
+        <p>Waiting for assessment to start...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const POLL_INTERVAL = 500;
+  let lastData = null;
+  let lastWorkerDetails = {};
+  let pollTimer = null;
+  let errorCount = 0;
+  let assessmentDone = false;
+
+  const $ = id => document.getElementById(id);
+
+  function stageIcon(status) {
+    switch (status) {
+      case 'completed': return '<span style="color:var(--green)">&#x2714;</span>';
+      case 'active': return '<span class="spinner-sm"></span>';
+      default: return '<span style="color:var(--text-muted)">&#x25CB;</span>';
+    }
+  }
+
+  function workerIcon(status) {
+    switch ((status || '').toLowerCase()) {
+      case 'running':
+      case 'inprogress':
+        return '<span class="spinner-sm"></span>';
+      case 'waiting':
+        return '<span style="color:var(--yellow)">&#x23F3;</span>';
+      case 'done':
+        return '<span style="color:var(--green)">&#x2714;</span>';
+      case 'failed':
+        return '<span style="color:var(--red)">&#x2718;</span>';
+      case 'timedout':
+        return '<span style="color:var(--orange)">&#x23F1;&#xFE0F;</span>';
+      default:
+        return '<span style="color:var(--text-muted)">&#x25CB;</span>';
+    }
+  }
+
+  function statusLabel(status) {
+    switch ((status || '').toLowerCase()) {
+      case 'running':
+      case 'inprogress': return 'Processing';
+      case 'waiting': return 'Waiting';
+      case 'done': return 'Done';
+      case 'failed': return 'Failed';
+      case 'timedout': return 'Timed Out';
+      case 'pending': return 'Pending';
+      default: return '';
+    }
+  }
+
+  function isActive(status) {
+    const s = (status || '').toLowerCase();
+    return s === 'running' || s === 'inprogress' || s === 'waiting';
+  }
+
+  function formatElapsed(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    return formatSeconds(diff);
+  }
+
+  function formatDuration(startIso, endIso) {
+    if (!startIso || !endIso) return '';
+    const diff = Math.max(0, Math.floor((new Date(endIso).getTime() - new Date(startIso).getTime()) / 1000));
+    return formatSeconds(diff);
+  }
+
+  function formatSeconds(diff) {
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const s = diff % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    if (h > 0) return h + ':' + mm + ':' + ss;
+    return mm + ':' + ss;
+  }
+
+  function formatTotalElapsed(isoStr) {
+    if (!isoStr) return '--:--';
+    return formatElapsed(isoStr);
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function render(data) {
+    if (!data || !data.stage) {
+      $('content').innerHTML =
+        '<div class="waiting-state"><div class="waiting-spinner"></div><p>Waiting for assessment to start...</p></div>';
+      $('statusText').textContent = 'Waiting...';
+      $('pulseDot').className = 'pulse-dot waiting';
+      return;
+    }
+
+    const isDone = data.stage === 'done';
+
+    if (isDone) {
+      $('pulseDot').className = 'pulse-dot done';
+      $('statusText').textContent = 'Complete';
+      assessmentDone = true;
+    } else {
+      $('pulseDot').className = 'pulse-dot';
+      $('statusText').textContent = 'Running';
+    }
+
+    let html = '';
+    const s = data.summary || {};
+
+    // ── Stages section ──
+    html += '<div class="stages">';
+    const stages = data.stages || [];
+    if (stages.length > 0) {
+      for (const st of stages) {
+        html += '<div class="stage-row">';
+        html += '<div class="stage-icon">' + stageIcon(st.status) + '</div>';
+        html += '<div class="stage-label ' + st.status + '">Stage ' + st.number + ': ' + esc(st.name) + '</div>';
+
+        // Inline progress bar for active stage with items
+        if (st.status === 'active' && s.total > 0) {
+          html += '<div class="stage-progress">';
+          html += '<div class="stage-bar"><div class="stage-bar-fill" style="width:' + (data.percent || 0) + '%"></div></div>';
+          html += '<div class="stage-percent">' + (data.percent || 0) + '%</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+    } else {
+      // Fallback: no stage definitions yet, show single current stage
+      html += '<div class="stage-row">';
+      html += '<div class="stage-icon">' + stageIcon('active') + '</div>';
+      html += '<div class="stage-label active">' + esc(data.stageName || 'Processing...') + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // ── Summary footer (below stages) ──
+    html += '<div class="summary-footer">';
+    if (s.total > 0) {
+      html += '<span>Completed: <span class="val">' + ((s.completed || 0) + (s.failed || 0)) + ' / ' + s.total + '</span></span>';
+      if (s.failed > 0) {
+        html += '<span class="sep">|</span>';
+        html += '<span>Failed: <span class="val-fail">' + s.failed + '</span></span>';
+      }
+    }
+    if (data.startedAt) {
+      if (s.total > 0) html += '<span class="sep">|</span>';
+      html += '<span>Elapsed: <span class="val">' + formatTotalElapsed(data.startedAt) + '</span></span>';
+    }
+    html += '</div>';
+
+    // ── Workers section ──
+    const workers = data.workers || [];
+    // Sort: running/inprogress first, then waiting, then failed/timedout, then done
+    workers.sort((a, b) => {
+      const order = s => {
+        switch ((s || '').toLowerCase()) {
+          case 'running': case 'inprogress': return 0;
+          case 'waiting': return 1;
+          case 'failed': return 2;
+          case 'timedout': return 3;
+          case 'done': return 4;
+          default: return 5;
+        }
+      };
+      const ao = order(a.status), bo = order(b.status);
+      if (ao !== bo) return ao - bo;
+      // Within same status, sort by updatedAt descending (most recent first)
+      return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+    });
+
+    if (workers.length > 0) {
+      html += '<div class="workers-section">';
+      html += '<div class="workers-title">Tasks</div>';
+      html += '<div class="worker-list">';
+
+      for (const w of workers) {
+        const st = (w.status || '').toLowerCase();
+        const active = isActive(w.status);
+        const nameClass = st === 'failed' ? 'failed'
+                        : st === 'done' ? 'done'
+                        : st === 'waiting' ? 'waiting'
+                        : 'running';
+
+        html += '<div class="worker-row">';
+        html += '<div class="worker-icon">' + workerIcon(w.status) + '</div>';
+        html += '<div class="worker-name ' + nameClass + '">' + esc(w.name || w.id || 'Unknown') + '</div>';
+        html += '<div class="worker-status-text">' + statusLabel(w.status) + '</div>';
+
+        // Elapsed time: live timer for active workers, frozen duration for completed workers
+        if (active && w.startedAt) {
+          html += '<div class="worker-time">' + formatElapsed(w.startedAt) + '</div>';
+        } else if ((st === 'done' || st === 'failed' || st === 'timedout') && w.startedAt && w.updatedAt) {
+          html += '<div class="worker-time">' + formatDuration(w.startedAt, w.updatedAt) + '</div>';
+        } else {
+          html += '<div class="worker-time"></div>';
+        }
+        html += '</div>';
+
+        // Detail line
+        if (w.detail) {
+          const detailKey = w.id || w.name;
+          const oldDetail = lastWorkerDetails[detailKey];
+          const detailChanged = w.detail !== oldDetail;
+
+          html += '<div class="worker-detail-row">';
+          html += '<div class="worker-detail-indent"></div>';
+          html += '<span class="worker-detail-tree">&#x2514;</span>';
+          html += '<span class="worker-detail-text ' + (detailChanged ? 'flash' : '') + '">' + esc(w.detail) + '</span>';
+          html += '</div>';
+
+          if (detailKey) lastWorkerDetails[detailKey] = w.detail;
+        }
+      }
+
+      html += '</div></div>';
+    } else if (!isDone && data.stage) {
+      html += '<div class="workers-section"><div class="no-workers">No active tasks</div></div>';
+    }
+
+    // ── Done banner ──
+    if (isDone) {
+      html += '<div class="done-banner">';
+      html += '<h2>&#x2714; Assessment Complete</h2>';
+      html += '<p>Check the console for the report location.</p>';
+      html += '</div>';
+    }
+
+    $('content').innerHTML = html;
+  }
+
+  async function poll() {
+    try {
+      const resp = await fetch('/api/progress');
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      lastData = data;
+      errorCount = 0;
+      $('errorBanner').style.display = 'none';
+      render(data);
+
+      if (assessmentDone) {
+        setTimeout(() => { if (pollTimer) clearInterval(pollTimer); }, 5000);
+      }
+    } catch (e) {
+      errorCount++;
+      if (errorCount > 6) {
+        $('errorBanner').textContent = 'Connection lost. The assessment may have finished or the server was stopped.';
+        $('errorBanner').style.display = 'block';
+        $('pulseDot').className = 'pulse-dot error';
+        $('statusText').textContent = 'Disconnected';
+        if (pollTimer) clearInterval(pollTimer);
+      }
+    }
+  }
+
+  poll();
+  pollTimer = setInterval(poll, POLL_INTERVAL);
+})();
+</script>
+</body>
+</html>

@@ -36,6 +36,10 @@
 		$failedTests = @{}
 		$totalCount = $Workflow.Queues["Input"].TotalItemCount
 		$progressID = Get-Random -Minimum 1 -Maximum 999
+		$lastMessageScan = [datetime]::MinValue
+
+		# Initialize progress dashboard summary for the test stage
+		Update-ZtProgressState -TotalItems $totalCount -CompletedItems 0 -FailedItems 0 -InProgressItems 0
 	}
 	process {
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -PercentComplete 0
@@ -55,7 +59,51 @@
 			$status = "Completed: $($Workflow.Queues["Results"].Count) / $totalCount"
 
 			Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -Status $status -PercentComplete $percent
+
+			# Update progress dashboard summary counts
+			$completedCount = $Workflow.Queues["Results"].Count
+			$failedCount = ($failed | Measure-Object).Count
+			$inProgressCount = $totalCount - $completedCount
+			Update-ZtProgressState -TotalItems $totalCount -CompletedItems ($completedCount - $failedCount) -FailedItems $failedCount -InProgressItems $inProgressCount
+
+			# Scan recent PSFMessages to update worker detail lines
+			try {
+				$recentMessages = Get-PSFMessage -Last 100 | Where-Object { $_.Timestamp -gt $lastMessageScan }
+				$lastMessageScan = [datetime]::Now
+
+				# Build runspace-to-test mapping from the progress state
+				$rsMappings = @{}
+				foreach ($key in @($script:__ZtSession.ProgressState.Value.Keys)) {
+					if ($key -like 'rs_*') {
+						$rsId = $key.Substring(3)
+						$rsMappings[$rsId] = $script:__ZtSession.ProgressState.Value[$key]
+					}
+				}
+
+				foreach ($msg in $recentMessages) {
+					$rsId = $msg.Runspace.ToString()
+					if ($rsMappings.ContainsKey($rsId)) {
+						$testId = $rsMappings[$rsId]
+						$workerKey = "worker_$testId"
+						$worker = $null
+						if ($script:__ZtSession.ProgressState.Value.TryGetValue($workerKey, [ref]$worker)) {
+							if ($worker -and $worker.Status -eq 'Running') {
+								Update-ZtProgressState -WorkerId $testId -WorkerName $worker.Name -WorkerStatus 'Running' -WorkerDetail $msg.LogMessage
+							}
+						}
+					}
+				}
+			}
+			catch {
+				# Non-critical: don't let message scanning break the wait loop
+			}
 		}
+
+		# Final summary update after the loop exits — ensures _inProgressItems is 0
+		# and the dashboard shows correct totals before workers get cleared by next stage
+		$finalCompleted = $Workflow.Queues["Results"].Count
+		$finalFailed = ($failedTests.Keys | Measure-Object).Count
+		Update-ZtProgressState -TotalItems $totalCount -CompletedItems ($finalCompleted - $finalFailed) -FailedItems $finalFailed -InProgressItems 0
 
 		if ($Timeout -le ([DateTime]::Now - $StartedAt)) {
 			Write-PSFMessage -Level Warning -Message "Timeout of $($Timeout) reached while waiting for tests to complete. Processed $($Workflow.Queues["Results"].Count) out of $totalCount tests (left $($Workflow.Queues["Input"].Count) to process)." -Target $Workflow

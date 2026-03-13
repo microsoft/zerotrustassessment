@@ -72,6 +72,7 @@ function Export-ZtGraphEntity {
 	$maxSizeBytes = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Export.SignInLog.MaxSizeBytes' -Fallback 1073741824
 	if (Get-ZtConfig -ExportPath $ExportPath -Property $Name) {
 		Write-PSFMessage "Skipping '{0}' since it was downloaded previously" -StringValues $Name -Target $Name -Tag Export, redundant, skip
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail 'Skipped (cached)'
 		return
 	}
 
@@ -127,6 +128,7 @@ function Export-ZtGraphEntity {
 		)
 
 		Write-PSFMessage -Message "Adding {0} to {1}" -StringValues $PropertyName, $Name -Tag Graph
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "Batch: $PropertyName"
 
 		$data = Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id -Matched -ErrorAction SilentlyContinue -ErrorVariable failed
 		# Since the argument property is the original hashtable provided, we can update the hashtable as it is and thereby update the original object
@@ -165,6 +167,14 @@ function Export-ZtGraphEntity {
 	$hasTimeLimit = $MaximumQueryTime -gt 0
 
 	do {
+		# Update progress detail with the Graph API endpoint and page number
+		if ($pageIndex -eq 0) {
+			Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET $Uri"
+		}
+		else {
+			Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET $Uri — page $($pageIndex + 1)"
+		}
+
 		$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 

@@ -37,6 +37,8 @@
 	$dbParam = $PSBoundParameters | ConvertTo-PSFHashtable -Include Database
 
 	Write-PSFMessage "Importing table $TableName" -Tag Import
+	Update-ZtProgressState -WorkerId 'database' -WorkerName 'Creating Database' -WorkerStatus 'Running' -WorkerDetail "Importing $TableName..."
+
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $TableName
 
 	# Copy the model file if it exists (needed to create table schema to avoid sql errors when there is no data)

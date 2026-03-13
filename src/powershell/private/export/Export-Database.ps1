@@ -118,6 +118,7 @@ as
 
 	$activity = "Creating database"
 	Write-ZtProgress -Activity $activity -Status "Starting"
+	Update-ZtProgressState -WorkerId 'database' -WorkerName 'Creating Database' -WorkerStatus 'Running' -WorkerDetail 'Initializing...'
 
 	Write-PSFMessage "Importing data from $ExportPath" -Tag Import
 	$dbFolderName = 'db'

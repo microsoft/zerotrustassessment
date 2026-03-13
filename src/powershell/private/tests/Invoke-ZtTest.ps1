@@ -73,6 +73,15 @@
 	}
 	process {
 		Write-PSFMessage -Message "Processing test '{0}'" -StringValues $Test.TestID -Target $Test -Tag start
+
+		# Use the test Title as the display name, falling back to TestID if Title is not available
+		$testDisplayName = if ($Test.Title) { $Test.Title } else { $Test.TestID }
+
+		# Update progress dashboard: map this runspace to this test and mark as starting
+		$runspaceId = [runspace]::DefaultRunspace.InstanceId.ToString()
+		$script:__ZtSession.ProgressState.Value["rs_$runspaceId"] = $Test.TestID
+		Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Running' -WorkerDetail 'Starting test...'
+
 		# Check if the function exists and what parameters it has
 		$command = Get-Command $Test.Command -ErrorAction SilentlyContinue
 		if (-not $command) {
@@ -176,6 +185,7 @@
 			Write-PSFMessage -Level Warning -Message "Error executing test '{0}'" -StringValues $Test.TestID -Target $Test -ErrorRecord $_
 			$result.Success = $false
 			$result.Error = $_
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Failed' -WorkerDetail "$_"
 		}
 		finally {
 			$result.End = Get-Date
@@ -189,6 +199,15 @@
 	end {
 		$result.Messages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId) | Where-Object { $_ -notin $previousMessages }
 		Write-ZtTestStatistics -Result $result
+
+		# Update progress dashboard with final status
+		if ($result.TimedOut) {
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'TimedOut' -WorkerDetail "Timed out after $($result.Duration)"
+		}
+		elseif ($result.Success) {
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Done' -WorkerDetail ''
+		}
+		# Failed status already set in the catch block
 
 		# Write per-test log file (overwrites stub) and progress entry
 		if ($LogsPath) {

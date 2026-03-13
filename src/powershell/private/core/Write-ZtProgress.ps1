@@ -28,8 +28,14 @@ Function Write-ZtProgress {
     )
 
     try {
-        Write-Host "$Activity → $Status"
-        # $Activity = "⏳ $Activity"
+        Write-PSFMessage -Message "$Activity → $Status" -Level Verbose -Tag Progress
+
+        # Update the progress dashboard if we're inside a test execution context
+        if ($script:__ztCurrentTest -and $Status) {
+            $testId = $script:__ztCurrentTest.TestID
+            $testName = if ($script:__ztCurrentTest.Title) { $script:__ztCurrentTest.Title } else { $testId }
+            Update-ZtProgressState -WorkerId $testId -WorkerName $testName -WorkerStatus 'Running' -WorkerDetail "$Status"
+        }
 
         # if ($Status) {
         #     $statusString = Out-String -InputObject $Status
