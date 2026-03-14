@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that TLS inspection bypass policies are regularly reviewed to prevent security protection gaps.
 
@@ -15,17 +15,17 @@
 
 function Test-Assessment-27001 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = 'Entra_Premium_Internet_Access',
-        CompatibleLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 27001,
-        Title = 'TLS inspection bypass policies are regularly reviewed to prevent security protection gaps',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 27001,
+    	Title = 'TLS inspection bypass rules are regularly reviewed',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

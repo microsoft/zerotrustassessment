@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Trainable classifiers are used in data loss prevention and auto-labeling policies
 
@@ -19,14 +19,14 @@ function Test-Assessment-35036 {
     [ZtTest(
     	Category = 'Advanced Classification',
     	ImplementationCost = 'High',
+    	CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
     	Service = ('SecurityCompliance'),
-    	MinimumLicense = ('Microsoft 365 E5'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 35036,
-    	Title = 'Trainable classifiers are used in data loss prevention and autolabeling policies',
+    	Title = 'Trainable classifiers are used in data loss prevention and auto-labeling policies',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

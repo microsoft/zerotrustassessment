@@ -20,7 +20,7 @@ function Test-Assessment-35040 {
         Category = 'Data Security Posture Management',
         ImplementationCost = 'Medium',
         Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E5'),
+        CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',

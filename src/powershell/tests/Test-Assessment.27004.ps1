@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that custom TLS inspection bypass rules do not duplicate system bypass destinations.
 
@@ -21,17 +21,17 @@
 
 function Test-Assessment-27004 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        CompatibleLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Low',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 27004,
-        Title = 'TLS inspection custom bypass rules do not duplicate system bypass destinations',
-        UserImpact = 'Low'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 27004,
+    	Title = 'TLS inspection custom bypass rules don''t duplicate system bypass destinations',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

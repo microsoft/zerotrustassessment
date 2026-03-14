@@ -17,7 +17,7 @@ function Test-Assessment-35030 {
         Category = 'Data Loss Prevention (DLP)',
         ImplementationCost = 'Medium',
         Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E3'),
+        CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',

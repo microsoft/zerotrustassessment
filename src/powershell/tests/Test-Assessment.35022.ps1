@@ -22,7 +22,7 @@ function Test-Assessment-35022 {
         Category = 'Information Protection',
         ImplementationCost = 'Medium',
         Service = ('SecurityCompliance'),
-        MinimumLicense = 'Microsoft 365 E5',
+        CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
         Pillar = 'Data',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',

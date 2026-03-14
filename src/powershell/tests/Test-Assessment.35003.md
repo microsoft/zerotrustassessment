@@ -1,6 +1,6 @@
 Sensitivity labels are the foundation of Microsoft Purview Information Protection. They enable organizations to classify and protect sensitive data across Microsoft 365, on-premises locations, and non-Microsoft applications.
 
-Without sensitivity labels, organizations lack a standardized way to protect confidential data, leaving it vulnerable to unauthorized access and sharing. A well-designed label taxonomy typically includes 3-7 top-level labels—too many labels overwhelm users and reduce effectiveness.
+Without sensitivity labels, organizations lack a standardized way to protect their data, leaving it vulnerable to unauthorized access and sharing. A well-designed label taxonomy typically includes 3-7 top-level labels—too many labels overwhelm users and reduce effectiveness.
 
 **Remediation action**
 

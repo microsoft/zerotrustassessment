@@ -71,6 +71,9 @@ function Set-TestMetadata {
 		[string[]]
 		$CompatibleLicense,
 
+		[string[]]
+		$Service,
+
 		[string]
 		$Pillar,
 
@@ -120,7 +123,10 @@ function Set-TestMetadata {
 
 			$text = [System.Text.StringBuilder]::new()
 			$null = $text.AppendLine('[ZtTest(')
+			$activeKeys = $Definition.Keys | Where-Object { $null -ne $data[$_] }
 			foreach ($pair in $Definition.GetEnumerator()) {
+				# Skip null values entirely — don't write them to the attribute
+				if ($null -eq $data[$pair.Key]) { continue }
 				switch ($pair.Value) {
 					'string[]' {
 						$entries = foreach ($item in $data[$pair.Key]) {
@@ -140,7 +146,7 @@ function Set-TestMetadata {
 					}
 				}
 				$line = "`t$($pair.Key) = $($valueText),"
-				if ($pair.Key -eq $($Definition.Keys)[-1]) {
+				if ($pair.Key -eq $activeKeys[-1]) {
 					$line = $line.TrimEnd(',')
 				}
 				$null = $text.AppendLine($line)
@@ -218,6 +224,7 @@ function Set-TestMetadata {
 			ImplementationCost 	= 'string'
 			MinimumLicense     	= 'string[]'
 			CompatibleLicense  	= 'string[]'
+			Service            	= 'string[]'
 			Pillar             	= 'string'
 			RiskLevel          	= 'string'
 			SfiPillar          	= 'string'
