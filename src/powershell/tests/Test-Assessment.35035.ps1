@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Named entity sensitive information types are used in auto-labeling and data loss prevention policies
 
@@ -19,14 +19,14 @@ function Test-Assessment-35035 {
     [ZtTest(
     	Category = 'Advanced Classification',
     	ImplementationCost = 'Low',
-    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E3'),
+    	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce'),
     	TestId = 35035,
-    	Title = 'Named entity sensitive information types are used in autolabeling and data loss prevention policies',
+    	Title = 'Named entity sensitive information types are used in auto-labeling and data loss prevention policies',
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]

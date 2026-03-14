@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Auto-labeling policies are configured for all workloads
 
@@ -13,17 +13,17 @@
 
 function Test-Assessment-35019 {
     [ZtTest(
-        Category = 'Information Protection',
-        ImplementationCost = 'Medium',
-        Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E5'),
-        Pillar = 'Data',
-        RiskLevel = 'High',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35019,
-        Title = 'Auto-labeling policies are configured for all workloads',
-        UserImpact = 'Low'
+    	Category = 'Information Protection',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Microsoft 365 E5'),
+    	Service = ('SecurityCompliance'),
+    	Pillar = 'Data',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35019,
+    	Title = 'Auto-labeling policies are configured for all Microsoft 365 workloads',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Custom branding templates are configured for Office 365 Message Encryption
 
@@ -17,17 +17,17 @@
 
 function Test-Assessment-35027 {
     [ZtTest(
-        Category = 'Information Protection',
-        ImplementationCost = 'Low',
-        Service = ('ExchangeOnline'),
-        MinimumLicense = ('Microsoft 365 E3', 'Microsoft 365 E5', 'Advanced Message Encryption add-on'),
-        Pillar = 'Data',
-        RiskLevel = 'Low',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce'),
-        TestId = 35027,
-        Title = 'Custom branding templates are configured for Office 365 Message Encryption',
-        UserImpact = 'Low'
+    	Category = 'Information Protection',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E3','Microsoft 365 E5','Advanced Message Encryption add-on'),
+    	Service = ('ExchangeOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35027,
+    	Title = 'Custom branding templates are configured for Microsoft Purview Message Encryption',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

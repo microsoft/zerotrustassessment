@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     A default sensitivity label is configured for SharePoint document libraries
 
@@ -13,17 +13,17 @@
 
 function Test-Assessment-35008 {
     [ZtTest(
-        Category = 'SharePoint Online',
-        ImplementationCost = 'Low',
-        Service = ('SharePointOnline'),
-        MinimumLicense = ('Microsoft 365 E5'),
-        Pillar = 'Data',
-        RiskLevel = 'Medium',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35008,
-        Title = 'A default sensitivity label is configured for SharePoint document libraries',
-        UserImpact = 'Low'
+    	Category = 'SharePoint Online',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E5'),
+    	Service = ('SharePointOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35008,
+    	Title = 'Default sensitivity labels are configured for SharePoint document libraries',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

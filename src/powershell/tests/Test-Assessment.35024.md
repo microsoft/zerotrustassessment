@@ -1,4 +1,4 @@
-Azure Rights Management Service (RMS) is the foundational encryption and access control technology that Microsoft Purview Information Protection uses. Without it, your organization can't use sensitivity labels with encryption, protect emails with Microsoft Purview Message Encryption, enforce IRM policies on SharePoint or OneDrive, or apply rights protection through mail flow rules. Enable Azure RMS at the tenant level before configuring any other information protection features.
+The Azure Rights Management service provides the foundational encryption and access control technology for Microsoft Purview Information Protection. It's used with sensitivity labels that apply encryption, protects emails with Microsoft Purview Message Encryption, and even used with the older protection technologies such as SharePoint IRM and mail flow rules that apply encryption. This service should be activated for the tenant before you configure any other information protection features.
 
 **Remediation action**
 
