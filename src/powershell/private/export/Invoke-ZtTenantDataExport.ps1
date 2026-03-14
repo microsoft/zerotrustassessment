@@ -147,13 +147,20 @@
 			}
 		}
 		catch {
-			Write-PSFMessage -Level Warning -Message "Error executing export '{0}'" -StringValues $Export.Name -Target $Export -ErrorRecord $_
-			$workflow.Data[$Export.Name].Status = 'Failed'
-			$workflow.Data[$Export.Name].Updated = Get-Date
-			$workflow.Data[$Export.Name].Message = "$_"
-			$result.Success = $false
-			$result.Error = $_
 			Update-ZtProgressState -WorkerId $Export.Name -WorkerName $Export.Name -WorkerStatus 'Failed' -WorkerDetail "$_"
+			if ($_ -match 'Request not applicable to target tenant') {
+				Write-PSFMessage -Level Verbose -Message "Export '{0}' skipped: not applicable to target tenant" -StringValues $Export.Name -Target $Export
+				$workflow.Data[$Export.Name].Status = 'Done'
+				$workflow.Data[$Export.Name].Updated = Get-Date
+			}
+			else {
+				Write-PSFMessage -Level Warning -Message "Error executing export '{0}'" -StringValues $Export.Name -Target $Export -ErrorRecord $_
+				$workflow.Data[$Export.Name].Status = 'Failed'
+				$workflow.Data[$Export.Name].Updated = Get-Date
+				$workflow.Data[$Export.Name].Message = "$_"
+				$result.Success = $false
+				$result.Error = $_
+			}
 		}
 		finally {
 			$result.End = Get-Date

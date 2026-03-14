@@ -9,7 +9,7 @@ function Test-Assessment-25370 {
     [ZtTest(
     	Category = 'Network',
     	ImplementationCost = 'Low',
-    	MinimumLicense = ('Free'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',
