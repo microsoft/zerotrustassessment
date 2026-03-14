@@ -31,8 +31,6 @@ function Connect-ZtAssessment {
 		The application will need to be configured to have the matching Application scopes, compared to the Delegate scopes and may need to be added into roles.
 		If this certificate is also used for connecting to Azure, it must come from a certificate store on the local computer.
 
-	.PARAMETER SkipAzureConnection
-		If specified, skips connecting to Azure and only connects to other services.
 
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment
@@ -45,11 +43,6 @@ function Connect-ZtAssessment {
 		PS C:\> Connect-ZtAssessment -UseDeviceCode
 
 		Connects to Microsoft Graph and Azure using the device code flow. This will open a browser window to prompt for authentication.
-
-	.EXAMPLE
-		PS C:\> Connect-ZtAssessment -SkipAzureConnection
-
-		Connects to services but skipping the Azure connection. The tests that require Azure connectivity will be skipped.
 
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment -ClientID $clientID -TenantID $tenantID -Certificate 'CN=ZeroTrustAssessment' -Service Graph,Azure
@@ -68,7 +61,7 @@ function Connect-ZtAssessment {
 
 		[Parameter(DontShow)]
 		[switch]
-		$UseTokenCache, # Latest Graph module broke it...
+		$UseTokenCache,
 
 		[string]
 		$TenantId,
@@ -81,17 +74,26 @@ function Connect-ZtAssessment {
 
 		# The services to connect to such as Azure and ExchangeOnline. Default is All.
 		[ValidateSet('All', 'Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
-		[string[]]$Service = 'All',
+		[string[]]
+		$Service = 'All',
 
 		# The Exchange environment to connect to. Default is O365Default. Supported values include O365China, O365Default, O365GermanyCloud, O365USGovDoD, O365USGovGCCHigh.
 		[ValidateSet('O365China', 'O365Default', 'O365GermanyCloud', 'O365USGovDoD', 'O365USGovGCCHigh')]
-		[string]$ExchangeEnvironmentName = 'O365Default',
+		[string]
+		$ExchangeEnvironmentName = 'O365Default',
 
 		# The User Principal Name to use for Security & Compliance PowerShell connection.
-		[string]$UserPrincipalName,
+		[string]
+		$UserPrincipalName,
 
 		# The SharePoint Admin URL to use for SharePoint Online connection.
-		[string]$SharePointAdminUrl
+		[string]
+		$SharePointAdminUrl,
+
+		# When specified, forces reconnection to services even if an existing connection is detected.
+		# This is useful to refresh the connection context and permissions.
+		[switch]
+		$Force
 	)
 
 	if (-not (Test-ZtLanguageMode)) {
@@ -102,7 +104,8 @@ function Connect-ZtAssessment {
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
-	elseif ($Service -notcontains 'Graph') {
+	elseif ($Service -notcontains 'Graph' -and $script:ConnectedService -notcontains 'Graph') {
+		# If not already connected, always connect Graph.
 		$Service += 'Graph'
 	}
 
@@ -135,6 +138,7 @@ function Connect-ZtAssessment {
 			Write-Host -Object "`nConnecting to Microsoft Graph" -ForegroundColor Cyan
 			Write-PSFMessage -Message 'Connecting to Microsoft Graph' -Level Verbose
 			try {
+				#region loading graph modules
 				Write-PSFMessage -Message ('Loading graph required modules: {0}' -f ($resolvedRequiredModules.Graph.Name -join ', ')) -Level Verbose
 				$loadedGraphModules = $resolvedRequiredModules.Graph.ForEach{
 					$_ | Import-Module -Global -ErrorAction Stop -PassThru
@@ -142,6 +146,56 @@ function Connect-ZtAssessment {
 
 				$loadedGraphModules.ForEach{
 					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Graph.' -f $_.Name, $_.Version)
+				}
+				#endregion
+
+				#region is Graph connected?
+
+				# Assume we're not connected and we need to connect.
+				[bool] $isGraphConnected = $false
+				$context = Get-MgContext -ErrorAction Ignore
+				if ($null -ne $context) {
+					Write-PSFMessage -Message ('A connection to Microsoft Graph is already established with account "{0}".' -f $context.Account) -Level Debug
+					$isGraphConnected = $true
+					Write-PSFMessage -Message "Testing connection with ClientId ({0}), subscription ({1}) account ({2}) and Force ({3})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account, $Force.IsPresent)
+				}
+				else {
+					Write-PSFMessage -Message "No existing connection to Microsoft Graph found." -Level Debug
+				}
+
+				#endregion
+
+				# Graph might be connected, but:
+				#   - with the wrong ClientId,
+				#   - to the wrong tenant,
+				#   - with the wrong Certificate,
+				#   - without the required scopes/permissions for the assessment,
+				# so we need to validate the context.
+				if ( #Comparing connection with parameters to determine if we can reuse the existing connection or need to reconnect.
+					($isGraphConnected -and $Force.IsPresent) -or # If -Force is specified, ignore the existing context and reconnect regardless of parameters
+					(
+						$isGraphConnected -and
+						(
+							$PSBoundParameters.ContainsKey('ClientId') -and $context.ClientId -ne $ClientId -or
+							$PSBoundParameters.ContainsKey('TenantId') -and $context.TenantId -ne $TenantId -or
+							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($context.Certificate.Thumbprint)
+							#TODO: compare certificate thumbprint & Subject if possible
+						)
+					) -or
+					($isGraphConnected -and -not (Test-ZtContext -ErrorAction Ignore)) # if missing permission, reconnect to ask for the permissions needed for the assessment
+				) {
+					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), subscription ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
+					#TODO: Disconnect ZtAssessment is not quiet enough
+					$null = Disconnect-MgGraph -ErrorAction Ignore
+					# Disconnect-ZtAssessment -Service Graph -InformationAction Ignore
+					Remove-ZtConnectedService -Service 'Graph'
+				}
+				elseif ($isGraphConnected) { # if it's connected, and everything is ok.
+					# Test the existing context to ensure it has the required permissions and is valid for use in the assessment. If not, disconnect and reconnect with the correct parameters.
+					Write-PSFMessage -Message "Connected to Graph with the same info as specified in parameters." -Level Debug
+					Add-ZtConnectedService -Service 'Graph'
+					Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
+					continue
 				}
 
 				$connectMgGraphParams = @{
@@ -172,7 +226,7 @@ function Connect-ZtAssessment {
 				}
 
 				Write-PSFMessage -Message "Connecting to Microsoft Graph with params: $($connectMgGraphParams | Out-String)" -Level Verbose
-				$null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop -InformationAction SilentlyContinue
+				$null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop
 				$contextTenantId = (Get-MgContext).TenantId
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'Graph'
@@ -218,6 +272,7 @@ function Connect-ZtAssessment {
 			Write-Host -Object "`nConnecting to Azure" -ForegroundColor Cyan
 			Write-PSFMessage -Message 'Connecting to Azure' -Level Verbose
 			try {
+				#region Load Azure Modules
 				Write-PSFMessage -Message ('Loading Azure required modules: {0}' -f ($resolvedRequiredModules.Azure.Name -join ', ')) -Level Verbose
 				$loadedAzureModules = $resolvedRequiredModules.Azure.ForEach{
 					$_ | Import-Module -Global -ErrorAction Stop -PassThru
@@ -226,6 +281,7 @@ function Connect-ZtAssessment {
 				$loadedAzureModules.ForEach{
 					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Azure.' -f $_.Name, $_.Version)
 				}
+				#endregion
 
 				$azEnvironment = 'AzureCloud'
 				if ($Environment -eq 'China') {
@@ -233,6 +289,46 @@ function Connect-ZtAssessment {
 				}
 				elseif ($Environment -in 'USGov', 'USGovDoD') {
 					$azEnvironment = 'AzureUSGovernment'
+				}
+
+				# Grab the Tenant ID from parameters if specified, otherwise from Graph context if available, otherwise rely on default tenant.
+				$isAzureConnected = $false
+				$azContext = Get-AzContext -ErrorAction Ignore
+				if ($null -ne $azContext) {
+					Write-PSFMessage -Message ('A connection to Azure is already established with account "{0}".' -f $azContext.Account) -Level Debug
+					$isAzureConnected = $true
+				}
+				else {
+					Write-PSFMessage -Message "No existing connection to Azure found." -Level Debug
+				}
+
+				# Azure might be connected, but:
+				#   - with the wrong ClientId,
+				#   - to the wrong tenant,
+				#   - with the wrong Certificate,
+				#   - without the required scopes/permissions for the assessment,
+				# so we need to validate the context.
+				if (
+					($isAzureConnected -and $Force.IsPresent) -or
+					(
+						$isAzureConnected -and
+						(
+							$PSBoundParameters.ContainsKey('TenantId') -and $azContext.Tenant.Id -ne $TenantId -or
+							$PSBoundParameters.ContainsKey('ClientId') -and $azContext.Account.Id -ne $ClientId -or
+							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($azContext.Account.CertificateThumbprint)
+						)
+					)
+				) {
+					Write-PSFMessage -Message "Current connection with TenantId ({0}) and Account ({1}) is different than the one specified in parameters." -Level Debug -StringValues @($azContext.Tenant.Id, $azContext.Account.Id)
+					$null = Disconnect-AzAccount -ErrorAction Ignore
+					$isAzureConnected = $false
+					Remove-ZtConnectedService -Service 'Azure'
+				}
+				elseif ($isAzureConnected) {
+					Write-PSFMessage -Message "Connected to Azure with the same info as specified in parameters." -Level Debug
+					Add-ZtConnectedService -Service 'Azure'
+					Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
+					continue
 				}
 
 				$tenantParam = $TenantId
@@ -259,7 +355,7 @@ function Connect-ZtAssessment {
 				}
 
 				Write-Verbose -Message ("Connecting to Azure with parameters: {0}" -f ($azParams | Out-String))
-				$null = Connect-AzAccount @azParams -ErrorAction Stop -InformationAction Ignore
+				$null = Connect-AzAccount @azParams -ErrorAction Stop
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'Azure'
 			}
@@ -275,7 +371,6 @@ function Connect-ZtAssessment {
 		'AipService' {
 			Write-Host -Object "`nConnecting to Azure Information Protection" -ForegroundColor Cyan
 			Write-PSFMessage -Message 'Connecting to Azure Information Protection' -Level Verbose
-			$aipServiceModuleLoaded = $false
 			try {
 				Write-PSFMessage -Message ('Loading Azure Information Protection required modules: {0}' -f ($resolvedRequiredModules.AipService.Name -join ', ')) -Level Verbose
 				$loadedAipServiceModules = $resolvedRequiredModules.AipService.ForEach{
@@ -287,7 +382,6 @@ function Connect-ZtAssessment {
 					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Azure Information Protection.' -f $_.Name, $_.Version)
 				}
 
-				$aipServiceModuleLoaded = $true
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to load Azure Information Protection modules." -ForegroundColor Yellow
@@ -296,16 +390,15 @@ function Connect-ZtAssessment {
 				Write-PSFMessage -Message ("Error loading AipService Module in WindowsPowerShell: {0}" -f $_) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable and skip connection attempt.
 				Remove-ZtConnectedService -Service 'AipService'
+				continue
 			}
 
 			try {
-				if ($aipServiceModuleLoaded) {
 					Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
 					# Connect-AipService does not have parameters for non-interactive auth, so it will use the existing Graph connection context if available, or prompt if not.
 					$null = Connect-AipService -ErrorAction Stop
 					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 					Add-ZtConnectedService -Service 'AipService'
-				}
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
@@ -332,10 +425,10 @@ function Connect-ZtAssessment {
 
 				Write-Verbose -Message 'Connecting to Microsoft Exchange Online'
 				if ($UseDeviceCode) {
-					$null = Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop -InformationAction Ignore
+					$null = Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop
 				}
 				else {
-					$null = Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop -InformationAction Ignore
+					$null = Connect-ExchangeOnline -ShowBanner:$false -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop
 				}
 
 				# Fix for Get-Label visibility in other scopes
@@ -514,28 +607,58 @@ function Connect-ZtAssessment {
 				continue
 			}
 
-			$adminUrl = $SharePointAdminUrl
-			if (-not $adminUrl) {
+			[string] $adminUrl = $null
+			if (-not [string]::IsNullOrEmpty($SharePointAdminUrl)) {
+				Write-Verbose -Message "Using provided SharePoint Admin URL: $SharePointAdminUrl"
+				$adminUrl = $SharePointAdminUrl # Attempt to read from parameter
+			}
+			elseif (-not $adminUrl  -and (Get-Command -Name Get-MgContext -ErrorAction Ignore) -and ($graphContext = Get-MgContext -ErrorAction Ignore)) {
 				# Try to infer from Graph context
-				if ($contextTenantId) {
+				if ($graphContext.TenantId) {
 					try {
 						$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
 						$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
 						if ($initialDomain) {
 							$tenantName = $initialDomain.Split('.')[0]
 							$adminUrl = "https://$tenantName-admin.sharepoint.com"
-							Write-Verbose -Message "Inferred SharePoint Admin URL: $adminUrl"
+							Write-Verbose -Message "Inferred SharePoint Admin URL from Graph: $adminUrl"
 						}
 					}
 					catch {
-						Write-Verbose -Message "Failed to infer SharePoint Admin URL from Graph: $_"
+						Write-Verbose -Message "Failed to infer SharePoint Admin URL from Graph: $($_.Exception.Message)"
 					}
 				}
 			}
+			elseif(-not $adminUrl) {
+				Write-Verbose -Message "No Graph context available to infer SharePoint Admin URL."
+				# We don't want to let the service 'Graph' be marked as connected, it's not.
+				Remove-ztConnectedService -Service 'Graph'
+			}
+
+			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
+				# Try to infer from Azure context
+				try {
+					# initial domain are <tenantName>.onmicrosoft.com as per https://learn.microsoft.com/en-us/entra/fundamentals/add-custom-domain
+					$initialDomain = $tenantDetails.Domains.Where({$_ -match '(.*).onmicrosoft.com'},1)
+					if ($initialDomain) {
+						$tenantName = $initialDomain.Split('.')[0]
+						$adminUrl = "https://$tenantName-admin.sharepoint.com"
+						Write-Verbose -Message "Inferred SharePoint Admin URL from Azure context: $adminUrl"
+					}
+				}
+				catch {
+					Write-Verbose -Message "Failed to infer SharePoint Admin URL from Azure context: $($_.Exception.Message)"
+				}
+			}
+			elseif (-not $adminUrl) {
+				Write-Verbose -Message "No Azure context available to infer SharePoint Admin URL."
+				Remove-ztConnectedService -Service 'Azure'
+			}
 
 			if (-not $adminUrl) {
-				Write-Host -Object "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -ForegroundColor Yellow
-				Write-PSFMessage -Message "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -Level Warning
+				Write-Host -Object "   ❌ SharePoint Admin URL not provided and could not be inferred." -ForegroundColor Red
+				Write-Host -Object "       The SharePoint tests will be skipped." -ForegroundColor Red
+				Write-PSFMessage -Message "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -Level debug
 				Remove-ZtConnectedService -Service 'SharePointOnline'
 			}
 			else {
