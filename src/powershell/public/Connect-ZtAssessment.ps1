@@ -171,6 +171,19 @@ function Connect-ZtAssessment {
 				#   - with the wrong Certificate,
 				#   - without the required scopes/permissions for the assessment,
 				# so we need to validate the context.
+				# Validate the existing context separately so that missing scopes/roles trigger a reconnect
+				# instead of causing the outer Graph connection logic to treat it as a fatal error.
+				$isContextValid = $true
+				if ($isGraphConnected) {
+					try {
+						$isContextValid = Test-ZtContext -ErrorAction Stop
+					}
+					catch {
+						Write-PSFMessage -Message "Existing Graph context is invalid or missing required permissions. A reconnect will be attempted." -Level Debug
+						$isContextValid = $false
+					}
+				}
+
 				if ( #Comparing connection with parameters to determine if we can reuse the existing connection or need to reconnect.
 					($isGraphConnected -and $Force.IsPresent) -or # If -Force is specified, ignore the existing context and reconnect regardless of parameters
 					(
@@ -182,7 +195,7 @@ function Connect-ZtAssessment {
 							#TODO: compare certificate thumbprint & Subject if possible
 						)
 					) -or
-					($isGraphConnected -and -not (Test-ZtContext -ErrorAction Ignore)) # if missing permission, reconnect to ask for the permissions needed for the assessment
+					($isGraphConnected -and -not $isContextValid) # if missing permission, reconnect to ask for the permissions needed for the assessment
 				) {
 					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), subscription ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
 					#TODO: Disconnect ZtAssessment is not quiet enough
