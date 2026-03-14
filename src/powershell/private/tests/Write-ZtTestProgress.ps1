@@ -47,7 +47,7 @@ function Write-ZtTestProgress {
 		$LogsPath,
 
 		[Parameter(Mandatory = $true)]
-		[ValidateSet('Started', 'Completed', 'Failed', 'TimedOut')]
+		[ValidateSet('Started', 'Completed', 'Failed', 'TimedOut', 'Skipped')]
 		[string]
 		$Action,
 
@@ -85,7 +85,7 @@ function Write-ZtTestProgress {
 					$line += '  Test exceeded timeout limit'
 				}
 			}
-			if ($Action -eq 'Failed' -and $ErrorMessage) {
+			if ($Action -in @('Failed', 'Skipped') -and $ErrorMessage) {
 				$errorText = "$ErrorMessage"
 				$errorText = $errorText -replace '[\r\n\t]+', ' '
 				if ($errorText.Length -gt 1000) {
