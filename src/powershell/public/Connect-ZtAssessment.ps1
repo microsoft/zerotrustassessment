@@ -578,7 +578,6 @@ function Connect-ZtAssessment {
 						Write-Warning "DLL Conflict detected (Method not found in Microsoft.Identity.Client). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
 						Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
 					}
-
 				}
 			}
 		}
@@ -639,7 +638,7 @@ function Connect-ZtAssessment {
 				# Try to infer from Azure context
 				try {
 					# initial domain are <tenantName>.onmicrosoft.com as per https://learn.microsoft.com/en-us/entra/fundamentals/add-custom-domain
-					$initialDomain = $tenantDetails.Domains.Where({$_ -match '(.*).onmicrosoft.com'},1)
+					$initialDomain = $tenantDetails.Domains.Where({$_ -match '(.*)\.onmicrosoft\.com$'},1)
 					if ($initialDomain) {
 						$tenantName = $initialDomain.Split('.')[0]
 						$adminUrl = "https://$tenantName-admin.sharepoint.com"
