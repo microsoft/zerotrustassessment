@@ -197,7 +197,7 @@ function Connect-ZtAssessment {
 					) -or
 					($isGraphConnected -and -not $isContextValid) # if missing permission, reconnect to ask for the permissions needed for the assessment
 				) {
-					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), subscription ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
+					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), tenant ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
 					#TODO: Disconnect ZtAssessment is not quiet enough
 					$null = Disconnect-MgGraph -ErrorAction Ignore
 					# Disconnect-ZtAssessment -Service Graph -InformationAction Ignore
