@@ -175,7 +175,7 @@ function Invoke-ZtAssessment {
 		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes)
 	)
 
-	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
+	if ($script:ConnectedService.Count -le 0) {
 		Connect-ZtAssessment
 	}
 
