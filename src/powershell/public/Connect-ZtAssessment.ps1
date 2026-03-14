@@ -157,7 +157,7 @@ function Connect-ZtAssessment {
 				if ($null -ne $context) {
 					Write-PSFMessage -Message ('A connection to Microsoft Graph is already established with account "{0}".' -f $context.Account) -Level Debug
 					$isGraphConnected = $true
-					Write-PSFMessage -Message "Testing connection with ClientId ({0}), subscription ({1}) account ({2}) and Force ({3})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account, $Force.IsPresent)
+					Write-PSFMessage -Message "Testing connection with ClientId ({0}), tenant ({1}) account ({2}) and Force ({3})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account, $Force.IsPresent)
 				}
 				else {
 					Write-PSFMessage -Message "No existing connection to Microsoft Graph found." -Level Debug
@@ -171,20 +171,33 @@ function Connect-ZtAssessment {
 				#   - with the wrong Certificate,
 				#   - without the required scopes/permissions for the assessment,
 				# so we need to validate the context.
+				# Validate the existing context separately so that missing scopes/roles trigger a reconnect
+				# instead of causing the outer Graph connection logic to treat it as a fatal error.
+				$isContextValid = $true
+				if ($isGraphConnected) {
+					try {
+						$isContextValid = Test-ZtContext -ErrorAction Stop
+					}
+					catch {
+						Write-PSFMessage -Message "Existing Graph context is invalid or missing required permissions. A reconnect will be attempted." -Level Debug
+						$isContextValid = $false
+					}
+				}
+
 				if ( #Comparing connection with parameters to determine if we can reuse the existing connection or need to reconnect.
 					($isGraphConnected -and $Force.IsPresent) -or # If -Force is specified, ignore the existing context and reconnect regardless of parameters
 					(
 						$isGraphConnected -and
 						(
-							$PSBoundParameters.ContainsKey('ClientId') -and $context.ClientId -ne $ClientId -or
-							$PSBoundParameters.ContainsKey('TenantId') -and $context.TenantId -ne $TenantId -or
-							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($context.Certificate.Thumbprint)
+							($PSBoundParameters.ContainsKey('ClientId') -and $context.ClientId -ne $ClientId) -or
+							($PSBoundParameters.ContainsKey('TenantId') -and $context.TenantId -ne $TenantId) -or
+							($PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($context.Certificate.Thumbprint))
 							#TODO: compare certificate thumbprint & Subject if possible
 						)
 					) -or
-					($isGraphConnected -and -not (Test-ZtContext -ErrorAction Ignore)) # if missing permission, reconnect to ask for the permissions needed for the assessment
+					($isGraphConnected -and -not $isContextValid) # if missing permission, reconnect to ask for the permissions needed for the assessment
 				) {
-					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), subscription ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
+					Write-PSFMessage -Message "Disconnecting from ClientId ({0}), tenant ({1}) account ({2})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account)
 					#TODO: Disconnect ZtAssessment is not quiet enough
 					$null = Disconnect-MgGraph -ErrorAction Ignore
 					# Disconnect-ZtAssessment -Service Graph -InformationAction Ignore
@@ -195,6 +208,7 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message "Connected to Graph with the same info as specified in parameters." -Level Debug
 					Add-ZtConnectedService -Service 'Graph'
 					Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
+					$contextTenantId = $context.TenantId
 					continue
 				}
 
@@ -302,6 +316,10 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message "No existing connection to Azure found." -Level Debug
 				}
 
+				# Determine whether Azure will use service principal authentication
+				# (both ClientId and Certificate supplied).
+				$useAzureServicePrincipalAuth = $PSBoundParameters.ContainsKey('ClientId') -and $PSBoundParameters.ContainsKey('Certificate')
+
 				# Azure might be connected, but:
 				#   - with the wrong ClientId,
 				#   - to the wrong tenant,
@@ -313,9 +331,20 @@ function Connect-ZtAssessment {
 					(
 						$isAzureConnected -and
 						(
-							$PSBoundParameters.ContainsKey('TenantId') -and $azContext.Tenant.Id -ne $TenantId -or
-							$PSBoundParameters.ContainsKey('ClientId') -and $azContext.Account.Id -ne $ClientId -or
-							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($azContext.Account.CertificateThumbprint)
+							(
+								$PSBoundParameters.ContainsKey('TenantId') -and
+								$azContext.Tenant.Id -ne $TenantId
+							) -or
+							(
+								$useAzureServicePrincipalAuth -and
+								$PSBoundParameters.ContainsKey('ClientId') -and
+								$azContext.Account.Id -ne $ClientId
+							) -or
+							(
+								$useAzureServicePrincipalAuth -and
+								$PSBoundParameters.ContainsKey('Certificate') -and
+								[string]::IsNullOrEmpty($azContext.Account.CertificateThumbprint)
+							)
 						)
 					)
 				) {
@@ -631,14 +660,14 @@ function Connect-ZtAssessment {
 			elseif(-not $adminUrl) {
 				Write-Verbose -Message "No Graph context available to infer SharePoint Admin URL."
 				# We don't want to let the service 'Graph' be marked as connected, it's not.
-				Remove-ztConnectedService -Service 'Graph'
+				Remove-ZtConnectedService -Service 'Graph'
 			}
 
 			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
 				# Try to infer from Azure context
 				try {
 					# initial domain are <tenantName>.onmicrosoft.com as per https://learn.microsoft.com/en-us/entra/fundamentals/add-custom-domain
-					$initialDomain = $tenantDetails.Domains.Where({$_ -match '(.*)\.onmicrosoft\.com$'},1)
+					$initialDomain = $tenantDetails.Domains.Where({ $_ -match '^[^.]+\.onmicrosoft\.com$' }, 1) | Select-Object -First 1
 					if ($initialDomain) {
 						$tenantName = $initialDomain.Split('.')[0]
 						$adminUrl = "https://$tenantName-admin.sharepoint.com"
@@ -651,7 +680,7 @@ function Connect-ZtAssessment {
 			}
 			elseif (-not $adminUrl) {
 				Write-Verbose -Message "No Azure context available to infer SharePoint Admin URL."
-				Remove-ztConnectedService -Service 'Azure'
+				Remove-ZtConnectedService -Service 'Azure'
 			}
 
 			if (-not $adminUrl) {
