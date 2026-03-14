@@ -661,7 +661,7 @@ function Connect-ZtAssessment {
 			elseif(-not $adminUrl) {
 				Write-Verbose -Message "No Graph context available to infer SharePoint Admin URL."
 				# We don't want to let the service 'Graph' be marked as connected, it's not.
-				Remove-ztConnectedService -Service 'Graph'
+				Remove-ZtConnectedService -Service 'Graph'
 			}
 
 			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
@@ -681,7 +681,7 @@ function Connect-ZtAssessment {
 			}
 			elseif (-not $adminUrl) {
 				Write-Verbose -Message "No Azure context available to infer SharePoint Admin URL."
-				Remove-ztConnectedService -Service 'Azure'
+				Remove-ZtConnectedService -Service 'Azure'
 			}
 
 			if (-not $adminUrl) {
