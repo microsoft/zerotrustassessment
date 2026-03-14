@@ -461,17 +461,13 @@ function Invoke-ZtAssessment {
 				throw "Resume requested with -Pillar $Pillar, but the existing export was created with -Pillar $exportedPillar. Run without -Resume or use -Pillar $exportedPillar."
 			}
 		}
-
-		Write-PSFMessage -Message "Stage 1: Reusing Existing Export and Database" -Tag stage
-		Update-ZtProgressState -Stage 'resume' -StageNumber 1 -StageName 'Reusing Existing Export and Database'
-		$database = Connect-Database -Path $dbPath -Transient
 	}
 
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-		Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
+	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
 	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
 
-		Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
+	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
 	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
 
 	try {
