@@ -451,10 +451,6 @@ function Invoke-ZtAssessment {
 
 	# Collect data
 	if ($Resume) {
-		if (-not (Test-Path $dbPath -PathType Leaf)) {
-			throw "Resume requested, but no existing database was found at '$dbPath'. Run without -Resume first, or restore the previous export/database."
-		}
-
 		# Guard: verify the requested pillar is compatible with the exported data
 		$exportedPillar = Get-ZtConfig -ExportPath $ExportPath -Property Pillar
 		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
@@ -470,14 +466,14 @@ function Invoke-ZtAssessment {
 		Update-ZtProgressState -Stage 'resume' -StageNumber 1 -StageName 'Reusing Existing Export and Database'
 		$database = Connect-Database -Path $dbPath -Transient
 	}
-	else {
-		Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
+
+	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
 		Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
-		Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
 
 		Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
-		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
-	}
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+
 	try {
 		# Run the tests
 		Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
