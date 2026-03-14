@@ -100,6 +100,7 @@
 	$skippedTestsForService.ForEach{
 		$notConnectedService = ($_).Service.Where{ $_ -notin $ConnectedService }
 		# Mark the test as skipped.
+		Write-ZtTestProgress -TestID $_.TestId -LogsPath $LogsPath -Action 'Skipped' -ErrorMessage "Required service(s) not connected: $($notConnectedService -join ', ')"
 		Add-ZtTestResultDetail -SkippedBecause NotConnectedToService -TestId $_.TestId -NotConnectedService $notConnectedService
 	}
 
@@ -110,6 +111,7 @@
 	$skippedTestsForLicense.ForEach{
 		Write-PSFMessage -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId) -Level Verbose
 		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
+		Write-ZtTestProgress -TestID $_.TestId -LogsPath $LogsPath -Action 'Skipped' -ErrorMessage "No compatible license found. Required: $($_.CompatibleLicense -join ', ')"
 	}
 
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForLicense.TestId }
