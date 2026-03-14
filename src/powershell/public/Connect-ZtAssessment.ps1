@@ -316,6 +316,10 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message "No existing connection to Azure found." -Level Debug
 				}
 
+				# Determine whether Azure will use service principal authentication
+				# (both ClientId and Certificate supplied).
+				$useAzureServicePrincipalAuth = $PSBoundParameters.ContainsKey('ClientId') -and $PSBoundParameters.ContainsKey('Certificate')
+
 				# Azure might be connected, but:
 				#   - with the wrong ClientId,
 				#   - to the wrong tenant,
@@ -327,9 +331,20 @@ function Connect-ZtAssessment {
 					(
 						$isAzureConnected -and
 						(
-							$PSBoundParameters.ContainsKey('TenantId') -and $azContext.Tenant.Id -ne $TenantId -or
-							$PSBoundParameters.ContainsKey('ClientId') -and $azContext.Account.Id -ne $ClientId -or
-							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($azContext.Account.CertificateThumbprint)
+							(
+								$PSBoundParameters.ContainsKey('TenantId') -and
+								$azContext.Tenant.Id -ne $TenantId
+							) -or
+							(
+								$useAzureServicePrincipalAuth -and
+								$PSBoundParameters.ContainsKey('ClientId') -and
+								$azContext.Account.Id -ne $ClientId
+							) -or
+							(
+								$useAzureServicePrincipalAuth -and
+								$PSBoundParameters.ContainsKey('Certificate') -and
+								[string]::IsNullOrEmpty($azContext.Account.CertificateThumbprint)
+							)
 						)
 					)
 				) {
