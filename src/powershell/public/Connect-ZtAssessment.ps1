@@ -195,6 +195,7 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message "Connected to Graph with the same info as specified in parameters." -Level Debug
 					Add-ZtConnectedService -Service 'Graph'
 					Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
+					$contextTenantId = $context.TenantId
 					continue
 				}
 
