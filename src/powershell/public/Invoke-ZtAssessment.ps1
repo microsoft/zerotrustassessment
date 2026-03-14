@@ -429,11 +429,9 @@ function Invoke-ZtAssessment {
 	#endregion Preparation
 
 	# Collect data
-	if ($Resume) {
-		if (-not (Test-Path $dbPath -PathType Leaf)) {
-			throw "Resume requested, but no existing database was found at '$dbPath'. Run without -Resume first, or restore the previous export/database."
-		}
 
+
+	if ($Resume) {
 		# Guard: verify the requested pillar is compatible with the exported data
 		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
 		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
@@ -445,8 +443,8 @@ function Invoke-ZtAssessment {
 			}
 		}
 
-		Write-PSFMessage -Message "Stage 1: Reusing Existing Export and Database" -Tag stage
-		$database = Connect-Database -Path $dbPath -Transient
+		Write-PSFMessage -Message "Stage 1: Reusing Existing Export" -Tag stage
+		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
 	}
 	else {
 		Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
