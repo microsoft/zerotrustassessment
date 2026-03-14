@@ -310,7 +310,14 @@ function Connect-ZtAssessment {
 				$azContext = Get-AzContext -ErrorAction Ignore
 				if ($null -ne $azContext) {
 					Write-PSFMessage -Message ('A connection to Azure is already established with account "{0}".' -f $azContext.Account) -Level Debug
-					$isAzureConnected = $true
+					try {
+						$null = Invoke-AzRestMethod -Method GET -Path 'subscriptions?api-version=2022-12-01' -ErrorAction Stop
+						$isAzureConnected = $true
+					}
+					catch {
+						Write-PSFMessage -Message "Existing Azure connection is not valid: $azError" -Level Debug
+						$isAzureConnected = $false
+					}
 				}
 				else {
 					Write-PSFMessage -Message "No existing connection to Azure found." -Level Debug
