@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitivity label policies are published to users
 
@@ -16,10 +16,10 @@
 
 function Test-Assessment-35004 {
     [ZtTest(
-    	Category = 'Sensitivity Labels Configuration',
+    	Category = 'Sensitivity Labels',
     	ImplementationCost = 'Low',
-    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E3'),
+    	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',
     	SfiPillar = 'Protect tenants and production systems',

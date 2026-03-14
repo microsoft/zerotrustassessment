@@ -17,14 +17,14 @@ function Test-Assessment-35011 {
     [ZtTest(
     	Category = 'Advanced Label Features',
     	ImplementationCost = 'Medium',
-    	Service = ('AipService', 'Graph'),
     	MinimumLicense = ('Microsoft 365 E5'),
+    	Service = ('AipService','Graph'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce','External'),
     	TestId = 35011,
-    	Title = 'Superuser membership is configured for Microsoft Purview Information Protection',
+    	Title = 'Super user membership is configured for Microsoft Purview Information Protection',
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     PDF labeling is enabled in SharePoint Online
 
@@ -13,17 +13,17 @@
 
 function Test-Assessment-35006 {
     [ZtTest(
-        Category = 'SharePoint Online',
-        ImplementationCost = 'Low',
-        Service = ('SharePointOnline'),
-        MinimumLicense = ('MIP_P1'),
-        Pillar = 'Data',
-        RiskLevel = 'Medium',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35006,
-        Title = 'PDF labeling is enabled in SharePoint Online',
-        UserImpact = 'Low'
+    	Category = 'SharePoint Online',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('MIP_P1'),
+    	Service = ('SharePointOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35006,
+    	Title = 'PDF labeling is enabled in SharePoint',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()

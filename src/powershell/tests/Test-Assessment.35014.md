@@ -1,6 +1,6 @@
-When users attach sensitive documents to emails, the email should inherit the highest classification from attachments to maintain consistent protection. Without this policy enabled, users might send unlabeled emails containing sensitive attachments, creating a mismatch between the email's classification and its actual content.
+When users attach sensitive documents to emails, the email should inherit the highest sensitivity label from attachments to maintain consistent protection. Without this setting enabled, users might send unlabeled emails that contain sensitive attachments, creating a mismatch between the email's sensitivity and its actual content.
 
-Email label inheritance automatically applies the attachment's label or highest priority label if multiple attachments exist to the email message, ensuring protection levels match and preventing accidental data exposure.
+Email label inheritance automatically applies the attachment's highest priority label to the email message, ensuring protection levels match and prevent accidental data exposure.
 
 **Remediation action**
 

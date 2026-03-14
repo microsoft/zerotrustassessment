@@ -405,7 +405,7 @@ foreach ($file in $testFiles) {
 	# Create a hashtable to store the testid and docsTitle
 	Write-Host "Checking $($file.BaseName)"
 
-	$content = Get-Content -Path $file.FullName -Raw
+	$content = (Get-Content -Path $file.FullName -Raw) -replace '\r\n', "`n"
 
 	$docRawContent = $recommendations[$testId].Content # Includes front matter and markdown content
 	$frontMatter = Get-FrontMatterList -content $docRawContent
@@ -443,16 +443,16 @@ foreach ($file in $testFiles) {
 		if ($testData.SfiPillar -ne $frontMatter['# sfipillar']) {
 			$update.SfiPillar = $frontMatter['# sfipillar']
 		}
-		# Process minimumlicense - split by comma and trim spaces
-		if ($frontMatter['# minimumlicense']) {
-			$minimumLicenseArray = $frontMatter['# minimumlicense'] -split ',' | ForEach-Object { $_.Trim() }
-			# Compare arrays - convert both to sorted strings for comparison
-			$currentLicenses = ($testData.MinimumLicense | Sort-Object) -join ','
-			$newLicenses = ($minimumLicenseArray | Sort-Object) -join ','
-			if ($currentLicenses -ne $newLicenses) {
-				$update.CompatibleLicense = $minimumLicenseArray
-			}
-		}
+		# # Process minimumlicense - split by comma and trim spaces MF: We don't use doc metadata for minimum license in the current implementation, so skipping for now.
+		# if ($frontMatter['# minimumlicense']) {
+		# 	$minimumLicenseArray = $frontMatter['# minimumlicense'] -split ',' | ForEach-Object { $_.Trim() }
+		# 	# Compare arrays - convert both to sorted strings for comparison
+		# 	$currentLicenses = ($testData.MinimumLicense | Sort-Object) -join ','
+		# 	$newLicenses = ($minimumLicenseArray | Sort-Object) -join ','
+		# 	if ($currentLicenses -ne $newLicenses) {
+		# 		$update.CompatibleLicense = $minimumLicenseArray
+		# 	}
+		# }
 		#$frontMatter['# pillar'] #Code to identity for now until we get the front-matter in
 		if (-not $testData.Pillar) {
 			$update.Pillar = 'Identity'
@@ -474,8 +474,8 @@ foreach ($file in $testFiles) {
 
 	Write-Host "$testId Title: $docsTitle"
 	# Find everything before <!--- Results ---> and replace it with the recommendations from the docs
-	# Ensure docsContent ends with exactly one newline so the separator starts at column 0
-	$docsContent = $docsContent.TrimEnd() + "`n"
+	# Normalize line endings to LF and ensure content ends with exactly one newline
+	$docsContent = ($docsContent -replace '\r\n', "`n").TrimEnd() + "`n"
 
 	$seperator = $content.IndexOf('<!--- Results --->')
 	if ($seperator -gt 0) {

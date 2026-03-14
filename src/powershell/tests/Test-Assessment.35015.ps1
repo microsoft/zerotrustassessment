@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Globally published sensitivity labels don't exceed the recommended maximum
 
@@ -13,10 +13,10 @@
 
 function Test-Assessment-35015 {
     [ZtTest(
-    	Category = 'Sensitivity Labels Configuration',
+    	Category = 'sensitivity-labels',
     	ImplementationCost = 'Medium',
-    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E3'),
+    	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and production systems',

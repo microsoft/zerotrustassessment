@@ -20,7 +20,7 @@ function Test-Assessment-35033 {
         Category = 'Advanced Classification',
         ImplementationCost = 'High',
         Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E5 Compliance'),
+        CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitivity labels are enabled in SharePoint Online
 
@@ -13,17 +13,17 @@
 
 function Test-Assessment-35005 {
     [ZtTest(
-        Category = 'SharePoint Online',
-        ImplementationCost = 'Low',
-        Service = ('SharePointOnline'),
-        MinimumLicense = ('MIP_P1'),
-        Pillar = 'Data',
-        RiskLevel = 'High',
-        SfiPillar = '',
-        TenantType = ('Workforce'),
-        TestId = 35005,
-        Title = 'Sensitivity labels are enabled in SharePoint Online',
-        UserImpact = 'Low'
+    	Category = 'SharePoint Online',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('MIP_P1'),
+    	Service = ('SharePointOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35005,
+    	Title = 'Sensitivity labels are enabled for SharePoint and OneDrive',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
