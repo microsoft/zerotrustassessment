@@ -157,7 +157,7 @@ function Connect-ZtAssessment {
 				if ($null -ne $context) {
 					Write-PSFMessage -Message ('A connection to Microsoft Graph is already established with account "{0}".' -f $context.Account) -Level Debug
 					$isGraphConnected = $true
-					Write-PSFMessage -Message "Testing connection with ClientId ({0}), subscription ({1}) account ({2}) and Force ({3})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account, $Force.IsPresent)
+					Write-PSFMessage -Message "Testing connection with ClientId ({0}), tenant ({1}) account ({2}) and Force ({3})." -Level Debug -StringValues @($context.ClientId, $context.TenantId, $context.Account, $Force.IsPresent)
 				}
 				else {
 					Write-PSFMessage -Message "No existing connection to Microsoft Graph found." -Level Debug
