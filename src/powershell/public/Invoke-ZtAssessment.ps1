@@ -429,8 +429,6 @@ function Invoke-ZtAssessment {
 	#endregion Preparation
 
 	# Collect data
-
-
 	if ($Resume) {
 		# Guard: verify the requested pillar is compatible with the exported data
 		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
@@ -442,15 +440,12 @@ function Invoke-ZtAssessment {
 				throw "Resume requested with -Pillar $Pillar, but the existing export was created with -Pillar $exportedPillar. Run without -Resume or use -Pillar $exportedPillar."
 			}
 		}
+	}
 
-		Write-PSFMessage -Message "Stage 1: Reusing Existing Export" -Tag stage
-		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
-	}
-	else {
-		Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-		Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
-		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
-	}
+	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+
 	try {
 		# Run the tests
 		Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
