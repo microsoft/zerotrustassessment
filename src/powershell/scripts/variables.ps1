@@ -16,6 +16,8 @@ $script:__ZtSession = @{
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
 	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru
+	ProgressState = Set-PSFDynamicContentObject -Name "ZtAssessment.ProgressState" -Dictionary -PassThru
+	ProgressServer = $null # Holds the background runspace and listener for the progress web server
 	ModuleVersion = $moduleVersion
 }
 
