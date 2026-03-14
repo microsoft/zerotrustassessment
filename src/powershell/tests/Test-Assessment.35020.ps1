@@ -8,7 +8,7 @@ function Test-Assessment-35020 {
         Category = 'Information Protection',
         ImplementationCost = 'Low',
         Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E5'),
+        CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',
