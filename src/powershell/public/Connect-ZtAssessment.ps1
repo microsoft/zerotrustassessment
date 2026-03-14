@@ -189,9 +189,9 @@ function Connect-ZtAssessment {
 					(
 						$isGraphConnected -and
 						(
-							$PSBoundParameters.ContainsKey('ClientId') -and $context.ClientId -ne $ClientId -or
-							$PSBoundParameters.ContainsKey('TenantId') -and $context.TenantId -ne $TenantId -or
-							$PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($context.Certificate.Thumbprint)
+							($PSBoundParameters.ContainsKey('ClientId') -and $context.ClientId -ne $ClientId) -or
+							($PSBoundParameters.ContainsKey('TenantId') -and $context.TenantId -ne $TenantId) -or
+							($PSBoundParameters.ContainsKey('Certificate') -and [string]::IsNullOrEmpty($context.Certificate.Thumbprint))
 							#TODO: compare certificate thumbprint & Subject if possible
 						)
 					) -or
