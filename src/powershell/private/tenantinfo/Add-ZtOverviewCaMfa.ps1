@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
     Calculates the CA summary data from sign in logs for the overiew report and adds it to the tenant info.
@@ -85,6 +84,13 @@ group by conditionalAccessStatus, authenticationRequirement
 
 
 	$results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+	# Handle if SignIn table doesn't exist or is empty
+	if ($null -eq $results -or $results.Count -eq 0) {
+		Write-PSFMessage "SignIn table is empty or doesn't exist." -Tag Test -Level VeryVerbose
+		Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+		return
+	}
+
 	$caSummary = Get-ZtiOverviewCaMfa -Results $results -Database $Database
 	Add-ZtTenantInfo -Name $tenantInfoName -Value $caSummary
 }
