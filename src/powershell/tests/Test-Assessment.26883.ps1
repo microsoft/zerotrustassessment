@@ -96,6 +96,7 @@ resources
         $hasDefaultRuleset = $false
         $defaultRulesetVersion = $null
         $allRulesDisabled = $false
+        $needsInvestigation = $false
 
         if ($policy.ManagedRuleSets) {
             foreach ($ruleset in $policy.ManagedRuleSets) {
@@ -104,20 +105,29 @@ resources
                     $defaultRulesetVersion = $ruleset.ruleSetVersion
 
                     # Check if all rules are disabled via ruleGroupOverrides
-                    if ($ruleset.ruleGroupOverrides -and $ruleset.ruleGroupOverrides.Count -gt 0) {
-                        $hasEnabledRule = $false
-                        $hasDisabledRule = $false
+                    # A ruleGroupOverride with no rules means the entire group is disabled
+                    $allGroupsExplicitlyDisabled = $true
+                    if ($null -eq $ruleset.ruleGroupOverrides -or $ruleset.ruleGroupOverrides.Count -eq 0) {
+                        $allGroupsExplicitlyDisabled = $false  # No overrides = all defaults = enabled
+                    } else {
                         foreach ($override in $ruleset.ruleGroupOverrides) {
-                            if ($override.rules) {
+                            if ($override.rules -and $override.rules.Count -gt 0) {
                                 foreach ($rule in $override.rules) {
-                                    if ($rule.state -eq 'Enabled') { $hasEnabledRule = $true }
-                                    if ($rule.state -eq 'Disabled') { $hasDisabledRule = $true }
+                                    if ($rule.enabledState -eq 'Enabled') {
+                                        $allGroupsExplicitlyDisabled = $false
+                                        break
+                                    }
                                 }
                             }
+                            # else: no rules in override = entire group disabled, continue checking
+                            if (-not $allGroupsExplicitlyDisabled) { break }
                         }
-                        # AllRulesDisabled is true only if there are disabled rules and no enabled rules
-                        $allRulesDisabled = $hasDisabledRule -and (-not $hasEnabledRule)
                     }
+                    # Only flag if overrides exist AND every override disables its content
+                    $allRulesDisabled = $allGroupsExplicitlyDisabled
+                    # Flag for investigation when we have overrides with only disabled rules
+                    # but can't confirm ALL rule groups are covered by overrides
+                    $needsInvestigation = $allGroupsExplicitlyDisabled
                     break
                 }
             }
@@ -134,6 +144,7 @@ resources
             HasDefaultRuleset     = $hasDefaultRuleset
             DefaultRulesetVersion = $defaultRulesetVersion
             AllRulesDisabled      = $allRulesDisabled
+            NeedsInvestigation    = $needsInvestigation
         }
     }
 
@@ -186,12 +197,13 @@ resources
         $rulesetType = if ($item.HasDefaultRuleset -eq $true) { 'Microsoft_DefaultRuleSet' } else { 'None' }
         $rulesetVersion = if ($item.HasDefaultRuleset -eq $true -and $item.DefaultRulesetVersion) { $item.DefaultRulesetVersion } else { 'N/A' }
 
-        # Determine pass/fail status based on all four criteria
+        # Determine pass/fail/investigate status based on all four criteria
         $isPassed = $item.EnabledState -eq 'Enabled' -and
                     $item.WafMode -eq 'Prevention' -and
                     $item.HasDefaultRuleset -eq $true -and
                     $item.AllRulesDisabled -ne $true
-        $status = if ($isPassed) { '✅ Pass' } else { '❌ Fail' }
+        $isInvestigate = $item.NeedsInvestigation -eq $true
+        $status = if ($isInvestigate) { '⚠️ Investigate' } elseif ($isPassed) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | Yes | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
     }
@@ -209,11 +221,17 @@ resources
 
     $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
 
+    # Count items needing investigation
+    $investigateItems = @($policies | Where-Object { $_.NeedsInvestigation -eq $true })
+
     # Summary
     $mdInfo += "**Summary:**`n`n"
     $mdInfo += "- Total Azure Front Door WAF policies evaluated: $($policies.Count)`n"
     $mdInfo += "- Policies passing all criteria: $($passedItems.Count)`n"
     $mdInfo += "- Policies failing one or more criteria: $($failedItems.Count)`n"
+    if ($investigateItems.Count -gt 0) {
+        $mdInfo += "- Policies requiring investigation (overrides with disabled rules, unable to confirm all rules are off): $($investigateItems.Count)`n"
+    }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
@@ -223,6 +241,12 @@ resources
         Title  = 'Default rule set is assigned in Azure Front Door WAF'
         Status = $passed
         Result = $testResultMarkdown
+    }
+
+    # Set CustomStatus to 'Investigate' when policies have overrides with only disabled rules
+    # since we can't definitively determine if ALL rules are disabled
+    if ($investigateItems.Count -gt 0) {
+        $params.CustomStatus = 'Investigate'
     }
 
     Add-ZtTestResultDetail @params
