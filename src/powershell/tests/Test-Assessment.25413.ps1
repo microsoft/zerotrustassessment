@@ -46,21 +46,10 @@ function Test-Assessment-25413 {
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
     $allCAPolicies = Get-ZtConditionalAccessPolicy
 
-    $enabledSecurityProfiles = @()
-    $enabledBaselineProfiles = @()
+    # Collect all linked profiles
     $allLinkedProfiles = @()
-
     foreach ($filePolicy in $filePolicies) {
-        $findParams = @{
-            PolicyId          = $filePolicy.id
-            FilteringProfiles = $filteringProfiles
-            CAPolicies        = $allCAPolicies
-            BaselinePriority  = $BASELINE_PROFILE_PRIORITY
-            PolicyLinkType    = 'filePolicyLink'
-            PolicyRules       = $filePolicy
-        }
-
-        $linkedProfiles = Find-ZtProfilesLinkedToPolicy @findParams
+        $linkedProfiles = Find-ZtProfilesLinkedToPolicy -PolicyId $filePolicy.id -FilteringProfiles $filteringProfiles -CAPolicies $allCAPolicies -BaselinePriority $BASELINE_PROFILE_PRIORITY -PolicyLinkType 'filePolicyLink' -PolicyRules $filePolicy
 
         foreach ($profileLink in $linkedProfiles) {
             $allLinkedProfiles += [PSCustomObject]@{
@@ -70,36 +59,8 @@ function Test-Assessment-25413 {
                 ProfileState    = $profileLink.ProfileState
                 ProfilePriority = $profileLink.ProfilePriority
                 PolicyLinkState = $profileLink.PolicyLinkState
-                FilePolicyId    = $filePolicy.id
-                FilePolicyName  = $filePolicy.name
+                PassesCriteria  = $profileLink.PassesCriteria
                 CAPolicy        = $profileLink.CAPolicy
-            }
-
-            if ($profileLink.ProfileType -eq 'Baseline Profile' -and $profileLink.PassesCriteria -and $profileLink.ProfileState -eq 'enabled') {
-                $enabledBaselineProfiles += [PSCustomObject]@{
-                    ProfileId           = $profileLink.ProfileId
-                    ProfileName         = $profileLink.ProfileName
-                    ProfileState        = $profileLink.ProfileState
-                    ProfilePriority     = $profileLink.ProfilePriority
-                    FilePolicyId        = $filePolicy.id
-                    FilePolicyName      = $filePolicy.name
-                    FilePolicyLinkState = $profileLink.PolicyLinkState
-                }
-            }
-            elseif ($profileLink.ProfileType -eq 'Security Profile' -and $profileLink.PassesCriteria -and $profileLink.ProfileState -eq 'enabled') {
-                $matchedCAPolicies = if ($null -ne $profileLink.CAPolicy) { @($profileLink.CAPolicy) } else { @() }
-
-                $enabledSecurityProfiles += [PSCustomObject]@{
-                    ProfileId           = $profileLink.ProfileId
-                    ProfileName         = $profileLink.ProfileName
-                    ProfileState        = $profileLink.ProfileState
-                    ProfilePriority     = $profileLink.ProfilePriority
-                    FilePolicyId        = $filePolicy.id
-                    FilePolicyName      = $filePolicy.name
-                    FilePolicyLinkState = $profileLink.PolicyLinkState
-                    MatchedCAPolicies   = $matchedCAPolicies
-                    CAPolicyCount       = $matchedCAPolicies.Count
-                }
             }
         }
     }
@@ -107,40 +68,29 @@ function Test-Assessment-25413 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $testResultMarkdown = ''
-    $passed = $false
-    $mdInfo = ''
+    # Pass if any profile passes criteria (enabled baseline OR enabled security profile with CA)
+    $passed = ($allLinkedProfiles | Where-Object { $_.PassesCriteria }).Count -gt 0
+
     $successMessage = @"
 ✅ File policies are configured and actively enforced through a filtering profile, protecting against data exfiltration through unmonitored file transfers.
 
 %TestResult%
 "@
-    $hasEnabledProfiles = $enabledBaselineProfiles.Count -gt 0 -or $enabledSecurityProfiles.Count -gt 0
 
     if ($null -eq $filePolicies -or $filePolicies.Count -eq 0) {
-        $testResultMarkdown = @"
-❌ No file policy is configured. File transfers are unmonitored and the organization is exposed to data exfiltration risk.
-
-%TestResult%
-"@
-        $passed = $false
+        $testResultMarkdown = "❌ No file policy is configured. File transfers are unmonitored and the organization is exposed to data exfiltration risk.`n`n%TestResult%"
     }
-    elseif ($hasEnabledProfiles) {
+    elseif ($passed) {
         $testResultMarkdown = $successMessage
-        $passed = $true
     }
     else {
-        $testResultMarkdown = @"
-❌ File policies are either not configured or not linked to an active filtering profile, leaving file transfers unmonitored and exposing the organization to data exfiltration risk.
-
-%TestResult%
-"@
-        $passed = $false
+        $testResultMarkdown = "❌ File policies are either not configured or not linked to an active filtering profile, leaving file transfers unmonitored and exposing the organization to data exfiltration risk.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
 
     #region Report Generation
+    $mdInfo = ''
 
     # Table 1: File Policy Configuration
     if ($filePolicies -and $filePolicies.Count -gt 0) {
@@ -159,77 +109,59 @@ function Test-Assessment-25413 {
         $table1Rows = ''
         foreach ($fp in $filePolicies) {
             $fpName = Get-SafeMarkdown -Text $fp.name
-            $fpId = $fp.id
-            $defaultAction = if ($fp.settings -and $fp.settings.defaultAction) { $fp.settings.defaultAction } else { 'N/A' }
-            $fpBladeLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditFilePolicyMenuBlade.MenuView/~/basics/policyId/$fpId"
-            $table1Rows += "| [$fpName]($fpBladeLink) | $fpId | $defaultAction |`n"
+            $defaultAction = if ($fp.settings.defaultAction) { $fp.settings.defaultAction } else { 'N/A' }
+            $fpLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditFilePolicyMenuBlade.MenuView/~/basics/policyId/$($fp.id)"
+            $table1Rows += "| [$fpName]($fpLink) | $($fp.id) | $defaultAction |`n"
         }
 
         $mdInfo += $table1Template -f $table1Title, $table1Link, $table1Rows
     }
 
-    # Table 2: Baseline Profile Linkages
-    $baselineProfileLinks = @($allLinkedProfiles | Where-Object { $_.ProfileType -eq 'Baseline Profile' })
-    if ($baselineProfileLinks.Count -gt 0) {
-        $table2Title = 'File Policies Linked to Baseline Profile'
-        $table2Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView'
+    # Table 2: Filtering Profile Linkage (unified - baseline and security profiles)
+    if ($allLinkedProfiles.Count -gt 0) {
+        $table2Title = 'Filtering Profile Linkage'
+        $table2Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/SecurityProfiles.ReactView'
 
         $table2Template = @'
 
 ## [{0}]({1})
 
-| Profile Name | Priority | File Policy Name | Policy Link State | Profile State |
-| :----------- | -------: | :--------------- | :---------------- | :------------ |
+| Linked Profile Name | Profile ID | Profile State | Policy Link State |
+| :------------------ | :--------- | :------------ | :---------------- |
 {2}
 '@
 
         $table2Rows = ''
-        foreach ($baselineProfile in $baselineProfileLinks) {
-            $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($baselineProfile.ProfileId)"
-            $profileName = Get-SafeMarkdown -Text $baselineProfile.ProfileName
-            $filePolicyName = Get-SafeMarkdown -Text $baselineProfile.FilePolicyName
-            $table2Rows += "| [$profileName]($profilePortalLink) | $($baselineProfile.ProfilePriority) | $filePolicyName | $($baselineProfile.PolicyLinkState) | $($baselineProfile.ProfileState) |`n"
+        foreach ($profile in ($allLinkedProfiles | Sort-Object -Property ProfilePriority)) {
+            $profileLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
+            $profileName = Get-SafeMarkdown -Text $profile.ProfileName
+            $table2Rows += "| [$profileName]($profileLink) | $($profile.ProfileId) | $($profile.ProfileState) | $($profile.PolicyLinkState) |`n"
         }
 
         $mdInfo += $table2Template -f $table2Title, $table2Link, $table2Rows
     }
 
-    # Table 3: Security Profile Linkages with CA Policies
-    $securityProfileLinks = @($allLinkedProfiles | Where-Object { $_.ProfileType -eq 'Security Profile' })
-    if ($securityProfileLinks.Count -gt 0) {
-        $table3Title = 'Security Profiles Linked to Conditional Access Policies'
-        $table3Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView'
+    # Table 3: Conditional Access Enforcement
+    $caPoliciesForReport = @($allLinkedProfiles.CAPolicy | Where-Object { $_ -ne $null } | Sort-Object -Property Id -Unique)
+
+    if ($caPoliciesForReport.Count -gt 0) {
+        $table3Title = 'Conditional Access Enforcement'
+        $table3Link = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
         $table3Template = @'
 
 ## [{0}]({1})
 
-| Profile Name | Priority | CA Policy Names | CA Policy State | Profile State | File Policy Name |
-| :----------- | -------: | :-------------- | :-------------- | :------------ | :--------------- |
+| CA Policy Name | CA Policy ID | CA Policy State |
+| :------------- | :----------- | :-------------- |
 {2}
 '@
 
         $table3Rows = ''
-        foreach ($securityProfile in $securityProfileLinks) {
-            $profilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($securityProfile.ProfileId)"
-            $profileName = Get-SafeMarkdown -Text $securityProfile.ProfileName
-            $filePolicyName = Get-SafeMarkdown -Text $securityProfile.FilePolicyName
-
-            # Build CA policy links
-            $caPolicyLinksMarkdown = @()
-            $caPolicyStatesList = @()
-            foreach ($caPolicy in @($securityProfile.CAPolicy)) {
-                if ($null -ne $caPolicy) {
-                    $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.Id)"
-                    $safeName = Get-SafeMarkdown -Text $caPolicy.DisplayName
-                    $caPolicyLinksMarkdown += "[$safeName]($caPolicyPortalLink)"
-                    $caPolicyStatesList += $caPolicy.State
-                }
-            }
-            $caPolicyNamesLinked = if ($caPolicyLinksMarkdown.Count -gt 0) { $caPolicyLinksMarkdown -join ', ' } else { 'None' }
-            $caPolicyStates = if ($caPolicyStatesList.Count -gt 0) { $caPolicyStatesList -join ', ' } else { 'N/A' }
-
-            $table3Rows += "| [$profileName]($profilePortalLink) | $($securityProfile.ProfilePriority) | $caPolicyNamesLinked | $caPolicyStates | $($securityProfile.ProfileState) | $filePolicyName |`n"
+        foreach ($ca in ($caPoliciesForReport | Sort-Object -Property DisplayName)) {
+            $caLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($ca.Id)"
+            $caName = Get-SafeMarkdown -Text $ca.DisplayName
+            $table3Rows += "| [$caName]($caLink) | $($ca.Id) | $($ca.State) |`n"
         }
 
         $mdInfo += $table3Template -f $table3Title, $table3Link, $table3Rows
