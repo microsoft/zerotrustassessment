@@ -26,7 +26,7 @@ function Test-ZtRetryableError {
 		$ErrorRecord
 	)
 
-	$retryableStatusCodes = @(408, 429, 500, 502, 503, 504, 507)
+	$nonRetryableStatusCodes = @(401, 403, 404)
 
 	$statusCode = Get-ZtHttpStatusCode -ErrorRecord $ErrorRecord
 
@@ -36,5 +36,7 @@ function Test-ZtRetryableError {
 		return $true
 	}
 
-	return $statusCode -in $retryableStatusCodes
+	# Only authentication/authorization and not-found errors are permanent.
+	# All other errors (including 400, 429, 5xx) are retried up to the configured retry count.
+	return $statusCode -notin $nonRetryableStatusCodes
 }

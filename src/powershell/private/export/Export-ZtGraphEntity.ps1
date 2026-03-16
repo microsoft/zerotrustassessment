@@ -228,7 +228,7 @@ function Export-ZtGraphEntity {
 		# Detect stuck paging - same nextLink returned consecutively
 		if ($actualUri -eq $previousNextLink) {
 			Write-PSFMessage -Level Warning "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex. Stopping export." -Tag Export, Error
-			break
+			throw "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex"
 		}
 		$previousNextLink = $actualUri
 
