@@ -16,6 +16,7 @@ function Test-Assessment-25378 {
     [ZtTest(
         Category = 'External Identities',
         ImplementationCost = 'Medium',
+        Service = ('Graph'),
         MinimumLicense = 'AAD_PREMIUM',
         CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
         Pillar = 'Network',
