@@ -32,15 +32,32 @@ function Test-Assessment-25413 {
     $activity = 'Checking file policy configuration for data exfiltration prevention'
     Write-ZtProgress -Activity $activity -Status 'Querying file policies'
 
-    # Step 1: Get file policies
-    $filePolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filePolicies' -ApiVersion beta
+    # Step 1: Get file policies (undocumented endpoint - handle errors gracefully)
+    $filePolicies = $null
+    $errorMsg = $null
+    try {
+        $filePolicies = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filePolicies' -ApiVersion beta
+    }
+    catch {
+        $errorMsg = $_.Exception.Message
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
+    }
 
-    # Step 2: Get filtering profiles with linked policies and CA policies
+    # Step 2: Get filtering profiles with linked policies
     Write-ZtProgress -Activity $activity -Status 'Querying filtering profiles and linked policies'
-    $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
-        '$select' = 'id,name,description,state,version,priority'
-        '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version)),conditionalAccessPolicies($select=id,displayName)'
-    } -ApiVersion beta
+    $filteringProfiles = $null
+    try {
+        $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
+            '$select' = 'id,name,description,state,version,priority'
+            '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version))'
+        } -ApiVersion beta
+    }
+    catch {
+        if ($null -eq $errorMsg) {
+            $errorMsg = $_.Exception.Message
+        }
+        Write-PSFMessage $_.Exception.Message -Tag Test -Level Error
+    }
 
     # Step 3: Get all Conditional Access policies
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
@@ -68,22 +85,26 @@ function Test-Assessment-25413 {
     #endregion Data Collection
 
     #region Assessment Logic
+    # Handle API errors early
+    if ($errorMsg) {
+        $passed = $false
+        $testResultMarkdown = "❌ Unable to query Global Secure Access API endpoints. This may indicate the feature is not available in your tenant or the API has changed. Error: $errorMsg"
+    }
     # Pass if any profile passes criteria (enabled baseline OR enabled security profile with CA)
-    $passed = ($allLinkedProfiles | Where-Object { $_.PassesCriteria -and $_.ProfileState -eq 'enabled' -and $_.PolicyLinkState -eq 'enabled' }).Count -gt 0
-
-    $successMessage = @"
+    elseif (($allLinkedProfiles | Where-Object { $_.PassesCriteria -and $_.ProfileState -eq 'enabled' -and $_.PolicyLinkState -eq 'enabled' }).Count -gt 0) {
+        $passed = $true
+        $testResultMarkdown = @"
 ✅ File policies are configured and actively enforced through a filtering profile, protecting against data exfiltration through unmonitored file transfers.
 
 %TestResult%
 "@
-
-    if ($null -eq $filePolicies -or $filePolicies.Count -eq 0) {
+    }
+    elseif ($null -eq $filePolicies -or $filePolicies.Count -eq 0) {
+        $passed = $false
         $testResultMarkdown = "❌ No file policy is configured. File transfers are unmonitored and the organization is exposed to data exfiltration risk.`n`n%TestResult%"
     }
-    elseif ($passed) {
-        $testResultMarkdown = $successMessage
-    }
     else {
+        $passed = $false
         $testResultMarkdown = "❌ File policies are either not configured or not linked to an active filtering profile, leaving file transfers unmonitored and exposing the organization to data exfiltration risk.`n`n%TestResult%"
     }
 
@@ -101,8 +122,8 @@ function Test-Assessment-25413 {
 
 ## [{0}]({1})
 
-| File Policy Name | File Policy ID | Default Action |
-| :--------------- | :------------- | :------------- |
+| File Policy Name | Default Action |
+| :--------------- | :------------- |
 {2}
 '@
 
@@ -111,7 +132,7 @@ function Test-Assessment-25413 {
             $fpName = Get-SafeMarkdown -Text $fp.name
             $defaultAction = if ($fp.settings.defaultAction) { $fp.settings.defaultAction } else { 'N/A' }
             $fpLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditFilePolicyMenuBlade.MenuView/~/basics/policyId/$($fp.id)"
-            $table1Rows += "| [$fpName]($fpLink) | $($fp.id) | $defaultAction |`n"
+            $table1Rows += "| [$fpName]($fpLink) | $defaultAction |`n"
         }
 
         $mdInfo += $table1Template -f $table1Title, $table1Link, $table1Rows
@@ -126,8 +147,8 @@ function Test-Assessment-25413 {
 
 ## [{0}]({1})
 
-| Linked Profile Name | Profile ID | Profile State | Policy Link State |
-| :------------------ | :--------- | :------------ | :---------------- |
+| Linked Profile Name | Profile State | Policy Link State |
+| :------------------ | :------------ | :---------------- |
 {2}
 '@
 
@@ -135,14 +156,14 @@ function Test-Assessment-25413 {
         foreach ($profile in ($allLinkedProfiles | Sort-Object -Property ProfilePriority)) {
             $profileLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$($profile.ProfileId)"
             $profileName = Get-SafeMarkdown -Text $profile.ProfileName
-            $table2Rows += "| [$profileName]($profileLink) | $($profile.ProfileId) | $($profile.ProfileState) | $($profile.PolicyLinkState) |`n"
+            $table2Rows += "| [$profileName]($profileLink) | $($profile.ProfileState) | $($profile.PolicyLinkState) |`n"
         }
 
         $mdInfo += $table2Template -f $table2Title, $table2Link, $table2Rows
     }
 
     # Table 3: Conditional Access Enforcement
-    $caPoliciesForReport = @($allLinkedProfiles.CAPolicy | Where-Object { $_ -ne $null } | Sort-Object -Property Id -Unique)
+    $caPoliciesForReport = @($allLinkedProfiles.CAPolicy | Where-Object { $null -ne $_ } | Sort-Object -Property Id -Unique)
 
     if ($caPoliciesForReport.Count -gt 0) {
         $table3Title = 'Conditional Access Enforcement'
@@ -152,8 +173,8 @@ function Test-Assessment-25413 {
 
 ## [{0}]({1})
 
-| CA Policy Name | CA Policy ID | CA Policy State |
-| :------------- | :----------- | :-------------- |
+| CA Policy Name | CA Policy State |
+| :------------- | :-------------- |
 {2}
 '@
 
@@ -161,7 +182,7 @@ function Test-Assessment-25413 {
         foreach ($ca in ($caPoliciesForReport | Sort-Object -Property DisplayName)) {
             $caLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($ca.Id)"
             $caName = Get-SafeMarkdown -Text $ca.DisplayName
-            $table3Rows += "| [$caName]($caLink) | $($ca.Id) | $($ca.State) |`n"
+            $table3Rows += "| [$caName]($caLink) | $($ca.State) |`n"
         }
 
         $mdInfo += $table3Template -f $table3Title, $table3Link, $table3Rows
