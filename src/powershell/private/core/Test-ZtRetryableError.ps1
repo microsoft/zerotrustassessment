@@ -26,7 +26,19 @@ function Test-ZtRetryableError {
 		$ErrorRecord
 	)
 
-	$nonRetryableStatusCodes = @(401, 403, 404)
+	# Well-known permanent 4xx errors that will never succeed on retry
+	$nonRetryableStatusCodes = @(
+		401  # Unauthorized - invalid/missing credentials
+		403  # Forbidden - insufficient permissions
+		404  # Not Found - resource doesn't exist
+		405  # Method Not Allowed - wrong HTTP verb
+		409  # Conflict - resource state conflict
+		410  # Gone - resource permanently removed
+		411  # Length Required - missing Content-Length
+		413  # Payload Too Large - request body too big
+		415  # Unsupported Media Type - wrong content type
+		422  # Unprocessable Entity - validation failure
+	)
 
 	$statusCode = Get-ZtHttpStatusCode -ErrorRecord $ErrorRecord
 
@@ -36,7 +48,7 @@ function Test-ZtRetryableError {
 		return $true
 	}
 
-	# Only authentication/authorization and not-found errors are permanent.
-	# All other errors (including 400, 429, 5xx) are retried up to the configured retry count.
+	# Permanent client errors fail immediately. All other errors (including 400, 429, 5xx)
+	# are retried up to the configured retry count, since they may be transient.
 	return $statusCode -notin $nonRetryableStatusCodes
 }
