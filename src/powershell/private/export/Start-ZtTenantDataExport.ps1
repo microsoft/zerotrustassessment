@@ -39,7 +39,10 @@
 		$ExportPath,
 
 		[int]
-		$ThrottleLimit = 5
+		$ThrottleLimit = 5,
+
+		[string]
+		$LogsPath
 	)
 	begin {
 		#region Calculate Resources to Import
@@ -47,6 +50,7 @@
 			exportPath        = $ExportPath
 			dependencyTimeout = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Export.DependencyWaitLimit'
 			moduleRoot        = $script:ModuleRoot
+			logsPath          = $LogsPath
 		}
 
 		# Explicitly including all modules required, as we later import the psm1, not the psd1 file
@@ -90,7 +94,7 @@
 		$null = $workflow | Add-PSFRunspaceWorker -Name Exporter @param -Begin {
 			$script:ModuleRoot = $moduleRoot
 		} -ScriptBlock {
-			Invoke-ZtTenantDataExport -Export $_ -DependencyTimeout $dependencyTimeout -ExportPath $exportPath
+			Invoke-ZtTenantDataExport -Export $_ -DependencyTimeout $dependencyTimeout -ExportPath $exportPath -LogsPath $logsPath
 		}
 		$workflow | Write-PSFRunspaceQueue -Name Input -BulkValues @($ExportConfig) -Close
 		foreach ($export in $ExportConfig) {
