@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Azure Rights Management licensing is enabled
 
@@ -20,6 +20,7 @@ function Test-Assessment-35024 {
     	Category = 'Rights Management Service',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('ExchangeOnline'),
     	Pillar = 'Data',
     	RiskLevel = 'High',
