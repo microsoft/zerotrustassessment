@@ -14,8 +14,8 @@ This approach aligns with the Zero Trust "verify explicitly" principle by ensuri
 - [Create Conditional Access policies using application filters](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-filter-for-applications) to target Private Access apps based on their Custom Security Attributes, enforcing granular controls like MFA or device compliance.
 - [Apply Conditional Access policies to Private Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-target-resource-private-access-apps) apps from within Global Secure Access for streamlined configuration.
 
-Review
-- [Zero Trust network segmentation guidance for software-defined perimeters](https://learn.microsoft.com/en-us/security/zero-trust/deploy/networks#1-network-segmentation-and-software-defined-perimeters). 
+**Review**
+- [Zero Trust network segmentation guidance for software-defined perimeters](https://learn.microsoft.com/en-us/security/zero-trust/deploy/networks#1-network-segmentation-and-software-defined-perimeters)
 
 
 <!--- Results --->

@@ -42,6 +42,34 @@ function Test-Assessment-25395 {
 
     #region Helper Functions
 
+    function Test-HasCustomSecurityAttributes {
+        <#
+        .SYNOPSIS
+            Checks if customSecurityAttributes is non-null and non-empty.
+        .DESCRIPTION
+            Graph API returns an empty object {} when CSAs are removed, which
+            evaluates as $true in PowerShell. This function properly checks
+            whether actual CSA values are present.
+        .OUTPUTS
+            System.Boolean - True if CSAs are assigned, false otherwise.
+        #>
+        param($Csa)
+        if ($null -eq $Csa) { return $false }
+        # Handle empty string
+        if ($Csa -is [string]) {
+            if ([string]::IsNullOrWhiteSpace($Csa)) { return $false }
+            # Check for empty JSON object
+            if ($Csa.Trim() -eq '{}') { return $false }
+            # Non-empty string (likely JSON with data)
+            return $true
+        }
+        # Handle hashtable
+        if ($Csa -is [hashtable]) { return $Csa.Count -gt 0 }
+        # Handle PSCustomObject or other objects - check for properties
+        $props = @($Csa.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' })
+        return $props.Count -gt 0
+    }
+
     function Test-IsBroadCidr {
         <#
         .SYNOPSIS
@@ -314,14 +342,15 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
 
             # Step 6: Check CSA presence for the app
             $sp = $servicePrincipals | Where-Object { $_.appId -eq $app.appId }
-            if (-not $sp.customSecurityAttributes) {
+            $hasCSA = Test-HasCustomSecurityAttributes $sp.customSecurityAttributes
+            if (-not $hasCSA) {
                 $appsWithoutCSA += $app
             }
 
             # Determine per-app status including Manual Review when filterPolicies exist
             $appStatus = if ($hasBroadSegment -or $hasWildcardDns -or $hasBroadPorts) {
                 'Fail – Broad segment'
-            } elseif (-not $sp.customSecurityAttributes) {
+            } elseif (-not $hasCSA) {
                 'Investigate – Missing CSA'
             } elseif ($filterPolicies.Count -gt 0) {
                 'Manual Review'
@@ -335,7 +364,7 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
                 AppId        = $app.appId
                 SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
                 SegmentScope = ($segmentSummary -join ', ')
-                HasCSA       = [bool]$sp.customSecurityAttributes
+                HasCSA       = $hasCSA
                 Status       = $appStatus
             }
 
