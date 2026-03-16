@@ -252,7 +252,7 @@ Describe "Invoke-ZtRetry" {
 		}
 	}
 
-	Context "Error Filtering - Non-Retryable Errors (4xx)" {
+	Context "Error Filtering - 4xx Status Codes (Retryable and Non-Retryable)" {
 		It "Should NOT retry on HTTP 401 Unauthorized" {
 			$script:callCount = 0
 			{
