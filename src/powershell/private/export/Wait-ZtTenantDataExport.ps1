@@ -24,6 +24,10 @@
 		$totalCount = $Workflow.Queues["Input"].TotalItemCount
 		$progressID = Get-Random -Minimum 1 -Maximum 999
 		$taskProgID = @{ }
+		$lastMessageScan = [datetime]::MinValue
+
+		# Initialize progress dashboard summary for the export stage
+		Update-ZtProgressState -TotalItems $totalCount -CompletedItems 0 -FailedItems 0 -InProgressItems 0
 	}
 	process {
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Exports" -PercentComplete 0
@@ -50,6 +54,41 @@
 
 			Write-Progress -Id $progressID -Activity "Processing $($totalCount) Exports" -Status $status -PercentComplete $percent
 
+			# Update progress dashboard summary counts
+			Update-ZtProgressState -TotalItems $totalCount -CompletedItems $countDone -FailedItems $countFailed -InProgressItems ($countInProgress + $countWaiting)
+
+			# Scan recent PSFMessages to update worker detail lines
+			try {
+				$recentMessages = Get-PSFMessage -Last 100 | Where-Object { $_.Timestamp -gt $lastMessageScan }
+				$lastMessageScan = [datetime]::Now
+
+				# Build runspace-to-export mapping from the progress state
+				$rsMappings = @{}
+				foreach ($key in @($script:__ZtSession.ProgressState.Value.Keys)) {
+					if ($key -like 'rs_*') {
+						$rsId = $key.Substring(3)
+						$rsMappings[$rsId] = $script:__ZtSession.ProgressState.Value[$key]
+					}
+				}
+
+				foreach ($msg in $recentMessages) {
+					$rsId = $msg.Runspace.ToString()
+					if ($rsMappings.ContainsKey($rsId)) {
+						$exportName = $rsMappings[$rsId]
+						$workerKey = "worker_$exportName"
+						$worker = $null
+						if ($script:__ZtSession.ProgressState.Value.TryGetValue($workerKey, [ref]$worker)) {
+							if ($worker -and $worker.Status -in @('Running', 'InProgress', 'Waiting')) {
+								Update-ZtProgressState -WorkerId $exportName -WorkerName $exportName -WorkerStatus $worker.Status -WorkerDetail $msg.LogMessage
+							}
+						}
+					}
+				}
+			}
+			catch {
+				# Non-critical: don't let message scanning break the wait loop
+			}
+
 			foreach ($task in $Workflow.Data.Values) {
 				if ($task.Status -in 'Waiting', 'InProgress') {
 					if (-not $taskProgID[$task.Name]) {
@@ -63,6 +102,13 @@
 				}
 			}
 		}
+
+		# Final summary update after the loop exits — ensures _inProgressItems is 0
+		# and the dashboard shows correct totals before workers get cleared by next stage
+		$finalGroups = $Workflow.Data.Values | Group-Object Status
+		$finalDone = @($finalGroups).Where{$_.Name -eq 'Done'}.Group.Count
+		$finalFailed = @($finalGroups).Where{$_.Name -eq 'Failed'}.Group.Count
+		Update-ZtProgressState -TotalItems $totalCount -CompletedItems $finalDone -FailedItems $finalFailed -InProgressItems 0
 
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Exports" -Completed
 	}

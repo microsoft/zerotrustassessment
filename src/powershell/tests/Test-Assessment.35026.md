@@ -1,17 +1,10 @@
-Office 365 Message Encryption (OME) provides encryption and access controls for emails in your organization. The SimplifiedClientAccessEnabled setting controls whether the Protect button is available in Outlook on the web, allowing users to quickly apply encryption protections to their messages. When enabled, users can click Protect to encrypt emails directly from Outlook on the web. When disabled, the Protect button is not available and users must use alternative encryption methods. Enabling SimplifiedClientAccessEnabled enhances user experience by providing straightforward encryption directly in Outlook on the web. SimplifiedClientAccessEnabled requires AzureRMSLicensingEnabled to be active, as Azure Rights Management is the underlying encryption foundation.
+The SimplifiedClientAccessEnabled setting controls whether the Protect button appears in Outlook on the web. This button lets users quickly add encryption to their emails. If the setting is not turned on, users cannot use the Protect button and must find other ways to encrypt their messages.
+
+To enable this setting, AzureRMSLicensingEnabled must also be active. Azure Rights Management encryption service provides the encryption technology needed for the Protect button to work.
 
 **Remediation action**
 
-To enable SimplifiedClientAccessEnabled for OME:
-
-1. Connect to Exchange Online: `Connect-ExchangeOnline`
-2. Retrieve current IRM configuration: `Get-IRMConfiguration`
-3. If SimplifiedClientAccessEnabled is false, enable it: `Set-IRMConfiguration -SimplifiedClientAccessEnabled $true`
-4. Verify the change: `Get-IRMConfiguration | Select-Object -Property SimplifiedClientAccessEnabled`
-
-Note: SimplifiedClientAccessEnabled is configurable only via PowerShell and does not have a GUI-based configuration option in the Exchange Online admin center.
-
-- [Office 365 Message Encryption Overview](https://learn.microsoft.com/en-us/microsoft-365/compliance/ome)
-- [Set-IRMConfiguration](https://learn.microsoft.com/en-us/powershell/module/exchange/set-irmconfiguration)
+- [Manage the display of the Encrypt button in Outlook on the web](https://learn.microsoft.com/purview/manage-office-365-message-encryption?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#manage-the-display-of-the-encrypt-button-in-outlook-on-the-web)
 <!--- Results --->
 %TestResult%
+

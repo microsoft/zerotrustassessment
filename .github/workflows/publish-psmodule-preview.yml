@@ -3,7 +3,7 @@ name: Build and Publish PowerShell Module (Preview)
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - 'src/powershell/**'
   workflow_dispatch:

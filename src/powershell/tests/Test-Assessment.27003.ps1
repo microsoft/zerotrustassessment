@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     TLS inspection failure rate remains below 1% to ensure consistent traffic visibility.
 .DESCRIPTION
@@ -17,16 +17,17 @@
 
 function Test-Assessment-27003 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Medium',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 27003,
-        Title = 'TLS inspection failure rate remains below 1% to ensure consistent traffic visibility',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	CompatibleLicense = ('Entra_Premium_Internet_Access'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 27003,
+    	Title = 'TLS inspection failure rate is below 1%',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

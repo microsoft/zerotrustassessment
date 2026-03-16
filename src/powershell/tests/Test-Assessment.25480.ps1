@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks that Quick Access has assigned users or groups
 .DESCRIPTION
@@ -15,6 +15,7 @@ function Test-Assessment-25480 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Entra_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

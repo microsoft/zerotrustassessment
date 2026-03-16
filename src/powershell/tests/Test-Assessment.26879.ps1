@@ -89,14 +89,18 @@ resources
         return
     }
 
-    # Check if all policies have request body inspection enabled
-    $passed = ($policies | Where-Object { $_.RequestBodyCheck -ne $true }).Count -eq 0
+    # Check if all policies meet all three conditions: Enabled state, Prevention mode, and Request Body Check
+    $passed = ($policies | Where-Object {
+        $_.EnabledState -ne 'Enabled' -or
+        $_.Mode -ne 'Prevention' -or
+        $_.RequestBodyCheck -ne $true
+    }).Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways have request body inspection enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have request body inspection enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways have request body inspection disabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled, running in Detection mode, or have request body inspection disabled, leaving applications vulnerable to body-based attacks that bypass WAF rule evaluation.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -122,7 +126,7 @@ resources
         $requestBodyCheckDisplay = if ($item.RequestBodyCheck -eq $true) { '✅ Enabled' } else { '❌ Disabled' }
         $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.Mode)" }
-        $status = if ($item.RequestBodyCheck -eq $true) { '✅ Pass' } else { '❌ Fail' }
+        $status = if ($item.EnabledState -eq 'Enabled' -and $item.Mode -eq 'Prevention' -and $item.RequestBodyCheck -eq $true) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | $appGwMd | $enabledStateDisplay | $modeDisplay | $requestBodyCheckDisplay | $status |`n"
     }

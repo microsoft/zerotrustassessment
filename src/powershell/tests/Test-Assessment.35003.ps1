@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitivity labels are configured
 
@@ -14,10 +14,10 @@
 
 function Test-Assessment-35003 {
     [ZtTest(
-    	Category = 'Sensitivity Labels Configuration',
+    	Category = 'sensitivity-labels',
     	ImplementationCost = 'Medium',
-    	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E3'),
+    	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and production systems',

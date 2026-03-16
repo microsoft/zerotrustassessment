@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Checks that Private DNS is configured for internal name resolution in Entra Private Access (Quick Access)
 .DESCRIPTION
@@ -15,6 +15,7 @@ function Test-Assessment-25399 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Entra_Premium_Private_Access'),
+    	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect networks',

@@ -23,6 +23,11 @@ function Get-TableSchemaConfig {
     )
 
     $configs = @{
+        'ServicePrincipal' = @{
+            'use_union_by_name' = $true
+            'sample_size' = 50
+            'reason' = 'customSecurityAttributes is an open complex type with varying nested keys across service principals'
+        }
         'ServicePrincipalSignIn' = @{
             'use_union_by_name' = $true
             'sample_size' = 50  # Sample more files to avoid schema inference issues

@@ -25,6 +25,10 @@ If specified, the script will output a high level summary of log messages. Usefu
 .PARAMETER ExportLog
 If specified, writes the log to a file.
 
+.PARAMETER NoBrowser
+If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
+The progress dashboard server will not be started and the report will not be opened in the browser at the end.
+
 .PARAMETER DisableTelemetry
 If specified, disables the collection of telemetry. The only telemetry collected is the tenant id. Defaults to false.
 
@@ -172,7 +176,12 @@ function Invoke-ZtAssessment {
 		# For Data pillar tests, timeout is best-effort because some external modules/remoting
 		# operations cannot be deterministically hard-stopped from within the current process.
 		[int]
-		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes)
+		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes),
+
+		# If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$NoBrowser
 	)
 
 	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
@@ -415,6 +424,18 @@ function Invoke-ZtAssessment {
 	Write-PSFMessage 'Creating report folder $Path'
 	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
+	# Start the progress dashboard web server (interactive mode only)
+	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host')
+	if ($isInteractive -and -not $NoBrowser) {
+		try {
+			Start-ZtProgressServer
+		}
+		catch {
+			Write-PSFMessage -Level Warning -Message "Failed to start progress dashboard: $_"
+		}
+	}
+
+	try {
 	# Move the interactive configuration file to the report directory if it exists
 	if ($Interactive -and $tempConfigFile) {
 		try {
@@ -430,12 +451,8 @@ function Invoke-ZtAssessment {
 
 	# Collect data
 	if ($Resume) {
-		if (-not (Test-Path $dbPath -PathType Leaf)) {
-			throw "Resume requested, but no existing database was found at '$dbPath'. Run without -Resume first, or restore the previous export/database."
-		}
-
 		# Guard: verify the requested pillar is compatible with the exported data
-		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
+		$exportedPillar = Get-ZtConfig -ExportPath $ExportPath -Property Pillar
 		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
 			if ($Pillar -eq 'All' -and $exportedPillar -ne 'All') {
 				throw "Resume requested with -Pillar All, but the existing export only contains '$exportedPillar' data. Run without -Resume to export all pillars."
@@ -444,23 +461,27 @@ function Invoke-ZtAssessment {
 				throw "Resume requested with -Pillar $Pillar, but the existing export was created with -Pillar $exportedPillar. Run without -Resume or use -Pillar $exportedPillar."
 			}
 		}
+	}
 
-		Write-PSFMessage -Message "Stage 1: Reusing Existing Export and Database" -Tag stage
-		$database = Connect-Database -Path $dbPath -Transient
-	}
-	else {
-		Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-		Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
-		$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
-	}
+	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
+	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+
+	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+
 	try {
 		# Run the tests
 		Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
+		Update-ZtProgressState -Stage 'tests' -StageNumber 2 -StageName 'Running Tests' -ClearWorkers -TotalItems 0 -CompletedItems 0 -FailedItems 0 -InProgressItems 0
 		Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout -TestTimeout $TestTimeout
+
 		Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
+		Update-ZtProgressState -Stage 'tenantinfo' -StageNumber 3 -StageName 'Adding Tenant Information' -ClearWorkers -TotalItems 0
 		Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
 		Write-PSFMessage -Message "Stage 4: Generating Test-Results" -Tag stage
+		Update-ZtProgressState -Stage 'results' -StageNumber 4 -StageName 'Generating Test Results' -ClearWorkers -TotalItems 0
 		$assessmentResults = Get-ZtAssessmentResults
 	}
 	finally {
@@ -470,15 +491,20 @@ function Invoke-ZtAssessment {
 	}
 
 	Write-PSFMessage -Message "Stage 5: Writing Assessment report data" -Tag stage
+	Update-ZtProgressState -Stage 'json' -StageNumber 5 -StageName 'Writing Assessment Report Data' -ClearWorkers -TotalItems 0
 	$assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
 	$resultsJsonPath = Join-Path -Path $exportPath -ChildPath "ZeroTrustAssessmentReport.json"
 	$assessmentResultsJson | Set-PSFFileContent -Path $resultsJsonPath
 
 	Write-PSFMessage -Message "Stage 6: Generating Html Report" -Tag stage
+	Update-ZtProgressState -Stage 'html' -StageNumber 6 -StageName 'Generating HTML Report' -ClearWorkers -TotalItems 0
 	Write-ZtProgress -Activity "Creating html report"
 	$htmlReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport.html"
 	$output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
 	$output | Set-PSFFileContent -Path $htmlReportPath -Encoding UTF8NoBom
+
+	# Signal completion to the progress dashboard
+	Update-ZtProgressState -Stage 'done' -StageNumber 6 -StageName 'Assessment Complete' -ClearWorkers -TotalItems 0
 
 	#region Post Processing
 	Write-Host
@@ -487,7 +513,9 @@ function Invoke-ZtAssessment {
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host
 	Write-Host
-	Invoke-Item $htmlReportPath | Out-Null
+	if (-not $NoBrowser) {
+		Invoke-Item $htmlReportPath | Out-Null
+	}
 
 	if ($ExportLog) {
 		Write-ZtProgress -Activity "Creating support package"
@@ -497,5 +525,12 @@ function Invoke-ZtAssessment {
 		}
 		New-PSFSupportPackage -Path $logPath
 	}
+
+	# Give the progress dashboard a moment to show the completion state before shutting down
+	Start-Sleep -Seconds 2
 	#endregion Post Processing
+	}
+	finally {
+		Stop-ZtProgressServer
+	}
 }

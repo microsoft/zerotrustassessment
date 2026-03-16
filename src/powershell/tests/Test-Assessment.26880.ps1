@@ -88,14 +88,23 @@ resources
         return
     }
 
-    # Check if all policies have request body inspection enabled
-    $passed = ($policies | Where-Object { $_.RequestBodyCheck -ne 'Enabled' }).Count -eq 0
+    # Compute compliance once per policy to avoid duplicating the predicate logic
+    foreach ($policy in $policies) {
+        $policy | Add-Member -NotePropertyName 'IsCompliant' -NotePropertyValue (
+            $policy.RequestBodyCheck -eq 'Enabled' -and
+            $policy.EnabledState -eq 'Enabled' -and
+            $policy.Mode -eq 'Prevention'
+        )
+    }
+
+    # Check if all policies are compliant
+    $passed = ($policies | Where-Object { -not $_.IsCompliant }).Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door have request body inspection enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have request body inspection enabled.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door have request body inspection disabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, running in Detection mode, or have request body inspection disabled, leaving applications vulnerable to body-based attacks that bypass WAF rule evaluation.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -117,15 +126,13 @@ resources
         # Calculate status indicators
         $requestBodyCheckDisplay = if ($item.RequestBodyCheck -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
-        $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($item.Mode)" }
-        $status = if ($item.RequestBodyCheck -eq 'Enabled') { '✅ Pass' } else { '❌ Fail' }
+        $modeDisplay = if ($item.Mode -eq 'Prevention') { '✅ Prevention' } else { "❌ $($item.Mode)" }
+        $status = if ($item.IsCompliant) { '✅ Pass' } else { '❌ Fail' }
 
         $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $requestBodyCheckDisplay | $status |`n"
     }
 
     $formatTemplate = @'
-
-
 ## [{0}]({1})
 
 | Policy name | Subscription name | Enabled state | WAF mode | Request body check | Status |

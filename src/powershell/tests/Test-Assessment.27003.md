@@ -1,10 +1,12 @@
-TLS inspection enables Global Secure Access to decrypt and analyze encrypted HTTPS traffic for threats, malicious content, and policy violations. When TLS inspection fails for a connection, that traffic bypasses security controls entirely, allowing potential malware delivery, command-and-control communications, or data exfiltration to proceed undetected. Failure rates above 1% indicate systemic issues such as certificate trust problems on endpoints, incompatible applications using certificate pinning without proper bypass rules, or certificate authority configuration errors. Threat actors may intentionally craft connections designed to cause TLS inspection failures, knowing the resulting traffic will evade detection. A sustained high failure rate represents an expanding blind spot in the organization's security posture, as each failed inspection is a missed opportunity to detect and block malicious activity. Organizations should monitor TLS inspection success rates and investigate the root causes of failures to maintain comprehensive visibility into encrypted traffic.
+By using Transport Layer Security (TLS) inspection, Global Secure Access can decrypt encrypted HTTPS traffic and check it for threats, malicious content, and policy violations. If TLS inspection fails for a connection, that traffic bypasses security controls. Inspection failures can let potential malware delivery, command-and-control communications, or data exfiltration go undetected.
+
+Failure rates above 1% point to systemic problems. These problems include certificate trust issues on endpoints, incompatible applications that use certificate pinning without proper bypass rules, or certificate authority configuration errors. Threat actors can also intentionally create connections that cause TLS inspection failures.
 
 **Remediation action**
 
-- [Configure diagnostic settings to export traffic logs to Log Analytics](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-view-traffic-logs#configure-diagnostic-settings-to-export-logs)
-- [Review TLS inspection concepts and troubleshooting](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-transport-layer-security)
-- [For destinations with certificate pinning, add TLS bypass rules](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-transport-layer-security)
-
+- [Configure diagnostic settings to export traffic logs](https://learn.microsoft.com/entra/global-secure-access/how-to-view-traffic-logs?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#configure-diagnostic-settings-to-export-logs) to a Log Analytics workspace. Use these logs to monitor TLS inspection success rates and investigate the root causes of failures.
+- Follow the steps in [Troubleshoot Global Secure Access Transport Layer Security inspection errors](https://learn.microsoft.com/entra/global-secure-access/troubleshoot-transport-layer-security?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to resolve common inspection failures.
+- For destinations with certificate pinning, [add TLS bypass rules](https://learn.microsoft.com/entra/global-secure-access/how-to-transport-layer-security?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) to reduce failure rates while keeping inspection for other traffic.
 <!--- Results --->
 %TestResult%
+

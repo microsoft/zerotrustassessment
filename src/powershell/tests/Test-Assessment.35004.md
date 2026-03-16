@@ -1,4 +1,4 @@
-Labels must be published through label policies before users can apply them to content. Label policies define which users receive which labels, set default labeling behavior, and enforce mandatory labeling requirements. Without published policies, sensitivity labels remain unavailable to users.
+Labels must be published by using label policies before users can apply them to items, such as files, emails, and meetings. Label policies define which users receive which labels, set default labeling behavior, and other labeling requirements. Without published policies, sensitivity labels remain unavailable to users.
 
 **Remediation action**
 

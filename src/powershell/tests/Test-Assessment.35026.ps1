@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Office 365 Message Encryption is configured with simplified client access
 
@@ -18,17 +18,17 @@
 
 function Test-Assessment-35026 {
     [ZtTest(
-        Category = 'Office 365 Message Encryption (OME)',
-        ImplementationCost = 'Low',
-        Service = ('ExchangeOnline'),
-        MinimumLicense = ('Microsoft 365 E3'),
-        Pillar = 'Data',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce', 'External'),
-        TestId = 35026,
-        Title = 'Office 365 Message Encryption is configured with simplified client access',
-        UserImpact = 'Medium'
+    	Category = 'Microsoft Purview Message Encryption',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E3'),
+    	Service = ('ExchangeOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 35026,
+    	Title = 'Microsoft Purview Message Encryption is configured with simplified client access',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

@@ -54,8 +54,11 @@ optionally to Azure. When connecting using Microsoft Graph PowerShell, the follo
 
 The consent prompt is only displayed if the Graph PowerShell app does not already have these permissions.
 
+> **Note:** To read Custom Security Attributes on service principals, the account running the assessment must also be assigned the **Attribute Assignment Reader** (or **Attribute Assignment Administrator**) Entra ID role. Without this role, Custom Security Attribute values will be returned as null.
+
 - AuditLog.Read.All
 - CrossTenantInformation.ReadBasic.All
+- CustomSecAttributeAssignment.Read.All
 - DeviceManagementApps.Read.All
 - DeviceManagementConfiguration.Read.All
 - DeviceManagementManagedDevices.Read.All
