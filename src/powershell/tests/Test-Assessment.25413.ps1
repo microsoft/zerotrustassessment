@@ -69,7 +69,7 @@ function Test-Assessment-25413 {
 
     #region Assessment Logic
     # Pass if any profile passes criteria (enabled baseline OR enabled security profile with CA)
-    $passed = ($allLinkedProfiles | Where-Object { $_.PassesCriteria }).Count -gt 0
+    $passed = ($allLinkedProfiles | Where-Object { $_.PassesCriteria -and $_.ProfileState -eq 'enabled' -and $_.PolicyLinkState -eq 'enabled' }).Count -gt 0
 
     $successMessage = @"
 ✅ File policies are configured and actively enforced through a filtering profile, protecting against data exfiltration through unmonitored file transfers.
