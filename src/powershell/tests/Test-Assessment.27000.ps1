@@ -24,7 +24,7 @@ function Test-Assessment-27000 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 27000,
-        Title = 'High-risk WCF categories (Criminal activity, Hacking, Illegal software) are blocked',
+        Title = 'Web content filtering blocks high-risk categories',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -339,7 +339,7 @@ function Test-Assessment-27000 {
 
     $params = @{
         TestId = '27000'
-        Title  = 'High-risk WCF categories (Criminal activity, Hacking, Illegal software) are blocked'
+        Title  = 'Web content filtering blocks high-risk categories'
         Status = $passed
         Result = $testResultMarkdown
     }
