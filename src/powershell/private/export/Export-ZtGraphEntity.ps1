@@ -190,7 +190,16 @@ function Export-ZtGraphEntity {
 			$errorCode = $results.error.code
 			$errorMessage = $results.error.message
 			Write-PSFMessage -Level Warning "API returned error response for '$Name' page ${pageIndex}: [$errorCode] $errorMessage" -Tag Export, Error
-			throw "API returned error for '$Name': [$errorCode] $errorMessage"
+			# Throw a structured error so callers can inspect error code/category
+			$exception = New-Object System.Exception("API returned error for '$Name': [$errorCode] $errorMessage")
+			$exception.Data['GraphErrorCode'] = $errorCode
+			$exception.Data['GraphErrorMessage'] = $errorMessage
+			$errorRecord = New-Object System.Management.Automation.ErrorRecord `
+				$exception, `
+				$errorCode, `
+				[System.Management.Automation.ErrorCategory]::InvalidOperation, `
+				$null
+			throw $errorRecord
 		}
 
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
