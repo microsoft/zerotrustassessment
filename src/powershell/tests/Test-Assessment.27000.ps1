@@ -241,7 +241,7 @@ function Test-Assessment-27000 {
     $categoryResults = @()
 
     if($errorMsg) {
-        # Error occured during data collection, cannot proceed with assessment -> Fail
+        # Error occurred during data collection, cannot proceed with assessment -> Fail
         Write-PSFMessage "Error during data collection: $errorMsg" -Level Error
         $testResultMarkdown = "❌ Failed to retrieve necessary data for assessment.`n`nError: $errorMsg"
     }
