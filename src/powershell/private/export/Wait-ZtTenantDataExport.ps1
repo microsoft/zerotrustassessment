@@ -17,7 +17,10 @@
 	[CmdletBinding()]
 	param (
 		[PSFramework.Runspace.RSWorkflow]
-		$Workflow
+		$Workflow,
+
+		[string]
+		$LogsPath
 	)
 	begin {
 		$failedExports = @{}
@@ -25,6 +28,7 @@
 		$progressID = Get-Random -Minimum 1 -Maximum 999
 		$taskProgID = @{ }
 		$lastMessageScan = [datetime]::MinValue
+		$lastStatusSnapshot = [datetime]::MinValue
 
 		# Initialize progress dashboard summary for the export stage
 		Update-ZtProgressState -TotalItems $totalCount -CompletedItems 0 -FailedItems 0 -InProgressItems 0
@@ -87,6 +91,13 @@
 			}
 			catch {
 				# Non-critical: don't let message scanning break the wait loop
+			}
+
+			# Write periodic status snapshot to export progress log (~every 10 seconds)
+			if ($LogsPath -and ([datetime]::Now - $lastStatusSnapshot).TotalSeconds -ge 10) {
+				$statusMsg = "Pending:$countPending Waiting:$countWaiting InProgress:$countInProgress Done:$countDone Failed:$countFailed"
+				Write-ZtExportProgress -ExportName '_overall_' -LogsPath $LogsPath -Action Status -StatusMessage $statusMsg
+				$lastStatusSnapshot = [datetime]::Now
 			}
 
 			foreach ($task in $Workflow.Data.Values) {

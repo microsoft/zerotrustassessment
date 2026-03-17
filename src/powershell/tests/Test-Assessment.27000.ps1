@@ -25,7 +25,7 @@ function Test-Assessment-27000 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 27000,
-        Title = 'High-risk WCF categories (Criminal activity, Hacking, Illegal software) are blocked',
+        Title = 'Web content filtering blocks high-risk categories',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -55,6 +55,141 @@ function Test-Assessment-27000 {
             }
         }
         return $results
+    }
+
+    function Get-CategoryBlockStatus {
+        <#
+        .SYNOPSIS
+            Evaluates whether a specific WCF category is blocked through an effective profile.
+
+        .DESCRIPTION
+            Finds policies covering the category, identifies linked profiles, and determines
+            the effective profile based on priority and CA enforcement criteria.
+        #>
+        param(
+            [Parameter(Mandatory)]
+            [string]$CategoryName,
+
+            [Parameter(Mandatory)]
+            [string]$CategoryDisplayName,
+
+            [Parameter(Mandatory)]
+            [array]$FilteringPolicies,
+
+            [Parameter(Mandatory)]
+            [array]$FilteringProfiles,
+
+            [Parameter(Mandatory)]
+            [AllowNull()]
+            [array]$CAPolicies,
+
+            [Parameter(Mandatory)]
+            [int]$BaselinePriority
+        )
+
+        # Find all policies that cover this category
+        $policiesCoveringCategory = @($FilteringPolicies | Where-Object {
+            $policy = $_
+            $webCatRules = @($policy.policyRules | Where-Object { $_.ruleType -eq 'webCategory' })
+            $webCatRules | Where-Object {
+                $_.destinations | Where-Object { $_.name -eq $CategoryName }
+            }
+        })
+
+        # Collect profile candidates from all matching policies
+        $profileCandidates = @()
+        foreach ($policy in $policiesCoveringCategory) {
+            $findParams = @{
+                PolicyId          = $policy.id
+                FilteringProfiles = $FilteringProfiles
+                CAPolicies        = $CAPolicies
+                BaselinePriority  = $BaselinePriority
+                PolicyLinkType    = 'filteringPolicyLink'
+                PolicyRules       = @($policy.policyRules)
+            }
+            $linkedProfiles = Find-ZtProfilesLinkedToPolicy @findParams
+
+            foreach ($linkedProfile in $linkedProfiles) {
+                # Skip disabled profiles
+                if ($linkedProfile.ProfileState -ne 'enabled') {
+                    Write-PSFMessage "Skipping disabled profile '$($linkedProfile.ProfileName)'" -Level Verbose
+                    continue
+                }
+
+                # Get the profile object to access policies collection
+                $filteringProfile = $FilteringProfiles | Where-Object { $_.id -eq $linkedProfile.ProfileId }
+                if (-not $filteringProfile) {
+                    Write-PSFMessage "Profile '$($linkedProfile.ProfileName)' not found in filteringProfiles collection" -Level Warning
+                    continue
+                }
+
+                # Find the policy link to get priority and action
+                foreach ($policyLink in $filteringProfile.policies) {
+                    if ($policyLink.policy.id -ne $policy.id) { continue }
+
+                    # Skip disabled policy links
+                    if ($policyLink.state -ne 'enabled') {
+                        Write-PSFMessage "Skipping disabled policy link in profile '$($linkedProfile.ProfileName)' for policy '$($policy.name)'" -Level Verbose
+                        continue
+                    }
+
+                    $linkPriority = try { [int]$policyLink.priority } catch { [int]::MaxValue }
+
+                    # Use policy action directly (not overridden at profile level)
+                $linkAction = if ($policyLink.policy.action) {
+                                            $policyLink.policy.action.ToString().ToLower()
+                                        }
+                    else {
+                        Write-PSFMessage "Policy action is null for policy '$($policy.name)' - defaulting to 'unknown'" -Level Warning
+                        'unknown'
+                    }
+
+                    $profileCandidates += [PSCustomObject]@{
+                        ProfileId      = $linkedProfile.ProfileId
+                        ProfileName    = $linkedProfile.ProfileName
+                        ProfilePriority= $linkedProfile.ProfilePriority
+                        IsBaseline     = ($linkedProfile.ProfileType -eq 'Baseline Profile')
+                        PolicyAction   = $linkAction
+                        PolicyPriority = $linkPriority
+                        PassesCriteria = $linkedProfile.PassesCriteria
+                    }
+                }
+            }
+        }
+
+        # Sort by profile priority, then policy priority
+        $profileCandidates = @($profileCandidates | Sort-Object ProfilePriority, PolicyPriority)
+
+        # Find effective profile per spec logic
+        $effectiveProfileName = 'None'
+        $caEnforced = 'N/A'
+        $status = 'Not blocked'
+
+        foreach ($pc in $profileCandidates) {
+            if ($pc.IsBaseline) {
+                # Baseline profile is always effective
+                $effectiveProfileName = $pc.ProfileName
+                $caEnforced = 'N/A'
+                $status = if ($pc.PolicyAction -eq 'block') { 'Blocked' } else { 'Not blocked' }
+                break
+            }
+            else {
+                # Security profile - check if it passes CA enforcement criteria
+                if ($pc.PassesCriteria) {
+                    $effectiveProfileName = $pc.ProfileName
+                    $caEnforced = 'Yes'
+                    $status = if ($pc.PolicyAction -eq 'block') { 'Blocked' } else { 'Not blocked' }
+                    break
+                }
+            }
+        }
+
+        return [PSCustomObject]@{
+            Category   = $CategoryDisplayName
+            EnforcedBy = $effectiveProfileName
+            CAEnforced = $caEnforced
+            Status     = $status
+        }
     }
     #endregion Helper Functions
 
@@ -107,17 +242,24 @@ function Test-Assessment-27000 {
     $categoryResults = @()
 
     if($errorMsg) {
+        # Error occurred during data collection, cannot proceed with assessment -> Fail
         Write-PSFMessage "Error during data collection: $errorMsg" -Level Error
         $testResultMarkdown = "❌ Failed to retrieve necessary data for assessment.`n`nError: $errorMsg"
     }
     elseif(-not $filteringPolicies -or $filteringPolicies.Count -eq 0 ){
-        Write-PSFMessage "No WCF policies found" -Level Warning
+        Write-PSFMessage "No WCF policies found -> Fail" -Level Warning
+        $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
+        $blockedCount = 0
+        $notBlockedCount = $requiredCategories.Count
+    }
+    elseif ($filteringPolicies -and $filteringPolicies.count -eq 1 -and $filteringPolicies[0].name -eq 'All Websites'){
+        Write-PSFMessage "Only default 'All Websites' policy exists -> Fail" -Level Warning
         $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
         $blockedCount = 0
         $notBlockedCount = $requiredCategories.Count
     }
     elseif (-not $filteringProfiles -or $filteringProfiles.Count -eq 0) {
-        Write-PSFMessage "No filtering profiles found" -Level Warning
+        Write-PSFMessage "No filtering profiles found -> Fail" -Level Warning
         $categoryResults = New-FailedCategoryResults -RequiredCategories $requiredCategories -CategoryDisplayNames $categoryDisplayNames
         $blockedCount = 0
         $notBlockedCount = $requiredCategories.Count
@@ -125,104 +267,21 @@ function Test-Assessment-27000 {
     else {
         [int]$BASELINE_PROFILE_PRIORITY = 65000
 
-        # Evaluate each category
+        # Evaluate each category using the helper function
         foreach ($catName in $requiredCategories) {
             $catDisplay = $categoryDisplayNames[$catName]
 
-            # Find all policies that cover this category using filtering
-            $policiesCoveringCategory = @($filteringPolicies | Where-Object {
-                $policy = $_
-                $webCatRules = @($policy.policyRules | Where-Object { $_.ruleType -eq 'webCategory' })
-                $webCatRules | Where-Object {
-                    $_.destinations | Where-Object { $_.name -eq $catName }
-                }
-            })
-
-            # Find all profiles linked to these policies using Find-ZtProfilesLinkedToPolicy
-            $profileCandidates = @()
-            foreach ($policy in $policiesCoveringCategory) {
-                $findParams = @{
-                    PolicyId          = $policy.id
-                    FilteringProfiles = $filteringProfiles
-                    CAPolicies        = $caPolicies
-                    BaselinePriority  = $BASELINE_PROFILE_PRIORITY
-                    PolicyLinkType    = 'filteringPolicyLink'
-                    PolicyRules       = @($policy.policyRules)
-                }
-                $linkedProfiles = Find-ZtProfilesLinkedToPolicy @findParams
-
-                # For each linked profile, get the policy link priority and action
-                foreach ($linkedProfile in $linkedProfiles) {
-                    $filteringProfile = $filteringProfiles | Where-Object { $_.id -eq $linkedProfile.ProfileId }
-                    if (-not $filteringProfile -or $filteringProfile.state -ne 'enabled') { continue }
-
-                    # Find the policy link and get its priority and action from the expanded policy
-                    foreach ($policyLink in $filteringProfile.policies) {
-                        if ($policyLink.policy.id -ne $policy.id) { continue }
-
-                        # Skip disabled policy links
-                        if ($policyLink.state -ne 'enabled') {
-                            Write-PSFMessage "Skipping disabled policy link in profile '$($filteringProfile.name)' for policy '$($policy.name)'" -Level Verbose
-                            continue
-                        }
-
-                        $linkPriority = try { [int]$policyLink.priority } catch { [int]::MaxValue }
-
-                        # Get action from the expanded policy object
-                        $linkAction = if ($policyLink.policy.action) {
-                            $policyLink.policy.action.ToString().ToLower()
-                        }
-                        else {
-                            # Default to block for WCF policies
-                            'block'
-                        }
-
-                        $profileCandidates += [PSCustomObject]@{
-                            ProfileId      = $linkedProfile.ProfileId
-                            ProfileName    = $linkedProfile.ProfileName
-                            ProfilePriority= $linkedProfile.ProfilePriority
-                            IsBaseline     = ($linkedProfile.ProfileType -eq 'Baseline Profile')
-                            PolicyAction   = $linkAction
-                            PolicyPriority = $linkPriority
-                            PassesCriteria = $linkedProfile.PassesCriteria
-                        }
-                    }
-                }
+            $getCategoryParams = @{
+                CategoryName        = $catName
+                CategoryDisplayName = $catDisplay
+                FilteringPolicies   = $filteringPolicies
+                FilteringProfiles   = $filteringProfiles
+                CAPolicies          = $caPolicies
+                BaselinePriority    = $BASELINE_PROFILE_PRIORITY
             }
 
-            # Sort by profile priority, then policy priority
-            $profileCandidates = @($profileCandidates | Sort-Object ProfilePriority, PolicyPriority)
-
-            # Find effective profile per spec logic
-            $effectiveProfileName = 'None'
-            $caEnforced = 'N/A'  # Default to N/A when no profile found
-            $status = 'Not blocked'
-
-            foreach ($pc in $profileCandidates) {
-                if ($pc.IsBaseline) {
-                    # Baseline profile is always effective
-                    $effectiveProfileName = $pc.ProfileName
-                    $caEnforced = 'N/A'
-                    $status = if ($pc.PolicyAction -eq 'block') { 'Blocked' } else { 'Not blocked' }
-                    break
-                }
-                else {
-                    # Security profile - check if it passes CA enforcement criteria
-                    if ($pc.PassesCriteria) {
-                        $effectiveProfileName = $pc.ProfileName
-                        $caEnforced = 'Yes'
-                        $status = if ($pc.PolicyAction -eq 'block') { 'Blocked' } else { 'Not blocked' }
-                        break
-                    }
-                }
-            }
-
-            $categoryResults += [PSCustomObject]@{
-                Category   = $catDisplay
-                EnforcedBy = $effectiveProfileName
-                CAEnforced = $caEnforced
-                Status     = $status
-            }
+            $categoryResult = Get-CategoryBlockStatus @getCategoryParams
+            $categoryResults += $categoryResult
         }
 
         # Determine pass/fail
@@ -281,7 +340,7 @@ function Test-Assessment-27000 {
 
     $params = @{
         TestId = '27000'
-        Title  = 'High-risk WCF categories (Criminal activity, Hacking, Illegal software) are blocked'
+        Title  = 'Web content filtering blocks high-risk categories'
         Status = $passed
         Result = $testResultMarkdown
     }

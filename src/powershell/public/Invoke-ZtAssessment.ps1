@@ -208,9 +208,19 @@ function Invoke-ZtAssessment {
 		[CmdletBinding()]
 		param ()
 
+		$version = $script:__ZtSession.ModuleVersion
+		$title = "🛡️  Microsoft Zero Trust Assessment v$version"
+		# Center the title within the 77-character inner box width.
+		# The shield emoji displays as 2 cells but has .Length of 3, so subtract 1.
+		$displayLen = $title.Length - 1
+		$totalPad = 77 - $displayLen
+		$leftPad = [math]::Ceiling($totalPad / 2)
+		$rightPad = $totalPad - $leftPad
+		$titleLine = "║$(' ' * $leftPad)$title$(' ' * $rightPad)║"
+
 		$banner = @"
 ╔═════════════════════════════════════════════════════════════════════════════╗
-║                    🛡️  Microsoft Zero Trust Assessment v2                   ║
+$titleLine
 ║                                                                             ║
 ║    Comprehensive security posture evaluation for your Microsoft 365 tenant  ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
@@ -465,10 +475,10 @@ function Invoke-ZtAssessment {
 
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
 	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
-	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit -LogsPath $logsPath
 
 	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
-	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar -LogsPath $logsPath
 
 	try {
 		# Run the tests
