@@ -4,7 +4,7 @@ function Write-ZtExportProgress {
 		Appends a progress entry to the overall export execution progress log.
 
 	.DESCRIPTION
-		Appends a single line to _export_progress.log in the logs folder, recording when
+		Appends a single line to 1-export_progress.log in the logs folder, recording when
 		each export starts, waits for dependencies, completes, or fails. This append-only
 		log provides an at-a-glance timeline of all export executions and makes it easy to
 		identify hanging exports (STARTED without a matching COMPLETED/FAILED line).
