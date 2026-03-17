@@ -13,7 +13,7 @@ Workshops are available for the following pillars:
 - Network
 - Infrastructure
 - Security Operations
-- AI
+- Artificial Intelligence (New)
 
 Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, Security Operations, and AI.
 
@@ -73,4 +73,4 @@ Below are the estimated delivery times for each section of the pillar workshops:
 
 |AI|
 |---|
-| • Map and Assess AI Risk: 1 hour <br/> • Register all agents: 1 hour <br/> • Secure AI Authentication and Access: 30 minutes <br/> • Secure AI Network Access: 1 hour <br/> • Secure AI Data Access: 1.5 hours <br/> • Build Agents Securely: 30 minutes <br/> • Security Detection and Response for AI: 30 minutes <hr /> **• Total: 6 hours** |
+| • Map and Assess AI Risk: 1 hour <br/> • Register all agents: 1 hour <br/> • Secure AI Authentication and Access: 0.5 hour <br/> • Secure AI Network Access: 1 hour <br/> • Secure AI Data Access: 1.5 hours <br/> • Build Agents Securely: 0.5 hour <br/> • Security Detection and Response for AI: 0.5 hour <hr /> **• Total: 6 hours** |

@@ -3,6 +3,8 @@ sidebar_position: 9
 ---
 
 # Version History
+Please note that we transitioned from using the Excel Workshop tool to a new Single-Page Application (SPA) in March 2026. Moving forward, the old Excel file will no longer be supported and all updates will be made to the new SPA.
+
 
 |Version|Publication Date|Release Notes|
 |---|---|---|
@@ -13,4 +15,4 @@ sidebar_position: 9
 |2.3| October 2025| • Updates to Identity, Devices, and Security Operations Pillars to reflect latest feature and guidance updates |
 |2.4| February 2026| • Updates to Network, Infrastructure, and Operations Pillars to reflect latest feature and guidance updates |
 |2.5| February 2026| • Updates to Identity and Network Pillars to reflect latest feature and guidance updates |
-|3.0| March 2026| • Updated workshop tool. Include the new AI pillar and various updates to existing pillars |
+|**3.0**| **March 2026**| **• Converted over to new Single-Page Application (SPA) for the Workshop tool. Published a new AI pillar. Updated existing pillars to refelct latest feature and guidance updates** |

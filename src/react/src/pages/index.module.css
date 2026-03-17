@@ -72,3 +72,46 @@
 .buttons a {
   margin: 20px 36px;
 }
+
+.homeAnnouncementBanner {
+  position: relative;
+  width: 100%;
+  padding: 0.75rem 2.75rem 0.75rem 1rem;
+  border-bottom: 1px solid #2a5f2d;
+  background: #e9f7ea;
+  color: #103312;
+}
+
+.homeAnnouncementText {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.homeAnnouncementText a {
+  color: #0b4e90;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.homeAnnouncementText a:hover {
+  color: #083767;
+}
+
+.dismissBannerButton {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.65rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #0f3612;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dismissBannerButton:hover,
+.dismissBannerButton:focus-visible {
+  border-color: #2a5f2d;
+  border-radius: 2px;
+}
