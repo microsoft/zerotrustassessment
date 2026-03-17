@@ -23,7 +23,7 @@ function Test-Assessment-26884 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 26884,
-        Title = 'Bot protection ruleset is enabled and assigned in Azure Front Door WAF',
+        Title = 'Bot protection rule set is enabled and assigned in Azure Front Door WAF',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -130,6 +130,7 @@ resources
     PolicyName=name,
     SkuName=tostring(sku.name),
     EnabledState=tostring(properties.policySettings.enabledState),
+    Mode=tostring(properties.policySettings.mode),
     ManagedRuleSets=properties.managedRules.managedRuleSets,
     SecurityPolicyLinks=properties.securityPolicyLinks,
     SubscriptionId=subscriptionId
@@ -182,6 +183,8 @@ resources
         $domainsProtected = 0
         $securityPolicyConfigured = 'No'
         $wafEnabled = 'N/A'
+        $wafMode = 'N/A'
+        $hasEnabledRule = $false
 
         if ($securityPolicies.Count -gt 0) {
             $securityPolicyConfigured = 'Yes'
@@ -209,6 +212,7 @@ resources
                         $wafPolicy = $wafPolicyLookup[$associatedWafPolicyId]
                         $associatedWafPolicyName = $wafPolicy.PolicyName
                         $wafEnabled = $wafPolicy.EnabledState
+                        $wafMode = $wafPolicy.Mode
                         $wafIsPremium = $wafPolicy.SkuName -eq 'Premium_AzureFrontDoor'
 
                         # Check for Bot Manager rule set
@@ -225,8 +229,33 @@ resources
                                         $ruleSetAction = 'Per-rule defaults'
                                     }
 
-                                    # Check if WAF policy is enabled and Bot Manager is present
-                                    if ($wafIsPremium -and $wafEnabled -eq 'Enabled') {
+                                    # Check if at least one rule is enabled in the Bot Manager rule set
+                                    # Rules are enabled by default unless explicitly disabled via ruleGroupOverrides
+                                    $hasEnabledRule = $true
+                                    if ($ruleSet.ruleGroupOverrides) {
+                                        $allRulesDisabled = $true
+                                        foreach ($override in $ruleSet.ruleGroupOverrides) {
+                                            if ($override.rules) {
+                                                foreach ($rule in $override.rules) {
+                                                    if ($rule.enabledState -ne 'Disabled') {
+                                                        $allRulesDisabled = $false
+                                                        break
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                # No explicit rule overrides means default enabled state
+                                                $allRulesDisabled = $false
+                                            }
+                                            if (-not $allRulesDisabled) { break }
+                                        }
+                                        # If all overridden rules are disabled but there may be non-overridden rules
+                                        # We consider it as having enabled rules unless explicitly all disabled
+                                        $hasEnabledRule = -not $allRulesDisabled
+                                    }
+
+                                    # Check if WAF policy is enabled, in Prevention mode, and Bot Manager is present with at least one rule enabled
+                                    if ($wafIsPremium -and $wafEnabled -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $hasEnabledRule) {
                                         $hasValidBotProtection = $true
                                         # Only count domains from security policy with valid bot protection
                                         $domainsProtected = $currentPolicyDomainCount
@@ -255,8 +284,10 @@ resources
             SkuName                  = $fdProfile.SkuName
             WAFPolicyName            = $associatedWafPolicyName
             WAFEnabled               = $wafEnabled
+            WAFMode                  = $wafMode
             SecurityPolicyConfigured = $securityPolicyConfigured
             BotManagerEnabled        = $botManagerEnabled
+            HasEnabledRule           = $hasEnabledRule
             RuleSetVersion           = $ruleSetVersion
             RuleSetAction            = $ruleSetAction
             DomainsProtected         = $domainsProtected
@@ -294,10 +325,10 @@ resources
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
     if ($passed) {
-        $testResultMarkdown = "✅ Bot protection ruleset is enabled and assigned to Azure Front Door WAF, providing protection against malicious bot traffic.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have the Bot Manager rule set (Microsoft_BotManagerRuleSet) with at least one rule enabled, providing protection against malicious bot traffic.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ Bot protection ruleset is not enabled or not assigned to Azure Front Door WAF, leaving web applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, running in Detection mode, do not have the Bot Manager rule set configured, or have all Bot Manager rules disabled, leaving web applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -368,7 +399,7 @@ resources
 
     $params = @{
         TestId = '26884'
-        Title  = 'Bot protection ruleset is enabled and assigned in Azure Front Door WAF'
+        Title  = 'Bot protection rule set is enabled and assigned in Azure Front Door WAF'
         Status = $passed
         Result = $testResultMarkdown
     }
