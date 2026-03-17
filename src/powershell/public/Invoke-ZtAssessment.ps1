@@ -465,10 +465,10 @@ function Invoke-ZtAssessment {
 
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
 	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
-	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit -LogsPath $logsPath
 
 	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
-	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar -LogsPath $logsPath
 
 	try {
 		# Run the tests

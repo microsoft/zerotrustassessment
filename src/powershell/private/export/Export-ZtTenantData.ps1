@@ -51,7 +51,10 @@ function Export-ZtTenantData {
 		$Pillar = 'All',
 
 		[int]
-		$ThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5)
+		$ThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
+
+		[string]
+		$LogsPath
 	)
 
 	#region Helper Functions
@@ -146,8 +149,8 @@ https://github.com/microsoft/zerotrustassessment/issues
 		# Show $applicableExports
 		Write-PSFMessage "Applicable exports: $($applicableExports | ForEach-Object { $_.Name } | Sort-Object | Out-String)"
 
-		$workflow = Start-ZtTenantDataExport -ExportConfig $applicableExports -ThrottleLimit $ThrottleLimit -ExportPath $ExportPath
-		Wait-ZtTenantDataExport -Workflow $workflow
+		$workflow = Start-ZtTenantDataExport -ExportConfig $applicableExports -ThrottleLimit $ThrottleLimit -ExportPath $ExportPath -LogsPath $LogsPath
+		Wait-ZtTenantDataExport -Workflow $workflow -LogsPath $LogsPath
 	}
 	finally {
 		if ($workflow) {
