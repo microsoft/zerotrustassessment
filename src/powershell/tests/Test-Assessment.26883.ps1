@@ -51,8 +51,7 @@ function Test-Assessment-26883 {
     # Query Front Door WAF policies attached to Front Door (Classic or Standard/Premium)
     # - frontendEndpointLinks: Classic Front Door attachments
     # - securityPolicyLinks: Standard/Premium Front Door attachments
-    # NOTE: Complex regex patterns in ARG extract() fail through REST API due to escaping issues.
-    # We retrieve the managedRuleSets as an array and process in PowerShell instead.
+    # ManagedRuleSets are evaluated in PowerShell to keep the compliance logic readable.
     $argQuery = @"
 resources
 | where type =~ 'microsoft.network/frontdoorwebapplicationfirewallpolicies'
@@ -89,82 +88,69 @@ resources
         return
     }
 
-    # Process each policy to extract default ruleset information
-    $policies = @()
-    foreach ($policy in $rawPolicies) {
-        # Find the Microsoft_DefaultRuleSet in managedRuleSets
-        $hasDefaultRuleset = $false
-        $defaultRulesetVersion = $null
+    $policies = foreach ($policy in $rawPolicies) {
+        $defaultRuleset = @($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_DefaultRuleSet' } | Select-Object -First 1)
+        $hasDefaultRuleset = $defaultRuleset.Count -gt 0
+        $defaultRulesetVersion = if ($hasDefaultRuleset) { $defaultRuleset[0].ruleSetVersion } else { $null }
+
         $allRulesDisabled = $false
         $needsInvestigation = $false
 
-        if ($policy.ManagedRuleSets) {
-            foreach ($ruleset in $policy.ManagedRuleSets) {
-                if ($ruleset.ruleSetType -eq 'Microsoft_DefaultRuleSet') {
-                    $hasDefaultRuleset = $true
-                    $defaultRulesetVersion = $ruleset.ruleSetVersion
+        if ($hasDefaultRuleset) {
+            $allGroupsExplicitlyDisabled = $true
+            $ruleGroupOverrides = @($defaultRuleset[0].ruleGroupOverrides)
 
-                    # Check if all rules are disabled via ruleGroupOverrides
-                    # A ruleGroupOverride with no rules means the entire group is disabled
-                    $allGroupsExplicitlyDisabled = $true
-                    if ($null -eq $ruleset.ruleGroupOverrides -or $ruleset.ruleGroupOverrides.Count -eq 0) {
-                        $allGroupsExplicitlyDisabled = $false  # No overrides = all defaults = enabled
-                    } else {
-                        foreach ($override in $ruleset.ruleGroupOverrides) {
-                            if ($override.rules -and $override.rules.Count -gt 0) {
-                                foreach ($rule in $override.rules) {
-                                    if ($rule.enabledState -eq 'Enabled') {
-                                        $allGroupsExplicitlyDisabled = $false
-                                        break
-                                    }
-                                }
-                            }
-                            # else: no rules in override = entire group disabled, continue checking
-                            if (-not $allGroupsExplicitlyDisabled) { break }
+            if ($ruleGroupOverrides.Count -eq 0) {
+                $allGroupsExplicitlyDisabled = $false
+            }
+            else {
+                foreach ($override in $ruleGroupOverrides) {
+                    $overrideRules = @($override.rules | Where-Object { $null -ne $_ })
+                    if ($overrideRules.Count -gt 0) {
+                        $hasEnabledRuleOverride = @($overrideRules | Where-Object { $_.enabledState -eq 'Enabled' }).Count -gt 0
+                        if ($hasEnabledRuleOverride) {
+                            $allGroupsExplicitlyDisabled = $false
+                            break
                         }
                     }
-                    # Only flag if overrides exist AND every override disables its content
-                    $allRulesDisabled = $allGroupsExplicitlyDisabled
-                    # Flag for investigation when we have overrides with only disabled rules
-                    # but can't confirm ALL rule groups are covered by overrides
-                    $needsInvestigation = $allGroupsExplicitlyDisabled
-                    break
                 }
             }
+
+            $allRulesDisabled = $allGroupsExplicitlyDisabled
+            $needsInvestigation = $allGroupsExplicitlyDisabled
         }
 
-        $policies += [PSCustomObject]@{
-            PolicyName            = $policy.PolicyName
-            PolicyId              = $policy.PolicyId
-            subscriptionId        = $policy.subscriptionId
-            SubscriptionName      = $policy.SubscriptionName
-            SkuName               = $policy.SkuName
-            EnabledState          = $policy.EnabledState
-            WafMode               = $policy.WafMode
-            HasDefaultRuleset     = $hasDefaultRuleset
-            DefaultRulesetVersion = $defaultRulesetVersion
-            AllRulesDisabled      = $allRulesDisabled
-            NeedsInvestigation    = $needsInvestigation
+        $isEnabled = $policy.EnabledState -eq 'Enabled'
+        $isPreventionMode = $policy.WafMode -eq 'Prevention'
+        $isCompliant = $isEnabled -and $isPreventionMode -and $hasDefaultRuleset -and (-not $allRulesDisabled)
+        $status = if ($needsInvestigation) { '⚠️ Investigate' } elseif ($isCompliant) { '✅ Pass' } else { '❌ Fail' }
+
+        [PSCustomObject]@{
+            PolicyName             = $policy.PolicyName
+            PolicyId               = $policy.PolicyId
+            SubscriptionId         = $policy.subscriptionId
+            SubscriptionName       = $policy.SubscriptionName
+            SkuName                = $policy.SkuName
+            EnabledState           = $policy.EnabledState
+            WafMode                = $policy.WafMode
+            HasDefaultRuleset      = $hasDefaultRuleset
+            DefaultRulesetVersion  = $defaultRulesetVersion
+            AllRulesDisabled       = $allRulesDisabled
+            NeedsInvestigation     = $needsInvestigation
+            IsEnabled              = $isEnabled
+            IsPreventionMode       = $isPreventionMode
+            IsCompliant            = $isCompliant
+            EnabledStateDisplay    = if ($isEnabled) { '✅ Enabled' } else { '❌ Disabled' }
+            WafModeDisplay         = if ($isPreventionMode) { '✅ Prevention' } else { "❌ $($policy.WafMode)" }
+            DefaultRulesetType     = if ($hasDefaultRuleset) { 'Microsoft_DefaultRuleSet' } else { 'None' }
+            DefaultRulesetDisplay  = if ($hasDefaultRuleset -and $defaultRulesetVersion) { $defaultRulesetVersion } else { 'N/A' }
+            StatusDisplay          = $status
         }
     }
 
-    # Evaluate each policy against all four pass criteria per spec:
-    # 1. EnabledState is 'Enabled'
-    # 2. WafMode is 'Prevention'
-    # 3. HasDefaultRuleset is true
-    # 4. At least one rule in DefaultRuleSet is enabled (AllRulesDisabled is false)
-    $passedItems = @($policies | Where-Object {
-        $_.EnabledState -eq 'Enabled' -and
-        $_.WafMode -eq 'Prevention' -and
-        $_.HasDefaultRuleset -eq $true -and
-        $_.AllRulesDisabled -ne $true
-    })
-    $failedItems = @($policies | Where-Object {
-        $_.EnabledState -ne 'Enabled' -or
-        $_.WafMode -ne 'Prevention' -or
-        $_.HasDefaultRuleset -ne $true -or
-        $_.AllRulesDisabled -eq $true
-    })
+    $passedItems = @($policies | Where-Object { $_.IsCompliant })
+    $failedItems = @($policies | Where-Object { -not $_.IsCompliant })
+    $investigateItems = @($policies | Where-Object { $_.NeedsInvestigation })
 
     if ($failedItems.Count -eq 0) {
         $passed = $true
@@ -187,25 +173,11 @@ resources
     $tableRows = ''
     foreach ($item in $policies | Sort-Object SubscriptionName, PolicyName) {
         $policyLink = "https://portal.azure.com/#resource$($item.PolicyId)"
-        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.subscriptionId)"
+        $subLink = "https://portal.azure.com/#resource/subscriptions/$($item.SubscriptionId)"
         $policyMd = "[$(Get-SafeMarkdown $item.PolicyName)]($policyLink)"
         $subMd = "[$(Get-SafeMarkdown $item.SubscriptionName)]($subLink)"
 
-        # Calculate status indicators
-        $enabledStateDisplay = if ($item.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
-        $modeDisplay = if ($item.WafMode -eq 'Prevention') { '✅ Prevention' } else { "❌ $($item.WafMode)" }
-        $rulesetType = if ($item.HasDefaultRuleset -eq $true) { 'Microsoft_DefaultRuleSet' } else { 'None' }
-        $rulesetVersion = if ($item.HasDefaultRuleset -eq $true -and $item.DefaultRulesetVersion) { $item.DefaultRulesetVersion } else { 'N/A' }
-
-        # Determine pass/fail/investigate status based on all four criteria
-        $isPassed = $item.EnabledState -eq 'Enabled' -and
-                    $item.WafMode -eq 'Prevention' -and
-                    $item.HasDefaultRuleset -eq $true -and
-                    $item.AllRulesDisabled -ne $true
-        $isInvestigate = $item.NeedsInvestigation -eq $true
-        $status = if ($isInvestigate) { '⚠️ Investigate' } elseif ($isPassed) { '✅ Pass' } else { '❌ Fail' }
-
-        $tableRows += "| $policyMd | $subMd | Yes | $enabledStateDisplay | $modeDisplay | $rulesetType | $rulesetVersion | $status |`n"
+        $tableRows += "| $policyMd | $subMd | Yes | $($item.EnabledStateDisplay) | $($item.WafModeDisplay) | $($item.DefaultRulesetType) | $($item.DefaultRulesetDisplay) | $($item.StatusDisplay) |`n"
     }
 
     $formatTemplate = @'
@@ -220,9 +192,6 @@ resources
 '@
 
     $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
-
-    # Count items needing investigation
-    $investigateItems = @($policies | Where-Object { $_.NeedsInvestigation -eq $true })
 
     # Summary
     $mdInfo += "**Summary:**`n`n"
@@ -243,8 +212,6 @@ resources
         Result = $testResultMarkdown
     }
 
-    # Set CustomStatus to 'Investigate' when policies have overrides with only disabled rules
-    # since we can't definitively determine if ALL rules are disabled
     if ($investigateItems.Count -gt 0) {
         $params.CustomStatus = 'Investigate'
     }
