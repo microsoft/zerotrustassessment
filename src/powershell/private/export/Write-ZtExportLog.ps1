@@ -88,7 +88,9 @@ function Write-ZtExportLog {
 				}
 			}
 
-			$logMarkdownPath = Join-Path $LogsPath "export_$name.md"
+			$exportLogsPath = Join-Path $LogsPath '1-Export'
+			[void][System.IO.Directory]::CreateDirectory($exportLogsPath)
+			$logMarkdownPath = Join-Path $exportLogsPath "export_$name.md"
 			[System.IO.File]::WriteAllLines($logMarkdownPath, $lines)
 		}
 		catch {

@@ -95,7 +95,7 @@ function Write-ZtTestProgress {
 			}
 			$line += [System.Environment]::NewLine
 
-			$progressFilePath = Join-Path $LogsPath '_progress.log'
+			$progressFilePath = Join-Path $LogsPath '3-test_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 

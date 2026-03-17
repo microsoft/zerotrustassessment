@@ -57,25 +57,28 @@ function Write-ZtTestLog {
 			}
 			$lines.Add('# ---')
 
-			if ($Result.Messages) {
-				foreach ($msg in $Result.Messages) {
-					$timestamp = 'N/A'
-					if ($null -ne $msg.Timestamp) {
-						try {
-							$timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
-						}
-						catch {
-							$timestamp = "$($msg.Timestamp)"
-						}
-					}
+			# Messages section disabled — may contain tenant-specific data (privacy)
+			# if ($Result.Messages) {
+			# 	foreach ($msg in $Result.Messages) {
+			# 		$timestamp = 'N/A'
+			# 		if ($null -ne $msg.Timestamp) {
+			# 			try {
+			# 				$timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
+			# 			}
+			# 			catch {
+			# 				$timestamp = "$($msg.Timestamp)"
+			# 			}
+			# 		}
 
-					$level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
-					$text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
-					$lines.Add("$timestamp [$level] $text")
-				}
-			}
+			# 		$level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
+			# 		$text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
+			# 		$lines.Add("$timestamp [$level] $text")
+			# 	}
+			# }
 
-			$logMarkdownPath = Join-Path $LogsPath "$testId.md"
+			$testLogsPath = Join-Path $LogsPath '2-Tests'
+			[void][System.IO.Directory]::CreateDirectory($testLogsPath)
+			$logMarkdownPath = Join-Path $testLogsPath "$testId.md"
 			[System.IO.File]::WriteAllLines($logMarkdownPath, $lines)
 		}
 		catch {

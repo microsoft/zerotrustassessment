@@ -79,7 +79,7 @@ function Write-ZtDatabaseLog {
 			}
 			$line += [System.Environment]::NewLine
 
-			$progressFilePath = Join-Path $LogsPath '_database_progress.log'
+			$progressFilePath = Join-Path $LogsPath '2-database_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 

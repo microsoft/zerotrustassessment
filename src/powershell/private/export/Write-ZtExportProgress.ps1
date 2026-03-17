@@ -97,7 +97,7 @@ function Write-ZtExportProgress {
 			}
 			$line += [System.Environment]::NewLine
 
-			$progressFilePath = Join-Path $LogsPath '_export_progress.log'
+			$progressFilePath = Join-Path $LogsPath '1-export_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 
