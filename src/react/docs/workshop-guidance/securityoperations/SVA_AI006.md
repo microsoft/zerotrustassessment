@@ -4,7 +4,7 @@
 **User Impact:** Low — Actions occur only within the admin/security team; no non‑privileged users are affected or notified.
 
 ## Overview
-Security Copilot in Microsoft Defender XDR uses generative AI to summarize security incidents and provide guided remediation actions. Defender XDR automatically produces a clear, high‑value summary of the incident attack story, enabling analysts to understand what happened quickly.  Security Copilot also uses AI and machine learning to contextualize the incident and generate recommended steps analysts can follow to investigate and remediate threats. These summaries and guided steps appear automatically in the Security Copilot pane within the attack story, helping teams reduce investigation time and improve response consistency. 
+Security Copilot in Microsoft Defender XDR uses generative AI to summarize security incidents and provide guided remediation actions. Defender XDR automatically produces a clear, high‑value summary of the incident attack story, enabling analysts to understand what happened quickly. Security Copilot also uses AI and machine learning to contextualize the incident and generate recommended steps analysts can follow to investigate and remediate threats. These summaries and guided steps appear automatically in the Security Copilot pane within the attack story, helping teams reduce investigation time and improve response consistency. 
 
 If not implemented, analysts must manually correlate data across multiple Defender components, slowing down response and increasing the risk of delayed containment.
 
