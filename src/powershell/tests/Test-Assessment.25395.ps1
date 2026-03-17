@@ -25,7 +25,7 @@ function Test-Assessment-25395 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25395,
-        Title = 'Private Access application segments enforce least-privilege access',
+        Title = 'Entra Private Access Application segments are defined to enforce least-privilege access',
         UserImpact = 'Medium'
     )]
     [CmdletBinding()]
@@ -476,7 +476,7 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
     #endregion Report Generation
     $params = @{
         TestId = '25395'
-        Title  = 'Private Access application segments enforce least-privilege access'
+        Title  = 'Entra Private Access Application segments are defined to enforce least-privilege access'
         Status = $passed
         Result = $testResultMarkdown
     }
