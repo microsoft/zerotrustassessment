@@ -5,8 +5,9 @@ function Write-ZtTestLog {
 
 	.DESCRIPTION
 		Writes a per-test log file with execution summary and PSFramework messages.
-		Each test gets its own <TestID>.md file under the logs folder, making it
-		easy to debug individual test executions in parallel runs.
+		Each test gets its own <TestID>.md file under the 2-Tests subfolder of the
+		logs folder (<LogsPath>/2-Tests/<TestID>.md), making it easy to debug
+		individual test executions in parallel runs.
 
 		The log file contains a header block with test metadata (ID, title, status,
 		duration, timing, errors) followed by timestamped message lines.
@@ -20,7 +21,7 @@ function Write-ZtTestLog {
 	.EXAMPLE
 		PS C:\> Write-ZtTestLog -Result $result -LogsPath $logsPath
 
-		Writes the full test log for the completed test to <LogsPath>/<TestID>.md.
+		Writes the full test log for the completed test to <LogsPath>/2-Tests/<TestID>.md.
 	#>
 	[CmdletBinding()]
 	param (
