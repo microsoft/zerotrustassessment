@@ -20,6 +20,7 @@ function Test-Assessment-25395 {
         Category = 'Global Secure Access',
         ImplementationCost = 'High',
         MinimumLicense = ('Entra_Premium_Private_Access'),
+        CompatibleLicense = ('Entra_Premium_Private_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
