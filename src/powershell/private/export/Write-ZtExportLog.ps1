@@ -5,8 +5,9 @@ function Write-ZtExportLog {
 
 	.DESCRIPTION
 		Writes a per-export log file with execution summary and PSFramework messages.
-		Each export gets its own export_<Name>.md file under the logs folder, making it
-		easy to debug individual export executions in parallel runs.
+		Each export gets its own export_<Name>.md file under the 1-Export subfolder of the
+		logs folder (<LogsPath>/1-Export/export_<Name>.md), making it easy to debug
+		individual export executions in parallel runs.
 
 		The log file contains a header block with export metadata (name, status,
 		duration, timing, Graph URI, errors) followed by timestamped message lines.
@@ -20,7 +21,7 @@ function Write-ZtExportLog {
 	.EXAMPLE
 		PS C:\> Write-ZtExportLog -Result $result -LogsPath $logsPath
 
-		Writes the full export log for the completed export to <LogsPath>/export_<Name>.md.
+		Writes the full export log for the completed export to <LogsPath>/1-Export/export_<Name>.md.
 	#>
 	[CmdletBinding()]
 	param (

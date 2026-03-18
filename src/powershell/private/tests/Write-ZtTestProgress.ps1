@@ -4,7 +4,7 @@ function Write-ZtTestProgress {
 		Appends a progress entry to the overall test execution progress log.
 
 	.DESCRIPTION
-		Appends a single line to _progress.log in the logs folder, recording when
+		Appends a single line to 3-test_progress.log in the logs folder, recording when
 		each test starts, completes, or fails. This append-only log provides an
 		at-a-glance timeline of all test executions and makes it easy to identify
 		hanging tests (STARTED without a matching COMPLETED/FAILED line).
