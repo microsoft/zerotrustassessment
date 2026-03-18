@@ -307,7 +307,7 @@ function ProductShowcase() {
                   A new web application to plan your Zero Trust deployment
                   across all seven pillars — Identity, Devices, Data, Network,
                   Infrastructure, Security Operations, and AI. Prioritize tasks
-                  in a First-Then structure and generate automated summaries and
+                  in a First-Then-Next structure and generate automated summaries and
                   implementation plans.
                 </Translate>
               </p>
