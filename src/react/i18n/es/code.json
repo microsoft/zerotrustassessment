@@ -1,453 +1,528 @@
 {
-  "SiteHeading": {
-    "message": "Microsoft Zero Trust"
-  },
-  "theme.NotFound.title": {
-    "message": "Página no encontrada "
-  },
-  "theme.NotFound.p1": {
-    "message": "No pudimos encontrar lo que buscabas  "
-     },
-  "theme.NotFound.p2": {
-    "message": "Contacta al dueño del sitio, el URL no esta disponible  "
-  },
-  "theme.ErrorPageContent.title": {
-    "message": "Error en la pagina   "
-  },
-  "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "Ir de atras hacia delante    "
-  },
-  "theme.blog.archive.title": {
-    "message": "Archivado    "
-  },
-  "theme.blog.archive.description": {
-    "message": "Archivado    "
-  },
-  "theme.blog.paginator.navAriaLabel": {
-    "message": "Navegacion de pagina "
-  },
-  "theme.blog.paginator.newerEntries": {
-    "message": "Nuevas entradas "
-  },
-  "theme.blog.paginator.olderEntries": {
-    "message": "Entradas anteriores "
-  },
-  "theme.blog.post.paginator.navAriaLabel": {
-    "message": "Blog post page navigation "
-  },
-  "theme.blog.post.paginator.newerPost": {
-    "message": "Nuevo post "
-  },
-  "theme.blog.post.paginator.olderPost": {
-    "message": "Post anterior "
-  },
-  "theme.tags.tagsPageLink": {
-    "message": "Ver todas las paginas"
-  },
-  "theme.colorToggle.ariaLabel": {
-    "message": "Cambiar entra modo obscuro y claro (actualmente {mode})"
-  },
-  "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "modo obscuro"
-  },
-  "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "modo claro"
-  },
-  "theme.docs.breadcrumbs.navAriaLabel": {
-    "message": "Breadcrumbs"
-  },
-  "theme.docs.DocCard.categoryDescription.plurals": {
-    "message": "1 item|{count} items"
-  },
-  "theme.docs.paginator.navAriaLabel": {
-    "message": "Paginas de documentos"
-  },
-  "theme.docs.paginator.previous": {
-    "message": "Previo"
-  },
-  "theme.docs.paginator.next": {
-    "message": "Siguiente"
-  },
-  "theme.docs.versionBadge.label": {
-    "message": "Version: {versionLabel}"
-  },
-  "theme.docs.versions.unreleasedVersionLabel": {
-    "message": "Esta documentacion esta sin liberarse {siteTitle} {versionLabel} version"
-  },
-  "theme.docs.versions.unmaintainedVersionLabel": {
-    "message": "La documentacion para {siteTitle} {versionLabel}, ya no se mantiene vigente"
-  },
-  "theme.docs.versions.latestVersionSuggestionLabel": {
-    "message": "Para documentacion actualizada revisar la {latestVersionLink} ({versionLabel})"
-  },
-  "theme.docs.versions.latestVersionLinkLabel": {
-    "message": "Ultima version  "
-  },
-  "theme.docs.tagDocListPageTitle.nDocsTagged": {
-    "message": "Un documento etiquetado|{count} docs etiquetados"
-  },
-  "theme.docs.tagDocListPageTitle": {
-    "message": "{nDocsTagged} con \"{tagName}\""
-  },
-  "theme.common.editThisPage": {
-    "message": "Editar esta pagina"
-  },
-  "theme.lastUpdated.atDate": {
-    "message": " en {date}"
-  },
-  "theme.lastUpdated.byUser": {
-    "message": " por {user}"
-  },
-  "theme.lastUpdated.lastUpdatedAtBy": {
-    "message": "Ultima actualizacion {atDate}{byUser}"
-  },
-  "theme.common.headingLinkTitle": {
-    "message": "Enalce directo a {heading}"
-  },
-  "theme.navbar.mobileVersionsDropdown.label": {
-    "message": "Versions"
-  },
-  "theme.tags.tagsListLabel": {
-    "message": "Etiquetas:"
-  },
-  "theme.admonition.caution": {
-    "message": "precaucion"
-  },
-  "theme.admonition.danger": {
-    "message": "peligro"
-  },
-  "theme.admonition.info": {
-    "message": "informacion"
-  },
-  "theme.admonition.note": {
-    "message": "nota"
-  },
-  "theme.admonition.tip": {
-    "message": "tip"
-  },
-  "theme.admonition.warning": {
-    "message": "advertencia"
-  },
-  "theme.AnnouncementBar.closeButtonAriaLabel": {
-    "message": "Cerrar       "
-  },
-  "theme.blog.sidebar.navAriaLabel": {
-    "message": "Navegación de entradas recientes del blog"
-  },
-  "theme.CodeBlock.wordWrapToggle": {
-    "message": "Activar o desactivar el ajuste de línea"
-  },
-  "theme.CodeBlock.copied": {
-    "message": "Copiado"
-  },
-  "theme.CodeBlock.copyButtonAriaLabel": {
-    "message": "Copiado al  clipboard"
-  },
-  "theme.CodeBlock.copy": {
-    "message": "Copiar",
-    "description": "The copy button label on code blocks"
-  },
-  "theme.DocSidebarItem.expandCategoryAriaLabel": {
-    "message": "Expandir la barra de categoria '{label}'"
-  },
-  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
-    "message": "Colapsar la barra de categoria '{label}'"
-  },
-  "theme.navbar.mobileLanguageDropdown.label": {
-    "message": "Idiomas"
-  },
-  "theme.NavBar.navAriaLabel": {
-    "message": "Principal"
-   },
-  "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "En esta pagina"
-  },
-  "theme.blog.post.readMore": {
-    "message": "Leer mas"
-  },
-  "theme.blog.post.readMoreLabel": {
-    "message": "Leer mas acerca de  {title}"
-  },
-  "theme.docs.breadcrumbs.home": {
-    "message": "Pagina Principal"
-  },
-  "theme.docs.sidebar.collapseButtonTitle": {
-    "message": "Colapsar barra"
-  },
-  "theme.docs.sidebar.collapseButtonAriaLabel": {
-    "message": "Colapsar barra"
-  },
-  "theme.docs.sidebar.navAriaLabel": {
-    "message": "Barra de documentos"
-  },
-  "theme.blog.post.readingTime.plurals": {
-    "message": "Un minuto de lectura|{readingTime} min read"
-  },
-  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
-    "message": "Cerrar navegacion"
-  },
-  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-    "message": "← Regresar al menu principal"
-  },
-  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
-    "message": "Alternar barra de navegación"
-  },
-  "theme.docs.sidebar.expandButtonTitle": {
-    "message": "Expandir barra"
-  },
-  "theme.docs.sidebar.expandButtonAriaLabel": {
-    "message": "Expandir barra"
-  },
-  "theme.blog.post.plurals": {
-    "message": "un post|{count} posts"
-  },
-  "theme.blog.tagTitle": {
-    "message": "{nPosts} etiquetada con \"{tagName}\""
-  },
-  "theme.blog.author.pageTitle": {
-    "message": "{authorName} - {nPosts}"
-  },
-  "theme.blog.authorsList.pageTitle": {
-    "message": "Autores"
-  },
-  "theme.blog.authorsList.viewAll": {
-    "message": "Ver todos los autores"
-  },
-  "theme.contentVisibility.unlistedBanner.title": {
-    "message": "Pagina no listada"
-  },
-  "theme.contentVisibility.unlistedBanner.message": {
-    "message": "Esta página no está listada. Los motores de búsqueda no la indexarán y solo los usuarios con un enlace directo podrán acceder a ella"
-  },
-  "theme.contentVisibility.draftBanner.title": {
-    "message": "Version preliminar"
-  },
-  "theme.contentVisibility.draftBanner.message": {
-    "message": "Esta página es un borrador. Solo será visible en desarrollo y se excluirá de la versión de producción."
-  },
-  "theme.ErrorPageContent.tryAgain": {
-    "message": "Intenta otra vez"
-  },
-  "theme.common.skipToMainContent": {
-    "message": "Saltar al contenido principal"
-  },
-  "theme.tags.tagsPageTitle": {
-    "message": "Tags"
+    "SiteHeading": {
+        "message": "Atelier Zero Trust Microsoft"
     },
     "homepage.title": {
-        "message": "Taller de Confianza cero de Microsoft"
+        "message": "Atelier Zero Trust Microsoft"
     },
     "homepage.description": {
-        "message": "Una guía técnica integral para ayudar a clientes y socios a implementar soluciones de seguridad en sus organizaciones basándose en una estrategia de seguridad de Confianza cero."
+        "message": "Un guide technique complet pour aider les clients et partenaires à déployer des solutions de sécurité dans leurs organisations en s'appuyant sur une stratégie de sécurité Zero Trust."
     },
     "homepage.whatIsZt.title": {
-        "message": "¿Qué es Confianza cero?"
+        "message": "Qu'est-ce que la Zero Trust ?"
     },
     "homepage.whatIsZt.sentence1": {
-        "message": "Abordar los complejos desafíos de seguridad modernos es difícil, pero la estrategia de seguridad de Confianza cero proporciona una dirección clara. Al adoptar una estrategia de Confianza cero, las organizaciones pueden fortalecer su posición de seguridad y reducir riesgos y complejidad mientras mejoran el cumplimiento y la gobernanza."
+        "message": "Relever les défis complexes de la sécurité moderne est difficile, mais la stratégie de sécurité Zero Trust offre une direction claire. En adoptant une stratégie Zero Trust, les organisations peuvent renforcer leur posture de sécurité et réduire les risques et la complexité tout en améliorant la conformité et la gouvernance."
     },
     "homepage.whatIsZt.sentence2": {
-        "message": "El taller de Confianza cero ayuda a aplicar los principios de seguridad de Confianza cero a la seguridad de Microsoft."
+        "message": "L'atelier Zero Trust aide à appliquer les principes de sécurité Zero Trust à la sécurité Microsoft."
     },
     "homepage.whatIsZt.verify": {
-        "message": "Verificar siempre"
+        "message": "Toujours vérifier"
     },
     "homepage.whatIsZt.leastPriv": {
-        "message": "Acceso con privilegios mínimos"
+        "message": "Accès avec privilèges minimaux"
     },
     "homepage.whatIsZt.assumeComp": {
-        "message": "Asumir la vulneración"
+        "message": "Supposer la compromission"
     },
     "learnMore": {
-        "message": "Más información"
+        "message": "En savoir plus"
     },
     "homepage.whyRunWorkshop.title": {
-        "message": "¿Por qué realizar el taller?"
+        "message": "Pourquoi organiser l'atelier"
     },
     "homepage.whyRunWorkshop.sentence1": {
-        "message": "El taller de Confianza cero es una guía de implementación proporcionada por Microsoft para desplegar la estrategia de seguridad de Confianza cero en entornos reales."
+        "message": "L'atelier Zero Trust est un guide de déploiement fourni par Microsoft pour déployer la stratégie de sécurité Zero Trust dans des environnements réels."
     },
     "homepage.whyRunWorkshop.sentence2": {
-        "message": "Basado en el conocimiento adquirido de miles de implementaciones con clientes, puede evaluar su entorno actual y revisar los pasos específicos para mejorar su posición de seguridad integral paso a paso."
+        "message": "Basé sur les connaissances acquises auprès de milliers d'implémentations clients, vous pouvez évaluer votre environnement actuel et examiner les étapes spécifiques pour améliorer votre posture de sécurité globale pas à pas."
     },
     "homepage.whyRunWorkshop.learnAboutWorkshop": {
-        "message": "Conozca el taller"
+        "message": "Découvrir l'atelier"
     },
     "homepage.howRunWorkshop.title": {
-        "message": "¿Cómo realizar el taller?"
+        "message": "Comment organiser l'atelier"
     },
     "homepage.howRunWorkshop.sentence1": {
-        "message": "Consulte la guía paso a paso para aprender cómo realizar sesiones de discusión de estrategia y evaluación del entorno actual. Si no sabe cómo empezar, vea el video introductorio del taller de Confianza cero."
+        "message": "Consultez le guide étape par étape pour apprendre à mener des sessions de discussion stratégique et d'évaluation de l'environnement actuel. Si vous ne savez pas par où commencer, regardez la vidéo d'introduction de l'atelier Zero Trust."
     },
     "homepage.howRunWorkshop.sentence2": {
-        "message": "Basado en el conocimiento adquirido de miles de implementaciones con clientes, puede evaluar su entorno actual y revisar los pasos específicos para mejorar su posición de seguridad integral paso a paso."
+        "message": "Basé sur les connaissances acquises auprès de milliers d'implémentations clients, vous pouvez évaluer votre environnement actuel et examiner les étapes spécifiques pour améliorer votre posture de sécurité globale pas à pas."
+    },
+    "theme.NotFound.title": {
+        "message": "Page non trouvée",
+        "description": "Le titre de la page 404"
+    },
+    "theme.NotFound.p1": {
+        "message": "Nous n'avons pas trouvé ce que vous cherchiez.",
+        "description": "Le premier paragraphe de la page 404"
+    },
+    "theme.NotFound.p2": {
+        "message": "Veuillez contacter le propriétaire du site qui vous a dirigé vers l'URL d'origine et l'informer que le lien est cassé.",
+        "description": "Le deuxième paragraphe de la page 404"
+    },
+    "theme.ErrorPageContent.title": {
+        "message": "Cette page a planté.",
+        "description": "Le titre de la page de secours lorsque la page plante"
+    },
+    "theme.BackToTopButton.buttonAriaLabel": {
+        "message": "Retour en haut",
+        "description": "Le libellé ARIA du bouton retour en haut"
+    },
+    "theme.blog.archive.title": {
+        "message": "Archives",
+        "description": "Le titre de la page d'archives du blog"
+    },
+    "theme.blog.archive.description": {
+        "message": "Archives",
+        "description": "La description de la page d'archives du blog"
+    },
+    "theme.blog.paginator.navAriaLabel": {
+        "message": "Navigation de la liste des pages du blog",
+        "description": "Le libellé ARIA pour la pagination du blog"
+    },
+    "theme.blog.paginator.newerEntries": {
+        "message": "Entrées plus récentes",
+        "description": "Le libellé pour naviguer vers les articles de blog plus récents"
+    },
+    "theme.blog.paginator.olderEntries": {
+        "message": "Entrées plus anciennes",
+        "description": "Le libellé pour naviguer vers les articles de blog plus anciens"
+    },
+    "theme.blog.post.paginator.navAriaLabel": {
+        "message": "Navigation de la page d'article de blog",
+        "description": "Le libellé ARIA pour la pagination des articles de blog"
+    },
+    "theme.blog.post.paginator.newerPost": {
+        "message": "Article plus récent",
+        "description": "Le libellé du bouton pour naviguer vers l'article plus récent"
+    },
+    "theme.blog.post.paginator.olderPost": {
+        "message": "Article plus ancien",
+        "description": "Le libellé du bouton pour naviguer vers l'article plus ancien"
+    },
+    "theme.tags.tagsPageLink": {
+        "message": "Voir tous les tags",
+        "description": "Le libellé du lien vers la page de liste des tags"
+    },
+    "theme.colorToggle.ariaLabel": {
+        "message": "Basculer entre le mode sombre et le mode clair (actuellement {mode})",
+        "description": "Le libellé ARIA du sélecteur de mode couleur"
+    },
+    "theme.colorToggle.ariaLabel.mode.dark": {
+        "message": "mode sombre",
+        "description": "Le nom du mode couleur sombre"
+    },
+    "theme.colorToggle.ariaLabel.mode.light": {
+        "message": "mode clair",
+        "description": "Le nom du mode couleur clair"
+    },
+    "theme.docs.breadcrumbs.navAriaLabel": {
+        "message": "Fil d'Ariane",
+        "description": "Le libellé ARIA du fil d'Ariane"
+    },
+    "theme.docs.DocCard.categoryDescription.plurals": {
+        "message": "1 élément|{count} éléments",
+        "description": "La description par défaut d'une carte de catégorie"
+    },
+    "theme.docs.paginator.navAriaLabel": {
+        "message": "Pages de documentation",
+        "description": "Le libellé ARIA pour la pagination des documents"
+    },
+    "theme.docs.paginator.previous": {
+        "message": "Précédent",
+        "description": "Le libellé pour naviguer vers le document précédent"
+    },
+    "theme.docs.paginator.next": {
+        "message": "Suivant",
+        "description": "Le libellé pour naviguer vers le document suivant"
+    },
+    "theme.docs.versionBadge.label": {
+        "message": "Version : {versionLabel}"
+    },
+    "theme.docs.versions.unreleasedVersionLabel": {
+        "message": "Ceci est la documentation non publiée de {siteTitle} {versionLabel}.",
+        "description": "Le libellé pour informer l'utilisateur qu'il consulte une version non publiée"
+    },
+    "theme.docs.versions.unmaintainedVersionLabel": {
+        "message": "Ceci est la documentation de {siteTitle} {versionLabel}, qui n'est plus activement maintenue.",
+        "description": "Le libellé pour informer l'utilisateur qu'il consulte une version non maintenue"
+    },
+    "theme.docs.versions.latestVersionSuggestionLabel": {
+        "message": "Pour la documentation à jour, consultez {latestVersionLink} ({versionLabel}).",
+        "description": "Le libellé pour suggérer la dernière version"
+    },
+    "theme.docs.versions.latestVersionLinkLabel": {
+        "message": "dernière version",
+        "description": "Le libellé du lien vers la dernière version"
+    },
+    "theme.docs.tagDocListPageTitle.nDocsTagged": {
+        "message": "Un document tagué|{count} documents tagués",
+        "description": "Libellé pluriel pour les documents tagués"
+    },
+    "theme.docs.tagDocListPageTitle": {
+        "message": "{nDocsTagged} avec \"{tagName}\"",
+        "description": "Le titre de la page pour un tag de document"
+    },
+    "theme.common.editThisPage": {
+        "message": "Modifier cette page",
+        "description": "Le libellé du lien pour modifier la page actuelle"
+    },
+    "theme.lastUpdated.atDate": {
+        "message": " le {date}",
+        "description": "Les mots pour décrire la date de dernière mise à jour"
+    },
+    "theme.lastUpdated.byUser": {
+        "message": " par {user}",
+        "description": "Les mots pour décrire qui a mis à jour la page"
+    },
+    "theme.lastUpdated.lastUpdatedAtBy": {
+        "message": "Dernière mise à jour{atDate}{byUser}",
+        "description": "La phrase pour afficher quand et par qui la page a été mise à jour"
+    },
+    "theme.common.headingLinkTitle": {
+        "message": "Lien direct vers {heading}",
+        "description": "Le titre du lien vers le titre"
+    },
+    "theme.navbar.mobileVersionsDropdown.label": {
+        "message": "Versions",
+        "description": "Le libellé du menu déroulant des versions sur mobile"
+    },
+    "theme.tags.tagsListLabel": {
+        "message": "Tags :",
+        "description": "Le libellé à côté de la liste des tags"
+    },
+    "theme.admonition.caution": {
+        "message": "attention",
+        "description": "Le libellé par défaut pour l'avertissement attention"
+    },
+    "theme.admonition.danger": {
+        "message": "danger",
+        "description": "Le libellé par défaut pour l'avertissement danger"
+    },
+    "theme.admonition.info": {
+        "message": "info",
+        "description": "Le libellé par défaut pour l'avertissement info"
+    },
+    "theme.admonition.note": {
+        "message": "note",
+        "description": "Le libellé par défaut pour l'avertissement note"
+    },
+    "theme.admonition.tip": {
+        "message": "astuce",
+        "description": "Le libellé par défaut pour l'avertissement astuce"
+    },
+    "theme.admonition.warning": {
+        "message": "avertissement",
+        "description": "Le libellé par défaut pour l'avertissement"
+    },
+    "theme.AnnouncementBar.closeButtonAriaLabel": {
+        "message": "Fermer",
+        "description": "Le libellé ARIA du bouton fermer de la barre d'annonce"
+    },
+    "theme.blog.sidebar.navAriaLabel": {
+        "message": "Navigation des articles récents du blog",
+        "description": "Le libellé ARIA pour les articles récents dans la barre latérale"
+    },
+    "theme.CodeBlock.wordWrapToggle": {
+        "message": "Activer/désactiver le retour à la ligne",
+        "description": "L'attribut title du bouton de retour à la ligne des blocs de code"
+    },
+    "theme.CodeBlock.copied": {
+        "message": "Copié",
+        "description": "Le libellé du bouton copié sur les blocs de code"
+    },
+    "theme.CodeBlock.copyButtonAriaLabel": {
+        "message": "Copier le code dans le presse-papiers",
+        "description": "Le libellé ARIA du bouton copier des blocs de code"
+    },
+    "theme.CodeBlock.copy": {
+        "message": "Copier",
+        "description": "Le libellé du bouton copier sur les blocs de code"
+    },
+    "theme.DocSidebarItem.expandCategoryAriaLabel": {
+        "message": "Développer la catégorie '{label}'",
+        "description": "Le libellé ARIA pour développer une catégorie"
+    },
+    "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+        "message": "Réduire la catégorie '{label}'",
+        "description": "Le libellé ARIA pour réduire une catégorie"
+    },
+    "theme.navbar.mobileLanguageDropdown.label": {
+        "message": "Langues",
+        "description": "Le libellé du sélecteur de langue mobile"
+    },
+    "theme.NavBar.navAriaLabel": {
+        "message": "Principal",
+        "description": "Le libellé ARIA pour la navigation principale"
+    },
+    "theme.TOCCollapsible.toggleButtonLabel": {
+        "message": "Sur cette page",
+        "description": "Le libellé du bouton du composant TOC réductible"
+    },
+    "theme.blog.post.readMore": {
+        "message": "Lire la suite",
+        "description": "Le libellé pour lire l'article complet"
+    },
+    "theme.blog.post.readMoreLabel": {
+        "message": "En savoir plus sur {title}",
+        "description": "Le libellé ARIA du lien vers l'article complet"
+    },
+    "theme.docs.breadcrumbs.home": {
+        "message": "Accueil",
+        "description": "Le libellé ARIA de la page d'accueil dans le fil d'Ariane"
+    },
+    "theme.docs.sidebar.collapseButtonTitle": {
+        "message": "Réduire la barre latérale",
+        "description": "L'attribut title du bouton de réduction de la barre latérale"
+    },
+    "theme.docs.sidebar.collapseButtonAriaLabel": {
+        "message": "Réduire la barre latérale",
+        "description": "L'attribut title du bouton de réduction de la barre latérale"
+    },
+    "theme.docs.sidebar.navAriaLabel": {
+        "message": "Barre latérale des documents",
+        "description": "Le libellé ARIA de la navigation de la barre latérale"
+    },
+    "theme.blog.post.readingTime.plurals": {
+        "message": "1 min de lecture|{readingTime} min de lecture",
+        "description": "Libellé pluriel pour le temps de lecture"
+    },
+    "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+        "message": "Fermer la barre de navigation",
+        "description": "Le libellé ARIA du bouton fermer de la barre latérale mobile"
+    },
+    "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+        "message": "← Retour au menu principal",
+        "description": "Le libellé du bouton retour au menu principal"
+    },
+    "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+        "message": "Basculer la barre de navigation",
+        "description": "Le libellé ARIA du bouton hamburger mobile"
+    },
+    "theme.docs.sidebar.expandButtonTitle": {
+        "message": "Développer la barre latérale",
+        "description": "Le libellé ARIA et l'attribut title du bouton développer"
+    },
+    "theme.docs.sidebar.expandButtonAriaLabel": {
+        "message": "Développer la barre latérale",
+        "description": "Le libellé ARIA et l'attribut title du bouton développer"
+    },
+    "theme.blog.post.plurals": {
+        "message": "Un article|{count} articles",
+        "description": "Libellé pluriel pour les articles"
+    },
+    "theme.blog.tagTitle": {
+        "message": "{nPosts} tagués avec \"{tagName}\"",
+        "description": "Le titre de la page pour un tag de blog"
+    },
+    "theme.blog.author.pageTitle": {
+        "message": "{authorName} - {nPosts}",
+        "description": "Le titre de la page d'un auteur de blog"
+    },
+    "theme.blog.authorsList.pageTitle": {
+        "message": "Auteurs",
+        "description": "Le titre de la page des auteurs"
+    },
+    "theme.blog.authorsList.viewAll": {
+        "message": "Voir tous les auteurs",
+        "description": "Le libellé du lien vers la page des auteurs"
+    },
+    "theme.contentVisibility.unlistedBanner.title": {
+        "message": "Page non répertoriée",
+        "description": "Le titre de la bannière de contenu non répertorié"
+    },
+    "theme.contentVisibility.unlistedBanner.message": {
+        "message": "Cette page n'est pas répertoriée. Les moteurs de recherche ne l'indexeront pas, et seuls les utilisateurs disposant d'un lien direct peuvent y accéder.",
+        "description": "Le message de la bannière de contenu non répertorié"
+    },
+    "theme.contentVisibility.draftBanner.title": {
+        "message": "Page brouillon",
+        "description": "Le titre de la bannière de contenu brouillon"
+    },
+    "theme.contentVisibility.draftBanner.message": {
+        "message": "Cette page est un brouillon. Elle ne sera visible qu'en développement et sera exclue de la version de production.",
+        "description": "Le message de la bannière de contenu brouillon"
+    },
+    "theme.ErrorPageContent.tryAgain": {
+        "message": "Réessayer",
+        "description": "Le libellé du bouton réessayer"
+    },
+    "theme.common.skipToMainContent": {
+        "message": "Aller au contenu principal",
+        "description": "Le libellé d'accessibilité pour passer au contenu principal"
+    },
+    "theme.tags.tagsPageTitle": {
+        "message": "Tags",
+        "description": "Le titre de la page de liste des tags"
     },
     "badge.new": {
-        "message": "NUEVO"
+        "message": "NOUVEAU"
     },
     "badge.updated": {
-        "message": "ACTUALIZADO"
+        "message": "MIS À JOUR"
     },
     "hero.tagline": {
-        "message": "El pilar de IA ya está disponible en el marco de Confianza cero"
+        "message": "Le pilier IA est désormais disponible dans le framework Zero Trust"
     },
     "hero.title": {
-        "message": "Acelere su camino hacia la Confianza cero"
+        "message": "Accélérez votre parcours Zero Trust"
     },
     "hero.subtitle": {
-        "message": "Un marco integral de Microsoft para ayudar a las organizaciones a adoptar una estrategia de Confianza cero e implementar soluciones de seguridad de extremo a extremo — ahora con un nuevo pilar de IA para proteger agentes y recursos de IA."
+        "message": "Microsoft propose un framework complet pour aider les organisations à adopter une stratégie Zero Trust et déployer des solutions de sécurité de bout en bout — incluant désormais un nouveau pilier dédié à la sécurisation des agents et des ressources d’IA."
     },
     "hero.cta.workshop": {
-        "message": "Iniciar taller"
+        "message": "Lancer l'atelier"
     },
     "hero.cta.assessment": {
-        "message": "Ejecutar evaluación"
+        "message": "Lancer l'évaluation"
     },
     "ai.pill": {
-        "message": "Novedades"
+        "message": "Nouveautés"
     },
     "ai.title": {
-        "message": "Presentamos el pilar de IA en Confianza cero"
+        "message": "Présentation du pilier IA dans Zero Trust"
     },
     "ai.description": {
-        "message": "A medida que las organizaciones adoptan agentes de IA y servidores MCP, el marco de Confianza cero ahora incluye un pilar dedicado de recursos de IA con controles de IA — garantizando que sus cargas de trabajo de IA se gestionen con el mismo rigor que cualquier otra parte de su entorno."
+        "message": "Avec l’adoption croissante des agents d’IA et des serveurs MCP, le framework Zero Trust inclut désormais un pilier dédié aux ressources IA avec des contrôles IA — garantissant que vos charges de travail IA sont gérées avec la même rigueur que toute autre partie de votre environnement."
     },
     "ai.pillarSubtitle": {
-        "message": "Ahora con resúmenes autogenerados y verificaciones ampliadas de posición de datos y red."
+        "message": "Inclut désormais des résumés générés automatiquement ainsi que des contrôles enrichis pour les piliers Données et Réseau."
     },
     "pillar.identity": {
-        "message": "Identidad"
+        "message": "Identité"
     },
     "pillar.devices": {
-        "message": "Dispositivos"
+        "message": "Appareils"
     },
     "pillar.data": {
-        "message": "Datos"
+        "message": "Données"
     },
     "pillar.data.tooltip": {
-        "message": "Nuevas verificaciones de evaluación automatizadas"
+        "message": "Nouvelles vérifications d'évaluation automatisées"
     },
     "pillar.network": {
-        "message": "Red"
+        "message": "Réseau"
     },
     "pillar.network.tooltip": {
-        "message": "Nuevas verificaciones de evaluación automatizadas"
+        "message": "Nouvelles vérifications d'évaluation automatisées"
     },
     "pillar.infrastructure": {
-        "message": "Infraestructura"
+        "message": "Infrastructure"
     },
     "pillar.secops": {
-        "message": "Operaciones de seguridad"
+        "message": "Opérations de sécurité"
     },
     "pillar.ai": {
         "message": "IA"
     },
     "pillar.ai.tooltip": {
-        "message": "Pilar de IA en el taller"
+        "message": "Pilier IA dans l'atelier"
     },
     "products.title": {
-        "message": "Dos herramientas, una misión"
+        "message": "Deux outils, une mission"
     },
     "products.subtitle": {
-        "message": "Ya sea que esté planificando su hoja de ruta de Confianza cero o midiendo su posición actual, lo tenemos cubierto."
+        "message": "Que vous planifiiez votre feuille de route Zero Trust ou que vous mesuriez votre posture actuelle, nous avons ce qu'il vous faut."
     },
     "products.workshop.label": {
-        "message": "Herramienta de planificación interactiva"
+        "message": "Outil de planification interactif"
     },
     "products.workshop.name": {
-        "message": "Taller de Confianza cero"
+        "message": "Atelier Zero Trust"
     },
     "products.workshop.description": {
-        "message": "Una nueva aplicación web para planificar su implementación de Confianza cero en los siete pilares — Identidad, Dispositivos, Datos, Red, Infraestructura, Operaciones de Seguridad e IA. Priorice tareas en una estructura Primero-Luego y genere resúmenes automatizados y planes de implementación."
+        "message": "Une nouvelle application web pour planifier votre déploiement Zero Trust sur les sept piliers — Identité, Appareils, Données, Réseau, Infrastructure, Opérations de Sécurité et IA. Priorisez les tâches (First - Then) et générez des résumés automatisés et des plans d'implémentation."
     },
     "products.workshop.tag.pillars": {
-        "message": "7 pilares"
+        "message": "7 piliers"
     },
     "products.workshop.tag.ai": {
-        "message": "Pilar de IA"
+        "message": "Pilier IA"
     },
     "products.workshop.tag.summaries": {
-        "message": "Resúmenes automáticos"
+        "message": "Résumés automatiques"
     },
     "products.workshop.tag.plans": {
-        "message": "Planes de implementación"
+        "message": "Plans d'implémentation"
     },
     "products.workshop.cta": {
-        "message": "Iniciar taller"
+        "message": "Lancer l'atelier"
     },
     "products.assessment.label": {
-        "message": "Análisis automatizado del inquilino"
+        "message": "Analyse automatisée de votre tenant Entra"
     },
     "products.assessment.name": {
-        "message": "Evaluación de Confianza cero"
+        "message": "Évaluation Zero Trust"
     },
     "products.assessment.description": {
-        "message": "Conéctese a su inquilino de Microsoft Entra y obtenga una evaluación automatizada de su posición de Confianza cero. Analice configuraciones en los pilares de Identidad, Dispositivos, Datos y Red con información práctica y paneles visuales."
+        "message": "Connectez-vous à votre environnement Microsoft Entra et obtenez une évaluation automatisée de votre posture Zero Trust. Analysez les configurations des piliers Identité, Appareils, Données et Réseau avec des informations exploitables et des tableaux de bord visuels."
     },
     "products.assessment.tag.identity": {
-        "message": "Identidad"
+        "message": "Identité"
     },
     "products.assessment.tag.devices": {
-        "message": "Dispositivos"
+        "message": "Appareils"
     },
     "products.assessment.tag.data": {
-        "message": "Datos"
+        "message": "Données"
     },
     "products.assessment.tag.network": {
-        "message": "Red"
+        "message": "Réseau"
     },
     "products.assessment.tag.checks": {
-        "message": "Verificaciones automatizadas"
+        "message": "Vérifications automatisées"
     },
     "products.assessment.cta": {
-        "message": "Ejecutar evaluación"
+        "message": "Lancer l'évaluation"
     },
     "howItWorks.title": {
-        "message": "Cómo funciona"
+        "message": "Comment ça marche"
     },
     "howItWorks.subtitle": {
-        "message": "Tres pasos para mejorar la posición de seguridad de su organización."
+        "message": "Trois étapes pour améliorer la posture de sécurité de votre organisation."
     },
     "howItWorks.step1.title": {
-        "message": "Aprenda"
+        "message": "Apprenez"
     },
     "howItWorks.step1.description": {
-        "message": "Comprenda los principios de Confianza cero — Verificar de forma explícita, Acceso con privilegios mínimos y Asumir la vulneración — y cómo se aplican a su entorno."
+        "message": "Maîtrisez les principes Zero Trust — Vérifier explicitement, Accès moindres privilèges et Supposer la compromission — et découvrez comment ils s'appliquent à votre environnement."
     },
     "howItWorks.step1.link": {
-        "message": "Explorar Microsoft Confianza cero"
+        "message": "Explorer Microsoft Zero Trust"
     },
     "howItWorks.step2.title": {
-        "message": "Planifique"
+        "message": "Planifiez"
     },
     "howItWorks.step2.description": {
-        "message": "Use el taller para construir una hoja de ruta concreta de Confianza cero en todos los pilares. Priorice tareas y genere planes de implementación adaptados a su organización."
+        "message": "Utilisez l'atelier pour construire une feuille de route Zero Trust concrète sur tous les piliers. Priorisez les tâches et générez des plans d'implémentation adaptés à votre organisation."
     },
     "howItWorks.step2.link": {
-        "message": "Abrir taller"
+        "message": "Ouvrir l'atelier"
     },
     "howItWorks.step3.title": {
-        "message": "Evalúe"
+        "message": "Évaluez"
     },
     "howItWorks.step3.description": {
-        "message": "Ejecute la evaluación contra su inquilino de Microsoft Entra para medir su posición actual, identificar brechas y realizar seguimiento del progreso a lo largo del tiempo."
+        "message": "Lancez l'évaluation sur votre environnement Microsoft Entra pour mesurer votre posture actuelle, identifier les points d’amélioration et suivre les progrès au fil du temps."
     },
     "howItWorks.step3.link": {
-        "message": "Ejecutar evaluación"
+        "message": "Lancer l'évaluation"
     },
     "getStarted.title": {
-        "message": "¿Listo para comenzar?"
+        "message": "Prêt à commencer ?"
     },
     "getStarted.description": {
-        "message": "Siga nuestro plan paso a paso para realizar una sesión de estrategia de Confianza cero. Ya sea socio de Microsoft o esté realizando un taller interno, la guía le acompaña en la preparación, ejecución y seguimiento."
+        "message": "Suivez notre plan étape par étape pour animer une session stratégique Zero Trust. Que vous soyez partenaire Microsoft ou que vous organisiez un atelier interne, le guide vous accompagne dans la préparation, l'animation et le suivi."
     },
     "getStarted.cta": {
-        "message": "Ver plan paso a paso"
+        "message": "Voir le plan étape par étape"
     },
     "home.layout.title": {
-        "message": "Taller y evaluación de Confianza cero de Microsoft"
+        "message": "Atelier et évaluation Zero Trust Microsoft"
     },
     "home.layout.description": {
-        "message": "Planifique su implementación de Confianza cero con la herramienta del taller y mida su posición con la evaluación automatizada — ahora con un nuevo pilar de IA."
+        "message": "Planifiez votre déploiement Zero Trust avec l'outil d'atelier et mesurez votre posture avec l'évaluation automatisée — avec un nouveau pilier IA."
     }
 }
