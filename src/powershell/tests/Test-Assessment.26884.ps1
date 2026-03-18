@@ -192,6 +192,13 @@ resources
             foreach ($secPolicy in $securityPolicies) {
                 # Reset domain count for each security policy to avoid accumulation
                 $currentPolicyDomainCount = 0
+
+                # Reset Bot Manager-related fields for each security policy to avoid stale values
+                $botManagerEnabled = 'No'
+                $ruleSetVersion = 'N/A'
+                $ruleSetAction = 'N/A'
+                $hasEnabledRule = $false
+
                 $wafPolicyRef = $secPolicy.properties.parameters.wafPolicy.id
 
                 if ($wafPolicyRef) {
@@ -230,28 +237,32 @@ resources
                                     }
 
                                     # Check if at least one rule is enabled in the Bot Manager rule set
-                                    # Rules are enabled by default unless explicitly disabled via ruleGroupOverrides
+                                    # Rules are enabled by default unless explicitly disabled. Azure WAF managed rule
+                                    # overrides typically list only changed rules; non-overridden rules remain enabled
+                                    # by default. To avoid false negatives, we assume there is at least one enabled
+                                    # rule unless we have conclusive evidence that the entire ruleset is disabled.
                                     $hasEnabledRule = $true
                                     if ($ruleSet.ruleGroupOverrides) {
-                                        $allRulesDisabled = $true
+                                        # We intentionally do not flip $hasEnabledRule to $false when all *overridden*
+                                        # rules are disabled, because there may still be non-overridden (and thus
+                                        # enabled) rules in the Bot Manager ruleset. Missing or empty overrides are
+                                        # treated as default-enabled.
                                         foreach ($override in $ruleSet.ruleGroupOverrides) {
                                             if ($override.rules) {
                                                 foreach ($rule in $override.rules) {
                                                     if ($rule.enabledState -ne 'Disabled') {
-                                                        $allRulesDisabled = $false
+                                                        # At least one explicitly enabled/non-disabled rule found.
+                                                        # Keep $hasEnabledRule = $true and break out early.
                                                         break
                                                     }
                                                 }
                                             }
                                             else {
-                                                # No explicit rule overrides means default enabled state
-                                                $allRulesDisabled = $false
+                                                # No explicit rule overrides for this group: cannot conclude all rules
+                                                # are disabled; non-overridden rules remain enabled by default.
+                                                break
                                             }
-                                            if (-not $allRulesDisabled) { break }
                                         }
-                                        # If all overridden rules are disabled but there may be non-overridden rules
-                                        # We consider it as having enabled rules unless explicitly all disabled
-                                        $hasEnabledRule = -not $allRulesDisabled
                                     }
 
                                     # Check if WAF policy is enabled, in Prevention mode, and Bot Manager is present with at least one rule enabled
@@ -283,6 +294,7 @@ resources
             ProfileId                = $profileId
             SkuName                  = $fdProfile.SkuName
             WAFPolicyName            = $associatedWafPolicyName
+            WAFPolicyId              = $associatedWafPolicyId
             WAFEnabled               = $wafEnabled
             WAFMode                  = $wafMode
             SecurityPolicyConfigured = $securityPolicyConfigured
@@ -346,8 +358,8 @@ resources
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-| Subscription | Profile name | SKU | WAF policy | Bot protection enabled | Rule set version | Rule set action | Domains protected | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Subscription | Profile name | SKU | WAF policy | WAF mode | Bot protection enabled | Has enabled rules | Rule set version | Rule set action | Domains protected | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
@@ -356,8 +368,16 @@ resources
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/securityPolicies)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+            $wafModeDisplay = if ($result.WAFMode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($result.WAFMode)" }
 
-            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $(Get-SafeMarkdown $result.WAFPolicyName) | $($result.BotManagerEnabled) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
+            # Create WAF policy link if policy exists
+            $wafPolicyDisplay = if ($result.WAFPolicyId) {
+                "[$(Get-SafeMarkdown $result.WAFPolicyName)]($portalResourceBaseLink$($result.WAFPolicyId)/overview)"
+            } else {
+                $(Get-SafeMarkdown $result.WAFPolicyName)
+            }
+
+            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $wafPolicyDisplay | $wafModeDisplay | $($result.BotManagerEnabled) | $($result.HasEnabledRule) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
         }
 
         $mdInfo += $formatTemplate -f $tableRows
