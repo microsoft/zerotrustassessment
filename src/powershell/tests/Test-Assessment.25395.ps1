@@ -31,27 +31,61 @@ function Test-Assessment-25395 {
     	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     # Active Directory well-known ports
     $AD_WELL_KNOWN_PORTS = @('53','88','135','389','445','464','636','3268','3269')
 
+    # Portal link templates
+    $portalLinkAppList = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication'
+    $portalLinkAppTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/{0}'
+
     #region Helper Functions
+
+    function Test-HasCustomSecurityAttributes {
+        <#
+        .SYNOPSIS
+            Checks if customSecurityAttributes is non-null and non-empty.
+        .DESCRIPTION
+            Graph API returns an empty object {} when CSAs are removed, which
+            evaluates as $true in PowerShell. This function properly checks
+            whether actual CSA values are present.
+        .OUTPUTS
+            System.Boolean - True if CSAs are assigned, false otherwise.
+        #>
+        param($Csa)
+        if ($null -eq $Csa) { return $false }
+        # Handle empty string
+        if ($Csa -is [string]) {
+            if ([string]::IsNullOrWhiteSpace($Csa)) { return $false }
+            # Check for empty JSON object
+            if ($Csa.Trim() -eq '{}') { return $false }
+            # Non-empty string (likely JSON with data)
+            return $true
+        }
+        # Handle hashtable
+        if ($Csa -is [hashtable]) { return $Csa.Count -gt 0 }
+        # Handle PSCustomObject or other objects - check for properties
+        $props = @($Csa.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' })
+        return $props.Count -gt 0
+    }
 
     function Test-IsBroadCidr {
         <#
         .SYNOPSIS
-            Checks if a CIDR range is overly permissive (/16 or broader).
+            Checks if a CIDR range is overly permissive (broader than /24).
         .DESCRIPTION
-            CIDR ranges with prefix length <= 16 are treated as overly permissive.
-            This includes /16 itself (65,536 IPs) and any broader ranges such as /15, /14, etc.
+            CIDR ranges with prefix length < 24 are treated as overly permissive.
+            This includes /23 (512 IPs), /22 (1,024 IPs), and any broader ranges.
         .OUTPUTS
             System.Boolean
-            True  - CIDR prefix length <= 16
-            False - CIDR prefix length > 16 or invalid format
+            True  - CIDR prefix length < 24
+            False - CIDR prefix length >= 24 or invalid format
         #>
         param([string]$Cidr)
-        if ($Cidr -match '/(\d+)$') { return ([int]$matches[1] -le 16) }
+        if ($Cidr -match '/(\d+)$') { return ([int]$matches[1] -lt 24) }
         return $false
     }
 
@@ -150,10 +184,42 @@ function Test-Assessment-25395 {
     Write-ZtProgress -Activity $activity -Status 'Querying applications'
 
     # Query Q1: List all Private Access enterprise applications
-    $apps = Invoke-ZtGraphRequest -RelativeUri "applications?`$filter=(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))&`$select=id,displayName,appId,tags" -ApiVersion beta
+    $apps = $null
+    if ($Database) {
+        Write-PSFMessage 'Querying database for Private Access applications' -Tag Test -Level VeryVerbose
+        try {
+            $sql = @"
+SELECT id, appId, displayName, tags
+FROM Application
+WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
+"@
+            $apps = @(Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject)
+            Write-PSFMessage "Found $($apps.Count) Private Access application(s) from database" -Tag Test -Level VeryVerbose
+        }
+        catch {
+            Write-PSFMessage "Database query failed: $_" -Tag Test -Level Warning
+            $apps = $null
+        }
+    }
 
     # Query Q2: Retrieve service principals with Custom Security Attributes
-    $servicePrincipals = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=(tags/any(t:t eq 'PrivateAccessNonWebApplication') or tags/any(t:t eq 'NetworkAccessQuickAccessApplication'))&`$select=id,appId,displayName,customSecurityAttributes&`$count=true" -ApiVersion beta -ConsistencyLevel eventual
+    $servicePrincipals = @()
+    if ($Database) {
+        Write-PSFMessage 'Querying database for service principals' -Tag Test -Level VeryVerbose
+        try {
+            $sql = @"
+SELECT id, appId, displayName, customSecurityAttributes
+FROM ServicePrincipal
+WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
+"@
+            $servicePrincipals = @(Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject)
+            Write-PSFMessage "Found $($servicePrincipals.Count) service principal(s) from database" -Tag Test -Level VeryVerbose
+        }
+        catch {
+            Write-PSFMessage "Database query for service principals failed: $_" -Tag Test -Level Warning
+            $servicePrincipals = @()
+        }
+    }
 
     # Query Q3: Retrieve enabled Conditional Access policies
     $caPolicies     = $null
@@ -193,7 +259,13 @@ function Test-Assessment-25395 {
         foreach ($app in $apps) {
 
             # Query Q4: Retrieve application segments for the current app
-            $segments = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -ApiVersion beta
+            try {
+                $segments = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments" -ApiVersion beta -ErrorAction Stop
+            }
+            catch {
+                Write-PSFMessage -Level Warning -Message "Failed to retrieve segments for app $($app.displayName): $_"
+                $segments = $null
+            }
 
             $hasBroadSegment = $false
             $hasWildcardDns  = $false
@@ -272,15 +344,16 @@ function Test-Assessment-25395 {
 
             # Step 6: Check CSA presence for the app
             $sp = $servicePrincipals | Where-Object { $_.appId -eq $app.appId }
-            if (-not $sp.customSecurityAttributes) {
+            $hasCSA = Test-HasCustomSecurityAttributes $sp.customSecurityAttributes
+            if (-not $hasCSA) {
                 $appsWithoutCSA += $app
             }
 
             # Determine per-app status including Manual Review when filterPolicies exist
-            $appStatus = if (-not $sp.customSecurityAttributes) {
-                'Fail – Missing CSA'
-            } elseif ($hasBroadSegment -or $hasWildcardDns -or $hasBroadPorts) {
+            $appStatus = if ($hasBroadSegment -or $hasWildcardDns -or $hasBroadPorts) {
                 'Fail – Broad segment'
+            } elseif (-not $hasCSA) {
+                'Investigate – Missing CSA'
             } elseif ($filterPolicies.Count -gt 0) {
                 'Manual Review'
             } else {
@@ -292,8 +365,8 @@ function Test-Assessment-25395 {
                 AppObjectId  = $app.id
                 AppId        = $app.appId
                 SegmentType  = if ($segments) { ($segments.destinationType | Select-Object -Unique) -join ', ' } else { 'None' }
-                SegmentScope = ($segmentSummary -join ' | ')
-                HasCSA       = [bool]$sp.customSecurityAttributes
+                SegmentScope = ($segmentSummary -join ', ')
+                HasCSA       = $hasCSA
                 Status       = $appStatus
             }
 
@@ -329,11 +402,19 @@ function Test-Assessment-25395 {
         }
 
     }
-    else {
+    elseif ($broadAccessApps.Count -gt 0) {
 
         $passed = $false
         $testResultMarkdown =
-            "❌ One or more Private Access applications have overly broad network segments or lack Custom Security Attribute-based Conditional Access policies, potentially allowing excessive network access.`n`n%TestResult%"
+            "❌ One or more Private Access applications have overly broad network segments, potentially allowing excessive network access.`n`n%TestResult%"
+
+    }
+    else {
+
+        # broadAccessApps = 0 but appsWithoutCSA > 0 → Investigate
+        $customStatus = 'Investigate'
+        $testResultMarkdown =
+            "⚠️ Private Access applications are missing Custom Security Attributes. Consider adding Custom Security Attributes to enable attribute-based Conditional Access targeting.`n`n%TestResult%"
 
     }
 
@@ -352,20 +433,22 @@ function Test-Assessment-25395 {
     if ($appResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-## [Application details](https://entra.microsoft.com/#view/Microsoft_AAD_IAM/EnterpriseApplicationListBladeV3/fromNav/globalSecureAccess/applicationType/GlobalSecureAccessApplication)
+## [Application details]({0})
 
 | App name | Segment type | Segment scope | Has CSAs | Status |
 |---|---|---|---|---|
-{0}
+{1}
 
 '@
         foreach ($r in $appResults) {
-            $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($r.AppId)"
+            $appLink = $portalLinkAppTemplate -f $r.AppId
             $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $r.AppName), $appLink
             $hasCSAText = if ($r.HasCSA) {'Yes'} else {'No'}
-            $tableRows += "| $linkedAppName | $($r.SegmentType) | $($r.SegmentScope) | $hasCSAText | $($r.Status) |`n"
+            $segmentTypeSafe = Get-SafeMarkdown $r.SegmentType
+            $segmentScopeSafe = Get-SafeMarkdown $r.SegmentScope
+            $tableRows += "| $linkedAppName | $segmentTypeSafe | $segmentScopeSafe | $hasCSAText | $($r.Status) |`n"
         }
-        $mdInfo += $formatTemplate -f $tableRows
+        $mdInfo += $formatTemplate -f $portalLinkAppList, $tableRows
     }
 
 
@@ -380,9 +463,12 @@ function Test-Assessment-25395 {
 
 '@
         foreach ($f in $segmentFindings) {
-            $appLink = "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/overview/appId/$($f.AppId)"
+            $appLink = $portalLinkAppTemplate -f $f.AppId
             $linkedAppName = "[{0}]({1})" -f (Get-SafeMarkdown $f.AppName), $appLink
-            $tableRows += "| $linkedAppName | $($f.Issue) | $($f.Destination) | $($f.Ports) | Narrow destination and ports |`n"
+            $issueSafe = Get-SafeMarkdown $f.Issue
+            $destSafe = Get-SafeMarkdown $f.Destination
+            $portsSafe = Get-SafeMarkdown $f.Ports
+            $tableRows += "| $linkedAppName | $issueSafe | $destSafe | $portsSafe | Narrow destination and ports |`n"
         }
         $mdInfo += $formatTemplate -f $tableRows
     }
@@ -392,7 +478,7 @@ function Test-Assessment-25395 {
     #endregion Report Generation
     $params = @{
         TestId = '25395'
-        Title  = 'Private Access application segments enforce least-privilege access'
+        Title  = 'Entra Private Access Application segments are defined to enforce least-privilege access'
         Status = $passed
         Result = $testResultMarkdown
     }
