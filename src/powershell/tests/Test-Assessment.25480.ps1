@@ -40,7 +40,7 @@ function Test-Assessment-25480 {
     if ($quickAccessApp -and $quickAccessApp.Count -gt 0) {
         # Query 2: Get assignments and assignment requirement using the service principal ID
         $quickAccessAppId = $quickAccessApp[0].id
-       # Write-ZtProgress -Activity $activity -Status 'Querying Quick Access assignments'
+        Write-ZtProgress -Activity $activity -Status 'Querying Quick Access assignments'
         $app = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$quickAccessAppId`?`$select=id,appId,accountEnabled,appRoleAssignmentRequired&`$expand=appRoleAssignedTo(`$select=principalId,principalType,principalDisplayName)" -ApiVersion beta
     }
     #endregion Data Collection
