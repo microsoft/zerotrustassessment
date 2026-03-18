@@ -8,7 +8,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Microsoft Zero Trust Workshop',
+  title: 'Microsoft Zero Trust',
   tagline: 'Check your Microsoft tenant configuration for zero trust readiness.',
   favicon: 'img/favicon.ico',
 
@@ -76,17 +76,12 @@ const config = {
       // Replace with your project's social card
       image: 'img/social-card.png',
       navbar: {
-        title: 'Zero Trust Workshop',
+        title: 'Microsoft Zero Trust',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
         },
         items: [
-          {
-            to: 'workshop',
-            position: 'left',
-            label: 'About the Workshop',
-          },
           {
             to: 'guide',
             position: 'left',

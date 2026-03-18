@@ -117,17 +117,100 @@
   text-decoration: none;
 }
 
-.heroImage {
+/* ─── Hero Carousel (Embla + Fade) ───────────────────────── */
+
+.carousel {
   max-width: 960px;
   margin: 0 auto;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.heroImage img {
+.carouselViewport {
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.carouselTrack {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carouselSlide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.carouselSlideLink {
+  display: block;
+  line-height: 0;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.carouselSlideLink img {
   width: 100%;
   display: block;
+}
+
+/* ─── Controls: arrows + dots ─── */
+
+.carouselControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.carouselArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.carouselArrow:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.carouselDots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.carouselDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.carouselDot:hover {
+  border-color: #fff;
+}
+
+.carouselDotActive {
+  background: #fff;
+  border-color: #fff;
 }
 
 /* ──────────────────── AI Pillar Spotlight ──────────────────── */
@@ -173,63 +256,92 @@
   margin: 0 auto 2rem;
 }
 
-.aiHighlights {
+/* ─── Mini Pillar Diagram ─── */
+
+.pillarRow {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.5rem;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.aiHighlightItem {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  min-width: 200px;
-  max-width: 260px;
-  flex: 1;
-  text-align: left;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.15s, transform 0.15s;
-}
-
-.aiHighlightItem:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.aiHighlightIcon {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: #0078d4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #e8f0fe;
-}
-
-.aiHighlightTitle {
-  font-size: 0.95rem;
+.pillarItem {
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  background: #e8eef4;
+  color: #475569;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #0a1628;
-  margin-bottom: 0.35rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
 }
 
-.aiHighlightDesc {
-  font-size: 0.85rem;
+.pillarItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pillarHighlighted {
+  position: relative;
+  background: linear-gradient(135deg, #ff6b35, #e05520);
+  color: #fff;
+  animation: pillarGlow 2.5s ease-in-out infinite;
+}
+
+.pillarHighlighted:hover {
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.45);
+}
+
+.pillarNew {
+  position: relative;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.pillarNew:hover {
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+}
+
+@keyframes pillarGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.45);
+  }
+}
+
+.pillarNewTag {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  background: #0078d4;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  line-height: 1.3;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pillarSubtitle {
+  margin-top: 1.5rem;
+  font-size: 0.92rem;
   color: #64748b;
-  line-height: 1.5;
-  margin: 0;
+  line-height: 1.6;
 }
 
 /* ──────────────────── Product Showcase ──────────────────── */
 
 .products {
-  padding: 4.5rem 2rem;
+  padding: 2.5rem 2rem 4.5rem;
   background: #fff;
+  scroll-margin-top: 60px;
 }
 
 .productsInner {
@@ -623,14 +735,12 @@
     grid-template-columns: 1fr;
   }
 
-  .aiHighlights {
-    flex-direction: column;
-    align-items: center;
+  .carousel {
+    max-width: 100%;
   }
 
-  .aiHighlightItem {
-    max-width: 100%;
-    width: 100%;
+  .pillarRow {
+    gap: 0.4rem;
   }
 }
 
@@ -666,5 +776,20 @@
   .productsTitle,
   .howItWorksTitle {
     font-size: 1.65rem;
+  }
+
+  .carouselArrow {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+
+  .pillarItem {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .pillarSubtitle {
+    font-size: 0.85rem;
   }
 }

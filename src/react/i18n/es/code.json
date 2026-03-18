@@ -1,12 +1,12 @@
 {
   "SiteHeading": {
-    "message": "Microsoft Zero Trust Workshop"
+    "message": "Microsoft Zero Trust"
   },
   "theme.NotFound.title": {
-    "message": "Página no encontrada "  
+    "message": "Página no encontrada "
   },
   "theme.NotFound.p1": {
-    "message": "No pudimos encontrar lo que buscabas  "  
+    "message": "No pudimos encontrar lo que buscabas  "
      },
   "theme.NotFound.p2": {
     "message": "Contacta al dueño del sitio, el URL no esta disponible  "
@@ -15,8 +15,8 @@
     "message": "Error en la pagina   "
   },
   "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "Ir de atras hacia delante    " 
-  }, 
+    "message": "Ir de atras hacia delante    "
+  },
   "theme.blog.archive.title": {
     "message": "Archivado    "
   },
