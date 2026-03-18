@@ -705,6 +705,42 @@
   border-radius: 2px;
 }
 
+.guideHeroContent {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 2rem;
+  align-items: center;
+  text-align: left;
+}
+
+.guideHeroText {
+  max-width: 640px;
+}
+
+.guideHeroImage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.guideHeroImage img {
+  width: min(100%, 520px);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: #fff;
+}
+
+.guidePageShell {
+  padding-top: 0;
+  padding-bottom: 1.5rem;
+}
+
+.guideHero {
+  padding-top: 2.5rem;
+  padding-bottom: 1.75rem;
+}
+
 /* ──────────────────── Responsive ──────────────────── */
 
 @media screen and (max-width: 996px) {
@@ -741,6 +777,20 @@
 
   .pillarRow {
     gap: 0.4rem;
+  }
+
+  .guideHeroContent {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .guideHeroText {
+    max-width: 100%;
+  }
+
+  .guideHero {
+    padding-top: 2rem;
+    padding-bottom: 1.25rem;
   }
 }
 
@@ -791,5 +841,15 @@
 
   .pillarSubtitle {
     font-size: 0.85rem;
+  }
+
+  .guidePageShell {
+    padding-top: 0;
+    padding-bottom: 1rem;
+  }
+
+  .guideHero {
+    padding-top: 1.6rem;
+    padding-bottom: 1rem;
   }
 }

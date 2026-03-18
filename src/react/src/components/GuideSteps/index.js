@@ -1,7 +1,4 @@
-import clsx from "clsx";
-import Heading from "@theme/Heading";
 import styles from "./styles.module.css";
-import Link from "@docusaurus/Link";
 
 const Steps = [
     {
@@ -72,7 +69,7 @@ const Steps = [
                 </ul>
             </>
         ),
-        imageUrl: require("@site/static/img/newUI.png").default,
+        imageUrl: require("@site/static/img/newUI2.png").default,
         imageAltText: "Run a strategy workshop",
         videoUrl: "",
     },
@@ -153,62 +150,62 @@ const Steps = [
 
 export default function GuideSteps() {
     return (
-        <div className="content-rows">
+        <div className={styles.contentRows}>
             {Steps.map((step, index) => {
                 const isEven = index % 2 === 0; // steps are 1-indexed
                 return (
                     <section
                         key={step.id}
-                        className={`row-section ${isEven ? "even-row" : "odd-row"}`}
+                        className={`${styles.rowSection} ${isEven ? styles.evenRow : styles.oddRow}`}
                     >
                         <div
-                            className={`row-content ${isEven ? "image-first" : "text-first"}`}
+                            className={`${styles.rowContent} ${isEven ? styles.imageFirst : styles.textFirst}`}
                         >
                             {/* Conditionally render Image and Text based on row number */}
                             {isEven ? (
                                 <>
                                     {step.videoUrl != "" ? (
-                                        <div className="video-container">
+                                        <div className={styles.videoContainer}>
                                             <iframe
                                                 src={step.videoUrl}
-                                                frameborder="0"
+                                                frameBorder="0"
                                                 allow="autoplay; encrypted-media"
-                                                allowfullscreen
+                                                allowFullScreen
                                                 title="video"
                                                 height={315}
                                                 width={560}
                                             />
                                         </div>
                                     ) : (
-                                        <div className="image-container">
+                                        <div className={styles.imageContainer}>
                                             <img src={step.imageUrl} title={step.imageAltText} />
                                         </div>
                                     )}
-                                    <div className="text-container">
+                                    <div className={styles.textContainer}>
                                         <h2>{step.title}</h2>
-                                        <p className="text--left">{step.description}</p>
+                                        <div className={styles.textLeft}>{step.description}</div>
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="text-container">
+                                    <div className={styles.textContainer}>
                                         <h2>{step.title}</h2>
-                                        <p className="text--left">{step.description}</p>
+                                        <div className={styles.textLeft}>{step.description}</div>
                                     </div>
                                     {step.videoUrl != "" ? (
-                                        <div className="video-container">
+                                        <div className={styles.videoContainer}>
                                             <iframe
                                                 src={step.videoUrl}
-                                                frameborder="0"
+                                                frameBorder="0"
                                                 allow="autoplay; encrypted-media"
-                                                allowfullscreen
+                                                allowFullScreen
                                                 title="video"
                                                 height={315}
                                                 width={560}
                                             />
                                         </div>
                                     ) : (
-                                        <div className="image-container">
+                                        <div className={styles.imageContainer}>
                                             <img src={step.imageUrl} title={step.imageAltText} />
                                         </div>
                                     )}
