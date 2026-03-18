@@ -1,0 +1,528 @@
+{
+    "SiteHeading": {
+        "message": "Microsoft Zero Trust Workshop"
+    },
+    "homepage.title": {
+        "message": "Microsoft Zero Trust Workshop"
+    },
+    "homepage.description": {
+        "message": "Ein umfassender technischer Leitfaden, der Kunden und Partnern hilft, Sicherheitslösungen in ihren Organisationen auf Basis einer Zero-Trust-Sicherheitsstrategie bereitzustellen und zu schützen."
+    },
+    "homepage.whatIsZt.title": {
+        "message": "Was ist Zero Trust?"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "Die Bewältigung komplexer moderner Sicherheitsherausforderungen ist schwierig, aber die Zero-Trust-Sicherheitsstrategie bietet eine klare Richtung. Durch die Einführung einer Zero-Trust-Strategie können Organisationen ihre Sicherheitslage stärken und Risiken sowie Komplexität reduzieren und gleichzeitig Compliance und Governance verbessern."
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "Der Zero Trust Workshop hilft bei der Anwendung von Zero-Trust-Sicherheitsprinzipien auf Microsoft-Sicherheit."
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "Immer überprüfen"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "Zugriff mit geringsten Berechtigungen"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "Sicherheitsverletzung annehmen"
+    },
+    "learnMore": {
+        "message": "Mehr erfahren"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "Warum den Workshop durchführen"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "Der Zero Trust Workshop ist ein von Microsoft bereitgestellter Bereitstellungsleitfaden zur Umsetzung der Zero-Trust-Sicherheitsstrategie in realen Umgebungen."
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "Basierend auf Erkenntnissen aus Tausenden von Kundenimplementierungen können Sie Ihre aktuelle Umgebung bewerten und die konkreten Schritte zur Verbesserung Ihrer End-to-End-Sicherheitslage Schritt für Schritt überprüfen."
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "Über den Workshop erfahren"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "Wie wird der Workshop durchgeführt"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "Lesen Sie die Schritt-für-Schritt-Anleitung, um zu erfahren, wie Sie Strategiediskussions- und Umgebungsbewertungssitzungen durchführen. Wenn Sie nicht wissen, wo Sie anfangen sollen, sehen Sie sich das Einführungsvideo zum Zero Trust Workshop an."
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "Basierend auf Erkenntnissen aus Tausenden von Kundenimplementierungen können Sie Ihre aktuelle Umgebung bewerten und die konkreten Schritte zur Verbesserung Ihrer End-to-End-Sicherheitslage Schritt für Schritt überprüfen."
+    },
+    "theme.NotFound.title": {
+        "message": "Seite nicht gefunden",
+        "description": "Der Titel der 404-Seite"
+    },
+    "theme.NotFound.p1": {
+        "message": "Wir konnten nicht finden, wonach Sie gesucht haben.",
+        "description": "Der erste Absatz der 404-Seite"
+    },
+    "theme.NotFound.p2": {
+        "message": "Bitte kontaktieren Sie den Eigentümer der Website, die Sie zur ursprünglichen URL verlinkt hat, und teilen Sie ihm mit, dass der Link defekt ist.",
+        "description": "Der zweite Absatz der 404-Seite"
+    },
+    "theme.ErrorPageContent.title": {
+        "message": "Diese Seite ist abgestürzt.",
+        "description": "Der Titel der Fallback-Seite bei einem Absturz"
+    },
+    "theme.BackToTopButton.buttonAriaLabel": {
+        "message": "Nach oben scrollen",
+        "description": "Das ARIA-Label für den Nach-oben-Button"
+    },
+    "theme.blog.archive.title": {
+        "message": "Archiv",
+        "description": "Der Titel der Blog-Archivseite"
+    },
+    "theme.blog.archive.description": {
+        "message": "Archiv",
+        "description": "Die Beschreibung der Blog-Archivseite"
+    },
+    "theme.blog.paginator.navAriaLabel": {
+        "message": "Blog-Seitennavigation",
+        "description": "Das ARIA-Label für die Blog-Paginierung"
+    },
+    "theme.blog.paginator.newerEntries": {
+        "message": "Neuere Einträge",
+        "description": "Das Label zum Navigieren zu neueren Blog-Beiträgen"
+    },
+    "theme.blog.paginator.olderEntries": {
+        "message": "Ältere Einträge",
+        "description": "Das Label zum Navigieren zu älteren Blog-Beiträgen"
+    },
+    "theme.blog.post.paginator.navAriaLabel": {
+        "message": "Blog-Beitragsnavigation",
+        "description": "Das ARIA-Label für die Blog-Beitragspaginierung"
+    },
+    "theme.blog.post.paginator.newerPost": {
+        "message": "Neuerer Beitrag",
+        "description": "Das Button-Label zum Navigieren zum neueren Beitrag"
+    },
+    "theme.blog.post.paginator.olderPost": {
+        "message": "Älterer Beitrag",
+        "description": "Das Button-Label zum Navigieren zum älteren Beitrag"
+    },
+    "theme.tags.tagsPageLink": {
+        "message": "Alle Tags anzeigen",
+        "description": "Das Label des Links zur Tag-Listenseite"
+    },
+    "theme.colorToggle.ariaLabel": {
+        "message": "Zwischen Dunkel- und Hellmodus wechseln (derzeit {mode})",
+        "description": "Das ARIA-Label für den Farbmodus-Umschalter"
+    },
+    "theme.colorToggle.ariaLabel.mode.dark": {
+        "message": "Dunkelmodus",
+        "description": "Der Name des dunklen Farbmodus"
+    },
+    "theme.colorToggle.ariaLabel.mode.light": {
+        "message": "Hellmodus",
+        "description": "Der Name des hellen Farbmodus"
+    },
+    "theme.docs.breadcrumbs.navAriaLabel": {
+        "message": "Brotkrümelnavigation",
+        "description": "Das ARIA-Label für die Brotkrümelnavigation"
+    },
+    "theme.docs.DocCard.categoryDescription.plurals": {
+        "message": "1 Element|{count} Elemente",
+        "description": "Die Standardbeschreibung einer Kategoriekarte"
+    },
+    "theme.docs.paginator.navAriaLabel": {
+        "message": "Dokumentationsseiten",
+        "description": "Das ARIA-Label für die Dokumentationspaginierung"
+    },
+    "theme.docs.paginator.previous": {
+        "message": "Zurück",
+        "description": "Das Label zum Navigieren zum vorherigen Dokument"
+    },
+    "theme.docs.paginator.next": {
+        "message": "Weiter",
+        "description": "Das Label zum Navigieren zum nächsten Dokument"
+    },
+    "theme.docs.versionBadge.label": {
+        "message": "Version: {versionLabel}"
+    },
+    "theme.docs.versions.unreleasedVersionLabel": {
+        "message": "Dies ist die unveröffentlichte Dokumentation für {siteTitle} {versionLabel}.",
+        "description": "Das Label zur Information über eine unveröffentlichte Version"
+    },
+    "theme.docs.versions.unmaintainedVersionLabel": {
+        "message": "Dies ist die Dokumentation für {siteTitle} {versionLabel}, die nicht mehr aktiv gepflegt wird.",
+        "description": "Das Label zur Information über eine nicht mehr gepflegte Version"
+    },
+    "theme.docs.versions.latestVersionSuggestionLabel": {
+        "message": "Für aktuelle Dokumentation siehe {latestVersionLink} ({versionLabel}).",
+        "description": "Das Label zum Hinweis auf die neueste Version"
+    },
+    "theme.docs.versions.latestVersionLinkLabel": {
+        "message": "neueste Version",
+        "description": "Das Label des Links zur neuesten Version"
+    },
+    "theme.docs.tagDocListPageTitle.nDocsTagged": {
+        "message": "Ein Dokument getaggt|{count} Dokumente getaggt",
+        "description": "Plurallabel für getaggte Dokumente"
+    },
+    "theme.docs.tagDocListPageTitle": {
+        "message": "{nDocsTagged} mit \"{tagName}\"",
+        "description": "Der Titel der Seite für einen Dokumenten-Tag"
+    },
+    "theme.common.editThisPage": {
+        "message": "Diese Seite bearbeiten",
+        "description": "Das Label des Links zum Bearbeiten der aktuellen Seite"
+    },
+    "theme.lastUpdated.atDate": {
+        "message": " am {date}",
+        "description": "Die Worte zur Beschreibung des letzten Aktualisierungsdatums"
+    },
+    "theme.lastUpdated.byUser": {
+        "message": " von {user}",
+        "description": "Die Worte zur Beschreibung, wer die Seite zuletzt aktualisiert hat"
+    },
+    "theme.lastUpdated.lastUpdatedAtBy": {
+        "message": "Zuletzt aktualisiert{atDate}{byUser}",
+        "description": "Der Satz zur Anzeige von Aktualisierungszeitpunkt und -person"
+    },
+    "theme.common.headingLinkTitle": {
+        "message": "Direkter Link zu {heading}",
+        "description": "Der Titel des Links zur Überschrift"
+    },
+    "theme.navbar.mobileVersionsDropdown.label": {
+        "message": "Versionen",
+        "description": "Das Label des Versionen-Dropdowns auf Mobilgeräten"
+    },
+    "theme.tags.tagsListLabel": {
+        "message": "Tags:",
+        "description": "Das Label neben der Tag-Liste"
+    },
+    "theme.admonition.caution": {
+        "message": "Vorsicht",
+        "description": "Das Standardlabel für die Vorsicht-Ermahnung"
+    },
+    "theme.admonition.danger": {
+        "message": "Gefahr",
+        "description": "Das Standardlabel für die Gefahr-Ermahnung"
+    },
+    "theme.admonition.info": {
+        "message": "Info",
+        "description": "Das Standardlabel für die Info-Ermahnung"
+    },
+    "theme.admonition.note": {
+        "message": "Hinweis",
+        "description": "Das Standardlabel für die Hinweis-Ermahnung"
+    },
+    "theme.admonition.tip": {
+        "message": "Tipp",
+        "description": "Das Standardlabel für die Tipp-Ermahnung"
+    },
+    "theme.admonition.warning": {
+        "message": "Warnung",
+        "description": "Das Standardlabel für die Warnung-Ermahnung"
+    },
+    "theme.AnnouncementBar.closeButtonAriaLabel": {
+        "message": "Schließen",
+        "description": "Das ARIA-Label für den Schließen-Button der Ankündigungsleiste"
+    },
+    "theme.blog.sidebar.navAriaLabel": {
+        "message": "Navigation der neuesten Blog-Beiträge",
+        "description": "Das ARIA-Label für neueste Beiträge in der Seitenleiste"
+    },
+    "theme.CodeBlock.wordWrapToggle": {
+        "message": "Zeilenumbruch umschalten",
+        "description": "Das title-Attribut des Zeilenumbruch-Buttons"
+    },
+    "theme.CodeBlock.copied": {
+        "message": "Kopiert",
+        "description": "Das Label des Kopiert-Buttons bei Codeblöcken"
+    },
+    "theme.CodeBlock.copyButtonAriaLabel": {
+        "message": "Code in die Zwischenablage kopieren",
+        "description": "Das ARIA-Label des Kopieren-Buttons bei Codeblöcken"
+    },
+    "theme.CodeBlock.copy": {
+        "message": "Kopieren",
+        "description": "Das Label des Kopieren-Buttons bei Codeblöcken"
+    },
+    "theme.DocSidebarItem.expandCategoryAriaLabel": {
+        "message": "Seitenleisten-Kategorie '{label}' erweitern",
+        "description": "Das ARIA-Label zum Erweitern einer Seitenleisten-Kategorie"
+    },
+    "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+        "message": "Seitenleisten-Kategorie '{label}' einklappen",
+        "description": "Das ARIA-Label zum Einklappen einer Seitenleisten-Kategorie"
+    },
+    "theme.navbar.mobileLanguageDropdown.label": {
+        "message": "Sprachen",
+        "description": "Das Label des mobilen Sprachauswahl-Dropdowns"
+    },
+    "theme.NavBar.navAriaLabel": {
+        "message": "Hauptnavigation",
+        "description": "Das ARIA-Label für die Hauptnavigation"
+    },
+    "theme.TOCCollapsible.toggleButtonLabel": {
+        "message": "Auf dieser Seite",
+        "description": "Das Label des Buttons der einklappbaren Inhaltsübersicht"
+    },
+    "theme.blog.post.readMore": {
+        "message": "Mehr lesen",
+        "description": "Das Label zum Weiterlesen des vollständigen Blog-Beitrags"
+    },
+    "theme.blog.post.readMoreLabel": {
+        "message": "Mehr lesen über {title}",
+        "description": "Das ARIA-Label des Links zum vollständigen Blog-Beitrag"
+    },
+    "theme.docs.breadcrumbs.home": {
+        "message": "Startseite",
+        "description": "Das ARIA-Label für die Startseite in der Brotkrümelnavigation"
+    },
+    "theme.docs.sidebar.collapseButtonTitle": {
+        "message": "Seitenleiste einklappen",
+        "description": "Das title-Attribut des Einklappen-Buttons der Seitenleiste"
+    },
+    "theme.docs.sidebar.collapseButtonAriaLabel": {
+        "message": "Seitenleiste einklappen",
+        "description": "Das title-Attribut des Einklappen-Buttons der Seitenleiste"
+    },
+    "theme.docs.sidebar.navAriaLabel": {
+        "message": "Dokumentations-Seitenleiste",
+        "description": "Das ARIA-Label der Seitenleisten-Navigation"
+    },
+    "theme.blog.post.readingTime.plurals": {
+        "message": "1 Min. Lesezeit|{readingTime} Min. Lesezeit",
+        "description": "Plurallabel für die Lesezeit"
+    },
+    "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+        "message": "Navigationsleiste schließen",
+        "description": "Das ARIA-Label des Schließen-Buttons der mobilen Seitenleiste"
+    },
+    "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+        "message": "← Zurück zum Hauptmenü",
+        "description": "Das Label des Zurück-Buttons zum Hauptmenü"
+    },
+    "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+        "message": "Navigationsleiste umschalten",
+        "description": "Das ARIA-Label des mobilen Hamburger-Menü-Buttons"
+    },
+    "theme.docs.sidebar.expandButtonTitle": {
+        "message": "Seitenleiste erweitern",
+        "description": "Das ARIA-Label und title-Attribut des Erweitern-Buttons"
+    },
+    "theme.docs.sidebar.expandButtonAriaLabel": {
+        "message": "Seitenleiste erweitern",
+        "description": "Das ARIA-Label und title-Attribut des Erweitern-Buttons"
+    },
+    "theme.blog.post.plurals": {
+        "message": "Ein Beitrag|{count} Beiträge",
+        "description": "Plurallabel für Beiträge"
+    },
+    "theme.blog.tagTitle": {
+        "message": "{nPosts} getaggt mit \"{tagName}\"",
+        "description": "Der Titel der Blog-Tag-Seite"
+    },
+    "theme.blog.author.pageTitle": {
+        "message": "{authorName} - {nPosts}",
+        "description": "Der Titel der Blog-Autorenseite"
+    },
+    "theme.blog.authorsList.pageTitle": {
+        "message": "Autoren",
+        "description": "Der Titel der Autorenseite"
+    },
+    "theme.blog.authorsList.viewAll": {
+        "message": "Alle Autoren anzeigen",
+        "description": "Das Label des Links zur Autorenseite"
+    },
+    "theme.contentVisibility.unlistedBanner.title": {
+        "message": "Nicht gelistete Seite",
+        "description": "Der Titel des Banners für nicht gelistete Inhalte"
+    },
+    "theme.contentVisibility.unlistedBanner.message": {
+        "message": "Diese Seite ist nicht gelistet. Suchmaschinen werden sie nicht indexieren, und nur Benutzer mit einem direkten Link können darauf zugreifen.",
+        "description": "Die Nachricht des Banners für nicht gelistete Inhalte"
+    },
+    "theme.contentVisibility.draftBanner.title": {
+        "message": "Entwurfsseite",
+        "description": "Der Titel des Banners für Entwurfsinhalte"
+    },
+    "theme.contentVisibility.draftBanner.message": {
+        "message": "Diese Seite ist ein Entwurf. Sie wird nur in der Entwicklung sichtbar sein und vom Produktionsbuild ausgeschlossen.",
+        "description": "Die Nachricht des Banners für Entwurfsinhalte"
+    },
+    "theme.ErrorPageContent.tryAgain": {
+        "message": "Erneut versuchen",
+        "description": "Das Label des Erneut-versuchen-Buttons"
+    },
+    "theme.common.skipToMainContent": {
+        "message": "Zum Hauptinhalt springen",
+        "description": "Das Barrierefreiheits-Label zum Überspringen zum Hauptinhalt"
+    },
+    "theme.tags.tagsPageTitle": {
+        "message": "Tags",
+        "description": "Der Titel der Tag-Listenseite"
+    },
+    "badge.new": {
+        "message": "NEU"
+    },
+    "badge.updated": {
+        "message": "AKTUALISIERT"
+    },
+    "hero.tagline": {
+        "message": "Die KI-Säule ist jetzt im Zero-Trust-Framework verfügbar"
+    },
+    "hero.title": {
+        "message": "Beschleunigen Sie Ihre Zero-Trust-Reise"
+    },
+    "hero.subtitle": {
+        "message": "Ein umfassendes Framework von Microsoft, das Organisationen bei der Einführung einer Zero-Trust-Strategie und der End-to-End-Bereitstellung von Sicherheitslösungen unterstützt — jetzt mit einer neuen KI-Säule zur Absicherung von Agenten und KI-Ressourcen."
+    },
+    "hero.cta.workshop": {
+        "message": "Workshop starten"
+    },
+    "hero.cta.assessment": {
+        "message": "Bewertung ausführen"
+    },
+    "ai.pill": {
+        "message": "Neuigkeiten"
+    },
+    "ai.title": {
+        "message": "Einführung der KI-Säule in Zero Trust"
+    },
+    "ai.description": {
+        "message": "Da Organisationen KI-Agenten und MCP-Server einsetzen, umfasst das Zero-Trust-Framework jetzt eine dedizierte KI-Ressourcen-Säule mit KI-Kontrollen — um sicherzustellen, dass Ihre KI-Workloads mit der gleichen Strenge verwaltet werden wie jeder andere Teil Ihrer Umgebung."
+    },
+    "ai.pillarSubtitle": {
+        "message": "Jetzt mit automatisch generierten Zusammenfassungen und erweiterten Daten- und Netzwerk-Statusprüfungen."
+    },
+    "pillar.identity": {
+        "message": "Identität"
+    },
+    "pillar.devices": {
+        "message": "Geräte"
+    },
+    "pillar.data": {
+        "message": "Daten"
+    },
+    "pillar.data.tooltip": {
+        "message": "Neue automatisierte Bewertungsprüfungen"
+    },
+    "pillar.network": {
+        "message": "Netzwerk"
+    },
+    "pillar.network.tooltip": {
+        "message": "Neue automatisierte Bewertungsprüfungen"
+    },
+    "pillar.infrastructure": {
+        "message": "Infrastruktur"
+    },
+    "pillar.secops": {
+        "message": "Sicherheitsbetrieb"
+    },
+    "pillar.ai": {
+        "message": "KI"
+    },
+    "pillar.ai.tooltip": {
+        "message": "KI-Säule im Workshop"
+    },
+    "products.title": {
+        "message": "Zwei Tools, eine Mission"
+    },
+    "products.subtitle": {
+        "message": "Ob Sie Ihre Zero-Trust-Roadmap planen oder Ihre aktuelle Sicherheitslage messen — wir haben alles abgedeckt."
+    },
+    "products.workshop.label": {
+        "message": "Interaktives Planungstool"
+    },
+    "products.workshop.name": {
+        "message": "Zero Trust Workshop"
+    },
+    "products.workshop.description": {
+        "message": "Eine neue Webanwendung zur Planung Ihrer Zero-Trust-Bereitstellung über alle sieben Säulen — Identität, Geräte, Daten, Netzwerk, Infrastruktur, Sicherheitsbetrieb und KI. Priorisieren Sie Aufgaben in einer Erst-Dann-Struktur und erstellen Sie automatisierte Zusammenfassungen und Implementierungspläne."
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 Säulen"
+    },
+    "products.workshop.tag.ai": {
+        "message": "KI-Säule"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "Auto-Zusammenfassungen"
+    },
+    "products.workshop.tag.plans": {
+        "message": "Implementierungspläne"
+    },
+    "products.workshop.cta": {
+        "message": "Workshop starten"
+    },
+    "products.assessment.label": {
+        "message": "Automatisierte Mandantenanalyse"
+    },
+    "products.assessment.name": {
+        "message": "Zero Trust Bewertung"
+    },
+    "products.assessment.description": {
+        "message": "Verbinden Sie sich mit Ihrem Microsoft Entra-Mandanten und erhalten Sie eine automatisierte Bewertung Ihrer Zero-Trust-Sicherheitslage. Analysieren Sie Konfigurationen über die Säulen Identität, Geräte, Daten und Netzwerk mit umsetzbaren Erkenntnissen und visuellen Dashboards."
+    },
+    "products.assessment.tag.identity": {
+        "message": "Identität"
+    },
+    "products.assessment.tag.devices": {
+        "message": "Geräte"
+    },
+    "products.assessment.tag.data": {
+        "message": "Daten"
+    },
+    "products.assessment.tag.network": {
+        "message": "Netzwerk"
+    },
+    "products.assessment.tag.checks": {
+        "message": "Automatisierte Prüfungen"
+    },
+    "products.assessment.cta": {
+        "message": "Bewertung ausführen"
+    },
+    "howItWorks.title": {
+        "message": "So funktioniert es"
+    },
+    "howItWorks.subtitle": {
+        "message": "Drei Schritte zur Verbesserung der Sicherheitslage Ihrer Organisation."
+    },
+    "howItWorks.step1.title": {
+        "message": "Lernen"
+    },
+    "howItWorks.step1.description": {
+        "message": "Verstehen Sie die Zero-Trust-Prinzipien — Explizit verifizieren, Zugriff mit geringsten Berechtigungen und Sicherheitsverletzung annehmen — und wie sie auf Ihre Umgebung angewendet werden."
+    },
+    "howItWorks.step1.link": {
+        "message": "Microsoft Zero Trust erkunden"
+    },
+    "howItWorks.step2.title": {
+        "message": "Planen"
+    },
+    "howItWorks.step2.description": {
+        "message": "Nutzen Sie den Workshop, um eine konkrete Zero-Trust-Roadmap über alle Säulen zu erstellen. Priorisieren Sie Aufgaben und erstellen Sie auf Ihre Organisation zugeschnittene Implementierungspläne."
+    },
+    "howItWorks.step2.link": {
+        "message": "Workshop öffnen"
+    },
+    "howItWorks.step3.title": {
+        "message": "Bewerten"
+    },
+    "howItWorks.step3.description": {
+        "message": "Führen Sie die Bewertung gegen Ihren Microsoft Entra-Mandanten aus, um Ihre aktuelle Sicherheitslage zu messen, Lücken zu identifizieren und den Fortschritt im Zeitverlauf zu verfolgen."
+    },
+    "howItWorks.step3.link": {
+        "message": "Bewertung ausführen"
+    },
+    "getStarted.title": {
+        "message": "Bereit loszulegen?"
+    },
+    "getStarted.description": {
+        "message": "Folgen Sie unserem Schritt-für-Schritt-Plan, um eine Zero-Trust-Strategiesitzung durchzuführen. Ob Microsoft-Partner oder interner Workshop — der Leitfaden begleitet Sie durch Vorbereitung, Durchführung und Nachbereitung."
+    },
+    "getStarted.cta": {
+        "message": "Schritt-für-Schritt-Plan anzeigen"
+    },
+    "home.layout.title": {
+        "message": "Microsoft Zero Trust Workshop & Bewertung"
+    },
+    "home.layout.description": {
+        "message": "Planen Sie Ihre Zero-Trust-Bereitstellung mit dem Workshop-Tool und messen Sie Ihre Sicherheitslage mit der automatisierten Bewertung — jetzt mit einer neuen KI-Säule."
+    }
+}

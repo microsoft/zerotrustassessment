@@ -233,5 +233,221 @@
   },
   "theme.tags.tagsPageTitle": {
     "message": "Tags"
+    },
+    "homepage.title": {
+        "message": "Taller de Confianza Cero de Microsoft"
+    },
+    "homepage.description": {
+        "message": "Una guía técnica integral para ayudar a clientes y socios a implementar soluciones de seguridad en sus organizaciones basándose en una estrategia de seguridad de Confianza Cero."
+    },
+    "homepage.whatIsZt.title": {
+        "message": "¿Qué es Confianza Cero?"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "Abordar los complejos desafíos de seguridad modernos es difícil, pero la estrategia de seguridad de Confianza Cero proporciona una dirección clara. Al adoptar una estrategia de Confianza Cero, las organizaciones pueden fortalecer su postura de seguridad y reducir riesgos y complejidad mientras mejoran el cumplimiento y la gobernanza."
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "El taller de Confianza Cero ayuda a aplicar los principios de seguridad de Confianza Cero a la seguridad de Microsoft."
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "Verificar siempre"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "Acceso con privilegios mínimos"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "Asumir la vulneración"
+    },
+    "learnMore": {
+        "message": "Más información"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "¿Por qué realizar el taller?"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "El taller de Confianza Cero es una guía de implementación proporcionada por Microsoft para desplegar la estrategia de seguridad de Confianza Cero en entornos reales."
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "Basado en el conocimiento adquirido de miles de implementaciones con clientes, puede evaluar su entorno actual y revisar los pasos específicos para mejorar su postura de seguridad integral paso a paso."
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "Conozca el taller"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "¿Cómo realizar el taller?"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "Consulte la guía paso a paso para aprender cómo realizar sesiones de discusión de estrategia y evaluación del entorno actual. Si no sabe cómo empezar, vea el video introductorio del taller de Confianza Cero."
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "Basado en el conocimiento adquirido de miles de implementaciones con clientes, puede evaluar su entorno actual y revisar los pasos específicos para mejorar su postura de seguridad integral paso a paso."
+    },
+    "badge.new": {
+        "message": "NUEVO"
+    },
+    "badge.updated": {
+        "message": "ACTUALIZADO"
+    },
+    "hero.tagline": {
+        "message": "El pilar de IA ya está disponible en el marco de Confianza Cero"
+    },
+    "hero.title": {
+        "message": "Acelere su camino hacia la Confianza Cero"
+    },
+    "hero.subtitle": {
+        "message": "Un marco integral de Microsoft para ayudar a las organizaciones a adoptar una estrategia de Confianza Cero e implementar soluciones de seguridad de extremo a extremo — ahora con un nuevo pilar de IA para proteger agentes y recursos de IA."
+    },
+    "hero.cta.workshop": {
+        "message": "Iniciar taller"
+    },
+    "hero.cta.assessment": {
+        "message": "Ejecutar evaluación"
+    },
+    "ai.pill": {
+        "message": "Novedades"
+    },
+    "ai.title": {
+        "message": "Presentamos el pilar de IA en Confianza Cero"
+    },
+    "ai.description": {
+        "message": "A medida que las organizaciones adoptan agentes de IA y servidores MCP, el marco de Confianza Cero ahora incluye un pilar dedicado de recursos de IA con controles de IA — garantizando que sus cargas de trabajo de IA se gestionen con el mismo rigor que cualquier otra parte de su entorno."
+    },
+    "ai.pillarSubtitle": {
+        "message": "Ahora con resúmenes autogenerados y verificaciones ampliadas de postura de datos y red."
+    },
+    "pillar.identity": {
+        "message": "Identidad"
+    },
+    "pillar.devices": {
+        "message": "Dispositivos"
+    },
+    "pillar.data": {
+        "message": "Datos"
+    },
+    "pillar.data.tooltip": {
+        "message": "Nuevas verificaciones de evaluación automatizadas"
+    },
+    "pillar.network": {
+        "message": "Red"
+    },
+    "pillar.network.tooltip": {
+        "message": "Nuevas verificaciones de evaluación automatizadas"
+    },
+    "pillar.infrastructure": {
+        "message": "Infraestructura"
+    },
+    "pillar.secops": {
+        "message": "Operaciones de seguridad"
+    },
+    "pillar.ai": {
+        "message": "IA"
+    },
+    "pillar.ai.tooltip": {
+        "message": "Pilar de IA en el taller"
+    },
+    "products.title": {
+        "message": "Dos herramientas, una misión"
+    },
+    "products.subtitle": {
+        "message": "Ya sea que esté planificando su hoja de ruta de Confianza Cero o midiendo su postura actual, lo tenemos cubierto."
+    },
+    "products.workshop.label": {
+        "message": "Herramienta de planificación interactiva"
+    },
+    "products.workshop.name": {
+        "message": "Taller de Confianza Cero"
+    },
+    "products.workshop.description": {
+        "message": "Una nueva aplicación web para planificar su implementación de Confianza Cero en los siete pilares — Identidad, Dispositivos, Datos, Red, Infraestructura, Operaciones de Seguridad e IA. Priorice tareas en una estructura Primero-Luego y genere resúmenes automatizados y planes de implementación."
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 pilares"
+    },
+    "products.workshop.tag.ai": {
+        "message": "Pilar de IA"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "Resúmenes automáticos"
+    },
+    "products.workshop.tag.plans": {
+        "message": "Planes de implementación"
+    },
+    "products.workshop.cta": {
+        "message": "Iniciar taller"
+    },
+    "products.assessment.label": {
+        "message": "Análisis automatizado del inquilino"
+    },
+    "products.assessment.name": {
+        "message": "Evaluación de Confianza Cero"
+    },
+    "products.assessment.description": {
+        "message": "Conéctese a su inquilino de Microsoft Entra y obtenga una evaluación automatizada de su postura de Confianza Cero. Analice configuraciones en los pilares de Identidad, Dispositivos, Datos y Red con información práctica y paneles visuales."
+    },
+    "products.assessment.tag.identity": {
+        "message": "Identidad"
+    },
+    "products.assessment.tag.devices": {
+        "message": "Dispositivos"
+    },
+    "products.assessment.tag.data": {
+        "message": "Datos"
+    },
+    "products.assessment.tag.network": {
+        "message": "Red"
+    },
+    "products.assessment.tag.checks": {
+        "message": "Verificaciones automatizadas"
+    },
+    "products.assessment.cta": {
+        "message": "Ejecutar evaluación"
+    },
+    "howItWorks.title": {
+        "message": "Cómo funciona"
+    },
+    "howItWorks.subtitle": {
+        "message": "Tres pasos para mejorar la postura de seguridad de su organización."
+    },
+    "howItWorks.step1.title": {
+        "message": "Aprenda"
+    },
+    "howItWorks.step1.description": {
+        "message": "Comprenda los principios de Confianza Cero — Verificar explícitamente, Acceso con privilegios mínimos y Asumir la vulneración — y cómo se aplican a su entorno."
+    },
+    "howItWorks.step1.link": {
+        "message": "Explorar Microsoft Confianza Cero"
+    },
+    "howItWorks.step2.title": {
+        "message": "Planifique"
+    },
+    "howItWorks.step2.description": {
+        "message": "Use el taller para construir una hoja de ruta concreta de Confianza Cero en todos los pilares. Priorice tareas y genere planes de implementación adaptados a su organización."
+    },
+    "howItWorks.step2.link": {
+        "message": "Abrir taller"
+    },
+    "howItWorks.step3.title": {
+        "message": "Evalúe"
+    },
+    "howItWorks.step3.description": {
+        "message": "Ejecute la evaluación contra su inquilino de Microsoft Entra para medir su postura actual, identificar brechas y realizar seguimiento del progreso a lo largo del tiempo."
+    },
+    "howItWorks.step3.link": {
+        "message": "Ejecutar evaluación"
+    },
+    "getStarted.title": {
+        "message": "¿Listo para comenzar?"
+    },
+    "getStarted.description": {
+        "message": "Siga nuestro plan paso a paso para realizar una sesión de estrategia de Confianza Cero. Ya sea socio de Microsoft o esté realizando un taller interno, la guía le acompaña en la preparación, ejecución y seguimiento."
+    },
+    "getStarted.cta": {
+        "message": "Ver plan paso a paso"
+    },
+    "home.layout.title": {
+        "message": "Taller y evaluación de Confianza Cero de Microsoft"
+    },
+    "home.layout.description": {
+        "message": "Planifique su implementación de Confianza Cero con la herramienta del taller y mida su postura con la evaluación automatizada — ahora con un nuevo pilar de IA."
     }
 }
