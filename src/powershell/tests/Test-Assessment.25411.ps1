@@ -2,7 +2,7 @@
 .SYNOPSIS
     TLS inspection is enabled and correctly configured for outbound traffic in Global Secure Access.
 .DESCRIPTION
-    Verifies that a TLS Inspection policy is properly configured. It will fail if no TLS Inspection policy exists, if the policy is not linked to a Security Profile, or if no Conditional Access policy assigning that Security Profile can be identified.
+    Verifies that a TLS Inspection policy is properly configured. It will fail if no TLS Inspection policy exists, if the policy is not linked to a Baseline or Security Profile with an enabled policy link, or (for Security Profiles) if no enabled Conditional Access policy assigning that profile can be identified.
 #>
 
 function Test-Assessment-25411 {
@@ -49,8 +49,8 @@ function Test-Assessment-25411 {
 
     #region Data Processing
     # Graph responses are automatically unwrapped by Invoke-ZtGraphRequest
-    $baselineProfileResults = @()
-    $securityProfileResults = @()
+    $baselineProfileResults = [System.Collections.Generic.List[object]]::new()
+    $securityProfileResults = [System.Collections.Generic.List[object]]::new()
 
     # Iterate each TLS inspection policy and find linked profiles using the helper function
     foreach ($tlsPolicy in $tlsInspectionPolicies) {
@@ -67,7 +67,7 @@ function Test-Assessment-25411 {
 
         foreach ($policyProfile in $linkedProfiles) {
             if ($policyProfile.ProfileType -eq 'Baseline Profile') {
-                $baselineProfileResults += [PSCustomObject]@{
+                $baselineProfileResults.Add([PSCustomObject]@{
                     ProfileId          = $policyProfile.ProfileId
                     ProfileName        = $policyProfile.ProfileName
                     ProfileState       = $policyProfile.ProfileState
@@ -75,7 +75,7 @@ function Test-Assessment-25411 {
                     TLSPolicyId        = $tlsPolicy.id
                     TLSPolicyName      = $tlsPolicy.name
                     TLSPolicyLinkState = $policyProfile.PolicyLinkState
-                }
+                })
             }
             elseif ($policyProfile.ProfileType -eq 'Security Profile') {
                 $matchedCAPolicies = @()
@@ -84,7 +84,7 @@ function Test-Assessment-25411 {
                 }
 
                 # Collect all linked security profiles for table display (regardless of state or CA policy linkage)
-                $securityProfileResults += [PSCustomObject]@{
+                $securityProfileResults.Add([PSCustomObject]@{
                     ProfileId          = $policyProfile.ProfileId
                     ProfileName        = $policyProfile.ProfileName
                     ProfileState       = $policyProfile.ProfileState
@@ -94,13 +94,13 @@ function Test-Assessment-25411 {
                     TLSPolicyLinkState = $policyProfile.PolicyLinkState
                     MatchedCAPolicies  = $matchedCAPolicies
                     PassesCriteria     = $policyProfile.PassesCriteria
-                }
+                })
             }
         }
     }
 
     # Baseline profiles that pass: both policy link state and profile state must be enabled
-    $enabledBaseLineProfiles = @($baselineProfileResults | Where-Object { $_.ProfileState -eq 'enabled' -and $_.TLSPolicyLinkState -eq 'enabled' })
+    $enabledBaselineProfiles = @($baselineProfileResults | Where-Object { $_.ProfileState -eq 'enabled' -and $_.TLSPolicyLinkState -eq 'enabled' })
 
     # Security profiles that pass: profile enabled, policy link enabled, and at least one enabled CA policy linked
     $enabledSecurityProfiles = @($securityProfileResults | Where-Object { $_.ProfileState -eq 'enabled' -and $_.TLSPolicyLinkState -eq 'enabled' -and $_.PassesCriteria })
@@ -114,13 +114,8 @@ function Test-Assessment-25411 {
 
     if ($null -eq $tlsInspectionPolicies -or $tlsInspectionPolicies.Count -eq 0) {
         $testResultMarkdown = "❌ TLS Inspection Policy has not been properly configured. `n`n%TestResult%"
-        $passed = $false
     }
-    elseif ($enabledBaseLineProfiles.Count -gt 0) {
-        $testResultMarkdown = "✅ TLS Inspection Policy is enabled and properly configured to inspect encrypted outbound traffic.`n`n%TestResult%"
-        $passed = $true
-    }
-    elseif ($enabledSecurityProfiles.Count -gt 0) {
+    elseif ($enabledBaselineProfiles.Count -gt 0 -or $enabledSecurityProfiles.Count -gt 0) {
         $testResultMarkdown = "✅ TLS Inspection Policy is enabled and properly configured to inspect encrypted outbound traffic.`n`n%TestResult%"
         $passed = $true
     }
@@ -139,14 +134,14 @@ function Test-Assessment-25411 {
         $mdInfo += "| Linked Profile Name | Linked Profile Priority | Linked Policy Name | Policy Link State | Profile State |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
         foreach ($policy in $baselineProfileResults) {
-            $baseLineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.ProfileId))"
+            $baselineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.ProfileId))"
             $tlsPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditTlsInspectionPolicyMenuBlade.MenuView/~/basics/policyId/$(($policy.TLSPolicyId))"
             $profileName = Get-SafeMarkdown -Text $policy.ProfileName
             $profilePriority = $policy.ProfilePriority
             $tlsPolicyName = Get-SafeMarkdown -Text $policy.TLSPolicyName
             $tlsPolicyLinkState = if ($policy.TLSPolicyLinkState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
             $profileState = if ($policy.ProfileState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
-            $mdInfo += "| [$profileName]($baseLineProfilePortalLink) | $profilePriority | [$tlsPolicyName]($tlsPolicyPortalLink) | $tlsPolicyLinkState | $profileState |`n"
+            $mdInfo += "| [$profileName]($baselineProfilePortalLink) | $profilePriority | [$tlsPolicyName]($tlsPolicyPortalLink) | $tlsPolicyLinkState | $profileState |`n"
         }
     }
 
@@ -163,13 +158,13 @@ function Test-Assessment-25411 {
             $tlsPolicyLinkState = if ($profile.TLSPolicyLinkState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
             $profileState = if ($profile.ProfileState -eq 'enabled') { '✅ Enabled' } else { '❌ Disabled' }
             if ($profile.MatchedCAPolicies.Count -gt 0) {
-                $caPolicyLinksMarkdown = @()
-                $caPolicyStatesList = @()
+                $caPolicyLinksMarkdown = [System.Collections.Generic.List[string]]::new()
+                $caPolicyStatesList = [System.Collections.Generic.List[string]]::new()
                 foreach ($caPolicy in $profile.MatchedCAPolicies) {
                     $caPolicyPortalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($caPolicy.Id)"
                     $safeName = Get-SafeMarkdown -Text $caPolicy.DisplayName
-                    $caPolicyLinksMarkdown += "[$safeName]($caPolicyPortalLink)"
-                    $caPolicyStatesList += if ($caPolicy.State -eq 'enabled') { '✅ Enabled' } elseif ($caPolicy.State -eq 'enabledForReportingButNotEnforced') { '⚠️ Report Only' } else { '❌ Disabled' }
+                    $caPolicyLinksMarkdown.Add("[$safeName]($caPolicyPortalLink)")
+                    $caPolicyStatesList.Add($(if ($caPolicy.State -eq 'enabled') { '✅ Enabled' } elseif ($caPolicy.State -eq 'enabledForReportingButNotEnforced') { '⚠️ Report Only' } else { '❌ Disabled' }))
                 }
                 $caPolicyNamesLinked = $caPolicyLinksMarkdown -join ', '
                 $caPolicyStates = $caPolicyStatesList -join ', '
