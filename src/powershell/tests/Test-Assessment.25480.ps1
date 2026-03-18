@@ -33,7 +33,7 @@ function Test-Assessment-25480 {
 
     # Query 1: Get Quick Access service principal ID
     # Note: Combining $filter with $expand on servicePrincipals can return empty appRoleAssignedTo even when assignments exist
-    # Using two-step approach: filter first, then expand by ID (consistent with spec 25481)
+    # Using two-step approach: filter first, then expand by ID to avoid missing appRoleAssignedTo data
     $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'NetworkAccessQuickAccessApplication')&`$select=id,appId,displayName" -ApiVersion beta
 
     $app = $null
