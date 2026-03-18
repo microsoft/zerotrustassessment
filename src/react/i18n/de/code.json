@@ -1,54 +1,54 @@
 {
     "SiteHeading": {
-        "message": "Microsoft Zero Trust Workshop"
+        "message": "Microsoft Zero Trust"
     },
     "homepage.title": {
-        "message": "Microsoft Zero Trust Workshop"
+        "message": "Microsoft Zero-Trust-Workshop"
     },
     "homepage.description": {
-        "message": "Ein umfassender technischer Leitfaden, der Kunden und Partnern hilft, Sicherheitslösungen in ihren Organisationen auf Basis einer Zero-Trust-Sicherheitsstrategie bereitzustellen und zu schützen."
+        "message": "Eine umfassende technische Anleitung, um Kunden und Partnern bei der Implementierung von Sicherheitslösungen in ihren Organisationen auf Basis einer Zero-Trust-Sicherheitsstrategie zu helfen."
     },
     "homepage.whatIsZt.title": {
         "message": "Was ist Zero Trust?"
     },
     "homepage.whatIsZt.sentence1": {
-        "message": "Die Bewältigung komplexer moderner Sicherheitsherausforderungen ist schwierig, aber die Zero-Trust-Sicherheitsstrategie bietet eine klare Richtung. Durch die Einführung einer Zero-Trust-Strategie können Organisationen ihre Sicherheitslage stärken und Risiken sowie Komplexität reduzieren und gleichzeitig Compliance und Governance verbessern."
+        "message": "Die Implementierung eines Zero-Trust-Sicherheitsmodells ist ein zentraler Schritt, um moderne IT-Umgebungen wirksam zu schützen. Angesichts zunehmender Bedrohungen und komplexer Infrastrukturen hilft Zero Trust dabei, Risiken zu reduzieren und die Sicherheitslage nachhaltig zu verbessern."
     },
     "homepage.whatIsZt.sentence2": {
-        "message": "Der Zero Trust Workshop hilft bei der Anwendung von Zero-Trust-Sicherheitsprinzipien auf Microsoft-Sicherheit."
+        "message": "Diese Bewertung unterstützt Sie dabei, den aktuellen Reifegrad Ihrer Organisation zu analysieren und konkrete Maßnahmen zur Weiterentwicklung Ihrer Sicherheitsstrategie abzuleiten."
     },
     "homepage.whatIsZt.verify": {
-        "message": "Immer überprüfen"
+        "message": "Explizit überprüfen"
     },
     "homepage.whatIsZt.leastPriv": {
-        "message": "Zugriff mit geringsten Berechtigungen"
+        "message": "Prinzip der minimalen Rechte anwenden"
     },
     "homepage.whatIsZt.assumeComp": {
-        "message": "Sicherheitsverletzung annehmen"
+        "message": "Von einem Sicherheitsvorfall ausgehen"
     },
     "learnMore": {
         "message": "Mehr erfahren"
     },
     "homepage.whyRunWorkshop.title": {
-        "message": "Warum den Workshop durchführen"
+        "message": "Ziel der Bewertung"
     },
     "homepage.whyRunWorkshop.sentence1": {
-        "message": "Der Zero Trust Workshop ist ein von Microsoft bereitgestellter Bereitstellungsleitfaden zur Umsetzung der Zero-Trust-Sicherheitsstrategie in realen Umgebungen."
+        "message": "Diese Zero-Trust-Bewertung verfolgt folgende Ziele: Analyse Ihres aktuellen Sicherheitsniveaus, Identifikation von Schwachstellen und Risiken, Ableitung konkreter Handlungsempfehlungen und Entwicklung eines strukturierten Umsetzungsplans."
     },
     "homepage.whyRunWorkshop.sentence2": {
-        "message": "Basierend auf Erkenntnissen aus Tausenden von Kundenimplementierungen können Sie Ihre aktuelle Umgebung bewerten und die konkreten Schritte zur Verbesserung Ihrer End-to-End-Sicherheitslage Schritt für Schritt überprüfen."
+        "message": "Sie erhalten eine klare Orientierung, wie Sie Ihre Sicherheitsarchitektur schrittweise verbessern können."
     },
     "homepage.whyRunWorkshop.learnAboutWorkshop": {
         "message": "Über den Workshop erfahren"
     },
     "homepage.howRunWorkshop.title": {
-        "message": "Wie wird der Workshop durchgeführt"
+        "message": "Vorgehensweise"
     },
     "homepage.howRunWorkshop.sentence1": {
-        "message": "Lesen Sie die Schritt-für-Schritt-Anleitung, um zu erfahren, wie Sie Strategiediskussions- und Umgebungsbewertungssitzungen durchführen. Wenn Sie nicht wissen, wo Sie anfangen sollen, sehen Sie sich das Einführungsvideo zum Zero Trust Workshop an."
+        "message": "Die Bewertung erfolgt in mehreren strukturierten Schritten: Erhebung des Ist-Zustands, Bewertung des Reifegrads, Identifikation von Handlungsfeldern und Erstellung eines Maßnahmenplans."
     },
     "homepage.howRunWorkshop.sentence2": {
-        "message": "Basierend auf Erkenntnissen aus Tausenden von Kundenimplementierungen können Sie Ihre aktuelle Umgebung bewerten und die konkreten Schritte zur Verbesserung Ihrer End-to-End-Sicherheitslage Schritt für Schritt überprüfen."
+        "message": "Basierend auf dem Wissen aus Tausenden von Kundenimplementierungen können Sie Ihre aktuelle Umgebung bewerten und konkrete Schritte zur schrittweisen Verbesserung Ihrer umfassenden Sicherheitslage überprüfen."
     },
     "theme.NotFound.title": {
         "message": "Seite nicht gefunden",
@@ -294,7 +294,7 @@
         "description": "Das ARIA-Label des Schließen-Buttons der mobilen Seitenleiste"
     },
     "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
-        "message": "← Zurück zum Hauptmenü",
+        "message": "\u2190 Zurück zum Hauptmenü",
         "description": "Das Label des Zurück-Buttons zum Hauptmenü"
     },
     "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
@@ -364,13 +364,13 @@
         "message": "AKTUALISIERT"
     },
     "hero.tagline": {
-        "message": "Die KI-Säule ist jetzt im Zero-Trust-Framework verfügbar"
+        "message": "KI-Säule jetzt im Zero-Trust-Framework verfügbar"
     },
     "hero.title": {
-        "message": "Beschleunigen Sie Ihre Zero-Trust-Reise"
+        "message": "Beschleunigen Sie Ihren Weg zu Zero Trust"
     },
     "hero.subtitle": {
-        "message": "Ein umfassendes Framework von Microsoft, das Organisationen bei der Einführung einer Zero-Trust-Strategie und der End-to-End-Bereitstellung von Sicherheitslösungen unterstützt — jetzt mit einer neuen KI-Säule zur Absicherung von Agenten und KI-Ressourcen."
+        "message": "Ein umfassendes Framework von Microsoft, um Organisationen bei der Einführung einer Zero-Trust-Strategie und der Implementierung durchgängiger Sicherheitslösungen zu unterstützen — jetzt mit einer neuen KI-Säule zum Schutz von KI-Agenten und KI-Ressourcen."
     },
     "hero.cta.workshop": {
         "message": "Workshop starten"
@@ -379,22 +379,22 @@
         "message": "Bewertung ausführen"
     },
     "ai.pill": {
-        "message": "Neuigkeiten"
+        "message": "Neuheiten"
     },
     "ai.title": {
-        "message": "Einführung der KI-Säule in Zero Trust"
+        "message": "Die KI-Säule in Zero Trust"
     },
     "ai.description": {
-        "message": "Da Organisationen KI-Agenten und MCP-Server einsetzen, umfasst das Zero-Trust-Framework jetzt eine dedizierte KI-Ressourcen-Säule mit KI-Kontrollen — um sicherzustellen, dass Ihre KI-Workloads mit der gleichen Strenge verwaltet werden wie jeder andere Teil Ihrer Umgebung."
+        "message": "Da Organisationen zunehmend KI-Agenten und MCP-Server einsetzen, umfasst das Zero-Trust-Framework jetzt eine dedizierte KI-Ressourcen-Säule mit KI-Kontrollen — damit Ihre KI-Workloads mit der gleichen Sorgfalt verwaltet werden wie jeder andere Teil Ihrer Umgebung."
     },
     "ai.pillarSubtitle": {
-        "message": "Jetzt mit automatisch generierten Zusammenfassungen und erweiterten Daten- und Netzwerk-Statusprüfungen."
+        "message": "Jetzt mit automatisch generierten Zusammenfassungen und erweiterten Daten- und Netzwerk-Sicherheitsüberprüfungen."
     },
     "pillar.identity": {
-        "message": "Identität"
+        "message": "Identitäten"
     },
     "pillar.devices": {
-        "message": "Geräte"
+        "message": "Endgeräte"
     },
     "pillar.data": {
         "message": "Daten"
@@ -421,19 +421,19 @@
         "message": "KI-Säule im Workshop"
     },
     "products.title": {
-        "message": "Zwei Tools, eine Mission"
+        "message": "Zwei Werkzeuge, eine Mission"
     },
     "products.subtitle": {
-        "message": "Ob Sie Ihre Zero-Trust-Roadmap planen oder Ihre aktuelle Sicherheitslage messen — wir haben alles abgedeckt."
+        "message": "Ob Sie Ihre Zero-Trust-Roadmap planen oder Ihre aktuelle Sicherheitslage messen — wir haben die passende Lösung."
     },
     "products.workshop.label": {
         "message": "Interaktives Planungstool"
     },
     "products.workshop.name": {
-        "message": "Zero Trust Workshop"
+        "message": "Zero-Trust-Workshop"
     },
     "products.workshop.description": {
-        "message": "Eine neue Webanwendung zur Planung Ihrer Zero-Trust-Bereitstellung über alle sieben Säulen — Identität, Geräte, Daten, Netzwerk, Infrastruktur, Sicherheitsbetrieb und KI. Priorisieren Sie Aufgaben in einer Erst-Dann-Struktur und erstellen Sie automatisierte Zusammenfassungen und Implementierungspläne."
+        "message": "Eine neue Webanwendung zur Planung Ihrer Zero-Trust-Implementierung über alle sieben Säulen — Identitäten, Endgeräte, Daten, Netzwerk, Infrastruktur, Sicherheitsbetrieb und KI. Priorisieren Sie Aufgaben in einer Erst-Dann-Struktur und generieren Sie automatisierte Zusammenfassungen und Umsetzungspläne."
     },
     "products.workshop.tag.pillars": {
         "message": "7 Säulen"
@@ -442,10 +442,10 @@
         "message": "KI-Säule"
     },
     "products.workshop.tag.summaries": {
-        "message": "Auto-Zusammenfassungen"
+        "message": "Automatische Zusammenfassungen"
     },
     "products.workshop.tag.plans": {
-        "message": "Implementierungspläne"
+        "message": "Umsetzungspläne"
     },
     "products.workshop.cta": {
         "message": "Workshop starten"
@@ -454,16 +454,16 @@
         "message": "Automatisierte Mandantenanalyse"
     },
     "products.assessment.name": {
-        "message": "Zero Trust Bewertung"
+        "message": "Zero-Trust-Bewertung"
     },
     "products.assessment.description": {
-        "message": "Verbinden Sie sich mit Ihrem Microsoft Entra-Mandanten und erhalten Sie eine automatisierte Bewertung Ihrer Zero-Trust-Sicherheitslage. Analysieren Sie Konfigurationen über die Säulen Identität, Geräte, Daten und Netzwerk mit umsetzbaren Erkenntnissen und visuellen Dashboards."
+        "message": "Verbinden Sie sich mit Ihrem Microsoft Entra-Mandanten und erhalten Sie eine automatisierte Bewertung Ihrer Zero-Trust-Sicherheitslage. Analysieren Sie Konfigurationen in den Säulen Identitäten, Endgeräte, Daten und Netzwerk mit umsetzbaren Erkenntnissen und visuellen Dashboards."
     },
     "products.assessment.tag.identity": {
-        "message": "Identität"
+        "message": "Identitäten"
     },
     "products.assessment.tag.devices": {
-        "message": "Geräte"
+        "message": "Endgeräte"
     },
     "products.assessment.tag.data": {
         "message": "Daten"
@@ -478,7 +478,7 @@
         "message": "Bewertung ausführen"
     },
     "howItWorks.title": {
-        "message": "So funktioniert es"
+        "message": "Vorgehensweise"
     },
     "howItWorks.subtitle": {
         "message": "Drei Schritte zur Verbesserung der Sicherheitslage Ihrer Organisation."
@@ -487,7 +487,7 @@
         "message": "Lernen"
     },
     "howItWorks.step1.description": {
-        "message": "Verstehen Sie die Zero-Trust-Prinzipien — Explizit verifizieren, Zugriff mit geringsten Berechtigungen und Sicherheitsverletzung annehmen — und wie sie auf Ihre Umgebung angewendet werden."
+        "message": "Verstehen Sie die Zero-Trust-Grundprinzipien — Explizit überprüfen, Prinzip der minimalen Rechte anwenden und Von einem Sicherheitsvorfall ausgehen — und wie sie in Ihrer Umgebung angewendet werden."
     },
     "howItWorks.step1.link": {
         "message": "Microsoft Zero Trust erkunden"
@@ -496,7 +496,7 @@
         "message": "Planen"
     },
     "howItWorks.step2.description": {
-        "message": "Nutzen Sie den Workshop, um eine konkrete Zero-Trust-Roadmap über alle Säulen zu erstellen. Priorisieren Sie Aufgaben und erstellen Sie auf Ihre Organisation zugeschnittene Implementierungspläne."
+        "message": "Nutzen Sie den Workshop, um eine konkrete Zero-Trust-Roadmap über alle Säulen hinweg zu erstellen. Priorisieren Sie Aufgaben und generieren Sie auf Ihre Organisation zugeschnittene Umsetzungspläne."
     },
     "howItWorks.step2.link": {
         "message": "Workshop öffnen"
@@ -505,7 +505,7 @@
         "message": "Bewerten"
     },
     "howItWorks.step3.description": {
-        "message": "Führen Sie die Bewertung gegen Ihren Microsoft Entra-Mandanten aus, um Ihre aktuelle Sicherheitslage zu messen, Lücken zu identifizieren und den Fortschritt im Zeitverlauf zu verfolgen."
+        "message": "Führen Sie die Bewertung gegen Ihren Microsoft Entra-Mandanten aus, um Ihre aktuelle Sicherheitslage zu messen, Schwachstellen zu identifizieren und den Fortschritt im Zeitverlauf zu verfolgen."
     },
     "howItWorks.step3.link": {
         "message": "Bewertung ausführen"
@@ -514,15 +514,15 @@
         "message": "Bereit loszulegen?"
     },
     "getStarted.description": {
-        "message": "Folgen Sie unserem Schritt-für-Schritt-Plan, um eine Zero-Trust-Strategiesitzung durchzuführen. Ob Microsoft-Partner oder interner Workshop — der Leitfaden begleitet Sie durch Vorbereitung, Durchführung und Nachbereitung."
+        "message": "Folgen Sie unserem Schritt-für-Schritt-Plan zur Durchführung einer Zero-Trust-Strategiesitzung. Ob Sie Microsoft-Partner sind oder einen internen Workshop durchführen — die Anleitung begleitet Sie durch Vorbereitung, Durchführung und Nachbereitung."
     },
     "getStarted.cta": {
-        "message": "Schritt-für-Schritt-Plan anzeigen"
+        "message": "Schritt-für-Schritt-Plan ansehen"
     },
     "home.layout.title": {
-        "message": "Microsoft Zero Trust Workshop & Bewertung"
+        "message": "Microsoft Zero-Trust-Workshop und -Bewertung"
     },
     "home.layout.description": {
-        "message": "Planen Sie Ihre Zero-Trust-Bereitstellung mit dem Workshop-Tool und messen Sie Ihre Sicherheitslage mit der automatisierten Bewertung — jetzt mit einer neuen KI-Säule."
+        "message": "Planen Sie Ihre Zero-Trust-Implementierung mit dem Workshop-Tool und messen Sie Ihre Sicherheitslage mit der automatisierten Bewertung — jetzt mit einer neuen KI-Säule."
     }
 }
