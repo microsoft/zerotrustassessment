@@ -58,24 +58,26 @@ function Write-ZtTestLog {
 			}
 			$lines.Add('# ---')
 
-			# Messages section disabled — may contain tenant-specific data (privacy)
-			# if ($Result.Messages) {
-			# 	foreach ($msg in $Result.Messages) {
-			# 		$timestamp = 'N/A'
-			# 		if ($null -ne $msg.Timestamp) {
-			# 			try {
-			# 				$timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
-			# 			}
-			# 			catch {
-			# 				$timestamp = "$($msg.Timestamp)"
-			# 			}
-			# 		}
+            # Write messages, excluding "Result:" lines which contain tenant-specific report output (privacy)
+            if ($Result.Messages) {
+                foreach ($msg in $Result.Messages) {
+                    $text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
+                    if ($text -like 'Result:*') { continue }
 
-			# 		$level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
-			# 		$text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
-			# 		$lines.Add("$timestamp [$level] $text")
-			# 	}
-			# }
+                    $timestamp = 'N/A'
+                    if ($null -ne $msg.Timestamp) {
+                        try {
+                            $timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
+                        }
+                        catch {
+                            $timestamp = "$($msg.Timestamp)"
+                        }
+                    }
+
+                    $level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
+                    $lines.Add("$timestamp [$level] $text")
+                }
+            }
 
 			$testLogsPath = Join-Path $LogsPath '2-Tests'
 			[void][System.IO.Directory]::CreateDirectory($testLogsPath)
