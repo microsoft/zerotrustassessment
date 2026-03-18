@@ -27,7 +27,7 @@ const SLIDES = [
     img: "/img/zt-assessment-screenshot.png",
     alt: "Zero Trust Assessment dashboard — tenant overview and scores",
     caption: "Zero Trust Assessment",
-    href: "https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started",
+    href: "https://learn.microsoft.com/security/zero-trust/assessment/get-started",
   },
 ];
 
@@ -164,7 +164,7 @@ function HeroSection() {
           </Link>
           <Link
             className={styles.ctaSecondary}
-            href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started"
+            href="https://learn.microsoft.com/security/zero-trust/assessment/get-started"
           >
             <Translate id="hero.cta.assessment">Run Assessment</Translate> →
           </Link>
@@ -406,7 +406,7 @@ function ProductShowcase() {
               </div>
               <Link
                 className={styles.productCta}
-                href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started"
+                href="https://learn.microsoft.com/security/zero-trust/assessment/get-started"
               >
                 <Translate id="products.assessment.cta">
                   Run Assessment
@@ -490,7 +490,7 @@ function HowItWorks() {
             </p>
             <Link
               className={styles.stepLink}
-              href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started"
+              href="https://learn.microsoft.com/security/zero-trust/assessment/get-started"
             >
               <Translate id="howItWorks.step3.link">Run Assessment</Translate> →
             </Link>
