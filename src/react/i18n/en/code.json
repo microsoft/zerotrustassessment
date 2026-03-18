@@ -308,5 +308,173 @@
   "theme.tags.tagsPageTitle": {
     "message": "Tags",
     "description": "The title of the tag list page"
+  },
+  "badge.new": {
+    "message": "NEW"
+  },
+  "badge.updated": {
+    "message": "UPDATED"
+  },
+  "hero.tagline": {
+    "message": "AI pillar now available in the Zero Trust framework"
+  },
+  "hero.title": {
+    "message": "Accelerate Your Zero Trust Journey"
+  },
+  "hero.subtitle": {
+    "message": "A comprehensive framework from Microsoft to help organizations adopt a Zero Trust strategy and deploy security solutions end-to-end — now with a new AI pillar for securing agents and AI resources."
+  },
+  "hero.cta.workshop": {
+    "message": "Launch Workshop"
+  },
+  "hero.cta.assessment": {
+    "message": "Run Assessment"
+  },
+  "ai.pill": {
+    "message": "What's New"
+  },
+  "ai.title": {
+    "message": "Introducing the AI Pillar in Zero Trust"
+  },
+  "ai.description": {
+    "message": "As organizations adopt AI agents and MCP servers, the Zero Trust framework now includes a dedicated AI Resources pillar with AI controls — ensuring your AI workloads are governed with the same rigor as every other part of your environment."
+  },
+  "ai.pillarSubtitle": {
+    "message": "Now featuring auto-generated summaries and expanded data & network posture checks."
+  },
+  "pillar.identity": {
+    "message": "Identity"
+  },
+  "pillar.devices": {
+    "message": "Devices"
+  },
+  "pillar.data": {
+    "message": "Data"
+  },
+  "pillar.data.tooltip": {
+    "message": "New automated assessment checks"
+  },
+  "pillar.network": {
+    "message": "Network"
+  },
+  "pillar.network.tooltip": {
+    "message": "New automated assessment checks"
+  },
+  "pillar.infrastructure": {
+    "message": "Infrastructure"
+  },
+  "pillar.secops": {
+    "message": "SecOps"
+  },
+  "pillar.ai": {
+    "message": "AI"
+  },
+  "pillar.ai.tooltip": {
+    "message": "AI pillar in Workshop"
+  },
+  "products.title": {
+    "message": "Two Tools, One Mission"
+  },
+  "products.subtitle": {
+    "message": "Whether you're planning your Zero Trust roadmap or measuring your current posture, we have you covered."
+  },
+  "products.workshop.label": {
+    "message": "Interactive Planning Tool"
+  },
+  "products.workshop.name": {
+    "message": "Zero Trust Workshop"
+  },
+  "products.workshop.description": {
+    "message": "A new web application to plan your Zero Trust deployment across all seven pillars — Identity, Devices, Data, Network, Infrastructure, Security Operations, and AI. Prioritize tasks in a First-Then structure and generate automated summaries and implementation plans."
+  },
+  "products.workshop.tag.pillars": {
+    "message": "7 Pillars"
+  },
+  "products.workshop.tag.ai": {
+    "message": "AI Pillar"
+  },
+  "products.workshop.tag.summaries": {
+    "message": "Auto Summaries"
+  },
+  "products.workshop.tag.plans": {
+    "message": "Implementation Plans"
+  },
+  "products.workshop.cta": {
+    "message": "Launch Workshop"
+  },
+  "products.assessment.label": {
+    "message": "Automated Tenant Analysis"
+  },
+  "products.assessment.name": {
+    "message": "Zero Trust Assessment"
+  },
+  "products.assessment.description": {
+    "message": "Connect to your Microsoft Entra tenant and get an automated assessment of your Zero Trust posture. Analyze configurations across Identity, Devices, Data, and Network pillars with actionable insights and visual dashboards."
+  },
+  "products.assessment.tag.identity": {
+    "message": "Identity"
+  },
+  "products.assessment.tag.devices": {
+    "message": "Devices"
+  },
+  "products.assessment.tag.data": {
+    "message": "Data"
+  },
+  "products.assessment.tag.network": {
+    "message": "Network"
+  },
+  "products.assessment.tag.checks": {
+    "message": "Automated Checks"
+  },
+  "products.assessment.cta": {
+    "message": "Run Assessment"
+  },
+  "howItWorks.title": {
+    "message": "How It Works"
+  },
+  "howItWorks.subtitle": {
+    "message": "Three steps to improve your organization's security posture."
+  },
+  "howItWorks.step1.title": {
+    "message": "Learn"
+  },
+  "howItWorks.step1.description": {
+    "message": "Understand Zero Trust principles — Verify Explicitly, Least Privilege Access, and Assume Compromise — and how they apply to your environment."
+  },
+  "howItWorks.step1.link": {
+    "message": "Explore Microsoft Zero Trust"
+  },
+  "howItWorks.step2.title": {
+    "message": "Plan"
+  },
+  "howItWorks.step2.description": {
+    "message": "Use the Workshop to build a concrete Zero Trust roadmap across all pillars. Prioritize tasks and generate implementation plans tailored to your organization."
+  },
+  "howItWorks.step2.link": {
+    "message": "Open Workshop"
+  },
+  "howItWorks.step3.title": {
+    "message": "Assess"
+  },
+  "howItWorks.step3.description": {
+    "message": "Run the Assessment against your Microsoft Entra tenant to measure your current posture, identify gaps, and track progress over time."
+  },
+  "howItWorks.step3.link": {
+    "message": "Run Assessment"
+  },
+  "getStarted.title": {
+    "message": "Ready to Get Started?"
+  },
+  "getStarted.description": {
+    "message": "Follow our step-by-step plan to deliver a Zero Trust strategy session. Whether you're a Microsoft partner or running an internal workshop, the guide walks you through preparation, delivery, and follow-up."
+  },
+  "getStarted.cta": {
+    "message": "View Step-by-Step Plan"
+  },
+  "home.layout.title": {
+    "message": "Microsoft Zero Trust Workshop & Assessment"
+  },
+  "home.layout.description": {
+    "message": "Plan your Zero Trust deployment with the Workshop tool and measure your posture with the automated Assessment — now featuring a new AI pillar."
   }
 }
