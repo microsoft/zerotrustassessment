@@ -30,11 +30,19 @@ function Test-Assessment-25480 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking Quick Access user and group assignments'
-    Write-ZtProgress -Activity $activity -Status 'Querying Quick Access application and assigned users/groups'
+    Write-ZtProgress -Activity $activity -Status 'Querying Quick Access application'
 
-    # Query 1: Find Quick Access application with appRoleAssignedTo expansion
-    # executing the original query in graph explorer ignores $select and returns complete entity. A Q&A thread mentions no support for nested $select on expanded directory object relationships [known-issues](https://developer.microsoft.com/en-us/graph/known-issues/?search=13635)
-    $app = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'NetworkAccessQuickAccessApplication')&`$expand=appRoleAssignedTo" -ApiVersion beta
+    # Query 1: Get Quick Access service principal ID
+    $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'NetworkAccessQuickAccessApplication')&`$select=id,appId,displayName" -ApiVersion beta
+
+    $app = $null
+    if ($quickAccessApp -and $quickAccessApp.Count -gt 0) {
+        # Query 2: Get assignments and assignment requirement using the service principal ID
+        # Two-step pattern avoids $filter + $expand silently returning empty appRoleAssignedTo
+        $quickAccessAppId = $quickAccessApp[0].id
+        Write-ZtProgress -Activity $activity -Status 'Querying Quick Access assignments'
+        $app = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$quickAccessAppId`?`$select=id,appId,appRoleAssignmentRequired&`$expand=appRoleAssignedTo(`$select=principalId,principalType,principalDisplayName)" -ApiVersion beta
+    }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -45,20 +53,28 @@ function Test-Assessment-25480 {
     $customStatus = $null
 
     # Check if Quick Access application exists
-    if (-not $app -or $app.Count -eq 0) {
+    if (-not $quickAccessApp -or $quickAccessApp.Count -eq 0) {
         # Quick Access app not configured - Investigate status
-        $testResultMarkdown = '⚠️ Quick Access application is not configured in the tenant. Customers should review the documentation on how to enable Quick Access.'
+        $testResultMarkdown = '⚠️ Quick Access application is not configured in the tenant.'
+        $customStatus = 'Investigate'
+    }
+    elseif (-not $app) {
+        # Failed to retrieve app details
+        $testResultMarkdown = '⚠️ Unable to retrieve Quick Access application details.'
         $customStatus = 'Investigate'
     }
     else {
-        # Check appRoleAssignedTo
-        if ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0) {
-            $appRoleAssignments = $app.appRoleAssignedTo
+        # Pass if: appRoleAssignmentRequired is false (all users have implicit access) OR appRoleAssignedTo has value
+        $assignmentRequired = $app.appRoleAssignmentRequired
+        $hasAssignments = ($null -ne $app.appRoleAssignedTo -and $app.appRoleAssignedTo.Count -gt 0)
+
+        if (-not $assignmentRequired -or $hasAssignments) {
+            $appRoleAssignments = if ($app.appRoleAssignedTo) { $app.appRoleAssignedTo } else { @() }
             $passed = $true
-            $testResultMarkdown = "✅ Quick Access application has users or groups assigned. `n`n%TestResult%"
+            $testResultMarkdown = "✅ Quick Access application has users or groups assigned, or does not require explicit assignment. `n`n%TestResult%"
         }
         else {
-            # appRoleAssignedTo is empty, null, or contains no entries
+            # appRoleAssignmentRequired is true AND appRoleAssignedTo is empty
             $passed = $false
             $testResultMarkdown = "❌ Quick Access application does not have user or group assignments. `n`n%TestResult%"
         }
