@@ -184,6 +184,7 @@ resources
         $securityPolicyConfigured = 'No'
         $wafEnabled = 'N/A'
         $wafMode = 'N/A'
+        $wafIsPremium = $false
         $hasEnabledRule = $false
 
         if ($securityPolicies.Count -gt 0) {
@@ -358,7 +359,7 @@ resources
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-| Subscription | Profile name | SKU | WAF policy | WAF mode | Bot protection enabled | Has enabled rules | Rule set version | Rule set action | Domains protected | Status |
+| Subscription | Profile name | SKU | WAF policy | WAF mode | Bot protection enabled | Enabled state | Rule set version | Rule set action | Domains protected | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
@@ -369,6 +370,7 @@ resources
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/securityPolicies)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
             $wafModeDisplay = if ($result.WAFMode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($result.WAFMode)" }
+            $enabledStateDisplay = if ($result.WAFEnabled -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
             # Create WAF policy link if policy exists
             $wafPolicyDisplay = if ($result.WAFPolicyId) {
@@ -377,7 +379,7 @@ resources
                 $(Get-SafeMarkdown $result.WAFPolicyName)
             }
 
-            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $wafPolicyDisplay | $wafModeDisplay | $($result.BotManagerEnabled) | $($result.HasEnabledRule) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
+            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $wafPolicyDisplay | $wafModeDisplay | $($result.BotManagerEnabled) | $enabledStateDisplay | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
         }
 
         $mdInfo += $formatTemplate -f $tableRows
