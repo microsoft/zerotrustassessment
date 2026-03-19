@@ -93,8 +93,8 @@
 				# Non-critical: don't let message scanning break the wait loop
 			}
 
-			# Write periodic status snapshot to export progress log (~every 10 seconds)
-			if ($LogsPath -and ([datetime]::Now - $lastStatusSnapshot).TotalSeconds -ge 10) {
+			# Write periodic status snapshot to export progress log (~every 60 seconds)
+			if ($LogsPath -and ([datetime]::Now - $lastStatusSnapshot).TotalSeconds -ge 60) {
 				$statusMsg = "Pending:$countPending Waiting:$countWaiting InProgress:$countInProgress Done:$countDone Failed:$countFailed"
 				Write-ZtExportProgress -ExportName '_overall_' -LogsPath $LogsPath -Action Status -StatusMessage $statusMsg
 				$lastStatusSnapshot = [datetime]::Now
