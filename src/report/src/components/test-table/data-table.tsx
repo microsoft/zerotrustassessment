@@ -55,15 +55,10 @@ export function DataTable<TData extends Test, TValue>({
     data,
     pillar,
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>(
-        pillar === "Devices"
-            ? [
-                { id: "TestCategory", desc: false },
-                { id: "TestStatus", desc: false },
-                { id: "TestTitle", desc: false }
-              ]
-            : []
-    )
+    const [sorting, setSorting] = React.useState<SortingState>([
+        { id: "TestRisk", desc: false },
+        { id: "TestStatus", desc: false },
+    ])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = React.useState("");
     const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
@@ -79,8 +74,8 @@ export function DataTable<TData extends Test, TValue>({
         TestSfiPillar: false,
         // Hide TestMinimumLicense by default
         TestMinimumLicense: false,
-        // Category visible for Devices, hidden for Identity
-        TestCategory: pillar === "Devices" ? true : false,
+        // Hide TestCategory by default
+        TestCategory: false,
         // Optionally specify other columns here (true => visible, false => hidden)
         // TestRisk: true,
         // TestStatus: true,

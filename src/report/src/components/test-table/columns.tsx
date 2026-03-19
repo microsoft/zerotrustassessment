@@ -190,6 +190,12 @@ export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestRisk",
         meta: { label: "Risk" },
+        sortingFn: (rowA, rowB, columnId) => {
+            const riskOrder: Record<string, number> = { 'High': 0, 'Medium': 1, 'Low': 2 };
+            const a = riskOrder[rowA.getValue(columnId) as string] ?? 3;
+            const b = riskOrder[rowB.getValue(columnId) as string] ?? 3;
+            return a - b;
+        },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -220,6 +226,12 @@ export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestStatus",
         meta: { label: "Status" },
+        sortingFn: (rowA, rowB, columnId) => {
+            const statusOrder: Record<string, number> = { 'Failed': 0, 'Passed': 1, 'Skipped': 1, 'Planned': 2 };
+            const a = statusOrder[rowA.getValue(columnId) as string] ?? 3;
+            const b = statusOrder[rowB.getValue(columnId) as string] ?? 3;
+            return a - b;
+        },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>

@@ -79,8 +79,10 @@ function Get-ZtAssessmentResults {
 
 	$mgContext = Get-MgContext
 	$org = Get-Organization
-	# Sort by risk then by status
-	$tests = $script:__ZtSession.TestResultDetail.Value.values | Sort-Object -Property @{Expression = { $_.TestRisk } }, @{Expression = { $_.TestStatus } }
+	# Sort by risk (High > Medium > Low) then by status (Failed first, then Passed/Skipped)
+	$riskOrder = @{ 'High' = 1; 'Medium' = 2; 'Low' = 3 }
+	$statusOrder = @{ 'Failed' = 1; 'Passed' = 2; 'Skipped' = 2 }
+	$tests = $script:__ZtSession.TestResultDetail.Value.values | Sort-Object -Property @{Expression = { $riskOrder[$_.TestRisk] } }, @{Expression = { $statusOrder[$_.TestStatus] } }
 
 	$ztTestResults = [PSCustomObject][ordered]@{
 		ExecutedAt        = Get-Date
