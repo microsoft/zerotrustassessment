@@ -14,6 +14,7 @@ function Test-Assessment-25413 {
         MinimumLicense = ('Entra_Premium_Internet_Access'),
         Pillar = 'Network',
         RiskLevel = 'High',
+        Service = ('Graph'),
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25413,
