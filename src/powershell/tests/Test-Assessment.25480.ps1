@@ -36,10 +36,10 @@ function Test-Assessment-25480 {
     $quickAccessApp = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals?`$filter=tags/any(c:c eq 'NetworkAccessQuickAccessApplication')&`$select=id,appId,displayName" -ApiVersion beta
 
     $app = $null
-    if ($quickAccessApp -and $quickAccessApp.Count -gt 0) {
+    if ($quickAccessApp) {
         # Query 2: Get assignments and assignment requirement using the service principal ID
         # Two-step pattern avoids $filter + $expand silently returning empty appRoleAssignedTo
-        $quickAccessAppId = $quickAccessApp[0].id
+        $quickAccessAppId = ($quickAccessApp | Select-Object -First 1).id
         Write-ZtProgress -Activity $activity -Status 'Querying Quick Access assignments'
         $app = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$quickAccessAppId`?`$select=id,appId,appRoleAssignmentRequired&`$expand=appRoleAssignedTo(`$select=principalId,principalType,principalDisplayName)" -ApiVersion beta
     }
@@ -53,7 +53,7 @@ function Test-Assessment-25480 {
     $customStatus = $null
 
     # Check if Quick Access application exists
-    if (-not $quickAccessApp -or $quickAccessApp.Count -eq 0) {
+    if (-not $quickAccessApp) {
         # Quick Access app not configured - Investigate status
         $testResultMarkdown = '⚠️ Quick Access application is not configured in the tenant.'
         $customStatus = 'Investigate'
