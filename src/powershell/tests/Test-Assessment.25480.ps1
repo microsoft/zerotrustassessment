@@ -90,7 +90,7 @@ function Test-Assessment-25480 {
 
     $mdInfo = ''
 
-    if ($appRoleAssignments.Count -gt 0) {
+    if ($assignmentRequired -and $appRoleAssignments.Count -gt 0) {
         # Build results table with link to Users blade
         $reportTitleLink = "[Quick Access application assignments]($portalLink)"
         $mdInfo += "`n## $reportTitleLink`n`n"
