@@ -2,12 +2,15 @@
 .SYNOPSIS
     Checks that Quick Access has assigned users or groups
 .DESCRIPTION
-    Verifies that the Quick Access application has at least one user or group assigned to it through appRoleAssignedTo.
+    Verifies that the Quick Access application has at least one user or group assigned to it,
+    or that assignment is not required (all users have implicit access). Uses a two-step query
+    pattern to reliably retrieve appRoleAssignedTo assignments and checks appRoleAssignmentRequired
+    to avoid false negatives when all users have implicit access.
 
 .NOTES
     Test ID: 25480
     Category: Global Secure Access
-    Required API: servicePrincipals with appRoleAssignedTo expansion
+    Required API: servicePrincipals, appRoleAssignedTo
 #>
 
 function Test-Assessment-25480 {
