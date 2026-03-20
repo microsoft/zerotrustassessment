@@ -252,7 +252,7 @@ Describe "Invoke-ZtRetry" {
 		}
 	}
 
-	Context "Error Filtering - Non-Retryable Errors (4xx)" {
+	Context "Error Filtering - 4xx Status Codes (Retryable and Non-Retryable)" {
 		It "Should NOT retry on HTTP 401 Unauthorized" {
 			$script:callCount = 0
 			{
@@ -293,7 +293,7 @@ Describe "Invoke-ZtRetry" {
 			Should -Invoke Start-Sleep -Times 0 -Exactly
 		}
 
-		It "Should NOT retry on HTTP 400 Bad Request" {
+		It "Should retry on HTTP 400 Bad Request" {
 			$script:callCount = 0
 			{
 				Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
@@ -302,8 +302,8 @@ Describe "Invoke-ZtRetry" {
 				}
 			} | Should -Throw "*400*"
 
-			$script:callCount | Should -Be 1
-			Should -Invoke Start-Sleep -Times 0 -Exactly
+			$script:callCount | Should -Be 4
+			Should -Invoke Start-Sleep -Times 3 -Exactly
 		}
 
 		It "Should log non-retryable warning before failing" {

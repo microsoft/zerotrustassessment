@@ -165,6 +165,7 @@ function Export-ZtGraphEntity {
 	$startTime = Get-Date
 	$stopTime = $startTime.AddMinutes($MaximumQueryTime)
 	$hasTimeLimit = $MaximumQueryTime -gt 0
+	$previousNextLink = $null
 
 	do {
 		# Update progress detail with the Graph API endpoint and page number
@@ -175,7 +176,32 @@ function Export-ZtGraphEntity {
 			Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET $Uri — page $($pageIndex + 1)"
 		}
 
-		$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
+		$results = $null
+		try {
+			$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
+		}
+		catch {
+			Write-PSFMessage -Level Warning "Export '$Name' failed on page $pageIndex. URI: $actualUri" -ErrorRecord $_ -Tag Export, Error
+			throw
+		}
+
+		# Validate response - API may return error JSON as a valid hashtable without throwing
+		if ($results -is [hashtable] -and $results.ContainsKey('error')) {
+			$errorCode = $results.error.code
+			$errorMessage = $results.error.message
+			Write-PSFMessage -Level Warning "API returned error response for '$Name' page ${pageIndex}: [$errorCode] $errorMessage" -Tag Export, Error
+			# Throw a structured error so callers can inspect error code/category
+			$exception = New-Object System.Exception("API returned error for '$Name': [$errorCode] $errorMessage")
+			$exception.Data['GraphErrorCode'] = $errorCode
+			$exception.Data['GraphErrorMessage'] = $errorMessage
+			$errorRecord = New-Object System.Management.Automation.ErrorRecord `
+				$exception, `
+				$errorCode, `
+				[System.Management.Automation.ErrorCategory]::InvalidOperation, `
+				$null
+			throw $errorRecord
+		}
+
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 
 		# Track file size for SignIn logs
@@ -207,7 +233,15 @@ function Export-ZtGraphEntity {
 		if (-not $actualUri) {
 			break
 		}
-		elseif ($hasTimeLimit -and (Get-Date) -gt $stopTime) {
+
+		# Detect stuck paging - same nextLink returned consecutively
+		if ($actualUri -eq $previousNextLink) {
+			Write-PSFMessage -Level Warning "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex. Stopping export." -Tag Export, Error
+			throw "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex"
+		}
+		$previousNextLink = $actualUri
+
+		if ($hasTimeLimit -and (Get-Date) -gt $stopTime) {
 			Write-PSFMessage "Maximum time limit reached for $Name"
 			break
 		}
