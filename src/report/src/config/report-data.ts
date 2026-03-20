@@ -969,7 +969,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       "ApplicationCount": 120,
       "DeviceCount": 20,
       "ManagedDeviceCount": 0
-    |EndJson|"
+    }
   },
   "EndOfJson": "EndOfJson"
 }
