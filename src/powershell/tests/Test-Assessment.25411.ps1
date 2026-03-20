@@ -131,7 +131,7 @@ function Test-Assessment-25411 {
     if ($baselineProfileResults.Count -gt 0) {
 
         $mdInfo += "`n## TLS Inspection Policies Linked to Baseline Profiles`n`n"
-        $mdInfo += "| Linked Profile Name | Linked Profile Priority | Linked Policy Name | Policy Link State | Profile State |`n"
+        $mdInfo += "| Linked profile name | Linked profile priority | Linked policy name | Policy link state | Profile state |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- |`n"
         foreach ($policy in $baselineProfileResults) {
             $baselineProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($policy.ProfileId))"
@@ -147,7 +147,7 @@ function Test-Assessment-25411 {
 
     if ($securityProfileResults.Count -gt 0) {
         $mdInfo += "`n## TLS Inspection Policies Linked to Security Profiles`n`n"
-        $mdInfo += "| Linked Profile Name | Linked Profile Priority | Linked Policy Name | Policy Link State | Profile State | CA Policy Name | CA Policy State |`n"
+        $mdInfo += "| Linked profile name | Linked profile priority | Linked policy name | Policy link state | Profile state | CA policy name | CA policy state |`n"
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
         foreach ($profile in $securityProfileResults) {
             $securityProfilePortalLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$(($profile.ProfileId))"
