@@ -37,8 +37,8 @@ function Test-Assessment-25411 {
     # Step 2: List all policies in the Baseline Profile and in each Security Profile
     Write-ZtProgress -Activity $activity -Status 'Querying filtering profiles and policies'
     $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
-        '$select' = 'id,name,description,state,version,priority'
-        '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version)),conditionalAccessPolicies($select=id,displayName)'
+        '$select' = 'id,name,description,state,priority'
+        '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version))'
     } -ApiVersion beta
 
     # Query all Conditional Access policies with details
