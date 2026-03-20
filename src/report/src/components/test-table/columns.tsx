@@ -5,6 +5,9 @@ import { Button } from "../ui/button"
 import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
 
+const RISK_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
+const STATUS_ORDER: Record<string, number> = { Failed: 0, Passed: 1, Skipped: 1, Planned: 2 }
+
 export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestId",
@@ -191,10 +194,9 @@ export const columns: ColumnDef<Test>[] = [
         accessorKey: "TestRisk",
         meta: { label: "Risk" },
         sortingFn: (rowA, rowB, columnId) => {
-            const riskOrder: Record<string, number> = { 'High': 0, 'Medium': 1, 'Low': 2 };
-            const a = riskOrder[rowA.getValue(columnId) as string] ?? 3;
-            const b = riskOrder[rowB.getValue(columnId) as string] ?? 3;
-            return a - b;
+            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? 3
+            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? 3
+            return a - b
         },
         header: ({ column }) => {
             return (
@@ -227,10 +229,9 @@ export const columns: ColumnDef<Test>[] = [
         accessorKey: "TestStatus",
         meta: { label: "Status" },
         sortingFn: (rowA, rowB, columnId) => {
-            const statusOrder: Record<string, number> = { 'Failed': 0, 'Passed': 1, 'Skipped': 1, 'Planned': 2 };
-            const a = statusOrder[rowA.getValue(columnId) as string] ?? 3;
-            const b = statusOrder[rowB.getValue(columnId) as string] ?? 3;
-            return a - b;
+            const a = STATUS_ORDER[rowA.getValue(columnId) as string] ?? 3
+            const b = STATUS_ORDER[rowB.getValue(columnId) as string] ?? 3
+            return a - b
         },
         header: ({ column }) => {
             return (
