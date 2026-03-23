@@ -4,21 +4,21 @@ import { columns } from "@/components/test-table/columns";
 import { DataTable } from "@/components/test-table/data-table";
 import { reportData } from "@/config/report-data";
 
-export default function Infrastructure() {
+export default function AI() {
     return (
         <>
             <PageHeader>
-                <PageHeaderHeading>Infrastructure</PageHeaderHeading>
+                <PageHeaderHeading>AI</PageHeaderHeading>
             </PageHeader>
             <Card>
                 <CardHeader>
                     <CardTitle className="mb-3">Assessment results</CardTitle>
                     <CardDescription>
-                        The results presented below are based on Zero Trust security principles for infrastructure.
+                        The results presented below are based on Zero Trust security principles for AI workloads.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="gap-4 px-4 pb-4 pt-1">
-                    <DataTable columns={columns} data={reportData.Tests} pillar="Infrastructure" />
+                    <DataTable columns={columns} data={reportData.Tests} pillar="AI" />
                 </CardContent>
             </Card>
         </>
