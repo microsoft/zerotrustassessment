@@ -4,7 +4,7 @@ function Write-ZtDatabaseLog {
 		Appends a progress entry to the database import progress log.
 
 	.DESCRIPTION
-		Appends a single line to _database_progress.log in the logs folder, recording when
+		Appends a single line to 2-database_progress.log in the logs folder, recording when
 		each table import starts, completes, or fails. This append-only log provides an
 		at-a-glance timeline of all database table imports and makes it easy to identify
 		which table import caused an issue.
@@ -79,7 +79,7 @@ function Write-ZtDatabaseLog {
 			}
 			$line += [System.Environment]::NewLine
 
-			$progressFilePath = Join-Path $LogsPath '_database_progress.log'
+			$progressFilePath = Join-Path $LogsPath '2-database_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 
