@@ -3,11 +3,16 @@ Describe "Export-Database" {
         $here = $PSScriptRoot
         $srcRoot = Join-Path $here "../../src/powershell"
 
-        # Import via .psd1 first so RequiredAssemblies (lib\DuckDB.NET.Data.dll) and
+        # Import via .psd1 so RequiredAssemblies (lib\DuckDB.NET.Data.dll) and
         # ScriptsToProcess (Initialize-Dependencies.ps1) are processed — without this
         # [DuckDB.NET.Data.DuckDBConnection] cannot be resolved as a PowerShell type.
-        Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global -Force 3>$null
-        Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psm1") -Global -Force 3>$null
+        # Skip entirely if already loaded (e.g. when invoked via code-tests/pester.ps1)
+        # to avoid re-running ScriptsToProcess and re-importing unnecessarily.
+        $moduleName = 'ZeroTrustAssessment'
+        if (-not (Get-Module -Name $moduleName -ErrorAction SilentlyContinue)) {
+            Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global 3>$null
+            Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psm1") -Global -Force 3>$null
+        }
 
         # Stub Get-MgContext if not available (Microsoft.Graph.Authentication not installed)
         if (-not (Get-Command Get-MgContext -ErrorAction SilentlyContinue)) {
@@ -193,6 +198,69 @@ where "@odata.type" = '#microsoft.graph.user'
             $rows | Should -Not -BeNullOrEmpty
             $rows[0]['userPrincipalName'] | Should -Be 'test@contoso.com'
             $rows[0]['uniqueName']        | Should -BeNullOrEmpty
+        }
+    }
+
+    Context "When all active role assignments are service principals only (P2/Governance path)" {
+        <#
+            Reproduces Issue #1079 for the P2/Governance-licensed RoleAssignmentScheduleInstance path.
+            When a tenant is licensed for Entra P2/Governance, vwRole reads from
+            RoleAssignmentScheduleInstance instead of RoleAssignment. If that table
+            contains only service principals, DuckDB infers the 'principal' struct
+            without a 'userPrincipalName' field and the view SQL fails with:
+                "Could not find key 'userprincipalname' in struct ..."
+        #>
+        BeforeAll {
+            $script:testPath3 = New-TestExportPath -Suffix 'p2sponly'
+
+            # RoleAssignmentScheduleInstance — SP-only principals; no userPrincipalName in the struct.
+            # This is the P2/Governance equivalent of the Free/P1 RoleAssignment SP-only case.
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath3 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
+
+            # RoleAssignment — still needs at least one file because it has no model file and
+            # Import-EntraTable processes every directory unconditionally. In P2 mode the view
+            # reads from RoleAssignmentScheduleInstance, so what's here doesn't affect the test.
+            @{ value = @(@{
+                id               = 'ra-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath3 "RoleAssignment\RoleAssignment-0.json")
+        }
+
+        AfterAll {
+            if ($script:testPath3 -and (Test-Path $script:testPath3)) {
+                Remove-Item $script:testPath3 -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "Should create vwRole without error when only service principals are assigned to roles (P2 path)" {
+            Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'P2' }
+            $db = $null
+            try {
+                { $db = Export-Database -ExportPath $script:testPath3 -Pillar Identity } |
+                    Should -Not -Throw
+            }
+            finally {
+                if ($db) { Disconnect-Database -Database $db }
+            }
         }
     }
 }
