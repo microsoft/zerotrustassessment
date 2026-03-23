@@ -16,6 +16,7 @@ function Test-Assessment-25384 {
     [ZtTest(
     	Category = 'Role management',
     	ImplementationCost = 'Low',
+    	Service = ('Graph'),
     	MinimumLicense = ('P1'),
     	CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
