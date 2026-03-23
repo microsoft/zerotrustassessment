@@ -4,10 +4,10 @@
 
 .DESCRIPTION
     This test checks if all Azure Application Gateway WAF policies attached to Application Gateways
-    have the Microsoft Bot Manager ruleset configured in their managed rules and have at least one
-    rule enabled. Uses Azure Resource Graph to query policies and checks both the presence of the
-    Microsoft_BotManagerRuleSet and that not all rules within it are explicitly disabled via
-    ruleGroupOverrides. Unattached policies are excluded from evaluation.
+    have the Microsoft Bot Manager ruleset configured in their managed rules. Bot protection
+    identifies and categorizes automated traffic based on behavioral patterns, signatures, and IP
+    reputation to defend against credential stuffing, content scraping, inventory hoarding, and
+    denial of service attacks.
 
 .NOTES
     Test ID: 26882
@@ -81,26 +81,15 @@ resources
     #endregion Data Collection
 
     #region Helper Functions
-    # Determine if Bot Manager ruleset is present and has at least one enabled rule.
-    # If ruleGroupOverrides is absent or empty, all rules are enabled by default.
-    # If ruleGroupOverrides is present, at least one rule group must NOT have state=Disabled.
+    # Determine if Bot Manager ruleset is present.
+    # Per spec: ruleGroupOverrides are NOT evaluated - only presence of Microsoft_BotManagerRuleSet matters.
     function Test-BotManagerEnabled {
         param($ManagedRuleSets)
 
         if (-not $ManagedRuleSets) { return $false }
 
         $botRuleSet = $ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' } | Select-Object -First 1
-        if (-not $botRuleSet) { return $false }
-
-        $overrides = @($botRuleSet.ruleGroupOverrides)
-        if ($overrides.Count -eq 0) {
-            # No overrides means all rules are enabled by default
-            return $true
-        }
-
-        # Fail only if all rule groups are explicitly disabled
-        $allDisabled = ($overrides | Where-Object { $_.state -ne 'Disabled' }).Count -eq 0
-        return -not $allDisabled
+        return $null -ne $botRuleSet
     }
     #endregion Helper Functions
 
@@ -130,10 +119,10 @@ resources
     $passed = $failingPolicies.Count -eq 0
 
     if ($passed) {
-        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have the Bot Manager ruleset (Microsoft_BotManagerRuleSet) with at least one rule enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have the Bot Manager ruleset (Microsoft_BotManagerRuleSet) assigned.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled, running in Detection mode, do not have the Bot Manager ruleset configured, or have all Bot Manager rules disabled, leaving applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Application Gateway WAF policies attached to Application Gateways are disabled, running in Detection mode, or do not have the Bot Manager ruleset configured, leaving applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -159,7 +148,7 @@ resources
             $botRuleSet = $policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' } | Select-Object -First 1
         }
         $botManagerEnabled = Test-BotManagerEnabled -ManagedRuleSets $policy.ManagedRuleSets
-        $botManagerDisplay = if ($botRuleSet -and $botManagerEnabled) { '✅ Enabled' } elseif ($botRuleSet) { '❌ All Rules Disabled' } else { '❌ Not Configured' }
+        $botManagerDisplay = if ($botManagerEnabled) { '✅ Configured' } else { '❌ Not Configured' }
         $rulesetVersionDisplay = if ($botRuleSet) { $botRuleSet.ruleSetVersion } else { 'N/A' }
 
         if (-not $isAttached) {
