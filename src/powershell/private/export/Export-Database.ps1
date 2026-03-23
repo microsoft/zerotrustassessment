@@ -56,9 +56,10 @@ function Export-Database {
     select
         rd.isPrivileged,
         cast(r."roleDefinitionId" as varchar)           as roleDefinitionId,
-        cast(r.principal.displayName as varchar)        as principalDisplayName,
+        json_extract_string(to_json(r.principal), '$.displayName')               as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
-        cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
+        json_extract_string(to_json(r.principal), '$.userPrincipalName')         as userPrincipalName,
+        json_extract_string(to_json(r.principal), '$.uniqueName')                as uniqueName,
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType
@@ -73,6 +74,7 @@ function Export-Database {
         cast(r2.displayName as varchar)        as principalDisplayName,
         rd2.displayName                                  as roleDisplayName,
         cast(r2.userPrincipalName as varchar)  as userPrincipalName,
+        NULL::VARCHAR                                    as uniqueName,
         cast(r2."@odata.type" as varchar)      as "@odata.type",
         cast(r2.Id as varchar)                  as principalId,
         '$PrivilegeType'                        as privilegeType
