@@ -2,18 +2,12 @@
   "value": [
     {
       "isZtModelRow": true,
-      "createdUsing": null,
-      "scheduleInfo": null,
-      "assignmentType": null,
-      "memberType": null,
-      "roleDefinitionId": null,
-      "modifiedDateTime": null,
-      "appScopeId": null,
-      "createdDateTime": null,
-      "status": null,
-      "principalId": null,
-      "directoryScopeId": null,
       "id": null,
+      "principalId": null,
+      "principalOrganizationId": null,
+      "resourceScope": null,
+      "directoryScopeId": null,
+      "roleDefinitionId": null,
       "principal": {
         "@odata.type": null,
         "displayName": null,

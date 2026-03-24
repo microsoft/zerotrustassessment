@@ -56,13 +56,10 @@ function Export-Database {
     select
         rd.isPrivileged,
         cast(r."roleDefinitionId" as varchar)           as roleDefinitionId,
-        json_extract_string(to_json(r.principal), '$.displayName')               as principalDisplayName,
+        cast(r.principal.displayName as varchar)        as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
-        json_extract_string(to_json(r.principal), '$.userPrincipalName')         as userPrincipalName,
-        json_extract_string(to_json(r.principal), '$.uniqueName')                as uniqueName,
-        -- Dot-notation is intentional: "@odata.type" is universal across all MS Graph
-        -- principal types, so DuckDB always resolves it. json_extract_string cannot be
-        -- used here — there is no safe JSONPath for @-prefixed keys.
+        cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
+        cast(r.principal.uniqueName as varchar)          as uniqueName,
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType
@@ -77,7 +74,7 @@ function Export-Database {
         cast(r2.displayName as varchar)        as principalDisplayName,
         rd2.displayName                                  as roleDisplayName,
         cast(r2.userPrincipalName as varchar)  as userPrincipalName,
-        NULL::VARCHAR                                    as uniqueName,
+        null                                   as uniqueName,
         cast(r2."@odata.type" as varchar)      as "@odata.type",
         cast(r2.Id as varchar)                  as principalId,
         '$PrivilegeType'                        as privilegeType

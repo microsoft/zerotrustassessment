@@ -20,9 +20,9 @@ Describe "Export-Database" {
         }
 
         # Helper — creates a temp export folder with the minimum files needed for the
-        # Identity pillar. Tables that have model files (Application, ServicePrincipalSignIn,
-        # etc.) will get their schema from those; the four tables below have no model files
-        # and therefore need at least one real data file.
+        # Identity pillar. Tables with model files (Application, ServicePrincipalSignIn, and
+        # the three role tables) get their schema from those. The three tables below have no
+        # model files and need at least one real data file.
         function script:New-TestExportPath ([string]$Suffix) {
             $path = Join-Path $env:TEMP "zt-test-$Suffix-$(Get-Random)"
             New-Item -ItemType Directory -Path $path -Force | Out-Null
@@ -67,9 +67,11 @@ Describe "Export-Database" {
 
     Context "When all role assignments are service principals only (no users)" {
         <#
-            Tests the SP-only variant — same bug class as #727/#1079, different principal type.
-            The filed issues report Candidate Entries: 'uniqueName' (groups-only); SP-only
-            would show 'displayName', 'servicePrincipalType' instead.
+            Tests the SP-only variant against RoleAssignment.
+            Without RoleAssignment-model.json the 'principal' struct would be inferred
+            from SP data alone (no 'userPrincipalName' or 'uniqueName' fields), causing
+            field-not-found errors in the vwRole SQL. The model pre-declares all fields
+            as nullable so DuckDB always builds a complete struct via union_by_name.
         #>
         BeforeAll {
             $script:testPath1 = New-TestExportPath -Suffix 'sponly'
@@ -87,6 +89,34 @@ Describe "Export-Database" {
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath1 "RoleAssignment\RoleAssignment-0.json")
+
+            # RoleAssignmentScheduleInstance — SP-only
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath1 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
+
+            # RoleEligibilityScheduleInstance — SP-only
+            @{ value = @(@{
+                id               = 'rei-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath1 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
         }
 
         AfterAll {
@@ -110,14 +140,13 @@ Describe "Export-Database" {
 
     Context "When all eligible role assignments are groups only (no users or service principals)" {
         <#
-            Reproduces the user-reported failure:
+            Reproduces the user-reported failure (Issues #727/#1079):
             When every entry in RoleEligibilityScheduleInstance has a group principal,
             DuckDB infers the 'principal' struct with group-specific fields (e.g. uniqueName)
-            but WITHOUT userPrincipalName. The view SQL then fails:
-                "Could not find key 'userprincipalname' in struct
-                 Candidate Entries: 'uniqueName'"
-            Also validates that uniqueName and userPrincipalName are correctly populated
-            per principal type in the resulting vwRole view.
+            but WITHOUT userPrincipalName. Fixed by RoleEligibilityScheduleInstance-model.json
+            which pre-declares all principal fields (userPrincipalName, uniqueName, displayName)
+            as nullable — DuckDB merges them via union_by_name so direct field access is safe.
+            Also validates field-level correctness per principal type in the resulting vwRole.
         #>
         BeforeAll {
             $script:testPath2 = New-TestExportPath -Suffix 'grouponly'
@@ -154,6 +183,21 @@ Describe "Export-Database" {
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath2 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
+
+            # RoleAssignmentScheduleInstance — group-only
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath2 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
 
             # Create the database ONCE and share it across all tests in this context
             # to avoid file-lock errors from repeated Export-Database calls on the same path.
@@ -201,12 +245,10 @@ where "@odata.type" = '#microsoft.graph.user'
 
     Context "When all active role assignments are service principals only (P2/Governance path)" {
         <#
-            Reproduces Issue #1079 for the P2/Governance-licensed RoleAssignmentScheduleInstance path.
-            When a tenant is licensed for Entra P2/Governance, vwRole reads from
-            RoleAssignmentScheduleInstance instead of RoleAssignment. If that table
-            contains only service principals, DuckDB infers the 'principal' struct
-            without a 'userPrincipalName' field and the view SQL fails with:
-                "Could not find key 'userprincipalname' in struct ..."
+            Regression for the SP-only RoleAssignmentScheduleInstance path (P2/Governance).
+            Fixed by RoleAssignmentScheduleInstance-model.json which pre-declares all
+            principal fields as nullable so DuckDB's union_by_name always produces a
+            complete struct regardless of which principal types are in the data.
         #>
         BeforeAll {
             $script:testPath3 = New-TestExportPath -Suffix 'p2sponly'
@@ -226,9 +268,9 @@ where "@odata.type" = '#microsoft.graph.user'
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath3 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
 
-            # RoleAssignment — still needs at least one file because it has no model file and
-            # Import-EntraTable processes every directory unconditionally. In P2 mode the view
-            # reads from RoleAssignmentScheduleInstance, so what's here doesn't affect the test.
+            # RoleAssignment — stub; RoleAssignment-model.json provides the schema.
+            # In P2 mode the view reads from RoleAssignmentScheduleInstance, so the
+            # content here does not affect the test.
             @{ value = @(@{
                 id               = 'ra-00000001'
                 principalId      = 'sp-00000001'
@@ -241,6 +283,20 @@ where "@odata.type" = '#microsoft.graph.user'
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath3 "RoleAssignment\RoleAssignment-0.json")
+
+            # RoleEligibilityScheduleInstance — SP-only
+            @{ value = @(@{
+                id               = 'rei-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath3 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
         }
 
         AfterAll {
@@ -264,11 +320,10 @@ where "@odata.type" = '#microsoft.graph.user'
 
     Context "When all active role assignments are groups only (Free/P1 path, RoleAssignment)" {
         <#
-            Regression for the group-only RoleAssignment (permanent active) path.
-            Groups can be directly assigned to active roles without PIM. When RoleAssignment
-            contains only group principals, DuckDB infers the struct with 'uniqueName' but
-            without 'userPrincipalName'. The fix in Get-RoleSelectSql covers this path via
-            the shared SQL, but this test ensures it is exercised and does not regress.
+            Regression for the group-only RoleAssignment path (Free/P1).
+            Fixed by RoleAssignment-model.json: without it DuckDB infers the principal
+            struct from group data alone (has 'uniqueName', no 'userPrincipalName'),
+            causing field-not-found errors in the vwRole SQL.
         #>
         BeforeAll {
             $script:testPath4 = New-TestExportPath -Suffix 'ragrouponly'
@@ -287,6 +342,36 @@ where "@odata.type" = '#microsoft.graph.user'
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath4 "RoleAssignment\RoleAssignment-0.json")
+
+            # RoleAssignmentScheduleInstance — group-only
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath4 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
+
+            # RoleEligibilityScheduleInstance — group-only
+            @{ value = @(@{
+                id               = 'rei-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath4 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
         }
 
         AfterAll {
@@ -310,11 +395,10 @@ where "@odata.type" = '#microsoft.graph.user'
 
     Context "When all active role assignments are groups only (P2/Governance path, RoleAssignmentScheduleInstance)" {
         <#
-            Regression for the group-only RoleAssignmentScheduleInstance (PIM permanent active) path.
-            When P2/Governance tenants have only group principals in RoleAssignmentScheduleInstance,
-            DuckDB infers the struct with 'uniqueName' but without 'userPrincipalName'. The fix
-            in Get-RoleSelectSql covers this path via the shared SQL, but this test ensures it
-            is exercised and does not regress.
+            Regression for the group-only RoleAssignmentScheduleInstance path (P2/Governance).
+            Fixed by RoleAssignmentScheduleInstance-model.json: without it DuckDB infers
+            the principal struct from group data alone (has 'uniqueName', no 'userPrincipalName'),
+            causing field-not-found errors in the vwRole SQL.
         #>
         BeforeAll {
             $script:testPath5 = New-TestExportPath -Suffix 'p2ragrouponly'
@@ -334,7 +418,7 @@ where "@odata.type" = '#microsoft.graph.user'
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath5 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
 
-            # RoleAssignment — stub required: no model file, so an empty directory throws.
+            # RoleAssignment — stub; RoleAssignment-model.json provides the schema.
             @{ value = @(@{
                 id               = 'ra-00000001'
                 principalId      = 'grp-00000001'
@@ -348,6 +432,21 @@ where "@odata.type" = '#microsoft.graph.user'
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath5 "RoleAssignment\RoleAssignment-0.json")
+
+            # RoleEligibilityScheduleInstance — group-only
+            @{ value = @(@{
+                id               = 'rei-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath5 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
         }
 
         AfterAll {
@@ -361,6 +460,79 @@ where "@odata.type" = '#microsoft.graph.user'
             $db = $null
             try {
                 { $db = Export-Database -ExportPath $script:testPath5 -Pillar Identity } |
+                    Should -Not -Throw
+            }
+            finally {
+                if ($db) { Disconnect-Database -Database $db }
+            }
+        }
+    }
+
+    Context "When all eligible role assignments are service principals only (RoleEligibilityScheduleInstance)" {
+        <#
+            Regression for the SP-only RoleEligibilityScheduleInstance path.
+            When every eligible assignment has a service principal, DuckDB would (without
+            the model) infer the struct without 'userPrincipalName' and 'uniqueName'.
+            Fixed by RoleEligibilityScheduleInstance-model.json pre-declaring all fields.
+        #>
+        BeforeAll {
+            $script:testPath6 = New-TestExportPath -Suffix 'reisponly'
+
+            # RoleAssignment — stub; RoleAssignment-model.json provides the schema.
+            @{ value = @(@{
+                id               = 'ra-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath6 "RoleAssignment\RoleAssignment-0.json")
+
+            # RoleEligibilityScheduleInstance — SP-only principals; no userPrincipalName or
+            # uniqueName in the data. The model must supply those fields to avoid SQL errors.
+            @{ value = @(@{
+                id               = 'rei-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath6 "RoleEligibilityScheduleInstance\RoleEligibilityScheduleInstance-0.json")
+
+            # RoleAssignmentScheduleInstance — SP-only
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'sp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.servicePrincipal'
+                    id            = 'sp-00000001'
+                    displayName   = 'TestServicePrincipal'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath6 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
+        }
+
+        AfterAll {
+            if ($script:testPath6 -and (Test-Path $script:testPath6)) {
+                Remove-Item $script:testPath6 -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "Should create vwRole without error when only service principals have eligible role assignments" {
+            Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'Free' }
+            $db = $null
+            try {
+                { $db = Export-Database -ExportPath $script:testPath6 -Pillar Identity } |
                     Should -Not -Throw
             }
             finally {
