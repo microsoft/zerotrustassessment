@@ -28,6 +28,7 @@ function Test-ZtRetryableError {
 
 	# Well-known permanent 4xx errors that will never succeed on retry
 	$nonRetryableStatusCodes = @(
+		400  # Bad Request - malformed request
 		401  # Unauthorized - invalid/missing credentials
 		403  # Forbidden - insufficient permissions
 		404  # Not Found - resource doesn't exist
