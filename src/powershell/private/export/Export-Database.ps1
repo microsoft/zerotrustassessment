@@ -60,6 +60,9 @@ function Export-Database {
         rd.displayName                                  as roleDisplayName,
         json_extract_string(to_json(r.principal), '$.userPrincipalName')         as userPrincipalName,
         json_extract_string(to_json(r.principal), '$.uniqueName')                as uniqueName,
+        -- Dot-notation is intentional: "@odata.type" is universal across all MS Graph
+        -- principal types, so DuckDB always resolves it. json_extract_string cannot be
+        -- used here — there is no safe JSONPath for @-prefixed keys.
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType

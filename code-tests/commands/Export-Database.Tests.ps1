@@ -67,11 +67,9 @@ Describe "Export-Database" {
 
     Context "When all role assignments are service principals only (no users)" {
         <#
-            Reproduces Issue #1079 (SP-only path):
-            When a tenant has ONLY service principals directly assigned to roles, DuckDB
-            infers the 'principal' struct without a 'userPrincipalName' field.
-            The view SQL then fails:
-                "Could not find key 'userprincipalname' in struct ..."
+            Tests the SP-only variant — same bug class as #727/#1079, different principal type.
+            The filed issues report Candidate Entries: 'uniqueName' (groups-only); SP-only
+            would show 'displayName', 'servicePrincipalType' instead.
         #>
         BeforeAll {
             $script:testPath1 = New-TestExportPath -Suffix 'sponly'
@@ -160,7 +158,7 @@ Describe "Export-Database" {
             # Create the database ONCE and share it across all tests in this context
             # to avoid file-lock errors from repeated Export-Database calls on the same path.
             Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'Free' }
-            $script:dbGroupOnly = Export-Database -ExportPath $script:testPath2 -Pillar Identity
+            { $script:dbGroupOnly = Export-Database -ExportPath $script:testPath2 -Pillar Identity } | Should -Not -Throw
         }
 
         AfterAll {
@@ -256,6 +254,113 @@ where "@odata.type" = '#microsoft.graph.user'
             $db = $null
             try {
                 { $db = Export-Database -ExportPath $script:testPath3 -Pillar Identity } |
+                    Should -Not -Throw
+            }
+            finally {
+                if ($db) { Disconnect-Database -Database $db }
+            }
+        }
+    }
+
+    Context "When all active role assignments are groups only (Free/P1 path, RoleAssignment)" {
+        <#
+            Regression for the group-only RoleAssignment (permanent active) path.
+            Groups can be directly assigned to active roles without PIM. When RoleAssignment
+            contains only group principals, DuckDB infers the struct with 'uniqueName' but
+            without 'userPrincipalName'. The fix in Get-RoleSelectSql covers this path via
+            the shared SQL, but this test ensures it is exercised and does not regress.
+        #>
+        BeforeAll {
+            $script:testPath4 = New-TestExportPath -Suffix 'ragrouponly'
+
+            # RoleAssignment — group-only principals; groups have 'uniqueName' but no 'userPrincipalName'.
+            @{ value = @(@{
+                id               = 'ra-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath4 "RoleAssignment\RoleAssignment-0.json")
+        }
+
+        AfterAll {
+            if ($script:testPath4 -and (Test-Path $script:testPath4)) {
+                Remove-Item $script:testPath4 -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "Should create vwRole without error when only groups are directly assigned to roles (Free path)" {
+            Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'Free' }
+            $db = $null
+            try {
+                { $db = Export-Database -ExportPath $script:testPath4 -Pillar Identity } |
+                    Should -Not -Throw
+            }
+            finally {
+                if ($db) { Disconnect-Database -Database $db }
+            }
+        }
+    }
+
+    Context "When all active role assignments are groups only (P2/Governance path, RoleAssignmentScheduleInstance)" {
+        <#
+            Regression for the group-only RoleAssignmentScheduleInstance (PIM permanent active) path.
+            When P2/Governance tenants have only group principals in RoleAssignmentScheduleInstance,
+            DuckDB infers the struct with 'uniqueName' but without 'userPrincipalName'. The fix
+            in Get-RoleSelectSql covers this path via the shared SQL, but this test ensures it
+            is exercised and does not regress.
+        #>
+        BeforeAll {
+            $script:testPath5 = New-TestExportPath -Suffix 'p2ragrouponly'
+
+            # RoleAssignmentScheduleInstance — group-only principals.
+            @{ value = @(@{
+                id               = 'rasi-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath5 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
+
+            # RoleAssignment — stub required: no model file, so an empty directory throws.
+            @{ value = @(@{
+                id               = 'ra-00000001'
+                principalId      = 'grp-00000001'
+                directoryScopeId = '/'
+                roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
+                principal        = @{
+                    '@odata.type' = '#microsoft.graph.group'
+                    id            = 'grp-00000001'
+                    displayName   = 'TestGroup'
+                    uniqueName    = 'testgroup@contoso.com'
+                }
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath5 "RoleAssignment\RoleAssignment-0.json")
+        }
+
+        AfterAll {
+            if ($script:testPath5 -and (Test-Path $script:testPath5)) {
+                Remove-Item $script:testPath5 -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "Should create vwRole without error when only groups are assigned to roles (P2 path)" {
+            Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'P2' }
+            $db = $null
+            try {
+                { $db = Export-Database -ExportPath $script:testPath5 -Pillar Identity } |
                     Should -Not -Throw
             }
             finally {
