@@ -74,7 +74,7 @@ function Export-Database {
         cast(r2.displayName as varchar)        as principalDisplayName,
         rd2.displayName                                  as roleDisplayName,
         cast(r2.userPrincipalName as varchar)  as userPrincipalName,
-        null                                   as uniqueName,
+        null                                   as uniqueName, -- *Group tables store members as flat rows with no principal struct, so uniqueName does not exist; null keeps this column aligned in the UNION ALL
         cast(r2."@odata.type" as varchar)      as "@odata.type",
         cast(r2.Id as varchar)                  as principalId,
         '$PrivilegeType'                        as privilegeType
