@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Sensitivity labels are configured
 
@@ -17,6 +17,7 @@ function Test-Assessment-35003 {
     	Category = 'sensitivity-labels',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'High',
