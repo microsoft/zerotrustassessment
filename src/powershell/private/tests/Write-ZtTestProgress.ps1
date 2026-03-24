@@ -4,7 +4,7 @@ function Write-ZtTestProgress {
 		Appends a progress entry to the overall test execution progress log.
 
 	.DESCRIPTION
-		Appends a single line to _progress.log in the logs folder, recording when
+		Appends a single line to 3-test_progress.log in the logs folder, recording when
 		each test starts, completes, or fails. This append-only log provides an
 		at-a-glance timeline of all test executions and makes it easy to identify
 		hanging tests (STARTED without a matching COMPLETED/FAILED line).
@@ -95,7 +95,7 @@ function Write-ZtTestProgress {
 			}
 			$line += [System.Environment]::NewLine
 
-			$progressFilePath = Join-Path $LogsPath '_progress.log'
+			$progressFilePath = Join-Path $LogsPath '3-test_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
 

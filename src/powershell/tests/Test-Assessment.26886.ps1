@@ -18,6 +18,7 @@ function Test-Assessment-26886 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
+        Service = ('Azure'),
         MinimumLicense = ('DDoS_Network_Protection', 'DDoS_IP_Protection'),
         Pillar = 'Network',
         RiskLevel = 'Medium',
