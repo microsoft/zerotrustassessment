@@ -24,7 +24,7 @@ function Test-Assessment-26884 {
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 26884,
-        Title = 'Bot protection ruleset is enabled and assigned in Azure Front Door WAF',
+        Title = 'Bot protection rule set is enabled and assigned in Azure Front Door WAF',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -131,6 +131,7 @@ resources
     PolicyName=name,
     SkuName=tostring(sku.name),
     EnabledState=tostring(properties.policySettings.enabledState),
+    Mode=tostring(properties.policySettings.mode),
     ManagedRuleSets=properties.managedRules.managedRuleSets,
     SecurityPolicyLinks=properties.securityPolicyLinks,
     SubscriptionId=subscriptionId
@@ -183,6 +184,9 @@ resources
         $domainsProtected = 0
         $securityPolicyConfigured = 'No'
         $wafEnabled = 'N/A'
+        $wafMode = 'N/A'
+        $wafIsPremium = $false
+        $hasEnabledRule = $false
 
         if ($securityPolicies.Count -gt 0) {
             $securityPolicyConfigured = 'Yes'
@@ -190,6 +194,13 @@ resources
             foreach ($secPolicy in $securityPolicies) {
                 # Reset domain count for each security policy to avoid accumulation
                 $currentPolicyDomainCount = 0
+
+                # Reset Bot Manager-related fields for each security policy to avoid stale values
+                $botManagerEnabled = 'No'
+                $ruleSetVersion = 'N/A'
+                $ruleSetAction = 'N/A'
+                $hasEnabledRule = $false
+
                 $wafPolicyRef = $secPolicy.properties.parameters.wafPolicy.id
 
                 if ($wafPolicyRef) {
@@ -210,6 +221,7 @@ resources
                         $wafPolicy = $wafPolicyLookup[$associatedWafPolicyId]
                         $associatedWafPolicyName = $wafPolicy.PolicyName
                         $wafEnabled = $wafPolicy.EnabledState
+                        $wafMode = $wafPolicy.Mode
                         $wafIsPremium = $wafPolicy.SkuName -eq 'Premium_AzureFrontDoor'
 
                         # Check for Bot Manager rule set
@@ -226,8 +238,37 @@ resources
                                         $ruleSetAction = 'Per-rule defaults'
                                     }
 
-                                    # Check if WAF policy is enabled and Bot Manager is present
-                                    if ($wafIsPremium -and $wafEnabled -eq 'Enabled') {
+                                    # Check if at least one rule is enabled in the Bot Manager rule set
+                                    # Rules are enabled by default unless explicitly disabled. Azure WAF managed rule
+                                    # overrides typically list only changed rules; non-overridden rules remain enabled
+                                    # by default. To avoid false negatives, we assume there is at least one enabled
+                                    # rule unless we have conclusive evidence that the entire ruleset is disabled.
+                                    $hasEnabledRule = $true
+                                    if ($ruleSet.ruleGroupOverrides) {
+                                        # We intentionally do not flip $hasEnabledRule to $false when all *overridden*
+                                        # rules are disabled, because there may still be non-overridden (and thus
+                                        # enabled) rules in the Bot Manager ruleset. Missing or empty overrides are
+                                        # treated as default-enabled.
+                                        foreach ($override in $ruleSet.ruleGroupOverrides) {
+                                            if ($override.rules) {
+                                                foreach ($rule in $override.rules) {
+                                                    if ($rule.enabledState -ne 'Disabled') {
+                                                        # At least one explicitly enabled/non-disabled rule found.
+                                                        # Keep $hasEnabledRule = $true and break out early.
+                                                        break
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                # No explicit rule overrides for this group: cannot conclude all rules
+                                                # are disabled; non-overridden rules remain enabled by default.
+                                                break
+                                            }
+                                        }
+                                    }
+
+                                    # Check if WAF policy is enabled, in Prevention mode, and Bot Manager is present with at least one rule enabled
+                                    if ($wafIsPremium -and $wafEnabled -eq 'Enabled' -and $wafMode -eq 'Prevention' -and $hasEnabledRule) {
                                         $hasValidBotProtection = $true
                                         # Only count domains from security policy with valid bot protection
                                         $domainsProtected = $currentPolicyDomainCount
@@ -255,9 +296,12 @@ resources
             ProfileId                = $profileId
             SkuName                  = $fdProfile.SkuName
             WAFPolicyName            = $associatedWafPolicyName
+            WAFPolicyId              = $associatedWafPolicyId
             WAFEnabled               = $wafEnabled
+            WAFMode                  = $wafMode
             SecurityPolicyConfigured = $securityPolicyConfigured
             BotManagerEnabled        = $botManagerEnabled
+            HasEnabledRule           = $hasEnabledRule
             RuleSetVersion           = $ruleSetVersion
             RuleSetAction            = $ruleSetAction
             DomainsProtected         = $domainsProtected
@@ -295,10 +339,10 @@ resources
     $passed = ($failedItems.Count -eq 0) -and ($passedItems.Count -gt 0)
 
     if ($passed) {
-        $testResultMarkdown = "✅ Bot protection ruleset is enabled and assigned to Azure Front Door WAF, providing protection against malicious bot traffic.`n`n%TestResult%"
+        $testResultMarkdown = "✅ All Azure Front Door WAF policies attached to Azure Front Door are enabled, running in Prevention mode, and have the Bot Manager rule set (Microsoft_BotManagerRuleSet) with at least one rule enabled, providing protection against malicious bot traffic.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ Bot protection ruleset is not enabled or not assigned to Azure Front Door WAF, leaving web applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Azure Front Door WAF policies attached to Azure Front Door are disabled, running in Detection mode, do not have the Bot Manager rule set configured, or have all Bot Manager rules disabled, leaving web applications vulnerable to automated attacks and malicious bots.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -316,8 +360,8 @@ resources
     if ($evaluationResults.Count -gt 0) {
         $tableRows = ""
         $formatTemplate = @'
-| Subscription | Profile name | SKU | WAF policy | Bot protection enabled | Rule set version | Rule set action | Domains protected | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Subscription | Profile name | SKU | WAF policy | WAF mode | Bot protection enabled | Enabled state | Rule set version | Rule set action | Domains protected | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {0}
 
 '@
@@ -326,8 +370,17 @@ resources
             $subscriptionLink = "[$(Get-SafeMarkdown $result.SubscriptionName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
             $profileLink = "[$(Get-SafeMarkdown $result.ProfileName)]($portalResourceBaseLink$($result.ProfileId)/securityPolicies)"
             $statusText = if ($result.Status -eq 'Pass') { '✅ Pass' } else { '❌ Fail' }
+            $wafModeDisplay = if ($result.WAFMode -eq 'Prevention') { '✅ Prevention' } else { "⚠️ $($result.WAFMode)" }
+            $enabledStateDisplay = if ($result.WAFEnabled -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
 
-            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $(Get-SafeMarkdown $result.WAFPolicyName) | $($result.BotManagerEnabled) | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
+            # Create WAF policy link if policy exists
+            $wafPolicyDisplay = if ($result.WAFPolicyId) {
+                "[$(Get-SafeMarkdown $result.WAFPolicyName)]($portalResourceBaseLink$($result.WAFPolicyId)/overview)"
+            } else {
+                $(Get-SafeMarkdown $result.WAFPolicyName)
+            }
+
+            $tableRows += "| $subscriptionLink | $profileLink | $($result.SkuName) | $wafPolicyDisplay | $wafModeDisplay | $($result.BotManagerEnabled) | $enabledStateDisplay | $($result.RuleSetVersion) | $($result.RuleSetAction) | $($result.DomainsProtected) | $statusText |`n"
         }
 
         $mdInfo += $formatTemplate -f $tableRows
@@ -369,7 +422,7 @@ resources
 
     $params = @{
         TestId = '26884'
-        Title  = 'Bot protection ruleset is enabled and assigned in Azure Front Door WAF'
+        Title  = 'Bot protection rule set is enabled and assigned in Azure Front Door WAF'
         Status = $passed
         Result = $testResultMarkdown
     }
