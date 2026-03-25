@@ -6,7 +6,7 @@ import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
 
 const RISK_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
-const STATUS_ORDER: Record<string, number> = { Failed: 0, Passed: 1, Skipped: 1, Planned: 2 }
+const STATUS_ORDER: Record<string, number> = { Failed: 0, Passed: 1, Skipped: 2, Planned: 3 }
 
 export const columns: ColumnDef<Test>[] = [
     {
