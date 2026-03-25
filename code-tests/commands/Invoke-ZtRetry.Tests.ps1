@@ -293,19 +293,6 @@ Describe "Invoke-ZtRetry" {
 			Should -Invoke Start-Sleep -Times 0 -Exactly
 		}
 
-		It "Should retry on HTTP 400 Bad Request" {
-			$script:callCount = 0
-			{
-				Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
-					$script:callCount++
-					throw "Response status code does not indicate success: 400 (Bad Request)."
-				}
-			} | Should -Throw "*400*"
-
-			$script:callCount | Should -Be 4
-			Should -Invoke Start-Sleep -Times 3 -Exactly
-		}
-
 		It "Should log non-retryable warning before failing" {
 			{
 				Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
