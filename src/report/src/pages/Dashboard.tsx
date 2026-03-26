@@ -1106,7 +1106,7 @@ export default function Dashboard() {
                                                 fill: "hsl(var(--chart-2))",
                                             },
                                             {
-                                                dataKey: "iOS",
+                                                dataKey: "iOS/iPadOS",
                                                 value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0,
                                                 label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0}`,
                                                 fill: "hsl(var(--chart-3))",
