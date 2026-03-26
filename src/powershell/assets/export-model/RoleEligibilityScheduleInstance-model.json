@@ -19,7 +19,13 @@
         "recurrence": null
       },
       "action": null,
-      "principal": null,
+      "principal": {
+        "@odata.type": null,
+        "displayName": null,
+        "userPrincipalName": null,
+        "uniqueName": null,
+        "id": null
+      },
       "targetScheduleId": null,
       "justification": null,
       "isValidationOnly": false,
