@@ -52,8 +52,8 @@ function Test-Assessment-21814 {
         $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premise.`n`n%TestResult%"
     }
 
-    $mdInfo = "## Privileged Roles`n`n"
-    $mdInfo += "| Role Name | User | Source | Status |`n"
+    $mdInfo = "## Privileged roles`n`n"
+    $mdInfo += "| Role name | User | Source | Status |`n"
     $mdInfo += "| :--- | :--- | :--- | :---: |`n"
     foreach ($role in $privilegedRoles | Sort-Object displayName) {
         foreach ($user in $role.ZtUsers) {
