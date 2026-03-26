@@ -25,10 +25,8 @@ function Test-Assessment-21814 {
     $activity = "Checking cloud only roles"
     Write-ZtProgress -Activity $activity -Status "Getting roles"
 
-    $roles = Get-ZTRole -IncludePrivilegedRoles
     # Get all privileged roles
-
-    $privilegedRoles = $roles | Where-Object { $_.displayName -in @('Global Administrator', 'Global Reader') }
+    $privilegedRoles = Get-ZTRole -IncludePrivilegedRoles
 
     foreach ($role in $privilegedRoles) {
         Write-ZtProgress -Activity $activity -Status "Getting members in role $($role.displayName)"
