@@ -322,6 +322,39 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 )}
+                                {reportData.TestResultSummary.InfrastructurePassed !== undefined && (
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">Infrastructure</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.InfrastructurePassed}/{reportData.TestResultSummary.InfrastructureTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            tests
+                                        </span>
+                                    </div>
+                                </div>
+                                )}
+                                {reportData.TestResultSummary.SecOpsPassed !== undefined && (
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">SecOps</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.SecOpsPassed}/{reportData.TestResultSummary.SecOpsTotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            tests
+                                        </span>
+                                    </div>
+                                </div>
+                                )}
+                                {reportData.TestResultSummary.AIPassed !== undefined && (
+                                <div className="grid flex-1 auto-rows-min gap-0.5">
+                                    <div className="text-sm text-muted-foreground">AI</div>
+                                    <div className="flex items-baseline gap-1 text-xl font-bold tabular-nums leading-none">
+                                        {reportData.TestResultSummary.AIPassed}/{reportData.TestResultSummary.AITotal}
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            tests
+                                        </span>
+                                    </div>
+                                </div>
+                                )}
                             </div>
                             <ChartContainer
                                 config={{
@@ -341,6 +374,18 @@ export default function Dashboard() {
                                         label: "Network",
                                         color: "hsl(var(--chart-4))",
                                     },
+                                    infrastructure: {
+                                        label: "Infrastructure",
+                                        color: "hsl(var(--chart-5))",
+                                    },
+                                    secops: {
+                                        label: "SecOps",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                    ai: {
+                                        label: "AI",
+                                        color: "hsl(var(--chart-2))",
+                                    },
                                 }}
                                 className="mx-auto aspect-square w-full max-w-[80%]"
                             >
@@ -352,6 +397,30 @@ export default function Dashboard() {
                                         bottom: -10,
                                     }}
                                     data={[
+                                        // Only include AI pillar if it exists (preview mode)
+                                        ...(reportData.TestResultSummary.AIPassed !== undefined && reportData.TestResultSummary.AITotal !== undefined
+                                            ? [{
+                                                activity: "ai",
+                                                value: (reportData.TestResultSummary.AIPassed / reportData.TestResultSummary.AITotal) * 100,
+                                                fill: "var(--color-ai)",
+                                            }]
+                                            : []),
+                                        // Only include SecOps pillar if it exists (preview mode)
+                                        ...(reportData.TestResultSummary.SecOpsPassed !== undefined && reportData.TestResultSummary.SecOpsTotal !== undefined
+                                            ? [{
+                                                activity: "secops",
+                                                value: (reportData.TestResultSummary.SecOpsPassed / reportData.TestResultSummary.SecOpsTotal) * 100,
+                                                fill: "var(--color-secops)",
+                                            }]
+                                            : []),
+                                        // Only include Infrastructure pillar if it exists (preview mode)
+                                        ...(reportData.TestResultSummary.InfrastructurePassed !== undefined && reportData.TestResultSummary.InfrastructureTotal !== undefined
+                                            ? [{
+                                                activity: "infrastructure",
+                                                value: (reportData.TestResultSummary.InfrastructurePassed / reportData.TestResultSummary.InfrastructureTotal) * 100,
+                                                fill: "var(--color-infrastructure)",
+                                            }]
+                                            : []),
                                         // Only include Network pillar if it exists (preview mode)
                                         ...(reportData.TestResultSummary.NetworkPassed !== undefined && reportData.TestResultSummary.NetworkTotal !== undefined
                                             ? [{

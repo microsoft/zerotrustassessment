@@ -154,7 +154,7 @@ function Invoke-ZtAssessment {
 
 		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -407,11 +407,14 @@ $titleLine
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
-	# Create the logs folder for per-test log files
+	# Create a timestamped run folder under logs/ so each assessment run is isolated.
 	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
 	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
 	# differs from PowerShell's Get-Location after Set-Location / cd.
-	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
+	$runFolder = (Get-Date).ToString('yy-MM-dd-HHmmss')
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath "logs/$runFolder") -Force -ErrorAction Stop).FullName
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '1-Export') -Force -ErrorAction Stop
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '2-Tests') -Force -ErrorAction Stop
 
 
 	# Send telemetry if not disabled

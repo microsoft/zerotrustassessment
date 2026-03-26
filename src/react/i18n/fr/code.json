@@ -1,0 +1,528 @@
+{
+    "SiteHeading": {
+        "message": "Atelier Confiance Zéro Microsoft"
+    },
+    "homepage.title": {
+        "message": "Atelier Confiance Zéro Microsoft"
+    },
+    "homepage.description": {
+        "message": "Un guide technique complet pour aider les clients et partenaires à déployer des solutions de sécurité dans leurs organisations en s'appuyant sur une stratégie de sécurité Confiance Zéro."
+    },
+    "homepage.whatIsZt.title": {
+        "message": "Qu'est-ce que la Confiance Zéro ?"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "Relever les défis complexes de la sécurité moderne est difficile, mais la stratégie de sécurité Confiance Zéro offre une direction claire. En adoptant une stratégie Confiance Zéro, les organisations peuvent renforcer leur posture de sécurité et réduire les risques et la complexité tout en améliorant la conformité et la gouvernance."
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "L'atelier Confiance Zéro aide à appliquer les principes de sécurité Confiance Zéro à la sécurité Microsoft."
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "Toujours vérifier"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "Accès avec privilèges minimaux"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "Supposer la compromission"
+    },
+    "learnMore": {
+        "message": "En savoir plus"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "Pourquoi organiser l'atelier"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "L'atelier Confiance Zéro est un guide de déploiement fourni par Microsoft pour déployer la stratégie de sécurité Confiance Zéro dans des environnements réels."
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "Basé sur les connaissances acquises auprès de milliers d'implémentations clients, vous pouvez évaluer votre environnement actuel et examiner les étapes spécifiques pour améliorer votre posture de sécurité globale pas à pas."
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "Découvrir l'atelier"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "Comment organiser l'atelier"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "Consultez le guide étape par étape pour apprendre à mener des sessions de discussion stratégique et d'évaluation de l'environnement actuel. Si vous ne savez pas par où commencer, regardez la vidéo d'introduction de l'atelier Confiance Zéro."
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "Basé sur les connaissances acquises auprès de milliers d'implémentations clients, vous pouvez évaluer votre environnement actuel et examiner les étapes spécifiques pour améliorer votre posture de sécurité globale pas à pas."
+    },
+    "theme.NotFound.title": {
+        "message": "Page non trouvée",
+        "description": "Le titre de la page 404"
+    },
+    "theme.NotFound.p1": {
+        "message": "Nous n'avons pas trouvé ce que vous cherchiez.",
+        "description": "Le premier paragraphe de la page 404"
+    },
+    "theme.NotFound.p2": {
+        "message": "Veuillez contacter le propriétaire du site qui vous a dirigé vers l'URL d'origine et l'informer que le lien est cassé.",
+        "description": "Le deuxième paragraphe de la page 404"
+    },
+    "theme.ErrorPageContent.title": {
+        "message": "Cette page a planté.",
+        "description": "Le titre de la page de secours lorsque la page plante"
+    },
+    "theme.BackToTopButton.buttonAriaLabel": {
+        "message": "Retour en haut",
+        "description": "Le libellé ARIA du bouton retour en haut"
+    },
+    "theme.blog.archive.title": {
+        "message": "Archives",
+        "description": "Le titre de la page d'archives du blog"
+    },
+    "theme.blog.archive.description": {
+        "message": "Archives",
+        "description": "La description de la page d'archives du blog"
+    },
+    "theme.blog.paginator.navAriaLabel": {
+        "message": "Navigation de la liste des pages du blog",
+        "description": "Le libellé ARIA pour la pagination du blog"
+    },
+    "theme.blog.paginator.newerEntries": {
+        "message": "Entrées plus récentes",
+        "description": "Le libellé pour naviguer vers les articles de blog plus récents"
+    },
+    "theme.blog.paginator.olderEntries": {
+        "message": "Entrées plus anciennes",
+        "description": "Le libellé pour naviguer vers les articles de blog plus anciens"
+    },
+    "theme.blog.post.paginator.navAriaLabel": {
+        "message": "Navigation de la page d'article de blog",
+        "description": "Le libellé ARIA pour la pagination des articles de blog"
+    },
+    "theme.blog.post.paginator.newerPost": {
+        "message": "Article plus récent",
+        "description": "Le libellé du bouton pour naviguer vers l'article plus récent"
+    },
+    "theme.blog.post.paginator.olderPost": {
+        "message": "Article plus ancien",
+        "description": "Le libellé du bouton pour naviguer vers l'article plus ancien"
+    },
+    "theme.tags.tagsPageLink": {
+        "message": "Voir tous les tags",
+        "description": "Le libellé du lien vers la page de liste des tags"
+    },
+    "theme.colorToggle.ariaLabel": {
+        "message": "Basculer entre le mode sombre et le mode clair (actuellement {mode})",
+        "description": "Le libellé ARIA du sélecteur de mode couleur"
+    },
+    "theme.colorToggle.ariaLabel.mode.dark": {
+        "message": "mode sombre",
+        "description": "Le nom du mode couleur sombre"
+    },
+    "theme.colorToggle.ariaLabel.mode.light": {
+        "message": "mode clair",
+        "description": "Le nom du mode couleur clair"
+    },
+    "theme.docs.breadcrumbs.navAriaLabel": {
+        "message": "Fil d'Ariane",
+        "description": "Le libellé ARIA du fil d'Ariane"
+    },
+    "theme.docs.DocCard.categoryDescription.plurals": {
+        "message": "1 élément|{count} éléments",
+        "description": "La description par défaut d'une carte de catégorie"
+    },
+    "theme.docs.paginator.navAriaLabel": {
+        "message": "Pages de documentation",
+        "description": "Le libellé ARIA pour la pagination des documents"
+    },
+    "theme.docs.paginator.previous": {
+        "message": "Précédent",
+        "description": "Le libellé pour naviguer vers le document précédent"
+    },
+    "theme.docs.paginator.next": {
+        "message": "Suivant",
+        "description": "Le libellé pour naviguer vers le document suivant"
+    },
+    "theme.docs.versionBadge.label": {
+        "message": "Version : {versionLabel}"
+    },
+    "theme.docs.versions.unreleasedVersionLabel": {
+        "message": "Ceci est la documentation non publiée de {siteTitle} {versionLabel}.",
+        "description": "Le libellé pour informer l'utilisateur qu'il consulte une version non publiée"
+    },
+    "theme.docs.versions.unmaintainedVersionLabel": {
+        "message": "Ceci est la documentation de {siteTitle} {versionLabel}, qui n'est plus activement maintenue.",
+        "description": "Le libellé pour informer l'utilisateur qu'il consulte une version non maintenue"
+    },
+    "theme.docs.versions.latestVersionSuggestionLabel": {
+        "message": "Pour la documentation à jour, consultez {latestVersionLink} ({versionLabel}).",
+        "description": "Le libellé pour suggérer la dernière version"
+    },
+    "theme.docs.versions.latestVersionLinkLabel": {
+        "message": "dernière version",
+        "description": "Le libellé du lien vers la dernière version"
+    },
+    "theme.docs.tagDocListPageTitle.nDocsTagged": {
+        "message": "Un document tagué|{count} documents tagués",
+        "description": "Libellé pluriel pour les documents tagués"
+    },
+    "theme.docs.tagDocListPageTitle": {
+        "message": "{nDocsTagged} avec \"{tagName}\"",
+        "description": "Le titre de la page pour un tag de document"
+    },
+    "theme.common.editThisPage": {
+        "message": "Modifier cette page",
+        "description": "Le libellé du lien pour modifier la page actuelle"
+    },
+    "theme.lastUpdated.atDate": {
+        "message": " le {date}",
+        "description": "Les mots pour décrire la date de dernière mise à jour"
+    },
+    "theme.lastUpdated.byUser": {
+        "message": " par {user}",
+        "description": "Les mots pour décrire qui a mis à jour la page"
+    },
+    "theme.lastUpdated.lastUpdatedAtBy": {
+        "message": "Dernière mise à jour{atDate}{byUser}",
+        "description": "La phrase pour afficher quand et par qui la page a été mise à jour"
+    },
+    "theme.common.headingLinkTitle": {
+        "message": "Lien direct vers {heading}",
+        "description": "Le titre du lien vers le titre"
+    },
+    "theme.navbar.mobileVersionsDropdown.label": {
+        "message": "Versions",
+        "description": "Le libellé du menu déroulant des versions sur mobile"
+    },
+    "theme.tags.tagsListLabel": {
+        "message": "Tags :",
+        "description": "Le libellé à côté de la liste des tags"
+    },
+    "theme.admonition.caution": {
+        "message": "attention",
+        "description": "Le libellé par défaut pour l'avertissement attention"
+    },
+    "theme.admonition.danger": {
+        "message": "danger",
+        "description": "Le libellé par défaut pour l'avertissement danger"
+    },
+    "theme.admonition.info": {
+        "message": "info",
+        "description": "Le libellé par défaut pour l'avertissement info"
+    },
+    "theme.admonition.note": {
+        "message": "note",
+        "description": "Le libellé par défaut pour l'avertissement note"
+    },
+    "theme.admonition.tip": {
+        "message": "astuce",
+        "description": "Le libellé par défaut pour l'avertissement astuce"
+    },
+    "theme.admonition.warning": {
+        "message": "avertissement",
+        "description": "Le libellé par défaut pour l'avertissement"
+    },
+    "theme.AnnouncementBar.closeButtonAriaLabel": {
+        "message": "Fermer",
+        "description": "Le libellé ARIA du bouton fermer de la barre d'annonce"
+    },
+    "theme.blog.sidebar.navAriaLabel": {
+        "message": "Navigation des articles récents du blog",
+        "description": "Le libellé ARIA pour les articles récents dans la barre latérale"
+    },
+    "theme.CodeBlock.wordWrapToggle": {
+        "message": "Activer/désactiver le retour à la ligne",
+        "description": "L'attribut title du bouton de retour à la ligne des blocs de code"
+    },
+    "theme.CodeBlock.copied": {
+        "message": "Copié",
+        "description": "Le libellé du bouton copié sur les blocs de code"
+    },
+    "theme.CodeBlock.copyButtonAriaLabel": {
+        "message": "Copier le code dans le presse-papiers",
+        "description": "Le libellé ARIA du bouton copier des blocs de code"
+    },
+    "theme.CodeBlock.copy": {
+        "message": "Copier",
+        "description": "Le libellé du bouton copier sur les blocs de code"
+    },
+    "theme.DocSidebarItem.expandCategoryAriaLabel": {
+        "message": "Développer la catégorie '{label}'",
+        "description": "Le libellé ARIA pour développer une catégorie"
+    },
+    "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+        "message": "Réduire la catégorie '{label}'",
+        "description": "Le libellé ARIA pour réduire une catégorie"
+    },
+    "theme.navbar.mobileLanguageDropdown.label": {
+        "message": "Langues",
+        "description": "Le libellé du sélecteur de langue mobile"
+    },
+    "theme.NavBar.navAriaLabel": {
+        "message": "Principal",
+        "description": "Le libellé ARIA pour la navigation principale"
+    },
+    "theme.TOCCollapsible.toggleButtonLabel": {
+        "message": "Sur cette page",
+        "description": "Le libellé du bouton du composant TOC réductible"
+    },
+    "theme.blog.post.readMore": {
+        "message": "Lire la suite",
+        "description": "Le libellé pour lire l'article complet"
+    },
+    "theme.blog.post.readMoreLabel": {
+        "message": "En savoir plus sur {title}",
+        "description": "Le libellé ARIA du lien vers l'article complet"
+    },
+    "theme.docs.breadcrumbs.home": {
+        "message": "Accueil",
+        "description": "Le libellé ARIA de la page d'accueil dans le fil d'Ariane"
+    },
+    "theme.docs.sidebar.collapseButtonTitle": {
+        "message": "Réduire la barre latérale",
+        "description": "L'attribut title du bouton de réduction de la barre latérale"
+    },
+    "theme.docs.sidebar.collapseButtonAriaLabel": {
+        "message": "Réduire la barre latérale",
+        "description": "L'attribut title du bouton de réduction de la barre latérale"
+    },
+    "theme.docs.sidebar.navAriaLabel": {
+        "message": "Barre latérale des documents",
+        "description": "Le libellé ARIA de la navigation de la barre latérale"
+    },
+    "theme.blog.post.readingTime.plurals": {
+        "message": "1 min de lecture|{readingTime} min de lecture",
+        "description": "Libellé pluriel pour le temps de lecture"
+    },
+    "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+        "message": "Fermer la barre de navigation",
+        "description": "Le libellé ARIA du bouton fermer de la barre latérale mobile"
+    },
+    "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+        "message": "← Retour au menu principal",
+        "description": "Le libellé du bouton retour au menu principal"
+    },
+    "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+        "message": "Basculer la barre de navigation",
+        "description": "Le libellé ARIA du bouton hamburger mobile"
+    },
+    "theme.docs.sidebar.expandButtonTitle": {
+        "message": "Développer la barre latérale",
+        "description": "Le libellé ARIA et l'attribut title du bouton développer"
+    },
+    "theme.docs.sidebar.expandButtonAriaLabel": {
+        "message": "Développer la barre latérale",
+        "description": "Le libellé ARIA et l'attribut title du bouton développer"
+    },
+    "theme.blog.post.plurals": {
+        "message": "Un article|{count} articles",
+        "description": "Libellé pluriel pour les articles"
+    },
+    "theme.blog.tagTitle": {
+        "message": "{nPosts} tagués avec \"{tagName}\"",
+        "description": "Le titre de la page pour un tag de blog"
+    },
+    "theme.blog.author.pageTitle": {
+        "message": "{authorName} - {nPosts}",
+        "description": "Le titre de la page d'un auteur de blog"
+    },
+    "theme.blog.authorsList.pageTitle": {
+        "message": "Auteurs",
+        "description": "Le titre de la page des auteurs"
+    },
+    "theme.blog.authorsList.viewAll": {
+        "message": "Voir tous les auteurs",
+        "description": "Le libellé du lien vers la page des auteurs"
+    },
+    "theme.contentVisibility.unlistedBanner.title": {
+        "message": "Page non répertoriée",
+        "description": "Le titre de la bannière de contenu non répertorié"
+    },
+    "theme.contentVisibility.unlistedBanner.message": {
+        "message": "Cette page n'est pas répertoriée. Les moteurs de recherche ne l'indexeront pas, et seuls les utilisateurs disposant d'un lien direct peuvent y accéder.",
+        "description": "Le message de la bannière de contenu non répertorié"
+    },
+    "theme.contentVisibility.draftBanner.title": {
+        "message": "Page brouillon",
+        "description": "Le titre de la bannière de contenu brouillon"
+    },
+    "theme.contentVisibility.draftBanner.message": {
+        "message": "Cette page est un brouillon. Elle ne sera visible qu'en développement et sera exclue de la version de production.",
+        "description": "Le message de la bannière de contenu brouillon"
+    },
+    "theme.ErrorPageContent.tryAgain": {
+        "message": "Réessayer",
+        "description": "Le libellé du bouton réessayer"
+    },
+    "theme.common.skipToMainContent": {
+        "message": "Aller au contenu principal",
+        "description": "Le libellé d'accessibilité pour passer au contenu principal"
+    },
+    "theme.tags.tagsPageTitle": {
+        "message": "Tags",
+        "description": "Le titre de la page de liste des tags"
+    },
+    "badge.new": {
+        "message": "NOUVEAU"
+    },
+    "badge.updated": {
+        "message": "MIS À JOUR"
+    },
+    "hero.tagline": {
+        "message": "Le pilier IA est désormais disponible dans le cadre Confiance Zéro"
+    },
+    "hero.title": {
+        "message": "Accélérez votre parcours Confiance Zéro"
+    },
+    "hero.subtitle": {
+        "message": "Un cadre complet de Microsoft pour aider les organisations à adopter une stratégie Confiance Zéro et à déployer des solutions de sécurité de bout en bout — avec un nouveau pilier IA pour sécuriser les agents et les ressources IA."
+    },
+    "hero.cta.workshop": {
+        "message": "Lancer l'atelier"
+    },
+    "hero.cta.assessment": {
+        "message": "Lancer l'évaluation"
+    },
+    "ai.pill": {
+        "message": "Nouveautés"
+    },
+    "ai.title": {
+        "message": "Présentation du pilier IA dans Confiance Zéro"
+    },
+    "ai.description": {
+        "message": "À mesure que les organisations adoptent des agents IA et des serveurs MCP, le cadre Confiance Zéro inclut désormais un pilier dédié aux ressources IA avec des contrôles IA — garantissant que vos charges de travail IA sont gérées avec la même rigueur que toute autre partie de votre environnement."
+    },
+    "ai.pillarSubtitle": {
+        "message": "Comprend désormais des résumés autogénérés et des vérifications étendues de la posture des données et du réseau."
+    },
+    "pillar.identity": {
+        "message": "Identité"
+    },
+    "pillar.devices": {
+        "message": "Appareils"
+    },
+    "pillar.data": {
+        "message": "Données"
+    },
+    "pillar.data.tooltip": {
+        "message": "Nouvelles vérifications d'évaluation automatisées"
+    },
+    "pillar.network": {
+        "message": "Réseau"
+    },
+    "pillar.network.tooltip": {
+        "message": "Nouvelles vérifications d'évaluation automatisées"
+    },
+    "pillar.infrastructure": {
+        "message": "Infrastructure"
+    },
+    "pillar.secops": {
+        "message": "Opérations de sécurité"
+    },
+    "pillar.ai": {
+        "message": "IA"
+    },
+    "pillar.ai.tooltip": {
+        "message": "Pilier IA dans l'atelier"
+    },
+    "products.title": {
+        "message": "Deux outils, une mission"
+    },
+    "products.subtitle": {
+        "message": "Que vous planifiiez votre feuille de route Confiance Zéro ou que vous mesuriez votre posture actuelle, nous avons ce qu'il vous faut."
+    },
+    "products.workshop.label": {
+        "message": "Outil de planification interactif"
+    },
+    "products.workshop.name": {
+        "message": "Atelier Confiance Zéro"
+    },
+    "products.workshop.description": {
+        "message": "Une nouvelle application web pour planifier votre déploiement Confiance Zéro sur les sept piliers — Identité, Appareils, Données, Réseau, Infrastructure, Opérations de Sécurité et IA. Priorisez les tâches dans une structure Premier-Ensuite et générez des résumés automatisés et des plans d'implémentation."
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 piliers"
+    },
+    "products.workshop.tag.ai": {
+        "message": "Pilier IA"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "Résumés automatiques"
+    },
+    "products.workshop.tag.plans": {
+        "message": "Plans d'implémentation"
+    },
+    "products.workshop.cta": {
+        "message": "Lancer l'atelier"
+    },
+    "products.assessment.label": {
+        "message": "Analyse automatisée du locataire"
+    },
+    "products.assessment.name": {
+        "message": "Évaluation Confiance Zéro"
+    },
+    "products.assessment.description": {
+        "message": "Connectez-vous à votre locataire Microsoft Entra et obtenez une évaluation automatisée de votre posture Confiance Zéro. Analysez les configurations des piliers Identité, Appareils, Données et Réseau avec des informations exploitables et des tableaux de bord visuels."
+    },
+    "products.assessment.tag.identity": {
+        "message": "Identité"
+    },
+    "products.assessment.tag.devices": {
+        "message": "Appareils"
+    },
+    "products.assessment.tag.data": {
+        "message": "Données"
+    },
+    "products.assessment.tag.network": {
+        "message": "Réseau"
+    },
+    "products.assessment.tag.checks": {
+        "message": "Vérifications automatisées"
+    },
+    "products.assessment.cta": {
+        "message": "Lancer l'évaluation"
+    },
+    "howItWorks.title": {
+        "message": "Comment ça marche"
+    },
+    "howItWorks.subtitle": {
+        "message": "Trois étapes pour améliorer la posture de sécurité de votre organisation."
+    },
+    "howItWorks.step1.title": {
+        "message": "Apprenez"
+    },
+    "howItWorks.step1.description": {
+        "message": "Comprenez les principes de Confiance Zéro — Vérifier explicitement, Accès avec privilèges minimaux et Supposer la compromission — et comment ils s'appliquent à votre environnement."
+    },
+    "howItWorks.step1.link": {
+        "message": "Explorer Microsoft Confiance Zéro"
+    },
+    "howItWorks.step2.title": {
+        "message": "Planifiez"
+    },
+    "howItWorks.step2.description": {
+        "message": "Utilisez l'atelier pour construire une feuille de route Confiance Zéro concrète sur tous les piliers. Priorisez les tâches et générez des plans d'implémentation adaptés à votre organisation."
+    },
+    "howItWorks.step2.link": {
+        "message": "Ouvrir l'atelier"
+    },
+    "howItWorks.step3.title": {
+        "message": "Évaluez"
+    },
+    "howItWorks.step3.description": {
+        "message": "Lancez l'évaluation sur votre locataire Microsoft Entra pour mesurer votre posture actuelle, identifier les lacunes et suivre les progrès au fil du temps."
+    },
+    "howItWorks.step3.link": {
+        "message": "Lancer l'évaluation"
+    },
+    "getStarted.title": {
+        "message": "Prêt à commencer ?"
+    },
+    "getStarted.description": {
+        "message": "Suivez notre plan étape par étape pour animer une session stratégique Confiance Zéro. Que vous soyez partenaire Microsoft ou que vous organisiez un atelier interne, le guide vous accompagne dans la préparation, l'animation et le suivi."
+    },
+    "getStarted.cta": {
+        "message": "Voir le plan étape par étape"
+    },
+    "home.layout.title": {
+        "message": "Atelier et évaluation Confiance Zéro Microsoft"
+    },
+    "home.layout.description": {
+        "message": "Planifiez votre déploiement Confiance Zéro avec l'outil d'atelier et mesurez votre posture avec l'évaluation automatisée — avec un nouveau pilier IA."
+    }
+}

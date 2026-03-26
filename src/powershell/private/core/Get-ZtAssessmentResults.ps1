@@ -54,10 +54,12 @@ function Get-ZtAssessmentResults {
 		}
 
 		if($PreviewEnabled){
-			# $summary | Add-Member -NotePropertyName 'NetworkPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -eq 'Passed' }.Count)
-        	# $summary | Add-Member -NotePropertyName 'NetworkTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
-			# $summary | Add-Member -NotePropertyName 'DataPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count)
-			# $summary | Add-Member -NotePropertyName 'DataTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+			$summary | Add-Member -NotePropertyName 'InfrastructurePassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -eq 'Passed' }.Count)
+			$summary | Add-Member -NotePropertyName 'InfrastructureTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+			$summary | Add-Member -NotePropertyName 'SecOpsPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -eq 'Passed' }.Count)
+			$summary | Add-Member -NotePropertyName 'SecOpsTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+			$summary | Add-Member -NotePropertyName 'AIPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -eq 'Passed' }.Count)
+			$summary | Add-Member -NotePropertyName 'AITotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
 		}
 
 		return $summary

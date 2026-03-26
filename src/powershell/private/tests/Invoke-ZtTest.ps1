@@ -98,7 +98,9 @@
 		if ($LogsPath) {
 			Write-ZtTestProgress -TestID $Test.TestID -LogsPath $LogsPath -Action Started
 			try {
-				$stubPath = Join-Path $LogsPath "$($Test.TestID).md"
+				$stubDir = Join-Path $LogsPath '2-Tests'
+				[void][System.IO.Directory]::CreateDirectory($stubDir)
+				$stubPath = Join-Path $stubDir "$($Test.TestID).md"
 				[System.IO.File]::WriteAllText($stubPath, "# Test: $($Test.TestID) - Started at $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff'))$([System.Environment]::NewLine)")
 			}
 			catch {

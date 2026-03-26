@@ -356,5 +356,173 @@
   "theme.tags.tagsPageTitle": {
       "message": "태그",
       "description": "태그 목록 페이지의a 제목"
+  },
+  "badge.new": {
+      "message": "NEW"
+  },
+  "badge.updated": {
+      "message": "업데이트"
+  },
+  "hero.tagline": {
+      "message": "제로트러스트 프레임워크에서 AI 필러를 사용할 수 있습니다"
+  },
+  "hero.title": {
+      "message": "제로트러스트 여정을 가속화하세요"
+  },
+  "hero.subtitle": {
+      "message": "조직이 제로트러스트 전략을 채택하고 엔드투엔드 보안 솔루션을 배포할 수 있도록 지원하는 Microsoft의 포괄적인 프레임워크 — AI 에이전트 및 AI 리소스를 보호하기 위한 새로운 AI 필러가 추가되었습니다."
+  },
+  "hero.cta.workshop": {
+      "message": "워크샵 열기"
+  },
+  "hero.cta.assessment": {
+      "message": "평가 실행"
+  },
+  "ai.pill": {
+      "message": "새로운 기능"
+  },
+  "ai.title": {
+      "message": "제로트러스트에 AI 필러 도입"
+  },
+  "ai.description": {
+      "message": "조직이 AI 에이전트와 MCP 서버를 채택함에 따라, 제로트러스트 프레임워크에 AI 제어 기능이 포함된 전용 AI 리소스 필러가 추가되었습니다. AI 워크로드도 환경의 다른 부분과 동일한 엄격함으로 관리됩니다."
+  },
+  "ai.pillarSubtitle": {
+      "message": "자동 생성 요약 및 확장된 데이터 & 네트워크 보안 태세 점검 기능이 포함됩니다."
+  },
+  "pillar.identity": {
+      "message": "ID"
+  },
+  "pillar.devices": {
+      "message": "디바이스"
+  },
+  "pillar.data": {
+      "message": "데이터"
+  },
+  "pillar.data.tooltip": {
+      "message": "새로운 자동 평가 점검"
+  },
+  "pillar.network": {
+      "message": "네트워크"
+  },
+  "pillar.network.tooltip": {
+      "message": "새로운 자동 평가 점검"
+  },
+  "pillar.infrastructure": {
+      "message": "인프라"
+  },
+  "pillar.secops": {
+      "message": "보안 운영"
+  },
+  "pillar.ai": {
+      "message": "AI"
+  },
+  "pillar.ai.tooltip": {
+      "message": "워크샵의 AI 필러"
+  },
+  "products.title": {
+      "message": "두 가지 도구, 하나의 미션"
+  },
+  "products.subtitle": {
+      "message": "제로트러스트 로드맵을 계획하든 현재 보안 태세를 측정하든, 저희가 도와드리겠습니다."
+  },
+  "products.workshop.label": {
+      "message": "대화형 계획 도구"
+  },
+  "products.workshop.name": {
+      "message": "제로트러스트 워크샵"
+  },
+  "products.workshop.description": {
+      "message": "7가지 필러(ID, 디바이스, 데이터, 네트워크, 인프라, 보안 운영, AI) 전반에 걸친 제로트러스트 배포를 계획하는 새로운 웹 애플리케이션입니다. First-Then 구조로 작업 우선순위를 지정하고 자동 요약 및 구현 계획을 생성합니다."
+  },
+  "products.workshop.tag.pillars": {
+      "message": "7개 필러"
+  },
+  "products.workshop.tag.ai": {
+      "message": "AI 필러"
+  },
+  "products.workshop.tag.summaries": {
+      "message": "자동 요약"
+  },
+  "products.workshop.tag.plans": {
+      "message": "구현 계획"
+  },
+  "products.workshop.cta": {
+      "message": "워크샵 열기"
+  },
+  "products.assessment.label": {
+      "message": "자동 테넌트 분석"
+  },
+  "products.assessment.name": {
+      "message": "제로트러스트 평가"
+  },
+  "products.assessment.description": {
+      "message": "Microsoft Entra 테넌트에 연결하여 제로트러스트 보안 태세의 자동 평가를 받으세요. ID, 디바이스, 데이터, 네트워크 필러 전반의 구성을 분석하고 실행 가능한 인사이트와 시각적 대시보드를 제공합니다."
+  },
+  "products.assessment.tag.identity": {
+      "message": "ID"
+  },
+  "products.assessment.tag.devices": {
+      "message": "디바이스"
+  },
+  "products.assessment.tag.data": {
+      "message": "데이터"
+  },
+  "products.assessment.tag.network": {
+      "message": "네트워크"
+  },
+  "products.assessment.tag.checks": {
+      "message": "자동 점검"
+  },
+  "products.assessment.cta": {
+      "message": "평가 실행"
+  },
+  "howItWorks.title": {
+      "message": "사용 방법"
+  },
+  "howItWorks.subtitle": {
+      "message": "조직의 보안 태세를 개선하는 3단계."
+  },
+  "howItWorks.step1.title": {
+      "message": "학습"
+  },
+  "howItWorks.step1.description": {
+      "message": "제로트러스트 원칙(명시적 검증, 최소 권한 액세스, 위반 가정)을 이해하고 환경에 어떻게 적용되는지 알아봅니다."
+  },
+  "howItWorks.step1.link": {
+      "message": "Microsoft 제로트러스트 살펴보기"
+  },
+  "howItWorks.step2.title": {
+      "message": "계획"
+  },
+  "howItWorks.step2.description": {
+      "message": "워크샵을 사용하여 모든 필러에 걸친 구체적인 제로트러스트 로드맵을 구축합니다. 작업 우선순위를 지정하고 조직에 맞는 구현 계획을 생성합니다."
+  },
+  "howItWorks.step2.link": {
+      "message": "워크샵 열기"
+  },
+  "howItWorks.step3.title": {
+      "message": "평가"
+  },
+  "howItWorks.step3.description": {
+      "message": "Microsoft Entra 테넌트에 대해 평가를 실행하여 현재 보안 태세를 측정하고, 격차를 파악하고, 시간에 따른 진행 상황을 추적합니다."
+  },
+  "howItWorks.step3.link": {
+      "message": "평가 실행"
+  },
+  "getStarted.title": {
+      "message": "시작할 준비가 되셨나요?"
+  },
+  "getStarted.description": {
+      "message": "제로트러스트 전략 세션을 진행하기 위한 단계별 계획을 따르세요. Microsoft 파트너이든 내부 워크샵이든, 가이드가 준비부터 실행, 후속 조치까지 안내합니다."
+  },
+  "getStarted.cta": {
+      "message": "단계별 계획 보기"
+  },
+  "home.layout.title": {
+      "message": "Microsoft 제로트러스트 워크샵 & 평가"
+  },
+  "home.layout.description": {
+      "message": "워크샵 도구로 제로트러스트 배포를 계획하고 자동 평가로 보안 태세를 측정하세요 — 새로운 AI 필러를 지원합니다."
   }
 }

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Super user membership is configured for Azure Information Protection
 
@@ -18,6 +18,7 @@ function Test-Assessment-35011 {
     	Category = 'Advanced Label Features',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Microsoft 365 E5'),
+    	CompatibleLicense = ('RMS_S_PREMIUM2'),
     	Service = ('AipService','Graph'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',
