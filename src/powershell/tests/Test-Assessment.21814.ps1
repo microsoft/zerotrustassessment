@@ -27,13 +27,13 @@ function Test-Assessment-21814 {
 
     $roles = Get-ZTRole -IncludePrivilegedRoles
     # Get all privileged roles
-    # TODO: Remove filter for GA and Global Reader, limiting during testing time.
+
     $privilegedRoles = $roles | Where-Object { $_.displayName -in @('Global Administrator', 'Global Reader') }
 
     foreach ($role in $privilegedRoles) {
         Write-ZtProgress -Activity $activity -Status "Getting members in role $($role.displayName)"
         $roleMembers = Get-ZtRoleMember -RoleId $role.id
-        # TODO : For groups get transitive members
+
         $roleUsers = $roleMembers | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.user" }
 
         $ztUsers = @()
@@ -54,7 +54,6 @@ function Test-Assessment-21814 {
         $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premise.`n`n%TestResult%"
     }
 
-    #TODO: Make user names clickable
     $mdInfo = "## Privileged Roles`n`n"
     $mdInfo += "| Role Name | User | Source | Status |`n"
     $mdInfo += "| :--- | :--- | :--- | :---: |`n"
