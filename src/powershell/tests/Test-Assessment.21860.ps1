@@ -18,7 +18,6 @@ function Test-Assessment-21860 {
     [ZtTest(
         Category = 'Monitoring',
         ImplementationCost = 'Medium',
-        CompatibleLicense = ('Free'),
         Pillar = 'Identity',
         RiskLevel = 'High',
         Service = ('Azure'),
@@ -132,10 +131,10 @@ function Test-Assessment-21860 {
                     $_.properties.logs | Where-Object { $_.category -eq $log -and $_.enabled -eq $true }
                 } | ForEach-Object { Get-SafeMarkdown $_.name }
             )
-            $tableRows += "| $log | ✅ | $($settingNames -join ', ') |`n"
+            $tableRows += "| $log | $($settingNames -join ', ') |`n"
         }
         else {
-            $tableRows += "| $log | ❌ | None |`n"
+            $tableRows += "| $log | None |`n"
         }
     }
 
@@ -144,8 +143,8 @@ function Test-Assessment-21860 {
 
 ## [{0}]({1})
 
-| Log | Archiving enabled | Diagnostic Settings |
-| :--- | :---: | :--- |
+| Log Name | Diagnostic Settings |
+| :--- | :--- |
 {2}
 
 '@
