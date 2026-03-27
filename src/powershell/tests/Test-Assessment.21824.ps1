@@ -53,7 +53,11 @@ function Test-Assessment-21824 {
     $passed = $false
     $testResultMarkdown = ""
 
-    if ($filteredCAPolicies.Count -gt 0 -and $filteredCAPolicies.Count -eq $matchedPolicies.Count) {
+    if ($filteredCAPolicies.Count -eq 0) {
+        $passed = $false
+        $testResultMarkdown = "No Conditional Access policies are targeting guests or external users. Sign-in frequency for guests is not enforced.`n`n%TestResult%"
+    }
+    elseif ($filteredCAPolicies.Count -eq $matchedPolicies.Count) {
         $passed = $true
         $testResultMarkdown = "Guests don't have long lived sign-in sessions.`n`n%TestResult%"
     }
