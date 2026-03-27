@@ -53,7 +53,7 @@ function Test-Assessment-21824 {
     $passed = $false
     $testResultMarkdown = ""
 
-    if ($filteredCAPolicies.Count -eq $matchedPolicies.Count) {
+    if ($filteredCAPolicies.Count -gt 0 -and $filteredCAPolicies.Count -eq $matchedPolicies.Count) {
         $passed = $true
         $testResultMarkdown = "Guests don't have long lived sign-in sessions.`n`n%TestResult%"
     }
@@ -76,7 +76,7 @@ function Test-Assessment-21824 {
 
 ## {0}
 
-| Policy Name | Sign-in Frequency | Status |
+| Policy name | Sign-in frequency | Status |
 | :---------- | :---------------- | :----- |
 {1}
 
