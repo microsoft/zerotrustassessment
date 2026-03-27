@@ -49,7 +49,7 @@ function Test-Assessment-21814 {
     }
     else {
         $onpremUserCount = ($privilegedRoles.ZtUsers | Where-Object { $_.onPremisesSyncEnabled }).Count
-        $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premise.`n`n%TestResult%"
+        $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premises.`n`n%TestResult%"
     }
 
     $mdInfo = "## Privileged roles`n`n"
@@ -58,7 +58,7 @@ function Test-Assessment-21814 {
     foreach ($role in $privilegedRoles | Sort-Object displayName) {
         foreach ($user in $role.ZtUsers) {
             if ($user.onPremisesSyncEnabled) {
-                $type = "Synced from on-premise"
+                $type = "Synced from on-premises"
                 $status = "❌"
             }
             else {
