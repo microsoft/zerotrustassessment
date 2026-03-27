@@ -33,7 +33,6 @@ function Test-Assessment-21770 {
 
     $inactiveRiskyApps = @()
     $otherApps = @()
-throw 'This is a test error for testing error handling and reporting in the test framework. Please ignore.'
     foreach($item in $results) {
         if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $item.IsRisky) {
             $inactiveRiskyApps += $item
