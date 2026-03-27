@@ -196,7 +196,7 @@
 				'```'
 			) -join "`r`n"
 			Add-ZtTestResultDetail -TestId $Test.TestID -Title $Test.Title -Status $false -Result $message -CustomStatus 'Error'
-			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Failed' -WorkerDetail "Error: $($_.Exception.Message)"
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($_.Exception.Message)"
 		}
 		finally {
 			$result.End = Get-Date
