@@ -80,18 +80,6 @@ resources
     }
     #endregion Data Collection
 
-    #region Helper Functions
-    # Determine if Bot Manager ruleset is present.
-    # Per spec: ruleGroupOverrides are NOT evaluated - only presence of Microsoft_BotManagerRuleSet matters.
-    function Test-BotManagerEnabled {
-        param($ManagedRuleSets)
-
-        if (-not $ManagedRuleSets) { return $false }
-
-        $botRuleSet = $ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' } | Select-Object -First 1
-        return $null -ne $botRuleSet
-    }
-    #endregion Helper Functions
 
     #region Assessment Logic
     $passed = $false
@@ -110,10 +98,11 @@ resources
         return
     }
 
+    # Fail if any attached policy is not enabled, not in Prevention mode, or missing the Microsoft_BotManagerRuleSet
     $failingPolicies = $attachedPolicies | Where-Object {
         $_.EnabledState -ne 'Enabled' -or
         $_.Mode -ne 'Prevention' -or
-        -not (Test-BotManagerEnabled -ManagedRuleSets $_.ManagedRuleSets)
+        ($_.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -eq 0
     }
 
     $passed = $failingPolicies.Count -eq 0
@@ -139,7 +128,6 @@ resources
         $subMd = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($subLink)"
 
         $isAttached = $policy.AttachedGatewayCount -ge 1
-        $attachedDisplay = if ($isAttached) { '✅ Yes' } else { '❌ No' }
         $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $modeDisplay = if ($policy.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
 
@@ -147,29 +135,27 @@ resources
         if ($policy.ManagedRuleSets) {
             $botRuleSet = $policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' } | Select-Object -First 1
         }
-        $botManagerEnabled = Test-BotManagerEnabled -ManagedRuleSets $policy.ManagedRuleSets
-        $botManagerDisplay = if ($botManagerEnabled) { '✅ Configured' } else { '❌ Not Configured' }
         $rulesetVersionDisplay = if ($botRuleSet) { $botRuleSet.ruleSetVersion } else { 'N/A' }
 
         if (-not $isAttached) {
             $statusDisplay = '⚪ Excluded'
         }
-        elseif ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and $botManagerEnabled) {
+        elseif ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and ($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -gt 0) {
             $statusDisplay = '✅ Pass'
         }
         else {
             $statusDisplay = '❌ Fail'
         }
 
-        $tableRows += "| $policyMd | $subMd | $attachedDisplay | $enabledStateDisplay | $modeDisplay | $botManagerDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
+        $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
     }
 
     $formatTemplate = @'
 
 ## [{0}]({1})
 
-| Policy name | Subscription name | Attached to AppGW | Policy state | WAF Mode | Bot Manager ruleset | Ruleset version | Status |
-| :---------- | :---------------- | :---------------- | :----------- | :------- | :------------------ | :-------------- | :----- |
+| Policy name | Subscription name | Policy state | WAF mode | Bot Manager ruleset version | Status |
+| :---------- | :---------------- | :----------- | :------- | :-------------------------- | :----- |
 {2}
 
 '@
