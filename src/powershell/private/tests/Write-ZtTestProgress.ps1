@@ -47,7 +47,7 @@ function Write-ZtTestProgress {
 		$LogsPath,
 
 		[Parameter(Mandatory = $true)]
-		[ValidateSet('Started', 'Completed', 'Failed', 'TimedOut')]
+		[ValidateSet('Started', 'Completed', 'Failed', 'TimedOut','Error')]
 		[string]
 		$Action,
 

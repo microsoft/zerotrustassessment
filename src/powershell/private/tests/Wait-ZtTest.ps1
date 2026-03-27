@@ -32,7 +32,8 @@
 		[datetime]
 		$StartedAt = [DateTime]::Now
 	)
-	Begin {
+
+	begin {
 		$failedTests = @{}
 		$totalCount = $Workflow.Queues["Input"].TotalItemCount
 		$progressID = Get-Random -Minimum 1 -Maximum 999
@@ -41,17 +42,19 @@
 		# Initialize progress dashboard summary for the test stage
 		Update-ZtProgressState -TotalItems $totalCount -CompletedItems 0 -FailedItems 0 -InProgressItems 0
 	}
+
 	process {
 		Write-Progress -Id $progressID -Activity "Processing $($totalCount) Tests" -PercentComplete 0
 		while (-not $Workflow.Queues["Results"].Closed -and $Timeout -gt ([DateTime]::Now - $StartedAt)) {
 			Start-Sleep -Milliseconds 500
 
-			$failed = Get-ZtTestStatistics | Where-Object Success -eq $false
+			$failed = Get-ZtTestStatistics | Where-Object -Property Success -eq $false
 			foreach ($failure in $failed) {
 				if ($failedTests[$failure.TestID]) { continue }
 				$failedTests[$failure.TestID] = $true
-				Write-PSFMessage -Level Warning -Message "Error processing Test {0}" -StringValues $failure.TestID -ErrorRecord $failure.Error
+				Write-PSFMessage -Level Warning -Message "Error processing Test {0}." -StringValues $failure.TestID -ErrorRecord $failure.Error
 			}
+
 			$percent = ($Workflow.Queues["Results"].Count / $totalCount * 100) -as [int]
 			if ($percent -lt 0) { $percent = 0 }
 			if ($percent -gt 100) { $percent = 100 }
@@ -96,6 +99,7 @@
 			}
 			catch {
 				# Non-critical: don't let message scanning break the wait loop
+				Write-PSFMessage -Level Verbose -Message "Error scanning PSFramework messages during Wait-ZtTest: $_" -ErrorRecord $_
 			}
 		}
 
@@ -103,6 +107,7 @@
 		# and the dashboard shows correct totals before workers get cleared by next stage
 		$finalCompleted = $Workflow.Queues["Results"].Count
 		$finalFailed = ($failedTests.Keys | Measure-Object).Count
+		Write-PSFMessage -Level VeryVerbose -Message "Wait-ZtTest is exiting after processing $finalCompleted out of $totalCount tests, with $finalFailed failures." -Target $Workflow
 		Update-ZtProgressState -TotalItems $totalCount -CompletedItems ($finalCompleted - $finalFailed) -FailedItems $finalFailed -InProgressItems 0
 
 		if ($Timeout -le ([DateTime]::Now - $StartedAt)) {

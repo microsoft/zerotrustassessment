@@ -89,8 +89,8 @@ function Add-ZtTestResultDetail {
 		[string[]] $Tag,
 
 		# Optional. Custom status to return instead of the default status.
-		[Parameter(Mandatory = $false)]
-		[ValidateSet('Investigate')]
+		[Parameter()]
+		[ValidateSet('Investigate','Error')]
 		[string] $CustomStatus,
 
 		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
@@ -130,6 +130,12 @@ function Add-ZtTestResultDetail {
 
 		if (-not $Result) {
 			$Result = "Skipped. $SkippedReason"
+		}
+	}
+
+	if ($CustomStatus -eq 'Error') {
+		if ([string]::IsNullOrEmpty($Result)) {
+			$Result = 'An error occurred while running this test.'
 		}
 	}
 
@@ -183,10 +189,19 @@ function Add-ZtTestResultDetail {
 		$UserImpact = $testMeta.UserImpact
 	}
 
+	$getZtTestStatusParams = @{
+		Status         = $Status
+		SkippedBecause = $SkippedBecause
+	}
+
+	if ($CustomStatus) {
+		$getZtTestStatusParams.CustomStatus = $CustomStatus
+	}
+
 	$testInfo = @{
 		TestId                 = $actualTestId
 		TestTitle              = $docsTitle
-		TestStatus             = Get-ZtTestStatus -Status $Status -SkippedBecause $SkippedBecause -CustomStatus $CustomStatus
+		TestStatus             = Get-ZtTestStatus @getZtTestStatusParams
 		TestCategory           = $category
 		TestTags               = $Tag
 		TestAppliesTo          = $AppliesTo
