@@ -47,11 +47,11 @@ function Test-Assessment-26882 {
 
     Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph'
 
-    # Query all Application Gateway WAF policies using Azure Resource Graph.
-    # All policies are returned; unattached ones are flagged via AttachedGatewayCount for exclusion in reporting.
+    # Query all Application Gateway WAF policies attached to Application Gateways using Azure Resource Graph
     $argQuery = @"
 resources
 | where type =~ 'microsoft.network/applicationgatewaywebapplicationfirewallpolicies'
+| where coalesce(array_length(properties.applicationGateways), 0) >= 1
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
@@ -64,14 +64,13 @@ resources
     SubscriptionId = subscriptionId,
     EnabledState = tostring(properties.policySettings.state),
     Mode = tostring(properties.policySettings.mode),
-    ManagedRuleSets = properties.managedRules.managedRuleSets,
-    AttachedGatewayCount = coalesce(array_length(properties.applicationGateways), 0)
+    ManagedRuleSets = properties.managedRules.managedRuleSets
 "@
 
-    $allPolicies = @()
+    $policies = @()
     try {
-        $allPolicies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
-        Write-PSFMessage "ARG Query returned $($allPolicies.Count) records" -Tag Test -Level VeryVerbose
+        $policies = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
+        Write-PSFMessage "ARG Query returned $($policies.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
         Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
@@ -84,22 +83,15 @@ resources
     #region Assessment Logic
     $passed = $false
 
-    if ($allPolicies.Count -eq 0) {
-        Write-PSFMessage 'No Application Gateway WAF policies found.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Application Gateway WAF policies found.'
-        return
-    }
-
-    $attachedPolicies = @($allPolicies | Where-Object { $_.AttachedGatewayCount -ge 1 })
-
-    if ($attachedPolicies.Count -eq 0) {
+    # Skip test if no policies found
+    if ($policies.Count -eq 0) {
         Write-PSFMessage 'No Application Gateway WAF policies found attached to Application Gateways.' -Tag Test -Level Verbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Application Gateway WAF policies found attached to Application Gateways.'
         return
     }
 
     # Fail if any attached policy is not enabled, not in Prevention mode, or missing the Microsoft_BotManagerRuleSet
-    $failingPolicies = $attachedPolicies | Where-Object {
+    $failingPolicies = $policies | Where-Object {
         $_.EnabledState -ne 'Enabled' -or
         $_.Mode -ne 'Prevention' -or
         ($_.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -eq 0
@@ -121,31 +113,19 @@ resources
     $portalLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FapplicationGatewayWebApplicationFirewallPolicies'
 
     $tableRows = ''
-    foreach ($policy in $allPolicies | Sort-Object SubscriptionName, PolicyName) {
+    foreach ($policy in $policies | Sort-Object SubscriptionName, PolicyName) {
         $policyLink = "https://portal.azure.com/#resource$($policy.PolicyId)"
         $subLink = "https://portal.azure.com/#resource/subscriptions/$($policy.SubscriptionId)"
         $policyMd = "[$(Get-SafeMarkdown $policy.PolicyName)]($policyLink)"
         $subMd = "[$(Get-SafeMarkdown $policy.SubscriptionName)]($subLink)"
 
-        $isAttached = $policy.AttachedGatewayCount -ge 1
         $enabledStateDisplay = if ($policy.EnabledState -eq 'Enabled') { '✅ Enabled' } else { '❌ Disabled' }
         $modeDisplay = if ($policy.Mode -eq 'Prevention') { '✅ Prevention' } else { '❌ Detection' }
 
-        $botRuleSet = $null
-        if ($policy.ManagedRuleSets) {
-            $botRuleSet = $policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' } | Select-Object -First 1
-        }
+        $botRuleSet = $policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }
         $rulesetVersionDisplay = if ($botRuleSet) { $botRuleSet.ruleSetVersion } else { 'N/A' }
 
-        if (-not $isAttached) {
-            $statusDisplay = '⚪ Excluded'
-        }
-        elseif ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and ($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -gt 0) {
-            $statusDisplay = '✅ Pass'
-        }
-        else {
-            $statusDisplay = '❌ Fail'
-        }
+        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and ($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -gt 0) { '✅' } else { '❌' }
 
         $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
     }
