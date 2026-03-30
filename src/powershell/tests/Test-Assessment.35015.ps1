@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Globally published sensitivity labels don't exceed the recommended maximum
 
@@ -16,6 +16,7 @@ function Test-Assessment-35015 {
     	Category = 'sensitivity-labels',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',

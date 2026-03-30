@@ -356,5 +356,173 @@
     "theme.tags.tagsPageTitle": {
         "message": "タグ",
         "description": "タグリストページのタイトル"
+    },
+    "badge.new": {
+        "message": "NEW"
+    },
+    "badge.updated": {
+        "message": "更新"
+    },
+    "hero.tagline": {
+        "message": "ゼロ トラスト フレームワークで AI ピラーが利用可能になりました"
+    },
+    "hero.title": {
+        "message": "ゼロ トラスト ジャーニーを加速する"
+    },
+    "hero.subtitle": {
+        "message": "組織がゼロ トラスト戦略を採用し、エンドツーエンドのセキュリティ ソリューションを展開するための Microsoft の包括的なフレームワーク — AI エージェントと AI リソースを保護するための新しい AI ピラーが追加されました。"
+    },
+    "hero.cta.workshop": {
+        "message": "ワークショップを開く"
+    },
+    "hero.cta.assessment": {
+        "message": "評価を実行"
+    },
+    "ai.pill": {
+        "message": "新機能"
+    },
+    "ai.title": {
+        "message": "ゼロ トラストに AI ピラーを導入"
+    },
+    "ai.description": {
+        "message": "組織が AI エージェントや MCP サーバーを採用する中、ゼロ トラスト フレームワークに AI コントロールを備えた専用の AI リソース ピラーが追加されました。AI ワークロードも環境の他の部分と同じ厳格さで管理されます。"
+    },
+    "ai.pillarSubtitle": {
+        "message": "自動生成サマリーと拡張されたデータ & ネットワーク ポスチャ チェックを搭載。"
+    },
+    "pillar.identity": {
+        "message": "ID"
+    },
+    "pillar.devices": {
+        "message": "デバイス"
+    },
+    "pillar.data": {
+        "message": "データ"
+    },
+    "pillar.data.tooltip": {
+        "message": "新しい自動評価チェック"
+    },
+    "pillar.network": {
+        "message": "ネットワーク"
+    },
+    "pillar.network.tooltip": {
+        "message": "新しい自動評価チェック"
+    },
+    "pillar.infrastructure": {
+        "message": "インフラストラクチャ"
+    },
+    "pillar.secops": {
+        "message": "セキュリティ運用"
+    },
+    "pillar.ai": {
+        "message": "AI"
+    },
+    "pillar.ai.tooltip": {
+        "message": "ワークショップの AI ピラー"
+    },
+    "products.title": {
+        "message": "2つのツール、1つのミッション"
+    },
+    "products.subtitle": {
+        "message": "ゼロ トラスト ロードマップの計画でも、現在のポスチャの測定でも、お任せください。"
+    },
+    "products.workshop.label": {
+        "message": "インタラクティブ計画ツール"
+    },
+    "products.workshop.name": {
+        "message": "ゼロ トラスト ワークショップ"
+    },
+    "products.workshop.description": {
+        "message": "7つのピラー（ID、デバイス、データ、ネットワーク、インフラストラクチャ、セキュリティ運用、AI）すべてにわたるゼロ トラスト展開を計画するための新しい Web アプリケーション。First-Then 構造でタスクに優先順位を付け、自動サマリーと実装計画を生成します。"
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 ピラー"
+    },
+    "products.workshop.tag.ai": {
+        "message": "AI ピラー"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "自動サマリー"
+    },
+    "products.workshop.tag.plans": {
+        "message": "実装計画"
+    },
+    "products.workshop.cta": {
+        "message": "ワークショップを開く"
+    },
+    "products.assessment.label": {
+        "message": "自動テナント分析"
+    },
+    "products.assessment.name": {
+        "message": "ゼロ トラスト評価"
+    },
+    "products.assessment.description": {
+        "message": "Microsoft Entra テナントに接続し、ゼロ トラスト ポスチャの自動評価を取得します。ID、デバイス、データ、ネットワーク ピラー全体の構成を分析し、実用的なインサイトとビジュアル ダッシュボードを提供します。"
+    },
+    "products.assessment.tag.identity": {
+        "message": "ID"
+    },
+    "products.assessment.tag.devices": {
+        "message": "デバイス"
+    },
+    "products.assessment.tag.data": {
+        "message": "データ"
+    },
+    "products.assessment.tag.network": {
+        "message": "ネットワーク"
+    },
+    "products.assessment.tag.checks": {
+        "message": "自動チェック"
+    },
+    "products.assessment.cta": {
+        "message": "評価を実行"
+    },
+    "howItWorks.title": {
+        "message": "使い方"
+    },
+    "howItWorks.subtitle": {
+        "message": "組織のセキュリティ ポスチャを改善する 3 つのステップ。"
+    },
+    "howItWorks.step1.title": {
+        "message": "学ぶ"
+    },
+    "howItWorks.step1.description": {
+        "message": "ゼロ トラストの原則（常に検証、最小権限アクセス、侵害を前提とする）を理解し、環境にどのように適用されるかを学びます。"
+    },
+    "howItWorks.step1.link": {
+        "message": "Microsoft ゼロ トラストを探索"
+    },
+    "howItWorks.step2.title": {
+        "message": "計画する"
+    },
+    "howItWorks.step2.description": {
+        "message": "ワークショップを使用して、すべてのピラーにわたる具体的なゼロ トラスト ロードマップを構築します。タスクに優先順位を付け、組織に合わせた実装計画を生成します。"
+    },
+    "howItWorks.step2.link": {
+        "message": "ワークショップを開く"
+    },
+    "howItWorks.step3.title": {
+        "message": "評価する"
+    },
+    "howItWorks.step3.description": {
+        "message": "Microsoft Entra テナントに対して評価を実行し、現在のポスチャを測定し、ギャップを特定し、時間の経過とともに進捗を追跡します。"
+    },
+    "howItWorks.step3.link": {
+        "message": "評価を実行"
+    },
+    "getStarted.title": {
+        "message": "始める準備はできましたか？"
+    },
+    "getStarted.description": {
+        "message": "ゼロ トラスト戦略セッションを実施するためのステップバイステップ プランに従ってください。Microsoft パートナーでも社内ワークショップでも、準備から実施、フォローアップまでガイドします。"
+    },
+    "getStarted.cta": {
+        "message": "ステップバイステップ プランを見る"
+    },
+    "home.layout.title": {
+        "message": "Microsoft ゼロ トラスト ワークショップ & 評価"
+    },
+    "home.layout.description": {
+        "message": "ワークショップ ツールでゼロ トラスト展開を計画し、自動評価でポスチャを測定 — 新しい AI ピラーを搭載。"
     }
 }

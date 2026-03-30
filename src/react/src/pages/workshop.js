@@ -22,7 +22,6 @@ export default function Workshop() {
             title={`Microsoft Zero Trust Assessment`}
             description="Check your Microsoft tenant configuration for zero trust readiness"
         >
-
             <header className="hero-banner">
                 <div className="hero-content">
                     <div className="hero-image-left">

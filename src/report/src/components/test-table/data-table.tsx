@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns } from "lucide-react"
+import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns, Hash, BadgeCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -55,15 +55,10 @@ export function DataTable<TData extends Test, TValue>({
     data,
     pillar,
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>(
-        pillar === "Devices"
-            ? [
-                { id: "TestCategory", desc: false },
-                { id: "TestStatus", desc: false },
-                { id: "TestTitle", desc: false }
-              ]
-            : []
-    )
+    const [sorting, setSorting] = React.useState<SortingState>([
+        { id: "TestRisk", desc: false },
+        { id: "TestStatus", desc: false },
+    ])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = React.useState("");
     const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
@@ -457,25 +452,41 @@ export function DataTable<TData extends Test, TValue>({
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader>
-                                {/* Row of icons + labels below the title, spread out across the row */}
-                                <div className="mt-2 flex w-full justify-between text-sm">
-                                    {/* Risk */}
+                                <div className="mt-2 grid grid-cols-3 gap-y-2 text-sm">
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Risk:</span>
                                         <span>{selectedRow?.TestRisk ?? "N/A"}</span>
                                     </div>
-                                    {/* Impact */}
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">User Impact:</span>
                                         <span>{selectedRow?.TestImpact ?? "N/A"}</span>
                                     </div>
-                                    {/* Implementation Cost */}
                                     <div className="flex items-center gap-2">
                                         <Settings className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Implementation Effort:</span>
                                         <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Hash className="h-4 w-4 text-foreground" />
+                                        <span className="font-semibold">Test ID:</span>
+                                        <span>{selectedRow?.TestId ?? "N/A"}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <BadgeCheck className="h-4 w-4 text-foreground" />
+                                        <span className="font-semibold">License:</span>
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                            {selectedRow?.TestMinimumLicense && Array.isArray(selectedRow.TestMinimumLicense) ? (
+                                                selectedRow.TestMinimumLicense.map((license, index) => (
+                                                    <span key={index} className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-md">
+                                                        {license}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span>{selectedRow?.TestMinimumLicense ?? "N/A"}</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </CardHeader>

@@ -356,5 +356,173 @@
   "theme.tags.tagsPageTitle": {
       "message": "標籤",
       "description": "標籤列表頁面的標題"
+  },
+  "badge.new": {
+      "message": "NEW"
+  },
+  "badge.updated": {
+      "message": "已更新"
+  },
+  "hero.tagline": {
+      "message": "零信任框架中現已提供 AI 支柱"
+  },
+  "hero.title": {
+      "message": "加速您的零信任旅程"
+  },
+  "hero.subtitle": {
+      "message": "Microsoft 提供的全面框架，幫助組織採用零信任策略並端到端部署安全解決方案 — 現新增 AI 支柱，用於保護 AI 代理和 AI 資源。"
+  },
+  "hero.cta.workshop": {
+      "message": "啟動工作坊"
+  },
+  "hero.cta.assessment": {
+      "message": "執行評估"
+  },
+  "ai.pill": {
+      "message": "最新動態"
+  },
+  "ai.title": {
+      "message": "在零信任中引入 AI 支柱"
+  },
+  "ai.description": {
+      "message": "隨著組織採用 AI 代理和 MCP 伺服器，零信任框架現包含一個專用的 AI 資源支柱和 AI 控制 — 確保您的 AI 工作負載以與環境其他部分相同的嚴格標準進行治理。"
+  },
+  "ai.pillarSubtitle": {
+      "message": "現支援自動產生摘要以及擴展的資料和網路安全態勢檢查。"
+  },
+  "pillar.identity": {
+      "message": "身分識別"
+  },
+  "pillar.devices": {
+      "message": "裝置"
+  },
+  "pillar.data": {
+      "message": "資料"
+  },
+  "pillar.data.tooltip": {
+      "message": "新的自動評估檢查"
+  },
+  "pillar.network": {
+      "message": "網路"
+  },
+  "pillar.network.tooltip": {
+      "message": "新的自動評估檢查"
+  },
+  "pillar.infrastructure": {
+      "message": "基礎結構"
+  },
+  "pillar.secops": {
+      "message": "安全營運"
+  },
+  "pillar.ai": {
+      "message": "AI"
+  },
+  "pillar.ai.tooltip": {
+      "message": "工作坊中的 AI 支柱"
+  },
+  "products.title": {
+      "message": "兩款工具，一個使命"
+  },
+  "products.subtitle": {
+      "message": "無論您是在規劃零信任路線圖還是衡量當前安全態勢，我們都能為您提供協助。"
+  },
+  "products.workshop.label": {
+      "message": "互動式規劃工具"
+  },
+  "products.workshop.name": {
+      "message": "零信任工作坊"
+  },
+  "products.workshop.description": {
+      "message": "一款新的 Web 應用程式，用於規劃涵蓋所有七個支柱（身分識別、裝置、資料、網路、基礎結構、安全營運和 AI）的零信任部署。以 First-Then 結構確定任務優先順序，並產生自動摘要和實施計畫。"
+  },
+  "products.workshop.tag.pillars": {
+      "message": "7 個支柱"
+  },
+  "products.workshop.tag.ai": {
+      "message": "AI 支柱"
+  },
+  "products.workshop.tag.summaries": {
+      "message": "自動摘要"
+  },
+  "products.workshop.tag.plans": {
+      "message": "實施計畫"
+  },
+  "products.workshop.cta": {
+      "message": "啟動工作坊"
+  },
+  "products.assessment.label": {
+      "message": "自動租用戶分析"
+  },
+  "products.assessment.name": {
+      "message": "零信任評估"
+  },
+  "products.assessment.description": {
+      "message": "連線到您的 Microsoft Entra 租用戶，取得零信任安全態勢的自動評估。分析身分識別、裝置、資料和網路支柱的設定，提供可操作的見解和視覺化儀表板。"
+  },
+  "products.assessment.tag.identity": {
+      "message": "身分識別"
+  },
+  "products.assessment.tag.devices": {
+      "message": "裝置"
+  },
+  "products.assessment.tag.data": {
+      "message": "資料"
+  },
+  "products.assessment.tag.network": {
+      "message": "網路"
+  },
+  "products.assessment.tag.checks": {
+      "message": "自動檢查"
+  },
+  "products.assessment.cta": {
+      "message": "執行評估"
+  },
+  "howItWorks.title": {
+      "message": "使用方式"
+  },
+  "howItWorks.subtitle": {
+      "message": "改善組織安全態勢的三個步驟。"
+  },
+  "howItWorks.step1.title": {
+      "message": "學習"
+  },
+  "howItWorks.step1.description": {
+      "message": "了解零信任原則 — 始終驗證、最小權限存取和假設遭受入侵 — 以及它們如何套用於您的環境。"
+  },
+  "howItWorks.step1.link": {
+      "message": "探索 Microsoft 零信任"
+  },
+  "howItWorks.step2.title": {
+      "message": "規劃"
+  },
+  "howItWorks.step2.description": {
+      "message": "使用工作坊建構涵蓋所有支柱的具體零信任路線圖。確定任務優先順序並產生適合您組織的實施計畫。"
+  },
+  "howItWorks.step2.link": {
+      "message": "開啟工作坊"
+  },
+  "howItWorks.step3.title": {
+      "message": "評估"
+  },
+  "howItWorks.step3.description": {
+      "message": "針對您的 Microsoft Entra 租用戶執行評估，衡量當前安全態勢，識別差距，並追蹤隨時間推移的進展。"
+  },
+  "howItWorks.step3.link": {
+      "message": "執行評估"
+  },
+  "getStarted.title": {
+      "message": "準備好開始了嗎？"
+  },
+  "getStarted.description": {
+      "message": "按照我們的逐步計畫開展零信任策略會議。無論您是 Microsoft 合作夥伴還是舉辦內部工作坊，本指南都將引導您完成準備、實施和後續追蹤。"
+  },
+  "getStarted.cta": {
+      "message": "檢視逐步計畫"
+  },
+  "home.layout.title": {
+      "message": "Microsoft 零信任工作坊與評估"
+  },
+  "home.layout.description": {
+      "message": "使用工作坊工具規劃零信任部署，使用自動評估衡量安全態勢 — 現支援新的 AI 支柱。"
   }
 }

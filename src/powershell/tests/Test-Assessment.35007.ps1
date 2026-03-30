@@ -17,6 +17,7 @@ function Test-Assessment-35007 {
         ImplementationCost = 'Low',
         Service = ('SharePointOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
+        CompatibleLicense = ('RMS_S_PREMIUM'),
         Pillar = 'Data',
         RiskLevel = 'Low',
         SfiPillar = '',

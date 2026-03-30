@@ -19,6 +19,7 @@ function Test-Assessment-35041 {
     [ZtTest(
         Category = 'Data Security Posture Management',
         ImplementationCost = 'High',
+        Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E5', 'Microsoft Purview PAYG'),
         Pillar = 'Data',
         RiskLevel = 'Medium',

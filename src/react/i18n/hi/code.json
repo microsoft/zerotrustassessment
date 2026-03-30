@@ -1,0 +1,528 @@
+{
+    "SiteHeading": {
+        "message": "माइक्रोसॉफ्ट ज़ीरो ट्रस्ट कार्यशाला"
+    },
+    "homepage.title": {
+        "message": "माइक्रोसॉफ्ट ज़ीरो ट्रस्ट कार्यशाला"
+    },
+    "homepage.description": {
+        "message": "ज़ीरो ट्रस्ट सुरक्षा रणनीति का लाभ उठाते हुए ग्राहकों और भागीदारों को उनके संगठनों में सुरक्षा समाधान लागू करने में सहायता करने के लिए एक व्यापक तकनीकी मार्गदर्शिका।"
+    },
+    "homepage.whatIsZt.title": {
+        "message": "ज़ीरो ट्रस्ट क्या है?"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "आधुनिक सुरक्षा की जटिल चुनौतियों का सामना करना कठिन है, लेकिन ज़ीरो ट्रस्ट सुरक्षा रणनीति एक स्पष्ट दिशा प्रदान करती है। ज़ीरो ट्रस्ट रणनीति अपनाकर, संगठन अपनी सुरक्षा स्थिति को मज़बूत कर सकते हैं और अनुपालन एवं शासन में सुधार करते हुए जोखिम और जटिलता को कम कर सकते हैं।"
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "ज़ीरो ट्रस्ट कार्यशाला माइक्रोसॉफ्ट सुरक्षा पर ज़ीरो ट्रस्ट सुरक्षा सिद्धांतों को लागू करने में सहायता करती है।"
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "हमेशा सत्यापित करें"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "न्यूनतम विशेषाधिकार पहुँच"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "उल्लंघन की धारणा"
+    },
+    "learnMore": {
+        "message": "अधिक जानें"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "कार्यशाला क्यों आयोजित करें"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "ज़ीरो ट्रस्ट कार्यशाला माइक्रोसॉफ्ट द्वारा प्रदान की गई एक परिनियोजन मार्गदर्शिका है जो वास्तविक वातावरण में ज़ीरो ट्रस्ट सुरक्षा रणनीति को लागू करने के लिए है।"
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "हज़ारों ग्राहक कार्यान्वयनों से प्राप्त ज्ञान के आधार पर, आप अपने वर्तमान वातावरण का मूल्यांकन कर सकते हैं और चरण दर चरण अपनी समग्र सुरक्षा स्थिति में सुधार के लिए विशिष्ट कदमों की समीक्षा कर सकते हैं।"
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "कार्यशाला के बारे में जानें"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "कार्यशाला कैसे आयोजित करें"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "रणनीतिक चर्चा और वर्तमान वातावरण मूल्यांकन सत्र चलाने का तरीका जानने के लिए चरण-दर-चरण मार्गदर्शिका देखें। यदि आप शुरू करने के बारे में अनिश्चित हैं, तो ज़ीरो ट्रस्ट कार्यशाला परिचय वीडियो देखें।"
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "हज़ारों ग्राहक कार्यान्वयनों से प्राप्त ज्ञान के आधार पर, आप अपने वर्तमान वातावरण का मूल्यांकन कर सकते हैं और चरण दर चरण अपनी समग्र सुरक्षा स्थिति में सुधार के लिए विशिष्ट कदमों की समीक्षा कर सकते हैं।"
+    },
+    "theme.NotFound.title": {
+        "message": "पृष्ठ नहीं मिला",
+        "description": "404 पृष्ठ का शीर्षक"
+    },
+    "theme.NotFound.p1": {
+        "message": "हमें वह नहीं मिला जो आप ढूंढ रहे थे।",
+        "description": "404 पृष्ठ का पहला पैराग्राफ"
+    },
+    "theme.NotFound.p2": {
+        "message": "कृपया उस साइट के स्वामी से संपर्क करें जिसने आपको मूल URL पर भेजा और उन्हें बताएं कि लिंक टूटा हुआ है।",
+        "description": "404 पृष्ठ का दूसरा पैराग्राफ"
+    },
+    "theme.ErrorPageContent.title": {
+        "message": "यह पृष्ठ क्रैश हो गया।",
+        "description": "पृष्ठ क्रैश होने पर फ़ॉलबैक पृष्ठ का शीर्षक"
+    },
+    "theme.BackToTopButton.buttonAriaLabel": {
+        "message": "शीर्ष पर वापस जाएं",
+        "description": "शीर्ष पर वापस बटन का ARIA लेबल"
+    },
+    "theme.blog.archive.title": {
+        "message": "संग्रह",
+        "description": "ब्लॉग संग्रह पृष्ठ का शीर्षक"
+    },
+    "theme.blog.archive.description": {
+        "message": "संग्रह",
+        "description": "ब्लॉग संग्रह पृष्ठ का विवरण"
+    },
+    "theme.blog.paginator.navAriaLabel": {
+        "message": "ब्लॉग सूची पृष्ठ नेविगेशन",
+        "description": "ब्लॉग पेजिनेशन का ARIA लेबल"
+    },
+    "theme.blog.paginator.newerEntries": {
+        "message": "नई प्रविष्टियाँ",
+        "description": "नए ब्लॉग पोस्ट पर नेविगेट करने का लेबल"
+    },
+    "theme.blog.paginator.olderEntries": {
+        "message": "पुरानी प्रविष्टियाँ",
+        "description": "पुराने ब्लॉग पोस्ट पर नेविगेट करने का लेबल"
+    },
+    "theme.blog.post.paginator.navAriaLabel": {
+        "message": "ब्लॉग पोस्ट पृष्ठ नेविगेशन",
+        "description": "ब्लॉग पोस्ट पेजिनेशन का ARIA लेबल"
+    },
+    "theme.blog.post.paginator.newerPost": {
+        "message": "नई पोस्ट",
+        "description": "नई पोस्ट पर नेविगेट करने का बटन लेबल"
+    },
+    "theme.blog.post.paginator.olderPost": {
+        "message": "पुरानी पोस्ट",
+        "description": "पुरानी पोस्ट पर नेविगेट करने का बटन लेबल"
+    },
+    "theme.tags.tagsPageLink": {
+        "message": "सभी टैग देखें",
+        "description": "टैग सूची पृष्ठ के लिंक का लेबल"
+    },
+    "theme.colorToggle.ariaLabel": {
+        "message": "गहरे और हल्के मोड के बीच टॉगल करें (वर्तमान में {mode})",
+        "description": "रंग मोड चयनकर्ता का ARIA लेबल"
+    },
+    "theme.colorToggle.ariaLabel.mode.dark": {
+        "message": "गहरा मोड",
+        "description": "गहरे रंग मोड का नाम"
+    },
+    "theme.colorToggle.ariaLabel.mode.light": {
+        "message": "हल्का मोड",
+        "description": "हल्के रंग मोड का नाम"
+    },
+    "theme.docs.breadcrumbs.navAriaLabel": {
+        "message": "ब्रेडक्रम्ब",
+        "description": "ब्रेडक्रम्ब का ARIA लेबल"
+    },
+    "theme.docs.DocCard.categoryDescription.plurals": {
+        "message": "1 आइटम|{count} आइटम",
+        "description": "श्रेणी कार्ड का डिफ़ॉल्ट विवरण"
+    },
+    "theme.docs.paginator.navAriaLabel": {
+        "message": "दस्तावेज़ पृष्ठ",
+        "description": "दस्तावेज़ पेजिनेशन का ARIA लेबल"
+    },
+    "theme.docs.paginator.previous": {
+        "message": "पिछला",
+        "description": "पिछले दस्तावेज़ पर नेविगेट करने का लेबल"
+    },
+    "theme.docs.paginator.next": {
+        "message": "अगला",
+        "description": "अगले दस्तावेज़ पर नेविगेट करने का लेबल"
+    },
+    "theme.docs.versionBadge.label": {
+        "message": "संस्करण: {versionLabel}"
+    },
+    "theme.docs.versions.unreleasedVersionLabel": {
+        "message": "यह {siteTitle} {versionLabel} का अप्रकाशित दस्तावेज़ है।",
+        "description": "उपयोगकर्ता को बताने का लेबल कि वे अप्रकाशित संस्करण देख रहे हैं"
+    },
+    "theme.docs.versions.unmaintainedVersionLabel": {
+        "message": "यह {siteTitle} {versionLabel} का दस्तावेज़ है, जो अब सक्रिय रूप से अनुरक्षित नहीं है।",
+        "description": "उपयोगकर्ता को बताने का लेबल कि वे अनुरक्षित नहीं संस्करण देख रहे हैं"
+    },
+    "theme.docs.versions.latestVersionSuggestionLabel": {
+        "message": "अद्यतन दस्तावेज़ के लिए, {latestVersionLink} ({versionLabel}) देखें।",
+        "description": "नवीनतम संस्करण सुझाने का लेबल"
+    },
+    "theme.docs.versions.latestVersionLinkLabel": {
+        "message": "नवीनतम संस्करण",
+        "description": "नवीनतम संस्करण के लिंक का लेबल"
+    },
+    "theme.docs.tagDocListPageTitle.nDocsTagged": {
+        "message": "एक दस्तावेज़ टैग किया गया|{count} दस्तावेज़ टैग किए गए",
+        "description": "टैग किए गए दस्तावेज़ों के लिए बहुवचन लेबल"
+    },
+    "theme.docs.tagDocListPageTitle": {
+        "message": "{nDocsTagged} \"{tagName}\" के साथ",
+        "description": "दस्तावेज़ टैग पृष्ठ का शीर्षक"
+    },
+    "theme.common.editThisPage": {
+        "message": "यह पृष्ठ संपादित करें",
+        "description": "वर्तमान पृष्ठ को संपादित करने के लिंक का लेबल"
+    },
+    "theme.lastUpdated.atDate": {
+        "message": " {date} को",
+        "description": "अंतिम अपडेट तिथि के शब्द"
+    },
+    "theme.lastUpdated.byUser": {
+        "message": " {user} द्वारा",
+        "description": "पृष्ठ किसने अपडेट किया इसके शब्द"
+    },
+    "theme.lastUpdated.lastUpdatedAtBy": {
+        "message": "अंतिम अपडेट{atDate}{byUser}",
+        "description": "पृष्ठ कब और किसके द्वारा अपडेट किया गया यह दिखाने का वाक्य"
+    },
+    "theme.common.headingLinkTitle": {
+        "message": "{heading} का सीधा लिंक",
+        "description": "शीर्षक लिंक का शीर्षक"
+    },
+    "theme.navbar.mobileVersionsDropdown.label": {
+        "message": "संस्करण",
+        "description": "मोबाइल संस्करण ड्रॉपडाउन का लेबल"
+    },
+    "theme.tags.tagsListLabel": {
+        "message": "टैग:",
+        "description": "टैग सूची के बगल का लेबल"
+    },
+    "theme.admonition.caution": {
+        "message": "सावधानी",
+        "description": "सावधानी चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.admonition.danger": {
+        "message": "खतरा",
+        "description": "खतरा चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.admonition.info": {
+        "message": "जानकारी",
+        "description": "जानकारी चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.admonition.note": {
+        "message": "नोट",
+        "description": "नोट चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.admonition.tip": {
+        "message": "सुझाव",
+        "description": "सुझाव चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.admonition.warning": {
+        "message": "चेतावनी",
+        "description": "चेतावनी का डिफ़ॉल्ट लेबल"
+    },
+    "theme.AnnouncementBar.closeButtonAriaLabel": {
+        "message": "बंद करें",
+        "description": "घोषणा बार बंद बटन का ARIA लेबल"
+    },
+    "theme.blog.sidebar.navAriaLabel": {
+        "message": "हाल के ब्लॉग पोस्ट नेविगेशन",
+        "description": "साइडबार में हाल के पोस्ट का ARIA लेबल"
+    },
+    "theme.CodeBlock.wordWrapToggle": {
+        "message": "वर्ड रैप टॉगल करें",
+        "description": "कोड ब्लॉक वर्ड रैप बटन का title एट्रीब्यूट"
+    },
+    "theme.CodeBlock.copied": {
+        "message": "कॉपी किया गया",
+        "description": "कोड ब्लॉक पर कॉपी बटन का लेबल"
+    },
+    "theme.CodeBlock.copyButtonAriaLabel": {
+        "message": "क्लिपबोर्ड पर कोड कॉपी करें",
+        "description": "कोड ब्लॉक कॉपी बटन का ARIA लेबल"
+    },
+    "theme.CodeBlock.copy": {
+        "message": "कॉपी करें",
+        "description": "कोड ब्लॉक पर कॉपी बटन का लेबल"
+    },
+    "theme.DocSidebarItem.expandCategoryAriaLabel": {
+        "message": "श्रेणी '{label}' विस्तारित करें",
+        "description": "श्रेणी विस्तारित करने का ARIA लेबल"
+    },
+    "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+        "message": "श्रेणी '{label}' संकुचित करें",
+        "description": "श्रेणी संकुचित करने का ARIA लेबल"
+    },
+    "theme.navbar.mobileLanguageDropdown.label": {
+        "message": "भाषाएं",
+        "description": "मोबाइल भाषा चयनकर्ता का लेबल"
+    },
+    "theme.NavBar.navAriaLabel": {
+        "message": "मुख्य",
+        "description": "मुख्य नेविगेशन का ARIA लेबल"
+    },
+    "theme.TOCCollapsible.toggleButtonLabel": {
+        "message": "इस पृष्ठ पर",
+        "description": "संक्षिप्त TOC घटक के बटन का लेबल"
+    },
+    "theme.blog.post.readMore": {
+        "message": "और पढ़ें",
+        "description": "पूरा लेख पढ़ने का लेबल"
+    },
+    "theme.blog.post.readMoreLabel": {
+        "message": "{title} के बारे में और पढ़ें",
+        "description": "पूरे लेख के लिंक का ARIA लेबल"
+    },
+    "theme.docs.breadcrumbs.home": {
+        "message": "होम",
+        "description": "ब्रेडक्रम्ब में होम पृष्ठ का ARIA लेबल"
+    },
+    "theme.docs.sidebar.collapseButtonTitle": {
+        "message": "साइडबार संकुचित करें",
+        "description": "साइडबार संकुचित बटन का title एट्रीब्यूट"
+    },
+    "theme.docs.sidebar.collapseButtonAriaLabel": {
+        "message": "साइडबार संकुचित करें",
+        "description": "साइडबार संकुचित बटन का ARIA लेबल"
+    },
+    "theme.docs.sidebar.navAriaLabel": {
+        "message": "दस्तावेज़ साइडबार",
+        "description": "साइडबार नेविगेशन का ARIA लेबल"
+    },
+    "theme.blog.post.readingTime.plurals": {
+        "message": "1 मिनट पढ़ने का समय|{readingTime} मिनट पढ़ने का समय",
+        "description": "पढ़ने के समय के लिए बहुवचन लेबल"
+    },
+    "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+        "message": "नेविगेशन बार बंद करें",
+        "description": "मोबाइल साइडबार बंद बटन का ARIA लेबल"
+    },
+    "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+        "message": "← मुख्य मेनू पर वापस जाएं",
+        "description": "मुख्य मेनू वापसी बटन का लेबल"
+    },
+    "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+        "message": "नेविगेशन बार टॉगल करें",
+        "description": "मोबाइल हैमबर्गर बटन का ARIA लेबल"
+    },
+    "theme.docs.sidebar.expandButtonTitle": {
+        "message": "साइडबार विस्तारित करें",
+        "description": "विस्तारित बटन का ARIA लेबल और title एट्रीब्यूट"
+    },
+    "theme.docs.sidebar.expandButtonAriaLabel": {
+        "message": "साइडबार विस्तारित करें",
+        "description": "विस्तारित बटन का ARIA लेबल और title एट्रीब्यूट"
+    },
+    "theme.blog.post.plurals": {
+        "message": "एक पोस्ट|{count} पोस्ट",
+        "description": "पोस्ट के लिए बहुवचन लेबल"
+    },
+    "theme.blog.tagTitle": {
+        "message": "{nPosts} \"{tagName}\" के साथ टैग किए गए",
+        "description": "ब्लॉग टैग पृष्ठ का शीर्षक"
+    },
+    "theme.blog.author.pageTitle": {
+        "message": "{authorName} - {nPosts}",
+        "description": "ब्लॉग लेखक पृष्ठ का शीर्षक"
+    },
+    "theme.blog.authorsList.pageTitle": {
+        "message": "लेखक",
+        "description": "लेखक पृष्ठ का शीर्षक"
+    },
+    "theme.blog.authorsList.viewAll": {
+        "message": "सभी लेखक देखें",
+        "description": "लेखक पृष्ठ के लिंक का लेबल"
+    },
+    "theme.contentVisibility.unlistedBanner.title": {
+        "message": "असूचीबद्ध पृष्ठ",
+        "description": "असूचीबद्ध सामग्री बैनर का शीर्षक"
+    },
+    "theme.contentVisibility.unlistedBanner.message": {
+        "message": "यह पृष्ठ असूचीबद्ध है। खोज इंजन इसे अनुक्रमित नहीं करेंगे, और केवल सीधा लिंक रखने वाले उपयोगकर्ता ही इसे एक्सेस कर सकते हैं।",
+        "description": "असूचीबद्ध सामग्री बैनर का संदेश"
+    },
+    "theme.contentVisibility.draftBanner.title": {
+        "message": "ड्राफ्ट पृष्ठ",
+        "description": "ड्राफ्ट सामग्री बैनर का शीर्षक"
+    },
+    "theme.contentVisibility.draftBanner.message": {
+        "message": "यह पृष्ठ ड्राफ्ट है। यह केवल विकास में दिखाई देगा और प्रोडक्शन बिल्ड से बाहर रखा जाएगा।",
+        "description": "ड्राफ्ट सामग्री बैनर का संदेश"
+    },
+    "theme.ErrorPageContent.tryAgain": {
+        "message": "पुनः प्रयास करें",
+        "description": "पुनः प्रयास बटन का लेबल"
+    },
+    "theme.common.skipToMainContent": {
+        "message": "मुख्य सामग्री पर जाएं",
+        "description": "मुख्य सामग्री पर जाने का एक्सेसिबिलिटी लेबल"
+    },
+    "theme.tags.tagsPageTitle": {
+        "message": "टैग",
+        "description": "टैग सूची पृष्ठ का शीर्षक"
+    },
+    "badge.new": {
+        "message": "नया"
+    },
+    "badge.updated": {
+        "message": "अपडेट"
+    },
+    "hero.tagline": {
+        "message": "AI स्तंभ अब ज़ीरो ट्रस्ट फ्रेमवर्क में उपलब्ध है"
+    },
+    "hero.title": {
+        "message": "अपनी ज़ीरो ट्रस्ट यात्रा को तेज़ करें"
+    },
+    "hero.subtitle": {
+        "message": "माइक्रोसॉफ्ट का एक व्यापक फ्रेमवर्क जो संगठनों को ज़ीरो ट्रस्ट रणनीति अपनाने और एंड-टू-एंड सुरक्षा समाधान लागू करने में सहायता करता है — AI एजेंट्स और AI संसाधनों को सुरक्षित करने के लिए एक नए AI स्तंभ के साथ।"
+    },
+    "hero.cta.workshop": {
+        "message": "कार्यशाला शुरू करें"
+    },
+    "hero.cta.assessment": {
+        "message": "मूल्यांकन शुरू करें"
+    },
+    "ai.pill": {
+        "message": "नया क्या है"
+    },
+    "ai.title": {
+        "message": "ज़ीरो ट्रस्ट में AI स्तंभ का परिचय"
+    },
+    "ai.description": {
+        "message": "जैसे-जैसे संगठन AI एजेंट्स और MCP सर्वर अपनाते हैं, ज़ीरो ट्रस्ट फ्रेमवर्क में अब AI संसाधनों के लिए एक समर्पित स्तंभ शामिल है जिसमें AI नियंत्रण हैं — यह सुनिश्चित करता है कि आपके AI वर्कलोड आपके वातावरण के किसी भी अन्य भाग की तरह ही कड़ाई से प्रबंधित हों।"
+    },
+    "ai.pillarSubtitle": {
+        "message": "अब स्वतः-उत्पन्न सारांश और विस्तारित डेटा और नेटवर्क स्थिति जांच शामिल हैं।"
+    },
+    "pillar.identity": {
+        "message": "पहचान"
+    },
+    "pillar.devices": {
+        "message": "डिवाइस"
+    },
+    "pillar.data": {
+        "message": "डेटा"
+    },
+    "pillar.data.tooltip": {
+        "message": "नई स्वचालित मूल्यांकन जांच"
+    },
+    "pillar.network": {
+        "message": "नेटवर्क"
+    },
+    "pillar.network.tooltip": {
+        "message": "नई स्वचालित मूल्यांकन जांच"
+    },
+    "pillar.infrastructure": {
+        "message": "इन्फ्रास्ट्रक्चर"
+    },
+    "pillar.secops": {
+        "message": "सुरक्षा संचालन"
+    },
+    "pillar.ai": {
+        "message": "AI"
+    },
+    "pillar.ai.tooltip": {
+        "message": "कार्यशाला में AI स्तंभ"
+    },
+    "products.title": {
+        "message": "दो उपकरण, एक मिशन"
+    },
+    "products.subtitle": {
+        "message": "चाहे आप अपनी ज़ीरो ट्रस्ट रोडमैप की योजना बना रहे हों या अपनी वर्तमान स्थिति माप रहे हों, हमारे पास आपके लिए समाधान है।"
+    },
+    "products.workshop.label": {
+        "message": "इंटरैक्टिव प्लानिंग टूल"
+    },
+    "products.workshop.name": {
+        "message": "ज़ीरो ट्रस्ट कार्यशाला"
+    },
+    "products.workshop.description": {
+        "message": "सात स्तंभों — पहचान, डिवाइस, डेटा, नेटवर्क, इन्फ्रास्ट्रक्चर, सुरक्षा संचालन और AI — पर अपने ज़ीरो ट्रस्ट परिनियोजन की योजना बनाने के लिए एक नया वेब एप्लिकेशन। पहले-फिर संरचना में कार्यों को प्राथमिकता दें और स्वचालित सारांश व कार्यान्वयन योजनाएँ उत्पन्न करें।"
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 स्तंभ"
+    },
+    "products.workshop.tag.ai": {
+        "message": "AI स्तंभ"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "स्वचालित सारांश"
+    },
+    "products.workshop.tag.plans": {
+        "message": "कार्यान्वयन योजनाएँ"
+    },
+    "products.workshop.cta": {
+        "message": "कार्यशाला शुरू करें"
+    },
+    "products.assessment.label": {
+        "message": "स्वचालित टेनेंट विश्लेषण"
+    },
+    "products.assessment.name": {
+        "message": "ज़ीरो ट्रस्ट मूल्यांकन"
+    },
+    "products.assessment.description": {
+        "message": "अपने Microsoft Entra टेनेंट से कनेक्ट करें और अपनी ज़ीरो ट्रस्ट स्थिति का स्वचालित मूल्यांकन प्राप्त करें। कार्रवाई योग्य अंतर्दृष्टि और विज़ुअल डैशबोर्ड के साथ पहचान, डिवाइस, डेटा और नेटवर्क स्तंभों के कॉन्फ़िगरेशन का विश्लेषण करें।"
+    },
+    "products.assessment.tag.identity": {
+        "message": "पहचान"
+    },
+    "products.assessment.tag.devices": {
+        "message": "डिवाइस"
+    },
+    "products.assessment.tag.data": {
+        "message": "डेटा"
+    },
+    "products.assessment.tag.network": {
+        "message": "नेटवर्क"
+    },
+    "products.assessment.tag.checks": {
+        "message": "स्वचालित जांच"
+    },
+    "products.assessment.cta": {
+        "message": "मूल्यांकन शुरू करें"
+    },
+    "howItWorks.title": {
+        "message": "यह कैसे काम करता है"
+    },
+    "howItWorks.subtitle": {
+        "message": "आपके संगठन की सुरक्षा स्थिति को बेहतर बनाने के तीन चरण।"
+    },
+    "howItWorks.step1.title": {
+        "message": "सीखें"
+    },
+    "howItWorks.step1.description": {
+        "message": "ज़ीरो ट्रस्ट सिद्धांतों को समझें — स्पष्ट रूप से सत्यापित करें, न्यूनतम विशेषाधिकार पहुँच और उल्लंघन की धारणा — और वे आपके वातावरण पर कैसे लागू होते हैं।"
+    },
+    "howItWorks.step1.link": {
+        "message": "Microsoft ज़ीरो ट्रस्ट एक्सप्लोर करें"
+    },
+    "howItWorks.step2.title": {
+        "message": "योजना बनाएं"
+    },
+    "howItWorks.step2.description": {
+        "message": "सभी स्तंभों पर एक व्यावहारिक ज़ीरो ट्रस्ट रोडमैप बनाने के लिए कार्यशाला का उपयोग करें। कार्यों को प्राथमिकता दें और अपने संगठन के अनुरूप कार्यान्वयन योजनाएँ उत्पन्न करें।"
+    },
+    "howItWorks.step2.link": {
+        "message": "कार्यशाला खोलें"
+    },
+    "howItWorks.step3.title": {
+        "message": "मूल्यांकन करें"
+    },
+    "howItWorks.step3.description": {
+        "message": "अपनी वर्तमान स्थिति मापने, कमियों की पहचान करने और समय के साथ प्रगति ट्रैक करने के लिए अपने Microsoft Entra टेनेंट पर मूल्यांकन चलाएं।"
+    },
+    "howItWorks.step3.link": {
+        "message": "मूल्यांकन शुरू करें"
+    },
+    "getStarted.title": {
+        "message": "शुरू करने के लिए तैयार हैं?"
+    },
+    "getStarted.description": {
+        "message": "ज़ीरो ट्रस्ट रणनीति सत्र आयोजित करने के लिए हमारी चरण-दर-चरण योजना का पालन करें। चाहे आप माइक्रोसॉफ्ट भागीदार हों या आंतरिक कार्यशाला चला रहे हों, मार्गदर्शिका आपको तैयारी, संचालन और अनुवर्ती कार्यवाही में सहायता करती है।"
+    },
+    "getStarted.cta": {
+        "message": "चरण-दर-चरण योजना देखें"
+    },
+    "home.layout.title": {
+        "message": "माइक्रोसॉफ्ट ज़ीरो ट्रस्ट कार्यशाला और मूल्यांकन"
+    },
+    "home.layout.description": {
+        "message": "कार्यशाला उपकरण से अपने ज़ीरो ट्रस्ट परिनियोजन की योजना बनाएं और स्वचालित मूल्यांकन से अपनी स्थिति मापें — एक नए AI स्तंभ के साथ।"
+    }
+}

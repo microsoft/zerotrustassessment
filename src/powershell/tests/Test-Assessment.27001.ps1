@@ -17,6 +17,7 @@ function Test-Assessment-27001 {
     [ZtTest(
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
+    	Service = ('Graph'),
     	MinimumLicense = ('Entra_Premium_Internet_Access'),
     	CompatibleLicense = ('Entra_Premium_Internet_Access'),
     	Pillar = 'Network',
