@@ -3,7 +3,7 @@
     "value": [
         {
             "isZtModelRow": true,
-            "approximateLastSignInDateTime": null,
+            "approximateLastSignInDateTime": "1900-01-01T00:00:00Z",
             "isManaged": null,
             "alternativeNames": null,
             "alternativeSecurityIds": [
@@ -21,16 +21,16 @@
             "deviceOwnership": null,
             "onPremisesSyncEnabled": null,
             "trustType": null,
-            "registrationDateTime": null,
+            "registrationDateTime": "1900-01-01T00:00:00Z",
             "enrollmentType": null,
             "enrollmentProfileName": null,
             "mdmAppId": null,
             "isRooted": null,
             "deviceId": null,
-            "createdDateTime": null,
+            "createdDateTime": "1900-01-01T00:00:00Z",
             "operatingSystem": null,
             "isCompliant": null,
-            "onPremisesLastSyncDateTime": null,
+            "onPremisesLastSyncDateTime": "1900-01-01T00:00:00Z",
             "hostnames": [
             ],
             "extensionAttributes": {
@@ -54,10 +54,10 @@
             "displayName": null,
             "isManagementRestricted": null,
             "operatingSystemVersion": null,
-            "complianceExpirationDateTime": null,
+            "complianceExpirationDateTime": "1900-01-01T00:00:00Z",
             "profileType": null,
             "externalSourceName": null,
-            "deletedDateTime": null,
+            "deletedDateTime": "1900-01-01T00:00:00Z",
             "physicalIds": [
             ],
             "model": null,
