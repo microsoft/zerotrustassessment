@@ -32,10 +32,10 @@ function Test-Assessment-21858 {
 
     $sql = @"
     SELECT id, displayName, userPrincipalName, accountEnabled, externalUserState,
-    date_diff('day', TRY_CAST(signInActivity.lastSuccessfulSignInDateTime AS DATE), today()) daysSinceLastSignIn,
-    date_diff('day', TRY_CAST(createdDateTime AS DATE), today()) daysSinceCreated,
-    strftime(TRY_CAST(createdDateTime AS DATE), '%Y-%m-%d') fmtCreatedDateTime,
-    strftime(TRY_CAST(signInActivity.lastSuccessfulSignInDateTime AS DATE), '%Y-%m-%d') fmtLastSignInDateTime
+    date_diff('day', try_cast(signInActivity.lastSuccessfulSignInDateTime as date), today()) daysSinceLastSignIn,
+    date_diff('day', try_cast(createdDateTime as date), today()) daysSinceCreated,
+    strftime(try_cast(createdDateTime as date), '%Y-%m-%d') fmtCreatedDateTime,
+    strftime(try_cast(signInActivity.lastSuccessfulSignInDateTime as date), '%Y-%m-%d') fmtLastSignInDateTime
     FROM User
     WHERE UserType = 'Guest' AND AccountEnabled = true
 "@
