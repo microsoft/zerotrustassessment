@@ -4,6 +4,7 @@ import { ArrowUpDown } from "lucide-react"
 import { Button } from "../ui/button"
 import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
+import { getMaturityColor } from "@/lib/ztmm-utils"
 
 export const columns: ColumnDef<Test>[] = [
     {
@@ -213,6 +214,71 @@ export const columns: ColumnDef<Test>[] = [
                         <impact.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
                     <span>{impact.label}</span>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "ZtmmMaturity",
+        meta: { label: "Maturity" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    Maturity
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const maturity = row.getValue("ZtmmMaturity") as string;
+            if (!maturity) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+            const colors = getMaturityColor(maturity);
+            return (
+                <div className="flex items-center">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-md ${colors}`}>
+                        {maturity}
+                    </span>
+                </div>
+            )
+        },
+        sortingFn: (rowA, rowB) => {
+            const order = ['Initial', 'Advanced', 'Optimal'];
+            const a = order.indexOf(rowA.getValue("ZtmmMaturity") as string ?? '');
+            const b = order.indexOf(rowB.getValue("ZtmmMaturity") as string ?? '');
+            return a - b;
+        },
+    },
+    {
+        accessorKey: "ZtmmFunctionName",
+        meta: { label: "ZTMM Function" },
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    ZTMM Function
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            const functionName = row.getValue("ZtmmFunctionName") as string;
+            const functionId = row.original.ZtmmFunction;
+            if (!functionName) {
+                return (
+                    <div className="flex items-center">
+                        <span className="text-muted-foreground">N/A</span>
+                    </div>
+                );
+            }
+            return (
+                <div className="flex items-center">
+                    <span className="text-xs text-muted-foreground mr-1">{functionId}</span>
+                    <span>{functionName}</span>
                 </div>
             )
         },

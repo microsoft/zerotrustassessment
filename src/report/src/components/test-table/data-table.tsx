@@ -23,7 +23,7 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns } from "lucide-react"
+import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns, Layers } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -49,6 +49,7 @@ import {
 import { Test } from "@/config/report-data"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { StatusIcon } from "../status-icon"
+import { getMaturityColor } from "@/lib/ztmm-utils"
 
 export function DataTable<TData extends Test, TValue>({
     columns,
@@ -69,6 +70,7 @@ export function DataTable<TData extends Test, TValue>({
     const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
     const [selectedRisks, setSelectedRisks] = React.useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
+    const [selectedMaturities, setSelectedMaturities] = React.useState<string[]>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         // Hide TestImpact by default
         TestImpact: false,
@@ -79,6 +81,8 @@ export function DataTable<TData extends Test, TValue>({
         TestSfiPillar: false,
         // Hide TestMinimumLicense by default
         TestMinimumLicense: false,
+        // Hide ZTMM function by default (maturity is visible)
+        ZtmmFunctionName: false,
         // Category visible for Devices, hidden for Identity
         TestCategory: pillar === "Devices" ? true : false,
         // Optionally specify other columns here (true => visible, false => hidden)
@@ -97,9 +101,16 @@ export function DataTable<TData extends Test, TValue>({
         return data;
     }, [data, pillar]);
 
-    // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
+    // Filter the data by pillar, selected SFI pillars, risks, statuses, and maturities if any are selected
     const filteredData = React.useMemo(() => {
         let result = pillarFilteredData;
+
+        // Filter by maturity if any are selected
+        if (selectedMaturities.length > 0) {
+            result = result.filter(item =>
+                item.ZtmmMaturity && selectedMaturities.includes(item.ZtmmMaturity)
+            );
+        }
 
         // Filter by SFI pillars if any are selected
         if (selectedSfiPillars.length > 0) {
@@ -126,7 +137,7 @@ export function DataTable<TData extends Test, TValue>({
         }
 
         return result;
-    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses]);
+    }, [pillarFilteredData, selectedMaturities, selectedSfiPillars, selectedRisks, selectedStatuses]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
@@ -174,6 +185,23 @@ export function DataTable<TData extends Test, TValue>({
             if (indexA !== -1) return -1;
             if (indexB !== -1) return 1;
             // If neither is in the custom order, sort alphabetically
+            return a.localeCompare(b);
+        });
+    }, [pillarFilteredData]);
+
+    // Get unique maturity levels for the filter toggles
+    const uniqueMaturities = React.useMemo(() => {
+        const maturities = pillarFilteredData
+            .map(item => item.ZtmmMaturity)
+            .filter((m): m is string => m !== null && m !== undefined);
+        const uniqueSet = Array.from(new Set(maturities));
+        const maturityOrder = ['Initial', 'Optimal', 'Advanced'];
+        return uniqueSet.sort((a, b) => {
+            const indexA = maturityOrder.indexOf(a);
+            const indexB = maturityOrder.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
             return a.localeCompare(b);
         });
     }, [pillarFilteredData]);
@@ -333,6 +361,73 @@ export function DataTable<TData extends Test, TValue>({
                 </div>
             </div>
 
+            {/* ZTMM Maturity Level Filter - Prominent section above other filters */}
+            {uniqueMaturities.length > 0 && (
+                <div className="mb-4 p-4 rounded-lg border bg-muted/30">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Layers className="h-4 w-4" />
+                            <span className="text-sm font-medium">Zero Trust Maturity Level:</span>
+                            {selectedMaturities.length > 0 && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSelectedMaturities([])}
+                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear ({selectedMaturities.length})
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        {uniqueMaturities.map((maturity) => {
+                            const isSelected = selectedMaturities.includes(maturity);
+                            const maturityCount = pillarFilteredData.filter(item => item.ZtmmMaturity === maturity).length;
+                            const passedCount = pillarFilteredData.filter(item => item.ZtmmMaturity === maturity && item.TestStatus === 'Passed').length;
+
+                            const getMaturityFilterColors = (maturity: string, isSelected: boolean) => {
+                                if (maturity === 'Initial') {
+                                    return isSelected
+                                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500'
+                                        : 'hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300 dark:hover:bg-yellow-950 dark:hover:text-yellow-300';
+                                } else if (maturity === 'Optimal') {
+                                    return isSelected
+                                        ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600'
+                                        : 'hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 dark:hover:bg-orange-950 dark:hover:text-orange-300';
+                                } else {
+                                    return isSelected
+                                        ? 'bg-green-600 hover:bg-green-700 text-white border-green-600'
+                                        : 'hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:hover:bg-green-950 dark:hover:text-green-300';
+                                }
+                            };
+
+                            return (
+                                <Button
+                                    key={maturity}
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                        if (isSelected) {
+                                            setSelectedMaturities(prev => prev.filter(m => m !== maturity));
+                                        } else {
+                                            setSelectedMaturities(prev => [...prev, maturity]);
+                                        }
+                                    }}
+                                    className={`h-auto py-2 px-5 rounded-lg text-sm font-medium ${getMaturityFilterColors(maturity, isSelected)}`}
+                                    title={`${maturity}: ${passedCount}/${maturityCount} passed`}
+                                >
+                                    <div className="flex flex-col items-center gap-0.5">
+                                        <span>{maturity}</span>
+                                        <span className="text-[10px] opacity-80">{passedCount}/{maturityCount} passed</span>
+                                    </div>
+                                </Button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* SFI Pillar Toggle Buttons */}
             <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
@@ -351,7 +446,7 @@ export function DataTable<TData extends Test, TValue>({
                     </div>
                     <div className="flex items-center gap-4">
                         {/* Clear all filters button */}
-                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
+                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0 || selectedMaturities.length > 0) && (
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -359,6 +454,7 @@ export function DataTable<TData extends Test, TValue>({
                                     setSelectedSfiPillars([]);
                                     setSelectedRisks([]);
                                     setSelectedStatuses([]);
+                                    setSelectedMaturities([]);
                                 }}
                                 className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                             >
@@ -480,6 +576,31 @@ export function DataTable<TData extends Test, TValue>({
                                 </div>
                             </CardHeader>
                         </Card>
+                        {/* ZTMM Information */}
+                        {selectedRow?.ZtmmMaturity && (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-sm flex items-center gap-2">
+                                        <Layers className="h-4 w-4" />
+                                        Zero Trust Maturity Model
+                                    </CardTitle>
+                                    <div className="mt-2 flex w-full gap-6 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold">Maturity Level:</span>
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-md ${getMaturityColor(selectedRow.ZtmmMaturity)}`}>
+                                                {selectedRow.ZtmmMaturity}
+                                            </span>
+                                        </div>
+                                        {selectedRow.ZtmmFunctionName && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold">Function:</span>
+                                                <span>{selectedRow.ZtmmFunction} - {selectedRow.ZtmmFunctionName}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardHeader>
+                            </Card>
+                        )}
                     </div>
                     <div className="grid pt-10 gap-6">
                         <Card>

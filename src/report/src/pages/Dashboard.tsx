@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Luggage, Monitor, Layers3, Building2, ShieldCheck, CircleCheckBig, Briefcase } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Luggage, Monitor, Layers3, Building2, ShieldCheck, CircleCheckBig, Briefcase, Layers, Circle, TrendingUp, Fingerprint, Globe, Database } from "lucide-react";
 
 import {
     Bar,
@@ -60,8 +60,47 @@ import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber, metricDescriptions } from "@/lib/format-utils";
 
+import { MaturitySummaryTable } from "@/components/maturity/MaturitySummaryTable";
+import { MaturityProgressionView } from "@/components/maturity/MaturityProgressionView";
+import { computeMaturityStatsByPillar, determineMaturityLevel, determineOverallMaturityLevel } from "@/lib/ztmm-utils";
+import type { MaturityLevel } from "@/lib/ztmm-utils";
+
+
 export default function Dashboard() {
 
+    const pillarStats = computeMaturityStatsByPillar(reportData.Tests);
+    const overallLevel = determineOverallMaturityLevel(pillarStats);
+
+    const maturityIcon = (level: MaturityLevel) => {
+        switch (level) {
+            case 'Initial': return <Circle className="size-8" />;
+            case 'Optimal': return <TrendingUp className="size-8" />;
+            case 'Advanced': return <ShieldCheck className="size-8" />;
+        }
+    };
+
+    const maturityCardStyle = (level: MaturityLevel) => {
+        switch (level) {
+            case 'Initial': return 'border-yellow-400 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-700';
+            case 'Optimal': return 'border-orange-400 bg-orange-50 dark:bg-orange-950 dark:border-orange-700';
+            case 'Advanced': return 'border-green-600 bg-green-50 dark:bg-green-950 dark:border-green-700';
+        }
+    };
+
+    const maturityTextStyle = (level: MaturityLevel) => {
+        switch (level) {
+            case 'Initial': return 'text-yellow-700 dark:text-yellow-300';
+            case 'Optimal': return 'text-orange-700 dark:text-orange-300';
+            case 'Advanced': return 'text-green-700 dark:text-green-300';
+        }
+    };
+
+    const pillarIcons: Record<string, React.ReactNode> = {
+        'Identity': <Fingerprint className="size-6 text-muted-foreground" />,
+        'Devices': <MonitorSmartphone className="size-6 text-muted-foreground" />,
+        'Network': <Globe className="size-6 text-muted-foreground" />,
+        'Data': <Database className="size-6 text-muted-foreground" />,
+    };
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -393,6 +432,74 @@ export default function Dashboard() {
                                     <RadialBar dataKey="value" background cornerRadius={5} />
                                 </RadialBarChart>
                             </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Zero Trust Maturity Model Section */}
+            <div className="w-full flex max-w-7xl flex-col gap-6 mt-6">
+                <div className="flex items-center gap-2">
+                    <Layers className="size-5" />
+                    <h2 className="text-2xl font-bold">Zero Trust Maturity</h2>
+                </div>
+
+                {/* Maturity Level Cards */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                    {/* Overall Tenant Maturity */}
+                    <Card className={`${maturityCardStyle(overallLevel)} border-2`}>
+                        <CardContent className="flex flex-col items-center justify-center py-6 gap-3">
+                            <div className={maturityTextStyle(overallLevel)}>
+                                {maturityIcon(overallLevel)}
+                            </div>
+                            <span className="text-sm font-medium text-muted-foreground">Overall Tenant</span>
+                            <span className={`text-xl font-bold ${maturityTextStyle(overallLevel)}`}>{overallLevel}</span>
+                        </CardContent>
+                    </Card>
+
+                    {/* Per-Pillar Maturity */}
+                    {pillarStats.map((stats) => {
+                        const level = determineMaturityLevel(stats);
+                        return (
+                            <Card key={stats.pillar} className={`${maturityCardStyle(level)}`}>
+                                <CardContent className="flex flex-col items-center justify-center py-6 gap-3">
+                                    <div className="flex items-center gap-2">
+                                        {pillarIcons[stats.pillar]}
+                                        <div className={maturityTextStyle(level)}>
+                                            {maturityIcon(level)}
+                                        </div>
+                                    </div>
+                                    <span className="text-sm font-medium text-muted-foreground">{stats.pillar}</span>
+                                    <span className={`text-xl font-bold ${maturityTextStyle(level)}`}>{level}</span>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
+                </div>
+
+                {/* Row: Progression View + Summary Table */}
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle>Maturity Progression</CardTitle>
+                            <CardDescription>
+                                Completion of each maturity stage per pillar
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <MaturityProgressionView />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="pb-3">
+                            <CardTitle>Maturity Summary</CardTitle>
+                            <CardDescription>
+                                Detailed pass rates by pillar and maturity level
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <MaturitySummaryTable />
                         </CardContent>
                     </Card>
                 </div>

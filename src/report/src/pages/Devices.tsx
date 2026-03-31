@@ -6,9 +6,13 @@ import { columns } from "@/components/test-table/columns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DevicesConfig from "@/components/DevicesConfig";
 import { BarChart3, Settings } from "lucide-react";
+import { MaturityHeatmap } from "@/components/maturity/MaturityHeatmap";
+import { MaturityStackedBar } from "@/components/maturity/MaturityStackedBar";
 
 
 export default function Devices() {
+    const hasZtmm = reportData.Tests.some(t => t.TestPillar === 'Devices' && t.ZtmmMaturity);
+
     return (
         <>
             <PageHeader>
@@ -26,6 +30,28 @@ export default function Devices() {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="assessment" className="space-y-4">
+                    {hasZtmm && (
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle>Function Breakdown</CardTitle>
+                                    <CardDescription>Passed vs. failed tests by ZTMM function</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <MaturityStackedBar tests={reportData.Tests} pillar="Devices" className="w-full h-[300px]" />
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle>Maturity Heatmap</CardTitle>
+                                    <CardDescription>Pass rates by ZTMM function and maturity level</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <MaturityHeatmap tests={reportData.Tests} pillar="Devices" />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
                     <Card>
                         <CardHeader>
                             <CardTitle className="mb-3">Assessment results</CardTitle>
