@@ -14,7 +14,13 @@
       "principalId": null,
       "directoryScopeId": null,
       "id": null,
-      "principal": null
+      "principal": {
+        "@odata.type": null,
+        "displayName": null,
+        "userPrincipalName": null,
+        "uniqueName": null,
+        "id": null
+      }
     }
   ]
 }

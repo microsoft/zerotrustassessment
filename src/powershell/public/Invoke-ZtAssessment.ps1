@@ -154,7 +154,7 @@ function Invoke-ZtAssessment {
 
 		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -208,9 +208,19 @@ function Invoke-ZtAssessment {
 		[CmdletBinding()]
 		param ()
 
+		$version = $script:__ZtSession.ModuleVersion
+		$title = "🛡️  Microsoft Zero Trust Assessment v$version"
+		# Center the title within the 77-character inner box width.
+		# The shield emoji displays as 2 cells but has .Length of 3, so subtract 1.
+		$displayLen = $title.Length - 1
+		$totalPad = 77 - $displayLen
+		$leftPad = [math]::Ceiling($totalPad / 2)
+		$rightPad = $totalPad - $leftPad
+		$titleLine = "║$(' ' * $leftPad)$title$(' ' * $rightPad)║"
+
 		$banner = @"
 ╔═════════════════════════════════════════════════════════════════════════════╗
-║                    🛡️  Microsoft Zero Trust Assessment v2                   ║
+$titleLine
 ║                                                                             ║
 ║    Comprehensive security posture evaluation for your Microsoft 365 tenant  ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
@@ -397,11 +407,14 @@ function Invoke-ZtAssessment {
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
-	# Create the logs folder for per-test log files
+	# Create a timestamped run folder under logs/ so each assessment run is isolated.
 	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
 	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
 	# differs from PowerShell's Get-Location after Set-Location / cd.
-	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
+	$runFolder = (Get-Date).ToString('yy-MM-dd-HHmmss')
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath "logs/$runFolder") -Force -ErrorAction Stop).FullName
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '1-Export') -Force -ErrorAction Stop
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '2-Tests') -Force -ErrorAction Stop
 
 
 	# Send telemetry if not disabled
@@ -465,10 +478,10 @@ function Invoke-ZtAssessment {
 
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
 	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
-	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit -LogsPath $logsPath
 
 	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
-	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar -LogsPath $logsPath
 
 	try {
 		# Run the tests

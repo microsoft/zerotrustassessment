@@ -6,15 +6,16 @@ sidebar_position: 1
 
 ## Overview
 The Zero Trust Workshop helps customers to develop an actionable and orderly strategy for implementing a secure Zero Trust posture. There are two parts to the Zero Trust Workshop. The first is assessing the customer's current environment with programmatic checks that will help to identify gaps and areas for improvement. The second is helping the customer to identify projects and initiatives that they need to implement to further advance their adoption of capabilities to transform their environment.
-There are currently six different workshops available for the following pillars: 
+Workshops are available for the following pillars:
 - Identity
 - Devices
 - Data
 - Network
 - Infrastructure
 - Security Operations
+- Artificial Intelligence (New)
 
-Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, and Security Operations (and any future modules as they become available).
+Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, Security Operations, and AI.
 
 ## Purpose
 This document is for use by the delivery expert that plans on delivering the Zero Trust Pillar Workshops to customers. It aims to provide delivery experts with a comprehensive overview of the tasks that will be required to successfully deliver the Zero Trust Pillar Workshops to customers. It is structured chronologically following the standard and typical flow of a workshop delivery.
@@ -47,11 +48,15 @@ Recommendations for the customer stakeholders that should attend each of the pil
 |---|---|---|
 | • Identity and Access Management (IAM) team <br/> • Network Operations team <br/>  • Security Operations team <br/> • Devices/Endpoint team <br/> • Applications / workloads stakeholders <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Infrastructure Security team <br/> • Security Operations team <br/> • Endpoint Security team <br/> • Compliance and Policy team <br/> • Application Development team <br/> • Network Administration team <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Security Team Decision Makers (IT Manager, SecOps Manager, etc.) <br/> • Security Team Specialists (Security Architect, Security Analyst, IR Manager, Security Engineer IT Admin, etc.) <br/> • CISO (if possible) <br/> • IT Director (if possible)|
 
+|AI|
+|---|
+| • Identity Security Architect (Identity Architect, IAM Architect) <br/> • Security Administrator (Security Admin, IT Security Admin) <br/> • Data Governance / Compliance Officer (Compliance Officer, DGO) <br/> • SOC Lead / SecOps Manager (SOC Manager, SecOps Lead) <br/> • AI Platform / Development Lead (AI Platform Engineer, Agent Development Lead, ML Platform Lead) <br/> • CISO / Security Leadership (if possible)|
+
 ## Engagement Model
 
 |Phases|Key Objectives|Key Activities|Success Criteria|
 |--|--|--|--|
-|**Initial Scoping call with Customer <br/> <br/> Duration: 30 minutes**| • Arrange the technical review activity and ensure scope, objectives, format and deliverables are understood by the customer <br/> • Confirm logistics and attendees <br/> • Decide which of the pillars the customer would like delivered | • Gather customer context and validate intent and readiness for Zero Trust journey <br/> • Conduct scoping meeting <br/> • Agree on the assessment logistics and schedule time to deliver individual pillar workshops <br/> • Ensure customer understands prerequisites to run the assessment checks <br/> • Vaidate required customer technical and operational stakeholders <br/> • Validate that the customer has understanding of their current Microsoft licensing arrangements for relevant services | • Workshop engagement is understood by all required stakeholders <br/> • Logistics for the review are finalized <br/> • Delivery Expert has identified way to share files with customer |
+|**Initial Scoping call with Customer <br/> <br/> Duration: 30 minutes**| • Arrange the technical review activity and ensure scope, objectives, format and deliverables are understood by the customer <br/> • Confirm logistics and attendees <br/> • Decide which of the pillars the customer would like delivered | • Gather customer context and validate intent and readiness for Zero Trust journey <br/> • Conduct scoping meeting <br/> • Agree on the assessment logistics and schedule time to deliver individual pillar workshops <br/> • Ensure customer understands prerequisites to run the assessment checks <br/> • Validate required customer technical and operational stakeholders <br/> • Validate that the customer has understanding of their current Microsoft licensing arrangements for relevant services | • Workshop engagement is understood by all required stakeholders <br/> • Logistics for the review are finalized <br/> • Delivery Expert has identified way to share files with customer |
 |**Assessment (optional) <br/> <br/> Duration: Depends on environment**| • Customer understands their gaps and how to optimize their already deployed services | • Customer runs the assessment checks. These might take several hours depending on the size of the environment <br/> • Delivery expert conducts a session to walk through the findings| • Customer understands findings report|
 |**Roadmap Mapping (Pillar Workshop) <br/> <br/> Duration: See Workshop Delivery Time Estimates section**| • Customer has a tailored adoption roadmap to further evolve their Zero Trust posture | • If customer already took the Zero Trust Foundation Assessment, delivery expert can fill in some roadmap item statuses per their existing knowledge of customer's environment <br/> • Delivery expert leads working sessions to walk through the baseline adoption roadmap identified by Microsoft and fills it out based on customer requirements and constraints | • Customer has a customized deployment path with concrete deployment steps and decisions to make |
 |**Closeout <br/> <br/> Duration: 1 hour**| • Gather customer feedback about the workshop <br/> • Identify additional pillar workshops to deliver | • Customer fills out feedback survey | • Workshop feedback survey is completed |
@@ -65,3 +70,7 @@ Below are the estimated delivery times for each section of the pillar workshops:
 |Network|Infrastructure|Security Operations|
 |---|---|---|
 | • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hours <hr /> **• Total: 4 hours** | • Governance & Compliance: 0.5-1 hour <br/> • Servers: 1 hour <br/> • Containers: 1 hour <br/> • Storage: 0.5-1 hour <br/> • Databases: 0.5-1 hour <br/> • APIs: 0.5 hour <br/> • Infrastructure Services: 0.5 hour <hr /> **• Total: 4-6 hours** | • MDI: 0.5 hour <br/> • MDO: 0.5 hour <br/> • MDE: 1 hour <br/> • MDA: 0.5 hour <br/> • Sentinel & XDR: 1 hour <hr /> **• Total: 3.5 hours**|
+
+|AI|
+|---|
+| • Map and Assess AI Risk: 1 hour <br/> • Register all agents: 1 hour <br/> • Secure AI Authentication and Access: 0.5 hour <br/> • Secure AI Network Access: 1 hour <br/> • Secure AI Data Access: 1.5 hours <br/> • Build Agents Securely: 0.5 hour <br/> • Security Detection and Response for AI: 0.5 hour <hr /> **• Total: 6 hours** |

@@ -1,0 +1,141 @@
+.contentRows {
+	width: min(1120px, 92%);
+	margin: 0 auto;
+	padding: 1.25rem 0 2rem;
+}
+
+.rowSection {
+	border-radius: 16px;
+	border: 1px solid #e2e8f0;
+	overflow: hidden;
+	margin-bottom: 1.5rem;
+	background: #ffffff;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.evenRow {
+	background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.oddRow {
+	background: #ffffff;
+}
+
+.rowContent {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: stretch;
+}
+
+.imageFirst .imageContainer,
+.textFirst .imageContainer {
+	order: 1;
+}
+
+.imageFirst .textContainer,
+.textFirst .textContainer {
+	order: 2;
+}
+
+.textFirst .textContainer {
+	order: 1;
+}
+
+.textFirst .imageContainer,
+.textFirst .videoContainer {
+	order: 2;
+}
+
+.imageContainer,
+.videoContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1.75rem;
+	background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+	min-height: 280px;
+}
+
+.imageContainer img {
+	width: 100%;
+	max-height: 320px;
+	object-fit: contain;
+	border-radius: 10px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+	background: #ffffff;
+}
+
+.videoContainer iframe {
+	width: 100%;
+	max-width: 560px;
+	aspect-ratio: 16 / 9;
+	height: auto;
+	border: none;
+	border-radius: 10px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+}
+
+.textContainer {
+	padding: 2rem 2rem 2.2rem;
+}
+
+.textContainer h2 {
+	margin: 0 0 1rem;
+	color: #0a1628;
+	font-size: 1.4rem;
+	line-height: 1.3;
+}
+
+.textLeft {
+	color: #475569;
+	line-height: 1.65;
+	font-size: 0.98rem;
+}
+
+.textLeft ul {
+	margin: 0;
+	padding-left: 1.25rem;
+}
+
+.textLeft li {
+	margin-bottom: 0.6rem;
+}
+
+.textLeft a {
+	color: #0078d4;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.textLeft a:hover {
+	color: #005ea6;
+}
+
+@media (max-width: 996px) {
+	.contentRows {
+		padding: 1rem 0 1.25rem;
+	}
+
+	.rowContent {
+		grid-template-columns: 1fr;
+	}
+
+	.imageFirst .imageContainer,
+	.imageFirst .videoContainer,
+	.imageFirst .textContainer,
+	.textFirst .textContainer,
+	.textFirst .imageContainer,
+	.textFirst .videoContainer {
+		order: initial;
+	}
+
+	.textContainer {
+		padding: 1.25rem 1.25rem 1.5rem;
+	}
+
+	.imageContainer,
+	.videoContainer {
+		padding: 1.25rem;
+		min-height: 220px;
+	}
+}

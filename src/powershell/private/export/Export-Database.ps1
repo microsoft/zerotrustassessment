@@ -30,7 +30,10 @@ function Export-Database {
 		# The Zero Trust pillar to assess. Defaults to All.
 		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
 		[string]
-		$Pillar = 'All'
+		$Pillar = 'All',
+
+		[string]
+		$LogsPath
 	)
 
 	#region Utility Function
@@ -56,6 +59,7 @@ function Export-Database {
         cast(r.principal.displayName as varchar)        as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
         cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
+        cast(r.principal.uniqueName as varchar)          as uniqueName,
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType
@@ -70,6 +74,7 @@ function Export-Database {
         cast(r2.displayName as varchar)        as principalDisplayName,
         rd2.displayName                                  as roleDisplayName,
         cast(r2.userPrincipalName as varchar)  as userPrincipalName,
+        null                                   as uniqueName, -- *Group tables store members as flat rows with no principal struct, so uniqueName does not exist; null keeps this column aligned in the UNION ALL
         cast(r2."@odata.type" as varchar)      as "@odata.type",
         cast(r2.Id as varchar)                  as principalId,
         '$PrivilegeType'                        as privilegeType
@@ -116,6 +121,41 @@ as
 	}
 	#endregion Utility Function
 
+	#region Logged Import Helper
+	function Import-EntraTableLogged {
+		[CmdletBinding()]
+		param (
+			[Parameter(Mandatory = $true)]
+			[DuckDB.NET.Data.DuckDBConnection]
+			$Database,
+
+			[Parameter(Mandatory = $true)]
+			[string]
+			$ExportPath,
+
+			[Parameter(Mandatory = $true)]
+			[string]
+			$TableName,
+
+			[string]
+			$LogsPath
+		)
+
+		Write-ZtDatabaseLog -TableName $TableName -LogsPath $LogsPath -Action Started
+		$tableStart = Get-Date
+		try {
+			Import-EntraTable -Database $Database -ExportPath $ExportPath -TableName $TableName
+			$tableDuration = (Get-Date) - $tableStart
+			Write-ZtDatabaseLog -TableName $TableName -LogsPath $LogsPath -Action Completed -Duration $tableDuration
+		}
+		catch {
+			$tableDuration = (Get-Date) - $tableStart
+			Write-ZtDatabaseLog -TableName $TableName -LogsPath $LogsPath -Action Failed -Duration $tableDuration -ErrorMessage $_
+			throw
+		}
+	}
+	#endregion Logged Import Helper
+
 	$activity = "Creating database"
 	Write-ZtProgress -Activity $activity -Status "Starting"
 	Update-ZtProgressState -WorkerId 'database' -WorkerName 'Creating Database' -WorkerStatus 'Running' -WorkerDetail 'Initializing...'
@@ -142,40 +182,40 @@ as
 	}
 
 	if ($Pillar -in ('All', 'Identity')) {
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'SignIn'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails'
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'User' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'SignIn' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails' -LogsPath $LogsPath
 
 		New-ViewRole -Database $database
 	}
 
 	if ($Pillar -in ('All', 'Devices')) {
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Device'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy'
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Device' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy' -LogsPath $LogsPath
 	}
 
 	if ($Pillar -in ('All', 'Network')) {
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'User'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'Application'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance'
-		Import-EntraTable -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup'
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'User' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
 
 		New-ViewRole -Database $database
 	}

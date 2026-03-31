@@ -356,5 +356,173 @@
   "theme.tags.tagsPageTitle": {
       "message": "标签",
       "description": "标签列表页面的标题"
+  },
+  "badge.new": {
+      "message": "NEW"
+  },
+  "badge.updated": {
+      "message": "已更新"
+  },
+  "hero.tagline": {
+      "message": "零信任框架中现已提供 AI 支柱"
+  },
+  "hero.title": {
+      "message": "加速您的零信任之旅"
+  },
+  "hero.subtitle": {
+      "message": "Microsoft 提供的全面框架，帮助组织采用零信任策略并端到端部署安全解决方案 — 现新增 AI 支柱，用于保护 AI 代理和 AI 资源。"
+  },
+  "hero.cta.workshop": {
+      "message": "启动研讨会"
+  },
+  "hero.cta.assessment": {
+      "message": "运行评估"
+  },
+  "ai.pill": {
+      "message": "最新动态"
+  },
+  "ai.title": {
+      "message": "在零信任中引入 AI 支柱"
+  },
+  "ai.description": {
+      "message": "随着组织采用 AI 代理和 MCP 服务器，零信任框架现包含一个专用的 AI 资源支柱和 AI 控制 — 确保您的 AI 工作负载以与环境其他部分相同的严格标准进行治理。"
+  },
+  "ai.pillarSubtitle": {
+      "message": "现支持自动生成摘要以及扩展的数据和网络安全态势检查。"
+  },
+  "pillar.identity": {
+      "message": "身份"
+  },
+  "pillar.devices": {
+      "message": "设备"
+  },
+  "pillar.data": {
+      "message": "数据"
+  },
+  "pillar.data.tooltip": {
+      "message": "新的自动评估检查"
+  },
+  "pillar.network": {
+      "message": "网络"
+  },
+  "pillar.network.tooltip": {
+      "message": "新的自动评估检查"
+  },
+  "pillar.infrastructure": {
+      "message": "基础设施"
+  },
+  "pillar.secops": {
+      "message": "安全运营"
+  },
+  "pillar.ai": {
+      "message": "AI"
+  },
+  "pillar.ai.tooltip": {
+      "message": "研讨会中的 AI 支柱"
+  },
+  "products.title": {
+      "message": "两款工具，一个使命"
+  },
+  "products.subtitle": {
+      "message": "无论您是在规划零信任路线图还是衡量当前安全态势，我们都能为您提供帮助。"
+  },
+  "products.workshop.label": {
+      "message": "交互式规划工具"
+  },
+  "products.workshop.name": {
+      "message": "零信任研讨会"
+  },
+  "products.workshop.description": {
+      "message": "一款新的 Web 应用程序，用于规划涵盖所有七个支柱（身份、设备、数据、网络、基础设施、安全运营和 AI）的零信任部署。以 First-Then 结构确定任务优先级，并生成自动摘要和实施计划。"
+  },
+  "products.workshop.tag.pillars": {
+      "message": "7 个支柱"
+  },
+  "products.workshop.tag.ai": {
+      "message": "AI 支柱"
+  },
+  "products.workshop.tag.summaries": {
+      "message": "自动摘要"
+  },
+  "products.workshop.tag.plans": {
+      "message": "实施计划"
+  },
+  "products.workshop.cta": {
+      "message": "启动研讨会"
+  },
+  "products.assessment.label": {
+      "message": "自动租户分析"
+  },
+  "products.assessment.name": {
+      "message": "零信任评估"
+  },
+  "products.assessment.description": {
+      "message": "连接到您的 Microsoft Entra 租户，获取零信任安全态势的自动评估。分析身份、设备、数据和网络支柱的配置，提供可操作的见解和可视化仪表板。"
+  },
+  "products.assessment.tag.identity": {
+      "message": "身份"
+  },
+  "products.assessment.tag.devices": {
+      "message": "设备"
+  },
+  "products.assessment.tag.data": {
+      "message": "数据"
+  },
+  "products.assessment.tag.network": {
+      "message": "网络"
+  },
+  "products.assessment.tag.checks": {
+      "message": "自动检查"
+  },
+  "products.assessment.cta": {
+      "message": "运行评估"
+  },
+  "howItWorks.title": {
+      "message": "使用方法"
+  },
+  "howItWorks.subtitle": {
+      "message": "改善组织安全态势的三个步骤。"
+  },
+  "howItWorks.step1.title": {
+      "message": "学习"
+  },
+  "howItWorks.step1.description": {
+      "message": "了解零信任原则 — 始终验证、最小权限访问和假设被攻破 — 以及它们如何应用于您的环境。"
+  },
+  "howItWorks.step1.link": {
+      "message": "探索 Microsoft 零信任"
+  },
+  "howItWorks.step2.title": {
+      "message": "规划"
+  },
+  "howItWorks.step2.description": {
+      "message": "使用研讨会构建涵盖所有支柱的具体零信任路线图。确定任务优先级并生成适合您组织的实施计划。"
+  },
+  "howItWorks.step2.link": {
+      "message": "打开研讨会"
+  },
+  "howItWorks.step3.title": {
+      "message": "评估"
+  },
+  "howItWorks.step3.description": {
+      "message": "针对您的 Microsoft Entra 租户运行评估，衡量当前安全态势，识别差距，并跟踪随时间推移的进展。"
+  },
+  "howItWorks.step3.link": {
+      "message": "运行评估"
+  },
+  "getStarted.title": {
+      "message": "准备好开始了吗？"
+  },
+  "getStarted.description": {
+      "message": "按照我们的分步计划开展零信任策略会议。无论您是 Microsoft 合作伙伴还是举办内部研讨会，本指南都将引导您完成准备、实施和后续跟进。"
+  },
+  "getStarted.cta": {
+      "message": "查看分步计划"
+  },
+  "home.layout.title": {
+      "message": "Microsoft 零信任研讨会与评估"
+  },
+  "home.layout.description": {
+      "message": "使用研讨会工具规划零信任部署，使用自动评估衡量安全态势 — 现支持新的 AI 支柱。"
   }
 }

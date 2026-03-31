@@ -1,0 +1,528 @@
+{
+    "SiteHeading": {
+        "message": "ورشة عمل الثقة المعدومة من Microsoft"
+    },
+    "homepage.title": {
+        "message": "ورشة عمل الثقة المعدومة من Microsoft"
+    },
+    "homepage.description": {
+        "message": "دليل تقني شامل لمساعدة العملاء والشركاء على نشر حلول الأمان وحمايتها في مؤسساتهم استنادًا إلى استراتيجية أمان الثقة المعدومة."
+    },
+    "homepage.whatIsZt.title": {
+        "message": "ما هي الثقة المعدومة"
+    },
+    "homepage.whatIsZt.sentence1": {
+        "message": "إن التعامل مع تحديات الأمان المعقدة في العصر الحديث أمر صعب، لكن استراتيجية أمان الثقة المعدومة توفر اتجاهًا واضحًا. من خلال تبني استراتيجية الثقة المعدومة، يمكن للمؤسسات تعزيز وضعها الأمني وتقليل المخاطر والتعقيد مع تحسين الامتثال والحوكمة."
+    },
+    "homepage.whatIsZt.sentence2": {
+        "message": "تساعد ورشة عمل الثقة المعدومة في تطبيق مبادئ أمان الثقة المعدومة على أمان Microsoft."
+    },
+    "homepage.whatIsZt.verify": {
+        "message": "التحقق دائمًا"
+    },
+    "homepage.whatIsZt.leastPriv": {
+        "message": "الوصول بأقل الامتيازات"
+    },
+    "homepage.whatIsZt.assumeComp": {
+        "message": "افتراض الاختراق"
+    },
+    "learnMore": {
+        "message": "معرفة المزيد"
+    },
+    "homepage.whyRunWorkshop.title": {
+        "message": "لماذا تُقام ورشة العمل"
+    },
+    "homepage.whyRunWorkshop.sentence1": {
+        "message": "ورشة عمل الثقة المعدومة هي دليل نشر تقدمه Microsoft لنشر استراتيجية أمان الثقة المعدومة في البيئة الفعلية."
+    },
+    "homepage.whyRunWorkshop.sentence2": {
+        "message": "استنادًا إلى المعرفة المكتسبة من آلاف حالات تنفيذ العملاء، يمكنك تقييم بيئتك الحالية ومراجعة الخطوات المحددة لتحسين وضعك الأمني الشامل خطوة بخطوة."
+    },
+    "homepage.whyRunWorkshop.learnAboutWorkshop": {
+        "message": "تعرّف على ورشة العمل"
+    },
+    "homepage.howRunWorkshop.title": {
+        "message": "كيفية إقامة ورشة العمل"
+    },
+    "homepage.howRunWorkshop.sentence1": {
+        "message": "راجع الدليل التفصيلي لمعرفة كيفية إجراء جلسات مناقشة الاستراتيجية وتقييم البيئة الحالية. إذا لم تكن تعرف كيف تبدأ، شاهد فيديو تعريف ورشة عمل الثقة المعدومة."
+    },
+    "homepage.howRunWorkshop.sentence2": {
+        "message": "استنادًا إلى المعرفة المكتسبة من آلاف حالات تنفيذ العملاء، يمكنك تقييم بيئتك الحالية ومراجعة الخطوات المحددة لتحسين وضعك الأمني الشامل خطوة بخطوة."
+    },
+    "theme.NotFound.title": {
+        "message": "الصفحة غير موجودة",
+        "description": "عنوان صفحة 404"
+    },
+    "theme.NotFound.p1": {
+        "message": "لم نتمكن من العثور على ما تبحث عنه.",
+        "description": "الفقرة الأولى من صفحة 404"
+    },
+    "theme.NotFound.p2": {
+        "message": "يرجى الاتصال بمالك الموقع الذي أحالك إلى الرابط الأصلي وإعلامه بأن الرابط معطل.",
+        "description": "الفقرة الثانية من صفحة 404"
+    },
+    "theme.ErrorPageContent.title": {
+        "message": "تعطلت هذه الصفحة.",
+        "description": "عنوان الصفحة البديلة عند تعطل الصفحة"
+    },
+    "theme.BackToTopButton.buttonAriaLabel": {
+        "message": "العودة إلى الأعلى",
+        "description": "تسمية ARIA لزر العودة إلى الأعلى"
+    },
+    "theme.blog.archive.title": {
+        "message": "الأرشيف",
+        "description": "عنوان صفحة أرشيف المدونة"
+    },
+    "theme.blog.archive.description": {
+        "message": "الأرشيف",
+        "description": "وصف صفحة أرشيف المدونة"
+    },
+    "theme.blog.paginator.navAriaLabel": {
+        "message": "التنقل في قائمة صفحات المدونة",
+        "description": "تسمية ARIA لترقيم صفحات المدونة"
+    },
+    "theme.blog.paginator.newerEntries": {
+        "message": "إدخالات أحدث",
+        "description": "التسمية المستخدمة للانتقال إلى صفحة مقالات المدونة الأحدث"
+    },
+    "theme.blog.paginator.olderEntries": {
+        "message": "إدخالات أقدم",
+        "description": "التسمية المستخدمة للانتقال إلى صفحة مقالات المدونة الأقدم"
+    },
+    "theme.blog.post.paginator.navAriaLabel": {
+        "message": "التنقل في صفحة مقالة المدونة",
+        "description": "تسمية ARIA لترقيم صفحات مقالات المدونة"
+    },
+    "theme.blog.post.paginator.newerPost": {
+        "message": "مقالة أحدث",
+        "description": "تسمية زر مقالة المدونة للانتقال إلى المقالة الأحدث/السابقة"
+    },
+    "theme.blog.post.paginator.olderPost": {
+        "message": "مقالة أقدم",
+        "description": "تسمية زر مقالة المدونة للانتقال إلى المقالة الأقدم/التالية"
+    },
+    "theme.tags.tagsPageLink": {
+        "message": "عرض جميع الوسوم",
+        "description": "تسمية الرابط الذي يستهدف صفحة قائمة الوسوم"
+    },
+    "theme.colorToggle.ariaLabel": {
+        "message": "التبديل بين الوضع الداكن والفاتح (حاليًا {mode})",
+        "description": "تسمية ARIA لمفتاح وضع الألوان في شريط التنقل"
+    },
+    "theme.colorToggle.ariaLabel.mode.dark": {
+        "message": "الوضع الداكن",
+        "description": "اسم وضع الألوان الداكنة"
+    },
+    "theme.colorToggle.ariaLabel.mode.light": {
+        "message": "الوضع الفاتح",
+        "description": "اسم وضع الألوان الفاتحة"
+    },
+    "theme.docs.breadcrumbs.navAriaLabel": {
+        "message": "مسار التنقل",
+        "description": "تسمية ARIA لمسار التنقل"
+    },
+    "theme.docs.DocCard.categoryDescription.plurals": {
+        "message": "عنصر واحد|{count} عناصر",
+        "description": "الوصف الافتراضي لبطاقة الفئة في الفهرس المُنشأ حول عدد العناصر التي تتضمنها هذه الفئة"
+    },
+    "theme.docs.paginator.navAriaLabel": {
+        "message": "صفحات المستندات",
+        "description": "تسمية ARIA لترقيم صفحات المستندات"
+    },
+    "theme.docs.paginator.previous": {
+        "message": "السابق",
+        "description": "التسمية المستخدمة للانتقال إلى المستند السابق"
+    },
+    "theme.docs.paginator.next": {
+        "message": "التالي",
+        "description": "التسمية المستخدمة للانتقال إلى المستند التالي"
+    },
+    "theme.docs.versionBadge.label": {
+        "message": "الإصدار: {versionLabel}"
+    },
+    "theme.docs.versions.unreleasedVersionLabel": {
+        "message": "هذا توثيق غير منشور لإصدار {siteTitle} {versionLabel}.",
+        "description": "التسمية المستخدمة لإعلام المستخدم بأنه يتصفح إصدار توثيق غير منشور"
+    },
+    "theme.docs.versions.unmaintainedVersionLabel": {
+        "message": "هذا توثيق {siteTitle} {versionLabel}، الذي لم يعد يتم صيانته بنشاط.",
+        "description": "التسمية المستخدمة لإعلام المستخدم بأنه يتصفح إصدار توثيق لم يعد يُصان"
+    },
+    "theme.docs.versions.latestVersionSuggestionLabel": {
+        "message": "للاطلاع على أحدث التوثيق، راجع {latestVersionLink} ({versionLabel}).",
+        "description": "التسمية المستخدمة لإعلام المستخدم بمراجعة أحدث إصدار"
+    },
+    "theme.docs.versions.latestVersionLinkLabel": {
+        "message": "أحدث إصدار",
+        "description": "تسمية رابط اقتراح أحدث إصدار"
+    },
+    "theme.docs.tagDocListPageTitle.nDocsTagged": {
+        "message": "مستند واحد موسوم|{count} مستندات موسومة",
+        "description": "تسمية الجمع لـ \"{count} مستندات موسومة\""
+    },
+    "theme.docs.tagDocListPageTitle": {
+        "message": "{nDocsTagged} بوسم \"{tagName}\"",
+        "description": "عنوان صفحة وسم المستندات"
+    },
+    "theme.common.editThisPage": {
+        "message": "تحرير هذه الصفحة",
+        "description": "تسمية رابط تحرير الصفحة الحالية"
+    },
+    "theme.lastUpdated.atDate": {
+        "message": " في {date}",
+        "description": "الكلمات المستخدمة لوصف تاريخ آخر تحديث للصفحة"
+    },
+    "theme.lastUpdated.byUser": {
+        "message": " بواسطة {user}",
+        "description": "الكلمات المستخدمة لوصف من قام بآخر تحديث للصفحة"
+    },
+    "theme.lastUpdated.lastUpdatedAtBy": {
+        "message": "آخر تحديث{atDate}{byUser}",
+        "description": "الجملة المستخدمة لعرض متى ومن قام بآخر تحديث للصفحة"
+    },
+    "theme.common.headingLinkTitle": {
+        "message": "رابط مباشر إلى {heading}",
+        "description": "عنوان الرابط إلى العنوان"
+    },
+    "theme.navbar.mobileVersionsDropdown.label": {
+        "message": "الإصدارات",
+        "description": "تسمية القائمة المنسدلة للإصدارات في شريط التنقل على الهاتف المحمول"
+    },
+    "theme.tags.tagsListLabel": {
+        "message": "الوسوم:",
+        "description": "التسمية بجانب قائمة الوسوم"
+    },
+    "theme.admonition.caution": {
+        "message": "تنبيه",
+        "description": "التسمية الافتراضية لتنبيه الحذر (:::caution)"
+    },
+    "theme.admonition.danger": {
+        "message": "خطر",
+        "description": "التسمية الافتراضية لتنبيه الخطر (:::danger)"
+    },
+    "theme.admonition.info": {
+        "message": "معلومات",
+        "description": "التسمية الافتراضية لتنبيه المعلومات (:::info)"
+    },
+    "theme.admonition.note": {
+        "message": "ملاحظة",
+        "description": "التسمية الافتراضية لتنبيه الملاحظة (:::note)"
+    },
+    "theme.admonition.tip": {
+        "message": "نصيحة",
+        "description": "التسمية الافتراضية لتنبيه النصيحة (:::tip)"
+    },
+    "theme.admonition.warning": {
+        "message": "تحذير",
+        "description": "التسمية الافتراضية لتنبيه التحذير (:::warning)"
+    },
+    "theme.AnnouncementBar.closeButtonAriaLabel": {
+        "message": "إغلاق",
+        "description": "تسمية ARIA لزر إغلاق شريط الإعلانات"
+    },
+    "theme.blog.sidebar.navAriaLabel": {
+        "message": "التنقل بين المقالات الأخيرة في المدونة",
+        "description": "تسمية ARIA للمقالات الأخيرة في الشريط الجانبي للمدونة"
+    },
+    "theme.CodeBlock.wordWrapToggle": {
+        "message": "تبديل التفاف النص",
+        "description": "سمة العنوان لزر تبديل التفاف النص في سطور كتلة التعليمات البرمجية"
+    },
+    "theme.CodeBlock.copied": {
+        "message": "تم النسخ",
+        "description": "تسمية زر النسخ المنجز في كتل التعليمات البرمجية"
+    },
+    "theme.CodeBlock.copyButtonAriaLabel": {
+        "message": "نسخ الكود إلى الحافظة",
+        "description": "تسمية ARIA لزر نسخ كتل التعليمات البرمجية"
+    },
+    "theme.CodeBlock.copy": {
+        "message": "نسخ",
+        "description": "تسمية زر النسخ في كتل التعليمات البرمجية"
+    },
+    "theme.DocSidebarItem.expandCategoryAriaLabel": {
+        "message": "توسيع فئة الشريط الجانبي '{label}'",
+        "description": "تسمية ARIA لتوسيع فئة الشريط الجانبي"
+    },
+    "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+        "message": "طي فئة الشريط الجانبي '{label}'",
+        "description": "تسمية ARIA لطي فئة الشريط الجانبي"
+    },
+    "theme.navbar.mobileLanguageDropdown.label": {
+        "message": "اللغات",
+        "description": "تسمية القائمة المنسدلة لتبديل اللغة على الهاتف المحمول"
+    },
+    "theme.NavBar.navAriaLabel": {
+        "message": "الرئيسي",
+        "description": "تسمية ARIA للتنقل الرئيسي"
+    },
+    "theme.TOCCollapsible.toggleButtonLabel": {
+        "message": "في هذه الصفحة",
+        "description": "التسمية المستخدمة للزر في مكون جدول المحتويات القابل للطي"
+    },
+    "theme.blog.post.readMore": {
+        "message": "اقرأ المزيد",
+        "description": "التسمية المستخدمة في مقتطفات مقالات المدونة للربط بالمقالات الكاملة"
+    },
+    "theme.blog.post.readMoreLabel": {
+        "message": "اقرأ المزيد عن {title}",
+        "description": "تسمية ARIA للرابط من المقتطفات إلى مقالات المدونة الكاملة"
+    },
+    "theme.docs.breadcrumbs.home": {
+        "message": "الصفحة الرئيسية",
+        "description": "تسمية ARIA للصفحة الرئيسية في مسار التنقل"
+    },
+    "theme.docs.sidebar.collapseButtonTitle": {
+        "message": "طي الشريط الجانبي",
+        "description": "سمة العنوان لزر طي الشريط الجانبي للمستندات"
+    },
+    "theme.docs.sidebar.collapseButtonAriaLabel": {
+        "message": "طي الشريط الجانبي",
+        "description": "سمة العنوان لزر طي الشريط الجانبي للمستندات"
+    },
+    "theme.docs.sidebar.navAriaLabel": {
+        "message": "الشريط الجانبي للمستندات",
+        "description": "تسمية ARIA للتنقل في الشريط الجانبي"
+    },
+    "theme.blog.post.readingTime.plurals": {
+        "message": "دقيقة واحدة للقراءة|{readingTime} دقائق للقراءة",
+        "description": "تسمية الجمع لـ \"{readingTime} دقائق للقراءة\""
+    },
+    "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+        "message": "إغلاق شريط التنقل",
+        "description": "تسمية ARIA لزر إغلاق الشريط الجانبي على الهاتف المحمول"
+    },
+    "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+        "message": "→ العودة إلى القائمة الرئيسية",
+        "description": "تسمية زر العودة إلى القائمة الرئيسية داخل القائمة الثانوية للشريط الجانبي على الهاتف المحمول"
+    },
+    "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+        "message": "تبديل شريط التنقل",
+        "description": "تسمية ARIA لزر القائمة المتنقلة على الهاتف المحمول"
+    },
+    "theme.docs.sidebar.expandButtonTitle": {
+        "message": "توسيع الشريط الجانبي",
+        "description": "تسمية ARIA وسمة العنوان لزر توسيع الشريط الجانبي للمستندات"
+    },
+    "theme.docs.sidebar.expandButtonAriaLabel": {
+        "message": "توسيع الشريط الجانبي",
+        "description": "تسمية ARIA وسمة العنوان لزر توسيع الشريط الجانبي للمستندات"
+    },
+    "theme.blog.post.plurals": {
+        "message": "مقالة واحدة|{count} مقالات",
+        "description": "تسمية الجمع لـ \"{count} مقالات\""
+    },
+    "theme.blog.tagTitle": {
+        "message": "{nPosts} بوسم \"{tagName}\"",
+        "description": "عنوان صفحة وسم المدونة"
+    },
+    "theme.blog.author.pageTitle": {
+        "message": "{authorName} - {nPosts}",
+        "description": "عنوان صفحة مؤلف المدونة"
+    },
+    "theme.blog.authorsList.pageTitle": {
+        "message": "المؤلفون",
+        "description": "عنوان صفحة المؤلفين"
+    },
+    "theme.blog.authorsList.viewAll": {
+        "message": "عرض جميع المؤلفين",
+        "description": "تسمية الرابط الذي يستهدف صفحة مؤلفي المدونة"
+    },
+    "theme.contentVisibility.unlistedBanner.title": {
+        "message": "صفحة غير مدرجة",
+        "description": "عنوان شعار المحتوى غير المدرج"
+    },
+    "theme.contentVisibility.unlistedBanner.message": {
+        "message": "هذه الصفحة غير مدرجة. لن تقوم محركات البحث بفهرستها، ويمكن فقط للمستخدمين الذين لديهم رابط مباشر الوصول إليها.",
+        "description": "رسالة شعار المحتوى غير المدرج"
+    },
+    "theme.contentVisibility.draftBanner.title": {
+        "message": "صفحة مسودة",
+        "description": "عنوان شعار المحتوى المسودة"
+    },
+    "theme.contentVisibility.draftBanner.message": {
+        "message": "هذه الصفحة مسودة. ستكون مرئية فقط في بيئة التطوير وسيتم استبعادها من بناء الإنتاج.",
+        "description": "رسالة شعار المحتوى المسودة"
+    },
+    "theme.ErrorPageContent.tryAgain": {
+        "message": "حاول مرة أخرى",
+        "description": "تسمية زر إعادة المحاولة عند التقاط خطأ بواسطة حدود خطأ React"
+    },
+    "theme.common.skipToMainContent": {
+        "message": "انتقل إلى المحتوى الرئيسي",
+        "description": "تسمية تخطي المحتوى المستخدمة لإمكانية الوصول"
+    },
+    "theme.tags.tagsPageTitle": {
+        "message": "الوسوم",
+        "description": "عنوان صفحة قائمة الوسوم"
+    },
+    "badge.new": {
+        "message": "جديد"
+    },
+    "badge.updated": {
+        "message": "مُحدَّث"
+    },
+    "hero.tagline": {
+        "message": "ركيزة الذكاء الاصطناعي متاحة الآن في إطار عمل الثقة المعدومة"
+    },
+    "hero.title": {
+        "message": "سرّع رحلتك نحو الثقة المعدومة"
+    },
+    "hero.subtitle": {
+        "message": "إطار عمل شامل من Microsoft لمساعدة المؤسسات على تبني استراتيجية الثقة المعدومة ونشر حلول الأمان من البداية إلى النهاية — مع ركيزة ذكاء اصطناعي جديدة لتأمين الوكلاء وموارد الذكاء الاصطناعي."
+    },
+    "hero.cta.workshop": {
+        "message": "بدء ورشة العمل"
+    },
+    "hero.cta.assessment": {
+        "message": "تشغيل التقييم"
+    },
+    "ai.pill": {
+        "message": "ما الجديد"
+    },
+    "ai.title": {
+        "message": "تقديم ركيزة الذكاء الاصطناعي في الثقة المعدومة"
+    },
+    "ai.description": {
+        "message": "مع تبني المؤسسات لوكلاء الذكاء الاصطناعي وخوادم MCP، يتضمن إطار عمل الثقة المعدومة الآن ركيزة مخصصة لموارد الذكاء الاصطناعي مع عناصر تحكم الذكاء الاصطناعي — مما يضمن إدارة أحمال عمل الذكاء الاصطناعي بنفس الصرامة المطبقة على كل جزء آخر من بيئتك."
+    },
+    "ai.pillarSubtitle": {
+        "message": "تتضمن الآن ملخصات مُنشأة تلقائيًا وفحوصات موسعة لوضع البيانات والشبكة."
+    },
+    "pillar.identity": {
+        "message": "الهوية"
+    },
+    "pillar.devices": {
+        "message": "الأجهزة"
+    },
+    "pillar.data": {
+        "message": "البيانات"
+    },
+    "pillar.data.tooltip": {
+        "message": "فحوصات تقييم تلقائية جديدة"
+    },
+    "pillar.network": {
+        "message": "الشبكة"
+    },
+    "pillar.network.tooltip": {
+        "message": "فحوصات تقييم تلقائية جديدة"
+    },
+    "pillar.infrastructure": {
+        "message": "البنية التحتية"
+    },
+    "pillar.secops": {
+        "message": "العمليات الأمنية"
+    },
+    "pillar.ai": {
+        "message": "الذكاء الاصطناعي"
+    },
+    "pillar.ai.tooltip": {
+        "message": "ركيزة الذكاء الاصطناعي في ورشة العمل"
+    },
+    "products.title": {
+        "message": "أداتان، مهمة واحدة"
+    },
+    "products.subtitle": {
+        "message": "سواء كنت تخطط لخارطة طريق الثقة المعدومة أو تقيس وضعك الأمني الحالي، نحن هنا لمساعدتك."
+    },
+    "products.workshop.label": {
+        "message": "أداة تخطيط تفاعلية"
+    },
+    "products.workshop.name": {
+        "message": "ورشة عمل الثقة المعدومة"
+    },
+    "products.workshop.description": {
+        "message": "تطبيق ويب جديد لتخطيط نشر الثقة المعدومة عبر جميع الركائز السبع — الهوية والأجهزة والبيانات والشبكة والبنية التحتية والعمليات الأمنية والذكاء الاصطناعي. حدد أولويات المهام بهيكل أولاً-ثم وأنشئ ملخصات تلقائية وخطط تنفيذ."
+    },
+    "products.workshop.tag.pillars": {
+        "message": "7 ركائز"
+    },
+    "products.workshop.tag.ai": {
+        "message": "ركيزة الذكاء الاصطناعي"
+    },
+    "products.workshop.tag.summaries": {
+        "message": "ملخصات تلقائية"
+    },
+    "products.workshop.tag.plans": {
+        "message": "خطط التنفيذ"
+    },
+    "products.workshop.cta": {
+        "message": "بدء ورشة العمل"
+    },
+    "products.assessment.label": {
+        "message": "تحليل المستأجر التلقائي"
+    },
+    "products.assessment.name": {
+        "message": "تقييم الثقة المعدومة"
+    },
+    "products.assessment.description": {
+        "message": "اتصل بمستأجر Microsoft Entra الخاص بك واحصل على تقييم تلقائي لوضع الثقة المعدومة. حلل التكوينات عبر ركائز الهوية والأجهزة والبيانات والشبكة مع رؤى قابلة للتنفيذ ولوحات معلومات مرئية."
+    },
+    "products.assessment.tag.identity": {
+        "message": "الهوية"
+    },
+    "products.assessment.tag.devices": {
+        "message": "الأجهزة"
+    },
+    "products.assessment.tag.data": {
+        "message": "البيانات"
+    },
+    "products.assessment.tag.network": {
+        "message": "الشبكة"
+    },
+    "products.assessment.tag.checks": {
+        "message": "فحوصات تلقائية"
+    },
+    "products.assessment.cta": {
+        "message": "تشغيل التقييم"
+    },
+    "howItWorks.title": {
+        "message": "كيف يعمل"
+    },
+    "howItWorks.subtitle": {
+        "message": "ثلاث خطوات لتحسين الوضع الأمني لمؤسستك."
+    },
+    "howItWorks.step1.title": {
+        "message": "تعلّم"
+    },
+    "howItWorks.step1.description": {
+        "message": "افهم مبادئ الثقة المعدومة — التحقق الصريح، والوصول بأقل الامتيازات، وافتراض الاختراق — وكيفية تطبيقها على بيئتك."
+    },
+    "howItWorks.step1.link": {
+        "message": "استكشف الثقة المعدومة من Microsoft"
+    },
+    "howItWorks.step2.title": {
+        "message": "خطّط"
+    },
+    "howItWorks.step2.description": {
+        "message": "استخدم ورشة العمل لبناء خارطة طريق ملموسة للثقة المعدومة عبر جميع الركائز. حدد أولويات المهام وأنشئ خطط تنفيذ مخصصة لمؤسستك."
+    },
+    "howItWorks.step2.link": {
+        "message": "فتح ورشة العمل"
+    },
+    "howItWorks.step3.title": {
+        "message": "قيّم"
+    },
+    "howItWorks.step3.description": {
+        "message": "شغّل التقييم على مستأجر Microsoft Entra الخاص بك لقياس وضعك الحالي وتحديد الثغرات وتتبع التقدم بمرور الوقت."
+    },
+    "howItWorks.step3.link": {
+        "message": "تشغيل التقييم"
+    },
+    "getStarted.title": {
+        "message": "هل أنت مستعد للبدء؟"
+    },
+    "getStarted.description": {
+        "message": "اتبع خطتنا التفصيلية لتقديم جلسة استراتيجية الثقة المعدومة. سواء كنت شريكًا لـ Microsoft أو تدير ورشة عمل داخلية، يرشدك الدليل خلال التحضير والتقديم والمتابعة."
+    },
+    "getStarted.cta": {
+        "message": "عرض الخطة التفصيلية"
+    },
+    "home.layout.title": {
+        "message": "ورشة عمل وتقييم الثقة المعدومة من Microsoft"
+    },
+    "home.layout.description": {
+        "message": "خطط لنشر الثقة المعدومة باستخدام أداة ورشة العمل وقِس وضعك الأمني بالتقييم التلقائي — مع ركيزة ذكاء اصطناعي جديدة."
+    }
+}

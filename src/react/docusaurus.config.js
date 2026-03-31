@@ -8,7 +8,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Microsoft Zero Trust Workshop',
+  title: 'Microsoft Zero Trust',
   tagline: 'Check your Microsoft tenant configuration for zero trust readiness.',
   favicon: 'img/favicon.ico',
 
@@ -32,14 +32,19 @@ const config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'ja', 'ko', 'zh-CN', 'zh-TW'], //,'es'
+    locales: ['en', 'ja', 'ko', 'zh-CN', 'zh-TW', 'ar', 'es', 'fr', 'de', 'pt', 'hi'],
     localeConfigs: {
       en: { label: 'English' },
       ja: { label: '日本語' },
       ko: { label: '한국어' },
       'zh-CN': { label: '简体中文' },
-      'zh-TW': { label: '繁體中文' }//,
-      // 'es':{label: 'Español'}
+      'zh-TW': { label: '繁體中文' },
+      ar: { label: 'العربية', direction: 'rtl' },
+      es: { label: 'Español' },
+      fr: { label: 'Français' },
+      de: { label: 'Deutsch' },
+      pt: { label: 'Português' },
+      hi: { label: 'हिन्दी' },
     },
   },
 
@@ -76,17 +81,12 @@ const config = {
       // Replace with your project's social card
       image: 'img/social-card.png',
       navbar: {
-        title: 'Zero Trust Workshop',
+        title: 'Microsoft Zero Trust',
         logo: {
           alt: 'Site Logo',
           src: 'img/logo.svg',
         },
         items: [
-          {
-            to: 'workshop',
-            position: 'left',
-            label: 'About the Workshop',
-          },
           {
             to: 'guide',
             position: 'left',

@@ -34,7 +34,10 @@
 		$ExportPath,
 
 		[Psftimespan]
-		$DependencyTimeout
+		$DependencyTimeout,
+
+		[string]
+		$LogsPath
 	)
 	begin {
 		$previousMessages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId)
@@ -71,6 +74,7 @@
 	}
 	process {
 		Write-PSFMessage -Message "Processing export '{0}'" -StringValues $Export.Name -Target $Export -Tag start
+		Write-ZtExportProgress -ExportName $Export.Name -LogsPath $LogsPath -Action Started
 
 		# Update progress dashboard: map this runspace to this export and mark as starting
 		$runspaceId = [runspace]::DefaultRunspace.InstanceId.ToString()
@@ -86,6 +90,7 @@
 			$workflow.Data[$Export.Name].Status = 'Waiting'
 			$workflow.Data[$Export.Name].Updated = Get-Date
 			Update-ZtProgressState -WorkerId $Export.Name -WorkerName $Export.Name -WorkerStatus 'Waiting' -WorkerDetail "Waiting for dependency: $($Export.DependsOn)"
+			Write-ZtExportProgress -ExportName $Export.Name -LogsPath $LogsPath -Action Waiting -StatusMessage "dependency:$($Export.DependsOn)"
 
 			while (-not $exportState -and $workflow.Data[$Export.DependsOn].Status -ne 'Done') {
 				Write-PSFMessage -Message "Export '{0}' depends on '{1}', which is not yet completed" -StringValues $Export.Name, $Export.DependsOn -Once "ZeroTrust-$($Export.Name)-$($identity)" -Target $Export
@@ -135,6 +140,7 @@
 			$result.Start = Get-Date
 			$workflow.Data[$Export.Name].Status = 'InProgress'
 			Update-ZtProgressState -WorkerId $Export.Name -WorkerName $Export.Name -WorkerStatus 'Running' -WorkerDetail 'Initializing...'
+			Write-ZtExportProgress -ExportName $Export.Name -LogsPath $LogsPath -Action InProgress
 			switch ($Export.Type) {
 				PrivilegedGroup {
 					$exportParam = $Export | ConvertTo-PSFHashtable -ReferenceCommand Export-ZtGraphEntityPrivilegedGroup
@@ -161,6 +167,7 @@
 				$result.Success = $false
 				$result.Error = $_
 			}
+			Write-ZtExportProgress -ExportName $Export.Name -LogsPath $LogsPath -Action Failed -ErrorMessage $_
 		}
 		finally {
 			$result.End = Get-Date
@@ -169,12 +176,14 @@
 				$workflow.Data[$Export.Name].Status = 'Done'
 				$workflow.Data[$Export.Name].Updated = Get-Date
 				Update-ZtProgressState -WorkerId $Export.Name -WorkerName $Export.Name -WorkerStatus 'Done' -WorkerDetail ''
+				Write-ZtExportProgress -ExportName $Export.Name -LogsPath $LogsPath -Action Completed -Duration $result.Duration
 			}
 		}
 		Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $Export.Name -Target $Export -Tag end
 	}
 	end {
 		$result.Messages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId) | Where-Object { $_ -notin $previousMessages }
+		Write-ZtExportLog -Result $result -LogsPath $LogsPath
 		$result
 	}
 }
