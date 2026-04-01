@@ -20,6 +20,7 @@ function Test-Assessment-35027 {
     	Category = 'Information Protection',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E3','Microsoft 365 E5','Advanced Message Encryption add-on'),
+        CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('ExchangeOnline'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',
