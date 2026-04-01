@@ -23,7 +23,7 @@ function Add-ZtTenantOverview {
 
     if (Get-ZtLicense Intune) {
         # Filter out stale/overwritten devices by only counting devices that synced in the last 90 days
-        $cutoffDate = (Get-Date).AddDays(-90).ToString('yyyy-MM-ddTHH:mm:ssZ')
+        $cutoffDate = (Get-Date).ToUniversalTime().AddDays(-90).ToString('yyyy-MM-ddTHH:mm:ssZ')
         $managedDeviceCount = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices/$count' -Filter "lastSyncDateTime ge $cutoffDate" -ApiVersion 'beta' -OutputType PSObject
     }
 
