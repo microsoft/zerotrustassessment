@@ -21,6 +21,7 @@ function Test-Assessment-35041 {
         ImplementationCost = 'High',
         Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E5', 'Microsoft Purview PAYG'),
+        CompatibleLicense = ('RMS_S_PREMIUM2'),
         Pillar = 'Data',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',

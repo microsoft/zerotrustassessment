@@ -38,7 +38,7 @@ function Write-ZtExportLog {
 			[void][System.IO.Directory]::CreateDirectory($LogsPath)
 
 			$name = $Result.Name
-			$status = if ($Result.Success) { 'Done' } else { 'Failed' }
+			$status = if ($Result.Success) { 'Done' } elseif ($Result.Error) { 'Error' } else { 'Failed' }
 			$duration = if ($null -ne $Result.Duration) { $Result.Duration.ToString('hh\:mm\:ss\.fff') } else { 'N/A' }
 			$startTime = if ($Result.Start) { $Result.Start.ToString('yyyy-MM-dd HH:mm:ss.fff') } else { 'N/A' }
 			$endTime = if ($Result.End) { $Result.End.ToString('yyyy-MM-dd HH:mm:ss.fff') } else { 'N/A' }
