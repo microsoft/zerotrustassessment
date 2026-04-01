@@ -1,17 +1,4 @@
-﻿<#
- .Synopsis
-    Returns the list of Graph scopes required to run the Zero Trust Assessment.
-
- .Description
-    Use this cmdlet to connect to Microsoft Graph using Connect-MgGraph.
-
- .Example
-    Connect-MgGraph -Scopes (Get-ZtGraphScope)
-
-    Connects to Microsoft Graph with the required scopes to run Zero Trust Assessment.
-#>
-
-Function Get-ZtGraphScope {
+﻿function Get-ZtGraphScope {
 	<#
 	.SYNOPSIS
 		List the Graph scopes needed for the ZeroTrustAssessment.

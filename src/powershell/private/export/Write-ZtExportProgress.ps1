@@ -56,7 +56,7 @@ function Write-ZtExportProgress {
 		$LogsPath,
 
 		[Parameter(Mandatory = $true)]
-		[ValidateSet('Started', 'Waiting', 'InProgress', 'Completed', 'Failed', 'Status')]
+		[ValidateSet('Started', 'Waiting', 'InProgress', 'Completed', 'Failed', 'Status', 'Error')]
 		[string]
 		$Action,
 
@@ -81,22 +81,26 @@ function Write-ZtExportProgress {
 			if ($null -ne $Duration) {
 				$line += "  $($Duration.ToString('hh\:mm\:ss\.fff'))"
 			}
+
 			if ($Action -eq 'Waiting' -and $StatusMessage) {
 				$line += "  $StatusMessage"
 			}
+
 			if ($Action -eq 'Status' -and $StatusMessage) {
 				$line += "  $StatusMessage"
 			}
-			if ($Action -eq 'Failed' -and $ErrorMessage) {
+
+			if ($Action -in @('Failed', 'Error') -and $ErrorMessage) {
 				$errorText = "$ErrorMessage"
 				$errorText = $errorText -replace '[\r\n\t]+', ' '
 				if ($errorText.Length -gt 1000) {
 					$errorText = $errorText.Substring(0, 1000) + '...'
 				}
+
 				$line += "  $errorText"
 			}
-			$line += [System.Environment]::NewLine
 
+			$line += [System.Environment]::NewLine
 			$progressFilePath = Join-Path $LogsPath '1-export_progress.log'
 			$fullPath = [System.IO.Path]::GetFullPath($progressFilePath)
 			$normalizedPath = if ($IsWindows) { $fullPath.ToLowerInvariant() } else { $fullPath }
@@ -131,6 +135,7 @@ function Write-ZtExportProgress {
 				if ($lockAcquired -and $null -ne $mutex) {
 					$null = $mutex.ReleaseMutex()
 				}
+
 				if ($null -ne $mutex) {
 					$mutex.Dispose()
 				}

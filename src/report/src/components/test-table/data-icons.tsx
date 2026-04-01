@@ -37,6 +37,12 @@ import {
       variant: "destructive"
     },
     {
+      value: "Error",
+      label: "Error",
+      icon: CrossCircledIcon,
+      variant: "destructive"
+    },
+    {
       value: "Investigate",
       label: "Investigate",
       icon: QuestionMarkCircledIcon,

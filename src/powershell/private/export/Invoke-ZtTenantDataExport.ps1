@@ -131,7 +131,8 @@
 					return
 				}
 
-				Start-Sleep -Seconds 5
+				# Wait a bit before checking again
+				Start-Sleep -Seconds 1
 			}
 		}
 		#endregion Wait for Dependencies

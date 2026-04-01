@@ -184,7 +184,7 @@ function Invoke-ZtAssessment {
 		$NoBrowser
 	)
 
-	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
+	if ($script:ConnectedService.Count -le 0) {
 		Connect-ZtAssessment
 	}
 
