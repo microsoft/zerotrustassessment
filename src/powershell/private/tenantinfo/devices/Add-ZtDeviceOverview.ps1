@@ -19,6 +19,7 @@ function Add-ZtDeviceOverview {
 select deviceOwnership, count(*) count
 from Device
 where accountEnabled and "isManaged"
+    and try_cast(approximateLastSignInDateTime as date) >= current_date - interval 90 day
 group by deviceOwnership
 order by deviceOwnership
 "@
@@ -43,6 +44,7 @@ order by deviceOwnership
 select operatingSystem, trustType, isCompliant, count(*) count
 from Device
 where operatingSystem in ('Windows', 'MacMDM') and trustType is not null
+    and try_cast(approximateLastSignInDateTime as date) >= current_date - interval 90 day
 group by operatingSystem, trustType, isCompliant
 order by operatingSystem, trustType, isCompliant
 "@
@@ -205,6 +207,7 @@ order by operatingSystem, trustType, isCompliant
 select operatingSystem, deviceOwnership, isCompliant, count(*) count
 from Device
 where operatingSystem != 'Windows' and isCompliant is not null
+    and try_cast(approximateLastSignInDateTime as date) >= current_date - interval 90 day
 group by operatingSystem, deviceOwnership, isCompliant
 order by operatingSystem, deviceOwnership, isCompliant
 "@
@@ -336,18 +339,42 @@ order by operatingSystem, deviceOwnership, isCompliant
     $desktopDevicesSummary = Get-DesktopDevicesSummary -Database $Database
     $deviceOwnership = Get-DeviceOwnership -Database $Database
     $mobileSummary = Get-MobileSummary -Database $Database
-    $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+    # Get managed device counts from device table filtered by recent sign-in to exclude stale/overwritten devices
+    $managedDeviceCountSql = @"
+select
+    count(*) filter (where operatingSystem = 'Windows') as windowsCount,
+    count(*) filter (where operatingSystem = 'MacMDM') as macOSCount,
+    count(*) filter (where operatingSystem in ('iOS', 'IPhone')) as iosCount,
+    count(*) filter (where operatingSystem like 'Android%') as androidCount,
+    count(*) filter (where operatingSystem = 'Linux') as linuxCount,
+    count(*) as enrolledDeviceCount
+from Device
+where "isManaged"
+    and try_cast(approximateLastSignInDateTime as date) >= current_date - interval 90 day
+"@
+    $managedDeviceCounts = Invoke-DatabaseQuery -Database $Database -Sql $managedDeviceCountSql
+
     $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
 
-    # Append Desktop, Mobile and Total count
-    $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
-    $managedDevicesMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
+    # Build managed devices summary from filtered database counts
+    $managedDevicesDesktopCount = ($managedDeviceCounts.windowsCount ?? 0) + ($managedDeviceCounts.macOSCount ?? 0)
+    $managedDevicesMobileCount = ($managedDeviceCounts.iosCount ?? 0) + ($managedDeviceCounts.androidCount ?? 0)
     $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
 
     if ($totalCount -gt 0) {
-        $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
-        $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
-        $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $totalCount
+        $managedDevices = [PSCustomObject]@{
+            enrolledDeviceCount          = $managedDeviceCounts.enrolledDeviceCount ?? 0
+            desktopCount                 = $managedDevicesDesktopCount
+            mobileCount                  = $managedDevicesMobileCount
+            totalCount                   = $totalCount
+            deviceOperatingSystemSummary = [PSCustomObject]@{
+                windowsCount = $managedDeviceCounts.windowsCount ?? 0
+                macOSCount   = $managedDeviceCounts.macOSCount ?? 0
+                iosCount     = $managedDeviceCounts.iosCount ?? 0
+                androidCount = $managedDeviceCounts.androidCount ?? 0
+                linuxCount   = $managedDeviceCounts.linuxCount ?? 0
+            }
+        }
     }
     else {
         $managedDevices = $null
