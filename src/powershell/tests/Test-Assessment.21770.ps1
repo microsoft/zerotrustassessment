@@ -33,7 +33,6 @@ function Test-Assessment-21770 {
 
     $inactiveRiskyApps = @()
     $otherApps = @()
-
     foreach($item in $results) {
         if([string]::IsNullOrEmpty($item.lastSignInDateTime) -and $item.IsRisky) {
             $inactiveRiskyApps += $item

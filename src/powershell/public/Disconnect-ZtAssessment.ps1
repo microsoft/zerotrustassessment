@@ -98,12 +98,12 @@
             }
 
             $serviceResults.Add([PSCustomObject]@{
-                    Service = $svc.Key
-                    Name    = $svc.Name
-                    Command = $svc.Command
-                    Status  = $resultStatus
-                    Message = $resultMessage
-                })
+                Service = $svc.Key
+                Name    = $svc.Name
+                Command = $svc.Command
+                Status  = $resultStatus
+                Message = $resultMessage
+            })
         }
     }
 

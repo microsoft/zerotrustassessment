@@ -196,7 +196,7 @@ function Invoke-ZtAssessment {
 		$IgnoreLanguageMode
 	)
 
-	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
+	if ($script:ConnectedService.Count -le 0) {
 		Connect-ZtAssessment -IgnoreLanguageMode:$IgnoreLanguageMode
 	}
 

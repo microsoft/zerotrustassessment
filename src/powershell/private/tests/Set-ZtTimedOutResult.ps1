@@ -21,7 +21,7 @@ function Set-ZtTimedOutResult {
 	$Result.Error = New-ZtTimeoutErrorRecord -Test $Test -Timeout $Timeout
 
 	try {
-		Add-ZtTestResultDetail -TestId $Test.TestID -Status $false -Result "The test did not complete within the configured timeout of $($Timeout.ToString('hh\:mm\:ss')). Partial results, if any, were discarded."
+		Add-ZtTestResultDetail -TestId $Test.TestID -Status $false -CustomStatus 'Error' -Result "The test did not complete within the configured timeout of $($Timeout.ToString('hh\:mm\:ss')). Partial results, if any, were discarded."
 	}
 	catch {
 		Write-PSFMessage -Level Warning -Message "Failed to overwrite timed-out test result detail for test '{0}': {1}" -StringValues $Test.TestID, $_ -Target $Test -Tag timeout

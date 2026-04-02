@@ -13,9 +13,9 @@
         "expiration": {
           "duration": null,
           "type": null,
-          "endDateTime": null
+          "endDateTime": "1900-01-01T00:00:00Z"
         },
-        "startDateTime": null,
+        "startDateTime": "1900-01-01T00:00:00Z",
         "recurrence": null
       },
       "action": null,
@@ -29,10 +29,10 @@
       "targetScheduleId": null,
       "justification": null,
       "isValidationOnly": false,
-      "completedDateTime": null,
+      "completedDateTime": "1900-01-01T00:00:00Z",
       "appScopeId": null,
       "id": null,
-      "createdDateTime": null,
+      "createdDateTime": "1900-01-01T00:00:00Z",
       "status": null,
       "directoryScopeId": null,
       "createdBy": {
