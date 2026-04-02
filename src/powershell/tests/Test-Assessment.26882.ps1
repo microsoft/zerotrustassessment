@@ -22,6 +22,7 @@ function Test-Assessment-26882 {
         MinimumLicense = ('Azure WAF'),
         Pillar = 'Network',
         RiskLevel = 'High',
+        Service = ('Azure'),
         SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 26882,
@@ -90,14 +91,16 @@ resources
         return
     }
 
-    # Fail if any attached policy is not enabled, not in Prevention mode, or missing the Microsoft_BotManagerRuleSet
-    $failingPolicies = $policies | Where-Object {
-        $_.EnabledState -ne 'Enabled' -or
-        $_.Mode -ne 'Prevention' -or
-        ($_.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -eq 0
+    # Precompute pass/fail per policy to avoid duplicating the three-condition check
+    foreach ($policy in $policies) {
+        $policy | Add-Member -NotePropertyName IsPassing -NotePropertyValue (
+            $policy.EnabledState -eq 'Enabled' -and
+            $policy.Mode -eq 'Prevention' -and
+            ($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -gt 0
+        ) -Force
     }
 
-    $passed = $failingPolicies.Count -eq 0
+    $passed = ($policies | Where-Object { -not $_.IsPassing }).Count -eq 0
 
     if ($passed) {
         $testResultMarkdown = "✅ All Application Gateway WAF policies attached to Application Gateways are enabled, running in Prevention mode, and have the Bot Manager ruleset (Microsoft_BotManagerRuleSet) assigned.`n`n%TestResult%"
@@ -125,7 +128,7 @@ resources
         $botRuleSet = $policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }
         $rulesetVersionDisplay = if ($botRuleSet) { $botRuleSet.ruleSetVersion } else { 'N/A' }
 
-        $statusDisplay = if ($policy.EnabledState -eq 'Enabled' -and $policy.Mode -eq 'Prevention' -and ($policy.ManagedRuleSets | Where-Object { $_.ruleSetType -eq 'Microsoft_BotManagerRuleSet' }).Count -gt 0) { '✅' } else { '❌' }
+        $statusDisplay = if ($policy.IsPassing) { '✅' } else { '❌' }
 
         $tableRows += "| $policyMd | $subMd | $enabledStateDisplay | $modeDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
     }
