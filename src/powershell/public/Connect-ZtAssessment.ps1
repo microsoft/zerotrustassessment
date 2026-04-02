@@ -101,7 +101,8 @@ function Connect-ZtAssessment {
 		[switch]
 		$Force,
 
-		# When specified, bypasses the Constrained Language Mode check. Use only when your WDAC policy trusts this module's signing certificate.
+		# When specified, bypasses the Constrained Language Mode check. Use only in WDAC-managed environments
+		# where the session reports CLM but the module is trusted and runs with full capability.
 		[switch]
 		$IgnoreLanguageMode
 	)
