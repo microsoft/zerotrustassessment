@@ -51,7 +51,7 @@
 
 				# SignIn timeout is expected for large tenants - log to file, not console WARNING
 				if ($failure.Name -eq 'SignIn' -and $failure.Message -like '*HttpClient.Timeout*') {
-					Write-ZtExportProgress -ExportName $failure.Name -LogsPath $LogsPath -Action Error -ErrorMessage "Timed out after 300s (Graph SDK limit). Partial data collected."
+					Write-ZtExportProgress -ExportName $failure.Name -LogsPath $LogsPath -Action Error -ErrorMessage "$($failure.Message); only partial sign-in data was collected."
 				} else {
 					Write-PSFMessage -Level Warning -Message "Export '{0}' failed: {1}" -StringValues $failure.Name, $failure.Message
 				}
