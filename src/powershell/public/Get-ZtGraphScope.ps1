@@ -30,7 +30,7 @@ Function Get-ZtGraphScope {
     # Any changes made to these permission scopes should be reflected in the documentation.
     # /zerotrustassessment/website/docs/sections/permissions.md
 
-    # Default read-only scopes required for the assessment.
+    # Default Microsoft Graph delegated scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
         'AuditLog.Read.All'
         'CrossTenantInformation.ReadBasic.All'
@@ -47,6 +47,7 @@ Function Get-ZtGraphScope {
         'Policy.Read.All'
         'Policy.Read.ConditionalAccess'
         'Policy.Read.PermissionGrant'
+        'Policy.ReadWrite.MobilityManagement'
         'PrivilegedAccess.Read.AzureAD'
         'Reports.Read.All'
         'RoleManagement.Read.All'
