@@ -35,7 +35,22 @@ function Test-Assessment-24546 {
 
     # Retrieve Mobile Device Management Policies
     $MDMPoliciesUri = "policies/mobileDeviceManagementPolicies"
-    $MDMPolicies = Invoke-ZtGraphRequest -RelativeUri $MDMPoliciesUri -ApiVersion beta
+
+    try {
+        $MDMPolicies = Invoke-ZtGraphRequest -RelativeUri $MDMPoliciesUri -ApiVersion beta
+    }
+    catch {
+        if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
+            Write-PSFMessage "Unable to query Mobile Device Management policies from Microsoft Graph with the current delegated app context." -Tag Test -Level Warning -ErrorRecord $_
+
+            Add-ZtTestResultDetail -TestId '24546' -Title 'Windows Automatic Enrollment is enabled' `
+                -Status $false -CustomStatus Investigate `
+                -Result "Unable to evaluate Windows Automatic Enrollment because Microsoft Graph returned **403 Forbidden** for `policies/mobileDeviceManagementPolicies`. This commonly means the current Graph client application session does not have access to this Intune endpoint, even if the signed-in user can open it elsewhere."
+            return
+        }
+
+        throw
+    }
 
     # Convert to array if it's a single value to ensure consistent handling
     if ($null -eq $MDMPolicies) {

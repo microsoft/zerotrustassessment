@@ -14,7 +14,19 @@ function Add-ZtDeviceWindowsEnrollment
     $activity = "Getting Windows enrollment summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
-    $policies = Invoke-ZtGraphRequest -RelativeUri 'Policies/MobileDeviceManagementPolicies' -QueryParameters @{ '$expand' = 'includedGroups' } -ApiVersion 'beta'
+    try {
+        $policies = Invoke-ZtGraphRequest -RelativeUri 'Policies/MobileDeviceManagementPolicies' -QueryParameters @{ '$expand' = 'includedGroups' } -ApiVersion 'beta'
+    }
+    catch {
+        if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
+            Write-PSFMessage "Unable to query Windows enrollment summary from Microsoft Graph with the current delegated app context." -Level Warning -ErrorRecord $_
+            Add-ZtTenantInfo -Name "ConfigWindowsEnrollment" -Value @()
+            Write-ZtProgress -Activity $activity -Status "Skipped - insufficient Graph access"
+            return
+        }
+
+        throw
+    }
 
     # Sort policies by AppliesTo (descending) then by DisplayName (ascending)
     $sortedPolicies = $policies | Sort-Object @{Expression='appliesTo';Descending=$true}, @{Expression='displayName';Ascending=$true}
