@@ -48,7 +48,13 @@
 			foreach ($failure in @($groups).Where{$_.Name -eq 'Failed'}.Group) {
 				if ($failedExports[$failure.Name]) { continue }
 				$failedExports[$failure.Name] = $true
-				Write-PSFMessage -Level Warning -Message "Export '{0}' failed: {1}" -StringValues $failure.Name, $failure.Message
+
+				# SignIn timeout is expected for large tenants - log to file, not console WARNING
+				if ($failure.Name -eq 'SignIn' -and $failure.Message -like '*HttpClient.Timeout*') {
+					Write-ZtExportProgress -ExportName $failure.Name -LogsPath $LogsPath -Action Error -ErrorMessage "$($failure.Message); only partial sign-in data was collected."
+				} else {
+					Write-PSFMessage -Level Warning -Message "Export '{0}' failed: {1}" -StringValues $failure.Name, $failure.Message
+				}
 			}
 
 			$status = "$($Workflow.Queues["Results"].Count) / $totalCount | Pending: $($countPending) | Waiting: $($countWaiting) | In Progress: $($countInProgress) | Done: $($countDone) | Failed: $($countFailed)"
