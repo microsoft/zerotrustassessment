@@ -42,8 +42,8 @@
 set -euo pipefail
 
 # --- Configuration ---
-POWERSHELL_VERSION="7.5.1"
-AUTO_INSTALL_PWSH="false"  # "true" = install/upgrade without prompting
+: "${POWERSHELL_VERSION:=7.5.1}"
+: "${AUTO_INSTALL_PWSH:=false}"  # "true" = install/upgrade without prompting
 # ----------------------
 
 # --- Paths ---
@@ -147,6 +147,9 @@ prompt_or_auto() {
   fi
 }
 
+# Hard minimum PowerShell version required by the module manifest.
+MIN_PWSH_VERSION="7.0"
+
 # Ensures pwsh is installed and meets the minimum version.
 ensure_pwsh() {
   echo "Checking for PowerShell..."
@@ -161,6 +164,12 @@ ensure_pwsh() {
     local installed_version
     installed_version="$(pwsh --version 2>/dev/null | sed 's/PowerShell //')"
     echo "PowerShell ${installed_version} found."
+    # Enforce hard minimum required by the module manifest.
+    if [ -n "$installed_version" ] && [ "$(printf '%s\n' "$MIN_PWSH_VERSION" "$installed_version" | sort -V | head -n1)" != "$MIN_PWSH_VERSION" ]; then
+      echo "Error: PowerShell ${installed_version} is below the minimum required version ${MIN_PWSH_VERSION}." >&2
+      echo "Please upgrade: https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell" >&2
+      exit 1
+    fi
     if [ -n "$installed_version" ] && [ "$(printf '%s\n' "$POWERSHELL_VERSION" "$installed_version" | sort -V | head -n1)" != "$POWERSHELL_VERSION" ]; then
       echo "Warning: ${installed_version} is older than the recommended ${POWERSHELL_VERSION}."
       if ! prompt_or_auto "Upgrade to PowerShell ${POWERSHELL_VERSION}?" install_powershell; then
@@ -235,14 +244,24 @@ show_usage() {
 }
 
 # Validates that the given command is an exported module function.
-# Get-Help is always allowed. Known commands skip the module query.
+# Get-Help and known safe commands are always allowed.
+# If module discovery fails, only the safe allowlist is permitted.
 validate_command() {
   local cmd="$1"
-  if [[ "${cmd,,}" == "get-help" ]]; then return 0; fi
-  # Skip module query for known commands
-  if [[ "${cmd,,}" == "connect-ztassessment" || "${cmd,,}" == "invoke-ztassessment" ]]; then return 0; fi
+  # Safe allowlist: commands accepted even when discovery fails.
+  local -a safe_commands=("get-help" "connect-ztassessment" "invoke-ztassessment"
+                          "disconnect-ztassessment" "get-zttest" "get-ztteststatistics")
+  local lc_cmd="${cmd,,}"
+  for safe in "${safe_commands[@]}"; do
+    if [[ "$lc_cmd" == "$safe" ]]; then return 0; fi
+  done
   ensure_module_commands
-  if [ -z "$_MODULE_COMMANDS" ]; then return 0; fi
+  if [ -z "$_MODULE_COMMANDS" ]; then
+    echo "Error: Could not discover module commands; refusing to run unrecognised command '${cmd}'." >&2
+    echo "Only the following commands are allowed when discovery fails:" >&2
+    for safe in "${safe_commands[@]}"; do echo "  $safe" >&2; done
+    exit 1
+  fi
   local valid_names
   valid_names="$(printf '%s\n' "$_MODULE_COMMANDS" | cut -d'|' -f1)"
   if ! printf '%s\n' "$valid_names" | grep -Fxiq -- "$cmd"; then
