@@ -476,7 +476,12 @@ function Invoke-ZtAssessment {
 	#region Post Processing
 	Write-Host
 	Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
-	Open-ZtReport -FilePath $htmlReportPath
+	try {
+		Open-ZtReport -FilePath $htmlReportPath
+	}
+	catch {
+		Write-PSFMessage -Level Warning -Message "Failed to auto-open the Zero Trust Assessment report. The report was generated successfully and processing will continue. Error: $($_.Exception.Message)"
+	}
 
 	Write-Host
 	Show-ZtiSecurityWarning -ExportPath $exportPath

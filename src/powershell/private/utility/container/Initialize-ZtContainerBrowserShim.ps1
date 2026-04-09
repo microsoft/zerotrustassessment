@@ -46,9 +46,15 @@ function Initialize-ZtContainerBrowserShim {
     if ($browserHelper) {
         Write-PSFMessage -Message "xdg-open not found. Creating shim from browser helper '$browserHelper'." -Level Verbose
 
+        # Split the browser helper into executable and arguments so the shim
+        # works correctly when $browserHelper contains spaces or extra args.
+        $helperTokens = $browserHelper -split '\s+', 2
+        $helperExe = $helperTokens[0]
+        $helperArgs = if ($helperTokens.Count -gt 1) { $helperTokens[1] } else { '' }
+
         $shimContent = @"
 #!/bin/sh
-exec "$browserHelper" "`$@"
+exec "$helperExe" $helperArgs "`$@"
 "@
 
         try {

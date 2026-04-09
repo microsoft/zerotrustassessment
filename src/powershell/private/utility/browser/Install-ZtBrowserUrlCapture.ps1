@@ -18,14 +18,16 @@ function Install-ZtBrowserUrlCapture {
     if (-not ($IsLinux -or $IsMacOS)) { return $null }
 
     $browserCmd = if ($IsLinux) { 'xdg-open' } else { 'open' }
-    $realBrowserPath = & which $browserCmd 2>$null
-    if (-not $realBrowserPath) {
+    $resolvedCmd = Get-Command -Name $browserCmd -ErrorAction Ignore
+    if (-not $resolvedCmd) {
         Write-PSFMessage -Message "Cannot install URL capture: '$browserCmd' not found on PATH." -Level Debug
         return $null
     }
+    $realBrowserPath = $resolvedCmd.Source
 
     $authUrlFile = [System.IO.Path]::GetTempFileName()
-    $wrapperDir  = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath 'zt-browser-wrapper'
+    $wrapperDirName = "zt-browser-wrapper-$([System.Guid]::NewGuid().ToString('N'))"
+    $wrapperDir  = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $wrapperDirName
     $null = New-Item -Path $wrapperDir -ItemType Directory -Force
     $wrapperPath = Join-Path -Path $wrapperDir -ChildPath $browserCmd
 

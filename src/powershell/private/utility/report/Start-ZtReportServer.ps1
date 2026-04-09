@@ -43,7 +43,13 @@ function Start-ZtReportServer {
         return $null
     }
 
-    $reportContent = Get-Content -Path $FilePath -Raw -ErrorAction Stop
+    try {
+        $reportContent = Get-Content -Path $FilePath -Raw -ErrorAction Stop
+    }
+    catch {
+        Write-PSFMessage -Message "Could not read report file for the report server: $FilePath. $_" -Level Warning
+        return $null
+    }
     $timeoutMs = $TimeoutMinutes * 60 * 1000
 
     # Start the HTTP server in a background PowerShell instance
@@ -83,6 +89,10 @@ function Start-ZtReportServer {
         Url  = "http://localhost:${port}"
         Job  = $serverJob
     }
+
+    # Stop any previously running server before tracking the new one
+    Stop-ZtReportServer
+
     $script:ZtReportServer = $state
     return $state
 }

@@ -32,7 +32,8 @@ function Test-ZtPortForwarding {
         # Test that we can connect to it
         $client = [System.Net.Sockets.TcpClient]::new()
         $connectTask = $client.ConnectAsync('127.0.0.1', $testPort)
-        $connected = $connectTask.Wait([timespan]::FromSeconds(3))
+        $completed = $connectTask.Wait([timespan]::FromSeconds(3))
+        $connected = $completed -and -not $connectTask.IsFaulted
         $client.Close()
 
         if ($connected) {

@@ -146,6 +146,14 @@
             Write-PSFMessage $dbCleanupMessage -Level Warning
         }
 
+        # Stop the background report HTTP server if one is running
+        try {
+            Stop-ZtReportServer
+        }
+        catch {
+            Write-PSFMessage "Error stopping report server: $($_.Exception.Message)" -Level Warning
+        }
+
         # Clean up container environment modifications (xdg-open shim, /etc/hosts repair, etc.)
         try {
             Remove-ZtContainerEnvironment

@@ -43,7 +43,6 @@ function Initialize-ZtContainerEnvironment {
 
     $issues = [System.Collections.Generic.List[string]]::new()
     $browserAuthReady = $true
-    $xdgOpenExisted = [bool](Get-Command -Name 'xdg-open' -ErrorAction Ignore)
 
     #region 1. Check xdg-open / browser helper
     $browserOk = Initialize-ZtContainerBrowserShim
