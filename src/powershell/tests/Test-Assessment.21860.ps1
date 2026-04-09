@@ -68,11 +68,6 @@ function Test-Assessment-21860 {
         Write-PSFMessage "Found $($diagnosticSettings.Count) diagnostic setting(s)" -Tag Test -Level VeryVerbose
     }
     catch {
-        if ($_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*') {
-            Write-PSFMessage 'The signed-in user does not have access to Entra diagnostic settings.' -Level Verbose
-            Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-            return
-        }
         Write-PSFMessage "Entra diagnostic settings query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
@@ -134,7 +129,7 @@ function Test-Assessment-21860 {
             $tableRows += "| $log | $($settingNames -join ', ') |`n"
         }
         else {
-            $tableRows += "| $log | None |`n"
+            $tableRows += "| $log | none |`n"
         }
     }
 
@@ -143,7 +138,7 @@ function Test-Assessment-21860 {
 
 ## [{0}]({1})
 
-| Log Name | Diagnostic Settings |
+| Log name | Diagnostic settings |
 | :--- | :--- |
 {2}
 
