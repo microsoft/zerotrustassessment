@@ -3,8 +3,9 @@
     Validates that external collaboration is governed by explicit Cross-Tenant Access Policies.
 
 .DESCRIPTION
-    This test checks if default outbound B2B collaboration settings block all users and all applications,
-    requiring explicit cross-tenant access policies for external collaboration.
+    This test checks if default outbound B2B collaboration settings allow all users but restrict applications
+    to only the Microsoft Rights Management Services application (00000012-0000-0000-c000-000000000000),
+    blocking all other applications by default.
 
 .NOTES
     Test ID: 25378
@@ -21,7 +22,7 @@ function Test-Assessment-25378 {
         CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
         Pillar = 'Network',
         RiskLevel = 'High',
-        SfiPillar = 'Protect identities and secrets',
+        SfiPillar = 'Protect networks',
         TenantType = ('Workforce'),
         TestId = 25378,
         Title = 'External collaboration is governed by explicit Cross-Tenant Access Policies',
@@ -98,21 +99,23 @@ function Test-Assessment-25378 {
                               $applicationsTargets -contains 'AllApplications' -and
                               $applicationsTargetTypes -contains 'application'
 
-        $fullBlockCondition = $usersAndGroupsAccessType -eq 'blocked' -and
-                              $usersAndGroupsTargets -contains 'AllUsers' -and
-                              $usersAndGroupsTargetTypes -contains 'user' -and
-                              $applicationsAccessType -eq 'blocked' -and
-                              $applicationsTargets -contains 'AllApplications' -and
-                              $applicationsTargetTypes -contains 'application'
+        $targetedAllowCondition = $isServiceDefault -eq $false -and
+                                  $usersAndGroupsAccessType -eq 'allowed' -and
+                                  $usersAndGroupsTargets -contains 'AllUsers' -and
+                                  $usersAndGroupsTargetTypes -contains 'user' -and
+                                  $applicationsAccessType -eq 'allowed' -and
+                                  $applicationsTargets.Count -eq 1 -and
+                                  $applicationsTargets -contains '00000012-0000-0000-c000-000000000000' -and
+                                  $applicationsTargetTypes -contains 'application'
 
         # Evaluate and set test result
         if ($isServiceDefault -or $fullAllowCondition) {
             $passed = $false
             $testResultMarkdown = "❌ Default outbound B2B collaboration allows all users to access all applications in external organizations without governance.`n`n%TestResult%"
         }
-        elseif ($fullBlockCondition) {
+        elseif ($targetedAllowCondition) {
             $passed = $true
-            $testResultMarkdown = "✅ Default outbound B2B collaboration is blocked for all users and all applications, requiring explicit cross-tenant access policies for external collaboration.`n`n%TestResult%"
+            $testResultMarkdown = "✅ Default outbound B2B collaboration allows all users but only the Microsoft Rights Management Services application (``00000012-0000-0000-c000-000000000000``), blocking all other applications by default.`n`n%TestResult%"
         }
         else {
             $passed = $false
@@ -175,10 +178,10 @@ function Test-Assessment-25378 {
 
         # Calculate status indicators
         $isServiceDefaultStatus = if ($isServiceDefaultStr -eq 'false') { '✅' } else { '❌' }
-        $usersAccessStatus = if ($usersAndGroupsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
+        $usersAccessStatus = if ($usersAndGroupsAccessTypeDisplay -eq 'allowed') { '✅' } else { '❌' }
         $usersTargetStatus = if ($usersAndGroupsTargets -contains 'AllUsers' -and $usersAndGroupsTargetTypes -contains 'user') { '✅' } else { '❌' }
-        $appsAccessStatus = if ($applicationsAccessTypeDisplay -eq 'blocked') { '✅' } else { '❌' }
-        $appsTargetStatus = if ($applicationsTargets -contains 'AllApplications' -and $applicationsTargetTypes -contains 'application') { '✅' } else { '❌' }
+        $appsAccessStatus = if ($applicationsAccessTypeDisplay -eq 'allowed') { '✅' } else { '❌' }
+        $appsTargetStatus = if ($applicationsTargets.Count -eq 1 -and $applicationsTargets -contains '00000012-0000-0000-c000-000000000000' -and $applicationsTargetTypes -contains 'application') { '✅' } else { '❌' }
 
         $formatTemplate = @'
 
@@ -191,10 +194,10 @@ function Test-Assessment-25378 {
 '@
 
         $tableRows = "| Is service default | $isServiceDefaultStr | false | $isServiceDefaultStatus |`n"
-        $tableRows += "| Users and groups access type | $usersAndGroupsAccessTypeDisplay | blocked | $usersAccessStatus |`n"
+        $tableRows += "| Users and groups access type | $usersAndGroupsAccessTypeDisplay | allowed | $usersAccessStatus |`n"
         $tableRows += "| Users and groups target | $displayUserTarget | AllUsers | $usersTargetStatus |`n"
-        $tableRows += "| Applications access type | $applicationsAccessTypeDisplay | blocked | $appsAccessStatus |`n"
-        $tableRows += "| Applications target | $displayAppTarget | AllApplications | $appsTargetStatus |"
+        $tableRows += "| Applications access type | $applicationsAccessTypeDisplay | allowed | $appsAccessStatus |`n"
+        $tableRows += "| Applications target | $displayAppTarget | 00000012-0000-0000-c000-000000000000 | $appsTargetStatus |"
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
     }
