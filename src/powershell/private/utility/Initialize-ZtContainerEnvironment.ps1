@@ -107,7 +107,7 @@ function Initialize-ZtContainerEnvironment {
         LocalhostOk        = $localhostOk
         PortForwardOk      = $portForwardOk
         # Track modifications for cleanup
-        CreatedXdgOpenShim = (-not $xdgOpenExisted -and (Test-Path '/usr/local/bin/xdg-open' -ErrorAction Ignore))
+        BrowserShimState   = $script:ZtBrowserShimState
         RepairedHosts      = (-not $originalLocalhostOk -and $localhostOk)
     }
 }
@@ -215,8 +215,10 @@ function Initialize-ZtContainerBrowserShim {
     [OutputType([bool])]
     param ()
 
+    # Reset shim tracking state
+    $script:ZtBrowserShimState = $null
+
     $xdgOpen = Get-Command -Name 'xdg-open' -ErrorAction Ignore
-    $browserHelper = $env:BROWSER
 
     if ($xdgOpen) {
         Write-Host -Object '    ✅ Browser helper: xdg-open available.' -ForegroundColor Green
@@ -224,8 +226,31 @@ function Initialize-ZtContainerBrowserShim {
         return $true
     }
 
-    if ($browserHelper -and (Test-Path $browserHelper)) {
-        Write-PSFMessage -Message "xdg-open not found. Creating shim from `$BROWSER='$browserHelper'." -Level Verbose
+    # Try $VSCODE_BROWSER first (set by VS Code remote), then $BROWSER
+    $browserHelper = $null
+    foreach ($envVar in @('VSCODE_BROWSER', 'BROWSER')) {
+        $candidate = [System.Environment]::GetEnvironmentVariable($envVar)
+        if (-not $candidate) { continue }
+
+        # The variable may be a full path, a bare command name, or include arguments.
+        # Extract the first token (the executable) for resolution.
+        $tokens = $candidate -split '\s+', 2
+        $exePath = $tokens[0]
+
+        # Resolve via Get-Command (handles both paths and command names on PATH)
+        $resolved = Get-Command -Name $exePath -ErrorAction Ignore
+        if ($resolved) {
+            $browserHelper = $candidate
+            Write-PSFMessage -Message "Resolved browser helper from `$$envVar='$candidate' (exe: $($resolved.Source))." -Level Debug
+            break
+        }
+        else {
+            Write-PSFMessage -Message "`$$envVar='$candidate' set but '$exePath' not found on PATH or filesystem." -Level Debug
+        }
+    }
+
+    if ($browserHelper) {
+        Write-PSFMessage -Message "xdg-open not found. Creating shim from browser helper '$browserHelper'." -Level Verbose
 
         $shimContent = @"
 #!/bin/sh
@@ -234,8 +259,8 @@ exec "$browserHelper" "`$@"
 
         try {
             $shimPath = '/usr/local/bin/xdg-open'
-            $shimContent | & sudo tee $shimPath > $null 2>&1
-            & sudo chmod +x $shimPath 2>&1 > $null
+            $shimContent | & sudo -n tee $shimPath > $null 2>&1
+            & sudo -n chmod +x $shimPath 2>&1 > $null
         }
         catch {
             Write-PSFMessage -Message "Failed to create system xdg-open shim: $_" -Level Debug
@@ -243,6 +268,7 @@ exec "$browserHelper" "`$@"
 
         if (Get-Command -Name 'xdg-open' -ErrorAction Ignore) {
             Write-Host -Object '    ✅ Browser helper: created xdg-open shim.' -ForegroundColor Green
+            $script:ZtBrowserShimState = @{ ShimPath = $shimPath; AddedPathEntry = $null }
             return $true
         }
 
@@ -257,9 +283,11 @@ exec "$browserHelper" "`$@"
             Set-Content -Path $userShimPath -Value $shimContent -NoNewline
             & chmod +x $userShimPath 2>&1 > $null
 
+            $addedPathEntry = $null
             $pathEntries = $env:PATH -split ':'
             if ($pathEntries -notcontains $userBinDir) {
                 $env:PATH = "$userBinDir:$($env:PATH)"
+                $addedPathEntry = $userBinDir
             }
         }
         catch {
@@ -268,6 +296,7 @@ exec "$browserHelper" "`$@"
 
         if (Get-Command -Name 'xdg-open' -ErrorAction Ignore) {
             Write-Host -Object '    ✅ Browser helper: created xdg-open shim.' -ForegroundColor Green
+            $script:ZtBrowserShimState = @{ ShimPath = $userShimPath; AddedPathEntry = $addedPathEntry }
             return $true
         }
 
@@ -275,7 +304,7 @@ exec "$browserHelper" "`$@"
         return $false
     }
 
-    Write-Host -Object '    ❌ Browser helper: no xdg-open or $BROWSER available.' -ForegroundColor Red
+    Write-Host -Object '    ❌ Browser helper: no xdg-open, $VSCODE_BROWSER, or $BROWSER available.' -ForegroundColor Red
     return $false
 }
 
@@ -368,13 +397,13 @@ function Repair-ZtLocalhostResolution {
     try {
         $hostsContent = Get-Content '/etc/hosts' -Raw -ErrorAction Stop
 
-        if ($hostsContent -match '^\s*127\.0\.0\.1\s+.*localhost') {
+        if ($hostsContent -match '(?m)^\s*127\.0\.0\.1\s+.*localhost') {
             Write-PSFMessage -Message "/etc/hosts already has 127.0.0.1 localhost but DNS didn't resolve it. May be overridden." -Level Debug
             return $false
         }
 
         # Add IPv4 localhost entry
-        '127.0.0.1 localhost' | & sudo tee -a /etc/hosts > $null 2>&1
+        '127.0.0.1 localhost' | & sudo -n tee -a /etc/hosts > $null 2>&1
 
         # Verify the fix worked
         $addresses = [System.Net.Dns]::GetHostAddresses('localhost')
@@ -496,11 +525,19 @@ function Remove-ZtContainerEnvironment {
     Write-PSFMessage -Message "Cleaning up container environment modifications..." -Level Verbose
 
     #region Remove xdg-open shim
-    if ($readiness.CreatedXdgOpenShim) {
+    $shimState = $readiness.BrowserShimState
+    if ($shimState) {
         try {
-            $shimPath = '/usr/local/bin/xdg-open'
-            if (Test-Path $shimPath) {
-                & sudo rm -f $shimPath 2>&1 > $null
+            $shimPath = $shimState.ShimPath
+            if ($shimPath -and (Test-Path $shimPath)) {
+                # Use sudo -n only for system paths; user paths don't need elevation
+                if ($shimPath -like '/usr/*') {
+                    & sudo -n rm -f $shimPath 2>&1 > $null
+                }
+                else {
+                    Remove-Item -Path $shimPath -Force -ErrorAction Stop
+                }
+
                 if (-not (Test-Path $shimPath)) {
                     Write-Host -Object '      ✅ Removed xdg-open shim.' -ForegroundColor Green
                     Write-PSFMessage -Message "Removed xdg-open shim at $shimPath." -Level Verbose
@@ -509,6 +546,12 @@ function Remove-ZtContainerEnvironment {
                     Write-Host -Object '      ⚠️ Could not remove xdg-open shim.' -ForegroundColor Yellow
                     Write-PSFMessage -Message "Could not remove xdg-open shim at $shimPath." -Level Warning
                 }
+            }
+
+            # Revert PATH addition if we added an entry
+            if ($shimState.AddedPathEntry) {
+                $env:PATH = ($env:PATH -split ':' | Where-Object { $_ -ne $shimState.AddedPathEntry }) -join ':'
+                Write-PSFMessage -Message "Removed '$($shimState.AddedPathEntry)' from PATH." -Level Verbose
             }
         }
         catch {
@@ -525,7 +568,7 @@ function Remove-ZtContainerEnvironment {
             # Remove only the line we added (exact match)
             $filteredContent = $hostsContent | Where-Object { $_ -ne '127.0.0.1 localhost' }
             if ($filteredContent.Count -lt $hostsContent.Count) {
-                $filteredContent | & sudo tee /etc/hosts > $null 2>&1
+                $filteredContent | & sudo -n tee /etc/hosts > $null 2>&1
                 Write-Host -Object '      ✅ Reverted /etc/hosts localhost entry.' -ForegroundColor Green
                 Write-PSFMessage -Message "Removed '127.0.0.1 localhost' from /etc/hosts." -Level Verbose
             }
@@ -585,322 +628,4 @@ function Test-ZtContainerEnvironment {
     }
 
     return $false
-}
-
-function Install-ZtBrowserUrlCapture {
-    <#
-    .SYNOPSIS
-        Installs a temporary xdg-open/open wrapper that captures the auth URL MSAL passes to the browser.
-    .DESCRIPTION
-        In container environments, MSAL opens the browser via xdg-open (Linux) or open (macOS) with a
-        URL containing PKCE code_challenge, state, and a dynamic localhost port. This function creates
-        a thin wrapper script that logs the URL to a temp file before forwarding to the real browser
-        opener, enabling a clickable fallback link to be displayed in the terminal.
-    .OUTPUTS
-        [hashtable] State needed by Start-ZtBrowserUrlWatcher and Remove-ZtBrowserUrlCapture,
-        or $null if the wrapper could not be installed.
-    #>
-    [CmdletBinding()]
-    [OutputType([hashtable])]
-    param ()
-
-    if (-not ($IsLinux -or $IsMacOS)) { return $null }
-
-    $browserCmd = if ($IsLinux) { 'xdg-open' } else { 'open' }
-    $realBrowserPath = & which $browserCmd 2>$null
-    if (-not $realBrowserPath) {
-        Write-PSFMessage -Message "Cannot install URL capture: '$browserCmd' not found on PATH." -Level Debug
-        return $null
-    }
-
-    $authUrlFile = [System.IO.Path]::GetTempFileName()
-    $wrapperDir  = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath 'zt-browser-wrapper'
-    $null = New-Item -Path $wrapperDir -ItemType Directory -Force
-    $wrapperPath = Join-Path -Path $wrapperDir -ChildPath $browserCmd
-
-    # Wrapper: save the URL to the temp file, then call the real browser opener
-    $wrapperContent = @"
-#!/bin/bash
-echo "`$1" > "$authUrlFile"
-exec "$realBrowserPath" "`$@"
-"@
-    Set-Content -Path $wrapperPath -Value $wrapperContent -Force
-    chmod +x $wrapperPath
-
-    # Prepend wrapper dir to PATH so MSAL finds our wrapper first
-    $env:PATH = "${wrapperDir}:$($env:PATH)"
-
-    Write-PSFMessage -Message "Installed browser URL capture wrapper at $wrapperPath (real: $realBrowserPath)." -Level Debug
-
-    return @{
-        AuthUrlFile     = $authUrlFile
-        WrapperPath     = $wrapperPath
-        WrapperDir      = $wrapperDir
-        RealBrowserPath = $realBrowserPath
-    }
-}
-
-function Start-ZtBrowserUrlWatcher {
-    <#
-    .SYNOPSIS
-        Starts a background PowerShell instance that watches for the captured auth URL and prints it.
-    .DESCRIPTION
-        After Install-ZtBrowserUrlCapture sets up the wrapper, call this function before
-        Connect-MgGraph to start a background watcher. When MSAL invokes xdg-open, the wrapper
-        writes the URL to a temp file, and the watcher detects it and prints it to the console
-        as a clickable fallback link.
-    .PARAMETER CaptureState
-        The hashtable returned by Install-ZtBrowserUrlCapture.
-    .OUTPUTS
-        [powershell] The background PowerShell instance (dispose it during cleanup).
-    #>
-    [CmdletBinding()]
-    [OutputType([powershell])]
-    param (
-        [Parameter(Mandatory)]
-        [hashtable] $CaptureState
-    )
-
-    $watcher = [powershell]::Create()
-    $null = $watcher.AddScript({
-        param($authUrlFile)
-        for ($i = 0; $i -lt 100; $i++) {
-            Start-Sleep -Milliseconds 100
-            if ((Test-Path $authUrlFile) -and (Get-Item $authUrlFile).Length -gt 0) {
-                $capturedUrl = (Get-Content -Path $authUrlFile -Raw).Trim()
-                if ($capturedUrl -match '^https://') {
-                    [Console]::WriteLine("   If the browser did not open, copy and paste this link:")
-                    [Console]::WriteLine("   `u{1f517} $capturedUrl")
-                }
-                break
-            }
-        }
-    }).AddArgument($CaptureState.AuthUrlFile)
-    $null = $watcher.BeginInvoke()
-
-    return $watcher
-}
-
-function Remove-ZtBrowserUrlCapture {
-    <#
-    .SYNOPSIS
-        Cleans up the browser URL capture wrapper, temp file, and background watcher.
-    .DESCRIPTION
-        Reverses the PATH modification, removes the wrapper directory and temp file,
-        and disposes the background PowerShell watcher. Call this in a finally block
-        after Connect-MgGraph completes.
-    .PARAMETER CaptureState
-        The hashtable returned by Install-ZtBrowserUrlCapture. May be $null (no-op).
-    .PARAMETER Watcher
-        The PowerShell instance returned by Start-ZtBrowserUrlWatcher. May be $null (no-op).
-    #>
-    [CmdletBinding()]
-    param (
-        [AllowNull()]
-        [hashtable] $CaptureState,
-
-        [AllowNull()]
-        [powershell] $Watcher
-    )
-
-    if ($CaptureState) {
-        if ($CaptureState.WrapperDir) {
-            $env:PATH = ($env:PATH -split ':' | Where-Object { $_ -ne $CaptureState.WrapperDir }) -join ':'
-            Remove-Item -Path $CaptureState.WrapperDir -Recurse -Force -ErrorAction Ignore
-        }
-        if ($CaptureState.AuthUrlFile) {
-            Remove-Item -Path $CaptureState.AuthUrlFile -Force -ErrorAction Ignore
-        }
-        Write-PSFMessage -Message "Removed browser URL capture wrapper." -Level Debug
-    }
-
-    if ($Watcher) {
-        $Watcher.Dispose()
-    }
-}
-
-function Open-ZtFile {
-    <#
-    .SYNOPSIS
-        Opens a file or URL in the default application, with container-aware fallback.
-    .DESCRIPTION
-        On Linux, uses xdg-open. On macOS, uses open. On Windows, uses Invoke-Item.
-        Returns $true if the open command ran without error.
-    .PARAMETER Path
-        The file path or URL to open.
-    .OUTPUTS
-        [bool] True if the open command ran successfully.
-    #>
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param (
-        [Parameter(Mandatory)]
-        [string] $Path
-    )
-
-    if ($IsLinux -or $IsMacOS) {
-        $openCmd = if ($IsLinux) { 'xdg-open' } else { 'open' }
-        if (Get-Command -Name $openCmd -ErrorAction Ignore) {
-            try {
-                & $openCmd $Path 2>&1 | Out-Null
-                return $true
-            }
-            catch {
-                Write-PSFMessage -Message "Failed to open with ${openCmd}: $_" -Level Debug
-            }
-        }
-    }
-    else {
-        try {
-            Invoke-Item $Path | Out-Null
-            return $true
-        }
-        catch {
-            Write-PSFMessage -Message "Failed to open with Invoke-Item: $_" -Level Debug
-        }
-    }
-
-    return $false
-}
-
-function Open-ZtReport {
-    <#
-    .SYNOPSIS
-        Opens the assessment report, using an HTTP server in containers for VS Code port forwarding.
-    .DESCRIPTION
-        In container environments, local file:// paths don't work in the browser.
-        This function starts a lightweight HTTP server and opens the forwarded URL instead.
-        On non-container environments, opens the file directly.
-        Always displays a clickable link in the terminal.
-    .PARAMETER FilePath
-        The path to the HTML report file.
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string] $FilePath
-    )
-
-    $authReadiness = $script:ZtContainerAuthReadiness
-    $isContainer = $authReadiness -and $authReadiness.IsContainer
-
-    if ($isContainer) {
-        $reportServer = Start-ZtReportServer -FilePath $FilePath
-        if ($reportServer) {
-            $null = Open-ZtFile -Path $reportServer.Url
-            Write-Host "   🌐 Report: $($reportServer.Url)" -ForegroundColor Green
-            Write-Host "      Server will auto-stop after 30 minutes. Run Stop-ZtReportServer to stop earlier." -ForegroundColor DarkGray
-            return
-        }
-    }
-
-    # Non-container or server failed to start — open file directly
-    $null = Open-ZtFile -Path $FilePath
-    Write-Host "   🌐 Report: $FilePath" -ForegroundColor Green
-}
-
-function Start-ZtReportServer {
-    <#
-    .SYNOPSIS
-        Starts a lightweight HTTP server to serve the assessment report in container environments.
-    .DESCRIPTION
-        In dev containers and Codespaces, opening local file paths in the browser doesn't work
-        reliably. This function starts a background HTTP listener that serves the report HTML file.
-        VS Code auto-detects the listening port and forwards it, making the report accessible
-        via the browser.
-
-        The server runs in a background PowerShell instance and serves only the specified file.
-        It stops automatically after the timeout period or when Stop-ZtReportServer is called.
-    .PARAMETER FilePath
-        The path to the HTML report file to serve.
-    .PARAMETER TimeoutMinutes
-        How long the server should run before auto-stopping. Default is 30 minutes.
-    .OUTPUTS
-        [hashtable] Server state with Port, Url, and Job properties, or $null if the server could not start.
-    #>
-    [CmdletBinding()]
-    [OutputType([hashtable])]
-    param (
-        [Parameter(Mandatory)]
-        [string] $FilePath,
-
-        [int] $TimeoutMinutes = 30
-    )
-
-    if (-not (Test-Path -Path $FilePath)) {
-        Write-PSFMessage -Message "Report file not found: $FilePath" -Level Warning
-        return $null
-    }
-
-    # Find a free port
-    try {
-        $tcp = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
-        $tcp.Start()
-        $port = $tcp.LocalEndpoint.Port
-        $tcp.Stop()
-    }
-    catch {
-        Write-PSFMessage -Message "Could not allocate a port for the report server: $_" -Level Debug
-        return $null
-    }
-
-    $reportContent = Get-Content -Path $FilePath -Raw -ErrorAction Stop
-    $timeoutMs = $TimeoutMinutes * 60 * 1000
-
-    # Start the HTTP server in a background PowerShell instance
-    $serverJob = [powershell]::Create()
-    $null = $serverJob.AddScript({
-        param($port, $reportContent, $timeoutMs)
-        $listener = [System.Net.HttpListener]::new()
-        $listener.Prefixes.Add("http://127.0.0.1:${port}/")
-        $listener.Start()
-
-        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-        while ($listener.IsListening -and $stopwatch.ElapsedMilliseconds -lt $timeoutMs) {
-            $contextTask = $listener.GetContextAsync()
-            if ($contextTask.Wait(5000)) {
-                $context = $contextTask.Result
-                $response = $context.Response
-                $buffer = [System.Text.Encoding]::UTF8.GetBytes($reportContent)
-                $response.ContentType = 'text/html; charset=utf-8'
-                $response.ContentLength64 = $buffer.Length
-                $response.OutputStream.Write($buffer, 0, $buffer.Length)
-                $response.OutputStream.Close()
-            }
-        }
-        $listener.Stop()
-        $listener.Close()
-    }).AddArgument($port).AddArgument($reportContent).AddArgument($timeoutMs)
-
-    $null = $serverJob.BeginInvoke()
-
-    # Brief pause to let the listener start
-    Start-Sleep -Milliseconds 200
-
-    Write-PSFMessage -Message "Report server started on port $port (timeout: ${TimeoutMinutes}m)." -Level Debug
-
-    $state = @{
-        Port = $port
-        Url  = "http://localhost:${port}"
-        Job  = $serverJob
-    }
-    $script:ZtReportServer = $state
-    return $state
-}
-
-function Stop-ZtReportServer {
-    <#
-    .SYNOPSIS
-        Stops the background report HTTP server if one is running.
-    #>
-    [CmdletBinding()]
-    param ()
-
-    $state = $script:ZtReportServer
-    if ($state -and $state.Job) {
-        $state.Job.Stop()
-        $state.Job.Dispose()
-        $script:ZtReportServer = $null
-        Write-PSFMessage -Message "Report server stopped." -Level Debug
-    }
 }
