@@ -237,8 +237,8 @@ validate_command() {
   ensure_module_commands
   if [ -z "$_MODULE_COMMANDS" ]; then return 0; fi
   local valid_names
-  valid_names="$(echo "$_MODULE_COMMANDS" | cut -d'|' -f1 | tr '\n' '|' | sed 's/|$//')"
-  if ! echo "$cmd" | grep -qiE "^(${valid_names})$"; then
+  valid_names="$(printf '%s\n' "$_MODULE_COMMANDS" | cut -d'|' -f1)"
+  if ! printf '%s\n' "$valid_names" | grep -Fxiq -- "$cmd"; then
     echo "Error: Unknown command '${cmd}'." >&2
     echo "" >&2
     show_usage >&2
