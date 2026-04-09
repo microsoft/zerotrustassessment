@@ -13,8 +13,8 @@ function Initialize-ZtContainerEnvironment {
         4. Port forwarding capability for the MSAL callback listener
 
         This function checks each dependency, attempts recovery if a check fails,
-        and records what works so Connect-ZtAssessment can decide whether to use
-        browser auth or fall back to device code flow.
+        and records the resulting browser-auth readiness state for diagnostics
+        and for callers that choose to inspect it.
 
         It is called automatically during Connect-ZtAssessment on non-Windows platforms.
 
