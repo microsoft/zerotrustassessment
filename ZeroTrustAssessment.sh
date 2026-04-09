@@ -262,16 +262,18 @@ echo "Running: $1"
 # If invoking the assessment, automatically connect first in the same session.
 if [[ "${1,,}" == "invoke-ztassessment" ]]; then
   echo "Will connect to services before running the assessment."
+  CONNECT_FIRST="Connect-ZtAssessment"
+  echo "Will connect to services before running the assessment."
 fi
 
 echo "Loading ZeroTrustAssessment module and running command..."
 exec pwsh -NoProfile -Command '
-  & "'"${MODULE_DIR}"'/Initialize-Dependencies.ps1"
-  Import-Module "'"${MODULE_DIR}"'/ZeroTrustAssessment.psd1" -Force
-  if ($args[0] -ieq "Invoke-ZtAssessment") {
-    Connect-ZtAssessment
-  }
-  if ($args.Length -gt 1) {
+  param($moduleDir, $connectFirst, $cmd, $rest)
+  & "$moduleDir/Initialize-Dependencies.ps1"
+  Import-Module "$moduleDir/ZeroTrustAssessment.psd1" -Force
+  if ($connectFirst) { & $connectFirst }
+  & $cmd @rest
+' -- "$MODULE_DIR" "$CONNECT_FIRST" "$1" "${@:2}"
     & $args[0] @($args[1..($args.Length - 1)])
   } else {
     & $args[0]
