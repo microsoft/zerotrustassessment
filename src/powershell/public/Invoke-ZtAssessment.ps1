@@ -249,7 +249,8 @@ $titleLine
 	#region Preparation
 	Show-ZtiBanner
 
-	if (-not (Test-ZtLanguageMode -IgnoreLanguageMode:$IgnoreLanguageMode)) {
+	$effectiveIgnore = $IgnoreLanguageMode -or $script:IgnoreLanguageMode
+	if (-not (Test-ZtLanguageMode -IgnoreLanguageMode:$effectiveIgnore)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}

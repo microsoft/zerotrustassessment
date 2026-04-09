@@ -41,11 +41,14 @@ function Test-ZtLanguageMode {
 	if ($languageMode -ne $fullLanguage) {
 		if ($IgnoreLanguageMode) {
 			Write-PSFMessage -Level Warning -Message "PowerShell is running in $languageMode mode. Proceeding because -IgnoreLanguageMode was specified. Some functionality may fail."
-			Write-Host
-			Write-Host "⚠️  WARNING: PowerShell is running in $languageMode mode." -ForegroundColor Yellow
-			Write-Host "The -IgnoreLanguageMode switch was specified. The assessment will proceed, but some tests may" -ForegroundColor Yellow
-			Write-Host "fail or produce incomplete results if your WDAC policy does not fully trust this module." -ForegroundColor Yellow
-			Write-Host
+			if (-not $script:IgnoreLanguageModeWarningShown) {
+				Write-Host
+				Write-Host "⚠️  WARNING: PowerShell is running in $languageMode mode." -ForegroundColor Yellow
+				Write-Host "The -IgnoreLanguageMode switch was specified. The assessment will proceed, but some tests may" -ForegroundColor Yellow
+				Write-Host "fail or produce incomplete results if your WDAC policy does not fully trust this module." -ForegroundColor Yellow
+				Write-Host
+				$script:IgnoreLanguageModeWarningShown = $true
+			}
 			return $true
 		}
 		Write-ZtLanguageModeError -LanguageMode $languageMode

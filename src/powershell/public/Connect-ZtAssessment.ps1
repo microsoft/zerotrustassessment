@@ -111,6 +111,7 @@ function Connect-ZtAssessment {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}
+	if ($IgnoreLanguageMode) { $script:IgnoreLanguageMode = $true }
 
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
