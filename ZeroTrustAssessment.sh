@@ -93,13 +93,19 @@ install_powershell() {
     brew install powershell/tap/powershell
   else
     echo "  Installing exact PowerShell version ${POWERSHELL_VERSION} from GitHub release tarball..."
-    local arch pkg_arch tarball install_dir
+    local arch os_name pkg_os pkg_arch tarball install_dir
     arch="$(uname -m)"
     case "$arch" in
       x86_64) pkg_arch="x64" ;; aarch64|arm64) pkg_arch="arm64" ;;
       *) echo "Error: Unsupported architecture: $arch" >&2; exit 1 ;;
     esac
-    tarball="powershell-${POWERSHELL_VERSION}-$(uname -s | tr '[:upper:]' '[:lower:]')-${pkg_arch}.tar.gz"
+    os_name="$(uname -s)"
+    case "$os_name" in
+      Darwin) pkg_os="osx" ;;
+      Linux) pkg_os="linux" ;;
+      *) echo "Error: Unsupported operating system: $os_name" >&2; exit 1 ;;
+    esac
+    tarball="powershell-${POWERSHELL_VERSION}-${pkg_os}-${pkg_arch}.tar.gz"
     install_dir="/opt/microsoft/powershell/7"
     sudo mkdir -p "$install_dir"
     curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/${tarball}" -o "/tmp/${tarball}"
