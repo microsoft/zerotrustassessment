@@ -35,13 +35,6 @@ function Test-Assessment-21860 {
 
     $activity = 'Checking Microsoft Entra diagnostic settings configuration'
 
-    # Only applicable to Global environment
-    if ((Get-MgContext).Environment -ne 'Global') {
-        Write-PSFMessage 'This test is only applicable to the Global environment.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
-    }
-
     # Check if connected to Azure
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
@@ -49,6 +42,13 @@ function Test-Assessment-21860 {
     if (-not $azContext) {
         Write-PSFMessage 'Not connected to Azure.' -Level Warning
         Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
+        return
+    }
+
+    # Only applicable to AzureCloud environment
+    if ($azContext.Environment.Name -ne 'AzureCloud') {
+        Write-PSFMessage 'This test is only applicable to the AzureCloud environment.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
@@ -64,13 +64,19 @@ function Test-Assessment-21860 {
             Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
             return
         }
+        if ($response.StatusCode -ge 400) {
+            $errorMessage = "Entra diagnostic settings query failed with status code $($response.StatusCode)."
+            if ($response.Content) {
+                $errorMessage = "$errorMessage Response: $($response.Content)"
+            }
+            throw $errorMessage
+        }
         $diagnosticSettings = @(($response.Content | ConvertFrom-Json).value)
         Write-PSFMessage "Found $($diagnosticSettings.Count) diagnostic setting(s)" -Tag Test -Level VeryVerbose
     }
     catch {
-        Write-PSFMessage "Entra diagnostic settings query failed: $($_.Exception.Message)" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
+        # Only catches actual exceptions (network errors, throttling, etc.), not HTTP status codes
+        throw
     }
     #endregion Data Collection
 
