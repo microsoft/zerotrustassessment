@@ -67,27 +67,32 @@ verify_powershell_version() {
   fi
 }
 
-# Installs PowerShell using the best available package manager,
-# falling back to a GitHub release tarball.
+# Installs PowerShell using the best available package manager.
+# Package-manager installs use the repository/tap's current version.
+# The GitHub release tarball fallback installs the exact POWERSHELL_VERSION.
 install_powershell() {
   verify_powershell_version
-  echo "Installing PowerShell ${POWERSHELL_VERSION}..."
+  echo "Preparing to install PowerShell."
+  echo "Requested exact version: ${POWERSHELL_VERSION}"
   if command -v apt-get &>/dev/null; then
-    echo "  Using apt-get (Debian/Ubuntu)..."
+    echo "  Using apt-get (Debian/Ubuntu) to install the repository's current PowerShell version."
+    echo "  Note: apt-get may not install exactly ${POWERSHELL_VERSION}."
     source /etc/os-release
     wget -q "https://packages.microsoft.com/config/${ID}/${VERSION_ID}/packages-microsoft-prod.deb" -O /tmp/packages-microsoft-prod.deb
     sudo dpkg -i /tmp/packages-microsoft-prod.deb && rm -f /tmp/packages-microsoft-prod.deb
     sudo apt-get update -qq && sudo apt-get install -y -qq powershell
   elif command -v yum &>/dev/null; then
-    echo "  Using yum (RHEL/CentOS/Fedora)..."
+    echo "  Using yum (RHEL/CentOS/Fedora) to install the repository's current PowerShell version."
+    echo "  Note: yum may not install exactly ${POWERSHELL_VERSION}."
     sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
     curl -sSL "https://packages.microsoft.com/config/rhel/$(rpm -E %{rhel})/prod.repo" | sudo tee /etc/yum.repos.d/microsoft.repo
     sudo yum install -y powershell
   elif command -v brew &>/dev/null; then
-    echo "  Using Homebrew (macOS)..."
+    echo "  Using Homebrew (macOS) to install the tap's current PowerShell version."
+    echo "  Note: Homebrew may not install exactly ${POWERSHELL_VERSION}."
     brew install powershell/tap/powershell
   else
-    echo "  Installing from GitHub release tarball..."
+    echo "  Installing exact PowerShell version ${POWERSHELL_VERSION} from GitHub release tarball..."
     local arch pkg_arch tarball install_dir
     arch="$(uname -m)"
     case "$arch" in
