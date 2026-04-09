@@ -109,10 +109,18 @@ install_powershell() {
 # Usage: prompt_or_auto "message" command [args...]
 prompt_or_auto() {
   local prompt="$1"; shift
+  local answer
   if [[ "$AUTO_INSTALL_PWSH" == "true" ]]; then
     "$@"
   else
-    read -rp "$prompt [y/N] " answer
+    if [[ ! -t 0 ]]; then
+      echo "Error: cannot prompt in non-interactive mode. Set AUTO_INSTALL_PWSH=true to allow automatic installation/upgrade, or run this script interactively." >&2
+      return 1
+    fi
+    if ! read -rp "$prompt [y/N] " answer; then
+      echo "Error: failed to read user input. Set AUTO_INSTALL_PWSH=true to allow automatic installation/upgrade, or run this script interactively." >&2
+      return 1
+    fi
     if [[ "$answer" =~ ^[Yy]$ ]]; then
       "$@"
     else
