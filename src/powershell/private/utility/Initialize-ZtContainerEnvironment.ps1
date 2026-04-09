@@ -226,27 +226,53 @@ function Initialize-ZtContainerBrowserShim {
 
     if ($browserHelper -and (Test-Path $browserHelper)) {
         Write-PSFMessage -Message "xdg-open not found. Creating shim from `$BROWSER='$browserHelper'." -Level Verbose
-        try {
-            $shimPath = '/usr/local/bin/xdg-open'
-            $shimContent = @"
+
+        $shimContent = @"
 #!/bin/sh
 exec "$browserHelper" "`$@"
 "@
+
+        try {
+            $shimPath = '/usr/local/bin/xdg-open'
             $shimContent | & sudo tee $shimPath > $null 2>&1
             & sudo chmod +x $shimPath 2>&1 > $null
+        }
+        catch {
+            Write-PSFMessage -Message "Failed to create system xdg-open shim: $_" -Level Debug
+        }
 
-            if (Get-Command -Name 'xdg-open' -ErrorAction Ignore) {
-                Write-Host -Object '    ✅ Browser helper: created xdg-open shim.' -ForegroundColor Green
-                return $true
+        if (Get-Command -Name 'xdg-open' -ErrorAction Ignore) {
+            Write-Host -Object '    ✅ Browser helper: created xdg-open shim.' -ForegroundColor Green
+            return $true
+        }
+
+        try {
+            $userBinDir = Join-Path -Path $HOME -ChildPath '.local/bin'
+            $userShimPath = Join-Path -Path $userBinDir -ChildPath 'xdg-open'
+
+            if (-not (Test-Path -Path $userBinDir)) {
+                $null = New-Item -Path $userBinDir -ItemType Directory -Force
+            }
+
+            Set-Content -Path $userShimPath -Value $shimContent -NoNewline
+            & chmod +x $userShimPath 2>&1 > $null
+
+            $pathEntries = $env:PATH -split ':'
+            if ($pathEntries -notcontains $userBinDir) {
+                $env:PATH = "$userBinDir:$($env:PATH)"
             }
         }
         catch {
-            Write-PSFMessage -Message "Failed to create xdg-open shim: $_" -Level Debug
+            Write-PSFMessage -Message "Failed to create user xdg-open shim: $_" -Level Debug
         }
 
-        # Shim creation failed, but $BROWSER itself works
-        Write-Host -Object "    ⚠️ Browser helper: could not create xdg-open shim, but `$BROWSER is set." -ForegroundColor Yellow
-        return $true
+        if (Get-Command -Name 'xdg-open' -ErrorAction Ignore) {
+            Write-Host -Object '    ✅ Browser helper: created xdg-open shim.' -ForegroundColor Green
+            return $true
+        }
+
+        Write-Host -Object "    ⚠️ Browser helper: could not create xdg-open shim, and `$BROWSER alone may not be sufficient." -ForegroundColor Yellow
+        return $false
     }
 
     Write-Host -Object '    ❌ Browser helper: no xdg-open or $BROWSER available.' -ForegroundColor Red
