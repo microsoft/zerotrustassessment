@@ -78,7 +78,14 @@ install_powershell() {
     echo "  Using apt-get (Debian/Ubuntu) to install the repository's current PowerShell version."
     echo "  Note: apt-get may not install exactly ${POWERSHELL_VERSION}."
     source /etc/os-release
-    wget -q "https://packages.microsoft.com/config/${ID}/${VERSION_ID}/packages-microsoft-prod.deb" -O /tmp/packages-microsoft-prod.deb
+    if command -v wget &>/dev/null; then
+      wget -q "https://packages.microsoft.com/config/${ID}/${VERSION_ID}/packages-microsoft-prod.deb" -O /tmp/packages-microsoft-prod.deb
+    elif command -v curl &>/dev/null; then
+      curl -fsSL "https://packages.microsoft.com/config/${ID}/${VERSION_ID}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
+    else
+      echo "Error: apt-get install flow requires either wget or curl to download Microsoft's package repository configuration." >&2
+      exit 1
+    fi
     sudo dpkg -i /tmp/packages-microsoft-prod.deb && rm -f /tmp/packages-microsoft-prod.deb
     sudo apt-get update -qq && sudo apt-get install -y -qq powershell
   elif command -v yum &>/dev/null; then
