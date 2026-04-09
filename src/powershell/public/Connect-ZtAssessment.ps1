@@ -101,6 +101,9 @@ function Connect-ZtAssessment {
 		return
 	}
 
+	# Set up container environment compatibility (xdg-open shim for browser auth, etc.)
+	Initialize-ZtContainerEnvironment
+
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}

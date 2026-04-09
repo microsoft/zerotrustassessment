@@ -145,6 +145,22 @@
             }
             Write-PSFMessage $dbCleanupMessage -Level Warning
         }
+
+        # Clean up container environment modifications (xdg-open shim, /etc/hosts repair, etc.)
+        try {
+            Remove-ZtContainerEnvironment
+        }
+        catch {
+            $containerCleanupMessage = "Error cleaning up container environment: $($_.Exception.Message)"
+            if ($cleanupMessage) {
+                $cleanupMessage = "$cleanupMessage | $containerCleanupMessage"
+            }
+            else {
+                $cleanupStatus = 'Failed'
+                $cleanupMessage = $containerCleanupMessage
+            }
+            Write-PSFMessage $containerCleanupMessage -Level Warning
+        }
     }
 
     #endregion Session state cleanup

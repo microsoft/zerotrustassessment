@@ -476,11 +476,12 @@ function Invoke-ZtAssessment {
 	#region Post Processing
 	Write-Host
 	Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
+	Open-ZtReport -FilePath $htmlReportPath
+
+	Write-Host
 	Show-ZtiSecurityWarning -ExportPath $exportPath
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host
-	Write-Host
-	Invoke-Item $htmlReportPath | Out-Null
 
 	if ($ExportLog) {
 		Write-ZtProgress -Activity "Creating support package"
