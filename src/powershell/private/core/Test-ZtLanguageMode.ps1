@@ -40,8 +40,8 @@ function Test-ZtLanguageMode {
 	$languageMode = $ExecutionContext.SessionState.LanguageMode
 	if ($languageMode -ne $fullLanguage) {
 		if ($IgnoreLanguageMode) {
-			Write-PSFMessage -Level Warning -Message "PowerShell is running in $languageMode mode. Proceeding because -IgnoreLanguageMode was specified. Some functionality may fail."
 			if (-not $script:IgnoreLanguageModeWarningShown) {
+				Write-PSFMessage -Level Warning -Message "PowerShell is running in $languageMode mode. Proceeding because -IgnoreLanguageMode was specified. Some functionality may fail."
 				Write-Host
 				Write-Host "⚠️  WARNING: PowerShell is running in $languageMode mode." -ForegroundColor Yellow
 				Write-Host "The -IgnoreLanguageMode switch was specified. The assessment will proceed, but some tests may" -ForegroundColor Yellow
