@@ -25,15 +25,13 @@ function Test-Assessment-21814 {
     $activity = "Checking cloud only roles"
     Write-ZtProgress -Activity $activity -Status "Getting roles"
 
-    $roles = Get-ZTRole -IncludePrivilegedRoles
     # Get all privileged roles
-    # TODO: Remove filter for GA and Global Reader, limiting during testing time.
-    $privilegedRoles = $roles | Where-Object { $_.displayName -in @('Global Administrator', 'Global Reader') }
+    $privilegedRoles = Get-ZTRole -IncludePrivilegedRoles
 
     foreach ($role in $privilegedRoles) {
         Write-ZtProgress -Activity $activity -Status "Getting members in role $($role.displayName)"
         $roleMembers = Get-ZtRoleMember -RoleId $role.id
-        # TODO : For groups get transitive members
+
         $roleUsers = $roleMembers | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.user" }
 
         $ztUsers = @()
@@ -51,17 +49,16 @@ function Test-Assessment-21814 {
     }
     else {
         $onpremUserCount = ($privilegedRoles.ZtUsers | Where-Object { $_.onPremisesSyncEnabled }).Count
-        $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premise.`n`n%TestResult%"
+        $testResultMarkdown += "This tenant has $onpremUserCount privileged users that are synced from on-premises.`n`n%TestResult%"
     }
 
-    #TODO: Make user names clickable
-    $mdInfo = "## Privileged Roles`n`n"
-    $mdInfo += "| Role Name | User | Source | Status |`n"
+    $mdInfo = "## Privileged roles`n`n"
+    $mdInfo += "| Role name | User | Source | Status |`n"
     $mdInfo += "| :--- | :--- | :--- | :---: |`n"
     foreach ($role in $privilegedRoles | Sort-Object displayName) {
         foreach ($user in $role.ZtUsers) {
             if ($user.onPremisesSyncEnabled) {
-                $type = "Synced from on-premise"
+                $type = "Synced from on-premises"
                 $status = "❌"
             }
             else {

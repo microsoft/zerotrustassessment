@@ -174,6 +174,7 @@
 						Set-ZtTimedOutResult -Result $result -Test $Test -Timeout $TestTimeout
 					}
 					else {
+						Write-PSFMessage -Level Warning -Message "PipelineStoppedException in test '{0}' was not caused by timeout" -StringValues $Test.TestID -Target $Test -ErrorRecord $_
 						throw
 					}
 				}
@@ -184,10 +185,18 @@
 			}
 		}
 		catch {
-			Write-PSFMessage -Level Warning -Message "Error executing test '{0}'" -StringValues $Test.TestID -Target $Test -ErrorRecord $_
+			Write-PSFMessage -Level Warning -Message "Error executing test '{0}': {1}" -StringValues $Test.TestID, $_.Exception.Message -Target $Test -ErrorRecord $_
 			$result.Success = $false
 			$result.Error = $_
-			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Failed' -WorkerDetail "$_"
+			$message = @(
+				'❌  Test {0} failed due to an unexpected error.' -f $Test.TestID
+				' - **Error Message**: {0}.' -f $_.Exception.Message
+				'```'
+				'{0}' -f ($_ | Get-Error | Out-String)
+				'```'
+			) -join "`r`n"
+			Add-ZtTestResultDetail -TestId $Test.TestID -Title $Test.Title -Status $false -Result $message -CustomStatus 'Error'
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($_.Exception.Message)"
 		}
 		finally {
 			$result.End = Get-Date
@@ -196,8 +205,10 @@
 			# Reset marker in an assured way, to prevent confusion about the current test being executed
 			$script:__ztCurrentTest = $null
 		}
+
 		Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $Test.TestID -Target $Test -Tag end
 	}
+
 	end {
 		$result.Messages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId) | Where-Object { $_ -notin $previousMessages }
 		Write-ZtTestStatistics -Result $result
@@ -220,8 +231,11 @@
 			elseif ($result.Success) {
 				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Completed -Duration $result.Duration
 			}
+			elseif ($result.Error) {
+				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Error -Duration $result.Duration -ErrorMessage "Error: $($result.Error.Exception.Message)"
+			}
 			else {
-				$progressError = if ($result.Error) { "$($result.Error)" } else { $null }
+				$progressError = if ($result.Error) { "Error: $($result.Error.Exception.Message)" } else { $null }
 				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Failed -Duration $result.Duration -ErrorMessage $progressError
 			}
 		}

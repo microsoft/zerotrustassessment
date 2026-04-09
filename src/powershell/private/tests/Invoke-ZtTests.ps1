@@ -95,6 +95,15 @@
 		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
 	}
 
+	# Filter based on Compatible licenses
+	$skippedTestsForLicense = $testsToRun.Where{$_.CompatibleLicense.Count -gt 0 -and (-not (Test-ZtLicense -CompatibleLicense $_.CompatibleLicense)) }
+	$skippedTestsForLicense.ForEach{
+		Write-PSFMessage -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId) -Level Verbose
+		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
+	}
+
+	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForLicense.TestId }
+
 	# Filter based on service connection. If no service is specified in the test metadata, it will be run.
 	$skippedTestsForService = $testsToRun.Where{ $_.Service.count -gt 0 -and $_.Service.Count -notin $_.Service.Where{ $_ -in $ConnectedService}.count }
 	$skippedTestsForService.ForEach{
@@ -104,15 +113,6 @@
 	}
 
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
-
-	# Filter based on Compatible licenses
-	$skippedTestsForLicense = $testsToRun.Where{$_.CompatibleLicense.Count -gt 0 -and (-not (Test-ZtLicense -CompatibleLicense $_.CompatibleLicense)) }
-	$skippedTestsForLicense.ForEach{
-		Write-PSFMessage -Message ('Test {0} is skipped because no compatible license was found' -f $_.TestId) -Level Verbose
-		Add-ZtTestResultDetail -SkippedBecause NoCompatibleLicenseFound -TestId $_.TestId
-	}
-
-	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForLicense.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
 	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId

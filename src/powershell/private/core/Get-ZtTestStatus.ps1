@@ -2,8 +2,9 @@
     Returns the status of the test as a string.
 #>
 function Get-ZtTestStatus {
+    [OutputType([string])]
     [CmdletBinding()]
-    param(
+    param (
         # The status of the test.
         [Parameter(Mandatory = $true)]
         [bool] $Status,
@@ -12,14 +13,14 @@ function Get-ZtTestStatus {
         [string] $SkippedBecause,
 
         # Optional. Custom status to return instead of the default status.
+        [ValidateSet('Investigate','Error')]
         [string] $CustomStatus
     )
 
     if ($CustomStatus) {
         return $CustomStatus
     }
-
-    if ($Status) {
+    elseif ($Status) {
         return "Passed"
     }
     else {
@@ -30,9 +31,9 @@ function Get-ZtTestStatus {
             if ($SkippedBecause -eq "UnderConstruction") {
                 return "Planned"
             }
-            return "Skipped"
+            else {
+                return "Skipped"
+            }
         }
     }
-
-    return $Status
 }

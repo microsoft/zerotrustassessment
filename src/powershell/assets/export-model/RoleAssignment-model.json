@@ -1,0 +1,20 @@
+{
+  "value": [
+    {
+      "isZtModelRow": true,
+      "id": null,
+      "principalId": null,
+      "principalOrganizationId": null,
+      "resourceScope": null,
+      "directoryScopeId": null,
+      "roleDefinitionId": null,
+      "principal": {
+        "@odata.type": null,
+        "displayName": null,
+        "userPrincipalName": null,
+        "uniqueName": null,
+        "id": null
+      }
+    }
+  ]
+}
