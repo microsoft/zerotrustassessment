@@ -26,8 +26,8 @@ function Add-ZtTenantOverview {
         $managedDeviceCount = $managedDevices.enrolledDeviceCount -as [int] ?? 0
     }
     else {
-        # Use Entra device count as fallback when Intune license is not available
-        $managedDeviceCount = $deviceCount -as [int] ?? 0
+        # Keep this metric Intune-only when the Intune license is not available
+        $managedDeviceCount = 0
     }
 
     $tenantOverview = [PSCustomObject]@{
