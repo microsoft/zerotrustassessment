@@ -9,3 +9,4 @@ If logs aren't regularly archived or sent to a SIEM tool for querying, it's chal
 - [Stream Microsoft Entra logs to an event hub](https://learn.microsoft.com/entra/identity/monitoring-health/howto-stream-logs-to-event-hub?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
