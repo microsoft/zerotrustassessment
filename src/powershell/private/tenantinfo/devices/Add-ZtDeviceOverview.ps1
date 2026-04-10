@@ -388,7 +388,7 @@ where accountEnabled
                 deviceOperatingSystemSummary = [PSCustomObject]@{
                     windowsCount = $windowsCount
                     macOSCount   = $macOSCount
-                    iOSCount     = $iOSCount
+                    iosCount     = $iOSCount
                     androidCount = $androidCount
                     linuxCount   = $linuxCount
                 }
