@@ -101,6 +101,9 @@ function Connect-ZtAssessment {
 		return
 	}
 
+	# Set up container environment compatibility (xdg-open shim for browser auth, etc.)
+	Initialize-ZtContainerEnvironment
+
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
@@ -239,9 +242,24 @@ function Connect-ZtAssessment {
 					$connectMgGraphParams.ContextScope = 'Process'
 				}
 
+				# In container environments, auto-switch to device code flow if browser auth isn't viable
+				if (-not $connectMgGraphParams.UseDeviceCode) {
+					$useDeviceCodeFromContainer = Resolve-ZtContainerAuthMethod -DeviceLoginUrl 'https://microsoft.com/devicelogin'
+					if ($useDeviceCodeFromContainer) {
+						$connectMgGraphParams.UseDeviceCode = $true
+					}
+				}
+
 				Write-PSFMessage -Message "Connecting to Microsoft Graph with params: $($connectMgGraphParams | Out-String)" -Level Verbose
 				$null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop
-				$contextTenantId = (Get-MgContext).TenantId
+
+				$mgContext = Get-MgContext
+				if ($null -eq $mgContext) {
+					$hint = Get-ZtContainerAuthFailureHint
+					Stop-PSFFunction -Message $hint -EnableException $true -Cmdlet $PSCmdlet
+				}
+
+				$contextTenantId = $mgContext.TenantId
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'Graph'
 			}
