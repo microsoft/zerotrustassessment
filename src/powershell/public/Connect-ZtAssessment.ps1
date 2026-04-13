@@ -31,6 +31,12 @@ function Connect-ZtAssessment {
 		The application will need to be configured to have the matching Application scopes, compared to the Delegate scopes and may need to be added into roles.
 		If this certificate is also used for connecting to Azure, it must come from a certificate store on the local computer.
 
+	.PARAMETER IgnoreLanguageMode
+		When specified, bypasses the Constrained Language Mode safety check and allows the connection to
+		proceed even when PowerShell reports a non-Full language mode (e.g. in WDAC-managed environments
+		where the module's signing certificate is trusted by policy).
+		WARNING: Some functionality may fail if CLM restrictions are truly in effect.
+
 
 	.EXAMPLE
 		PS C:\> Connect-ZtAssessment
@@ -93,13 +99,19 @@ function Connect-ZtAssessment {
 		# When specified, forces reconnection to services even if an existing connection is detected.
 		# This is useful to refresh the connection context and permissions.
 		[switch]
-		$Force
+		$Force,
+
+		# When specified, bypasses the Constrained Language Mode check. Use only in WDAC-managed environments
+		# where the session reports CLM but the module is trusted and runs with full capability.
+		[switch]
+		$IgnoreLanguageMode
 	)
 
-	if (-not (Test-ZtLanguageMode)) {
+	if (-not (Test-ZtLanguageMode -IgnoreLanguageMode:$IgnoreLanguageMode)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}
+	if ($IgnoreLanguageMode) { $script:IgnoreLanguageMode = $true }
 
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
