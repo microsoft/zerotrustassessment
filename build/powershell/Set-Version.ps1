@@ -52,5 +52,8 @@ if ( -not (Test-Path $ManifestPath )) {
 
 $NewVersion += $previewLabel
 Write-Host "New version: $NewVersion"
-#Add-Content -Path $env:GITHUB_OUTPUT -Value "newtag=$NewVersion"
-#Add-Content -Path $env:GITHUB_OUTPUT -Value "tag=$NewVersion"
+if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_OUTPUT)) {
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "tag=$NewVersion"
+} else {
+    Write-Host "GITHUB_OUTPUT is not set; skipping GitHub Actions step output."
+}

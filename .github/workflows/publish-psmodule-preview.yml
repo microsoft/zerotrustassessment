@@ -8,6 +8,9 @@ on:
       - 'src/powershell/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-and-publish:
     runs-on: windows-latest
@@ -21,6 +24,7 @@ jobs:
         shell: pwsh
 
       - name: Build PowerShell Module (Preview)
+        id: build
         run: |
           .\build\powershell\Build-PSModule.ps1 -BaseDirectory $PWD
         shell: pwsh
@@ -32,3 +36,21 @@ jobs:
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Commit version bump
+        if: steps.build.outputs.tag != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/powershell/ZeroTrustAssessment.psd1
+          git commit -m "Bump version to ${{ steps.build.outputs.tag }}"
+          git push
+
+      - name: Create GitHub Pre-Release
+        if: steps.build.outputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: ${{ steps.build.outputs.tag }}
+          generate_release_notes: true
+          prerelease: true
