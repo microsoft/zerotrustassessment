@@ -88,7 +88,7 @@ function Test-Assessment-21820 {
         Write-PSFMessage "Found policy ID: $policyId for role: $($role.displayName)" -Level Verbose
 
         # Query 3: Get activation notification rules for this policy
-        $notificationRuleUri = "policies/roleManagementPolicies/$policyId/rules/Notification_Requestor_EndUser_Assignment"
+        $notificationRuleUri = "policies/roleManagementPolicies/$policyId/rules/Notification_Admin_EndUser_Assignment"
 
         $notificationRule = Invoke-ZtGraphRequest -RelativeUri $notificationRuleUri -ApiVersion beta
 
