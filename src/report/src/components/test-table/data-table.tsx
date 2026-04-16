@@ -126,6 +126,11 @@ export function DataTable<TData extends Test, TValue>({
         return result;
     }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses, showSkipped]);
 
+    // Check if there are any skipped tests in the pillar
+    const hasSkippedTests = React.useMemo(() => {
+        return pillarFilteredData.some(item => item.TestStatus === "Skipped");
+    }, [pillarFilteredData]);
+
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
         const pillars = pillarFilteredData
@@ -348,25 +353,39 @@ export function DataTable<TData extends Test, TValue>({
                             </Button>
                         )}
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Clear all filters button */}
-                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    setSelectedSfiPillars([]);
-                                    setSelectedRisks([]);
-                                    setSelectedStatuses([]);
-                                }}
-                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                Clear All Filters
-                            </Button>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                            Showing {filteredData.length} of {pillarFilteredData.length} tests
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-4">
+                            {/* Clear all filters button */}
+                            {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedSfiPillars([]);
+                                        setSelectedRisks([]);
+                                        setSelectedStatuses([]);
+                                    }}
+                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear All Filters
+                                </Button>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                                Showing {filteredData.length} of {pillarFilteredData.length} tests
+                            </div>
                         </div>
+                        {/* Show Skipped Tests Checkbox - only if there are skipped tests */}
+                        {hasSkippedTests && (
+                            <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+                                <input
+                                    type="checkbox"
+                                    checked={showSkipped}
+                                    onChange={(e) => setShowSkipped(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border-gray-300 accent-gray-600 cursor-pointer"
+                                />
+                                <span className="text-xs text-muted-foreground">Show skipped tests</span>
+                            </label>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -397,19 +416,6 @@ export function DataTable<TData extends Test, TValue>({
                         );
                     })}
                 </div>
-            </div>
-
-            {/* Show Skipped Tests Checkbox */}
-            <div className="mb-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
-                    <input
-                        type="checkbox"
-                        checked={showSkipped}
-                        onChange={(e) => setShowSkipped(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-gray-300 accent-gray-600 cursor-pointer"
-                    />
-                    <span className="text-sm text-muted-foreground">Show skipped tests</span>
-                </label>
             </div>
 
             <div className="rounded-md border">
