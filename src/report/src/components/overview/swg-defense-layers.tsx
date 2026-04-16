@@ -93,12 +93,12 @@ function getLayerStatus(layer: LayerDefinition): LayerResult {
     return { layer, status, passed, failed, total: matchedTests.length, tests: matchedTests };
 }
 
-// Color palettes per status — each layer gets a distinct shade
+// Color palettes per status — each layer gets a distinct shade (muted tones for readability)
 const STATUS_FILLS: Record<LayerStatus, string[]> = {
-    pass:    ["#166534", "#15803d", "#16a34a", "#4ade80", "#86efac"], // greens dark→light
-    partial: ["#78350f", "#a16207", "#ca8a04", "#fbbf24", "#fde68a"], // ambers dark→light
-    fail:    ["#7f1d1d", "#b91c1c", "#dc2626", "#f87171", "#fca5a5"], // reds dark→light
-    na:      ["#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"], // zinc dark→light
+    pass:    ["#2d6b5e", "#3a8574", "#4f9e8c", "#78baa9", "#a4d4c7"], // muted teal dark→light
+    partial: ["#73612f", "#8d7a45", "#a6935f", "#beac7e", "#d6c7a3"], // muted amber dark→light
+    fail:    ["#7a4d5a", "#946471", "#ab7f8d", "#c19eab", "#d7bfc8"], // muted rose dark→light
+    na:      ["#454554", "#5c5c6a", "#777787", "#9c9caa", "#c0c0cc"], // soft slate dark→light
 };
 
 function getStatusLabel(status: LayerStatus): string {
@@ -122,12 +122,12 @@ function getStatusBadgeVariant(status: LayerStatus): "success" | "destructive" |
 function getTestStatusIcon(testStatus: string) {
     switch (testStatus) {
         case "Passed":
-            return <CheckCircledIcon className="text-green-600 size-4" />;
+            return <CheckCircledIcon className="text-teal-600 size-4" />;
         case "Failed":
         case "Error":
-            return <CrossCircledIcon className="text-red-600 size-4" />;
+            return <CrossCircledIcon className="text-rose-500/80 size-4" />;
         default:
-            return <QuestionMarkCircledIcon className="text-yellow-600 size-4" />;
+            return <QuestionMarkCircledIcon className="text-amber-500/80 size-4" />;
     }
 }
 
@@ -242,7 +242,7 @@ export function SwgDefenseLayers() {
                                 x={centerX}
                                 y={435}
                                 textAnchor="middle"
-                                fill="#dc2626"
+                                fill="#946471"
                                 fontSize="11"
                                 fontWeight="600"
                             >
@@ -314,7 +314,7 @@ export function SwgDefenseLayers() {
                                             </div>
                                         )}
                                         {forwardingFailed && result.layer.id > 1 && (
-                                            <p className="text-xs text-red-600 mt-1">
+                                            <p className="text-xs text-rose-500/80 mt-1">
                                                 ⚠ This layer is effectively inactive because the Internet Access forwarding profile (25406) is not enabled.
                                             </p>
                                         )}
