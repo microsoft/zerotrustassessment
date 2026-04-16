@@ -93,12 +93,12 @@ function getLayerStatus(layer: LayerDefinition): LayerResult {
     return { layer, status, passed, failed, total: matchedTests.length, tests: matchedTests };
 }
 
-// Color palettes per status — each layer gets a distinct shade (muted tones for readability)
+// Color palettes per status — dark→light from outermost to innermost ring
 const STATUS_FILLS: Record<LayerStatus, string[]> = {
-    pass:    ["#2d6b5e", "#3a8574", "#4f9e8c", "#78baa9", "#a4d4c7"], // muted teal dark→light
-    partial: ["#73612f", "#8d7a45", "#a6935f", "#beac7e", "#d6c7a3"], // muted amber dark→light
-    fail:    ["#7a4d5a", "#946471", "#ab7f8d", "#c19eab", "#d7bfc8"], // muted rose dark→light
-    na:      ["#454554", "#5c5c6a", "#777787", "#9c9caa", "#c0c0cc"], // soft slate dark→light
+    pass:    ["#1a7a30", "#28a044", "#38c05c", "#50d878", "#78e8a0"], // green dark→light
+    partial: ["#b07800", "#cc9010", "#e0a828", "#f0c048", "#f8d878"], // amber dark→light
+    fail:    ["#a01818", "#c02424", "#d83838", "#e85050", "#f07070"], // red dark→light
+    na:      ["#606068", "#787880", "#909098", "#a8a8b0", "#c0c0c8"], // grey dark→light
 };
 
 function getStatusLabel(status: LayerStatus): string {
