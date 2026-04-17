@@ -335,6 +335,8 @@
 <script>
 (function() {
   const POLL_INTERVAL = 500;
+  // Read runId from URL hash (e.g. #run=abc123) so it survives page reloads
+  const MY_RUN_ID = (location.hash.match(/run=([a-f0-9]+)/i) || [])[1] || '';
   let lastData = null;
   let lastWorkerDetails = {};
   let pollTimer = null;
@@ -575,6 +577,17 @@
       lastData = data;
       errorCount = 0;
       $('errorBanner').style.display = 'none';
+
+      // If the server is now serving a different run, stop polling this tab
+      if (MY_RUN_ID && data.runId && data.runId !== MY_RUN_ID) {
+        $('errorBanner').textContent = 'A new assessment run has started. This tab is no longer active.';
+        $('errorBanner').style.display = 'block';
+        $('pulseDot').className = 'pulse-dot done';
+        $('statusText').textContent = 'Superseded';
+        if (pollTimer) clearInterval(pollTimer);
+        return;
+      }
+
       render(data);
 
       if (assessmentDone) {
