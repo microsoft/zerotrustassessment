@@ -748,30 +748,6 @@ function Connect-ZtAssessment {
 				}
 			}
 
-			# If Graph is not connected but we have CBA credentials, connect to Graph temporarily just to resolve the org domain
-			if (-not $adminUrl -and $ClientId -and $TenantId -and $Certificate) {
-				try {
-					Write-PSFMessage -Message "Graph not connected — connecting temporarily to resolve SharePoint Admin URL." -Level Verbose
-					$connectMgGraphParams = @{
-						ClientId    = $ClientId
-						TenantId    = $TenantId
-						Certificate = $Certificate.Certificate
-						NoWelcome   = $true
-					}
-					Connect-MgGraph @connectMgGraphParams -ErrorAction Stop | Out-Null
-					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-					if ($initialDomain) {
-						$tenantName = $initialDomain.Split('.')[0]
-						$adminUrl = "https://$tenantName-admin.sharepoint.com"
-						Write-Verbose -Message "Inferred SharePoint Admin URL via temporary Graph connection: $adminUrl"
-					}
-				}
-				catch {
-					Write-Verbose -Message "Failed to infer SharePoint Admin URL via temporary Graph connection: $($_.Exception.Message)"
-				}
-			}
-
 			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
 				# Try to infer from Azure context
 				try {
