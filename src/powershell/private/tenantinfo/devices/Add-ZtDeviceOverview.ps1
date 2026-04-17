@@ -360,16 +360,17 @@ order by operatingSystem, deviceOwnership, isCompliant
         Write-PSFMessage "Intune license not found. Using Entra device data for device details." -Level Debug -Tag License
 
         # Derive device counts from Entra device data in the database
+        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
         $osSummarySql = @"
 select
     sum(case when operatingSystem = 'Windows' then 1 else 0 end) as windowsCount,
-    sum(case when operatingSystem = 'MacMDM' then 1 else 0 end) as macOSCount,
+    sum(case when operatingSystem in ('MacMDM', 'macOS') then 1 else 0 end) as macOSCount,
     sum(case when operatingSystem in ('iOS', 'IPhone') then 1 else 0 end) as iOSCount,
     sum(case when operatingSystem like 'Android%' then 1 else 0 end) as androidCount,
     sum(case when operatingSystem = 'Linux' then 1 else 0 end) as linuxCount,
     count(*) as totalCount
 from Device
-where accountEnabled
+where accountEnabled and "isManaged"
 "@
         $osSummary = Invoke-DatabaseQuery -Database $Database -Sql $osSummarySql
 
@@ -384,6 +385,8 @@ where accountEnabled
         $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
 
         if ($totalCount -gt 0) {
+            # Note: enrolledDeviceCount is set to desktop + mobile count (not raw count(*)) to approximate
+            # Intune enrollment semantics. This excludes Linux and other unrendered OS types.
             $managedDevices = [PSCustomObject]@{
                 deviceOperatingSystemSummary = [PSCustomObject]@{
                     windowsCount = $windowsCount
@@ -392,7 +395,7 @@ where accountEnabled
                     androidCount = $androidCount
                     linuxCount   = $linuxCount
                 }
-                enrolledDeviceCount = $osSummary.totalCount -as [int] ?? 0
+                enrolledDeviceCount = $totalCount
                 desktopCount        = $managedDevicesDesktopCount
                 mobileCount         = $managedDevicesMobileCount
                 totalCount          = $totalCount
@@ -403,17 +406,26 @@ where accountEnabled
         }
 
         # Derive compliance summary from Entra device data
+        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
         $complianceSql = @"
 select
     sum(case when isCompliant = true then 1 else 0 end) as compliantDeviceCount,
     sum(case when isCompliant = false then 1 else 0 end) as nonCompliantDeviceCount
 from Device
-where accountEnabled
+where accountEnabled and "isManaged"
 "@
         $complianceSummary = Invoke-DatabaseQuery -Database $Database -Sql $complianceSql
+        # Provide all DeviceCompliance interface properties with 0 defaults for compatibility
         $deviceCompliance = [PSCustomObject]@{
             compliantDeviceCount    = $complianceSummary.compliantDeviceCount -as [int] ?? 0
             nonCompliantDeviceCount = $complianceSummary.nonCompliantDeviceCount -as [int] ?? 0
+            inGracePeriodCount      = 0
+            configManagerCount      = 0
+            unknownDeviceCount      = 0
+            notApplicableDeviceCount = 0
+            remediatedDeviceCount   = 0
+            errorDeviceCount        = 0
+            conflictDeviceCount     = 0
         }
     }
 
