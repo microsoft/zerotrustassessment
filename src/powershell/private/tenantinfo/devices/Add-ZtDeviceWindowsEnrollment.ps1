@@ -14,6 +14,12 @@ function Add-ZtDeviceWindowsEnrollment
     $activity = "Getting Windows enrollment summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
+    if ((Get-MgContext).AuthType -eq 'AppOnly') {
+        Write-PSFMessage "Skipping Windows enrollment summary: app-only auth does not support MobileDeviceManagementPolicies." -Level Verbose
+        Write-ZtProgress -Activity $activity -Status "Skipped"
+        return
+    }
+
     $policies = Invoke-ZtGraphRequest -RelativeUri 'Policies/MobileDeviceManagementPolicies' -QueryParameters @{ '$expand' = 'includedGroups' } -ApiVersion 'beta'
 
     # Sort policies by AppliesTo (descending) then by DisplayName (ascending)

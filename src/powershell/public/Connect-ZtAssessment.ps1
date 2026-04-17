@@ -29,7 +29,9 @@ function Connect-ZtAssessment {
 		The certificate to use for the connection(s).
 		Use this to authenticate in Application mode, rather than in Delegate (user) mode.
 		The application will need to be configured to have the matching Application scopes, compared to the Delegate scopes and may need to be added into roles.
-		If this certificate is also used for connecting to Azure, it must come from a certificate store on the local computer.
+		Supported for Graph, Azure, ExchangeOnline, SecurityCompliance, and SharePointOnline via Certificate-Based Authentication (CBA).
+		AipService does not support app-only certificate-based authentication and will be skipped when this parameter is used.
+		The certificate with its private key must be installed in the local certificate store on the machine running the assessment.
 
 
 	.EXAMPLE
@@ -45,10 +47,11 @@ function Connect-ZtAssessment {
 		Connects to Microsoft Graph and Azure using the device code flow. This will open a browser window to prompt for authentication.
 
 	.EXAMPLE
-		PS C:\> Connect-ZtAssessment -ClientID $clientID -TenantID $tenantID -Certificate 'CN=ZeroTrustAssessment' -Service Graph,Azure
+		PS C:\> Connect-ZtAssessment -ClientID $clientID -TenantID $tenantID -Certificate 'CN=ZeroTrustAssessment' -Service All
 
-		Connects to Microsoft Graph and Azure using the specified client/application ID & tenant ID, using the latest, valid certificate available with the subject 'CN=ZeroTrustAssessment'.
-		This assumes the correct scopes and permissions are assigned to the application used.
+		Connects to all supported services using app-only Certificate-Based Authentication (CBA) with the specified client/application ID & tenant ID,
+		using the latest, valid certificate available with the subject 'CN=ZeroTrustAssessment'.
+		This assumes the application has the required Application permissions and Exchange/SharePoint admin roles assigned.
 	#>
 	[CmdletBinding()]
 	param (
@@ -105,8 +108,9 @@ function Connect-ZtAssessment {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
 	elseif ($Service -notcontains 'Graph' -and $script:ConnectedService -notcontains 'Graph') {
-		# If not already connected, always connect Graph.
-		$Service += 'Graph'
+		# If not already connected, always connect Graph first so downstream services (e.g. SPO)
+		# can infer tenant details from the Graph context. Prepend to ensure ordering.
+		$Service = [string[]]@('Graph') + $Service
 	}
 
 	#TODO: UseDeviceCode does not work with ExchangeOnline
@@ -214,10 +218,13 @@ function Connect-ZtAssessment {
 
 				$connectMgGraphParams = @{
 					NoWelcome = $true
-					UseDeviceCode = $UseDeviceCode.IsPresent
 					Environment = $Environment
 					# TenantId = $TenantId
 					# ClientId = $ClientId
+				}
+
+				if ($UseDeviceCode) {
+					$connectMgGraphParams.UseDeviceCode = $true
 				}
 
 				if ($ClientId) {
@@ -229,7 +236,7 @@ function Connect-ZtAssessment {
 				}
 
 				if ($Certificate) {
-					$connectMgGraphParams.Certificate = $Certificate
+					$connectMgGraphParams.Certificate = $Certificate.Certificate
 				}
 				else {
 					$connectMgGraphParams.Scopes = Get-ZtGraphScope
@@ -368,9 +375,12 @@ function Connect-ZtAssessment {
 				}
 
 				$azParams = @{
-					UseDeviceAuthentication = $UseDeviceCode
 					Environment             = $azEnvironment
 					# Tenant                  = $tenantParam
+				}
+
+				if ($UseDeviceCode) {
+					$azParams.UseDeviceAuthentication = $true
 				}
 
 				if ($tenantParam) {
@@ -381,6 +391,7 @@ function Connect-ZtAssessment {
 				if ($ClientId -and $Certificate) {
 					$azParams.ApplicationId = $ClientId
 					$azParams.CertificateThumbprint = $Certificate.Certificate.Thumbprint
+					$azParams.ServicePrincipal = $true
 				}
 
 				Write-Verbose -Message ("Connecting to Azure with parameters: {0}" -f ($azParams | Out-String))
@@ -424,7 +435,18 @@ function Connect-ZtAssessment {
 
 			try {
 					Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
-					# Connect-AipService does not have parameters for non-interactive auth, so it will use the existing Graph connection context if available, or prompt if not.
+					if ($ClientId -and $Certificate) {
+						# Connect-AipService does not support app-only certificate-based authentication.
+						# The -ApplicationId / -CertificateThumbprint / -ServicePrincipal parameters exist
+						# but silently fail regardless of permissions. Skip to avoid triggering browser auth.
+						Write-Host -Object "   ⚠️ AipService does not support app-only (certificate) authentication." -ForegroundColor Yellow
+						Write-Host -Object "      AIP tests will be skipped." -ForegroundColor Yellow
+						Remove-ZtConnectedService -Service 'AipService'
+						continue
+					}
+					# Connect-AipService does not support certificate-based authentication via an X509Certificate2
+					# object or app-only service principal flow. Connect using the existing authenticated session;
+					# it will use the Graph/Az context or prompt interactively if needed.
 					$null = Connect-AipService -ErrorAction Stop
 					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 					Add-ZtConnectedService -Service 'AipService'
@@ -432,8 +454,8 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "       Tests requiring Azure Information Protection will be skipped." -ForegroundColor Yellow
-				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Failed to connect to Azure Information Protection: {0}" -f $_) -Level Debug -ErrorRecord $_
+				Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
+				Write-PSFMessage -Message ("Failed to connect to Azure Information Protection: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 				# Mark service as unavailable.
 				Remove-ZtConnectedService -Service 'AipService'
 			}
@@ -453,7 +475,29 @@ function Connect-ZtAssessment {
 				}
 
 				Write-Verbose -Message 'Connecting to Microsoft Exchange Online'
-				if ($UseDeviceCode) {
+				if ($ClientId -and $Certificate) {
+					# App-only CBA: requires -AppId, -Certificate, and -Organization (primary *.onmicrosoft.com domain, not a GUID).
+					$exoOrganization = $null
+					try {
+						$exoOrg = Invoke-ZtGraphRequest -RelativeUri 'organization'
+						$exoOrganization = $exoOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+					}
+					catch {
+						Write-Verbose -Message "Failed to resolve initial domain for Exchange Online CBA: $($_.Exception.Message)"
+					}
+					if (-not $exoOrganization) {
+						throw "Unable to determine the organization domain for Exchange Online CBA. Ensure Graph is connected and the tenant has a verified initial domain."
+					}
+					Write-PSFMessage -Message "Using app-only CBA for Exchange Online with AppId '{0}' and organization '{1}'." -Level Verbose -StringValues @($ClientId, $exoOrganization)
+					$null = Connect-ExchangeOnline `
+						-ShowBanner:$false `
+						-AppId $ClientId `
+						-Certificate $Certificate.Certificate `
+						-Organization $exoOrganization `
+						-ExchangeEnvironmentName $ExchangeEnvironmentName `
+						-ErrorAction Stop
+				}
+				elseif ($UseDeviceCode) {
 					$null = Connect-ExchangeOnline -ShowBanner:$false -Device:$UseDeviceCode -ExchangeEnvironmentName $ExchangeEnvironmentName -ErrorAction Stop
 				}
 				else {
@@ -474,9 +518,17 @@ function Connect-ZtAssessment {
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "      Tests requiring Exchange Online will be skipped." -ForegroundColor Yellow
-				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
-				Write-PSFMessage -Message ("Failed to connect to Exchange Online: {0}" -f $_) -Level Debug -ErrorRecord $_
+				Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
+				Write-PSFMessage -Message ("Failed to connect to Exchange Online: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 				Remove-ZtConnectedService -Service 'ExchangeOnline'
+
+				$exoConflictException = @($_.Exception.InnerException, $_.Exception) |
+					Where-Object { $_ -is [System.MissingMethodException] -or $_ -is [System.IO.FileLoadException] } |
+					Select-Object -First 1
+				if ($exoConflictException -and ($exoConflictException.Message -like '*Microsoft.Identity.Client*' -or $exoConflictException.Message -like '*Microsoft.IdentityModel.Abstractions*')) {
+					Write-Warning "DLL Conflict detected ($($exoConflictException.GetType().Name)). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
+					Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
+				}
 			}
 		}
 
@@ -535,44 +587,74 @@ function Connect-ZtAssessment {
 			}
 			elseif ($exoSnCModulesLoaded) {
 				try {
-					# Get UPN from Exchange connection or Graph context
-					#TODO: is that a nice to have or a hard dependency?
-					$ExoUPN = $UserPrincipalName
-
-					# Attempt to resolve UPN before any connection to avoid token acquisition failures without identity
-					$connectionInformation = $null
-					try {
-						$connectionInformation = Get-ConnectionInformation
+					if ($ClientId -and $Certificate) {
+						# App-only CBA: requires -AppId, -Certificate, and -Organization (primary *.onmicrosoft.com domain, not a GUID).
+						$ippsOrganization = $null
+						try {
+							$ippsOrg = Invoke-ZtGraphRequest -RelativeUri 'organization'
+							$ippsOrganization = $ippsOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+						}
+						catch {
+							Write-Verbose -Message "Failed to resolve initial domain for Security & Compliance CBA: $($_.Exception.Message)"
+						}
+						if (-not $ippsOrganization) {
+							throw "Unable to determine the organization domain for Security & Compliance CBA. Ensure Graph is connected and the tenant has a verified initial domain."
+						}
+						Write-PSFMessage -Message "Using app-only CBA for Security & Compliance with AppId '{0}' and organization '{1}'." -Level Verbose -StringValues @($ClientId, $ippsOrganization)
+						$ippSessionParams = @{
+							AppId        = $ClientId
+							Certificate  = $Certificate.Certificate
+							Organization = $ippsOrganization
+							ShowBanner   = $false
+							ErrorAction  = 'Stop'
+						}
+						if ($ExchangeEnvironmentName -ne 'O365Default') {
+							$ippSessionParams.ConnectionUri = $Environments[$ExchangeEnvironmentName].ConnectionUri
+							$ippSessionParams.AzureADAuthorizationEndpointUri = $Environments[$ExchangeEnvironmentName].AuthZEndpointUri
+						}
+						Write-Verbose -Message "Connecting to Security & Compliance with CBA for organization: $ippsOrganization"
+						Connect-IPPSSession @ippSessionParams
 					}
-					catch {
-						# Intentionally swallow errors here; fall back to provided UPN if any
-						$connectionInfoError = $_
-						Write-Verbose -Message "Get-ConnectionInformation failed; falling back to provided UserPrincipalName if available. Error: $($connectionInfoError.Exception.Message)"
-					}
+					else {
+						# Get UPN from Exchange connection or Graph context
+						#TODO: is that a nice to have or a hard dependency?
+						$ExoUPN = $UserPrincipalName
 
-					if (-not $ExoUPN) {
-						$ExoUPN = $connectionInformation | Where-Object { $_.IsEopSession -ne $true -and $_.State -eq 'Connected' } | Select-Object -ExpandProperty UserPrincipalName -First 1 -ErrorAction SilentlyContinue
-					}
+						# Attempt to resolve UPN before any connection to avoid token acquisition failures without identity
+						$connectionInformation = $null
+						try {
+							$connectionInformation = Get-ConnectionInformation
+						}
+						catch {
+							# Intentionally swallow errors here; fall back to provided UPN if any
+							$connectionInfoError = $_
+							Write-Verbose -Message "Get-ConnectionInformation failed; falling back to provided UserPrincipalName if available. Error: $($connectionInfoError.Exception.Message)"
+						}
 
-					if (-not $ExoUPN) {
-						throw "`nUnable to determine a UserPrincipalName for Security & Compliance. Please supply -UserPrincipalName or connect to Exchange Online first."
-					}
+						if (-not $ExoUPN) {
+							$ExoUPN = $connectionInformation | Where-Object { $_.IsEopSession -ne $true -and $_.State -eq 'Connected' } | Select-Object -ExpandProperty UserPrincipalName -First 1 -ErrorAction SilentlyContinue
+						}
 
-					$ippSessionParams = @{
-						BypassMailboxAnchoring = $true
-						UserPrincipalName      = $ExoUPN
-						ShowBanner             = $false
-						ErrorAction            = 'Stop'
-					}
+						if (-not $ExoUPN) {
+							throw "`nUnable to determine a UserPrincipalName for Security & Compliance. Please supply -UserPrincipalName or connect to Exchange Online first."
+						}
 
-					# Only override endpoints for non-default clouds to reduce token acquisition failures in Default
-					if ($ExchangeEnvironmentName -ne 'O365Default') {
-						$ippSessionParams.ConnectionUri = $Environments[$ExchangeEnvironmentName].ConnectionUri
-						$ippSessionParams.AzureADAuthorizationEndpointUri = $Environments[$ExchangeEnvironmentName].AuthZEndpointUri
-					}
+						$ippSessionParams = @{
+							BypassMailboxAnchoring = $true
+							UserPrincipalName      = $ExoUPN
+							ShowBanner             = $false
+							ErrorAction            = 'Stop'
+						}
 
-					Write-Verbose -Message "Connecting to Security & Compliance with UPN: $ExoUPN"
-					Connect-IPPSSession @ippSessionParams
+						# Only override endpoints for non-default clouds to reduce token acquisition failures in Default
+						if ($ExchangeEnvironmentName -ne 'O365Default') {
+							$ippSessionParams.ConnectionUri = $Environments[$ExchangeEnvironmentName].ConnectionUri
+							$ippSessionParams.AzureADAuthorizationEndpointUri = $Environments[$ExchangeEnvironmentName].AuthZEndpointUri
+						}
+
+						Write-Verbose -Message "Connecting to Security & Compliance with UPN: $ExoUPN"
+						Connect-IPPSSession @ippSessionParams
+					}
 					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 
 					# Fix for Get-Label visibility in other scopes
@@ -592,19 +674,12 @@ function Connect-ZtAssessment {
 					Write-PSFMessage -Message ("Failed to connect to Security & Compliance PowerShell: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 
 					Remove-ZtConnectedService -Service 'SecurityCompliance'
-					$exception = $_
-					$methodNotFoundException = $null
 
-					# Detect DLL conflict via a specific MissingMethodException, preferring the inner exception when present
-					if ($exception.Exception.InnerException -is [System.MissingMethodException]) {
-						$methodNotFoundException = $exception.Exception.InnerException
-					}
-					elseif ($exception.Exception -is [System.MissingMethodException]) {
-						$methodNotFoundException = $exception.Exception
-					}
-
-					if ($methodNotFoundException -and $methodNotFoundException.Message -like "*Microsoft.Identity.Client*") {
-						Write-Warning "DLL Conflict detected (Method not found in Microsoft.Identity.Client). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
+					$sncConflictException = @($_.Exception.InnerException, $_.Exception) |
+						Where-Object { $_ -is [System.MissingMethodException] -or $_ -is [System.IO.FileLoadException] } |
+						Select-Object -First 1
+					if ($sncConflictException -and ($sncConflictException.Message -like '*Microsoft.Identity.Client*' -or $sncConflictException.Message -like '*Microsoft.IdentityModel.Abstractions*')) {
+						Write-Warning "DLL Conflict detected ($($sncConflictException.GetType().Name)). This usually happens if Microsoft.Graph is loaded before ExchangeOnlineManagement."
 						Write-Warning "Please RESTART your PowerShell session and run Connect-ZtAssessment again."
 					}
 				}
@@ -615,10 +690,12 @@ function Connect-ZtAssessment {
 			Write-Host -Object "`nConnecting to SharePoint Online" -ForegroundColor Cyan
 			try {
 				Write-PSFMessage -Message ('Loading SharePoint Online required modules: {0}' -f ($resolvedRequiredModules.SharePointOnline.Name -join ', ')) -Level Verbose
+				$loadedSharePointOnlineModules = $null
+				# Microsoft.Online.SharePoint.PowerShell is a Windows-only module. Always load via -UseWindowsPowerShell
+				# (WinPS implicit remoting). Loading it natively in PS7 breaks certificate-based authentication.
 				$loadedSharePointOnlineModules = $resolvedRequiredModules.SharePointOnline.ForEach{
 					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
 					$_ | Import-Module -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
-					# Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell -WarningAction SilentlyContinue -ErrorAction Stop -Global
 				}
 
 				$loadedSharePointOnlineModules.ForEach{
@@ -640,8 +717,9 @@ function Connect-ZtAssessment {
 				Write-Verbose -Message "Using provided SharePoint Admin URL: $SharePointAdminUrl"
 				$adminUrl = $SharePointAdminUrl # Attempt to read from parameter
 			}
-			elseif (-not $adminUrl  -and (Get-Command -Name Get-MgContext -ErrorAction Ignore) -and ($graphContext = Get-MgContext -ErrorAction Ignore)) {
-				# Try to infer from Graph context
+
+			# Try to infer from Graph context if already connected
+			if (-not $adminUrl -and (Get-Command -Name Get-MgContext -ErrorAction Ignore) -and ($graphContext = Get-MgContext -ErrorAction Ignore)) {
 				if ($graphContext.TenantId) {
 					try {
 						$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
@@ -657,10 +735,29 @@ function Connect-ZtAssessment {
 					}
 				}
 			}
-			elseif(-not $adminUrl) {
-				Write-Verbose -Message "No Graph context available to infer SharePoint Admin URL."
-				# We don't want to let the service 'Graph' be marked as connected, it's not.
-				Remove-ZtConnectedService -Service 'Graph'
+
+			# If Graph is not connected but we have CBA credentials, connect to Graph temporarily just to resolve the org domain
+			if (-not $adminUrl -and $ClientId -and $TenantId -and $Certificate) {
+				try {
+					Write-PSFMessage -Message "Graph not connected — connecting temporarily to resolve SharePoint Admin URL." -Level Verbose
+					$connectMgGraphParams = @{
+						ClientId    = $ClientId
+						TenantId    = $TenantId
+						Certificate = $Certificate.Certificate
+						NoWelcome   = $true
+					}
+					Connect-MgGraph @connectMgGraphParams -ErrorAction Stop | Out-Null
+					$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
+					$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+					if ($initialDomain) {
+						$tenantName = $initialDomain.Split('.')[0]
+						$adminUrl = "https://$tenantName-admin.sharepoint.com"
+						Write-Verbose -Message "Inferred SharePoint Admin URL via temporary Graph connection: $adminUrl"
+					}
+				}
+				catch {
+					Write-Verbose -Message "Failed to infer SharePoint Admin URL via temporary Graph connection: $($_.Exception.Message)"
+				}
 			}
 
 			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
@@ -678,10 +775,6 @@ function Connect-ZtAssessment {
 					Write-Verbose -Message "Failed to infer SharePoint Admin URL from Azure context: $($_.Exception.Message)"
 				}
 			}
-			elseif (-not $adminUrl) {
-				Write-Verbose -Message "No Azure context available to infer SharePoint Admin URL."
-				Remove-ZtConnectedService -Service 'Azure'
-			}
 
 			if (-not $adminUrl) {
 				Write-Host -Object "   ❌ SharePoint Admin URL not provided and could not be inferred." -ForegroundColor Red
@@ -691,7 +784,28 @@ function Connect-ZtAssessment {
 			}
 			else {
 				try {
-					Connect-SPOService -Url $adminUrl -ErrorAction Stop
+					if ($ClientId -and $TenantId -and $Certificate) {
+						Write-PSFMessage -Message "Using app-only CBA for SharePoint Online with ClientId '{0}'." -Level Verbose -StringValues @($ClientId)
+						# Connect-SPOService is loaded via WinPS5 implicit remoting. The -CertificateThumbprint parameter
+						# searches Cert:\CurrentUser\My inside the WinPS5 process which may not see the current session's
+						# cert store. Export the cert to a temp PFX and pass its path + password to bypass store lookup.
+						$tempPfxPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.IO.Path]::GetRandomFileName() + '.pfx')
+						$tempPassword = [System.Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+						$tempSecurePassword = ConvertTo-SecureString $tempPassword -AsPlainText -Force
+						try {
+							$pfxBytes = $Certificate.Certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $tempPassword)
+							[System.IO.File]::WriteAllBytes($tempPfxPath, $pfxBytes)
+							Connect-SPOService -Url $adminUrl -ClientId $ClientId -TenantId $TenantId -CertificatePath $tempPfxPath -CertificatePassword $tempSecurePassword -ErrorAction Stop
+						}
+						finally {
+							if (Test-Path $tempPfxPath -ErrorAction SilentlyContinue) {
+								Remove-Item $tempPfxPath -Force -ErrorAction SilentlyContinue
+							}
+						}
+					}
+					else {
+						Connect-SPOService -Url $adminUrl -ErrorAction Stop
+					}
 					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 					Add-ZtConnectedService -Service 'SharePointOnline'
 				}

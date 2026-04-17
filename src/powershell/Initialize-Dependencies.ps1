@@ -243,6 +243,32 @@ function Initialize-Dependencies {
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
             $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
 
+            # Pre-load the highest available Microsoft.IdentityModel.Abstractions.dll across all module directories.
+            $identityModelFiles = foreach ($modSpec in $allModuleDependencies) {
+                $candidateMod = Get-Module -Name $modSpec.Name -ListAvailable -ErrorAction SilentlyContinue |
+                    Sort-Object Version -Descending | Select-Object -First 1
+                if ($candidateMod) {
+                    Get-ChildItem -Path $candidateMod.ModuleBase `
+                        -Filter 'Microsoft.IdentityModel.Abstractions.dll' `
+                        -File -Recurse -Force -ErrorAction SilentlyContinue
+                }
+            }
+            $bestIdentityModel = $identityModelFiles | Where-Object { $_ } |
+                Sort-Object { try { [version]($_.VersionInfo.FileVersion) } catch { [version]'0.0.0.0' } } -Descending |
+                Select-Object -First 1
+
+            if ($bestIdentityModel) {
+                $alreadyLoadedIdentityModel = [System.AppDomain]::CurrentDomain.GetAssemblies() |
+                    Where-Object { $_.GetName().Name -eq 'Microsoft.IdentityModel.Abstractions' }
+                if (-not $alreadyLoadedIdentityModel) {
+                    Write-Host -Object ('    ✅ Loading Microsoft.IdentityModel.Abstractions v{0}' -f $bestIdentityModel.VersionInfo.FileVersion) -ForegroundColor Green
+                    $null = [System.Reflection.Assembly]::LoadFrom($bestIdentityModel.FullName)
+                }
+                else {
+                    Write-Verbose -Message ('Microsoft.IdentityModel.Abstractions v{0} already loaded, skipping pre-load.' -f ($alreadyLoadedIdentityModel | Select-Object -First 1).GetName().Version)
+                }
+            }
+
             $msalToLoadInOrder.ForEach{
                 Write-Verbose -Message ('Loading MSAL v{0} for dependency {1} version {2}' -f $_.DLLVersion, $_.Name, $_.ModuleVersion)
                 if ([System.AppDomain]::CurrentDomain.GetAssemblies().Where{$_.GetName().Name -eq 'Microsoft.Identity.Client'}) {
