@@ -19,7 +19,7 @@ By default, `Connect-ZtAssessment` signs in as a user (delegated authentication)
 | SharePoint Online | ✅ |
 | Azure Information Protection | ❌ |
 
-**Azure Information Protection (AIP)** does not support app-only authentication. When `-Certificate` is supplied, AIP tests are skipped automatically and a warning is shown. This is expected behaviour.
+**Azure Information Protection (AIP)** does not support app-only authentication. When `-Certificate` is supplied, AIP tests are skipped automatically and a warning is shown. This is expected behavior.
 
 ---
 

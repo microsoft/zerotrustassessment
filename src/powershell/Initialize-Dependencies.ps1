@@ -243,14 +243,36 @@ function Initialize-Dependencies {
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
             $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
 
-            # Pre-load the highest available Microsoft.IdentityModel.Abstractions.dll across all module directories.
-            $identityModelFiles = foreach ($modSpec in $allModuleDependencies) {
+            # Pre-load the highest available Microsoft.IdentityModel.Abstractions.dll.
+            # Search only resolved MSAL directories and shallow well-known subdirs (bin, lib, net*)
+            # to avoid a costly recursive scan across entire module trees at import time.
+            $identityModelSearchDirs = [System.Collections.Generic.List[string]]::new()
+
+            foreach ($msalModule in $msalToLoadInOrder) {
+                if ($msalModule.DLLPath) {
+                    $msalDir = Split-Path -Path $msalModule.DLLPath -Parent
+                    if ($msalDir) { $identityModelSearchDirs.Add($msalDir) }
+                }
+            }
+
+            foreach ($modSpec in $allModuleDependencies) {
                 $candidateMod = Get-Module -Name $modSpec.Name -ListAvailable -ErrorAction SilentlyContinue |
                     Sort-Object Version -Descending | Select-Object -First 1
                 if ($candidateMod) {
-                    Get-ChildItem -Path $candidateMod.ModuleBase `
+                    $identityModelSearchDirs.Add($candidateMod.ModuleBase)
+                    foreach ($childDir in (Get-ChildItem -Path $candidateMod.ModuleBase -Directory -Force -ErrorAction SilentlyContinue)) {
+                        if ($childDir.Name -in @('bin', 'lib') -or $childDir.Name -like 'net*') {
+                            $identityModelSearchDirs.Add($childDir.FullName)
+                        }
+                    }
+                }
+            }
+
+            $identityModelFiles = foreach ($searchDir in ($identityModelSearchDirs | Where-Object { $_ } | Sort-Object -Unique)) {
+                if (Test-Path -Path $searchDir -PathType Container) {
+                    Get-ChildItem -Path $searchDir `
                         -Filter 'Microsoft.IdentityModel.Abstractions.dll' `
-                        -File -Recurse -Force -ErrorAction SilentlyContinue
+                        -File -Force -ErrorAction SilentlyContinue
                 }
             }
             $bestIdentityModel = $identityModelFiles | Where-Object { $_ } |

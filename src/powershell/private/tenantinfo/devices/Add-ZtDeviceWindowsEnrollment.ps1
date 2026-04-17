@@ -14,7 +14,8 @@ function Add-ZtDeviceWindowsEnrollment
     $activity = "Getting Windows enrollment summary"
     Write-ZtProgress -Activity $activity -Status "Processing"
 
-    if ((Get-MgContext).AuthType -eq 'AppOnly') {
+    $mgContext = Get-MgContext -ErrorAction Ignore
+    if (-not $mgContext -or $mgContext.AuthType -eq 'AppOnly') {
         Write-PSFMessage "Skipping Windows enrollment summary: app-only auth does not support MobileDeviceManagementPolicies." -Level Verbose
         Write-ZtProgress -Activity $activity -Status "Skipped"
         return
