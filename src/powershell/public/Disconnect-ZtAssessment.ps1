@@ -145,6 +145,22 @@
             }
             Write-PSFMessage $dbCleanupMessage -Level Warning
         }
+
+        # Stop any running report server
+        try {
+            Stop-ZtReportServer
+        }
+        catch {
+            Write-PSFMessage "Error stopping report server: $($_.Exception.Message)" -Level Warning
+        }
+
+        # Revert container environment modifications (xdg-open shim, /etc/hosts entry)
+        try {
+            Remove-ZtContainerEnvironment
+        }
+        catch {
+            Write-PSFMessage "Error removing container environment: $($_.Exception.Message)" -Level Warning
+        }
     }
 
     #endregion Session state cleanup
