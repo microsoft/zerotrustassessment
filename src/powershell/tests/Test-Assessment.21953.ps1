@@ -5,7 +5,7 @@
 
 function Test-Assessment-21953{
     [ZtTest(
-    	Category = 'Devices',
+    	Category = 'Device',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',

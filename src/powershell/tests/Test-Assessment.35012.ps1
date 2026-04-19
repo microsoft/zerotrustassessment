@@ -17,7 +17,7 @@
 function Test-Assessment-35012 {
 
     [ZtTest(
-        Category = 'Sensitivity Labels Configuration',
+        Category = 'Sensitivity Labels',
         ImplementationCost = 'Medium',
         Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E5'),

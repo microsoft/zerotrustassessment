@@ -5,7 +5,7 @@
 
 function Test-Assessment-21886 {
     [ZtTest(
-    	Category = 'Applications management',
+    	Category = 'Application management',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
