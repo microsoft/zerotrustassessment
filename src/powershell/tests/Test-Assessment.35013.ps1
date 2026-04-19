@@ -10,14 +10,14 @@
 
 .NOTES
     Test ID: 35013
-    Category: Sensitivity Labels Configuration
+    Category: Sensitivity Labels
     Required Module: ExchangeOnlineManagement v3.5.1+
     Required Connection: Connect-IPPSSession
 #>
 
 function Test-Assessment-35013 {
     [ZtTest(
-        Category = 'Sensitivity Labels Configuration',
+        Category = 'Sensitivity Labels',
         ImplementationCost = 'Medium',
         Service = ('SecurityCompliance'),
         MinimumLicense = 'Microsoft 365 E3',
