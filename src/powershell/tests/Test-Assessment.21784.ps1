@@ -11,7 +11,7 @@ Pass/Fail Hook:
 
 function Test-Assessment-21784 {
     [ZtTest(
-    	Category = 'Access control; Credential management',
+    	Category = 'Access control, Credential management',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
