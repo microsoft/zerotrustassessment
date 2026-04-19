@@ -10,7 +10,7 @@
 
 .NOTES
     Test ID: 35013
-    Category: Sensitivity Labels Configuration
+    Category: Sensitivity Labels
     Required Module: ExchangeOnlineManagement v3.5.1+
     Required Connection: Connect-IPPSSession
 #>

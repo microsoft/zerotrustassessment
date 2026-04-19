@@ -10,7 +10,7 @@
 
 .NOTES
     Test ID: 35012
-    Category: Sensitivity Labels Configuration
+    Category: Sensitivity Labels
     Required APIs: Get-Label (Exchange PowerShell)
 #>
 
