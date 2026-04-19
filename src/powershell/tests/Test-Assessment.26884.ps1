@@ -17,7 +17,7 @@ function Test-Assessment-26884 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
-        MinimumLicense = ('Azure_Front_Door_Premium'),
+        MinimumLicense = ('Azure_FrontDoor_Premium'),
         Pillar = 'Network',
         RiskLevel = 'High',
         SfiPillar = 'Protect networks',
