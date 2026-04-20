@@ -60,7 +60,7 @@ function Start-ZtProgressServer {
 			return
 		}
 
-		$url = "http://localhost:$selectedPort"
+		$url = "http://localhost:$selectedPort#run=$runId"
 
 		# Create a dedicated runspace for the HTTP server
 		$runspace = [runspacefactory]::CreateRunspace()
@@ -266,7 +266,7 @@ function Start-ZtProgressServer {
 		Write-Host $url -ForegroundColor Cyan
 		Write-Host
 
-		# Auto-open the progress dashboard in the default browser with the run ID in the URL hash
-		Start-Process "$url#run=$runId"
+		# Auto-open the progress dashboard in the default browser
+		Start-Process $url
 	}
 }
