@@ -220,16 +220,18 @@ securityresources
         return
     }
 
-    # Group assessments by recommendation display name
-    $groups = $assessments | Group-Object -Property recommendationDisplayName
-    $testIdCounter = 50001
+    # Group assessments by recommendationName GUID (stable and unique per recommendation)
+    $groups = $assessments | Group-Object -Property recommendationName
 
     foreach ($group in $groups) {
         $rows = $group.Group
         $firstRow = $rows[0]
 
+        # TestId from recommendationName GUID
+        $testId = $group.Name
+
         # Title from recommendationDisplayName
-        $title = $group.Name
+        $title = $firstRow.recommendationDisplayName
 
         # Category from controls column
         $category = $firstRow.controls
@@ -255,14 +257,6 @@ $cleanRemediation
 "@
         }
 
-        $portalRefSection = ''
-        if (-not [string]::IsNullOrWhiteSpace($firstRow.azurePortalRecommendationLink)) {
-            $portalRefSection = @"
-
-[View recommendation in Azure Portal]($($firstRow.azurePortalRecommendationLink))
-"@
-        }
-
         $descriptionMd = @"
 $descriptionText
 $remediationSection
@@ -272,23 +266,62 @@ $remediationSection
         $applicableRows = @($rows | Where-Object { $_.state -ne 'NotApplicable' })
         $notApplicableRows = @($rows | Where-Object { $_.state -eq 'NotApplicable' })
 
-        # If all rows are NotApplicable → Skip
+        # Determine whether Resource group / Resource type columns have any data
+        $showRgType = @($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) -or -not [string]::IsNullOrWhiteSpace($_.resourceType) }).Count -gt 0
+
+        # If all rows are NotApplicable → Skip (but still show resource table)
         if ($applicableRows.Count -eq 0) {
             $naReasons = ($notApplicableRows | ForEach-Object { $_.notApplicableReason } | Where-Object { $_ } | Select-Object -Unique) -join '; '
             if ([string]::IsNullOrWhiteSpace($naReasons)) { $naReasons = 'All resources are not applicable for this recommendation.' }
 
+            $naTableRows = ''
+            foreach ($row in $notApplicableRows | Sort-Object subscriptionName, resourceGroup, resourceName) {
+                $subLink = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
+                $subMd = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+
+                $resLink = "https://portal.azure.com/#resource$($row.resourceId)"
+                $resMd = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+
+                $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) {
+                    "[View recommendation]($($row.azurePortalRecommendationLink))"
+                } else { '' }
+
+                if ($showRgType) {
+                    $naTableRows += "| $subMd | $($row.resourceGroup) | $($row.resourceType) | $resMd | N/A | $portalLinkMd |`n"
+                } else {
+                    $naTableRows += "| $subMd | $resMd | N/A | $portalLinkMd |`n"
+                }
+            }
+
+            if ($showRgType) {
+                $naResultMd = @"
+$naReasons
+
+| Subscription | Resource group | Resource type | Affected resource | Status | Azure portal |
+| :----------- | :------------- | :------------ | :---------------- | :----- | :----------- |
+$naTableRows
+"@
+            } else {
+                $naResultMd = @"
+$naReasons
+
+| Subscription | Affected resource | Status | Azure portal |
+| :----------- | :---------------- | :----- | :----------- |
+$naTableRows
+"@
+            }
+
             $params = @{
-                TestId         = "$testIdCounter"
+                TestId         = $testId
                 Title          = $title
                 Description    = $descriptionMd
                 SkippedBecause = 'NotApplicable'
-                Result         = $naReasons
+                Result         = $naResultMd
                 Pillar         = 'Infrastructure'
                 Category       = $category
                 Risk           = $risk
             }
             Add-ZtTestResultDetail @params
-            $testIdCounter++
             continue
         }
 
@@ -300,32 +333,50 @@ $remediationSection
         # Resource table with clickable links (exclude NotApplicable rows)
 
         $tableRows = ''
-        foreach ($row in $applicableRows | Sort-Object subscriptionName, resourceGroup, resourceName) {
+        foreach ($row in $rows | Sort-Object subscriptionName, resourceGroup, resourceName) {
             $subLink = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
             $subMd = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
-
-            $rgSafe = $row.resourceGroup
-            $typeSafe = $row.resourceType
 
             $resLink = "https://portal.azure.com/#resource$($row.resourceId)"
             $resMd = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
 
-            $stateIcon = if ($row.state -eq 'Healthy') { '✅' } else { '❌' }
+            $stateIcon = switch ($row.state) {
+                'Healthy'       { '✅' }
+                'NotApplicable' { 'N/A' }
+                default         { '❌' }
+            }
 
-            $tableRows += "| $subMd | $rgSafe | $typeSafe | $resMd | $stateIcon |`n"
+            $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) {
+                "[View recommendation]($($row.azurePortalRecommendationLink))"
+            } else { '' }
+
+            if ($showRgType) {
+                $tableRows += "| $subMd | $($row.resourceGroup) | $($row.resourceType) | $resMd | $stateIcon | $portalLinkMd |`n"
+            } else {
+                $tableRows += "| $subMd | $resMd | $stateIcon | $portalLinkMd |`n"
+            }
         }
 
-        $resultMd = @"
+        if ($showRgType) {
+            $resultMd = @"
 $title
 
-| Subscription | Resource Group | Resource Type | Resource | Status |
-| :----------- | :------------- | :------------ | :------- | :----- |
+| Subscription | Resource group | Resource type | Affected resource | Status | Azure portal |
+| :----------- | :------------- | :------------ | :---------------- | :----- | :----------- |
 $tableRows
-$portalRefSection
 "@
+        } else {
+            $resultMd = @"
+$title
+
+| Subscription | Affected resource | Status | Azure portal |
+| :----------- | :---------------- | :----- | :----------- |
+$tableRows
+"@
+        }
 
         $params = @{
-            TestId             = "$testIdCounter"
+            TestId             = $testId
             Title              = $title
             Status             = $passed
             Result             = $resultMd
@@ -336,9 +387,8 @@ $portalRefSection
         }
 
         Add-ZtTestResultDetail @params
-        $testIdCounter++
     }
     #endregion Assessment Logic
 
-    Write-PSFMessage "Emitted $($groups.Count) grouped MDC assessment test results (TestIds 50001-$($testIdCounter - 1))" -Tag Test -Level VeryVerbose
+    Write-PSFMessage "Emitted $($groups.Count) grouped MDC assessment test results" -Tag Test -Level VeryVerbose
 }

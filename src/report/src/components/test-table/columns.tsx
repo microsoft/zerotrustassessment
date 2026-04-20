@@ -19,6 +19,11 @@ export const columns: ColumnDef<Test>[] = [
                 </Button>
             )
         },
+        cell: ({ row }) => {
+            const id = row.getValue("TestId") as string
+            const display = id && id.length > 5 ? id.slice(-5) : id
+            return <span title={id}>{display}</span>
+        },
         meta: {
             label: "ID"
         }

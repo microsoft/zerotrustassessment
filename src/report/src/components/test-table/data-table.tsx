@@ -92,6 +92,13 @@ export function DataTable<TData extends Test, TValue>({
         return data;
     }, [data, pillar]);
 
+    // Default to High risk filter for Infrastructure pillar
+    React.useEffect(() => {
+        if (pillar === "Infrastructure" && pillarFilteredData.some(item => item.TestRisk === "High")) {
+            setSelectedRisks(["High"]);
+        }
+    }, [pillar, pillarFilteredData]);
+
     // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
     const filteredData = React.useMemo(() => {
         let result = pillarFilteredData;
@@ -309,6 +316,12 @@ export function DataTable<TData extends Test, TValue>({
                                 .filter(
                                     (column) => column.getCanHide()
                                 )
+                                .filter((column) => {
+                                    if (pillar === "Infrastructure") {
+                                        return !["TestImpact", "TestImplementationCost", "TestMinimumLicense"].includes(column.id);
+                                    }
+                                    return true;
+                                })
                                 .map((column) => {
                                     return (
                                         <DropdownMenuCheckboxItem
@@ -452,27 +465,32 @@ export function DataTable<TData extends Test, TValue>({
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader>
-                                <div className="mt-2 grid grid-cols-3 gap-y-2 text-sm">
+                                <div className={`mt-2 text-sm ${selectedRow?.TestPillar === "Infrastructure" ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Risk:</span>
                                         <span>{selectedRow?.TestRisk ?? "N/A"}</span>
                                     </div>
+                                    {selectedRow?.TestPillar !== "Infrastructure" && (
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">User Impact:</span>
                                         <span>{selectedRow?.TestImpact ?? "N/A"}</span>
                                     </div>
+                                    )}
+                                    {selectedRow?.TestPillar !== "Infrastructure" && (
                                     <div className="flex items-center gap-2">
                                         <Settings className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Implementation Effort:</span>
                                         <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
                                     </div>
+                                    )}
                                     <div className="flex items-center gap-2">
                                         <Hash className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Test ID:</span>
                                         <span>{selectedRow?.TestId ?? "N/A"}</span>
                                     </div>
+                                    {selectedRow?.TestPillar !== "Infrastructure" && (
                                     <div className="flex items-center gap-2">
                                         <BadgeCheck className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">License:</span>
@@ -488,6 +506,7 @@ export function DataTable<TData extends Test, TValue>({
                                             )}
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </CardHeader>
                         </Card>
