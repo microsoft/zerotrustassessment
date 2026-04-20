@@ -96,6 +96,9 @@
                     Write-PSFMessage $resultMessage -Level Warning
                 }
             }
+            # Always clear the connected-service tracking so Connect-ZtAssessment
+            # re-evaluates Graph prepend logic and domain resolution on next connect.
+            Remove-ZtConnectedService -Service $svc.Key -ErrorAction SilentlyContinue
 
             $serviceResults.Add([PSCustomObject]@{
                 Service = $svc.Key

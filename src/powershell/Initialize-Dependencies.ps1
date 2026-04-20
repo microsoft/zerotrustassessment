@@ -276,14 +276,18 @@ function Initialize-Dependencies {
                 }
             }
             $bestIdentityModel = $identityModelFiles | Where-Object { $_ } |
-                Sort-Object { try { [version]($_.VersionInfo.FileVersion) } catch { [version]'0.0.0.0' } } -Descending |
+                Sort-Object {
+                    # Use ProductVersion and strip any prerelease suffix (e.g. "8.1.0-preview.1" → "8.1.0")
+                    $numericPart = if ($_.VersionInfo.ProductVersion -match '^(\d+(?:\.\d+){0,3})') { $Matches[1] } else { '0.0.0.0' }
+                    try { [version]$numericPart } catch { [version]'0.0.0.0' }
+                } -Descending |
                 Select-Object -First 1
 
             if ($bestIdentityModel) {
                 $alreadyLoadedIdentityModel = [System.AppDomain]::CurrentDomain.GetAssemblies() |
                     Where-Object { $_.GetName().Name -eq 'Microsoft.IdentityModel.Abstractions' }
                 if (-not $alreadyLoadedIdentityModel) {
-                    Write-Host -Object ('    ✅ Loading Microsoft.IdentityModel.Abstractions v{0}' -f $bestIdentityModel.VersionInfo.FileVersion) -ForegroundColor Green
+                    Write-Host -Object '    ✅ Loading Microsoft.IdentityModel.Abstractions.dll' -ForegroundColor Green
                     $null = [System.Reflection.Assembly]::LoadFrom($bestIdentityModel.FullName)
                 }
                 else {

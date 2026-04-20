@@ -116,6 +116,11 @@ function Connect-ZtAssessment {
 	}
 	if ($IgnoreLanguageMode) { $script:IgnoreLanguageMode = $true }
 
+	if ($Certificate -and (-not $ClientId -or -not $TenantId)) {
+		Stop-PSFFunction -Message "When -Certificate is specified, both -ClientId and -TenantId are required for app-only authentication." -EnableException $true -Cmdlet $PSCmdlet
+		return
+	}
+
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
@@ -225,6 +230,14 @@ function Connect-ZtAssessment {
 					Add-ZtConnectedService -Service 'Graph'
 					Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
 					$contextTenantId = $context.TenantId
+					# Resolve the initial domain even for existing connections so EXO, S&C, and SPO can use it.
+					try {
+						$resolvedOrg = Invoke-ZtGraphRequest -RelativeUri 'organization' -ErrorAction Stop
+						$script:resolvedInitialDomain = $resolvedOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+					}
+					catch {
+						Write-Verbose -Message "Failed to resolve initial domain from existing Graph connection: $($_.Exception.Message)"
+					}
 					continue
 				}
 
@@ -263,6 +276,30 @@ function Connect-ZtAssessment {
 				$contextTenantId = (Get-MgContext).TenantId
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'Graph'
+				# Resolve the initial domain once here so EXO, S&C, and SPO can reuse it without redundant Graph calls.
+				try {
+					$resolvedOrg = Invoke-ZtGraphRequest -RelativeUri 'organization' -ErrorAction Stop
+					$script:resolvedInitialDomain = $resolvedOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
+				}
+				catch {
+					Write-Verbose -Message "Failed to resolve initial domain after Graph connect: $($_.Exception.Message)"
+				}
+				# Fallback: try Azure context if Graph did not resolve the initial domain.
+				if (-not $script:resolvedInitialDomain -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore)) {
+					try {
+						$azTenantDomains = (Get-AzTenant -ErrorAction Stop).Domains
+						$script:resolvedInitialDomain = $azTenantDomains | Where-Object { $_ -match '^[^.]+\.onmicrosoft\.com$' } | Select-Object -First 1
+						if ($script:resolvedInitialDomain) {
+							Write-Verbose -Message "Resolved initial domain from Azure context: $script:resolvedInitialDomain"
+						}
+					}
+					catch {
+						Write-Verbose -Message "Failed to resolve initial domain from Azure context: $($_.Exception.Message)"
+					}
+				}
+				if (-not $script:resolvedInitialDomain) {
+					Write-PSFMessage -Message "Could not resolve the initial tenant domain from Graph or Azure context. EXO, S&C, and SPO CBA connections may fail." -Level Warning
+				}
 			}
 			catch {
 				$graphException = $_
@@ -489,16 +526,13 @@ function Connect-ZtAssessment {
 				Write-Verbose -Message 'Connecting to Microsoft Exchange Online'
 				if ($ClientId -and $Certificate) {
 					# App-only CBA: requires -AppId, -Certificate, and -Organization (primary *.onmicrosoft.com domain, not a GUID).
-					$exoOrganization = $null
-					try {
-						$exoOrg = Invoke-ZtGraphRequest -RelativeUri 'organization'
-						$exoOrganization = $exoOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-					}
-					catch {
-						Write-Verbose -Message "Failed to resolve initial domain for Exchange Online CBA: $($_.Exception.Message)"
-					}
+					$exoOrganization = $script:resolvedInitialDomain
 					if (-not $exoOrganization) {
-						throw "Unable to determine the organization domain for Exchange Online CBA. Ensure Graph is connected and the tenant has a verified initial domain."
+						Write-Host -Object "   ❌ Unable to determine the organization domain for Exchange Online CBA." -ForegroundColor Red
+						Write-Host -Object "       The Exchange Online tests will be skipped." -ForegroundColor Red
+						Write-PSFMessage -Message "Unable to determine the organization domain for Exchange Online CBA. Skipping Exchange Online connection." -Level Debug
+						Remove-ZtConnectedService -Service 'ExchangeOnline'
+						continue
 					}
 					Write-PSFMessage -Message "Using app-only CBA for Exchange Online with AppId '{0}' and organization '{1}'." -Level Verbose -StringValues @($ClientId, $exoOrganization)
 					$null = Connect-ExchangeOnline `
@@ -601,16 +635,13 @@ function Connect-ZtAssessment {
 				try {
 					if ($ClientId -and $Certificate) {
 						# App-only CBA: requires -AppId, -Certificate, and -Organization (primary *.onmicrosoft.com domain, not a GUID).
-						$ippsOrganization = $null
-						try {
-							$ippsOrg = Invoke-ZtGraphRequest -RelativeUri 'organization'
-							$ippsOrganization = $ippsOrg.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-						}
-						catch {
-							Write-Verbose -Message "Failed to resolve initial domain for Security & Compliance CBA: $($_.Exception.Message)"
-						}
+						$ippsOrganization = $script:resolvedInitialDomain
 						if (-not $ippsOrganization) {
-							throw "Unable to determine the organization domain for Security & Compliance CBA. Ensure Graph is connected and the tenant has a verified initial domain."
+							Write-Host -Object "   ❌ Unable to determine the organization domain for Security & Compliance CBA." -ForegroundColor Red
+							Write-Host -Object "       The Security & Compliance tests will be skipped." -ForegroundColor Red
+							Write-PSFMessage -Message "Unable to determine the organization domain for Security & Compliance CBA. Skipping Security & Compliance connection." -Level Debug
+							Remove-ZtConnectedService -Service 'SecurityCompliance'
+							continue
 						}
 						Write-PSFMessage -Message "Using app-only CBA for Security & Compliance with AppId '{0}' and organization '{1}'." -Level Verbose -StringValues @($ClientId, $ippsOrganization)
 						$ippSessionParams = @{
@@ -702,7 +733,6 @@ function Connect-ZtAssessment {
 			Write-Host -Object "`nConnecting to SharePoint Online" -ForegroundColor Cyan
 			try {
 				Write-PSFMessage -Message ('Loading SharePoint Online required modules: {0}' -f ($resolvedRequiredModules.SharePointOnline.Name -join ', ')) -Level Verbose
-				$loadedSharePointOnlineModules = $null
 				# Microsoft.Online.SharePoint.PowerShell is a Windows-only module. Always load via -UseWindowsPowerShell
 				# (WinPS implicit remoting). Loading it natively in PS7 breaks certificate-based authentication.
 				$loadedSharePointOnlineModules = $resolvedRequiredModules.SharePointOnline.ForEach{
@@ -730,38 +760,11 @@ function Connect-ZtAssessment {
 				$adminUrl = $SharePointAdminUrl # Attempt to read from parameter
 			}
 
-			# Try to infer from Graph context if already connected
-			if (-not $adminUrl -and (Get-Command -Name Get-MgContext -ErrorAction Ignore) -and ($graphContext = Get-MgContext -ErrorAction Ignore)) {
-				if ($graphContext.TenantId) {
-					try {
-						$org = Invoke-ZtGraphRequest -RelativeUri 'organization'
-						$initialDomain = $org.verifiedDomains | Where-Object { $_.isInitial } | Select-Object -ExpandProperty name -First 1
-						if ($initialDomain) {
-							$tenantName = $initialDomain.Split('.')[0]
-							$adminUrl = "https://$tenantName-admin.sharepoint.com"
-							Write-Verbose -Message "Inferred SharePoint Admin URL from Graph: $adminUrl"
-						}
-					}
-					catch {
-						Write-Verbose -Message "Failed to infer SharePoint Admin URL from Graph: $($_.Exception.Message)"
-					}
-				}
-			}
-
-			if (-not $adminUrl -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore) -and ($tenantDetails = Get-AzTenant -ErrorAction Ignore)) {
-				# Try to infer from Azure context
-				try {
-					# initial domain are <tenantName>.onmicrosoft.com as per https://learn.microsoft.com/en-us/entra/fundamentals/add-custom-domain
-					$initialDomain = $tenantDetails.Domains.Where({ $_ -match '^[^.]+\.onmicrosoft\.com$' }, 1) | Select-Object -First 1
-					if ($initialDomain) {
-						$tenantName = $initialDomain.Split('.')[0]
-						$adminUrl = "https://$tenantName-admin.sharepoint.com"
-						Write-Verbose -Message "Inferred SharePoint Admin URL from Azure context: $adminUrl"
-					}
-				}
-				catch {
-					Write-Verbose -Message "Failed to infer SharePoint Admin URL from Azure context: $($_.Exception.Message)"
-				}
+			# Try to infer from the already-resolved initial domain (cached after Graph connected)
+			if (-not $adminUrl -and $script:resolvedInitialDomain) {
+				$tenantName = $script:resolvedInitialDomain.Split('.')[0]
+				$adminUrl = "https://$tenantName-admin.sharepoint.com"
+				Write-Verbose -Message "Inferred SharePoint Admin URL from Graph: $adminUrl"
 			}
 
 			if (-not $adminUrl) {
