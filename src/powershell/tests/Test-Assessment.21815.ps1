@@ -109,7 +109,7 @@ The following emergency access accounts were excluded from this check as they ar
 '@
         foreach ($emergency in $excludedEmergencyAccounts) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $emergency.principalId
-            $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $($emergency.userPrincipalName) | $($emergency.roleDisplayName) |`n"
+            $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $(Get-SafeMarkdown($emergency.userPrincipalName)) | $(Get-SafeMarkdown($emergency.roleDisplayName)) |`n"
         }
 
         if (-not $passed) {

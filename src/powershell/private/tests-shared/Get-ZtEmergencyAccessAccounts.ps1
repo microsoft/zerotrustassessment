@@ -21,7 +21,7 @@
     Note: Group-based emergency accounts are resolved at runtime via Microsoft Graph API.
 
 .PARAMETER Database
-    The SQLite database connection used to resolve user information.
+    The DuckDB database connection used to resolve user information.
 
 .OUTPUTS
     Array of PSCustomObject with properties:
@@ -105,20 +105,23 @@ function Get-ZtEmergencyAccessAccounts {
             # Resolve group members via Microsoft Graph API (GroupMember table not available in DB)
             try {
                 Write-PSFMessage "Resolving emergency access group members via Graph API: Id=$id" -Level Verbose
-                $members = @(Get-MgGroupMember -GroupId $id -All -ErrorAction Stop | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })
+                $membersResponse = Get-ZtGroupMember -GroupId $id
+                $members = @($membersResponse | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })
 
                 if ($members.Count -gt 0) {
                     foreach ($member in $members) {
-                        # Get additional user properties
-                        $userDetails = Get-MgUser -UserId $member.Id -Property Id, UserPrincipalName, DisplayName -ErrorAction SilentlyContinue
+                        # Get additional user properties from the User table
+                        $escapedMemberId = $member.id -replace "'", "''"
+                        $memberSql = "SELECT id, userPrincipalName, displayName FROM User WHERE id = '$escapedMemberId'"
+                        $userDetails = Invoke-DatabaseQuery -Database $Database -Sql $memberSql | Select-Object -First 1
                         if ($userDetails) {
                             $emergencyAccessAccounts += [PSCustomObject]@{
-                                Id                = $userDetails.Id
-                                UserPrincipalName = $userDetails.UserPrincipalName
-                                DisplayName       = $userDetails.DisplayName
+                                Id                = $userDetails.id
+                                UserPrincipalName = $userDetails.userPrincipalName
+                                DisplayName       = $userDetails.displayName
                                 Type              = 'GroupMember'
                             }
-                            Write-PSFMessage "Emergency access group member found: $($userDetails.UserPrincipalName)" -Level Verbose
+                            Write-PSFMessage "Emergency access group member found: $($userDetails.userPrincipalName)" -Level Verbose
                         }
                     }
                 }
