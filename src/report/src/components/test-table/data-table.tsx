@@ -126,10 +126,24 @@ export function DataTable<TData extends Test, TValue>({
         return result;
     }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses, showSkipped]);
 
-    // Check if there are any skipped tests in the pillar
+    // Check if there are any skipped tests after applying SFI pillar and risk filters
     const hasSkippedTests = React.useMemo(() => {
-        return pillarFilteredData.some(item => item.TestStatus === "Skipped");
-    }, [pillarFilteredData]);
+        let result = pillarFilteredData;
+
+        if (selectedSfiPillars.length > 0) {
+            result = result.filter(item =>
+                item.TestSfiPillar && selectedSfiPillars.includes(item.TestSfiPillar)
+            );
+        }
+
+        if (selectedRisks.length > 0) {
+            result = result.filter(item =>
+                item.TestRisk && selectedRisks.includes(item.TestRisk)
+            );
+        }
+
+        return result.some(item => item.TestStatus === "Skipped");
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
@@ -356,7 +370,7 @@ export function DataTable<TData extends Test, TValue>({
                     <div className="flex flex-col items-end gap-1">
                         <div className="flex items-center gap-4">
                             {/* Clear all filters button */}
-                            {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
+                            {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0 || showSkipped) && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -364,6 +378,7 @@ export function DataTable<TData extends Test, TValue>({
                                         setSelectedSfiPillars([]);
                                         setSelectedRisks([]);
                                         setSelectedStatuses([]);
+                                        setShowSkipped(false);
                                     }}
                                     className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                                 >
