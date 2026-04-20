@@ -99,7 +99,7 @@ function Test-Assessment-21820 {
 
         # Check if alert is properly configured
         # Fail if: isDefaultRecipientsEnabled is false AND notificationRecipients is empty
-        if ($isDefaultRecipientsEnabled -eq $false -and ([string]::IsNullOrEmpty($notificationRecipients) -or $notificationRecipients.Count -eq 0)) {
+        if ($isDefaultRecipientsEnabled -eq $false -and ($null -eq $notificationRecipients -or $notificationRecipients.Count -eq 0)) {
 
             $passed = $false
             Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients disabled and no custom recipients configured" -Level Verbose
