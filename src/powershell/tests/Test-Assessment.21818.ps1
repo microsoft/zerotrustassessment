@@ -123,9 +123,9 @@ ORDER BY rd.displayName;
                     $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
 
                     # TO-DO: When the performance of the API is improved, we can collect all rules and move the check outside the loop to determine if the test passes or fails.
-                    # Check if isDefaultRecipientsEnabled is true and notificationRecipients is an empty array
-                    if ($rule.isDefaultRecipientsEnabled -eq $true -and
-                        $rule.notificationRecipients.Count -eq 0) {
+                    # Check if isDefaultRecipientsEnabled is false and notificationRecipients is an empty array
+                    if ($rule.isDefaultRecipientsEnabled -eq $false -and
+                        ([string]::IsNullOrEmpty($rule.notificationRecipients) -or $rule.notificationRecipients.Count -eq 0)) {
                         $passed = $false
                         $exitLoop = $true
                         break  # Exit inner loop if condition is met
