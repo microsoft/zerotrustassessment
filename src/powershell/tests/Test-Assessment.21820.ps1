@@ -98,11 +98,11 @@ function Test-Assessment-21820 {
         Write-PSFMessage "Role: $($role.displayName) - isDefaultRecipientsEnabled: $isDefaultRecipientsEnabled, Recipients: $($notificationRecipients -join ', ')" -Level Verbose
 
         # Check if alert is properly configured
-        # Fail if: (isDefaultRecipientsEnabled is true AND notificationRecipients is empty) OR (isDefaultRecipientsEnabled is false AND no custom recipients)
-        if (($isDefaultRecipientsEnabled -eq $true -and ([string]::IsNullOrEmpty($notificationRecipients) -or $notificationRecipients.Count -eq 0))) {
+        # Fail if: isDefaultRecipientsEnabled is false AND notificationRecipients is empty
+        if ($isDefaultRecipientsEnabled -eq $false -and ([string]::IsNullOrEmpty($notificationRecipients) -or $notificationRecipients.Count -eq 0)) {
 
             $passed = $false
-            Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients enabled but no recipients configured" -Level Verbose
+            Write-PSFMessage "Alert misconfigured for role: $($role.displayName) - Default recipients disabled and no custom recipients configured" -Level Verbose
 
             $rolesWithIssues += @{
                 Role                       = $role
