@@ -69,7 +69,7 @@ function Export-TenantData {
 			-QueryString $userQueryString -ShowCount
 
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
-			-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
+			-EntityUri 'beta/applications' -ProgressActivity 'Applications' -ShowCount
 
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
 			-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
