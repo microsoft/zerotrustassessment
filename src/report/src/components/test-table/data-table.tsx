@@ -64,6 +64,7 @@ export function DataTable<TData extends Test, TValue>({
     const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
     const [selectedRisks, setSelectedRisks] = React.useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
+    const [showSkipped, setShowSkipped] = React.useState(false);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         // Hide TestImpact by default
         TestImpact: false,
@@ -116,12 +117,33 @@ export function DataTable<TData extends Test, TValue>({
                 item.TestStatus && selectedStatuses.includes(item.TestStatus)
             );
         } else {
-            // If no status filters are selected, exclude "Planned" items by default
-            result = result.filter(item => item.TestStatus !== "Planned");
+            // By default, exclude "Planned" and "Skipped" (unless showSkipped is checked)
+            result = result.filter(item =>
+                item.TestStatus !== "Planned" && (showSkipped || item.TestStatus !== "Skipped")
+            );
         }
 
         return result;
-    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses]);
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses, showSkipped]);
+
+    // Check if there are any skipped tests after applying SFI pillar and risk filters
+    const hasSkippedTests = React.useMemo(() => {
+        let result = pillarFilteredData;
+
+        if (selectedSfiPillars.length > 0) {
+            result = result.filter(item =>
+                item.TestSfiPillar && selectedSfiPillars.includes(item.TestSfiPillar)
+            );
+        }
+
+        if (selectedRisks.length > 0) {
+            result = result.filter(item =>
+                item.TestRisk && selectedRisks.includes(item.TestRisk)
+            );
+        }
+
+        return result.some(item => item.TestStatus === "Skipped");
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
@@ -333,6 +355,7 @@ export function DataTable<TData extends Test, TValue>({
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">Filter by SFI Pillar:</span>
+
                         {selectedSfiPillars.length > 0 && (
                             <Button
                                 variant="ghost"
@@ -344,25 +367,40 @@ export function DataTable<TData extends Test, TValue>({
                             </Button>
                         )}
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Clear all filters button */}
-                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    setSelectedSfiPillars([]);
-                                    setSelectedRisks([]);
-                                    setSelectedStatuses([]);
-                                }}
-                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                Clear All Filters
-                            </Button>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                            Showing {filteredData.length} of {pillarFilteredData.length} tests
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-4">
+                            {/* Clear all filters button */}
+                            {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0 || showSkipped) && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedSfiPillars([]);
+                                        setSelectedRisks([]);
+                                        setSelectedStatuses([]);
+                                        setShowSkipped(false);
+                                    }}
+                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear All Filters
+                                </Button>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                                Showing {filteredData.length} of {pillarFilteredData.length} tests
+                            </div>
                         </div>
+                        {/* Show Skipped Tests Checkbox - only if there are skipped tests */}
+                        {hasSkippedTests && (
+                            <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+                                <input
+                                    type="checkbox"
+                                    checked={showSkipped}
+                                    onChange={(e) => setShowSkipped(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border-gray-300 accent-gray-600 cursor-pointer"
+                                />
+                                <span className="text-xs text-muted-foreground">Show skipped tests</span>
+                            </label>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
