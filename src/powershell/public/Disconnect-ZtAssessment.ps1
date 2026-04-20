@@ -99,6 +99,11 @@
             # Always clear the connected-service tracking so Connect-ZtAssessment
             # re-evaluates Graph prepend logic and domain resolution on next connect.
             Remove-ZtConnectedService -Service $svc.Key -ErrorAction SilentlyContinue
+            # ExchangeOnline and SecurityCompliance share the same disconnect command but are
+            # tracked separately in $script:ConnectedService. Clear both when EXO is disconnected.
+            if ($svc.Key -eq 'ExchangeOnline') {
+                Remove-ZtConnectedService -Service 'SecurityCompliance' -ErrorAction SilentlyContinue
+            }
 
             $serviceResults.Add([PSCustomObject]@{
                 Service = $svc.Key

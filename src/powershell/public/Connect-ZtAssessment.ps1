@@ -754,11 +754,7 @@ function Connect-ZtAssessment {
 				continue
 			}
 
-			[string] $adminUrl = $null
-			if (-not [string]::IsNullOrEmpty($SharePointAdminUrl)) {
-				Write-Verbose -Message "Using provided SharePoint Admin URL: $SharePointAdminUrl"
-				$adminUrl = $SharePointAdminUrl # Attempt to read from parameter
-			}
+			[string] $adminUrl = $SharePointAdminUrl
 
 			# Try to infer from the already-resolved initial domain (cached after Graph connected)
 			if (-not $adminUrl -and $script:resolvedInitialDomain) {
@@ -768,9 +764,9 @@ function Connect-ZtAssessment {
 			}
 
 			if (-not $adminUrl) {
-				Write-Host -Object "   ❌ SharePoint Admin URL not provided and could not be inferred." -ForegroundColor Red
-				Write-Host -Object "       The SharePoint tests will be skipped." -ForegroundColor Red
-				Write-PSFMessage -Message "SharePoint Admin URL not provided and could not be inferred. Skipping SharePoint connection." -Level debug
+				Write-Host -Object "   ❌ SharePoint Admin URL not provided and could not be inferred from the tenant domain." -ForegroundColor Red
+				Write-Host -Object "       Use -SharePointAdminUrl to specify the URL directly. The SharePoint tests will be skipped." -ForegroundColor Red
+				Write-PSFMessage -Message "SharePoint Admin URL not provided and could not be inferred from the tenant domain. Skipping SharePoint connection." -Level Debug
 				Remove-ZtConnectedService -Service 'SharePointOnline'
 			}
 			else {
