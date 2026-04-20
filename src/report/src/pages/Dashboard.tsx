@@ -57,7 +57,7 @@ import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
-import { SwgDefenseLayers } from "@/components/overview/swg-defense-layers";
+import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber, metricDescriptions } from "@/lib/format-utils";
 
@@ -1541,6 +1541,7 @@ export default function Dashboard() {
             </div>
 
             {/* Network - SWG Defense Layers Section */}
+            {hasSwgData() && (
             <div className="flex max-w-7xl flex-col gap-6 mt-6">
                 <Card>
                     <CardHeader className="space-y-0 pb-2 flex-row">
@@ -1559,6 +1560,7 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
             </div>
+            )}
         </TooltipProvider>
     )
 }

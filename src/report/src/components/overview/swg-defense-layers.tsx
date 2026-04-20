@@ -73,12 +73,13 @@ function getLayerStatus(layer: LayerDefinition): LayerResult {
         return { layer, status: "na", passed: 0, failed: 0, total: layer.specIds.length, tests: [] };
     }
 
+    const total = layer.specIds.length;
     const passed = matchedTests.filter((t) => t.TestStatus === "Passed").length;
     const skipped = matchedTests.filter((t) => t.TestStatus === "Skipped" || t.TestStatus === "Planned").length;
     const failed = matchedTests.length - passed - skipped;
 
     if (passed === 0 && failed === 0) {
-        return { layer, status: "na", passed, failed, total: matchedTests.length, tests: matchedTests };
+        return { layer, status: "na", passed, failed, total, tests: matchedTests };
     }
 
     let status: LayerStatus;
@@ -90,7 +91,7 @@ function getLayerStatus(layer: LayerDefinition): LayerResult {
         status = "partial";
     }
 
-    return { layer, status, passed, failed, total: matchedTests.length, tests: matchedTests };
+    return { layer, status, passed, failed, total, tests: matchedTests };
 }
 
 // Color palettes per status — dark→light from outermost to innermost ring
@@ -135,7 +136,13 @@ function isForwardingProfileFailed(results: LayerResult[]): boolean {
     const layer1 = results.find((r) => r.layer.id === 1);
     if (!layer1) return false;
     const forwardingTest = layer1.tests.find((t) => t.TestId === "25406");
-    return forwardingTest !== undefined && forwardingTest.TestStatus !== "Passed";
+    return forwardingTest !== undefined && (forwardingTest.TestStatus === "Failed" || forwardingTest.TestStatus === "Error");
+}
+
+/** Returns true when the report data contains at least one SWG-related test. */
+export function hasSwgData(): boolean {
+    const allSpecIds = DEFENSE_LAYERS.flatMap((l) => l.specIds);
+    return reportData.Tests.some((t) => allSpecIds.includes(t.TestId));
 }
 
 export function SwgDefenseLayers() {
@@ -145,19 +152,15 @@ export function SwgDefenseLayers() {
         return DEFENSE_LAYERS.map((layer) => getLayerStatus(layer));
     }, []);
 
-    const hasSwgTests = useMemo(() => {
-        const allSpecIds = DEFENSE_LAYERS.flatMap((l) => l.specIds);
-        return reportData.Tests.some((t) => allSpecIds.includes(t.TestId));
-    }, []);
-
-    if (!hasSwgTests) {
+    if (!hasSwgData()) {
         return null;
     }
 
     const forwardingFailed = isForwardingProfileFailed(layerResults);
     const activeLayers = layerResults.filter((r) => r.layer.specIds.length > 0);
     const failingLayers = activeLayers.filter((r) => r.status === "fail" || r.status === "partial");
-    const overallPass = failingLayers.length === 0 && activeLayers.some((r) => r.status === "pass");
+    const allNotExecuted = activeLayers.length > 0 && activeLayers.every((r) => r.status === "na");
+    const overallPass = !allNotExecuted && failingLayers.length === 0 && activeLayers.some((r) => r.status === "pass");
 
     // SVG concentric ellipses with 3D perspective — each inner layer shifts down
     const centerX = 210;
@@ -256,7 +259,9 @@ export function SwgDefenseLayers() {
                 <div className="flex-1 w-full min-w-0">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-3">
-                            {overallPass ? (
+                            {allNotExecuted ? (
+                                <Badge variant="secondary">No layer results available — checks not yet executed</Badge>
+                            ) : overallPass ? (
                                 <Badge variant="success">All layers passing</Badge>
                             ) : (
                                 <Badge variant="destructive">
