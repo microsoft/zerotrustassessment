@@ -336,21 +336,97 @@ order by operatingSystem, deviceOwnership, isCompliant
     $desktopDevicesSummary = Get-DesktopDevicesSummary -Database $Database
     $deviceOwnership = Get-DeviceOwnership -Database $Database
     $mobileSummary = Get-MobileSummary -Database $Database
-    $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
-    $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
 
-    # Append Desktop, Mobile and Total count
-    $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
-    $managedDevicesMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
-    $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
+    if (Get-ZtLicense Intune) {
+        Write-PSFMessage "Intune license found. Using Intune API for device details." -Level Debug -Tag License
+        $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+        $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
 
-    if ($totalCount -gt 0) {
-        $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
-        $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
-        $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $totalCount
+        # Append Desktop, Mobile and Total count
+        $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
+        $managedDevicesMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
+        $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
+
+        if ($totalCount -gt 0) {
+            $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
+            $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
+            $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $totalCount
+        }
+        else {
+            $managedDevices = $null
+        }
     }
     else {
-        $managedDevices = $null
+        Write-PSFMessage "Intune license not found. Using Entra device data for device details." -Level Debug -Tag License
+
+        # Derive device counts from Entra device data in the database
+        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
+        $osSummarySql = @"
+select
+    sum(case when operatingSystem = 'Windows' then 1 else 0 end) as windowsCount,
+    sum(case when operatingSystem in ('MacMDM', 'macOS') then 1 else 0 end) as macOSCount,
+    sum(case when operatingSystem in ('iOS', 'IPhone') then 1 else 0 end) as iOSCount,
+    sum(case when operatingSystem like 'Android%' then 1 else 0 end) as androidCount,
+    sum(case when operatingSystem = 'Linux' then 1 else 0 end) as linuxCount,
+    count(*) as totalCount
+from Device
+where accountEnabled and "isManaged"
+"@
+        $osSummary = Invoke-DatabaseQuery -Database $Database -Sql $osSummarySql
+
+        $windowsCount = $osSummary.windowsCount -as [int] ?? 0
+        $macOSCount = $osSummary.macOSCount -as [int] ?? 0
+        $iOSCount = $osSummary.iOSCount -as [int] ?? 0
+        $androidCount = $osSummary.androidCount -as [int] ?? 0
+        $linuxCount = $osSummary.linuxCount -as [int] ?? 0
+
+        $managedDevicesDesktopCount = $windowsCount + $macOSCount
+        $managedDevicesMobileCount = $iOSCount + $androidCount
+        $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
+
+        if ($totalCount -gt 0) {
+            # Note: enrolledDeviceCount is set to desktop + mobile count (not raw count(*)) to approximate
+            # Intune enrollment semantics. This excludes Linux and other unrendered OS types.
+            $managedDevices = [PSCustomObject]@{
+                deviceOperatingSystemSummary = [PSCustomObject]@{
+                    windowsCount = $windowsCount
+                    macOSCount   = $macOSCount
+                    iosCount     = $iOSCount
+                    androidCount = $androidCount
+                    linuxCount   = $linuxCount
+                }
+                enrolledDeviceCount = $totalCount
+                desktopCount        = $managedDevicesDesktopCount
+                mobileCount         = $managedDevicesMobileCount
+                totalCount          = $totalCount
+            }
+        }
+        else {
+            $managedDevices = $null
+        }
+
+        # Derive compliance summary from Entra device data
+        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
+        $complianceSql = @"
+select
+    sum(case when isCompliant = true then 1 else 0 end) as compliantDeviceCount,
+    sum(case when isCompliant = false then 1 else 0 end) as nonCompliantDeviceCount
+from Device
+where accountEnabled and "isManaged"
+"@
+        $complianceSummary = Invoke-DatabaseQuery -Database $Database -Sql $complianceSql
+        # Provide all DeviceCompliance interface properties with 0 defaults for compatibility
+        $deviceCompliance = [PSCustomObject]@{
+            compliantDeviceCount    = $complianceSummary.compliantDeviceCount -as [int] ?? 0
+            nonCompliantDeviceCount = $complianceSummary.nonCompliantDeviceCount -as [int] ?? 0
+            inGracePeriodCount      = 0
+            configManagerCount      = 0
+            unknownDeviceCount      = 0
+            notApplicableDeviceCount = 0
+            remediatedDeviceCount   = 0
+            errorDeviceCount        = 0
+            conflictDeviceCount     = 0
+        }
     }
 
     $deviceOverview = [PSCustomObject]@{
