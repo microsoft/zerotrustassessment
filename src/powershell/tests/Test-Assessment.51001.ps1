@@ -64,21 +64,20 @@ function Test-Assessment-51001 {
 
     #region Assessment Logic
     if ($epmPolicies.Count -eq 0) {
-        $passed = $false
-        $customStatus = $null
-        $summary = '❌ No Endpoint Privilege Management policies were found. Endpoint Privilege Management is not configured.'
+        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
+        return
     }
     elseif ($settingsAssigned -and $rulesAssigned) {
         $passed = $true
         $customStatus = $null
-        $summary = '✅ An EPM elevation settings policy and an elevation rules policy are configured and assigned.'
+        $summary = '✅ Windows Endpoint Privilege Management elevation settings and elevation rules policies are configured and assigned.'
     }
     elseif ($settingsAssigned -xor $rulesAssigned) {
         $passed = $false
         $customStatus = 'Investigate'
         $present = if ($settingsAssigned) { 'elevation settings' } else { 'elevation rules' }
         $missing = if ($settingsAssigned) { 'elevation rules' } else { 'elevation settings' }
-        $summary = "⚠️ An EPM $present policy is assigned, but no $missing policy is assigned. Manual review needed."
+        $summary = "⚠️ An EPM $present policy is configured and assigned, but no $missing policy is assigned. Manual review is needed."
     }
     else {
         $passed = $false
@@ -106,8 +105,8 @@ function Test-Assessment-51001 {
 
 Total EPM policies found: **{2}**
 
-| Policy Name | Policy Type | Assigned | Assignment Target |
-| :---------- | :---------- | :------- | :---------------- |
+| Policy Name | Policy Type | Assigned | Assignment Target | Status |
+| :---------- | :---------- | :------- | :---------------- | :----- |
 {3}
 
 '@
@@ -116,15 +115,21 @@ Total EPM policies found: **{2}**
             $policyName = Get-SafeMarkdown -Text $policy.name
 
             if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-                $status = '✅ Assigned'
+                $assigned = '✅ Yes'
                 $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+                $rowStatus = 'Pass'
             }
             else {
-                $status = '❌ Not assigned'
+                $assigned = '❌ No'
                 $assignmentTarget = 'None'
+                $rowStatus = 'Fail'
             }
 
-            $tableRows += "| $policyName | $($policy.PolicyType) | $status | $assignmentTarget |`n"
+            $tableRows += "| $policyName | $($policy.PolicyType) | $assigned | $assignmentTarget | $rowStatus |`n"
+        }
+
+        if ($epmPolicies.Count -gt 10) {
+            $tableRows += "| ... | ... | ... | ... | ... |`n"
         }
 
         # Format the template by replacing placeholders with values
