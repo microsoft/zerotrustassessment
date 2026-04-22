@@ -88,38 +88,51 @@ function Test-Assessment-51001 {
     #endregion Assessment Logic
 
     #region Report Generation
-    # Intune portal landing page for Endpoint Privilege Management (Endpoint security > Endpoint Privilege Management)
+    # Build the detailed sections of the markdown
+
+    # Define variables to insert into the format string
+    $reportTitle = 'Windows Endpoint Privilege Management policies'
     $epmPortalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/epm'
     $tableRows = ''
-    $totalCount = $epmPolicies.Count
-    $policiesToShow = @($epmPolicies | Select-Object -First 10)
+    $mdInfo = ''
 
-    foreach ($policy in $policiesToShow) {
-        $policyName = Get-SafeMarkdown -Text $policy.name
-        $assignedIcon = if ($policy.isAssigned) { '✅ Yes' } else { '❌ No' }
-        $assignmentTarget = if ($policy.assignments -and $policy.assignments.Count -gt 0) {
-            Get-PolicyAssignmentTarget -Assignments $policy.assignments
-        } else { 'None' }
+    $testResultMarkdown = "$summary`n`n%TestResult%"
 
-        $tableRows += "| $policyName | $($policy.PolicyType) | $assignedIcon | $assignmentTarget |`n"
-    }
+    if ($epmPolicies.Count -gt 0) {
+        # Create a here-string with format placeholders {0}, {1}, etc.
+        $formatTemplate = @'
 
-    $formatTemplate = @'
+## [{0}]({1})
 
-## [Windows Endpoint Privilege Management policies]({3})
+Total EPM policies found: **{2}**
 
-{0}
-
-Total EPM policies found: **{1}**
-
-| Policy Name | Policy Type | Assigned | Assignment Targets |
-| :---------- | :---------- | :------- | :----------------- |
-{2}
+| Policy Name | Policy Type | Assigned | Assignment Target |
+| :---------- | :---------- | :------- | :---------------- |
+{3}
 
 '@
 
-    $mdInfo = $formatTemplate -f $summary, $totalCount, $tableRows, $epmPortalLink
-    $testResultMarkdown =  $mdInfo
+        foreach ($policy in ($epmPolicies | Select-Object -First 10)) {
+            $policyName = Get-SafeMarkdown -Text $policy.name
+
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
+                $status = '✅ Assigned'
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+            }
+            else {
+                $status = '❌ Not assigned'
+                $assignmentTarget = 'None'
+            }
+
+            $tableRows += "| $policyName | $($policy.PolicyType) | $status | $assignmentTarget |`n"
+        }
+
+        # Format the template by replacing placeholders with values
+        $mdInfo = $formatTemplate -f $reportTitle, $epmPortalLink, $epmPolicies.Count, $tableRows
+    }
+
+    # Replace the placeholder with the detailed information
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
