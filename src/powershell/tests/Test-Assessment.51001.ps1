@@ -119,7 +119,7 @@ Total EPM policies found: **{1}**
 '@
 
     $mdInfo = $formatTemplate -f $summary, $totalCount, $tableRows, $epmPortalLink
-    $testResultMarkdown = "$summary`n`n%TestResult%" -replace '%TestResult%', $mdInfo
+    $testResultMarkdown =  $mdInfo
     #endregion Report Generation
 
     $params = @{
