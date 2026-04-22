@@ -130,6 +130,14 @@ function Export-ZtGraphEntity {
 		Write-PSFMessage -Message "Adding {0} to {1}" -StringValues $PropertyName, $Name -Tag Graph
 		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "Batch: $PropertyName"
 
+		# Guard against empty pages: Invoke-ZtGraphBatchRequest requires a non-empty ArgumentList.
+		# Graph API can return a page with an empty 'value' array (e.g. with $expand queries),
+		# which would cause a PowerShell parameter-binding error for the mandatory [object[]] param.
+		if (-not $Results -or @($Results).Count -eq 0) {
+			Write-PSFMessage -Level Verbose -Message "No items to batch for property '{0}' in '{1}'. Skipping." -StringValues $PropertyName, $Name -Tag Graph
+			return
+		}
+
 		$data = Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id -Matched -ErrorAction SilentlyContinue -ErrorVariable failed
 		# Since the argument property is the original hashtable provided, we can update the hashtable as it is and thereby update the original object
 		foreach ($pair in $data) {
