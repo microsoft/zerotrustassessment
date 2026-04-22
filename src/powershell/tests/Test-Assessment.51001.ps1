@@ -64,11 +64,11 @@ function Test-Assessment-51001 {
 
     #region Assessment Logic
     if ($epmPolicies.Count -eq 0) {
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
+        $passed = $false
+        $customStatus = $null
+        $summary = '❌ No Endpoint Privilege Management policies were found. Endpoint Privilege Management is not configured.'
     }
-
-    if ($settingsAssigned -and $rulesAssigned) {
+    elseif ($settingsAssigned -and $rulesAssigned) {
         $passed = $true
         $customStatus = $null
         $summary = '✅ An EPM elevation settings policy and an elevation rules policy are configured and assigned.'
