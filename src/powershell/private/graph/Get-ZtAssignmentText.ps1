@@ -11,15 +11,21 @@
         )
         $result = $groupId
         try {
-            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId" -ErrorAction Stop
+            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId`?`$select=displayName" -ErrorAction Stop
             if ($group) {
                 $result = $group.displayName
             }
         }
         catch {
-            # Group lookup failed (e.g. group was deleted but assignment still references it).
-            # Fall back to displaying the raw groupId so report generation can continue.
-            Write-PSFMessage "Get-ZtAssignmentText: Unable to resolve group 'groups/$groupId'. $_" -Level Verbose -Tag Graph
+            $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+            if ($statusCode -in @(404, 410)) {
+                # Group no longer exists but the assignment still references it.
+                # Fall back to displaying the raw groupId so report generation can continue.
+                Write-PSFMessage -Message "Get-ZtAssignmentText: Unable to resolve group 'groups/$groupId'." -Level Verbose -Tag Graph -ErrorRecord $_
+            }
+            else {
+                throw
+            }
         }
 
         return $result
