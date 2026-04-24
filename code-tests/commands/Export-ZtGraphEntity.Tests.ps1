@@ -1,24 +1,11 @@
 Describe "Export-ZtGraphEntity" {
-    # Regression tests for customer bug v2.2.0:
+    # Regression tests for the Add-GraphProperty guard:
     #
-    #   Error 1 (WARNING): Export 'ServicePrincipal' failed:
-    #     Cannot bind argument to parameter 'ArgumentList' because it is an empty array.
-    #
-    #   Root cause: When a Graph API page returned { "value": [] }, Add-GraphProperty
-    #   passed the empty $Results.Value directly to Invoke-ZtGraphBatchRequest -ArgumentList.
-    #   PowerShell cannot bind @() to a mandatory [object[]] parameter.
-    #
-    #   Fix: Guard in Add-GraphProperty:
+    #   Fix: Guard in Add-GraphProperty skips the batch call when Graph returns an empty page.
     #     if (-not $Results -or @($Results).Count -eq 0) { return }
     #
-    #   Error 2 (Exception): Export-Database.ps1:115
-    #     Binder Error: Could not find key "userprincipalname" in struct
-    #
-    #   Root cause: When all role principals are Service Principals, DuckDB inferred the
-    #   principal struct without userPrincipalName, causing the vwRole SQL to fail.
-    #
-    #   Fix: Model JSON files pre-declare all principal fields as null.
-    #   See Export-Database.Tests.ps1 for Error 2 regression tests.
+    #   Without this guard, passing @() to Invoke-ZtGraphBatchRequest -ArgumentList caused:
+    #     "Cannot bind argument to parameter 'ArgumentList' because it is an empty array."
 
     BeforeAll {
         $srcRoot = Join-Path $PSScriptRoot "../../src/powershell"
@@ -34,27 +21,7 @@ Describe "Export-ZtGraphEntity" {
         }
     }
 
-    Context "Error 1 reproduction — empty page triggers ArgumentList error (old behaviour)" {
-        # Invoke-ZtGraphBatchRequest declares ArgumentList as mandatory [object[]].
-        # Before the fix, Add-GraphProperty passed $Results.Value directly with no guard,
-        # so an empty page caused the customer error.
-
-        It "Invoke-ZtGraphBatchRequest throws when ArgumentList is empty" {
-            { Invoke-ZtGraphBatchRequest -Path 'servicePrincipals/{0}/oauth2PermissionGrants' -ArgumentList @() } |
-                Should -Throw
-        }
-
-        It "The error message matches the customer warning ('ArgumentList')" {
-            $msg = $null
-            try {
-                Invoke-ZtGraphBatchRequest -Path 'servicePrincipals/{0}/oauth2PermissionGrants' -ArgumentList @()
-            }
-            catch { $msg = $_.Exception.Message }
-            $msg | Should -Match 'ArgumentList'
-        }
-    }
-
-    Context "Error 1 fix — guard in Add-GraphProperty skips batch when page is empty" {
+    Context "Add-GraphProperty — guard skips batch when page is empty" {
         BeforeAll {
             $script:exportPath = Join-Path $env:TEMP "zt-test-graphentity-$(Get-Random)"
             New-Item -ItemType Directory -Path $script:exportPath -Force | Out-Null
