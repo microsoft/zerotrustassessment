@@ -73,7 +73,7 @@ Assign the following Entra directory roles to the app's service principal:
 
 ### Certificate
 
-Upload a certificate (public key) to the app registration under **Certificates & secrets → Certificates**. The certificate with its private key must be installed in the local certificate store on the machine running the assessment.
+Upload a certificate (public key) to the app registration under **Certificates & secrets → Certificates**. The certificate with its private key must be installed in the local certificate store on the machine running the assessment. The private key must also be marked as **exportable** (required for SharePoint Online CBA, which uses a temporary PFX export workaround).
 
 ---
 

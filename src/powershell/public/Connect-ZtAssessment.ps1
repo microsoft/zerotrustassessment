@@ -284,21 +284,8 @@ function Connect-ZtAssessment {
 				catch {
 					Write-Verbose -Message "Failed to resolve initial domain after Graph connect: $($_.Exception.Message)"
 				}
-				# Fallback: try Azure context if Graph did not resolve the initial domain.
-				if (-not $script:resolvedInitialDomain -and (Get-Command -Name Get-AzTenant -ErrorAction Ignore)) {
-					try {
-						$azTenantDomains = (Get-AzTenant -ErrorAction Stop).Domains
-						$script:resolvedInitialDomain = $azTenantDomains | Where-Object { $_ -match '^[^.]+\.onmicrosoft\.com$' } | Select-Object -First 1
-						if ($script:resolvedInitialDomain) {
-							Write-Verbose -Message "Resolved initial domain from Azure context: $script:resolvedInitialDomain"
-						}
-					}
-					catch {
-						Write-Verbose -Message "Failed to resolve initial domain from Azure context: $($_.Exception.Message)"
-					}
-				}
 				if (-not $script:resolvedInitialDomain) {
-					Write-PSFMessage -Message "Could not resolve the initial tenant domain from Graph or Azure context. EXO, S&C, and SPO CBA connections may fail." -Level Warning
+					Write-PSFMessage -Message "Could not resolve the initial tenant domain from Graph. EXO, S&C, and SPO CBA connections may fail." -Level Warning
 				}
 			}
 			catch {
@@ -759,7 +746,13 @@ function Connect-ZtAssessment {
 			# Try to infer from the already-resolved initial domain (cached after Graph connected)
 			if (-not $adminUrl -and $script:resolvedInitialDomain) {
 				$tenantName = $script:resolvedInitialDomain.Split('.')[0]
-				$adminUrl = "https://$tenantName-admin.sharepoint.com"
+				$spoSuffix = switch ($Environment) {
+					'USGov'    { 'sharepoint.us' }
+					'USGovDoD' { 'sharepoint.us' }
+					'China'    { 'sharepoint.cn' }
+					default    { 'sharepoint.com' }
+				}
+				$adminUrl = "https://$tenantName-admin.$spoSuffix"
 				Write-Verbose -Message "Inferred SharePoint Admin URL from Graph: $adminUrl"
 			}
 
@@ -782,7 +775,16 @@ function Connect-ZtAssessment {
 						try {
 							$pfxBytes = $Certificate.Certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $tempPassword)
 							[System.IO.File]::WriteAllBytes($tempPfxPath, $pfxBytes)
+							$pfxBytes = $null  # Limit plaintext private key material in memory
 							Connect-SPOService -Url $adminUrl -ClientId $ClientId -TenantId $TenantId -CertificatePath $tempPfxPath -CertificatePassword $tempSecurePassword -ErrorAction Stop
+						}
+						catch [System.Security.Cryptography.CryptographicException] {
+							Write-Host -Object "   ❌ Failed to export the certificate private key for SharePoint Online." -ForegroundColor Red
+							Write-Host -Object "      The certificate's private key must be marked as exportable." -ForegroundColor Yellow
+							Write-Host -Object "      Re-import the certificate with 'Mark this key as exportable' enabled and try again." -ForegroundColor Yellow
+							Write-PSFMessage -Message ("Failed to export certificate private key for SharePoint Online CBA: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
+							Remove-ZtConnectedService -Service 'SharePointOnline'
+							continue
 						}
 						finally {
 							if (Test-Path $tempPfxPath -ErrorAction SilentlyContinue) {
