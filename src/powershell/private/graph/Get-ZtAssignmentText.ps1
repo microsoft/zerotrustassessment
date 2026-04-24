@@ -11,7 +11,7 @@
         )
         $result = $groupId
         try {
-            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId`?`$select=displayName" -ErrorAction Stop
+            $group = Invoke-ZtGraphRequest -RelativeUri "groups/$groupId" -Select "displayName" -ErrorAction Stop
             if ($group) {
                 $result = $group.displayName
             }
