@@ -133,7 +133,7 @@ function Export-ZtGraphEntity {
 		# Guard against empty pages: Invoke-ZtGraphBatchRequest requires a non-empty ArgumentList.
 		# Graph API can return a page with an empty 'value' array (e.g. with $expand queries),
 		# which would cause a PowerShell parameter-binding error for the mandatory [object[]] param.
-		if (-not $Results -or @($Results).Count -eq 0) {
+		if (-not $Results) {
 			Write-PSFMessage -Level Verbose -Message "No items to batch for property '{0}' in '{1}'. Skipping." -StringValues $PropertyName, $Name -Tag Graph
 			return
 		}

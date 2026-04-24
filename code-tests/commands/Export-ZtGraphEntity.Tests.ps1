@@ -2,7 +2,7 @@ Describe "Export-ZtGraphEntity" {
     # Regression tests for the Add-GraphProperty guard:
     #
     #   Fix: Guard in Add-GraphProperty skips the batch call when Graph returns an empty page.
-    #     if (-not $Results -or @($Results).Count -eq 0) { return }
+    #     if (-not $Results) { return }
     #
     #   Without this guard, passing @() to Invoke-ZtGraphBatchRequest -ArgumentList caused:
     #     "Cannot bind argument to parameter 'ArgumentList' because it is an empty array."
