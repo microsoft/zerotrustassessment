@@ -113,6 +113,9 @@ function Connect-ZtAssessment {
 	}
 	if ($IgnoreLanguageMode) { $script:IgnoreLanguageMode = $true }
 
+	# Set up container environment compatibility (xdg-open shim for browser auth, etc.)
+	Initialize-ZtContainerEnvironment
+
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
@@ -251,8 +254,50 @@ function Connect-ZtAssessment {
 					$connectMgGraphParams.ContextScope = 'Process'
 				}
 
+				# TODO: WIRE container auth method resolver here.
+				# If the user did not pass -UseDeviceCode, ask Resolve-ZtContainerAuthMethod whether
+				# the container readiness state warrants switching to device code flow automatically
+				# (or prompting the user). Example:
+				#
+				#   if (-not $UseDeviceCode) {
+				#       $deviceLoginUrl = 'https://microsoft.com/devicelogin'   # adjust per $Environment
+				#       if (Resolve-ZtContainerAuthMethod -DeviceLoginUrl $deviceLoginUrl) {
+				#           $connectMgGraphParams.UseDeviceCode = $true
+				#       }
+				#   }
+
+				# TODO: WIRE browser URL capture here (only when NOT using device code).
+				# Install-ZtBrowserUrlCapture sets up a temp xdg-open/open wrapper that records
+				# the MSAL auth URL; Start-ZtBrowserUrlWatcher prints it to the terminal as a
+				# clickable fallback link. Always pair with Remove-ZtBrowserUrlCapture in a finally.
+				# Example:
+				#
+				#   $browserCapture = $null
+				#   $browserWatcher = $null
+				#   if (-not $connectMgGraphParams.UseDeviceCode) {
+				#       $browserCapture = Install-ZtBrowserUrlCapture
+				#       if ($browserCapture) { $browserWatcher = Start-ZtBrowserUrlWatcher -CaptureState $browserCapture }
+				#   }
+				#   try {
+				#       $null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop
+				#   }
+				#   finally {
+				#       Remove-ZtBrowserUrlCapture -CaptureState $browserCapture -Watcher $browserWatcher
+				#   }
+
 				Write-PSFMessage -Message "Connecting to Microsoft Graph with params: $($connectMgGraphParams | Out-String)" -Level Verbose
 				$null = Connect-MgGraph @connectMgGraphParams -ErrorAction Stop
+
+				# TODO: WIRE container auth-failure hint here.
+				# If Connect-MgGraph completes but Get-MgContext is still null (common when the
+				# browser callback never reached the container), surface a friendly message.
+				# Example:
+				#
+				#   if (-not (Get-MgContext)) {
+				#       Write-Warning (Get-ZtContainerAuthFailureHint)
+				#       throw 'Graph authentication did not complete.'
+				#   }
+
 				$contextTenantId = (Get-MgContext).TenantId
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'Graph'
