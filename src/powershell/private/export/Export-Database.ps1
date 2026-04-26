@@ -55,7 +55,10 @@ function Export-Database {
         cast(r."roleDefinitionId" as varchar)           as roleDefinitionId,
         cast(r.principal.displayName as varchar)        as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
-        cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
+        coalesce(
+            json_extract_string(to_json(r.principal), '$.userPrincipalName'),
+            json_extract_string(to_json(r.principal), '$.uniqueName')
+        )                                               as userPrincipalName,
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType
