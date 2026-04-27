@@ -20,7 +20,7 @@ function Get-ApplicationsWithPermissions {
     $sql = @"
 select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
 spsi.lastSignInActivity.lastSignInDateTime,
-sp.owners, sp.signInAudience
+sp.owners, sp.signInAudience, sp.servicePrincipalType
 from main.ServicePrincipal sp
     left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
 where sp.id in

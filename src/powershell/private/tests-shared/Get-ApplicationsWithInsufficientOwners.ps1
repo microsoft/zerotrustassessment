@@ -22,8 +22,9 @@ function Get-ApplicationsWithInsufficientOwners {
     $allApps = Get-ApplicationsWithPermissions -Database $Database
 
     # Filter by privilege level and owner count using Where-Object (more efficient)
+    # Only include Application type
     $filteredApps = $allApps | Where-Object {
-        ($PrivilegeLevel -contains $_.Risk) -and ($_.OwnerCount -lt 2)
+        ($PrivilegeLevel -contains $_.Risk) -and ($_.OwnerCount -lt 2) -and ($_.servicePrincipalType -eq 'Application')
     }
 
     Write-PSFMessage "Filtered to $($filteredApps.Count) applications with < 2 owners matching privilege levels: $($PrivilegeLevel -join ', ')" -Level Verbose
