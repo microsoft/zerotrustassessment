@@ -12,7 +12,10 @@ function Get-ApplicationsWithPermissions {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        $Database
+        $Database,
+
+        [Parameter()]
+        [string[]]$ServicePrincipalType
     )
 
     # Query ServicePrincipal objects with permissions
@@ -49,6 +52,12 @@ order by spsi.lastSignInActivity.lastSignInDateTime
 
     if (-not $results -or $results.Count -eq 0) {
         return @()
+    }
+
+    # Optionally filter by servicePrincipalType before enrichment to avoid unnecessary per-item DB calls
+    if ($ServicePrincipalType) {
+        $results = $results | Where-Object { $ServicePrincipalType -contains $_.servicePrincipalType }
+        Write-PSFMessage "Pre-filtered to $($results.Count) service principals of type(s): $($ServicePrincipalType -join ', ')" -Level Verbose
     }
 
     # Enrich each app with permissions and risk classification (using Test-21770 pattern)
