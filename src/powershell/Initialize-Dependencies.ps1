@@ -243,6 +243,58 @@ function Initialize-Dependencies {
             # This method does not necessarily load the right dll (it ignores the load logic from the modules)
             $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
 
+            # Pre-load the highest available Microsoft.IdentityModel.Abstractions.dll.
+            # Search only resolved MSAL directories and shallow well-known subdirs (bin, lib, net*)
+            # to avoid a costly recursive scan across entire module trees at import time.
+            $identityModelSearchDirs = [System.Collections.Generic.List[string]]::new()
+
+            foreach ($msalModule in $msalToLoadInOrder) {
+                if ($msalModule.DLLPath) {
+                    $msalDir = Split-Path -Path $msalModule.DLLPath -Parent
+                    if ($msalDir) { $identityModelSearchDirs.Add($msalDir) }
+                }
+            }
+
+            foreach ($modSpec in $allModuleDependencies) {
+                $candidateMod = Get-Module -Name $modSpec.Name -ListAvailable -ErrorAction SilentlyContinue |
+                    Sort-Object Version -Descending | Select-Object -First 1
+                if ($candidateMod) {
+                    $identityModelSearchDirs.Add($candidateMod.ModuleBase)
+                    foreach ($childDir in (Get-ChildItem -Path $candidateMod.ModuleBase -Directory -Force -ErrorAction SilentlyContinue)) {
+                        if ($childDir.Name -in @('bin', 'lib') -or $childDir.Name -like 'net*') {
+                            $identityModelSearchDirs.Add($childDir.FullName)
+                        }
+                    }
+                }
+            }
+
+            $identityModelFiles = foreach ($searchDir in ($identityModelSearchDirs | Where-Object { $_ } | Sort-Object -Unique)) {
+                if (Test-Path -Path $searchDir -PathType Container) {
+                    Get-ChildItem -Path $searchDir `
+                        -Filter 'Microsoft.IdentityModel.Abstractions.dll' `
+                        -File -Force -ErrorAction SilentlyContinue
+                }
+            }
+            $bestIdentityModel = $identityModelFiles | Where-Object { $_ } |
+                Sort-Object {
+                    # Use ProductVersion and strip any prerelease suffix (e.g. "8.1.0-preview.1" → "8.1.0")
+                    $numericPart = if ($_.VersionInfo.ProductVersion -match '^(\d+(?:\.\d+){0,3})') { $Matches[1] } else { '0.0.0.0' }
+                    try { [version]$numericPart } catch { [version]'0.0.0.0' }
+                } -Descending |
+                Select-Object -First 1
+
+            if ($bestIdentityModel) {
+                $alreadyLoadedIdentityModel = [System.AppDomain]::CurrentDomain.GetAssemblies() |
+                    Where-Object { $_.GetName().Name -eq 'Microsoft.IdentityModel.Abstractions' }
+                if (-not $alreadyLoadedIdentityModel) {
+                    Write-Host -Object '    ✅ Loading Microsoft.IdentityModel.Abstractions.dll' -ForegroundColor Green
+                    $null = [System.Reflection.Assembly]::LoadFrom($bestIdentityModel.FullName)
+                }
+                else {
+                    Write-Verbose -Message ('Microsoft.IdentityModel.Abstractions v{0} already loaded, skipping pre-load.' -f ($alreadyLoadedIdentityModel | Select-Object -First 1).GetName().Version)
+                }
+            }
+
             $msalToLoadInOrder.ForEach{
                 Write-Verbose -Message ('Loading MSAL v{0} for dependency {1} version {2}' -f $_.DLLVersion, $_.Name, $_.ModuleVersion)
                 if ([System.AppDomain]::CurrentDomain.GetAssemblies().Where{$_.GetName().Name -eq 'Microsoft.Identity.Client'}) {
