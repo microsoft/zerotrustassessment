@@ -35,10 +35,10 @@ function Test-Assessment-21790 {
             [object]$TargetConfig
         )
 
-        if ($TargetConfig.targets[0].target -eq "AllUsers") {
+        if ($TargetConfig.targets.target -contains "AllUsers") {
             return "All users"
         }
-        elseif ($TargetConfig.targets[0].target -eq "AllApplications") {
+        elseif ($TargetConfig.targets.target -contains "AllApplications") {
             return "All external applications"
         }
         else {
@@ -69,15 +69,15 @@ function Test-Assessment-21790 {
 
     # Evaluate B2B Collaboration outbound settings
     $b2bCollaborationOutbound = $result.b2bCollaborationOutbound.usersAndGroups.accessType -eq "blocked" -and
-    $result.b2bCollaborationOutbound.usersAndGroups.targets[0].target -eq "AllUsers" -and
+    ($result.b2bCollaborationOutbound.usersAndGroups.targets.target -contains "AllUsers") -and
     $result.b2bCollaborationOutbound.applications.accessType -eq "blocked" -and
-    $result.b2bCollaborationOutbound.applications.targets[0].target -eq "AllApplications"
+    ($result.b2bCollaborationOutbound.applications.targets.target -contains "AllApplications")
 
     # Evaluate B2B Direct Connect outbound settings
     $b2bDirectConnectOutbound = $result.b2bDirectConnectOutbound.usersAndGroups.accessType -eq "blocked" -and
-    $result.b2bDirectConnectOutbound.usersAndGroups.targets[0].target -eq "AllUsers" -and
+    ($result.b2bDirectConnectOutbound.usersAndGroups.targets.target -contains "AllUsers") -and
     $result.b2bDirectConnectOutbound.applications.accessType -eq "blocked" -and
-    $result.b2bDirectConnectOutbound.applications.targets[0].target -eq "AllApplications"
+    ($result.b2bDirectConnectOutbound.applications.targets.target -contains "AllApplications")
 
     $testResultMarkdown = ""
 
