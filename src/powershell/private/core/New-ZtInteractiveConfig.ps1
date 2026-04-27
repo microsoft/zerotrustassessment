@@ -202,9 +202,86 @@ function New-ZtInteractiveConfig {
             Write-SpectreHost "[green]✅ Will run all available tests[/]"
         }
 
+        # Emergency Access Accounts section
+        Write-Host
+        Write-SpectreRule "Step 4: Emergency Access Accounts (Optional)" -Color ([Spectre.Console.Color]::Cyan1)
+        Write-Host
+        Write-SpectreHost "[bold cyan1]🔐 Emergency Access Account Exclusions[/]"
+        Write-SpectreHost "[dim]Break glass / emergency access accounts are typically excluded from[/]"
+        Write-SpectreHost "[dim]just-in-time access requirements. You can specify accounts to exclude[/]"
+        Write-SpectreHost "[dim]from Test 21815 (JIT privileged role assignment check).[/]"
+        Write-Host
+
+        $configureEmergency = Read-SpectreConfirm -Prompt "[cyan1]Do you want to configure emergency access accounts?[/]" -DefaultAnswer "n"
+
+        if ($configureEmergency) {
+            $emergencyAccounts = @()
+            $addMore = $true
+
+            while ($addMore) {
+                Write-Host
+                $accountType = Read-SpectreSelection -Prompt "[cyan1]Account type[/]" -Choices @(
+                    "User (by UPN - e.g., breakglass@contoso.com)",
+                    "User (by Object ID)",
+                    "Group (by Object ID)"
+                )
+
+                $accountEntry = @{}
+
+                switch ($accountType) {
+                    "User (by UPN - e.g., breakglass@contoso.com)" {
+                        $upn = Read-SpectreText -Prompt "[cyan1]User Principal Name[/]"
+                        if (![string]::IsNullOrWhiteSpace($upn)) {
+                            $accountEntry = @{
+                                Type = "User"
+                                UserPrincipalName = $upn.Trim()
+                            }
+                            Write-SpectreHost "[green]✅ Added user: $($upn.Trim())[/]"
+                        }
+                    }
+                    "User (by Object ID)" {
+                        $userId = Read-SpectreText -Prompt "[cyan1]User Object ID (GUID)[/]"
+                        if (![string]::IsNullOrWhiteSpace($userId)) {
+                            $accountEntry = @{
+                                Type = "User"
+                                Id = $userId.Trim()
+                            }
+                            Write-SpectreHost "[green]✅ Added user ID: $($userId.Trim())[/]"
+                        }
+                    }
+                    "Group (by Object ID)" {
+                        $groupId = Read-SpectreText -Prompt "[cyan1]Group Object ID (GUID)[/]"
+                        if (![string]::IsNullOrWhiteSpace($groupId)) {
+                            $accountEntry = @{
+                                Type = "Group"
+                                Id = $groupId.Trim()
+                            }
+                            Write-SpectreHost "[green]✅ Added group ID: $($groupId.Trim())[/]"
+                        }
+                    }
+                }
+
+                if ($accountEntry.Count -gt 0) {
+                    $emergencyAccounts += $accountEntry
+                }
+
+                Write-Host
+                $addMore = Read-SpectreConfirm -Prompt "[cyan1]Add another emergency access account?[/]" -DefaultAnswer "n"
+            }
+
+            if ($emergencyAccounts.Count -gt 0) {
+                if (-not $configData.GlobalSettings) { $configData.GlobalSettings = @{} }
+                $configData.GlobalSettings.EmergencyAccessAccounts = $emergencyAccounts
+                Write-Host
+                Write-SpectreHost "[green]✅ Configured $($emergencyAccounts.Count) emergency access account(s)[/]"
+            }
+        } else {
+            Write-SpectreHost "[dim]No emergency access accounts configured. All accounts will be evaluated.[/]"
+        }
+
         # Enhanced preview section
         Write-Host
-        Write-SpectreRule "Step 4: Review & Save" -Color ([Spectre.Console.Color]::Cyan1)
+        Write-SpectreRule "Step 5: Review & Save" -Color ([Spectre.Console.Color]::Cyan1)
         Write-Host
 
         $showPreview = Read-SpectreConfirm -Prompt "[cyan1]Would you like to preview your configuration?[/]" -DefaultAnswer "y"
@@ -227,6 +304,12 @@ function New-ZtInteractiveConfig {
                 Write-SpectreHost "  [cyan1]Specific tests:[/] $($configData.Tests -join ', ')"
             } else {
                 Write-SpectreHost "  [cyan1]Test selection:[/] All tests"
+            }
+
+            if ($configData.GlobalSettings -and $configData.GlobalSettings.EmergencyAccessAccounts -and $configData.GlobalSettings.EmergencyAccessAccounts.Count -gt 0) {
+                Write-SpectreHost "  [cyan1]Emergency accounts:[/] $($configData.GlobalSettings.EmergencyAccessAccounts.Count) configured"
+            } else {
+                Write-SpectreHost "  [cyan1]Emergency accounts:[/] None configured"
             }
 
             Write-Host

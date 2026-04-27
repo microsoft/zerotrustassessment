@@ -301,6 +301,24 @@ $titleLine
 				}
 			}
 
+			# Parse EmergencyAccessAccounts if present (Maester-style config with GlobalSettings)
+			$emergencyAccounts = $null
+			if ($configContent.PSObject.Properties.Name -contains 'GlobalSettings' -and
+				$configContent.GlobalSettings.PSObject.Properties.Name -contains 'EmergencyAccessAccounts' -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts.Count -gt 0) {
+				$emergencyAccounts = $configContent.GlobalSettings.EmergencyAccessAccounts
+			}
+			if ($emergencyAccounts -and $emergencyAccounts.Count -gt 0) {
+				Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $emergencyAccounts
+				Write-Host "🔐 " -NoNewline -ForegroundColor Cyan
+				Write-Host "Loaded $($emergencyAccounts.Count) emergency access account(s) from configuration." -ForegroundColor White
+			}
+			else {
+				# Clear any previously loaded emergency accounts to prevent stale config in multi-run sessions
+				Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $null
+			}
+
 			Write-Host "✅ " -NoNewline -ForegroundColor Green
 			Write-Host "Configuration loaded successfully. Command line parameters will override configuration file values." -ForegroundColor White
 			Write-Host
