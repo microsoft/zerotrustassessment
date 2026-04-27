@@ -436,11 +436,11 @@ function Connect-ZtAssessment {
 				Add-ZtConnectedService -Service 'Azure'
 			}
 			catch {
-				Write-PSFMessage -Message ("Failed to authenticate to Azure: {0}" -f $_) -Level Debug -ErrorRecord $_
+				Write-PSFMessage -Message ("Failed to authenticate to Azure: {0}" -f $_.Exception.Message) -Level Debug -ErrorRecord $_
 				Remove-ZtConnectedService -Service 'Azure'
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
 				Write-Host -Object "      Tests requiring Azure will be skipped." -ForegroundColor Yellow
-				Write-Host -Object ("       Error details: {0}" -f $_) -ForegroundColor Red
+				Write-Host -Object ("       Error details: {0}" -f $_.Exception.Message) -ForegroundColor Red
 			}
 		}
 
@@ -775,7 +775,8 @@ function Connect-ZtAssessment {
 						try {
 							$pfxBytes = $Certificate.Certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $tempPassword)
 							[System.IO.File]::WriteAllBytes($tempPfxPath, $pfxBytes)
-							$pfxBytes = $null  # Limit plaintext private key material in memory
+							$pfxBytes = $null     # Limit plaintext private key material in memory
+							$tempPassword = $null # Limit PFX password string in memory
 							Connect-SPOService -Url $adminUrl -ClientId $ClientId -TenantId $TenantId -CertificatePath $tempPfxPath -CertificatePassword $tempSecurePassword -ErrorAction Stop
 						}
 						catch [System.Security.Cryptography.CryptographicException] {
@@ -789,6 +790,9 @@ function Connect-ZtAssessment {
 						finally {
 							if (Test-Path $tempPfxPath -ErrorAction SilentlyContinue) {
 								Remove-Item $tempPfxPath -Force -ErrorAction SilentlyContinue
+								if (Test-Path $tempPfxPath -ErrorAction SilentlyContinue) {
+									Write-Warning "Failed to delete temporary PFX file '$tempPfxPath'. Please delete it manually."
+								}
 							}
 						}
 					}
