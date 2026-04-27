@@ -16,9 +16,6 @@ Describe "Export-ZtGraphEntity" {
         if (-not (Get-Command Get-MgContext -ErrorAction SilentlyContinue)) {
             function global:Get-MgContext {}
         }
-        if (-not (Get-Command Invoke-MgGraphRequest -ErrorAction SilentlyContinue)) {
-            function global:Invoke-MgGraphRequest { param($Method, $Uri, $OutputType) }
-        }
     }
 
     Context "Add-GraphProperty — guard skips batch when page is empty" {
@@ -64,12 +61,46 @@ Describe "Export-ZtGraphEntity" {
             Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphBatchRequest -Times 0 -Exactly
         }
 
+        It "Does not throw when Invoke-ZtRetry returns null" {
+            # $null is distinct from @() — guard must handle both without calling Invoke-ZtGraphBatchRequest.
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry { return $null }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphBatchRequest {
+                throw "Guard missing — called with null Results"
+            }
+
+            {
+                Export-ZtGraphEntity -Name 'ServicePrincipal' -Uri 'beta/servicePrincipals' `
+                    -QueryString '$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
+                    -ExportPath $script:exportPath
+            } | Should -Not -Throw
+        }
+
+        It "Invoke-ZtGraphBatchRequest is not called when Invoke-ZtRetry returns null" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry { return $null }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphBatchRequest {}
+
+            Export-ZtGraphEntity -Name 'ServicePrincipal' -Uri 'beta/servicePrincipals' `
+                -QueryString '$top=999' -RelatedPropertyNames @('oauth2PermissionGrants') `
+                -ExportPath $script:exportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphBatchRequest -Times 0 -Exactly
+        }
+
         It "Invoke-ZtGraphBatchRequest is called once when the page has items" {
-            # Verifies the guard does not suppress normal (non-empty) pages.
+            # Verifies the guard does not suppress normal (non-empty) pages and correctly
+            # skips the batch call on an empty second page.
+            # The first page must include '@odata.nextLink' so the do-while loop makes a
+            # second call; without it the loop breaks immediately and the second branch
+            # of the mock is never reached.
             $script:call = 0
             Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
                 $script:call++
-                if ($script:call -eq 1) { return @{ value = @(@{ id = 'sp-1'; displayName = 'TestSP' }) } }
+                if ($script:call -eq 1) {
+                    return @{
+                        value             = @(@{ id = 'sp-1'; displayName = 'TestSP' })
+                        '@odata.nextLink' = 'https://graph.microsoft.com/beta/servicePrincipals?$skiptoken=abc'
+                    }
+                }
                 return @{ value = @() }
             }
             Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphBatchRequest { return @() }
