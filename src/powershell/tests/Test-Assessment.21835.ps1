@@ -330,6 +330,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $userSummary += [PSCustomObject]@{
                 DisplayName = $user.displayName
                 UserPrincipalName = $user.userPrincipalName
+                PortalLink = $portalLink
                 CloudOnly = $cloudOnlyEmoji
                 CAExcluded = $caExcludedEmoji
                 PhishingResistant = $phishingResistantEmoji
@@ -341,7 +342,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
         $userSummary = $userSummary | Sort-Object -Property CAExcluded, PhishingResistant, CloudOnly
 
         foreach ($user in $userSummary) {
-            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($portalLink) | $($user.CloudOnly) | $($user.PhishingResistant) | $($user.CAExcluded) | $($user.CAPoliciesMissingExclusion) |`n"
+            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($($user.PortalLink)) | $($user.CloudOnly) | $($user.PhishingResistant) | $($user.CAExcluded) | $($user.CAPoliciesMissingExclusion) |`n"
         }
 
         $testResultMarkdown += "`n"
