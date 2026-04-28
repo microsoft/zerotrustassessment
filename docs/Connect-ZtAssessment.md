@@ -17,9 +17,7 @@ By default, `Connect-ZtAssessment` signs in as a user (delegated authentication)
 | Exchange Online | ✅ |
 | Security & Compliance | ✅ |
 | SharePoint Online | ✅ |
-| Azure Information Protection | ❌ |
-
-**Azure Information Protection (AIP)** does not support app-only authentication. When `-Certificate` is supplied, AIP tests are skipped automatically and a warning is shown. This is expected behavior.
+| Azure Information Protection | ✅ |
 
 ---
 
@@ -59,6 +57,7 @@ Grant the following **Application** permissions (not Delegated) and click **Gran
 | Microsoft Graph | `UserAuthenticationMethod.Read.All` |
 | Office 365 Exchange Online | `Exchange.ManageAsApp` |
 | SharePoint | `Sites.FullControl.All` |
+| Azure Rights Management Services | `Application.Read.All` |
 
 ### Required directory roles
 
@@ -70,10 +69,32 @@ Assign the following Entra directory roles to the app's service principal:
 | Compliance Administrator | Security & Compliance |
 | SharePoint Administrator | SharePoint Online |
 | Global Reader | Microsoft Graph read access |
+| Azure Information Protection Administrator | Azure Information Protection |
 
 ### Certificate
 
-Upload a certificate (public key) to the app registration under **Certificates & secrets → Certificates**. The certificate with its private key must be installed in the local certificate store on the machine running the assessment. The private key must also be marked as **exportable** (required for SharePoint Online CBA, which uses a temporary PFX export workaround).
+Create the certificate in `Cert:\LocalMachine\My` (run PowerShell **as Administrator**). This satisfies all service requirements in one step — SharePoint Online needs an exportable private key, and Azure Information Protection requires a legacy CSP-based certificate in the machine key store (`-KeySpec Signature` ensures a CSP certificate is created).
+
+```powershell
+# Run PowerShell as Administrator
+$cert = New-SelfSignedCertificate `
+    -Subject 'CN=ZeroTrustAssessment' `
+    -CertStoreLocation 'Cert:\LocalMachine\My' `
+    -KeyExportPolicy Exportable `
+    -KeySpec Signature `
+    -KeyLength 2048 `
+    -HashAlgorithm SHA256 `
+    -NotAfter (Get-Date).AddYears(2)
+
+# Export public key to upload to the app registration
+Export-Certificate -Cert $cert -FilePath "$env:USERPROFILE\Desktop\ZeroTrustAssessment.cer"
+
+Write-Host "Thumbprint: $($cert.Thumbprint)"
+```
+
+Upload `ZeroTrustAssessment.cer` to the app registration under **Certificates & secrets → Certificates**.
+
+> **Note:** If multiple certificates share the same subject name across certificate stores, pass the thumbprint directly to `-Certificate` instead of the subject name to avoid ambiguity.
 
 ---
 
@@ -104,8 +125,7 @@ Connecting to Azure
    ✅ Connected
 
 Connecting to Azure Information Protection
-   ⚠️ AipService does not support app-only (certificate) authentication.
-      AIP tests will be skipped.
+   ✅ Connected
 
 Connecting to Exchange Online
    ✅ Connected

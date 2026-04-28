@@ -29,8 +29,7 @@ function Connect-ZtAssessment {
 		The certificate to use for the connection(s).
 		Use this to authenticate in Application mode, rather than in Delegate (user) mode.
 		The application will need to be configured to have the matching Application scopes, compared to the Delegate scopes and may need to be added into roles.
-		Supported for Graph, Azure, ExchangeOnline, SecurityCompliance, and SharePointOnline via Certificate-Based Authentication (CBA).
-		AipService does not support app-only certificate-based authentication and will be skipped when this parameter is used.
+		Supported for Graph, Azure, ExchangeOnline, SecurityCompliance, SharePointOnline, and AipService via Certificate-Based Authentication (CBA).
 		The certificate with its private key must be installed in the local certificate store on the machine running the assessment.
 
 	.PARAMETER IgnoreLanguageMode
@@ -457,7 +456,6 @@ function Connect-ZtAssessment {
 				$loadedAipServiceModules.ForEach{
 					Write-Debug -Message ('Module ''{0}'' v{1} loaded for Azure Information Protection.' -f $_.Name, $_.Version)
 				}
-
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to load Azure Information Protection modules." -ForegroundColor Yellow
@@ -469,23 +467,47 @@ function Connect-ZtAssessment {
 				continue
 			}
 
+			# Check if already connected by calling a lightweight AIP cmdlet.
+			$isAipConnected = $false
 			try {
-					Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
-					if ($ClientId -and $Certificate) {
-						# Connect-AipService does not support app-only certificate-based authentication.
-						# The -ApplicationId / -CertificateThumbprint / -ServicePrincipal parameters exist
-						# but silently fail regardless of permissions. Skip to avoid triggering browser auth.
-						Write-Host -Object "   ⚠️ AipService does not support app-only (certificate) authentication." -ForegroundColor Yellow
-						Write-Host -Object "      AIP tests will be skipped." -ForegroundColor Yellow
-						Remove-ZtConnectedService -Service 'AipService'
-						continue
-					}
-					# Connect-AipService does not support certificate-based authentication via an X509Certificate2
-					# object or app-only service principal flow. Connect using the existing authenticated session;
-					# it will use the Graph/Az context or prompt interactively if needed.
+				$null = Get-AipServiceConfiguration -ErrorAction Stop
+				$isAipConnected = $true
+				Write-PSFMessage -Message "A connection to Azure Information Protection is already established." -Level Debug
+			}
+			catch {
+				Write-PSFMessage -Message "No existing connection to Azure Information Protection found." -Level Debug
+			}
+
+			if ($isAipConnected -and -not $Force.IsPresent) {
+				Add-ZtConnectedService -Service 'AipService'
+				Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
+				continue
+			}
+
+			if ($isAipConnected) {
+				Write-PSFMessage -Message "Disconnecting from Azure Information Protection (Force specified)." -Level Debug
+				$null = Disconnect-AipService -ErrorAction Ignore
+				Remove-ZtConnectedService -Service 'AipService'
+			}
+
+			try {
+				Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
+				if ($ClientId -and $Certificate) {
+					# Connect-AipService supports app-only CBA via -CertificateThumbprint / -ApplicationId /
+					# -TenantId / -ServicePrincipal (requires AIPService module v1.0.05+ and
+					# Azure Rights Management Services | Application.Read.All permission on the service principal).
+					$null = Connect-AipService `
+						-CertificateThumbprint $Certificate.Certificate.Thumbprint `
+						-ApplicationId $ClientId `
+						-TenantId $TenantId `
+						-ServicePrincipal `
+						-ErrorAction Stop
+				}
+				else {
 					$null = Connect-AipService -ErrorAction Stop
-					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
-					Add-ZtConnectedService -Service 'AipService'
+				}
+				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
+				Add-ZtConnectedService -Service 'AipService'
 			}
 			catch {
 				Write-Host -Object "   ❌ Failed to connect." -ForegroundColor Yellow
