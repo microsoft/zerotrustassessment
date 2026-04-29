@@ -467,15 +467,22 @@ function Connect-ZtAssessment {
 				continue
 			}
 
-			# Check if already connected by calling a lightweight AIP cmdlet.
-			$isAipConnected = $false
-			try {
-				$null = Get-AipServiceConfiguration -ErrorAction Stop
-				$isAipConnected = $true
-				Write-PSFMessage -Message "A connection to Azure Information Protection is already established." -Level Debug
+			# Fast path: trust module-tracked state to avoid a remote round-trip to the AIP service.
+			# Slow path: fall back to Get-AipServiceConfiguration only for externally-established connections
+			# (e.g. user ran Connect-AipService manually before calling Connect-ZtAssessment).
+			$isAipConnected = $script:ConnectedService -contains 'AipService'
+			if (-not $isAipConnected) {
+				try {
+					$null = Get-AipServiceConfiguration -ErrorAction Stop
+					$isAipConnected = $true
+					Write-PSFMessage -Message "A connection to Azure Information Protection is already established." -Level Debug
+				}
+				catch {
+					Write-PSFMessage -Message "No existing connection to Azure Information Protection found." -Level Debug
+				}
 			}
-			catch {
-				Write-PSFMessage -Message "No existing connection to Azure Information Protection found." -Level Debug
+			else {
+				Write-PSFMessage -Message "A connection to Azure Information Protection is already tracked by this session." -Level Debug
 			}
 
 			if ($isAipConnected -and -not $Force.IsPresent) {
@@ -492,6 +499,12 @@ function Connect-ZtAssessment {
 
 			try {
 				Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
+				$aipEnvironmentName = switch ($Environment) {
+					'China'    { 'AzureChinaCloud' }
+					'USGov'    { 'AzureUSGovernment' }
+					'USGovDoD' { 'AzureUSGovernment' }
+					default    { 'AzureCloud' }
+				}
 				if ($ClientId -and $Certificate) {
 					# Connect-AipService supports app-only CBA via -CertificateThumbprint / -ApplicationId /
 					# -TenantId / -ServicePrincipal (requires AIPService module v1.0.05+ and
@@ -501,10 +514,11 @@ function Connect-ZtAssessment {
 						-ApplicationId $ClientId `
 						-TenantId $TenantId `
 						-ServicePrincipal `
+						-EnvironmentName $aipEnvironmentName `
 						-ErrorAction Stop
 				}
 				else {
-					$null = Connect-AipService -ErrorAction Stop
+					$null = Connect-AipService -EnvironmentName $aipEnvironmentName -ErrorAction Stop
 				}
 				Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 				Add-ZtConnectedService -Service 'AipService'
