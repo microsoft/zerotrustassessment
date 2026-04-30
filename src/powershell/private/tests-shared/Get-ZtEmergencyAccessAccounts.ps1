@@ -47,6 +47,7 @@ function Get-ZtEmergencyAccessAccounts {
         $Database
     )
 
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     Write-PSFMessage 'Getting emergency access accounts from configuration' -Level Verbose
 
     # Get emergency accounts from PSFConfig (set by Invoke-ZtAssessment)
@@ -105,24 +106,24 @@ function Get-ZtEmergencyAccessAccounts {
             # Resolve group members via Microsoft Graph API (GroupMember table not available in DB)
             try {
                 Write-PSFMessage "Resolving emergency access group members via Graph API: Id=$id" -Level Verbose
-                $membersResponse = Get-ZtGroupMember -GroupId $id
+                $membersResponse = Get-ZtGroupMember -GroupId $id -ErrorAction Stop
                 $members = @($membersResponse | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })
 
                 if ($members.Count -gt 0) {
-                    foreach ($member in $members) {
-                        # Get additional user properties from the User table
-                        $escapedMemberId = $member.id -replace "'", "''"
-                        $memberSql = "SELECT id, userPrincipalName, displayName FROM User WHERE id = '$escapedMemberId'"
-                        $userDetails = Invoke-DatabaseQuery -Database $Database -Sql $memberSql | Select-Object -First 1
-                        if ($userDetails) {
-                            $emergencyAccessAccounts += [PSCustomObject]@{
-                                Id                = $userDetails.id
-                                UserPrincipalName = $userDetails.userPrincipalName
-                                DisplayName       = $userDetails.displayName
-                                Type              = 'GroupMember'
-                            }
-                            Write-PSFMessage "Emergency access group member found: $($userDetails.userPrincipalName)" -Level Verbose
+                    # Batch all member ids into a single SQL lookup to avoid N+1 queries
+                    $escapedIds = $members | ForEach-Object { "'" + (($_.id) -replace "'", "''") + "'" }
+                    $idList = $escapedIds -join ','
+                    $memberSql = "SELECT id, userPrincipalName, displayName FROM User WHERE id IN ($idList)"
+                    $userDetailsList = @(Invoke-DatabaseQuery -Database $Database -Sql $memberSql)
+
+                    foreach ($userDetails in $userDetailsList) {
+                        $emergencyAccessAccounts += [PSCustomObject]@{
+                            Id                = $userDetails.id
+                            UserPrincipalName = $userDetails.userPrincipalName
+                            DisplayName       = $userDetails.displayName
+                            Type              = 'GroupMember'
                         }
+                        Write-PSFMessage "Emergency access group member found: $($userDetails.userPrincipalName)" -Level Verbose
                     }
                 }
                 else {

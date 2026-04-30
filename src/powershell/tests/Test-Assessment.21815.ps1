@@ -95,7 +95,8 @@ from vwRole
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
 
-    # Add section for excluded emergency access accounts (Issue #266)
+    # Build section for excluded emergency access accounts (Issue #266)
+    $emergencySection = ''
     if ($excludedEmergencyAccounts.Count -gt 0) {
         $emergencySection = @'
 
@@ -111,21 +112,15 @@ The following emergency access accounts were excluded from this check as they ar
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $emergency.principalId
             $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $(Get-SafeMarkdown($emergency.userPrincipalName)) | $(Get-SafeMarkdown($emergency.roleDisplayName)) |`n"
         }
-
-        if (-not $passed) {
-            $mdInfo += $emergencySection
-        }
-        else {
-            $mdInfo = $emergencySection
-        }
     }
 
-    # Replace the placeholder with the detailed information (for failed tests)
-    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
-
-    # Append excluded section directly when test passes (no placeholder in pass message)
-    if ($passed -and $excludedEmergencyAccounts.Count -gt 0) {
-        $testResultMarkdown += "`n`n" + $mdInfo
+    if ($passed) {
+        # Pass message has no %TestResult% placeholder; append excluded section if any
+        $testResultMarkdown += $emergencySection
+    }
+    else {
+        # Replace the placeholder with the detailed failure table plus excluded section
+        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", ($mdInfo + $emergencySection)
     }
 
     $params = @{
