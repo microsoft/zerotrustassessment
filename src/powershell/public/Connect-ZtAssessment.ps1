@@ -120,6 +120,11 @@ function Connect-ZtAssessment {
 		return
 	}
 
+	if ($Certificate -and $UseDeviceCode) {
+		Stop-PSFFunction -Message "-UseDeviceCode cannot be combined with -Certificate (app-only authentication is non-interactive)." -EnableException $true -Cmdlet $PSCmdlet
+		return
+	}
+
 	if ($Service -contains 'All') {
 		$Service = [string[]]@('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')
 	}
@@ -467,42 +472,16 @@ function Connect-ZtAssessment {
 				continue
 			}
 
-			# Fast path: trust module-tracked state to avoid a remote round-trip to the AIP service.
-			# Slow path: fall back to Get-AipServiceConfiguration only for externally-established connections
-			# (e.g. user ran Connect-AipService manually before calling Connect-ZtAssessment).
-			$isAipConnected = $script:ConnectedService -contains 'AipService'
-			if (-not $isAipConnected) {
-				try {
-					$null = Get-AipServiceConfiguration -ErrorAction Stop
-					$isAipConnected = $true
-					Write-PSFMessage -Message "A connection to Azure Information Protection is already established." -Level Debug
-				}
-				catch {
-					Write-PSFMessage -Message "No existing connection to Azure Information Protection found." -Level Debug
-				}
-			}
-			else {
-				Write-PSFMessage -Message "A connection to Azure Information Protection is already tracked by this session." -Level Debug
-			}
-
-			if ($isAipConnected -and -not $Force.IsPresent) {
-				Add-ZtConnectedService -Service 'AipService'
-				Write-Host -Object "   ✅ Already connected." -ForegroundColor Green
-				continue
-			}
-
-			if ($isAipConnected) {
-				Write-PSFMessage -Message "Disconnecting from Azure Information Protection (Force specified)." -Level Debug
-				$null = Disconnect-AipService -ErrorAction Ignore
-				Remove-ZtConnectedService -Service 'AipService'
-			}
+			# Always reconnect, consistent with EXO/S&C/SPO behavior.
+			$null = Disconnect-AipService -ErrorAction Ignore
+			Remove-ZtConnectedService -Service 'AipService'
 
 			try {
 				Write-PSFMessage -Message "Connecting to Azure Information Protection" -Level Verbose
 				$aipEnvironmentName = switch ($Environment) {
 					'China'    { 'AzureChinaCloud' }
 					'USGov'    { 'AzureUSGovernment' }
-					'USGovDoD' { 'AzureUSGovernment' }
+					'USGovDoD' { 'AzureUSGovernment2' }
 					default    { 'AzureCloud' }
 				}
 				if ($ClientId -and $Certificate) {
