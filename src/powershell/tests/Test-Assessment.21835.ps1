@@ -115,7 +115,8 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                         AuthenticationMethods = $authMethodTypes
                         CAPoliciesTargeting = 0
                         ExcludedFromAllCA = $false
-                        CAPoliciesMissingExclusion = [System.Collections.Generic.List[object]]::new()
+                        # Populated in the CA-evaluation pass below; $null indicates "Unknown" (e.g. user skipped due to 403/404).
+                        CAPoliciesMissingExclusion = $null
                     }
 
                     Write-PSFMessage "Candidate emergency account found: $($user.userPrincipalName)" -Level Verbose
