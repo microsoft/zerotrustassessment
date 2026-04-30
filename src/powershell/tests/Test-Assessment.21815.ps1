@@ -49,12 +49,15 @@ from vwRole
     $results = @($permanentPrivileged | Where-Object { $emergencyAccountIds -notcontains $_.principalId })
     $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $emergencyAccountIds -contains $_.principalId })
 
+    # Count of *distinct* excluded emergency accounts (one user can have multiple permanent role assignments)
+    $excludedAccountCount = @($excludedEmergencyAccounts | Select-Object -ExpandProperty principalId -Unique).Count
+
     $testResultMarkdown = ""
 
     if ($results.Count -eq 0) {
         $passed = $true
-        if ($excludedEmergencyAccounts.Count -gt 0) {
-            $testResultMarkdown += "No privileged users have permanent role assignments (excluding $($excludedEmergencyAccounts.Count) emergency access account(s) which are expected to have permanent assignments)."
+        if ($excludedAccountCount -gt 0) {
+            $testResultMarkdown += "No privileged users have permanent role assignments (excluding $excludedAccountCount emergency access account(s) which are expected to have permanent assignments)."
         }
         else {
             $testResultMarkdown += "No privileged users have permanent role assignments."
