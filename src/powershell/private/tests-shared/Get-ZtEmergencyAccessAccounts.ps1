@@ -70,8 +70,9 @@ function Get-ZtEmergencyAccessAccounts {
         if ($type -eq 'User') {
             # Resolve user by UPN or ID
             if ($upn) {
-                $escapedUpn = $upn -replace "'", "''"
-                $sql = "SELECT id, userPrincipalName, displayName FROM User WHERE userPrincipalName = '$escapedUpn' COLLATE NOCASE"
+                # Lower-case both sides for case-insensitive UPN match (portable; avoids DB-specific COLLATE syntax)
+                $escapedUpn = ($upn.ToLowerInvariant()) -replace "'", "''"
+                $sql = "SELECT id, userPrincipalName, displayName FROM User WHERE LOWER(userPrincipalName) = '$escapedUpn'"
             }
             elseif ($id) {
                 $escapedId = $id -replace "'", "''"
