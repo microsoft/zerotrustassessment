@@ -168,52 +168,64 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
         $policiesMissingExclusion = [System.Collections.Generic.List[object]]::new()
 
         foreach ($policy in $enabledCAPolicies) {
-            $isTargeted = $false
+            # Entra CA semantics: exclusions take precedence over inclusions across all dimensions
+            # (user, group, role). A user is targeted only if they are included AND not excluded
+            # by any of the user/group/role conditions.
 
-            # Check user includes/excludes
             $includeUsers = @($policy.conditions.users.includeUsers)
             $excludeUsers = @($policy.conditions.users.excludeUsers)
+            $includeGroups = @($policy.conditions.users.includeGroups)
+            $excludeGroups = @($policy.conditions.users.excludeGroups)
+            $includeRoles = @($policy.conditions.users.includeRoles)
+            $excludeRoles = @($policy.conditions.users.excludeRoles)
 
-            # Check if user is explicitly included
+            # Determine inclusion across all dimensions (any include match)
+            $isIncluded = $false
             if ($includeUsers -contains 'All' -or $includeUsers -contains $user.id) {
-                $isTargeted = $true
+                $isIncluded = $true
             }
-
-            # Check if user is excluded
-            if ($excludeUsers -contains $user.id) {
-                $isTargeted = $false
-            }
-
-            # Check group includes/excludes if not already determined
-            if (-not $isTargeted -and $userGroupIds.Count -gt 0) {
-                $includeGroups = @($policy.conditions.users.includeGroups)
-                $excludeGroups = @($policy.conditions.users.excludeGroups)
-
+            if (-not $isIncluded -and $userGroupIds.Count -gt 0) {
                 foreach ($groupId in $userGroupIds) {
                     if ($includeGroups -contains $groupId) {
-                        $isTargeted = $true
+                        $isIncluded = $true
+                        break
                     }
-                    if ($excludeGroups -contains $groupId) {
-                        $isTargeted = $false
+                }
+            }
+            if (-not $isIncluded -and $userRoleIds.Count -gt 0) {
+                foreach ($roleId in $userRoleIds) {
+                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
+                    if ($includeRoles -contains $role.roleTemplateId) {
+                        $isIncluded = $true
                         break
                     }
                 }
             }
 
-            # Check role includes/excludes
-            $includeRoles = @($policy.conditions.users.includeRoles)
-            $excludeRoles = @($policy.conditions.users.excludeRoles)
-
-            foreach ($roleId in $userRoleIds) {
-                $role = $userRoles | Where-Object { $_.id -eq $roleId }
-                if ($includeRoles -contains $role.roleTemplateId) {
-                    $isTargeted = $true
-                }
-                if ($excludeRoles -contains $role.roleTemplateId) {
-                    $isTargeted = $false
-                    break
+            # Determine exclusion across all dimensions (any exclude match wins)
+            $isExcluded = $false
+            if ($excludeUsers -contains $user.id) {
+                $isExcluded = $true
+            }
+            if (-not $isExcluded -and $userGroupIds.Count -gt 0) {
+                foreach ($groupId in $userGroupIds) {
+                    if ($excludeGroups -contains $groupId) {
+                        $isExcluded = $true
+                        break
+                    }
                 }
             }
+            if (-not $isExcluded -and $userRoleIds.Count -gt 0) {
+                foreach ($roleId in $userRoleIds) {
+                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
+                    if ($excludeRoles -contains $role.roleTemplateId) {
+                        $isExcluded = $true
+                        break
+                    }
+                }
+            }
+
+            $isTargeted = $isIncluded -and -not $isExcluded
 
             if ($isTargeted) {
                 $policiesTargetingUser++
@@ -310,21 +322,25 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $isCloudOnly = ($user.onPremisesSyncEnabled -ne $true)
             $cloudOnlyEmoji = if ($isCloudOnly) { '✅' } else { '❌' }
 
-            # Check if in emergency access accounts (excluded from all CA)
-            $emergencyAccount = $emergencyAccessAccounts | Where-Object { $_.Id -eq $user.id }
-            $caExcludedEmoji = if ($emergencyAccount) { '✅' } else { '❌' }
+            # Check if excluded from all enabled CA policies (using per-user CA info, not emergency account membership)
+            $caExcludedEmoji = if ($gaCAInfo.ContainsKey($user.id) -and $gaCAInfo[$user.id].ExcludedFromAll) { '✅' } else { '❌' }
 
             # Check if has phishing-resistant auth only
             $candidate = $emergencyAccountCandidates | Where-Object { $_.Id -eq $user.id }
             $phishingResistantEmoji = if ($candidate) { '✅' } else { '❌' }
 
             # Build CA policies missing exclusion cell
-            $caPoliciesCell = 'None'
-            if ($gaCAInfo.ContainsKey($user.id) -and $gaCAInfo[$user.id].PoliciesMissingExclusion.Count -gt 0) {
+            if (-not $gaCAInfo.ContainsKey($user.id)) {
+                $caPoliciesCell = 'Unknown'
+            }
+            elseif ($gaCAInfo[$user.id].PoliciesMissingExclusion.Count -gt 0) {
                 $caPoliciesCell = ($gaCAInfo[$user.id].PoliciesMissingExclusion | ForEach-Object {
                     $link = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($_.id)"
                     "[$(Get-SafeMarkdown -Text $_.displayName)]($link)"
                 }) -join ', '
+            }
+            else {
+                $caPoliciesCell = 'None'
             }
 
             $userSummary += [PSCustomObject]@{
