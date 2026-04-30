@@ -230,7 +230,11 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             if ($isTargeted) {
                 $policiesTargetingUser++
                 $excludedFromAll = $false
-                $policiesMissingExclusion.Add($policy)
+                # Store only the minimal fields needed for the report to avoid retaining full policy payloads.
+                $policiesMissingExclusion.Add([pscustomobject]@{
+                    id          = $policy.id
+                    displayName = $policy.displayName
+                })
             }
         }
 
