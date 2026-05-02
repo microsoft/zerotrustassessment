@@ -286,7 +286,7 @@ function Invoke-ZtAssessment {
 				Write-Host "🔐 " -NoNewline -ForegroundColor Cyan
 				Write-Host "Loaded $($emergencyAccounts.Count) emergency access account(s) from configuration." -ForegroundColor White
 			}
-			# Note: stale-clear is now performed unconditionally at the start of Invoke-ZtAssessment.
+			# Note: stale configuration is cleared unconditionally at the start of Invoke-ZtAssessment.
 
 			Write-Host "✅ " -NoNewline -ForegroundColor Green
 			Write-Host "Configuration loaded successfully. Command line parameters will override configuration file values." -ForegroundColor White

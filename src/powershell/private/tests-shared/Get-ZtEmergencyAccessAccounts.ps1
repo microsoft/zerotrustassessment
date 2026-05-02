@@ -75,7 +75,12 @@ function Get-ZtEmergencyAccessAccounts {
                 $sql = "SELECT id, userPrincipalName, displayName FROM User WHERE LOWER(userPrincipalName) = '$escapedUpn'"
             }
             elseif ($id) {
-                $escapedId = $id -replace "'", "''"
+                $guidRef = [System.Guid]::Empty
+                if (-not [System.Guid]::TryParse($id, [ref]$guidRef)) {
+                    Write-PSFMessage "Skipping invalid user entry: Id '$id' is not a valid GUID" -Level Warning
+                    continue
+                }
+                $escapedId = $guidRef.ToString()
                 $sql = "SELECT id, userPrincipalName, displayName FROM User WHERE id = '$escapedId'"
             }
             else {
@@ -104,27 +109,45 @@ function Get-ZtEmergencyAccessAccounts {
                 continue
             }
 
+            $guidRef = [System.Guid]::Empty
+            if (-not [System.Guid]::TryParse($id, [ref]$guidRef)) {
+                Write-PSFMessage "Skipping invalid group entry: Id '$id' is not a valid GUID" -Level Warning
+                continue
+            }
+
             # Resolve group members via Microsoft Graph API (GroupMember table not available in DB)
             try {
                 Write-PSFMessage "Resolving emergency access group members via Graph API: Id=$id" -Level Verbose
-                $membersResponse = Get-ZtGroupMember -GroupId $id -ErrorAction Stop
+                $membersResponse = Get-ZtGroupMember -GroupId $guidRef -ErrorAction Stop
                 $members = @($membersResponse | Where-Object { $_.'@odata.type' -eq '#microsoft.graph.user' })
 
                 if ($members.Count -gt 0) {
-                    # Batch all member ids into a single SQL lookup to avoid N+1 queries
-                    $escapedIds = $members | ForEach-Object { "'" + (($_.id) -replace "'", "''") + "'" }
-                    $idList = $escapedIds -join ','
-                    $memberSql = "SELECT id, userPrincipalName, displayName FROM User WHERE id IN ($idList)"
-                    $userDetailsList = @(Invoke-DatabaseQuery -Database $Database -Sql $memberSql)
-
-                    foreach ($userDetails in $userDetailsList) {
-                        $emergencyAccessAccounts += [PSCustomObject]@{
-                            Id                = $userDetails.id
-                            UserPrincipalName = $userDetails.userPrincipalName
-                            DisplayName       = $userDetails.displayName
-                            Type              = 'GroupMember'
+                    # Batch all member ids into a single SQL lookup to avoid N+1 queries;
+                    # member ids come from Graph API responses which are always valid GUIDs.
+                    $escapedIds = $members | ForEach-Object {
+                        $memberGuid = [System.Guid]::Empty
+                        if ([System.Guid]::TryParse($_.id, [ref]$memberGuid)) {
+                            "'" + $memberGuid.ToString() + "'"
                         }
-                        Write-PSFMessage "Emergency access group member found: $($userDetails.userPrincipalName)" -Level Verbose
+                    } | Where-Object { $_ }
+
+                    if (-not $escapedIds) {
+                        Write-PSFMessage "Emergency access group members had no valid GUIDs: Id=$id" -Level Warning
+                    }
+                    else {
+                        $idList = $escapedIds -join ','
+                        $memberSql = "SELECT id, userPrincipalName, displayName FROM User WHERE id IN ($idList)"
+                        $userDetailsList = @(Invoke-DatabaseQuery -Database $Database -Sql $memberSql)
+
+                        foreach ($userDetails in $userDetailsList) {
+                            $emergencyAccessAccounts += [PSCustomObject]@{
+                                Id                = $userDetails.id
+                                UserPrincipalName = $userDetails.userPrincipalName
+                                DisplayName       = $userDetails.displayName
+                                Type              = 'GroupMember'
+                            }
+                            Write-PSFMessage "Emergency access group member found: $($userDetails.userPrincipalName)" -Level Verbose
+                        }
                     }
                 }
                 else {

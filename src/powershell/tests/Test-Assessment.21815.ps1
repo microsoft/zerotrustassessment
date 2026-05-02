@@ -46,8 +46,8 @@ from vwRole
     $emergencyAccountIds = @($emergencyAccounts | Select-Object -ExpandProperty Id)
 
     # Filter out emergency access accounts from the results
-    $results = @($permanentPrivileged | Where-Object { $emergencyAccountIds -notcontains $_.principalId })
-    $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $emergencyAccountIds -contains $_.principalId })
+    $results = @($permanentPrivileged | Where-Object { $_.principalId -notin $emergencyAccountIds })
+    $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $_.principalId -in $emergencyAccountIds })
 
     # Count of *distinct* excluded emergency accounts (one user can have multiple permanent role assignments)
     $excludedAccountCount = @($excludedEmergencyAccounts | Select-Object -ExpandProperty principalId -Unique).Count
