@@ -218,6 +218,10 @@ function Invoke-ZtAssessment {
 	#region Preparation
 	Show-ZtiBanner
 
+	# Always reset emergency access accounts at the start of each run to prevent stale
+	# config from a previous Invoke-ZtAssessment call carrying over (Issue #266 follow-up).
+	Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $null
+
 	if (-not (Test-ZtLanguageMode)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
@@ -268,6 +272,21 @@ function Invoke-ZtAssessment {
 					Set-Variable -Name $paramName -Value $configContent.$paramName
 				}
 			}
+
+			# Parse EmergencyAccessAccounts if present (Maester-style config with GlobalSettings)
+			$emergencyAccounts = $null
+			if ($configContent.PSObject.Properties.Name -contains 'GlobalSettings' -and
+				$configContent.GlobalSettings.PSObject.Properties.Name -contains 'EmergencyAccessAccounts' -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts.Count -gt 0) {
+				$emergencyAccounts = $configContent.GlobalSettings.EmergencyAccessAccounts
+			}
+			if ($emergencyAccounts -and $emergencyAccounts.Count -gt 0) {
+				Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $emergencyAccounts
+				Write-Host "🔐 " -NoNewline -ForegroundColor Cyan
+				Write-Host "Loaded $($emergencyAccounts.Count) emergency access account(s) from configuration." -ForegroundColor White
+			}
+			# Note: stale-clear is now performed unconditionally at the start of Invoke-ZtAssessment.
 
 			Write-Host "✅ " -NoNewline -ForegroundColor Green
 			Write-Host "Configuration loaded successfully. Command line parameters will override configuration file values." -ForegroundColor White
