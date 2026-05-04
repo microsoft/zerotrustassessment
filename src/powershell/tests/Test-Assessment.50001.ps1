@@ -1,35 +1,50 @@
 <#
 .SYNOPSIS
-    Queries Microsoft Defender for Cloud Secure Score recommendations and emits
-    one test result per grouped recommendation.
+    Combines all Microsoft Defender for Cloud Secure Score recommendations and MCSB
+    compliance assessments into a unified view. Shows every recommendation from either
+    source as a unique test result.
 
 .DESCRIPTION
-    This test queries Azure Resource Graph for all MDC security assessments across
-    accessible subscriptions, joined with secure score controls to get the control
-    (category) for each recommendation. Assessments are grouped by
-    recommendationDisplayName, and each group becomes one Infrastructure pillar
-    test result with a resource table showing all affected resources.
+    This test runs two Azure Resource Graph queries:
+      1. Secure Score recommendations — per-resource state (Healthy/Unhealthy/NotApplicable),
+         secure score control name, description, severity, and remediation.
+      2. MCSB compliance assessments (full) — per-resource × per-MCSB-control rows with
+         control names, resourceState, and all display fields.
 
-    Status logic:
-    - All NotApplicable → Skipped (with notApplicableReason)
-    - Any Unhealthy → Failed
-    - All Healthy → Passed
+    Recommendations are merged by `recommendationName` (assessment GUID), forming a Venn diagram:
 
-    The KQL query joins securescorecontrols with assessments to retrieve the
-    controls column, description, severity, remediation steps, state, and
-    Azure portal deep links.
+      LEFT ONLY  (secure score only):  emitted with secure score data; no MCSB columns.
+      RIGHT ONLY (MCSB only):          emitted with MCSB data; MCSB control columns always present.
+      BOTH (intersection):             secure score resources and state are the primary truth;
+                                       each resource row is enriched with MCSB control(s) where mapped.
+
+    Category format:
+      - Both:               "<secure score control> - <MCSB domain(s)>"
+      - Secure score only:  secure score control name
+      - MCSB only:          MCSB domain name(s)
+
+    Pass/fail logic:
+      - Secure-score-backed results (left-only + both):
+          all NotApplicable → Skipped; any Unhealthy → Failed; all Healthy → Passed.
+      - MCSB-only results (right-only):
+          all notapplicable → Skipped; any unhealthy → Failed; all healthy → Passed.
+          (resourceState field, lowercase.)
+
+    Both queries are non-fatal: if one query fails, results from the other are still emitted.
+    Only if both return empty are no results emitted.
 
 .NOTES
     Test ID: 50001
     Category: Microsoft Defender for Cloud
     Required API: Azure Resource Graph - SecurityResources
-        (microsoft.security/securescores/securescorecontrols + microsoft.security/assessments)
+        (microsoft.security/securescores/securescorecontrols
+         + microsoft.security/assessments
+         + microsoft.security/regulatorycompliancestandards/.../regulatorycomplianceassessments)
 #>
 
 function Test-Assessment-50001 {
     [ZtTest(
         Category = 'Microsoft Defender for Cloud',
-        ImplementationCost = 'Low',
         MinimumLicense = ('N/A'),
         Pillar = 'Infrastructure',
         RiskLevel = 'High',
@@ -37,16 +52,32 @@ function Test-Assessment-50001 {
         SfiPillar = 'Protect infrastructure',
         TenantType = ('Workforce'),
         TestId = 50001,
-        Title = 'Microsoft Defender for Cloud Secure Score Recommendations',
-        UserImpact = 'Low'
+        Title = 'Microsoft Defender for Cloud Recommendations'
     )]
     [CmdletBinding()]
     param()
 
+    #region Helper Functions
+    function Get-McsbCells {
+        param(
+            [hashtable] $McsbForThisRec,
+            [string]    $ResourceId
+        )
+        $key = if ($ResourceId) { $ResourceId.ToLowerInvariant() } else { '' }
+        if ($McsbForThisRec.ContainsKey($key)) {
+            $items    = $McsbForThisRec[$key]
+            $controls = ($items | Select-Object -ExpandProperty Control     | Sort-Object -Unique) -join ', '
+            $names    = ($items | Select-Object -ExpandProperty ControlName | Where-Object { $_ } | Sort-Object -Unique) -join ', '
+            return @($controls, $names)
+        }
+        return @('', '')
+    }
+    #endregion Helper Functions
+
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking Microsoft Defender for Cloud Secure Score Recommendations'
+    $activity = 'Checking Microsoft Defender for Cloud Recommendations'
 
     Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
 
@@ -57,10 +88,8 @@ function Test-Assessment-50001 {
         return
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph for MDC assessments'
-
-    # KQL query: joins securescorecontrols with assessments to get controls (category) per recommendation
-    $argQuery = @'
+    # KQL 1: Secure Score recommendations (per-resource state + secure score control name)
+    $secureScoreQuery = @'
 securityresources
 | where type == "microsoft.security/securescores/securescorecontrols"
 | extend secureScoreName = (extract("/providers/Microsoft.Security/secureScores/([^/]*)/", 1, id))
@@ -159,14 +188,7 @@ securityresources
     description = tostring(assessmentDetails.metadata.description),
     recommendationDisplayName = tostring(assessmentDetails.metadata.displayName),
     notApplicableReason = tostring(assessmentDetails.status.cause),
-    firstEvaluationDate = todatetime(assessmentDetails.status.firstEvaluationDate),
-    statusChangeDate = todatetime(assessmentDetails.status.statusChangeDate),
     azurePortalRecommendationLink,
-    nativeCloudAccountId = tostring(resourceDetails.NativeResourceId),
-    tactics = tostring(assessmentDetails.metadata.tactics[0]),
-    techniques = tostring(assessmentDetails.metadata.techniques[0]),
-    cloud = tostring(assessmentDetails.metadata.cloudProviders[0]),
-    owner = tostring(assessmentDetails.owner),
     recommendationId
 | join kind=leftouter (
     resourcecontainers
@@ -174,7 +196,6 @@ securityresources
     | project subscriptionId, subscriptionName = name
 ) on subscriptionId
 | project
-    exportedTimestamp,
     subscriptionId,
     subscriptionName,
     resourceGroup,
@@ -189,206 +210,519 @@ securityresources
     severity,
     state,
     notApplicableReason,
-    firstEvaluationDate,
-    statusChangeDate,
-    controls = coalesce(tostring(parse_json(controls)[0].controlDisplayName), "No Value"),
-    azurePortalRecommendationLink,
-    nativeCloudAccountId,
-    tactics,
-    techniques,
-    cloud,
-    owner
+    controls = coalesce(tostring(parse_json(controls)[0].controlDisplayName), ""),
+    azurePortalRecommendationLink
 | order by recommendationDisplayName asc
 '@
 
-    $assessments = @()
+    # KQL 2: MCSB compliance assessments — full query (same as Test-Assessment.50002)
+    # Returns all fields needed to emit standalone test results for MCSB-only recommendations.
+    $mcsbQuery = @'
+securityresources
+| where type == "microsoft.security/regulatorycompliancestandards/regulatorycompliancecontrols/regulatorycomplianceassessments"
+| extend scope = properties.scope
+| where isempty(scope) or scope in~("Subscription", "MultiCloudAggregation")
+| parse id with * "regulatoryComplianceStandards/" complianceStandardId "/regulatoryComplianceControls/" complianceControlId "/regulatoryComplianceAssessments" *
+| extend complianceStandardId = replace("-", " ", complianceStandardId)
+| where complianceStandardId == "Microsoft cloud security benchmark"
+| extend failedResources = toint(properties.failedResources), passedResources = toint(properties.passedResources), skippedResources = toint(properties.skippedResources)
+| where failedResources + passedResources + skippedResources > 0 or properties.assessmentType == "MicrosoftManaged"
+| join kind = leftouter (
+    securityresources
+    | where type == "microsoft.security/assessments"
+) on subscriptionId, name
+| extend complianceState = tostring(properties.state)
+| extend resourceSource = tolower(tostring(properties1.resourceDetails.Source))
+| extend recommendationId = iff(isnull(id1) or isempty(id1), id, id1)
+| extend resourceId = trim(' ', tolower(tostring(case(
+    resourceSource =~ "azure", properties1.resourceDetails.Id,
+    resourceSource =~ "gcp", properties1.resourceDetails.GcpResourceId,
+    resourceSource =~ "aws" and isnotempty(tostring(properties1.resourceDetails.ConnectorId)), properties1.resourceDetails.Id,
+    resourceSource =~ "aws", properties1.resourceDetails.AwsResourceId,
+    extract("^(.+)/providers/Microsoft.Security/assessments/.+$", 1, recommendationId)
+))))
+| extend regexResourceId = extract_all(@"/providers/[^/]+(?:/([^/]+)/[^/]+(?:/[^/]+/[^/]+)?)?/([^/]+)/([^/]+)$", resourceId)[0]
+| extend resourceType = iff(
+    resourceSource =~ "aws" and isnotempty(tostring(properties1.resourceDetails.ConnectorId)), tostring(properties1.additionalData.ResourceType),
+    iff(regexResourceId[1] != "", regexResourceId[1], iff(regexResourceId[0] != "", regexResourceId[0], "subscriptions"))
+)
+| extend resourceName = tostring(regexResourceId[2])
+| extend recommendationName = name
+| extend recommendationDisplayName = tostring(iff(isnull(properties1.displayName) or isempty(properties1.displayName), properties.description, properties1.displayName))
+| extend description = tostring(properties1.metadata.description)
+| extend remediationSteps = tostring(properties1.metadata.remediationDescription)
+| extend severity = tostring(properties1.metadata.severity)
+| extend azurePortalRecommendationLink = tostring(properties1.links.azurePortal)
+| mvexpand statusPerInitiative = properties1.statusPerInitiative
+| extend expectedInitiative = statusPerInitiative.policyInitiativeName =~ "ASC Default"
+| summarize arg_max(toint(expectedInitiative), *) by complianceControlId, recommendationId
+| extend expectedInitiativeBool = expectedInitiative == 1
+| extend state = iff(expectedInitiativeBool, tolower(statusPerInitiative.assessmentStatus.code), tolower(properties1.status.code))
+| extend notApplicableReason = iff(expectedInitiativeBool, tostring(statusPerInitiative.assessmentStatus.cause), tostring(properties1.status.cause))
+| join kind = leftouter (
+    securityresources
+    | where type == "microsoft.security/regulatorycompliancestandards/regulatorycompliancecontrols"
+    | parse id with * "regulatoryComplianceStandards/" complianceStandardId "/regulatoryComplianceControls/" *
+    | extend complianceStandardId = replace("-", " ", complianceStandardId)
+    | where complianceStandardId == "Microsoft cloud security benchmark"
+    | where properties.state != "Unsupported"
+    | extend controlName = tostring(properties.description)
+    | project controlId = name, controlName
+    | distinct controlId, controlName
+) on $left.complianceControlId == $right.controlId
+| extend exportedTimestamp = now()
+| join kind=leftouter (
+    resourcecontainers
+    | where type == "microsoft.resources/subscriptions"
+    | extend subscriptionId = tostring(split(id, "/")[2])
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| project
+    exportedTimestamp,
+    complianceStandard = complianceStandardId,
+    complianceControl = complianceControlId,
+    complianceControlName = controlName,
+    recommendationState = complianceState,
+    subscriptionId,
+    subscriptionName,
+    resourceGroup = resourceGroup1,
+    resourceType,
+    resourceName,
+    resourceId,
+    recommendationId,
+    recommendationName,
+    recommendationDisplayName,
+    description,
+    remediationSteps,
+    severity,
+    resourceState = state,
+    notApplicableReason,
+    azurePortalRecommendationLink
+| order by complianceControl asc, recommendationId asc
+'@
+
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph for secure score recommendations'
+    $secureScoreRecs = @()
     try {
-        $assessments = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
-        Write-PSFMessage "ARG Query returned $($assessments.Count) assessment records" -Tag Test -Level VeryVerbose
+        $secureScoreRecs = @(Invoke-ZtAzureResourceGraphRequest -Query $secureScoreQuery)
+        Write-PSFMessage "Secure Score query returned $($secureScoreRecs.Count) records" -Tag Test -Level VeryVerbose
     }
     catch {
-        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
-        return
+        Write-PSFMessage "Secure Score ARG query failed (continuing with MCSB only): $($_.Exception.Message)" -Tag Test -Level Warning
+    }
+
+    Write-ZtProgress -Activity $activity -Status 'Querying Azure Resource Graph for MCSB compliance assessments'
+    $mcsbRecs = @()
+    try {
+        $mcsbRecs = @(Invoke-ZtAzureResourceGraphRequest -Query $mcsbQuery)
+        Write-PSFMessage "MCSB query returned $($mcsbRecs.Count) records" -Tag Test -Level VeryVerbose
+    }
+    catch {
+        Write-PSFMessage "MCSB ARG query failed (continuing with secure score only): $($_.Exception.Message)" -Tag Test -Level Warning
     }
     #endregion Data Collection
 
-    #region Assessment Logic
-    if ($assessments.Count -eq 0) {
-        Write-PSFMessage 'No MDC assessments found. Cloud Security Posture Management enabled.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Microsoft Defender for Cloud assessments found. Ensure Cloud Security Posture Management is enabled on your subscriptions.'
+    #region Report Generation
+    if ($secureScoreRecs.Count -eq 0 -and $mcsbRecs.Count -eq 0) {
+        Write-PSFMessage 'No recommendations found from either query.' -Tag Test -Level Verbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Microsoft Defender for Cloud assessments found. Ensure Cloud Security Posture Management and the MCSB compliance standard are enabled on your subscriptions.'
         return
     }
 
-    # Group assessments by recommendationName GUID (stable and unique per recommendation)
-    $groups = $assessments | Group-Object -Property recommendationName
+    # MCSB domain map (control ID prefix -> human-readable domain name)
+    $mcsbDomainMap = @{
+        'NS' = 'Network Security'
+        'IM' = 'Identity Management'
+        'PA' = 'Privileged Access'
+        'DP' = 'Data Protection'
+        'AM' = 'Asset Management'
+        'LT' = 'Logging and Threat Detection'
+        'IR' = 'Incident Response'
+        'PV' = 'Posture and Vulnerability Management'
+        'ES' = 'Endpoint Security'
+        'BR' = 'Backup and Recovery'
+        'DS' = 'DevOps Security'
+        'GS' = 'Governance and Strategy'
+    }
 
-    foreach ($group in $groups) {
-        $rows = $group.Group
-        $firstRow = $rows[0]
-
-        # TestId from recommendationName GUID
-        $testId = $group.Name
-
-        # Title from recommendationDisplayName
-        $title = $firstRow.recommendationDisplayName
-
-        # Category from controls column
-        $category = $firstRow.controls
-
-        # Risk from severity
-        $risk = $firstRow.severity
-
-        # --- Build Description ("What was checked") — shared by both skip and normal paths ---
-        $descriptionText = ConvertTo-ZtMarkdown $firstRow.description
-        if ([string]::IsNullOrWhiteSpace($descriptionText)) {
-            $descriptionText = $firstRow.displayName
+    # Build MCSB enrichment lookups from $mcsbRecs:
+    #   $mcsbByRec:        recommendationName -> { resourceId.lower -> [{Control, ControlName}, ...] }
+    #   $mcsbDomainsByRec: recommendationName -> HashSet[domain names]
+    $mcsbByRec        = @{}
+    $mcsbDomainsByRec = @{}
+    foreach ($m in $mcsbRecs) {
+        if ([string]::IsNullOrWhiteSpace($m.recommendationName)) { continue }
+        if (-not $mcsbByRec.ContainsKey($m.recommendationName)) {
+            $mcsbByRec[$m.recommendationName]        = @{}
+            $mcsbDomainsByRec[$m.recommendationName] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
         }
+        $resKey = if ($m.resourceId) { $m.resourceId.ToLowerInvariant() } else { '' }
+        if (-not $mcsbByRec[$m.recommendationName].ContainsKey($resKey)) {
+            $mcsbByRec[$m.recommendationName][$resKey] = [System.Collections.Generic.List[object]]::new()
+        }
+        $null = $mcsbByRec[$m.recommendationName][$resKey].Add([PSCustomObject]@{
+            Control     = $m.complianceControl
+            ControlName = $m.complianceControlName
+        })
+        if (-not [string]::IsNullOrWhiteSpace($m.complianceControl)) {
+            $prefix     = ($m.complianceControl -split '\.')[0].ToUpper()
+            $domainName = if ($mcsbDomainMap.ContainsKey($prefix)) { $mcsbDomainMap[$prefix] } else { $m.complianceControl }
+            $null = $mcsbDomainsByRec[$m.recommendationName].Add($domainName)
+        }
+    }
 
-        $remediationSection = ''
-        if (-not [string]::IsNullOrWhiteSpace($firstRow.remediationSteps)) {
-            $cleanRemediation = ConvertTo-ZtMarkdown $firstRow.remediationSteps
+    # Build per-recommendation group hashes for O(1) lookup
+    $secureScoreGroupHash   = @{}
+    $mcsbGroupHash = @{}
+    $secureScoreRecs | Group-Object -Property recommendationName | ForEach-Object { $secureScoreGroupHash[$_.Name]   = $_ }
+    $mcsbRecs        | Group-Object -Property recommendationName | ForEach-Object { $mcsbGroupHash[$_.Name] = $_ }
 
-            $remediationSection = @"
+    # Build a sorted union of all recommendation names (SecureScore first to get display names, then MCSB-only)
+    $allRecsSorted = @(
+        $secureScoreGroupHash.Keys | ForEach-Object {
+            [PSCustomObject]@{ Name = $_; DisplayName = $secureScoreGroupHash[$_].Group[0].recommendationDisplayName }
+        }
+        $mcsbGroupHash.Keys | Where-Object { -not $secureScoreGroupHash.ContainsKey($_) } | ForEach-Object {
+            [PSCustomObject]@{ Name = $_; DisplayName = $mcsbGroupHash[$_].Group[0].recommendationDisplayName }
+        }
+    ) | Sort-Object DisplayName
+
+    # Pre-register all recommendations as Running/Queued so the progress dashboard shows
+    # them all immediately. Each flips to Done as its report block completes.
+    foreach ($rec in $allRecsSorted) {
+        Update-ZtProgressState -WorkerId $rec.Name -WorkerName $rec.DisplayName -WorkerStatus 'Running' -WorkerDetail 'Queued'
+    }
+
+    foreach ($rec in $allRecsSorted) {
+        $recName = $rec.Name
+        $inSS    = $secureScoreGroupHash.ContainsKey($recName)
+
+        # ── SECURE SCORE BACKED (left-only or both intersection) ─────────────────────
+        if ($inSS) {
+            $rows     = $secureScoreGroupHash[$recName].Group
+            $firstRow = $rows[0]
+            $testId   = $recName
+            $title    = $firstRow.recommendationDisplayName
+            $risk     = $firstRow.severity
+
+            # MCSB enrichment lookup — populated when this rec also appears in MCSB
+            $mcsbForThisRec = if ($mcsbByRec.ContainsKey($recName)) { $mcsbByRec[$recName] } else { @{} }
+            $showMcsb       = $mcsbForThisRec.Count -gt 0
+
+            # Category: "secure score control - MCSB domain(s)" when both exist
+            $secureScoreCategory = $firstRow.controls
+            $mcsbDomainList      = $null
+            if ($mcsbDomainsByRec.ContainsKey($recName) -and $mcsbDomainsByRec[$recName].Count -gt 0) {
+                $mcsbDomainList = ($mcsbDomainsByRec[$recName] | Sort-Object) -join ', '
+            }
+            $category = if (-not [string]::IsNullOrWhiteSpace($secureScoreCategory) -and $mcsbDomainList) {
+                "$secureScoreCategory - $mcsbDomainList"
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($secureScoreCategory)) {
+                $secureScoreCategory
+            }
+            elseif ($mcsbDomainList) {
+                $mcsbDomainList
+            }
+            else {
+                'Microsoft Defender for Cloud'
+            }
+
+            # Description + optional remediation section
+            $descriptionText = ConvertTo-ZtMarkdown $firstRow.description
+
+            $remediationSection = ''
+            if (-not [string]::IsNullOrWhiteSpace($firstRow.remediationSteps)) {
+                $cleanRemediation = ConvertTo-ZtMarkdown $firstRow.remediationSteps
+                if (-not [string]::IsNullOrWhiteSpace($cleanRemediation)) {
+                    $remediationSection = @"
 
 **Remediation action**
 
 $cleanRemediation
 "@
-        }
+                }
+            }
 
-        $descriptionMd = @"
+            $descriptionMd = @"
 $descriptionText
 $remediationSection
 "@
 
-        # Separate rows by state
-        $applicableRows = @($rows | Where-Object { $_.state -ne 'NotApplicable' })
-        $notApplicableRows = @($rows | Where-Object { $_.state -eq 'NotApplicable' })
+            # State separation (secure score: title-case)
+            $applicableRows    = @($rows | Where-Object { $_.state -ne 'NotApplicable' })
+            $notApplicableRows = @($rows | Where-Object { $_.state -eq 'NotApplicable' })
 
-        # Determine whether Resource group / Resource type columns have any data
-        $showRgType = @($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) -or -not [string]::IsNullOrWhiteSpace($_.resourceType) }).Count -gt 0
+            # Column presence flags
+            $showResourceGroup = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) } | Select-Object -First 1)
+            $showResourceType  = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceType)  } | Select-Object -First 1)
+            $showResource      = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceName)  } | Select-Object -First 1)
 
-        # If all rows are NotApplicable → Skip (but still show resource table)
-        if ($applicableRows.Count -eq 0) {
-            $naReasons = ($notApplicableRows | ForEach-Object { $_.notApplicableReason } | Where-Object { $_ } | Select-Object -Unique) -join '; '
-            if ([string]::IsNullOrWhiteSpace($naReasons)) { $naReasons = 'All resources are not applicable for this recommendation.' }
+            # Dynamic table header
+            $tableHeader = '|'
+            $tableSep    = '|'
+            $tableHeader += ' Subscription |';      $tableSep += ' :----------- |'
+            if ($showResourceGroup) { $tableHeader += ' Resource group |';    $tableSep += ' :------------- |' }
+            if ($showResourceType)  { $tableHeader += ' Resource type |';     $tableSep += ' :------------ |' }
+            if ($showMcsb)          { $tableHeader += ' MCSB control |';      $tableSep += ' :----------- |'
+                                      $tableHeader += ' MCSB control name |'; $tableSep += ' :---------------- |' }
+            if ($showResource)      { $tableHeader += ' Affected resource |'; $tableSep += ' :---------------- |' }
+            $tableHeader += ' Status |';            $tableSep += ' :----- |'
+            $tableHeader += ' Azure portal |';      $tableSep += ' :----------- |'
+            $tableHeaderMd = "$tableHeader`n$tableSep"
 
-            $naTableRows = ''
-            foreach ($row in $notApplicableRows | Sort-Object subscriptionName, resourceGroup, resourceName) {
-                $subLink = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
-                $subMd = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+            # All-NotApplicable path
+            if ($applicableRows.Count -eq 0) {
+                $naReasons = ($notApplicableRows | ForEach-Object { $_.notApplicableReason } | Where-Object { $_ } | Select-Object -Unique) -join ', '
 
-                $resLink = "https://portal.azure.com/#resource$($row.resourceId)"
-                $resMd = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+                $naTableRows = @(foreach ($row in $notApplicableRows | Sort-Object subscriptionName, resourceGroup, resourceName) {
+                    $subLink      = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
+                    $subMd        = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+                    $resLink      = "https://portal.azure.com/#resource$($row.resourceId)"
+                    $resMd        = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+                    $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) { "[View recommendation]($($row.azurePortalRecommendationLink))" } else { '' }
+                    $mcsbCells    = Get-McsbCells -McsbForThisRec $mcsbForThisRec -ResourceId $row.resourceId
 
-                $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) {
-                    "[View recommendation]($($row.azurePortalRecommendationLink))"
-                } else { '' }
+                    $rowMd = '|'
+                    $rowMd += " $subMd |"
+                    if ($showResourceGroup) { $rowMd += " $($row.resourceGroup) |" }
+                    if ($showResourceType)  { $rowMd += " $($row.resourceType) |" }
+                    if ($showMcsb)          { $rowMd += " $($mcsbCells[0]) |"; $rowMd += " $($mcsbCells[1]) |" }
+                    if ($showResource)      { $rowMd += " $resMd |" }
+                    $rowMd += ' N/A |'
+                    $rowMd += " $portalLinkMd |"
+                    "$rowMd`n"
+                }) -join ''
 
-                if ($showRgType) {
-                    $naTableRows += "| $subMd | $($row.resourceGroup) | $($row.resourceType) | $resMd | N/A | $portalLinkMd |`n"
-                } else {
-                    $naTableRows += "| $subMd | $resMd | N/A | $portalLinkMd |`n"
+                $naResultMd = @"
+$naReasons
+
+$tableHeaderMd
+$naTableRows
+"@
+
+                $params = @{
+                    TestId         = $testId
+                    Title          = $title
+                    Description    = $descriptionMd
+                    SkippedBecause = 'NotApplicable'
+                    Result         = $naResultMd
+                    Pillar         = 'Infrastructure'
+                    Category       = $category
+                    Risk           = $risk
+                }
+                Add-ZtTestResultDetail @params
+                Update-ZtProgressState -WorkerId $testId -WorkerName $title -WorkerStatus 'Done'
+                continue
+            }
+
+            # Pass/fail: any Unhealthy → Failed; otherwise Passed
+            $hasUnhealthy = @($applicableRows | Where-Object { $_.state -eq 'Unhealthy' }).Count -gt 0
+            $passed       = -not $hasUnhealthy
+
+            # Result table
+            $tableRows = @(foreach ($row in $rows | Sort-Object subscriptionName, resourceGroup, resourceName) {
+                $subLink      = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
+                $subMd        = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+                $resLink      = "https://portal.azure.com/#resource$($row.resourceId)"
+                $resMd        = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+                $stateIcon    = switch ($row.state) {
+                    'Healthy'   { '✅' }
+                    'Unhealthy' { '❌' }
+                    default     { 'N/A' }
+                }
+                $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) { "[View recommendation]($($row.azurePortalRecommendationLink))" } else { '' }
+                $mcsbCells    = Get-McsbCells -McsbForThisRec $mcsbForThisRec -ResourceId $row.resourceId
+
+                $rowMd = '|'
+                $rowMd += " $subMd |"
+                if ($showResourceGroup) { $rowMd += " $($row.resourceGroup) |" }
+                if ($showResourceType)  { $rowMd += " $($row.resourceType) |" }
+                if ($showMcsb)          { $rowMd += " $($mcsbCells[0]) |"; $rowMd += " $($mcsbCells[1]) |" }
+                if ($showResource)      { $rowMd += " $resMd |" }
+                $rowMd += " $stateIcon |"
+                $rowMd += " $portalLinkMd |"
+                "$rowMd`n"
+            }) -join ''
+
+            $resultMd = @"
+$title
+
+$tableHeaderMd
+$tableRows
+"@
+
+            $params = @{
+                TestId      = $testId
+                Title       = $title
+                Status      = $passed
+                Result      = $resultMd
+                Description = $descriptionMd
+                Risk        = $risk
+                Pillar      = 'Infrastructure'
+                Category    = $category
+            }
+            Add-ZtTestResultDetail @params
+            Update-ZtProgressState -WorkerId $testId -WorkerName $title -WorkerStatus 'Done'
+        }
+
+        # ── MCSB ONLY (right-only) ────────────────────────────────────────────────────
+        else {
+            $rows     = $mcsbGroupHash[$recName].Group
+            $firstRow = $rows[0]
+            $testId   = $recName
+            $title    = if (-not [string]::IsNullOrWhiteSpace($firstRow.recommendationDisplayName)) { $firstRow.recommendationDisplayName } else { $recName }
+            $risk     = $firstRow.severity
+
+            # Category: MCSB domain name(s)
+            $mcsbDomainList = $null
+            if ($mcsbDomainsByRec.ContainsKey($recName) -and $mcsbDomainsByRec[$recName].Count -gt 0) {
+                $mcsbDomainList = ($mcsbDomainsByRec[$recName] | Sort-Object) -join ', '
+            }
+            $category = if ($mcsbDomainList) { $mcsbDomainList } else { 'Microsoft cloud security benchmark' }
+
+            # Description + optional remediation section
+            $descriptionText = ConvertTo-ZtMarkdown $firstRow.description
+
+            $remediationSection = ''
+            if (-not [string]::IsNullOrWhiteSpace($firstRow.remediationSteps)) {
+                $cleanRemediation = ConvertTo-ZtMarkdown $firstRow.remediationSteps
+                if (-not [string]::IsNullOrWhiteSpace($cleanRemediation)) {
+                    $remediationSection = @"
+
+**Remediation action**
+
+$cleanRemediation
+"@
                 }
             }
 
-            if ($showRgType) {
+            $descriptionMd = @"
+$descriptionText
+$remediationSection
+"@
+
+            # State separation (MCSB resourceState is lowercase)
+            $applicableRows    = @($rows | Where-Object { $_.resourceState -ne 'notapplicable' })
+            $notApplicableRows = @($rows | Where-Object { $_.resourceState -eq 'notapplicable' })
+
+            # Column presence flags
+            $showResourceGroup = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) } | Select-Object -First 1)
+            $showResourceType  = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceType)  } | Select-Object -First 1)
+            $showResource      = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceName)  } | Select-Object -First 1)
+
+            # Dynamic table header — MCSB control columns are always present for MCSB-only recs
+            $tableHeader = '|'
+            $tableSep    = '|'
+            $tableHeader += ' Subscription |'; $tableSep += ' :----------- |'
+            if ($showResourceGroup) { $tableHeader += ' Resource group |'; $tableSep += ' :------------- |' }
+            if ($showResourceType)  { $tableHeader += ' Resource type |';  $tableSep += ' :------------ |' }
+            $tableHeader += ' MCSB control |';      $tableSep += ' :----------- |'
+            $tableHeader += ' MCSB control name |'; $tableSep += ' :---------------- |'
+            if ($showResource)      { $tableHeader += ' Affected resource |'; $tableSep += ' :---------------- |' }
+            $tableHeader += ' Status |';  $tableSep += ' :----- |'
+            $tableHeader += ' Azure portal |'; $tableSep += ' :----------- |'
+            $tableHeaderMd = "$tableHeader`n$tableSep"
+
+            # All-NotApplicable path
+            if ($applicableRows.Count -eq 0) {
+                $naReasons = ($notApplicableRows | ForEach-Object { $_.notApplicableReason } | Where-Object { $_ } | Select-Object -Unique) -join ', '
+
+                $naTableRows = @(foreach ($row in $notApplicableRows | Sort-Object subscriptionName, complianceControl, resourceGroup, resourceName) {
+                    $subLink      = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
+                    $subMd        = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+                    $resLink      = "https://portal.azure.com/#resource$($row.resourceId)"
+                    $resMd        = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+                    $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) { "[View recommendation]($($row.azurePortalRecommendationLink))" } else { '' }
+
+                    $rowMd = '|'
+                    $rowMd += " $subMd |"
+                    if ($showResourceGroup) { $rowMd += " $($row.resourceGroup) |" }
+                    if ($showResourceType)  { $rowMd += " $($row.resourceType) |" }
+                    $rowMd += " $($row.complianceControl) |"
+                    $rowMd += " $($row.complianceControlName) |"
+                    if ($showResource)      { $rowMd += " $resMd |" }
+                    $rowMd += ' N/A |'
+                    $rowMd += " $portalLinkMd |"
+                    "$rowMd`n"
+                }) -join ''
+
                 $naResultMd = @"
 $naReasons
 
-| Subscription | Resource group | Resource type | Affected resource | Status | Azure portal |
-| :----------- | :------------- | :------------ | :---------------- | :----- | :----------- |
+$tableHeaderMd
 $naTableRows
 "@
-            } else {
-                $naResultMd = @"
-$naReasons
 
-| Subscription | Affected resource | Status | Azure portal |
-| :----------- | :---------------- | :----- | :----------- |
-$naTableRows
-"@
+                $params = @{
+                    TestId         = $testId
+                    Title          = $title
+                    Description    = $descriptionMd
+                    SkippedBecause = 'NotApplicable'
+                    Result         = $naResultMd
+                    Pillar         = 'Infrastructure'
+                    Category       = $category
+                    Risk           = $risk
+                }
+                Add-ZtTestResultDetail @params
+                Update-ZtProgressState -WorkerId $testId -WorkerName $title -WorkerStatus 'Done'
+                continue
             }
+
+            # Pass/fail: any unhealthy → Failed; otherwise Passed
+            $hasUnhealthy = @($applicableRows | Where-Object { $_.resourceState -eq 'unhealthy' }).Count -gt 0
+            $passed       = -not $hasUnhealthy
+
+            # Result table
+            $tableRows = @(foreach ($row in $rows | Sort-Object subscriptionName, complianceControl, resourceGroup, resourceName) {
+                $subLink      = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
+                $subMd        = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
+                $resLink      = "https://portal.azure.com/#resource$($row.resourceId)"
+                $resMd        = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
+                $stateIcon    = switch ($row.resourceState) {
+                    'healthy'   { '✅' }
+                    'unhealthy' { '❌' }
+                    default     { 'N/A' }
+                }
+                $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) { "[View recommendation]($($row.azurePortalRecommendationLink))" } else { '' }
+
+                $rowMd = '|'
+                $rowMd += " $subMd |"
+                if ($showResourceGroup) { $rowMd += " $($row.resourceGroup) |" }
+                if ($showResourceType)  { $rowMd += " $($row.resourceType) |" }
+                $rowMd += " $($row.complianceControl) |"
+                $rowMd += " $($row.complianceControlName) |"
+                if ($showResource)      { $rowMd += " $resMd |" }
+                $rowMd += " $stateIcon |"
+                $rowMd += " $portalLinkMd |"
+                "$rowMd`n"
+            }) -join ''
+
+            $resultMd = @"
+$title
+
+$tableHeaderMd
+$tableRows
+"@
 
             $params = @{
-                TestId         = $testId
-                Title          = $title
-                Description    = $descriptionMd
-                SkippedBecause = 'NotApplicable'
-                Result         = $naResultMd
-                Pillar         = 'Infrastructure'
-                Category       = $category
-                Risk           = $risk
+                TestId      = $testId
+                Title       = $title
+                Status      = $passed
+                Result      = $resultMd
+                Description = $descriptionMd
+                Risk        = $risk
+                Pillar      = 'Infrastructure'
+                Category    = $category
             }
             Add-ZtTestResultDetail @params
-            continue
+            Update-ZtProgressState -WorkerId $testId -WorkerName $title -WorkerStatus 'Done'
         }
-
-        # Any Unhealthy → Failed; all Healthy → Passed
-        $hasUnhealthy = @($applicableRows | Where-Object { $_.state -eq 'Unhealthy' }).Count -gt 0
-        $passed = -not $hasUnhealthy
-
-        # --- Build Result ("Test result") ---
-        # Resource table with clickable links (exclude NotApplicable rows)
-
-        $tableRows = ''
-        foreach ($row in $rows | Sort-Object subscriptionName, resourceGroup, resourceName) {
-            $subLink = "https://portal.azure.com/#resource/subscriptions/$($row.subscriptionId)"
-            $subMd = "[$(Get-SafeMarkdown $row.subscriptionName)]($subLink)"
-
-            $resLink = "https://portal.azure.com/#resource$($row.resourceId)"
-            $resMd = "[$(Get-SafeMarkdown $row.resourceName)]($resLink)"
-
-            $stateIcon = switch ($row.state) {
-                'Healthy'       { '✅' }
-                'NotApplicable' { 'N/A' }
-                default         { '❌' }
-            }
-
-            $portalLinkMd = if (-not [string]::IsNullOrWhiteSpace($row.azurePortalRecommendationLink)) {
-                "[View recommendation]($($row.azurePortalRecommendationLink))"
-            } else { '' }
-
-            if ($showRgType) {
-                $tableRows += "| $subMd | $($row.resourceGroup) | $($row.resourceType) | $resMd | $stateIcon | $portalLinkMd |`n"
-            } else {
-                $tableRows += "| $subMd | $resMd | $stateIcon | $portalLinkMd |`n"
-            }
-        }
-
-        if ($showRgType) {
-            $resultMd = @"
-$title
-
-| Subscription | Resource group | Resource type | Affected resource | Status | Azure portal |
-| :----------- | :------------- | :------------ | :---------------- | :----- | :----------- |
-$tableRows
-"@
-        } else {
-            $resultMd = @"
-$title
-
-| Subscription | Affected resource | Status | Azure portal |
-| :----------- | :---------------- | :----- | :----------- |
-$tableRows
-"@
-        }
-
-        $params = @{
-            TestId             = $testId
-            Title              = $title
-            Status             = $passed
-            Result             = $resultMd
-            Description        = $descriptionMd
-            Risk               = $risk
-            Pillar             = 'Infrastructure'
-            Category           = $category
-        }
-
-        Add-ZtTestResultDetail @params
     }
-    #endregion Assessment Logic
+    #endregion Report Generation
 
-    Write-PSFMessage "Emitted $($groups.Count) grouped MDC assessment test results" -Tag Test -Level VeryVerbose
+    $bothCount     = @($secureScoreGroupHash.Keys | Where-Object { $mcsbGroupHash.ContainsKey($_) }).Count
+    $secureScoreOnlyCount   = $secureScoreGroupHash.Count - $bothCount
+    $mcsbOnlyCount = $mcsbGroupHash.Count - $bothCount
+    Write-PSFMessage "Emitted $($allRecsSorted.Count) test results: $secureScoreOnlyCount secure-score-only, $mcsbOnlyCount MCSB-only, $bothCount merged (both)" -Tag Test -Level VeryVerbose
 }
