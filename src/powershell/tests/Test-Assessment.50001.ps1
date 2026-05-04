@@ -215,7 +215,7 @@ securityresources
 | order by recommendationDisplayName asc
 '@
 
-    # KQL 2: MCSB compliance assessments — full query (same as Test-Assessment.50002)
+    # KQL 2: MCSB compliance assessments — full query
     # Returns all fields needed to emit standalone test results for MCSB-only recommendations.
     $mcsbQuery = @'
 securityresources
@@ -453,10 +453,14 @@ $remediationSection
             $applicableRows    = @($rows | Where-Object { $_.state -ne 'NotApplicable' })
             $notApplicableRows = @($rows | Where-Object { $_.state -eq 'NotApplicable' })
 
-            # Column presence flags
-            $showResourceGroup = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) } | Select-Object -First 1)
-            $showResourceType  = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceType)  } | Select-Object -First 1)
-            $showResource      = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceName)  } | Select-Object -First 1)
+            # Column presence flags — single pass, short-circuits once all three are found
+            $showResourceGroup = $false; $showResourceType = $false; $showResource = $false
+            foreach ($r in $rows) {
+                if (-not $showResourceGroup -and -not [string]::IsNullOrWhiteSpace($r.resourceGroup)) { $showResourceGroup = $true }
+                if (-not $showResourceType  -and -not [string]::IsNullOrWhiteSpace($r.resourceType))  { $showResourceType  = $true }
+                if (-not $showResource      -and -not [string]::IsNullOrWhiteSpace($r.resourceName))  { $showResource      = $true }
+                if ($showResourceGroup -and $showResourceType -and $showResource) { break }
+            }
 
             # Dynamic table header
             $tableHeader = '|'
@@ -606,10 +610,14 @@ $remediationSection
             $applicableRows    = @($rows | Where-Object { $_.resourceState -ne 'notapplicable' })
             $notApplicableRows = @($rows | Where-Object { $_.resourceState -eq 'notapplicable' })
 
-            # Column presence flags
-            $showResourceGroup = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceGroup) } | Select-Object -First 1)
-            $showResourceType  = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceType)  } | Select-Object -First 1)
-            $showResource      = [bool]($rows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.resourceName)  } | Select-Object -First 1)
+            # Column presence flags — single pass, short-circuits once all three are found
+            $showResourceGroup = $false; $showResourceType = $false; $showResource = $false
+            foreach ($r in $rows) {
+                if (-not $showResourceGroup -and -not [string]::IsNullOrWhiteSpace($r.resourceGroup)) { $showResourceGroup = $true }
+                if (-not $showResourceType  -and -not [string]::IsNullOrWhiteSpace($r.resourceType))  { $showResourceType  = $true }
+                if (-not $showResource      -and -not [string]::IsNullOrWhiteSpace($r.resourceName))  { $showResource      = $true }
+                if ($showResourceGroup -and $showResourceType -and $showResource) { break }
+            }
 
             # Dynamic table header — MCSB control columns are always present for MCSB-only recs
             $tableHeader = '|'
