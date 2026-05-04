@@ -115,6 +115,8 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                         AuthenticationMethods = $authMethodTypes
                         CAPoliciesTargeting = 0
                         ExcludedFromAllCA = $false
+                        # Populated in the CA-evaluation pass below; $null indicates "Unknown" (e.g. user skipped due to 403/404).
+                        CAPoliciesMissingExclusion = $null
                     }
 
                     Write-PSFMessage "Candidate emergency account found: $($user.userPrincipalName)" -Level Verbose
@@ -127,7 +129,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
 
     #endregion
 
-    #region Step 3 & 4: Get CA policies and check if candidates are excluded from all
+    #region Step 3 & 4: Get CA policies and check if all permanent GAs are excluded
     Write-ZtProgress -Activity $activity -Status 'Analyzing Conditional Access policies'
 
     # Use Get-ZtConditionalAccessPolicy helper function
@@ -136,26 +138,25 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
 
     Write-PSFMessage "Found $($enabledCAPolicies.Count) enabled CA policies" -Level Verbose
 
-    $emergencyAccessAccounts = @()
+    # Store CA policy info for ALL permanent GAs (not just candidates)
+    $gaCAInfo = @{}
 
-    foreach ($candidate in $emergencyAccountCandidates) {
-        Write-PSFMessage "Checking CA policy targeting for: $($candidate.UserPrincipalName)" -Level Verbose
+    foreach ($user in $permanentGAUsers) {
+        Write-PSFMessage "Checking CA policy targeting for: $($user.userPrincipalName)" -Level Verbose
 
-        # Query 6: Get transitive group memberships
         # Wrap in try/catch: user may have been deleted after the export was taken (returns 403 accessDenied or 404 ResourceNotFound)
         $userGroups = $null
         $userRoles = $null
         try {
-            $userGroups = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/transitiveMemberOf/microsoft.graph.group" `
+            $userGroups = Invoke-ZtGraphRequest -RelativeUri "users/$($user.id)/transitiveMemberOf/microsoft.graph.group" `
                 -Select 'id' -ApiVersion v1.0
 
-            # Query 7: Get directory role memberships
-            $userRoles = Invoke-ZtGraphRequest -RelativeUri "users/$($candidate.Id)/memberOf/microsoft.graph.directoryRole" `
+            $userRoles = Invoke-ZtGraphRequest -RelativeUri "users/$($user.id)/memberOf/microsoft.graph.directoryRole" `
                 -Select 'id,roleTemplateId' -ApiVersion v1.0
         }
         catch {
             if ($_.Exception.Message -match '403|Forbidden|accessDenied|404|Request_ResourceNotFound') {
-                Write-PSFMessage "Skipping candidate $($candidate.UserPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
+                Write-PSFMessage "Skipping user $($user.userPrincipalName): user may have been deleted after the export was taken. $_" -Level Warning
                 continue
             }
             throw
@@ -165,67 +166,99 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
 
         $policiesTargetingUser = 0
         $excludedFromAll = $true
+        $policiesMissingExclusion = [System.Collections.Generic.List[object]]::new()
 
         foreach ($policy in $enabledCAPolicies) {
-            $isTargeted = $false
+            # Entra CA semantics: exclusions take precedence over inclusions across all dimensions
+            # (user, group, role). A user is targeted only if they are included AND not excluded
+            # by any of the user/group/role conditions.
 
-            # Check user includes/excludes
             $includeUsers = @($policy.conditions.users.includeUsers)
             $excludeUsers = @($policy.conditions.users.excludeUsers)
+            $includeGroups = @($policy.conditions.users.includeGroups)
+            $excludeGroups = @($policy.conditions.users.excludeGroups)
+            $includeRoles = @($policy.conditions.users.includeRoles)
+            $excludeRoles = @($policy.conditions.users.excludeRoles)
 
-            # Check if user is explicitly included
-            if ($includeUsers -contains 'All' -or $includeUsers -contains $candidate.Id) {
-                $isTargeted = $true
+            # Determine inclusion across all dimensions (any include match)
+            $isIncluded = $false
+            if ($includeUsers -contains 'All' -or $includeUsers -contains $user.id) {
+                $isIncluded = $true
             }
-
-            # Check if user is excluded
-            if ($excludeUsers -contains $candidate.Id) {
-                $isTargeted = $false
-            }
-
-            # Check group includes/excludes if not already determined
-            if (-not $isTargeted -and $userGroupIds.Count -gt 0) {
-                $includeGroups = @($policy.conditions.users.includeGroups)
-                $excludeGroups = @($policy.conditions.users.excludeGroups)
-
+            if (-not $isIncluded -and $userGroupIds.Count -gt 0) {
                 foreach ($groupId in $userGroupIds) {
                     if ($includeGroups -contains $groupId) {
-                        $isTargeted = $true
+                        $isIncluded = $true
+                        break
                     }
-                    if ($excludeGroups -contains $groupId) {
-                        $isTargeted = $false
+                }
+            }
+            if (-not $isIncluded -and $userRoleIds.Count -gt 0) {
+                foreach ($roleId in $userRoleIds) {
+                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
+                    if ($includeRoles -contains $role.roleTemplateId) {
+                        $isIncluded = $true
                         break
                     }
                 }
             }
 
-            # Check role includes/excludes
-            $includeRoles = @($policy.conditions.users.includeRoles)
-            $excludeRoles = @($policy.conditions.users.excludeRoles)
-
-            foreach ($roleId in $userRoleIds) {
-                $role = $userRoles | Where-Object { $_.id -eq $roleId }
-                if ($includeRoles -contains $role.roleTemplateId) {
-                    $isTargeted = $true
-                }
-                if ($excludeRoles -contains $role.roleTemplateId) {
-                    $isTargeted = $false
-                    break
+            # Determine exclusion across all dimensions (any exclude match wins)
+            $isExcluded = $false
+            if ($excludeUsers -contains $user.id) {
+                $isExcluded = $true
+            }
+            if (-not $isExcluded -and $userGroupIds.Count -gt 0) {
+                foreach ($groupId in $userGroupIds) {
+                    if ($excludeGroups -contains $groupId) {
+                        $isExcluded = $true
+                        break
+                    }
                 }
             }
+            if (-not $isExcluded -and $userRoleIds.Count -gt 0) {
+                foreach ($roleId in $userRoleIds) {
+                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
+                    if ($excludeRoles -contains $role.roleTemplateId) {
+                        $isExcluded = $true
+                        break
+                    }
+                }
+            }
+
+            $isTargeted = $isIncluded -and -not $isExcluded
 
             if ($isTargeted) {
                 $policiesTargetingUser++
                 $excludedFromAll = $false
+                # Store only the minimal fields needed for the report to avoid retaining full policy payloads.
+                $policiesMissingExclusion.Add([pscustomobject]@{
+                    id          = $policy.id
+                    displayName = $policy.displayName
+                })
             }
         }
 
-        $candidate.CAPoliciesTargeting = $policiesTargetingUser
-        $candidate.ExcludedFromAllCA = $excludedFromAll
+        $gaCAInfo[$user.id] = @{
+            PoliciesTargeting        = $policiesTargetingUser
+            ExcludedFromAll          = $excludedFromAll
+            PoliciesMissingExclusion = $policiesMissingExclusion
+        }
+    }
 
-        if ($excludedFromAll) {
-            $emergencyAccessAccounts += $candidate
-            Write-PSFMessage "Emergency access account confirmed: $($candidate.UserPrincipalName)" -Level Verbose
+    # Determine emergency access accounts: candidates that are excluded from all enabled CA policies
+    $emergencyAccessAccounts = @()
+    foreach ($candidate in $emergencyAccountCandidates) {
+        if ($gaCAInfo.ContainsKey($candidate.Id)) {
+            $caInfo = $gaCAInfo[$candidate.Id]
+            $candidate.CAPoliciesTargeting = $caInfo.PoliciesTargeting
+            $candidate.ExcludedFromAllCA = $caInfo.ExcludedFromAll
+            $candidate.CAPoliciesMissingExclusion = $caInfo.PoliciesMissingExclusion
+
+            if ($caInfo.ExcludedFromAll) {
+                $emergencyAccessAccounts += $candidate
+                Write-PSFMessage "Emergency access account confirmed: $($candidate.UserPrincipalName)" -Level Verbose
+            }
         }
     }
 
@@ -283,8 +316,8 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
     # Add comprehensive table of all permanent GA accounts
     if ($permanentGAUsers.Count -gt 0) {
         $testResultMarkdown += "## All permanent Global Administrators`n`n"
-        $testResultMarkdown += "| Display name | UPN | Cloud only | All CA excluded | Phishing resistant auth |`n"
-        $testResultMarkdown += "| :----------- | :-- | :--------: | :---------: | :---------------------: |`n"
+        $testResultMarkdown += "| Display name | UPN | Cloud only | Phishing resistant auth | All CA excluded | CA policies missing exclusion |`n"
+        $testResultMarkdown += "| :----------- | :-- | :--------: | :---------------------: | :---------: | :---------------------------- |`n"
 
         $userSummary = @()
         foreach ($user in $permanentGAUsers) {
@@ -294,20 +327,35 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $isCloudOnly = ($user.onPremisesSyncEnabled -ne $true)
             $cloudOnlyEmoji = if ($isCloudOnly) { '✅' } else { '❌' }
 
-            # Check if in emergency access accounts (excluded from all CA)
-            $emergencyAccount = $emergencyAccessAccounts | Where-Object { $_.Id -eq $user.id }
-            $caExcludedEmoji = if ($emergencyAccount) { '✅' } else { '❌' }
+            # Check if excluded from all enabled CA policies (using per-user CA info, not emergency account membership)
+            $caExcludedEmoji = if ($gaCAInfo.ContainsKey($user.id) -and $gaCAInfo[$user.id].ExcludedFromAll) { '✅' } else { '❌' }
 
             # Check if has phishing-resistant auth only
             $candidate = $emergencyAccountCandidates | Where-Object { $_.Id -eq $user.id }
             $phishingResistantEmoji = if ($candidate) { '✅' } else { '❌' }
 
+            # Build CA policies missing exclusion cell
+            if (-not $gaCAInfo.ContainsKey($user.id)) {
+                $caPoliciesCell = 'Unknown'
+            }
+            elseif ($gaCAInfo[$user.id].PoliciesMissingExclusion.Count -gt 0) {
+                $caPoliciesCell = ($gaCAInfo[$user.id].PoliciesMissingExclusion | ForEach-Object {
+                    $link = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($_.id)"
+                    "[$(Get-SafeMarkdown -Text $_.displayName)]($link)"
+                }) -join ', '
+            }
+            else {
+                $caPoliciesCell = 'None'
+            }
+
             $userSummary += [PSCustomObject]@{
                 DisplayName = $user.displayName
                 UserPrincipalName = $user.userPrincipalName
+                PortalLink = $portalLink
                 CloudOnly = $cloudOnlyEmoji
                 CAExcluded = $caExcludedEmoji
                 PhishingResistant = $phishingResistantEmoji
+                CAPoliciesMissingExclusion = $caPoliciesCell
             }
         }
 
@@ -315,7 +363,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
         $userSummary = $userSummary | Sort-Object -Property CAExcluded, PhishingResistant, CloudOnly
 
         foreach ($user in $userSummary) {
-            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($portalLink) | $($user.CloudOnly) | $($user.CAExcluded) | $($user.PhishingResistant) |`n"
+            $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($($user.PortalLink)) | $($user.CloudOnly) | $($user.PhishingResistant) | $($user.CAExcluded) | $($user.CAPoliciesMissingExclusion) |`n"
         }
 
         $testResultMarkdown += "`n"
