@@ -109,7 +109,6 @@ The following emergency access accounts were excluded from this check as they ar
 
 | User | UPN | Role Name |
 | :--- | :-- | :-------- |
-
 '@
         foreach ($emergency in $excludedEmergencyAccounts) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $emergency.principalId
