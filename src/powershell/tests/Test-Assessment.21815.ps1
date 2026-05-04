@@ -46,8 +46,8 @@ from vwRole
     $emergencyAccountIds = @($emergencyAccounts | Select-Object -ExpandProperty Id)
 
     # Filter out emergency access accounts from the results
-    $results = @($permanentPrivileged | Where-Object { $emergencyAccountIds -notcontains $_.principalId })
-    $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $emergencyAccountIds -contains $_.principalId })
+    $results = @($permanentPrivileged | Where-Object { $_.principalId -notin $emergencyAccountIds })
+    $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $_.principalId -in $emergencyAccountIds })
 
     # Count of *distinct* excluded emergency accounts (one user can have multiple permanent role assignments)
     $excludedAccountCount = @($excludedEmergencyAccounts | Select-Object -ExpandProperty principalId -Unique).Count
@@ -113,7 +113,7 @@ The following emergency access accounts were excluded from this check as they ar
 '@
         foreach ($emergency in $excludedEmergencyAccounts) {
             $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $emergency.principalId
-            $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $(Get-SafeMarkdown($emergency.userPrincipalName)) | $(Get-SafeMarkdown($emergency.roleDisplayName)) |`n"
+            $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $($emergency.userPrincipalName) | $($emergency.roleDisplayName) |`n"
         }
     }
 
