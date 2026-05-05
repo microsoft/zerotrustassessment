@@ -49,7 +49,7 @@ function Test-Assessment-50001 {
         Pillar = 'Infrastructure',
         RiskLevel = 'High',
         Service = ('Azure'),
-        SfiPillar = 'Protect infrastructure',
+        SfiPillar = 'Protect tenants and isolate production systems',
         TenantType = ('Workforce'),
         TestId = 50001,
         Title = 'Microsoft Defender for Cloud Recommendations'

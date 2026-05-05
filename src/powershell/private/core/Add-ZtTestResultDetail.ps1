@@ -210,9 +210,8 @@ function Add-ZtTestResultDetail {
 		$getZtTestStatusParams.CustomStatus = $CustomStatus
 	}
 
-	# Resolve pillar: prefer testMeta, fall back to explicit -Pillar parameter (for dynamic tests)
-	$resolvedPillar = if ($testMeta.Pillar) { $testMeta.Pillar } elseif ($Pillar) { $Pillar } else { $null }
-	$resolvedSfiPillar = if ($testMeta.SfiPillar) { $testMeta.SfiPillar } else { $null }
+	# Resolve pillar: explicit -Pillar parameter wins (for dynamic tests), fall back to testMeta
+	$resolvedPillar = if ($PSBoundParameters.ContainsKey('Pillar')) { $Pillar } elseif ($testMeta.Pillar) { $testMeta.Pillar } else { $null }
 
 	$testInfo = @{
 		TestId                 = $actualTestId
@@ -224,7 +223,7 @@ function Add-ZtTestResultDetail {
 		TestImpact             = $UserImpact
 		TestRisk               = $Risk
 		TestImplementationCost = $ImplementationCost
-		TestSfiPillar          = $resolvedSfiPillar
+		TestSfiPillar          = $testMeta.SfiPillar
 		TestPillar             = $resolvedPillar
 		TestMinimumLicense     = $testMeta.MinimumLicense
 		TestDescription        = $Description
