@@ -372,18 +372,18 @@ securityresources
     }
 
     # Build per-recommendation group hashes for O(1) lookup
-    $secureScoreGroupHash   = @{}
-    $mcsbGroupHash = @{}
-    $secureScoreRecs | Group-Object -Property recommendationName | ForEach-Object { $secureScoreGroupHash[$_.Name]   = $_ }
-    $mcsbRecs        | Group-Object -Property recommendationName | ForEach-Object { $mcsbGroupHash[$_.Name] = $_ }
+    $secureScoreGroupHash = $secureScoreRecs | Group-Object -Property recommendationName -AsHashTable -AsString
+    $mcsbGroupHash        = $mcsbRecs        | Group-Object -Property recommendationName -AsHashTable -AsString
+    if (-not $secureScoreGroupHash) { $secureScoreGroupHash = @{} }
+    if (-not $mcsbGroupHash)        { $mcsbGroupHash        = @{} }
 
     # Build a sorted union of all recommendation names (SecureScore first to get display names, then MCSB-only)
     $allRecsSorted = @(
         $secureScoreGroupHash.Keys | ForEach-Object {
-            [PSCustomObject]@{ Name = $_; DisplayName = $secureScoreGroupHash[$_].Group[0].recommendationDisplayName }
+            [PSCustomObject]@{ Name = $_; DisplayName = $secureScoreGroupHash[$_][0].recommendationDisplayName }
         }
         $mcsbGroupHash.Keys | Where-Object { -not $secureScoreGroupHash.ContainsKey($_) } | ForEach-Object {
-            [PSCustomObject]@{ Name = $_; DisplayName = $mcsbGroupHash[$_].Group[0].recommendationDisplayName }
+            [PSCustomObject]@{ Name = $_; DisplayName = $mcsbGroupHash[$_][0].recommendationDisplayName }
         }
     ) | Sort-Object DisplayName
 
@@ -399,7 +399,7 @@ securityresources
 
         # ── SECURE SCORE BACKED (left-only or both intersection) ─────────────────────
         if ($inSS) {
-            $rows     = $secureScoreGroupHash[$recName].Group
+            $rows     = $secureScoreGroupHash[$recName]
             $firstRow = $rows[0]
             $testId   = $recName
             $title    = $firstRow.recommendationDisplayName
@@ -578,7 +578,7 @@ $tableRows
 
         # ── MCSB ONLY (right-only) ────────────────────────────────────────────────────
         else {
-            $rows     = $mcsbGroupHash[$recName].Group
+            $rows     = $mcsbGroupHash[$recName]
             $firstRow = $rows[0]
             $testId   = $recName
             $title    = if (-not [string]::IsNullOrWhiteSpace($firstRow.recommendationDisplayName)) { $firstRow.recommendationDisplayName } else { $recName }
