@@ -13,7 +13,18 @@
         "displayName": null,
         "userPrincipalName": null,
         "uniqueName": null,
-        "id": null
+        "id": null,
+        "createdDateTime": "1900-01-01T00:00:00Z",
+        "refreshTokensValidFromDateTime": "1900-01-01T00:00:00Z",
+        "signInSessionsValidFromDateTime": "1900-01-01T00:00:00Z",
+        "assignedPlans": [
+          {
+            "assignedDateTime": "1900-01-01T00:00:00Z",
+            "capabilityStatus": null,
+            "service": null,
+            "servicePlanId": null
+          }
+        ]
       }
     }
   ]
