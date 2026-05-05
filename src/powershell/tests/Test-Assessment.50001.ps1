@@ -403,7 +403,13 @@ securityresources
             $firstRow = $rows[0]
             $testId   = $recName
             $title    = $firstRow.recommendationDisplayName
-            $risk     = $firstRow.severity
+            $risk     = switch ($firstRow.severity) {
+                            'Critical' { 'High' }  # New classification added by Microsoft on March 2025
+                            'High'   { 'High' }
+                            'Medium' { 'Medium' }
+                            'Low'    { 'Low' }
+                            default  { 'Medium' }  # Treat None/Informational as Medium
+                        }
 
             # MCSB enrichment lookup — populated when this rec also appears in MCSB
             $mcsbForThisRec = if ($mcsbByRec.ContainsKey($recName)) { $mcsbByRec[$recName] } else { @{} }
@@ -576,7 +582,13 @@ $tableRows
             $firstRow = $rows[0]
             $testId   = $recName
             $title    = if (-not [string]::IsNullOrWhiteSpace($firstRow.recommendationDisplayName)) { $firstRow.recommendationDisplayName } else { $recName }
-            $risk     = $firstRow.severity
+            $risk     = switch ($firstRow.severity) {
+                            'Critical' { 'High' }  # New classification added by Microsoft on March 2025
+                            'High'   { 'High' }
+                            'Medium' { 'Medium' }
+                            'Low'    { 'Low' }
+                            default  { 'Medium' }  # Treat None/Informational as Medium
+                        }
 
             # Category: MCSB domain name(s)
             $mcsbDomainList = $null
