@@ -15,7 +15,8 @@ function Get-ApplicationsWithPermissions {
         $Database,
 
         [Parameter()]
-        [string[]]$ServicePrincipalType
+        [ValidateSet('Application', 'ManagedIdentity', 'Legacy', 'ServiceIdentity')]
+        [string[]]$ExcludeServicePrincipalType
     )
 
     # Query ServicePrincipal objects with permissions
@@ -54,10 +55,10 @@ order by spsi.lastSignInActivity.lastSignInDateTime
         return @()
     }
 
-    # Optionally filter by servicePrincipalType before enrichment to avoid unnecessary per-item DB calls
-    if ($ServicePrincipalType) {
-        $results = $results | Where-Object { $ServicePrincipalType -contains $_.servicePrincipalType }
-        Write-PSFMessage "Pre-filtered to $($results.Count) service principals of type(s): $($ServicePrincipalType -join ', ')" -Level Verbose
+    # Exclude specified service principal types before enrichment to avoid unnecessary per-item DB calls
+    if ($ExcludeServicePrincipalType) {
+        $results = $results | Where-Object { $ExcludeServicePrincipalType -notcontains $_.servicePrincipalType }
+        Write-PSFMessage "Excluded $($ExcludeServicePrincipalType -join ', ') type(s), $($results.Count) service principals remaining" -Level Verbose
     }
 
     # Enrich each app with permissions and risk classification (using Test-21770 pattern)
