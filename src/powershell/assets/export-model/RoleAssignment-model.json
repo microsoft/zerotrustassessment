@@ -15,6 +15,7 @@
         "uniqueName": null,
         "id": null,
         "createdDateTime": "1900-01-01T00:00:00Z",
+        "renewedDateTime": "1900-01-01T00:00:00Z",
         "refreshTokensValidFromDateTime": "1900-01-01T00:00:00Z",
         "signInSessionsValidFromDateTime": "1900-01-01T00:00:00Z",
         "assignedPlans": [
