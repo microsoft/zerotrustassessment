@@ -57,7 +57,7 @@ order by spsi.lastSignInActivity.lastSignInDateTime
 
     # Exclude specified service principal types before enrichment to avoid unnecessary per-item DB calls
     if ($ExcludeServicePrincipalType) {
-        $results = $results | Where-Object { $ExcludeServicePrincipalType -notcontains $_.servicePrincipalType }
+        $results = @($results | Where-Object { $ExcludeServicePrincipalType -notcontains $_.servicePrincipalType })
         Write-PSFMessage "Excluded $($ExcludeServicePrincipalType -join ', ') type(s), $($results.Count) service principals remaining" -Level Verbose
     }
 
