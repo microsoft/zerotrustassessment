@@ -82,13 +82,10 @@ function ConvertTo-ZtMarkdown {
 	# <[^>]+> — any remaining HTML tag: one or more non-'>' characters between angle brackets
 	$md = $md -replace '<[^>]+>', ''
 
-	# Decode HTML entities
-	$md = $md -replace '&amp;',   '&'
-	$md = $md -replace '&lt;',    '<'
-	$md = $md -replace '&gt;',    '>'
-	$md = $md -replace '&quot;',  '"'
-	$md = $md -replace '&#39;',   "'"
-	$md = $md -replace '&nbsp;',  ' '
+	# Decode HTML entities (handles named entities, numeric, and hex forms)
+	$md = [System.Net.WebUtility]::HtmlDecode($md)
+	# Normalize non-breaking spaces (&nbsp; decodes to U+00A0) to regular spaces
+	$md = $md -replace '\u00A0', ' '
 
 	# Convert bare URLs that are not already inside a Markdown link → [url](url)
 	# (?<!\()                      — negative lookbehind: not preceded by '(' (already a Markdown link)
