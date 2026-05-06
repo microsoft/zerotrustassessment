@@ -96,11 +96,17 @@ function Test-Assessment-50001 {
 
     function Get-RowLinks {
         param($Row)
-        $subLink = "https://portal.azure.com/#resource/subscriptions/$($Row.subscriptionId)"
+        $subLink    = "https://portal.azure.com/#resource/subscriptions/$($Row.subscriptionId)"
+        $subText    = if (-not [string]::IsNullOrWhiteSpace($Row.subscriptionName)) { Get-SafeMarkdown $Row.subscriptionName } else { $Row.subscriptionId }
+        $resText    = if (-not [string]::IsNullOrWhiteSpace($Row.resourceName)) { Get-SafeMarkdown $Row.resourceName } else { $Row.resourceId }
+        $portalLink = $Row.azurePortalRecommendationLink
+        if (-not [string]::IsNullOrWhiteSpace($portalLink) -and -not $portalLink.StartsWith('https://')) {
+            $portalLink = "https://$portalLink"
+        }
         [pscustomobject]@{
-            SubMd        = "[$(Get-SafeMarkdown $Row.subscriptionName)]($subLink)"
-            ResMd        = "[$(Get-SafeMarkdown $Row.resourceName)](https://portal.azure.com/#resource$($Row.resourceId))"
-            PortalLinkMd = if (-not [string]::IsNullOrWhiteSpace($Row.azurePortalRecommendationLink)) { "[View recommendation]($($Row.azurePortalRecommendationLink))" } else { '' }
+            SubMd        = "[$subText]($subLink)"
+            ResMd        = "[$resText](https://portal.azure.com/#resource$($Row.resourceId))"
+            PortalLinkMd = if (-not [string]::IsNullOrWhiteSpace($portalLink)) { "[View recommendation]($portalLink)" } else { '' }
         }
     }
 
