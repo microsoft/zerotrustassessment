@@ -304,7 +304,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $syncStatus = if ($account.onPremisesSyncEnabled -ne $true) { 'No' } else { 'Yes' }
             $authMethodDisplay = ($account.AuthenticationMethods | ForEach-Object {
                 $_ -replace '#microsoft.graph.', '' -replace 'AuthenticationMethod', ''
-            }) -join ', '
+            } | Select-Object -Unique) -join ', '
 
             $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/$($account.Id)"
 
