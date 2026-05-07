@@ -162,7 +162,9 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             throw
         }
         $userGroupIds = @($userGroups | Select-Object -ExpandProperty id)
-        $userRoleIds = @($userRoles | Select-Object -ExpandProperty id)
+        # Precompute role template ids once per user so policy evaluation can do plain
+        # -contains checks instead of an O(n*m) Where-Object lookup per policy/role.
+        $userRoleTemplateIds = @($userRoles | Select-Object -ExpandProperty roleTemplateId)
 
         $policiesTargetingUser = 0
         $excludedFromAll = $true
@@ -193,10 +195,9 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                     }
                 }
             }
-            if (-not $isIncluded -and $userRoleIds.Count -gt 0) {
-                foreach ($roleId in $userRoleIds) {
-                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
-                    if ($includeRoles -contains $role.roleTemplateId) {
+            if (-not $isIncluded -and $userRoleTemplateIds.Count -gt 0) {
+                foreach ($templateId in $userRoleTemplateIds) {
+                    if ($includeRoles -contains $templateId) {
                         $isIncluded = $true
                         break
                     }
@@ -216,10 +217,9 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                     }
                 }
             }
-            if (-not $isExcluded -and $userRoleIds.Count -gt 0) {
-                foreach ($roleId in $userRoleIds) {
-                    $role = $userRoles | Where-Object { $_.id -eq $roleId }
-                    if ($excludeRoles -contains $role.roleTemplateId) {
+            if (-not $isExcluded -and $userRoleTemplateIds.Count -gt 0) {
+                foreach ($templateId in $userRoleTemplateIds) {
+                    if ($excludeRoles -contains $templateId) {
                         $isExcluded = $true
                         break
                     }
