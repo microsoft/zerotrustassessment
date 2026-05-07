@@ -423,7 +423,7 @@ resources
 
     #region Report Generation
 
-    $portalPublicIpBrowseLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FpublicIPAddresses'
+    $portalPublicIpBrowseLink = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Network%2FpublicIPAddresses'
     $portalResourceBaseLink = 'https://portal.azure.com/#resource'
 
     $mdInfo = "`n## [DDoS-protected Public IP metrics status]($portalPublicIpBrowseLink)`n`n"
