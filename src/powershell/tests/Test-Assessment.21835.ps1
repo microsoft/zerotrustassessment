@@ -328,11 +328,13 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $cloudOnlyEmoji = if ($isCloudOnly) { '✅' } else { '❌' }
 
             # Check if excluded from all enabled CA policies (using per-user CA info, not emergency account membership)
-            $caExcludedEmoji = if ($gaCAInfo.ContainsKey($user.id) -and $gaCAInfo[$user.id].ExcludedFromAll) { '✅' } else { '❌' }
+            $isCAExcluded = ($gaCAInfo.ContainsKey($user.id) -and $gaCAInfo[$user.id].ExcludedFromAll)
+            $caExcludedEmoji = if ($isCAExcluded) { '✅' } else { '❌' }
 
             # Check if has phishing-resistant auth only
             $candidate = $emergencyAccountCandidates | Where-Object { $_.Id -eq $user.id }
-            $phishingResistantEmoji = if ($candidate) { '✅' } else { '❌' }
+            $isPhishingResistant = [bool]$candidate
+            $phishingResistantEmoji = if ($isPhishingResistant) { '✅' } else { '❌' }
 
             # Build CA policies missing exclusion cell
             if (-not $gaCAInfo.ContainsKey($user.id)) {
@@ -356,11 +358,16 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
                 CAExcluded = $caExcludedEmoji
                 PhishingResistant = $phishingResistantEmoji
                 CAPoliciesMissingExclusion = $caPoliciesCell
+                # Boolean values used for sorting so order is independent of glyph rendering / culture.
+                IsCloudOnly = $isCloudOnly
+                IsCAExcluded = $isCAExcluded
+                IsPhishingResistant = $isPhishingResistant
             }
         }
 
-        # show users that have passed every criteria first
-        $userSummary = $userSummary | Sort-Object -Property CAExcluded, PhishingResistant, CloudOnly
+        # Show users that have passed every criteria first. Sort by the underlying booleans
+        # ($true sorts after $false, so use -Descending) instead of the rendered emoji glyphs.
+        $userSummary = $userSummary | Sort-Object -Property IsCAExcluded, IsPhishingResistant, IsCloudOnly -Descending
 
         foreach ($user in $userSummary) {
             $testResultMarkdown += "| $(Get-SafeMarkdown -Text $user.DisplayName) | [$(Get-SafeMarkdown -Text $user.UserPrincipalName)]($($user.PortalLink)) | $($user.CloudOnly) | $($user.PhishingResistant) | $($user.CAExcluded) | $($user.CAPoliciesMissingExclusion) |`n"
