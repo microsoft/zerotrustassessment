@@ -19,6 +19,13 @@ function Get-ApplicationsWithPermissions {
         [string[]]$ExcludeServicePrincipalType
     )
 
+    # Build optional SQL exclusion clause for service principal types
+    $excludeClause = ''
+    if ($ExcludeServicePrincipalType) {
+        $quoted = "'" + ($ExcludeServicePrincipalType -join "', '") + "'"
+        $excludeClause = "`n    and sp.servicePrincipalType not in ($quoted)"
+    }
+
     # Query ServicePrincipal objects with permissions
     # Used by tests 21770, 24518, and 21867
     $sql = @"
@@ -27,7 +34,7 @@ spsi.lastSignInActivity.lastSignInDateTime,
 sp.owners, sp.signInAudience, sp.servicePrincipalType
 from main.ServicePrincipal sp
     left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
-where sp.id in
+where (sp.id in
     (
         select sp.id
         from main.ServicePrincipal sp
@@ -43,7 +50,7 @@ where sp.id in
                 from main.ServicePrincipal) spAppRole
                 on sp.appRoleId = spAppRole.id
         where permissionName is not null
-    )
+    ))$excludeClause
 order by spsi.lastSignInActivity.lastSignInDateTime
 "@
 
@@ -53,12 +60,6 @@ order by spsi.lastSignInActivity.lastSignInDateTime
 
     if (-not $results -or $results.Count -eq 0) {
         return @()
-    }
-
-    # Exclude specified service principal types before enrichment to avoid unnecessary per-item DB calls
-    if ($ExcludeServicePrincipalType) {
-        $results = @($results | Where-Object { $ExcludeServicePrincipalType -notcontains $_.servicePrincipalType })
-        Write-PSFMessage "Excluded $($ExcludeServicePrincipalType -join ', ') type(s), $($results.Count) service principals remaining" -Level Verbose
     }
 
     # Enrich each app with permissions and risk classification (using Test-21770 pattern)
