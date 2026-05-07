@@ -23,6 +23,8 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns, Hash, BadgeCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -517,14 +519,20 @@ export function DataTable<TData extends Test, TValue>({
                                 </div></CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestResult}</Markdown>
+                                {selectedRow?.TestPillar === "Infrastructure"
+                                    ? <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>{selectedRow?.TestResult}</Markdown>
+                                    : <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestResult}</Markdown>
+                                }
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader><CardTitle>What was checked</CardTitle></CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
+                                {selectedRow?.TestPillar === "Infrastructure"
+                                    ? <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>{selectedRow?.TestDescription}</Markdown>
+                                    : <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
+                                }
                             </CardContent>
                         </Card>
                     </div>

@@ -69,19 +69,6 @@ function Test-Assessment-50001 {
         }
     }
 
-    function Get-DescriptionMarkdown {
-        param([string] $Description, [string] $RemediationSteps)
-        $descriptionText = ConvertTo-ZtMarkdown $Description
-        $remediationSection = ''
-        if (-not [string]::IsNullOrWhiteSpace($RemediationSteps)) {
-            $cleanRemediation = ConvertTo-ZtMarkdown $RemediationSteps
-            if (-not [string]::IsNullOrWhiteSpace($cleanRemediation)) {
-                $remediationSection = "`n**Remediation action**`n`n$cleanRemediation"
-            }
-        }
-        return "$descriptionText`n$remediationSection"
-    }
-
     function Get-ColumnFlags {
         param($Rows)
         $showResourceGroup = $false; $showResourceType = $false; $showResource = $false
@@ -482,7 +469,8 @@ securityresources
             }
 
             # Description + optional remediation section
-            $descriptionMd = Get-DescriptionMarkdown $firstRow.description $firstRow.remediationSteps
+            $remediationSection = if (-not [string]::IsNullOrWhiteSpace($firstRow.remediationSteps)) { "`n**Remediation action**`n`n$($firstRow.remediationSteps)" } else { '' }
+            $descriptionMd = "$($firstRow.description)`n$remediationSection"
 
             # State separation (secure score: title-case)
             $applicableRows    = @($rows | Where-Object { $_.state -ne 'NotApplicable' })
@@ -610,7 +598,8 @@ $tableRows
             $category = if ($mcsbDomainList) { $mcsbDomainList } else { 'Microsoft cloud security benchmark' }
 
             # Description + optional remediation section
-            $descriptionMd = Get-DescriptionMarkdown $firstRow.description $firstRow.remediationSteps
+            $remediationSection = if (-not [string]::IsNullOrWhiteSpace($firstRow.remediationSteps)) { "`n**Remediation action**`n`n$($firstRow.remediationSteps)" } else { '' }
+            $descriptionMd = "$($firstRow.description)`n$remediationSection"
 
             # State separation (MCSB resourceState is lowercase)
             $applicableRows    = @($rows | Where-Object { $_.resourceState -ne 'notapplicable' })
