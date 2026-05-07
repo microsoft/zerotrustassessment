@@ -141,6 +141,20 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
     # Store CA policy info for ALL permanent GAs (not just candidates)
     $gaCAInfo = @{}
 
+    if ($enabledCAPolicies.Count -eq 0) {
+        # No enabled CA policies in the tenant: there is nothing to evaluate per user, and
+        # in particular nothing to exclude from. Vacuously, every user is "excluded from all"
+        # enabled policies. Skip the per-user Graph calls entirely.
+        Write-PSFMessage 'No enabled CA policies found; skipping per-user CA evaluation.' -Level Verbose
+        foreach ($user in $permanentGAUsers) {
+            $gaCAInfo[$user.id] = @{
+                PoliciesTargeting        = 0
+                ExcludedFromAll          = $true
+                PoliciesMissingExclusion = [System.Collections.Generic.List[object]]::new()
+            }
+        }
+    }
+    else {
     foreach ($user in $permanentGAUsers) {
         Write-PSFMessage "Checking CA policy targeting for: $($user.userPrincipalName)" -Level Verbose
 
@@ -244,6 +258,7 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             ExcludedFromAll          = $excludedFromAll
             PoliciesMissingExclusion = $policiesMissingExclusion
         }
+    }
     }
 
     # Determine emergency access accounts: candidates that are excluded from all enabled CA policies
