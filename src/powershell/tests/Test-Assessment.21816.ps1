@@ -100,7 +100,7 @@ function Test-Assessment-21816 {
                         try {
                             $pimForGroupsSchedules = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/privilegedAccess/group/eligibilitySchedules' -Filter "groupId eq '$($member.id)' and accessId eq 'member'" -ApiVersion beta -ErrorAction Stop
                         } catch {
-                            Write-PSFMessage "Could not check PIM for Groups for group $($member.displayName): $($_.Exception.Message)" -Level Warning
+                            Write-PSFMessage "Could not check PIM for Groups for group $($member.displayName): $($_.Exception.Message). Treating as non-PIM managed." -Level Warning
                         }
                         if (-not $pimForGroupsSchedules) {
                             # Group does not use PIM for Groups - count as non-PIM managed
