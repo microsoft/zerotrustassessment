@@ -12,18 +12,29 @@ function Get-ApplicationsWithPermissions {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        $Database
+        $Database,
+
+        [Parameter()]
+        [ValidateSet('Application', 'ManagedIdentity', 'Legacy', 'ServiceIdentity')]
+        [string[]]$ExcludeServicePrincipalType
     )
+
+    # Build optional SQL exclusion clause for service principal types
+    $excludeClause = ''
+    if ($ExcludeServicePrincipalType) {
+        $quoted = "'" + ($ExcludeServicePrincipalType -join "', '") + "'"
+        $excludeClause = "`n    and sp.servicePrincipalType not in ($quoted)"
+    }
 
     # Query ServicePrincipal objects with permissions
     # Used by tests 21770, 24518, and 21867
     $sql = @"
 select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
 spsi.lastSignInActivity.lastSignInDateTime,
-sp.owners, sp.signInAudience
+sp.owners, sp.signInAudience, sp.servicePrincipalType
 from main.ServicePrincipal sp
     left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
-where sp.id in
+where (sp.id in
     (
         select sp.id
         from main.ServicePrincipal sp
@@ -39,7 +50,7 @@ where sp.id in
                 from main.ServicePrincipal) spAppRole
                 on sp.appRoleId = spAppRole.id
         where permissionName is not null
-    )
+    ))$excludeClause
 order by spsi.lastSignInActivity.lastSignInDateTime
 "@
 
