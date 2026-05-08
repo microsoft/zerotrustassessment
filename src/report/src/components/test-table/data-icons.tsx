@@ -4,7 +4,7 @@ import {
     ArrowUpIcon,
     CheckCircledIcon,
     CrossCircledIcon,
-    DoubleArrowUpIcon,
+    ExclamationTriangleIcon,
     MinusIcon,
     QuestionMarkCircledIcon,
     StopwatchIcon,
@@ -68,7 +68,7 @@ import {
     {
       label: "Critical",
       value: "Critical",
-      icon: DoubleArrowUpIcon,
+      icon: ExclamationTriangleIcon,
     },
     {
       label: "High",
