@@ -194,8 +194,8 @@ export const columns: ColumnDef<Test>[] = [
         accessorKey: "TestRisk",
         meta: { label: "Risk" },
         sortingFn: (rowA, rowB, columnId) => {
-            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? 4
-            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? 4
+            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
+            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
             return a - b
         },
         header: ({ column }) => {
