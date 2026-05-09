@@ -22,7 +22,7 @@ function New-EntraTable {
         $FilePath
     )
 
-    $matchingFiles = Get-ChildItem -Path $FilePath -File -ErrorAction SilentlyContinue
+    $matchingFiles = Get-ChildItem -Path $FilePath -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $matchingFiles) {
         Write-PSFMessage "Skipping table $TableName because no files matched the pattern $FilePath" -Level Warning -Tag DB
         return
