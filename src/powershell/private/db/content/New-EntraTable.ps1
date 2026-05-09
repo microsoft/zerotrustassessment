@@ -22,6 +22,12 @@ function New-EntraTable {
         $FilePath
     )
 
+    $matchingFiles = Get-ChildItem -Path $FilePath -File -ErrorAction SilentlyContinue
+    if (-not $matchingFiles) {
+        Write-PSFMessage "Skipping table $TableName because no files matched the pattern $FilePath" -Level Warning -Tag DB
+        return
+    }
+
     # Get schema configuration if available for this table
     $schemaConfig = Get-TableSchemaConfig -TableName $TableName
 
