@@ -188,8 +188,6 @@ function Add-ZtTestResultDetail {
 	}
 	if ($testMeta.Category -and -not $PSBoundParameters.ContainsKey('Category')) {
 		$category = $testMeta.Category
-	} elseif ($Category) {
-		$category = $Category
 	}
 	if ($testMeta.RiskLevel -and -not $PSBoundParameters.ContainsKey('Risk')) {
 		$Risk = $testMeta.RiskLevel
