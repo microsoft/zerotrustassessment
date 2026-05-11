@@ -217,6 +217,9 @@ export function DataTable<TData extends Test, TValue>({
 
     const [sheetOpen, setSheetOpen] = React.useState(false);
     const [selectedRow, setSelectedRow] = React.useState<Test | null>(null);
+    const mdRehypePlugins = selectedRow?.TestPillar === "Infrastructure"
+        ? [rehypeRaw, rehypeSanitize]
+        : [];
 
     return (
 
@@ -519,20 +522,14 @@ export function DataTable<TData extends Test, TValue>({
                                 </div></CardTitle>
                             </CardHeader>
                             <CardContent>
-                                {selectedRow?.TestPillar === "Infrastructure"
-                                    ? <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>{selectedRow?.TestResult}</Markdown>
-                                    : <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestResult}</Markdown>
-                                }
+                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestResult}</Markdown>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader><CardTitle>What was checked</CardTitle></CardHeader>
                             <CardContent>
-                                {selectedRow?.TestPillar === "Infrastructure"
-                                    ? <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>{selectedRow?.TestDescription}</Markdown>
-                                    : <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
-                                }
+                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestDescription}</Markdown>
                             </CardContent>
                         </Card>
                     </div>
