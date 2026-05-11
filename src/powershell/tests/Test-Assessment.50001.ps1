@@ -61,11 +61,11 @@ function Test-Assessment-50001 {
     function Get-NormalizedRisk {
         param([string] $Severity)
         switch ($Severity) {
-            'Critical' { 'High' }   # New classification added by Microsoft on March 2025
+            'Critical' { 'Critical' }   # New classification added by Microsoft on March 2025
             'High'     { 'High' }
             'Medium'   { 'Medium' }
             'Low'      { 'Low' }
-            default    { 'Medium' } # Treat None/Informational as Medium
+            default    { 'Unranked' }   # Treat unhandled severities as Unranked
         }
     }
 
