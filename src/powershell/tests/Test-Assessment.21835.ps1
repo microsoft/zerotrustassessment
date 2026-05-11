@@ -8,7 +8,10 @@
     - Phishing-resistant authentication methods (FIDO2 and/or Certificate)
     - Exclusion from all enabled Conditional Access policies
 
-    The test evaluates whether 2-4 emergency accounts are configured per Microsoft guidance.
+    Per spec, the result is:
+    - Fail        when fewer than two emergency access accounts are identified
+    - Pass        when exactly two emergency access accounts are identified
+    - Investigate when more than two emergency access accounts are identified
 #>
 
 function Test-Assessment-21835 {
@@ -285,21 +288,25 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
     $accountCount = $emergencyAccessAccounts.Count
     Write-PSFMessage "Total emergency access accounts identified: $accountCount" -Level Verbose
 
-    # Determine pass/fail status
+    # Determine pass/fail/investigate status per spec:
+    #   <  2 -> Fail
+    #   == 2 -> Pass
+    #   >  2 -> Investigate (set on the splat below based on $accountCount)
     $passed = $false
     $testResultMarkdown = ''
 
     if ($accountCount -lt 2) {
         $passed = $false
-        $testResultMarkdown = "Fewer than two emergency access accounts were identified based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions.`n`n"
+        $testResultMarkdown = "Fewer than two emergency access accounts were identified based on cloud-only state, registered phishing-resistant credentials and CA policy exclusions.`n`n"
     }
-    elseif ($accountCount -ge 2 -and $accountCount -le 4) {
+    elseif ($accountCount -eq 2) {
         $passed = $true
-        $testResultMarkdown = "Emergency access accounts appear to be configured as per Microsoft guidance based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions.`n`n"
+        $testResultMarkdown = "Two emergency access accounts appear to be configured as per Microsoft guidance based on cloud-only state, registered phishing-resistant credentials and CA policy exclusions.`n`n"
     }
     else {
+        # Investigate: more than two candidate emergency access accounts identified.
         $passed = $false
-        $testResultMarkdown = "$accountCount emergency access accounts appear to be configured based on cloud-only state, registered phishing-resistant credentials and Conditional Access policy exclusions. Review these accounts to determine whether this volume is excessive for your organization.`n`n"
+        $testResultMarkdown = "More than 2 emergency access accounts were found. This should be investigated to ensure account purpose and usage is limited to emergency or `"break glass`" scenarios.`n`n"
     }
 
     # Add summary information
@@ -393,7 +400,16 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
 
     #endregion
 
-    Add-ZtTestResultDetail -TestId '21835' `
-        -Status $passed `
-        -Result $testResultMarkdown
+    $params = @{
+        TestId = '21835'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+
+    # Only add CustomStatus when it's "Investigate" (more than 2 emergency access accounts)
+    if ($accountCount -gt 2) {
+        $params.CustomStatus = 'Investigate'
+    }
+
+    Add-ZtTestResultDetail @params
 }
