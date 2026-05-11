@@ -5,7 +5,7 @@ import { Button } from "../ui/button"
 import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
 
-const RISK_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
+const RISK_ORDER: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3, Unranked: 4 }
 const STATUS_ORDER: Record<string, number> = { Failed: 0, Passed: 1, Skipped: 2, Planned: 3 }
 
 export const columns: ColumnDef<Test>[] = [
@@ -194,8 +194,8 @@ export const columns: ColumnDef<Test>[] = [
         accessorKey: "TestRisk",
         meta: { label: "Risk" },
         sortingFn: (rowA, rowB, columnId) => {
-            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? 3
-            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? 3
+            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
+            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
             return a - b
         },
         header: ({ column }) => {

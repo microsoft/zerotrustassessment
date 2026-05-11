@@ -137,8 +137,8 @@ export function DataTable<TData extends Test, TValue>({
             .map(item => item.TestRisk)
             .filter((risk): risk is string => risk !== null && risk !== undefined);
         const uniqueRiskSet = Array.from(new Set(risks));
-        // Custom order: High, Medium, Low
-        const riskOrder = ['High', 'Medium', 'Low'];
+        // Custom order: Critical, High, Medium, Low, Unranked
+        const riskOrder = ['Critical', 'High', 'Medium', 'Low', 'Unranked'];
         return uniqueRiskSet.sort((a, b) => {
             const indexA = riskOrder.indexOf(a);
             const indexB = riskOrder.indexOf(b);
