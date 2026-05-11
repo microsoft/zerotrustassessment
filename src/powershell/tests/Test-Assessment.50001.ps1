@@ -207,9 +207,12 @@ securityresources
     | extend exportedTimestamp = now()
     | extend recommendationId = id
     | extend recommendationName = tostring(split(id, '/')[array_length(split(id, '/')) - 1])
+    | extend azurePortalLink = tostring(assessmentDetails.links.azurePortal)
     | extend azurePortalRecommendationLink = case(
-        tostring(assessmentDetails.links.azurePortal) startswith "https://", tostring(assessmentDetails.links.azurePortal),
-        strcat("https://", tostring(assessmentDetails.links.azurePortal))
+        isempty(azurePortalLink), "",
+        azurePortalLink startswith "https://", azurePortalLink,
+        azurePortalLink startswith "http://", azurePortalLink,
+        strcat("https://", azurePortalLink)
     )
 ) on $left.assessmentKey == $right.recommendationName
 | project
@@ -292,7 +295,13 @@ securityresources
 | extend description = tostring(properties1.metadata.description)
 | extend remediationSteps = tostring(properties1.metadata.remediationDescription)
 | extend severity = tostring(properties1.metadata.severity)
-| extend azurePortalRecommendationLink = tostring(properties1.links.azurePortal)
+| extend azurePortalLink = tostring(properties1.links.azurePortal)
+| extend azurePortalRecommendationLink = case(
+    isempty(azurePortalLink), "",
+    azurePortalLink startswith "https://", azurePortalLink,
+    azurePortalLink startswith "http://", azurePortalLink,
+    strcat("https://", azurePortalLink)
+)
 | mvexpand statusPerInitiative = properties1.statusPerInitiative
 | extend expectedInitiative = statusPerInitiative.policyInitiativeName =~ "ASC Default"
 | summarize arg_max(toint(expectedInitiative), *) by complianceControlId, recommendationId
