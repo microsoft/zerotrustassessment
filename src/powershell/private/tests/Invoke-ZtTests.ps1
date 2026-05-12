@@ -115,7 +115,8 @@
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId
+	# AI pillar tests also run sync as they depend on SecurityCompliance remoting which is only available on the main thread.
+	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -in @('Data', 'AI') }.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
 
