@@ -26,4 +26,10 @@ function Remove-ZtConnectedService {
     if ($script:ConnectedService -contains $Service) {
         $script:ConnectedService = $script:ConnectedService.Where{ $_ -ne $Service }
     }
+
+    # Clear the cached initial domain whenever Graph is removed so the next Connect-ZtAssessment
+    # call re-resolves it rather than using a stale or missing value.
+    if ($Service -eq 'Graph') {
+        $script:resolvedInitialDomain = $null
+    }
 }

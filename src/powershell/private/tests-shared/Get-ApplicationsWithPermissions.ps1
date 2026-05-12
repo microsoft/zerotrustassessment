@@ -3,7 +3,7 @@
     Get all applications with permissions, classified by risk level.
 
 .DESCRIPTION
-    This function queries ServicePrincipal objects with their associated Application data,
+    This function queries ServicePrincipal objects with their sign-in activity,
     enriches them with permission details, risk classifications and owner counts.
     Used by tests 21770, 24518, and 21867.
 #>
@@ -12,19 +12,29 @@ function Get-ApplicationsWithPermissions {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        $Database
+        $Database,
+
+        [Parameter()]
+        [ValidateSet('Application', 'ManagedIdentity', 'Legacy', 'ServiceIdentity')]
+        [string[]]$ExcludeServicePrincipalType
     )
 
-    # Query ServicePrincipal objects with permissions (same SQL as Test-21770)
-    # LEFT JOIN with Application to get owners and other app properties
+    # Build optional SQL exclusion clause for service principal types
+    $excludeClause = ''
+    if ($ExcludeServicePrincipalType) {
+        $quoted = "'" + ($ExcludeServicePrincipalType -join "', '") + "'"
+        $excludeClause = "`n    and sp.servicePrincipalType not in ($quoted)"
+    }
+
+    # Query ServicePrincipal objects with permissions
+    # Used by tests 21770, 24518, and 21867
     $sql = @"
 select sp.id, sp.appId, sp.displayName, sp.appOwnerOrganizationId, sp.publisherName,
 spsi.lastSignInActivity.lastSignInDateTime,
-app.owners, app.signInAudience, app.publisherDomain
+sp.owners, sp.signInAudience, sp.servicePrincipalType
 from main.ServicePrincipal sp
     left join main.ServicePrincipalSignIn spsi on spsi.appId = sp.appId
-    left join main.Application app on app.appId = sp.appId
-where sp.id in
+where (sp.id in
     (
         select sp.id
         from main.ServicePrincipal sp
@@ -40,7 +50,7 @@ where sp.id in
                 from main.ServicePrincipal) spAppRole
                 on sp.appRoleId = spAppRole.id
         where permissionName is not null
-    )
+    ))$excludeClause
 order by spsi.lastSignInActivity.lastSignInDateTime
 "@
 
@@ -66,7 +76,7 @@ order by spsi.lastSignInActivity.lastSignInDateTime
             # Add risk classification
             $item = Add-GraphRisk $item
 
-            # Add owner count from Application.owners field
+            # Add owner count from ServicePrincipal.owners field
             $ownerCount = 0
             if ($item.owners) {
                 if ($item.owners -is [System.Collections.ICollection]) {

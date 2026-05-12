@@ -88,7 +88,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	Name = 'ServicePrincipal'
 	Uri = 'beta/servicePrincipals'
 	QueryString = '$expand=appRoleAssignments&$top=999&$select=id,deletedDateTime,accountEnabled,alternativeNames,createdByAppId,createdDateTime,deviceManagementAppType,appDescription,appDisplayName,appId,applicationTemplateId,appOwnerOrganizationId,appRoleAssignmentRequired,assignmentRequiredForPrincipalTypes,description,disabledByMicrosoftStatus,displayName,errorUrl,homepage,isAuthorizationServiceEnabled,isDisabled,isManagementRestricted,loginUrl,logoutUrl,notes,notificationEmailAddresses,preferredSingleSignOnMode,preferredTokenSigningKeyEndDateTime,preferredTokenSigningKeyThumbprint,publisherName,replyUrls,samlMetadataUrl,samlSLOBindingType,servicePrincipalNames,servicePrincipalType,signInAudience,tags,tokenEncryptionKeyId,certification,samlSingleSignOnSettings,addIns,api,appRoles,info,keyCredentials,publishedPermissionScopes,passwordCredentials,resourceSpecificApplicationPermissions,verifiedPublisher,customSecurityAttributes'
-	RelatedPropertyNames = @('oauth2PermissionGrants')
+	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners')
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network')
