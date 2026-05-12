@@ -187,7 +187,7 @@ function Add-ZtTestResultDetail {
 		$docsTitle = $testMeta.Title
 	}
 	if ($testMeta.Category -and -not $PSBoundParameters.ContainsKey('Category')) {
-		$category = $testMeta.Category
+		$Category = $testMeta.Category
 	}
 	if ($testMeta.RiskLevel -and -not $PSBoundParameters.ContainsKey('Risk')) {
 		$Risk = $testMeta.RiskLevel
@@ -215,7 +215,7 @@ function Add-ZtTestResultDetail {
 		TestId                 = $actualTestId
 		TestTitle              = $docsTitle
 		TestStatus             = Get-ZtTestStatus @getZtTestStatusParams
-		TestCategory           = $category
+		TestCategory           = $Category
 		TestTags               = $Tag
 		TestAppliesTo          = $AppliesTo
 		TestImpact             = $UserImpact
