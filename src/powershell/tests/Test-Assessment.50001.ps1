@@ -87,9 +87,6 @@ function Test-Assessment-50001 {
         $subText    = if (-not [string]::IsNullOrWhiteSpace($Row.subscriptionName)) { Get-SafeMarkdown $Row.subscriptionName } else { $Row.subscriptionId }
         $resText    = if (-not [string]::IsNullOrWhiteSpace($Row.resourceName)) { Get-SafeMarkdown $Row.resourceName } else { $Row.resourceId }
         $portalLink = $Row.azurePortalRecommendationLink
-        if (-not [string]::IsNullOrWhiteSpace($portalLink) -and -not $portalLink.StartsWith('https://')) {
-            $portalLink = "https://$portalLink"
-        }
         [pscustomobject]@{
             SubMd        = "[$subText]($subLink)"
             ResMd        = "[$resText](https://portal.azure.com/#resource$($Row.resourceId))"
