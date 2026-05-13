@@ -260,7 +260,7 @@ $titleLine
 	}
 
 	# Validate preview pillar requirements
-	$previewPillars = @('Infrastructure')
+	$previewPillars = @('Infrastructure', 'AI')
 	if ($Pillar -in $previewPillars -and -not $Preview) {
 		Write-Host
 		Write-Host "❌ " -NoNewline -ForegroundColor Red
