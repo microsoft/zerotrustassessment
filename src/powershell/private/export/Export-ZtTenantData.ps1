@@ -154,7 +154,11 @@ https://github.com/microsoft/zerotrustassessment/issues
 	}
 	finally {
 		if ($workflow) {
-			try { Disable-PSFConsoleInterrupt -ErrorAction Stop } catch { Write-PSFMessage -Level Verbose -Message "Disable-PSFConsoleInterrupt skipped (no console handle): $_" }
+			try { Disable-PSFConsoleInterrupt -ErrorAction Stop } catch {
+				if ($_.Exception.Message -like '*handle is invalid*') {
+					Write-PSFMessage -Level Verbose -Message "Disable-PSFConsoleInterrupt skipped (no console handle): $_"
+				} else { throw }
+			}
 			$workflow | Stop-PSFRunspaceWorkflow
 
 			# Collect statistical data for later troubleshooting. Retrieve via Get-ZtExportStatistics
@@ -166,6 +170,10 @@ https://github.com/microsoft/zerotrustassessment/issues
 			$workflow | Remove-PSFRunspaceWorkflow
 		}
 
-		try { Enable-PSFConsoleInterrupt -ErrorAction Stop } catch { Write-PSFMessage -Level Verbose -Message "Enable-PSFConsoleInterrupt skipped (no console handle): $_" }
+		try { Enable-PSFConsoleInterrupt -ErrorAction Stop } catch {
+			if ($_.Exception.Message -like '*handle is invalid*') {
+				Write-PSFMessage -Level Verbose -Message "Enable-PSFConsoleInterrupt skipped (no console handle): $_"
+			} else { throw }
+		}
 	}
 }
