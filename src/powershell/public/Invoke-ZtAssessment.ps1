@@ -57,6 +57,12 @@ Tests that exceed this limit are recorded as timed out and execution continues w
 For Data pillar tests and other external-module/remoting-heavy operations, timeout is a
 best-effort interruption rather than a guaranteed hard stop of the underlying operation.
 
+.PARAMETER IgnoreLanguageMode
+When specified, bypasses the Constrained Language Mode safety check and allows the assessment to
+proceed even when PowerShell reports a non-Full language mode (e.g. in WDAC-managed environments
+where the module's signing certificate is trusted by policy).
+WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -181,11 +187,17 @@ function Invoke-ZtAssessment {
 		# If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
 		[Parameter(ParameterSetName = 'Default')]
 		[switch]
-		$NoBrowser
+		$NoBrowser,
+
+		# When specified, bypasses the Constrained Language Mode check. Use only in WDAC-managed environments
+		# where the session reports CLM but the module is trusted and runs with full capability.
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$IgnoreLanguageMode
 	)
 
 	if ($script:ConnectedService.Count -le 0) {
-		Connect-ZtAssessment
+		Connect-ZtAssessment -IgnoreLanguageMode:$IgnoreLanguageMode
 	}
 
 	#region Utility Functions
@@ -237,7 +249,12 @@ $titleLine
 	#region Preparation
 	Show-ZtiBanner
 
-	if (-not (Test-ZtLanguageMode)) {
+	# Always reset emergency access accounts at the start of each run to prevent stale
+	# config from a previous Invoke-ZtAssessment call carrying over (Issue #266 follow-up).
+	Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $null
+
+	$effectiveIgnore = $IgnoreLanguageMode -or $script:IgnoreLanguageMode
+	if (-not (Test-ZtLanguageMode -IgnoreLanguageMode:$effectiveIgnore)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}
@@ -287,6 +304,21 @@ $titleLine
 					Set-Variable -Name $paramName -Value $configContent.$paramName
 				}
 			}
+
+			# Parse EmergencyAccessAccounts if present (Maester-style config with GlobalSettings)
+			$emergencyAccounts = $null
+			if ($configContent.PSObject.Properties.Name -contains 'GlobalSettings' -and
+				$configContent.GlobalSettings.PSObject.Properties.Name -contains 'EmergencyAccessAccounts' -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts.Count -gt 0) {
+				$emergencyAccounts = $configContent.GlobalSettings.EmergencyAccessAccounts
+			}
+			if ($emergencyAccounts -and $emergencyAccounts.Count -gt 0) {
+				Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $emergencyAccounts
+				Write-Host "🔐 " -NoNewline -ForegroundColor Cyan
+				Write-Host "Loaded $($emergencyAccounts.Count) emergency access account(s) from configuration." -ForegroundColor White
+			}
+			# Note: stale-clear is now performed unconditionally at the start of Invoke-ZtAssessment.
 
 			Write-Host "✅ " -NoNewline -ForegroundColor Green
 			Write-Host "Configuration loaded successfully. Command line parameters will override configuration file values." -ForegroundColor White

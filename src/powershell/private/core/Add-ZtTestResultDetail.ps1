@@ -74,7 +74,7 @@ function Add-ZtTestResultDetail {
 		[ValidateSet('Catastrophic', 'High', 'Medium', 'Low')]
 		[string] $UserImpact,
 
-		[ValidateSet('High', 'Medium', 'Low')]
+		[ValidateSet('Critical', 'High', 'Medium', 'Low', 'Unranked')]
 		[string] $Risk,
 
 		[ValidateSet('High', 'Medium', 'Low')]
