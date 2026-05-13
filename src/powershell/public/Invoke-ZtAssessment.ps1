@@ -470,7 +470,8 @@ $titleLine
 	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
 	# Start the progress dashboard web server (interactive mode only)
-	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host')
+	$isCI = [bool]($env:TF_BUILD -or $env:GITHUB_ACTIONS -or $env:CI -or $env:JENKINS_URL)
+	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host') -and -not $isCI
 	if ($isInteractive -and -not $NoBrowser) {
 		try {
 			Start-ZtProgressServer
