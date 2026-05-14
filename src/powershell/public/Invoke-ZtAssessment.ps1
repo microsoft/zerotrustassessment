@@ -63,6 +63,12 @@ proceed even when PowerShell reports a non-Full language mode (e.g. in WDAC-mana
 where the module's signing certificate is trusted by policy).
 WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
 
+.PARAMETER Pillar
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
+
+.PARAMETER Preview
+When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publically available yet.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -72,9 +78,6 @@ Run the Zero Trust Assessment against the signed in tenant and generates a repor
 Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
-
-.PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
 
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
