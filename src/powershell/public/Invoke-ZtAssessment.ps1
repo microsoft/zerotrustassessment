@@ -67,7 +67,7 @@ WARNING: Some tests may fail or return incomplete results if CLM restrictions ar
 The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
 
 .PARAMETER Preview
-When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publically available yet.
+When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publicly available yet.
 
 .EXAMPLE
 Invoke-ZtAssessment
