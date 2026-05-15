@@ -144,10 +144,10 @@
 	finally {
 		if ($workflow) {
 			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
-			Disable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
 			$workflow | Remove-PSFRunspaceWorkflow
-			Enable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Enable
 		}
 	}
 }
