@@ -1,0 +1,11 @@
+When an organisation deploys AI agents, those agents acquire access tokens for organisational resources on every interaction — mail, files, line-of-business APIs, downstream agents — and they do it without an interactive user session and without the device, location, or MFA signals that classic Conditional Access uses to make trust decisions for human users. Microsoft Entra Agent ID introduces two distinct first-class identity types that initiate these token acquisitions: **agent identities** (instantiated agents, modelled as service principals, that perform agentic tasks against resources) and **agent users** (non-human user accounts that back agent experiences requiring a mailbox or Teams presence). Conditional Access treats them as separate principal types: a policy that targets agent identities does not evaluate on agent-user sign-ins, and the reverse is also true. A tenant that enables agent workloads without at least one Conditional Access policy enforcing the only meaningful grant control for agents — `block` — on each principal type has no enforcement boundary on autonomous AI access at all: every token request from an agent identity or an agent user is allowed by default, exactly the failure mode adversaries exploit when they compromise a single agent or its backing user account and then pivot through the resources that account can reach. The two checks below verify that the basic posture exists for each principal type independently; they do not verify a complete posture design, which additionally requires risk-based policies and attribute-based scoping.
+
+**Remediation action**
+
+- [Conditional Access for Agent ID (Preview) — concept and configuration](https://learn.microsoft.com/entra/identity/conditional-access/agent-id)
+- [Identity Protection signals for agents (informs risk-based policies that complement the baseline)](https://learn.microsoft.com/entra/id-protection/concept-risky-agents)
+- [Filter for applications in Conditional Access (basis for custom-security-attribute-based agent and resource targeting)](https://learn.microsoft.com/entra/identity/conditional-access/concept-filter-for-applications)
+- [Custom security attributes in Microsoft Entra ID (referenced by attribute-based agent scoping)](https://learn.microsoft.com/entra/fundamentals/custom-security-attributes-add)
+
+<!--- Results --->
+%TestResult%
