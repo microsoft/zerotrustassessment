@@ -220,5 +220,20 @@ as
 		New-ViewRole -Database $database
 	}
 
+	if ($Pillar -in ('All', 'AI')) {
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'SignIn' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+
+		New-ViewRole -Database $database
+	}
+
 	$database
 }
