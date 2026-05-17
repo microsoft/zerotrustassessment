@@ -26,13 +26,17 @@ from main.ServicePrincipal sp
     left join main.Application app on app.appId = sp.appId
 where sp.id in
     (
-        select sp.id
-        from main.ServicePrincipal sp
-        where sp.oauth2PermissionGrants.scope is not null
+        select distinct delegatedPermissions.id
+        from (
+            select sp.id,
+                unnest(sp.oauth2PermissionGrants).scope as permissionScope
+            from main.ServicePrincipal sp
+        ) delegatedPermissions
+        where delegatedPermissions.permissionScope is not null
     )
     or sp.id in
     (
-        select distinct sp.id,
+        select distinct sp.id
         from (select sp.id, sp.displayName, unnest(sp.appRoleAssignments).AppRoleId as appRoleId
             from main.ServicePrincipal sp) sp
             left join
