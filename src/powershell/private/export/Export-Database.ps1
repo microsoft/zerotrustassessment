@@ -196,8 +196,6 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails' -LogsPath $LogsPath
-
-		New-ViewRole -Database $database
 	}
 
 	if ($Pillar -in ('All', 'Devices')) {
@@ -216,8 +214,6 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
-
-		New-ViewRole -Database $database
 	}
 
 	if ($Pillar -in ('All', 'AI')) {
@@ -231,7 +227,9 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+	}
 
+	if ($Pillar -in ('All', 'Identity', 'Network', 'AI')) {
 		New-ViewRole -Database $database
 	}
 
