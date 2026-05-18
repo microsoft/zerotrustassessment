@@ -109,8 +109,12 @@ function Test-Assessment-61009 {
             }
         }
 
-        # Collect report-only policies that reference agent principals as near-misses.
-        foreach ($policy in $reportOnlyPolicies) {
+        # Collect near-miss policies: report-only policies, and enabled policies that target
+        # agent principals but do not use the 'block' grant control.
+        $nearMissCandidates = @($reportOnlyPolicies) + @($enabledPolicies | Where-Object {
+            $_.id -notin ($setA + $setB | ForEach-Object { $_.id })
+        })
+        foreach ($policy in $nearMissCandidates) {
             $clientApps     = $policy.conditions.clientApplications
             $usersCondition = $policy.conditions.users
 
@@ -184,18 +188,35 @@ $subCondTableRows
                 $name       = Get-SafeMarkdown -Text $policy.displayName
                 $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
                 $nameLink   = "[$name]($portalLink)"
-                $grants     = if ($policy.grantControls -and $policy.grantControls.builtInControls) {
+
+                # Build scope summary
+                $scopeParts = @()
+                $ca = $policy.conditions.clientApplications
+                if ($null -ne $ca) {
+                    if ($null -ne $ca.includeAgentIdServicePrincipals -and $ca.includeAgentIdServicePrincipals.Count -gt 0) {
+                        $scopeParts += 'Agent identities'
+                    }
+                    if ($null -ne $ca.agentIdServicePrincipalFilter -and -not [string]::IsNullOrEmpty($ca.agentIdServicePrincipalFilter.rule)) {
+                        $scopeParts += 'Agent identity filter'
+                    }
+                }
+                if ($null -ne $policy.conditions.users -and $policy.conditions.users.includeUsers -contains 'AllAgentIdUsers') {
+                    $scopeParts += 'Agent users'
+                }
+                $scope = if ($scopeParts.Count -gt 0) { $scopeParts -join ', ' } else { '(unknown)' }
+
+                $grants = if ($policy.grantControls -and $policy.grantControls.builtInControls) {
                     $policy.grantControls.builtInControls -join ', '
                 } else { '(none)' }
-                $nearMissTableRows += "| $nameLink | $($policy.state) | $grants |`n"
+                $nearMissTableRows += "| $nameLink | $($policy.state) | $scope | $grants |`n"
             }
 
             $nearMissSection = @"
 
-### Near-miss policies (report-only mode)
+### Near-miss policies (report-only or non-blocking)
 
-| Display name | State | Grant controls |
-| :----------- | :---- | :------------- |
+| Display name | State | Scope | Grant controls |
+| :----------- | :---- | :---- | :------------- |
 $nearMissTableRows
 "@
         }
@@ -204,7 +225,7 @@ $nearMissTableRows
 {0}{1}
 '@
 
-        $mdInfo = $formatTemplate -f $subCondSection, $nearMissSection, $setA.Count, $setB.Count
+        $mdInfo = $formatTemplate -f $subCondSection, $nearMissSection
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
