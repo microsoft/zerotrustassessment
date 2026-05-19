@@ -50,17 +50,13 @@ function Test-Assessment-61012 {
     $allCAPolicies = @(Get-ZtConditionalAccessPolicy)
 
     # Classify policies (any state) that target agent identities or blueprints.
-    # Three targeting patterns per spec:
-    #   1. includeAgentIdServicePrincipals is non-empty (specific agents / blueprints)
+    # Two targeting patterns:
+    #   1. includeAgentIdServicePrincipals is non-empty (specific agents, blueprints, or 'All' with exclusions)
     #   2. agentIdServicePrincipalFilter.rule is non-empty (attribute-based filter)
-    #   3. Exclusion-based: includeAgentIdServicePrincipals contains 'All' AND
-    #      excludeAgentIdServicePrincipals is non-empty
     $agentIdentityPolicies = @($allCAPolicies | Where-Object {
         $clientApps = $_.conditions.clientApplications
         ($clientApps.includeAgentIdServicePrincipals | Measure-Object).Count -gt 0 -or
-        -not [string]::IsNullOrWhiteSpace($clientApps.agentIdServicePrincipalFilter.rule) -or
-        ($clientApps.includeAgentIdServicePrincipals -contains 'All' -and
-        ($clientApps.excludeAgentIdServicePrincipals | Measure-Object).Count -gt 0)
+        -not [string]::IsNullOrWhiteSpace($clientApps.agentIdServicePrincipalFilter.rule)
     })
     #endregion Data Collection
 
