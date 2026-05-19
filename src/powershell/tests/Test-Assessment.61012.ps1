@@ -28,7 +28,7 @@ function Test-Assessment-61012 {
         ImplementationCost = 'Low',
         Service = ('Graph'),
         MinimumLicense = ('AAD_PREMIUM_P2', 'AGENT_365'),
-        CompatibleLicense = ('AAD_PREMIUM_P2', 'AGENT_365'),
+        CompatibleLicense = ('AAD_PREMIUM_P2&AGENT_365'),
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Protect identities and secrets',
@@ -78,7 +78,7 @@ function Test-Assessment-61012 {
         $testResultMarkdown = "✅ The tenant has at least one enabled risk-based Conditional Access policy that blocks high-risk agent identities.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ A risk-based Conditional Access policy is missing for at least one agent principal type. Microsoft Entra ID Protection signals for the uncovered principal type are produced but not enforced — flagged agents continue to acquire tokens.`n`n%TestResult%"
+        $testResultMarkdown = "❌ The tenant does not have an enabled risk-based Conditional Access policy that blocks high-risk agent identities. Microsoft Entra ID Protection signals may be produced for risky agents, but access is not blocked by a qualifying Conditional Access policy.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
