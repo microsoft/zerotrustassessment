@@ -22,7 +22,9 @@ function Test-Assessment-61009 {
         Category = 'AI Identity & Access',
         ImplementationCost = 'Low',
         MinimumLicense = ('AAD_PREMIUM', 'AGENT_365'),
+        CompatibleLicense = ('AAD_PREMIUM&AGENT_365'),
         Pillar = 'AI',
+        Service = ('Graph'),
         RiskLevel = 'High',
         SfiPillar = 'Protect identities and secrets',
         TenantType = ('Workforce'),
@@ -52,8 +54,9 @@ function Test-Assessment-61009 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed       = $false
-    $customStatus = $null
+    $passed             = $false
+    $customStatus       = $null
+    $testResultMarkdown = ''
     $setA         = @()  # enabled policies blocking agent identities
     $setB         = @()  # enabled policies blocking agent users
     $nearMissList = @()  # report-only policies with agent scope (near-misses)
@@ -147,7 +150,7 @@ function Test-Assessment-61009 {
             $testResultMarkdown = "✅ At least one enabled Conditional Access policy blocks agent identities, and at least one enabled Conditional Access policy blocks agent users.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "❌ No enabled Conditional Access policy covers agent identities with ``block``, or no enabled policy covers agent users with ``block``. Agent traffic for the uncovered principal type bypasses Conditional Access enforcement.`n`n%TestResult%"
+            $testResultMarkdown = "❌ No enabled Conditional Access policy targets agent identities with the ``block`` control, OR no enabled Conditional Access policy targets agent users with the ``block`` control. Agent traffic for the uncovered principal type bypasses Conditional Access enforcement.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
@@ -156,76 +159,119 @@ function Test-Assessment-61009 {
     $mdInfo = ''
 
     if (-not $queryFailed) {
+        $maxPolicyLinks   = 5   # max linked policies shown in the Details column
+        $maxNearMissRows  = 10  # max rows shown in near-miss tables
         $caPoliciesLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
-        $subCondAResult = if ($setA.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
-        $subCondBResult = if ($setB.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
-        $subCondANames  = if ($setA.Count -ge 1) {
-            ($setA | ForEach-Object { Get-SafeMarkdown -Text $_.displayName }) -join ', '
-        } else { '(none)' }
-        $subCondBNames  = if ($setB.Count -ge 1) {
-            ($setB | ForEach-Object { Get-SafeMarkdown -Text $_.displayName }) -join ', '
+        # Sub-condition A — details
+        $subCondAResult  = if ($setA.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
+        $subCondADetails = if ($setA.Count -ge 1) {
+            $allLinks = @($setA | ForEach-Object {
+                $n = Get-SafeMarkdown -Text $_.displayName
+                $l = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($_.id)"
+                "[$n]($l)"
+            })
+            if ($allLinks.Count -le $maxPolicyLinks) {
+                $allLinks -join ', '
+            } else {
+                ($allLinks[0..($maxPolicyLinks - 1)] -join ', ') + ' ...'
+            }
         } else { '(none)' }
 
-        # Build sub-condition table rows
-        $subCondTableRows  = "| A — Agent identities or blueprints covered by an enabled ``block`` policy | $subCondAResult | $subCondANames |`n"
-        $subCondTableRows += "| B — Agent users covered by an enabled ``block`` policy | $subCondBResult | $subCondBNames |`n"
+        # Sub-condition B — details
+        $subCondBResult  = if ($setB.Count -ge 1) { '✅ Pass' } else { '❌ Fail' }
+        $subCondBDetails = if ($setB.Count -ge 1) {
+            $allLinks = @($setB | ForEach-Object {
+                $n = Get-SafeMarkdown -Text $_.displayName
+                $l = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($_.id)"
+                "[$n]($l)"
+            })
+            if ($allLinks.Count -le $maxPolicyLinks) {
+                $allLinks -join ', '
+            } else {
+                ($allLinks[0..($maxPolicyLinks - 1)] -join ', ') + ' ...'
+            }
+        } else { '(none)' }
 
-        $subCondSection = @"
+        $subCondTableRows  = "| A — Agent identities or blueprints covered by an enabled ``block`` policy | $subCondAResult | $subCondADetails |`n"
+        $subCondTableRows += "| B — Agent users covered by an enabled ``block`` policy | $subCondBResult | $subCondBDetails |`n"
+
+        $mdInfo = @"
 
 ### [Conditional Access policies covering agent principals]($caPoliciesLink)
 
-| Sub-condition | Result | Policies evaluated |
-| :------------ | :----- | :----------------- |
+| Sub-condition | Result | Details |
+| :------------ | :----- | :------- |
 $subCondTableRows
 "@
 
-        # Build near-miss section
-        $nearMissSection = ''
-        if (-not $passed -and $nearMissList.Count -gt 0) {
-            $nearMissTableRows = ''
-            foreach ($policy in ($nearMissList | Sort-Object displayName)) {
-                $name       = Get-SafeMarkdown -Text $policy.displayName
-                $portalLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($policy.id)"
-                $nameLink   = "[$name]($portalLink)"
-
-                # Build scope summary
-                $scopeParts = @()
-                $ca = $policy.conditions.clientApplications
-                if ($null -ne $ca) {
-                    if ($null -ne $ca.includeAgentIdServicePrincipals -and $ca.includeAgentIdServicePrincipals.Count -gt 0) {
-                        $scopeParts += 'Agent identities'
-                    }
-                    if ($null -ne $ca.agentIdServicePrincipalFilter -and -not [string]::IsNullOrEmpty($ca.agentIdServicePrincipalFilter.rule)) {
-                        $scopeParts += 'Agent identity filter'
-                    }
+        # Near-miss section for sub-condition A (only shown when A fails)
+        if ($setA.Count -eq 0) {
+            $nmA = @($nearMissList | Where-Object {
+                $ca = $_.conditions.clientApplications
+                $null -ne $ca -and (
+                    ($null -ne $ca.includeAgentIdServicePrincipals -and $ca.includeAgentIdServicePrincipals.Count -gt 0) -or
+                    ($null -ne $ca.agentIdServicePrincipalFilter -and -not [string]::IsNullOrEmpty($ca.agentIdServicePrincipalFilter.rule))
+                )
+            } | Sort-Object displayName)
+            if ($nmA.Count -gt 0) {
+                $nmADisplayCount = [math]::Min($nmA.Count, $maxNearMissRows)
+                $nmATruncationMessage = if ($nmA.Count -gt $maxNearMissRows) {
+                    "`n`n_**Note**: This table is truncated and showing the first $nmADisplayCount of $($nmA.Count) policies._"
+                } else { '' }
+                $nmARows = ''
+                foreach ($p in ($nmA | Select-Object -First $maxNearMissRows)) {
+                    $n      = Get-SafeMarkdown -Text $p.displayName
+                    $l      = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($p.id)"
+                    $ca     = $p.conditions.clientApplications
+                    $scope  = if ($null -ne $ca -and
+                                  $ca.includeAgentIdServicePrincipals -contains 'All' -and
+                                  ($null -eq $ca.excludeAgentIdServicePrincipals -or $ca.excludeAgentIdServicePrincipals.Count -eq 0)) {
+                                  'All Agent Identities'
+                              } else { 'Some Agent Identity' }
+                    $grants = if ($p.grantControls -and $p.grantControls.builtInControls) { $p.grantControls.builtInControls -join ', ' } else { '(none)' }
+                    $nmARows += "| [$n]($l) | $(Get-FormattedPolicyState $p.state) | $scope | $grants |`n"
                 }
-                if ($null -ne $policy.conditions.users -and $policy.conditions.users.includeUsers -contains 'AllAgentIdUsers') {
-                    $scopeParts += 'Agent users'
-                }
-                $scope = if ($scopeParts.Count -gt 0) { $scopeParts -join ', ' } else { '(unknown)' }
+                $mdInfo += @"
 
-                $grants = if ($policy.grantControls -and $policy.grantControls.builtInControls) {
-                    $policy.grantControls.builtInControls -join ', '
-                } else { '(none)' }
-                $nearMissTableRows += "| $nameLink | $($policy.state) | $scope | $grants |`n"
-            }
+#### Near-miss policies — Agent identities
 
-            $nearMissSection = @"
-
-### Near-miss policies (report-only or non-blocking)
-
-| Display name | State | Scope | Grant controls |
-| :----------- | :---- | :---- | :------------- |
-$nearMissTableRows
+| Policy | State | Scope | Grant controls |
+| :----- | :---- | :---- | :------------- |
+$nmARows$nmATruncationMessage
 "@
+            }
         }
 
-        $formatTemplate = @'
-{0}{1}
-'@
+        # Near-miss section for sub-condition B (only shown when B fails)
+        if ($setB.Count -eq 0) {
+            $nmB = @($nearMissList | Where-Object {
+                $null -ne $_.conditions.users -and
+                $null -ne $_.conditions.users.includeUsers -and
+                $_.conditions.users.includeUsers -contains 'AllAgentIdUsers'
+            } | Sort-Object displayName)
+            if ($nmB.Count -gt 0) {
+                $nmBDisplayCount = [math]::Min($nmB.Count, $maxNearMissRows)
+                $nmBTruncationMessage = if ($nmB.Count -gt $maxNearMissRows) {
+                    "`n`n_**Note**: This table is truncated and showing the first $nmBDisplayCount of $($nmB.Count) policies._"
+                } else { '' }
+                $nmBRows = ''
+                foreach ($p in ($nmB | Select-Object -First $maxNearMissRows)) {
+                    $n      = Get-SafeMarkdown -Text $p.displayName
+                    $l      = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$($p.id)"
+                    $grants = if ($p.grantControls -and $p.grantControls.builtInControls) { $p.grantControls.builtInControls -join ', ' } else { '(none)' }
+                    $nmBRows += "| [$n]($l) | $(Get-FormattedPolicyState $p.state) | $grants |`n"
+                }
+                $mdInfo += @"
 
-        $mdInfo = $formatTemplate -f $subCondSection, $nearMissSection
+#### Near-miss policies — Agent users
+
+| Policy | State | Grant controls |
+| :----- | :---- | :------------- |
+$nmBRows$nmBTruncationMessage
+"@
+            }
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
