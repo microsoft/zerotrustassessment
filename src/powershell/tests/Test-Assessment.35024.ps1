@@ -17,7 +17,7 @@
 
 function Test-Assessment-35024 {
     [ZtTest(
-    	Category = 'Rights Management Service',
+    	Category = 'Rights Management Service (RMS)',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E3'),
     	Service = ('ExchangeOnline'),

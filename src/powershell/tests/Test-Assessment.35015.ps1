@@ -13,7 +13,7 @@
 
 function Test-Assessment-35015 {
     [ZtTest(
-    	Category = 'sensitivity-labels',
+    	Category = 'Sensitivity Labels',
     	ImplementationCost = 'Medium',
     	MinimumLicense = ('Microsoft 365 E3'),
     	Service = ('SecurityCompliance'),
