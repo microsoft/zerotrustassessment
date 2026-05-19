@@ -75,7 +75,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	Name = 'Application'
 	Uri = 'beta/applications'
 	QueryString = '$top=999'
-	RelatedPropertyNames = @('sponsors')
+	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
@@ -88,7 +88,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	Name = 'ServicePrincipal'
 	Uri = 'beta/servicePrincipals'
 	QueryString = '$expand=appRoleAssignments&$top=999&$select=id,deletedDateTime,accountEnabled,alternativeNames,createdByAppId,createdDateTime,deviceManagementAppType,appDescription,appDisplayName,appId,applicationTemplateId,appOwnerOrganizationId,appRoleAssignmentRequired,assignmentRequiredForPrincipalTypes,description,disabledByMicrosoftStatus,displayName,errorUrl,homepage,isAuthorizationServiceEnabled,isDisabled,isManagementRestricted,loginUrl,logoutUrl,notes,notificationEmailAddresses,preferredSingleSignOnMode,preferredTokenSigningKeyEndDateTime,preferredTokenSigningKeyThumbprint,publisherName,replyUrls,samlMetadataUrl,samlSLOBindingType,servicePrincipalNames,servicePrincipalType,signInAudience,tags,tokenEncryptionKeyId,certification,samlSingleSignOnSettings,addIns,api,appRoles,info,keyCredentials,publishedPermissionScopes,passwordCredentials,resourceSpecificApplicationPermissions,verifiedPublisher,customSecurityAttributes,agentIdentityBlueprintId'
-	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners', 'sponsors')
+	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners')
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
@@ -109,6 +109,36 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	# IncludePlan = @('P2', 'Governance') # P2, Governance
 	ExcludePlan = @('Free') # Free
 	MaximumQueryTime = '%MaximumSignInLogQueryTime%'
+}
+@{
+	Name = 'AgentIdentityBlueprint'
+	Uri = 'beta/applications/microsoft.graph.agentIdentityBlueprint'
+	QueryString = '$top=999&$expand=sponsors($select=id)'
+	RelatedPropertyNames = @()
+	Type = 'Default'
+
+	Pillar = 'AI'
+	# Environment = $null # 'Global'
+}
+@{
+	Name = 'AgentIdentity'
+	Uri = 'beta/servicePrincipals/microsoft.graph.agentIdentity'
+	QueryString = '$top=999&$expand=sponsors($select=id)'
+	RelatedPropertyNames = @()
+	Type = 'Default'
+
+	Pillar = 'AI'
+	# Environment = $null # 'Global'
+}
+@{
+	Name = 'AgentIdentityBlueprintPrincipal'
+	Uri = 'beta/servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal'
+	QueryString = '$top=999&$expand=sponsors($select=id)'
+	RelatedPropertyNames = @()
+	Type = 'Default'
+
+	Pillar = 'AI'
+	# Environment = $null # 'Global'
 }
 @{
 	Name = 'User'
