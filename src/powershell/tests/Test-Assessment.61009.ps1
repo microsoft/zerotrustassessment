@@ -193,7 +193,7 @@ function Test-Assessment-61009 {
             }
         } else { '(none)' }
 
-        $subCondTableRows  = "| A — Agent identities or blueprints covered by an enabled ``block`` policy | $subCondAResult | $subCondADetails |`n"
+        $subCondTableRows  = "| A — Agent identities covered by an enabled ``block`` policy | $subCondAResult | $subCondADetails |`n"
         $subCondTableRows += "| B — Agent users covered by an enabled ``block`` policy | $subCondBResult | $subCondBDetails |`n"
 
         $mdInfo = @"
