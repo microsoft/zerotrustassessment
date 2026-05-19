@@ -89,7 +89,7 @@ export function DataTable<TData extends Test, TValue>({
     const pillarFilteredData = React.useMemo(() => {
         if (pillar) {
             return data.filter(item =>
-                item.TestPillar === pillar
+                Array.isArray(item.TestPillar) ? item.TestPillar.includes(pillar) : item.TestPillar === pillar
             );
         }
         return data;

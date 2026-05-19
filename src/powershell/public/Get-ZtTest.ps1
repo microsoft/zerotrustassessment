@@ -77,7 +77,7 @@
 
 		$script:__ZtSession.TestMeta | Where-Object {
 			(-not $Tests -or $_.TestID -in $Tests) -and
-			(-not $Pillar -or $Pillar -contains 'All' -or $_.Pillar -in $Pillar) -and
+			(-not $Pillar -or $Pillar -contains 'All' -or ($_.Pillar | Where-Object { $_ -in $Pillar })) -and
 			(-not $TenantType -or $_.TenantType -contains $TenantType)
 		}
 	}

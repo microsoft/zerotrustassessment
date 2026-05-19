@@ -9,7 +9,7 @@ class ZtTest : System.Attribute
 
 	[string[]]$Service
 
-	[string]$Pillar
+	[string[]]$Pillar
 	[ValidateSet('Critical','High','Medium','Low','Unranked')][string]$RiskLevel
 	[string]$SfiPillar
 	[ValidateSet('Workforce','External')][string[]]$TenantType

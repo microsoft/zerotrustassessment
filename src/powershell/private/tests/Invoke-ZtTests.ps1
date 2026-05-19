@@ -92,7 +92,7 @@
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		# Non-preview mode: Only include stable/released pillars
 		$stablePillars = @('Identity', 'Devices', 'Network', 'Data')
-		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
+		$testsToRun = $testsToRun.Where{ ($_.Pillar | Where-Object { $_ -in $stablePillars }) }
 	}
 
 	# Filter based on Compatible licenses
