@@ -53,7 +53,7 @@
 		[string[]]
 		$Tests,
 
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -115,8 +115,10 @@
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	# AI pillar tests also run sync as they depend on SecurityCompliance remoting which is only available on the main thread.
-	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -in @('Data', 'AI') }.TestId
+	# Tests that depend on SecurityCompliance remoting must run on the main thread regardless of pillar.
+	[int[]]$syncTestIds   = $testsToRun.Where{
+		$_.Pillar -eq 'Data' -or $_.Service -contains 'SecurityCompliance'
+	}.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
 
@@ -144,10 +146,10 @@
 	finally {
 		if ($workflow) {
 			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
-			Disable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
 			$workflow | Remove-PSFRunspaceWorkflow
-			Enable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Enable
 		}
 	}
 }

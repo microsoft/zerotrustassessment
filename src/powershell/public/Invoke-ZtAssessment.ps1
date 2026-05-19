@@ -63,6 +63,12 @@ proceed even when PowerShell reports a non-Full language mode (e.g. in WDAC-mana
 where the module's signing certificate is trusted by policy).
 WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
 
+.PARAMETER Pillar
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
+
+.PARAMETER Preview
+When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publicly available yet.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -72,9 +78,6 @@ Run the Zero Trust Assessment against the signed in tenant and generates a repor
 Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
-
-.PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
 
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
@@ -260,7 +263,7 @@ $titleLine
 	}
 
 	# Validate preview pillar requirements
-	$previewPillars = @('Infrastructure')
+	$previewPillars = @('Infrastructure', 'SecOps', 'AI')
 	if ($Pillar -in $previewPillars -and -not $Preview) {
 		Write-Host
 		Write-Host "❌ " -NoNewline -ForegroundColor Red
@@ -397,6 +400,10 @@ $titleLine
 		return
 	}
 
+	# Detect CI/non-interactive environments once; reused for Read-Host bypass,
+	# progress dashboard, and final report auto-open.
+	$isCI = [bool]($env:TF_BUILD -or $env:GITHUB_ACTIONS -or $env:CI -or $env:JENKINS_URL)
+
 	# Resolve to absolute paths so .NET APIs (DuckDB, System.IO) use the correct location.
 	# .NET resolves relative paths against [Environment]::CurrentDirectory, which can differ
 	# from PowerShell's Get-Location after Set-Location / cd.
@@ -414,9 +421,15 @@ $titleLine
 			Write-Host $Path -ForegroundColor Cyan
 			Write-Host
 			Write-Host "To generate a new report, the existing contents need to be removed." -ForegroundColor White
-			Write-Host "Do you want to delete the contents and continue? " -NoNewline -ForegroundColor White
-			Write-Host "[y/n]" -NoNewline -ForegroundColor Yellow
-			$deleteFolder = Read-Host " "
+			if ($isCI) {
+				Write-PSFMessage -Level Warning -Message "Non-interactive/CI environment detected - auto-cleaning existing output folder contents."
+				$deleteFolder = 'y'
+			}
+			else {
+				Write-Host "Do you want to delete the contents and continue? " -NoNewline -ForegroundColor White
+				Write-Host "[y/n]" -NoNewline -ForegroundColor Yellow
+				$deleteFolder = Read-Host " "
+			}
 
 			if ($deleteFolder -eq "y") {
 				Write-Host "🗑️ " -NoNewline -ForegroundColor Red
@@ -469,8 +482,8 @@ $titleLine
 	Write-PSFMessage 'Creating report folder $Path'
 	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
-	# Start the progress dashboard web server (interactive mode only)
-	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host')
+	# Start the progress dashboard web server only in interactive, non-CI sessions
+	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host') -and -not $isCI
 	if ($isInteractive -and -not $NoBrowser) {
 		try {
 			Start-ZtProgressServer
@@ -558,7 +571,7 @@ $titleLine
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host
 	Write-Host
-	if (-not $NoBrowser) {
+	if (-not $NoBrowser -and -not $isCI) {
 		Invoke-Item $htmlReportPath | Out-Null
 	}
 

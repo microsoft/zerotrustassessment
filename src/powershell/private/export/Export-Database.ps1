@@ -28,7 +28,7 @@ function Export-Database {
 		[PSFDirectorySingle]$ExportPath,
 
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -196,8 +196,6 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails' -LogsPath $LogsPath
-
-		New-ViewRole -Database $database
 	}
 
 	if ($Pillar -in ('All', 'Devices')) {
@@ -216,7 +214,22 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+	}
 
+	if ($Pillar -in ('All', 'AI')) {
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'SignIn' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+	}
+
+	if ($Pillar -in ('All', 'Identity', 'Network', 'AI')) {
 		New-ViewRole -Database $database
 	}
 

@@ -46,7 +46,7 @@ function Export-ZtTenantData {
 		[int]
 		$MaximumSignInLogQueryTime,
 
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -154,7 +154,7 @@ https://github.com/microsoft/zerotrustassessment/issues
 	}
 	finally {
 		if ($workflow) {
-			Disable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
 
 			# Collect statistical data for later troubleshooting. Retrieve via Get-ZtExportStatistics
@@ -166,6 +166,6 @@ https://github.com/microsoft/zerotrustassessment/issues
 			$workflow | Remove-PSFRunspaceWorkflow
 		}
 
-		Enable-PSFConsoleInterrupt
+		Invoke-ZtSafeConsoleInterruptToggle -Enable
 	}
 }
