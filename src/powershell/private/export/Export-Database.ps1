@@ -181,12 +181,55 @@ as
 		throw $_
 	}
 
-	if ($Pillar -in ('All', 'Identity')) {
+	# ---------------------------------------------------------------------------
+	# Resolve which table groups are needed. Each table is imported at most once.
+	# ---------------------------------------------------------------------------
+
+	# Identity and Network need User; AI does not.
+	$needsUser            = $Pillar -in ('All', 'Identity', 'Network')
+
+	# All pillars except Devices need Application and ServicePrincipal.
+	$needsApplicationAndServicePrincipal = $Pillar -in ('All', 'Identity', 'Network', 'AI')
+
+	# AI-specific derived-type tables that carry sponsor relationships inline.
+	$needsAgentIdentity   = $Pillar -in ('All', 'AI')
+
+	# Identity and AI need SignIn; Network does not.
+	$needsSignIn          = $Pillar -in ('All', 'Identity', 'AI')
+
+	# All pillars except Devices share the Role table family.
+	$needsRoles           = $Pillar -in ('All', 'Identity', 'Network', 'AI')
+
+	# Tables exclusive to the Identity pillar.
+	$needsIdentityExtras  = $Pillar -in ('All', 'Identity')
+
+	# Tables exclusive to the Devices pillar.
+	$needsDevices         = $Pillar -in ('All', 'Devices')
+
+	# ---------------------------------------------------------------------------
+	# Import tables — each table loaded exactly once.
+	# ---------------------------------------------------------------------------
+
+	if ($needsUser) {
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'User' -LogsPath $LogsPath
+	}
+
+	if ($needsApplicationAndServicePrincipal) {
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn' -LogsPath $LogsPath
+	}
+
+	if ($needsAgentIdentity) {
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'AgentIdentityBlueprint' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'AgentIdentity' -LogsPath $LogsPath
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'AgentIdentityBlueprintPrincipal' -LogsPath $LogsPath
+	}
+
+	if ($needsSignIn) {
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'SignIn' -LogsPath $LogsPath
+	}
+
+	if ($needsRoles) {
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
@@ -194,42 +237,20 @@ as
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
+	}
+
+	if ($needsIdentityExtras) {
+		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipalSignIn' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleManagementPolicyAssignment' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'UserRegistrationDetails' -LogsPath $LogsPath
 	}
 
-	if ($Pillar -in ('All', 'Devices')) {
+	if ($needsDevices) {
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Device' -LogsPath $LogsPath
 		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ConfigurationPolicy' -LogsPath $LogsPath
 	}
 
-	if ($Pillar -in ('All', 'Network')) {
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'User' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
-	}
-
-	if ($Pillar -in ('All', 'AI')) {
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'Application' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'ServicePrincipal' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'SignIn' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleDefinition' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignment' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentGroup' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstance' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleAssignmentScheduleInstanceGroup' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstance' -LogsPath $LogsPath
-		Import-EntraTableLogged -Database $database -ExportPath $ExportPath -TableName 'RoleEligibilityScheduleInstanceGroup' -LogsPath $LogsPath
-	}
-
-	if ($Pillar -in ('All', 'Identity', 'Network', 'AI')) {
+	if ($needsRoles) {
 		New-ViewRole -Database $database
 	}
 

@@ -22,7 +22,7 @@ function Test-Assessment-61009 {
         Category = 'AI Identity & Access',
         ImplementationCost = 'Low',
         MinimumLicense = ('AAD_PREMIUM', 'AGENT_365'),
-        CompatibleLicense = ('AAD_PREMIUM&AGENT_365'),
+        CompatibleLicense = ('AAD_PREMIUM&AGENT_365', 'AAD_PREMIUM_P2&AGENT_365'),
         Pillar = 'AI',
         Service = ('Graph'),
         RiskLevel = 'High',
