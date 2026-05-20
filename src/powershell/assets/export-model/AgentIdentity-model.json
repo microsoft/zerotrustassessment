@@ -1,0 +1,24 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals/microsoft.graph.agentIdentity(sponsors(id))",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "id": null,
+      "agentIdentityBlueprintId": null,
+      "agentAppId": null,
+      "displayName": null,
+      "accountEnabled": false,
+      "servicePrincipalType": null,
+      "disabledByMicrosoftStatus": null,
+      "createdByAppId": null,
+      "createdDateTime": "1900-01-01T00:00:00Z",
+      "tags": [],
+      "sponsors": [
+        {
+          "id": null,
+          "@odata.type": null
+        }
+      ]
+    }
+  ]
+}

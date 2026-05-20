@@ -1,0 +1,67 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal(sponsors(id))",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "id": null,
+      "appId": null,
+      "displayName": null,
+      "appDisplayName": null,
+      "appDescription": null,
+      "publisherName": null,
+      "accountEnabled": false,
+      "appRoleAssignmentRequired": false,
+      "servicePrincipalType": null,
+      "signInAudience": null,
+      "disabledByMicrosoftStatus": null,
+      "createdByAppId": null,
+      "appOwnerOrganizationId": null,
+      "tags": [],
+      "servicePrincipalNames": [],
+      "publishedPermissionScopes": [
+        {
+          "id": null,
+          "value": null,
+          "isEnabled": false,
+          "adminConsentDisplayName": null,
+          "adminConsentDescription": null,
+          "userConsentDisplayName": null,
+          "isPrivate": false,
+          "userConsentDescription": null,
+          "type": null
+        }
+      ],
+      "appRoles": [
+        {
+          "id": null,
+          "value": null,
+          "isEnabled": false,
+          "isPreAuthorizationRequired": false,
+          "origin": null,
+          "description": null,
+          "allowedMemberTypes": [],
+          "isPrivate": false,
+          "displayName": null
+        }
+      ],
+      "info": {
+        "privacyStatementUrl": null,
+        "marketingUrl": null,
+        "logoUrl": null,
+        "supportUrl": null,
+        "termsOfServiceUrl": null
+      },
+      "verifiedPublisher": {
+        "addedDateTime": "1900-01-01T00:00:00Z",
+        "displayName": null,
+        "verifiedPublisherId": null
+      },
+      "sponsors": [
+        {
+          "id": null,
+          "@odata.type": null
+        }
+      ]
+    }
+  ]
+}
