@@ -5,11 +5,11 @@ Enforcing Windows LAPS on all corporate Windows devices ensures unique, regularl
 **Remediation action**
 
 Use Intune to enforce Windows LAPS policies that rotate strong and unique local admin passwords, and that back them up securely:  
-- [Deploy Windows LAPS policy with Microsoft Intune](https://learn.microsoft.com/intune/intune-service/protect/windows-laps-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-laps-policy)
+- [Deploy Windows LAPS policy with Microsoft Intune](https://learn.microsoft.com/intune/device-security/laps/deploy-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-laps-policy)
 
 For more information, see:  
 - [Windows LAPS policy settings reference](https://learn.microsoft.com/windows-server/identity/laps/laps-management-policy-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Learn about Intune support for Windows LAPS](https://learn.microsoft.com/intune/intune-service/protect/windows-laps-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Learn about Intune support for Windows LAPS](https://learn.microsoft.com/intune/device-security/laps/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 
