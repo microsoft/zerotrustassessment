@@ -218,7 +218,7 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
     #region Report Generation
 
     $portalAgentLink   = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/AllAgents.MenuView/~/allAgentIds'
-    $portalAgentTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}'
+    $portalAgentTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/AgentIdentity.MenuView/~/customSecurityAttributes/objectId/{0}/menuId/overview'
 
     if ($passed) {
         $testResultMarkdown = "✅ All agent identity service principals have custom security attributes assigned for lifecycle classification.`n`n%TestResult%"
@@ -244,7 +244,7 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
 {1}
 '@
         foreach ($agent in ($failingAgents | Sort-Object AgentDisplayName | Select-Object -First $maxDisplay)) {
-            $agentLink        = $portalAgentTemplate -f $agent.AgentObjectId, $agent.AgentAppId
+            $agentLink        = $portalAgentTemplate -f $agent.AgentObjectId
             $agentName        = "[$(Get-SafeMarkdown -Text $agent.AgentDisplayName)]($agentLink)"
             $agentAttrs       = Get-SafeMarkdown -Text $agent.AgentAttrNames
             $blueprintName    = Get-SafeMarkdown -Text $agent.BlueprintDisplayName
