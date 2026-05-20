@@ -217,7 +217,7 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
 
     #region Report Generation
 
-    $portalAgentLink   = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/menuId~/null'
+    $portalAgentLink   = 'https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/AllAgents.MenuView/~/allAgentIds'
     $portalAgentTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/{0}/appId/{1}'
 
     if ($passed) {
@@ -234,7 +234,8 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
     $mdInfo += "| Agents with gaps on any surface | $($failingAgents.Count) |`n`n"
 
     if ($failingAgents.Count -gt 0) {
-        $tableRows = ''
+        $maxDisplay = 10
+        $tableRows  = ''
         $formatTemplate = @'
 ## [Agent identities missing custom security attributes]({0})
 
@@ -242,7 +243,7 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
 |---|---|---|---|---|
 {1}
 '@
-        foreach ($agent in ($failingAgents | Sort-Object AgentDisplayName)) {
+        foreach ($agent in ($failingAgents | Sort-Object AgentDisplayName | Select-Object -First $maxDisplay)) {
             $agentLink        = $portalAgentTemplate -f $agent.AgentObjectId, $agent.AgentAppId
             $agentName        = "[$(Get-SafeMarkdown -Text $agent.AgentDisplayName)]($agentLink)"
             $agentAttrs       = Get-SafeMarkdown -Text $agent.AgentAttrNames
@@ -252,6 +253,9 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
             $tableRows += "| $agentName | $agentAttrs | $blueprintName | $blueprintAttrs | $untaggedSurface |`n"
         }
         $mdInfo += $formatTemplate -f $portalAgentLink, $tableRows
+        if ($failingAgents.Count -gt $maxDisplay) {
+            $mdInfo += "`n`n_**Note**: This table is truncated and showing the first $maxDisplay of $($failingAgents.Count) agents with surface gaps._`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
