@@ -41,37 +41,36 @@ function Test-Assessment-61009 {
     $activity = 'Checking Conditional Access coverage for agent identities and agent users'
     Write-ZtProgress -Activity $activity -Status 'Querying Conditional Access policies'
 
-    $queryFailed = $false
+    $queryError = $null
 
     try {
         $allCAPolicies = Get-ZtConditionalAccessPolicy -ErrorAction Stop
     }
     catch {
-        $queryFailed = $true
+        $queryError = $_
         Write-PSFMessage "Failed to retrieve Conditional Access policies: $_" -Tag Test -Level Warning
     }
     #endregion Data Collection
 
     #region Assessment Logic
     $passed                = $false
-    $customStatus          = $null
     $testResultMarkdown    = ''
     $setA                  = @()
     $setB                  = @()
     $agentIdentityPolicies = @()
     $agentUserPolicies     = @()
 
-    if ($queryFailed) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Unable to determine Conditional Access policy configuration for agent principals due to a query failure or insufficient permissions.`n`n%TestResult%"
+    if ($queryError) {
+        $testResultMarkdown = "❌ Unable to determine Conditional Access policy configuration for agent principals due to a query failure or insufficient permissions.`n`n**Error:** ``$queryError```n`n%TestResult%"
     }
     else {
         # Policies (enabled or report-only) targeting agent identities via clientApplications (includeAgentIdServicePrincipals or agentIdServicePrincipalFilter.rule).
         $agentIdentityPolicies = @($allCAPolicies | Where-Object {
             $_.state -ne 'disabled' -and
-            ($clientApps = $_.conditions.clientApplications) -and (
-                ($null -ne $clientApps.includeAgentIdServicePrincipals -and $clientApps.includeAgentIdServicePrincipals.Count -gt 0) -or
-                (-not [string]::IsNullOrEmpty($clientApps.agentIdServicePrincipalFilter.rule))
+            $null -ne $_.conditions.clientApplications -and (
+                ($null -ne $_.conditions.clientApplications.includeAgentIdServicePrincipals -and
+                 $_.conditions.clientApplications.includeAgentIdServicePrincipals.Count -gt 0) -or
+                (-not [string]::IsNullOrEmpty($_.conditions.clientApplications.agentIdServicePrincipalFilter.rule))
             )
         })
 
@@ -106,7 +105,7 @@ function Test-Assessment-61009 {
     #region Report Generation
     $mdInfo = ''
 
-    if (-not $queryFailed) {
+    if (-not $queryError) {
         $maxPolicyLinks      = 5   # max linked policies shown in the Details column
         $maxNearMissRows     = 10  # max rows shown in near-miss tables
         $caPoliciesLink      = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
@@ -140,7 +139,7 @@ function Test-Assessment-61009 {
             }
         } else { '(none)' }
 
-        $subCondTableRows  = "| A — Agent identities covered by an enabled ``block`` policy | $subCondAResult | $subCondADetails |`n"
+        $subCondTableRows  = "| A — Agent identities or blueprints covered by an enabled ``block`` policy | $subCondAResult | $subCondADetails |`n"
         $subCondTableRows += "| B — Agent users covered by an enabled ``block`` policy | $subCondBResult | $subCondBDetails |`n"
 
         $mdInfo = @"
@@ -220,9 +219,6 @@ $nearMissRows$truncationMessage
         Title  = 'Conditional Access policies cover both agent identities and agent users'
         Status = $passed
         Result = $testResultMarkdown
-    }
-    if ($null -ne $customStatus) {
-        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
 }
