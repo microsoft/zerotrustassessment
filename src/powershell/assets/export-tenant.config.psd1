@@ -75,10 +75,10 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	Name = 'Application'
 	Uri = 'beta/applications'
 	QueryString = '$top=999'
-	RelatedPropertyNames = @()
+	RelatedPropertyNames = @('sponsors')
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = $null # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -87,11 +87,11 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'ServicePrincipal'
 	Uri = 'beta/servicePrincipals'
-	QueryString = '$expand=appRoleAssignments&$top=999'
-	RelatedPropertyNames = @('oauth2PermissionGrants')
+	QueryString = '$expand=appRoleAssignments&$top=999&$select=id,deletedDateTime,accountEnabled,alternativeNames,createdByAppId,createdDateTime,deviceManagementAppType,appDescription,appDisplayName,appId,applicationTemplateId,appOwnerOrganizationId,appRoleAssignmentRequired,assignmentRequiredForPrincipalTypes,description,disabledByMicrosoftStatus,displayName,errorUrl,homepage,isAuthorizationServiceEnabled,isDisabled,isManagementRestricted,loginUrl,logoutUrl,notes,notificationEmailAddresses,preferredSingleSignOnMode,preferredTokenSigningKeyEndDateTime,preferredTokenSigningKeyThumbprint,publisherName,replyUrls,samlMetadataUrl,samlSLOBindingType,servicePrincipalNames,servicePrincipalType,signInAudience,tags,tokenEncryptionKeyId,certification,samlSingleSignOnSettings,addIns,api,appRoles,info,keyCredentials,publishedPermissionScopes,passwordCredentials,resourceSpecificApplicationPermissions,verifiedPublisher,customSecurityAttributes,agentIdentityBlueprintId'
+	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners', 'sponsors')
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = $null # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -104,7 +104,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = 'Identity'
+	Pillar = @('Identity', 'AI')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('P2', 'Governance') # P2, Governance
 	ExcludePlan = @('Free') # Free
@@ -156,7 +156,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -169,7 +169,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('Free') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -182,7 +182,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -195,7 +195,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -237,7 +237,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleAssignment'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	# IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -249,7 +249,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleEligibilityScheduleInstance'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free
@@ -262,7 +262,7 @@ They will block their worker until their dependency is completed and could risk 
 	InputName = 'RoleAssignmentScheduleInstance'
 	Type = 'PrivilegedGroup' # PrivilegedGroup
 
-	Pillar = @('Identity', 'Network')
+	Pillar = @('Identity', 'Network', 'AI')
 	# Environment = 'Global' # 'Global'
 	IncludePlan = @('P2', 'Governance') # P2, Governance
 	# ExcludePlan = @('Free') # Free

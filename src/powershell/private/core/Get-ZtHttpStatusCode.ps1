@@ -51,6 +51,12 @@ function Get-ZtHttpStatusCode {
 		return [int]$Matches[1]
 	}
 
+	# Strategy 4: Match raw HTTP status line in error message
+	# e.g., "HTTP/2.0 400 Bad Request" or "HTTP/1.1 503 Service Unavailable"
+	if ($exception.Message -match 'HTTP/\S+\s+(4\d{2}|5\d{2})\s') {
+		return [int]$Matches[1]
+	}
+
 	# Could not determine the HTTP status code
 	return $null
 }

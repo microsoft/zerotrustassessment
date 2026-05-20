@@ -5,6 +5,9 @@ import { Button } from "../ui/button"
 import { impacts } from "./data-icons"
 import { StatusIcon } from "../status-icon"
 
+const RISK_ORDER: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3, Unranked: 4 }
+const STATUS_ORDER: Record<string, number> = { Failed: 0, Passed: 1, Skipped: 2, Planned: 3 }
+
 export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestId",
@@ -15,6 +18,11 @@ export const columns: ColumnDef<Test>[] = [
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
+        },
+        cell: ({ row }) => {
+            const id = row.getValue("TestId") as string
+            const display = id && id.length > 5 ? id.slice(-5) : id
+            return <span title={id}>{display}</span>
         },
         meta: {
             label: "ID"
@@ -190,6 +198,11 @@ export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestRisk",
         meta: { label: "Risk" },
+        sortingFn: (rowA, rowB, columnId) => {
+            const a = RISK_ORDER[rowA.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
+            const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
+            return a - b
+        },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -220,6 +233,11 @@ export const columns: ColumnDef<Test>[] = [
     {
         accessorKey: "TestStatus",
         meta: { label: "Status" },
+        sortingFn: (rowA, rowB, columnId) => {
+            const a = STATUS_ORDER[rowA.getValue(columnId) as string] ?? 3
+            const b = STATUS_ORDER[rowB.getValue(columnId) as string] ?? 3
+            return a - b
+        },
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>

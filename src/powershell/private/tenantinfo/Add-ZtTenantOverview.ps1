@@ -23,6 +23,11 @@ function Add-ZtTenantOverview {
 
     if (Get-ZtLicense Intune) {
         $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+        $managedDeviceCount = $managedDevices.enrolledDeviceCount -as [int] ?? 0
+    }
+    else {
+        # Keep this metric Intune-only when the Intune license is not available
+        $managedDeviceCount = 0
     }
 
     $tenantOverview = [PSCustomObject]@{
@@ -31,7 +36,7 @@ function Add-ZtTenantOverview {
         GroupCount         = $groupCount -as [int] ?? 0
         ApplicationCount   = $applicationCount -as [int] ?? 0
         DeviceCount        = $deviceCount -as [int] ?? 0
-        ManagedDeviceCount = $managedDevices.enrolledDeviceCount -as [int] ?? 0
+        ManagedDeviceCount = $managedDeviceCount
     }
 
     Add-ZtTenantInfo -Name "TenantOverview" -Value $tenantOverview

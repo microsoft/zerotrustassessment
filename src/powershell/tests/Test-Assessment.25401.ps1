@@ -23,6 +23,7 @@ function Test-Assessment-25401 {
     [ZtTest(
     	Category = 'Application Proxy',
     	ImplementationCost = 'Medium',
+    	Service = ('Graph'),
     	MinimumLicense = ('AAD_PREMIUM'),
     	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
     	Pillar = 'Network',

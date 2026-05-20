@@ -81,6 +81,12 @@ group by isManaged, isCompliant
 
 
 	$results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+	# Handle if SignIn table doesn't exist or is empty
+	if ($null -eq $results -or $results.Count -eq 0) {
+		Write-PSFMessage "SignIn table is empty or doesn't exist" -Tag Test -Level VeryVerbose
+		Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+		return
+	}
 
 	$caSummary = Get-ZtiOverviewCaDevicesAllUsers -Results $results -Database $Database
 

@@ -16,6 +16,7 @@ function Test-Assessment-25379 {
     [ZtTest(
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Medium',
+    	Service = ('Graph'),
     	MinimumLicense = ('AAD_PREMIUM'),
     	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
     	Pillar = 'Network',

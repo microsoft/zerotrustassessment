@@ -5,8 +5,9 @@ function Write-ZtTestLog {
 
 	.DESCRIPTION
 		Writes a per-test log file with execution summary and PSFramework messages.
-		Each test gets its own <TestID>.md file under the logs folder, making it
-		easy to debug individual test executions in parallel runs.
+		Each test gets its own <TestID>.md file under the 2-Tests subfolder of the
+		logs folder (<LogsPath>/2-Tests/<TestID>.md), making it easy to debug
+		individual test executions in parallel runs.
 
 		The log file contains a header block with test metadata (ID, title, status,
 		duration, timing, errors) followed by timestamped message lines.
@@ -20,7 +21,7 @@ function Write-ZtTestLog {
 	.EXAMPLE
 		PS C:\> Write-ZtTestLog -Result $result -LogsPath $logsPath
 
-		Writes the full test log for the completed test to <LogsPath>/<TestID>.md.
+		Writes the full test log for the completed test to <LogsPath>/2-Tests/<TestID>.md.
 	#>
 	[CmdletBinding()]
 	param (
@@ -57,25 +58,30 @@ function Write-ZtTestLog {
 			}
 			$lines.Add('# ---')
 
-			if ($Result.Messages) {
-				foreach ($msg in $Result.Messages) {
-					$timestamp = 'N/A'
-					if ($null -ne $msg.Timestamp) {
-						try {
-							$timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
-						}
-						catch {
-							$timestamp = "$($msg.Timestamp)"
-						}
-					}
+            # Write messages, excluding "Result:" lines which contain tenant-specific report output (privacy)
+            if ($Result.Messages) {
+                foreach ($msg in $Result.Messages) {
+                    $text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
+                    if ($text -like 'Result:*') { continue }
 
-					$level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
-					$text = if ($null -ne $msg.LogMessage) { "$($msg.LogMessage)" } else { '' }
-					$lines.Add("$timestamp [$level] $text")
-				}
-			}
+                    $timestamp = 'N/A'
+                    if ($null -ne $msg.Timestamp) {
+                        try {
+                            $timestamp = ([datetime]$msg.Timestamp).ToString('yyyy-MM-dd HH:mm:ss.fff')
+                        }
+                        catch {
+                            $timestamp = "$($msg.Timestamp)"
+                        }
+                    }
 
-			$logMarkdownPath = Join-Path $LogsPath "$testId.md"
+                    $level = if ($null -ne $msg.Level) { "$($msg.Level)" } else { 'Info' }
+                    $lines.Add("$timestamp [$level] $text")
+                }
+            }
+
+			$testLogsPath = Join-Path $LogsPath '2-Tests'
+			[void][System.IO.Directory]::CreateDirectory($testLogsPath)
+			$logMarkdownPath = Join-Path $testLogsPath "$testId.md"
 			[System.IO.File]::WriteAllLines($logMarkdownPath, $lines)
 		}
 		catch {

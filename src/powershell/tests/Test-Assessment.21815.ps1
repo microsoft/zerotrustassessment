@@ -31,19 +31,37 @@ function Test-Assessment-21815 {
     Write-ZtProgress -Activity $activity -Status "Getting privileged role assignments"
 
     $sql = @"
-select distinct  principalDisplayName, userPrincipalName, roleDisplayName, privilegeType, isPrivileged
+select distinct  principalId, principalDisplayName, userPrincipalName, roleDisplayName, privilegeType, isPrivileged
 from vwRole
 "@
     $roleAssignments = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
     # Check if any privileged role assignment in the results has privilegeType set to Permanent
-    $results = $roleAssignments | Where-Object { $_.isPrivileged -eq $true -and $_.privilegeType -eq 'Permanent' }
+    $permanentPrivileged = $roleAssignments | Where-Object { $_.isPrivileged -eq $true -and $_.privilegeType -eq 'Permanent' }
+
+    # Issue #266: Exclude emergency access accounts from failures
+    # Emergency accounts are expected to have permanent privileged role assignments per Microsoft best practices
+    Write-ZtProgress -Activity $activity -Status "Identifying emergency access accounts"
+    $emergencyAccounts = Get-ZtEmergencyAccessAccounts -Database $Database
+    $emergencyAccountIds = @($emergencyAccounts | Select-Object -ExpandProperty Id)
+
+    # Filter out emergency access accounts from the results
+    $results = @($permanentPrivileged | Where-Object { $_.principalId -notin $emergencyAccountIds })
+    $excludedEmergencyAccounts = @($permanentPrivileged | Where-Object { $_.principalId -in $emergencyAccountIds })
+
+    # Count of *distinct* excluded emergency accounts (one user can have multiple permanent role assignments)
+    $excludedAccountCount = @($excludedEmergencyAccounts | Select-Object -ExpandProperty principalId -Unique).Count
 
     $testResultMarkdown = ""
 
     if ($results.Count -eq 0) {
         $passed = $true
-        $testResultMarkdown += "No privileged users have permanent role assignments."
+        if ($excludedAccountCount -gt 0) {
+            $testResultMarkdown += "No privileged users have permanent role assignments (excluding $excludedAccountCount emergency access account(s) which are expected to have permanent assignments)."
+        }
+        else {
+            $testResultMarkdown += "No privileged users have permanent role assignments."
+        }
     }
     else {
         $passed = $false
@@ -80,8 +98,32 @@ from vwRole
         $mdInfo = $formatTemplate -f $reportTitle, $tableRows
     }
 
-    # Replace the placeholder with the detailed information
-    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    # Build section for excluded emergency access accounts (Issue #266)
+    $emergencySection = ''
+    if ($excludedEmergencyAccounts.Count -gt 0) {
+        $emergencySection = @'
+
+## Excluded emergency access accounts
+
+The following emergency access accounts were excluded from this check as they are expected to have permanent privileged role assignments per [Microsoft best practices](https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access).
+
+| User | UPN | Role Name |
+| :--- | :-- | :-------- |
+'@
+        foreach ($emergency in $excludedEmergencyAccounts) {
+            $portalLink = 'https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}/hidePreviewBanner~/true' -f $emergency.principalId
+            $emergencySection += "| [$(Get-SafeMarkdown($emergency.principalDisplayName))]($portalLink) | $($emergency.userPrincipalName) | $($emergency.roleDisplayName) |`n"
+        }
+    }
+
+    if ($passed) {
+        # Pass message has no %TestResult% placeholder; append excluded section if any
+        $testResultMarkdown += $emergencySection
+    }
+    else {
+        # Replace the placeholder with the detailed failure table plus excluded section
+        $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", ($mdInfo + $emergencySection)
+    }
 
     $params = @{
         TestId             = '21815'

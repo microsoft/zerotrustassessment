@@ -1,5 +1,8 @@
 import { PageHeader, PageHeaderHeading } from "@/components/page-header";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { columns } from "@/components/test-table/columns";
+import { DataTable } from "@/components/test-table/data-table";
+import { reportData } from "@/config/report-data";
 
 export default function Infrastructure() {
     return (
@@ -9,9 +12,14 @@ export default function Infrastructure() {
             </PageHeader>
             <Card>
                 <CardHeader>
-                    <CardTitle>Coming soon</CardTitle>
-                    <CardDescription>Patience is bitter, but its fruit is sweet. -Jean-Jacques Rousseau</CardDescription>
+                    <CardTitle className="mb-3">Assessment results</CardTitle>
+                    <CardDescription>
+                        The results presented below are based on Zero Trust security principles for infrastructure.
+                    </CardDescription>
                 </CardHeader>
+                <CardContent className="gap-4 px-4 pb-4 pt-1">
+                    <DataTable columns={columns} data={reportData.Tests} pillar="Infrastructure" />
+                </CardContent>
             </Card>
         </>
     )

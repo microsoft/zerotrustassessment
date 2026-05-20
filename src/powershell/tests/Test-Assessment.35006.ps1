@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     PDF labeling is enabled in SharePoint Online
 
@@ -16,6 +16,7 @@ function Test-Assessment-35006 {
     	Category = 'SharePoint Online',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('MIP_P1'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('SharePointOnline'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',

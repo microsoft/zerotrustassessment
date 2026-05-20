@@ -85,7 +85,7 @@
       "userDisplayName": null,
       "userId": null,
       "resourceId": null,
-      "createdDateTime": null,
+      "createdDateTime": "1900-01-01T00:00:00Z",
       "incomingTokenType": null,
       "networkLocationDetails": null,
       "conditionalAccessAudiences": null,
@@ -97,7 +97,7 @@
           "authenticationMethod": null,
           "authenticationStepRequirement": null,
           "succeeded": null,
-          "authenticationStepDateTime": null,
+          "authenticationStepDateTime": "1900-01-01T00:00:00Z",
           "authenticationStepResultDetail": null
         }
       ],

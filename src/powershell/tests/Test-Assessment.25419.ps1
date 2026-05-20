@@ -18,6 +18,7 @@ function Test-Assessment-25419 {
     [ZtTest(
         Category = 'Global Secure Access',
         ImplementationCost = 'Low',
+        Service = ('Azure'),
         MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Internet_Access', 'Entra_Premium_Private_Access'),
         CompatibleLicense = ('Entra_Premium_Private_Access','Entra_Premium_Internet_Access'),
         Pillar = 'Network',

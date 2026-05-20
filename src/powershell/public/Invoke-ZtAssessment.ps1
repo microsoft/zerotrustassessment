@@ -25,6 +25,10 @@ If specified, the script will output a high level summary of log messages. Usefu
 .PARAMETER ExportLog
 If specified, writes the log to a file.
 
+.PARAMETER NoBrowser
+If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
+The progress dashboard server will not be started and the report will not be opened in the browser at the end.
+
 .PARAMETER DisableTelemetry
 If specified, disables the collection of telemetry. The only telemetry collected is the tenant id. Defaults to false.
 
@@ -53,6 +57,18 @@ Tests that exceed this limit are recorded as timed out and execution continues w
 For Data pillar tests and other external-module/remoting-heavy operations, timeout is a
 best-effort interruption rather than a guaranteed hard stop of the underlying operation.
 
+.PARAMETER IgnoreLanguageMode
+When specified, bypasses the Constrained Language Mode safety check and allows the assessment to
+proceed even when PowerShell reports a non-Full language mode (e.g. in WDAC-managed environments
+where the module's signing certificate is trusted by policy).
+WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
+
+.PARAMETER Pillar
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
+
+.PARAMETER Preview
+When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publicly available yet.
+
 .EXAMPLE
 Invoke-ZtAssessment
 
@@ -62,9 +78,6 @@ Run the Zero Trust Assessment against the signed in tenant and generates a repor
 Invoke-ZtAssessment -Path "C:\Reports\ZT" -Days 7 -ShowLog
 
 Run the Zero Trust Assessment with a custom output path, querying 7 days of logs, and showing detailed logging.
-
-.PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', or 'Data'. Defaults to 'All' which runs all tests.
 
 .EXAMPLE
 Invoke-ZtAssessment -ConfigurationFile "C:\Config\zt-config.json"
@@ -150,7 +163,7 @@ function Invoke-ZtAssessment {
 
 		[PsfArgumentCompleter('ZeroTrustAssessment.Tests.Pillar')]
 		# The Zero Trust pillar to assess. Defaults to All.
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -172,11 +185,22 @@ function Invoke-ZtAssessment {
 		# For Data pillar tests, timeout is best-effort because some external modules/remoting
 		# operations cannot be deterministically hard-stopped from within the current process.
 		[int]
-		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes)
+		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes),
+
+		# If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$NoBrowser,
+
+		# When specified, bypasses the Constrained Language Mode check. Use only in WDAC-managed environments
+		# where the session reports CLM but the module is trusted and runs with full capability.
+		[Parameter(ParameterSetName = 'Default')]
+		[switch]
+		$IgnoreLanguageMode
 	)
 
-	if ($script:ConnectedService -and $script:ConnectedService.Count -le 0) {
-		Connect-ZtAssessment
+	if ($script:ConnectedService.Count -le 0) {
+		Connect-ZtAssessment -IgnoreLanguageMode:$IgnoreLanguageMode
 	}
 
 	#region Utility Functions
@@ -199,9 +223,19 @@ function Invoke-ZtAssessment {
 		[CmdletBinding()]
 		param ()
 
+		$version = $script:__ZtSession.ModuleVersion
+		$title = "🛡️  Microsoft Zero Trust Assessment v$version"
+		# Center the title within the 77-character inner box width.
+		# The shield emoji displays as 2 cells but has .Length of 3, so subtract 1.
+		$displayLen = $title.Length - 1
+		$totalPad = 77 - $displayLen
+		$leftPad = [math]::Ceiling($totalPad / 2)
+		$rightPad = $totalPad - $leftPad
+		$titleLine = "║$(' ' * $leftPad)$title$(' ' * $rightPad)║"
+
 		$banner = @"
 ╔═════════════════════════════════════════════════════════════════════════════╗
-║                    🛡️  Microsoft Zero Trust Assessment v2                   ║
+$titleLine
 ║                                                                             ║
 ║    Comprehensive security posture evaluation for your Microsoft 365 tenant  ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
@@ -218,26 +252,31 @@ function Invoke-ZtAssessment {
 	#region Preparation
 	Show-ZtiBanner
 
-	if (-not (Test-ZtLanguageMode)) {
+	# Always reset emergency access accounts at the start of each run to prevent stale
+	# config from a previous Invoke-ZtAssessment call carrying over (Issue #266 follow-up).
+	Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $null
+
+	$effectiveIgnore = $IgnoreLanguageMode -or $script:IgnoreLanguageMode
+	if (-not (Test-ZtLanguageMode -IgnoreLanguageMode:$effectiveIgnore)) {
 		Stop-PSFFunction -Message "PowerShell is running in Constrained Language Mode, which is not supported." -EnableException $true -Cmdlet $PSCmdlet
 		return
 	}
 
-	# TODO: Cleanup below (aligning -Preview with all pillars)
 	# Validate preview pillar requirements
-	# if ($Pillar -in ('Network', 'Data') -and -not $Preview) {
-	# 	Write-Host
-	# 	Write-Host "❌ " -NoNewline -ForegroundColor Red
-	# 	Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
-	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-	# 	Write-Host " switch." -ForegroundColor Red
-	# 	Write-Host
-	# 	Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
-	# 	Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
-	# 	Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
-	# 	Write-Host
-	# 	return
-	# }
+	$previewPillars = @('Infrastructure', 'SecOps', 'AI')
+	if ($Pillar -in $previewPillars -and -not $Preview) {
+		Write-Host
+		Write-Host "❌ " -NoNewline -ForegroundColor Red
+		Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+		Write-Host " switch." -ForegroundColor Red
+		Write-Host
+		Write-Host "Please run the command again with the " -NoNewline -ForegroundColor White
+		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
+		Write-Host " parameter to assess the $Pillar pillar." -ForegroundColor White
+		Write-Host
+		return
+	}
 
 	# Handle configuration file parameter
 	if ($ConfigurationFile) {
@@ -268,6 +307,21 @@ function Invoke-ZtAssessment {
 					Set-Variable -Name $paramName -Value $configContent.$paramName
 				}
 			}
+
+			# Parse EmergencyAccessAccounts if present (Maester-style config with GlobalSettings)
+			$emergencyAccounts = $null
+			if ($configContent.PSObject.Properties.Name -contains 'GlobalSettings' -and
+				$configContent.GlobalSettings.PSObject.Properties.Name -contains 'EmergencyAccessAccounts' -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts -and
+				$configContent.GlobalSettings.EmergencyAccessAccounts.Count -gt 0) {
+				$emergencyAccounts = $configContent.GlobalSettings.EmergencyAccessAccounts
+			}
+			if ($emergencyAccounts -and $emergencyAccounts.Count -gt 0) {
+				Set-PSFConfig -FullName 'ZeroTrustAssessment.EmergencyAccessAccounts' -Value $emergencyAccounts
+				Write-Host "🔐 " -NoNewline -ForegroundColor Cyan
+				Write-Host "Loaded $($emergencyAccounts.Count) emergency access account(s) from configuration." -ForegroundColor White
+			}
+			# Note: stale-clear is now performed unconditionally at the start of Invoke-ZtAssessment.
 
 			Write-Host "✅ " -NoNewline -ForegroundColor Green
 			Write-Host "Configuration loaded successfully. Command line parameters will override configuration file values." -ForegroundColor White
@@ -346,6 +400,10 @@ function Invoke-ZtAssessment {
 		return
 	}
 
+	# Detect CI/non-interactive environments once; reused for Read-Host bypass,
+	# progress dashboard, and final report auto-open.
+	$isCI = [bool]($env:TF_BUILD -or $env:GITHUB_ACTIONS -or $env:CI -or $env:JENKINS_URL)
+
 	# Resolve to absolute paths so .NET APIs (DuckDB, System.IO) use the correct location.
 	# .NET resolves relative paths against [Environment]::CurrentDirectory, which can differ
 	# from PowerShell's Get-Location after Set-Location / cd.
@@ -363,9 +421,15 @@ function Invoke-ZtAssessment {
 			Write-Host $Path -ForegroundColor Cyan
 			Write-Host
 			Write-Host "To generate a new report, the existing contents need to be removed." -ForegroundColor White
-			Write-Host "Do you want to delete the contents and continue? " -NoNewline -ForegroundColor White
-			Write-Host "[y/n]" -NoNewline -ForegroundColor Yellow
-			$deleteFolder = Read-Host " "
+			if ($isCI) {
+				Write-PSFMessage -Level Warning -Message "Non-interactive/CI environment detected - auto-cleaning existing output folder contents."
+				$deleteFolder = 'y'
+			}
+			else {
+				Write-Host "Do you want to delete the contents and continue? " -NoNewline -ForegroundColor White
+				Write-Host "[y/n]" -NoNewline -ForegroundColor Yellow
+				$deleteFolder = Read-Host " "
+			}
 
 			if ($deleteFolder -eq "y") {
 				Write-Host "🗑️ " -NoNewline -ForegroundColor Red
@@ -388,11 +452,14 @@ function Invoke-ZtAssessment {
 		New-Item -ItemType Directory -Path $exportPath -Force -ErrorAction Stop | Out-Null
 	}
 
-	# Create the logs folder for per-test log files
+	# Create a timestamped run folder under logs/ so each assessment run is isolated.
 	# Use .FullName to get the absolute path because .NET file APIs ([System.IO.File]::WriteAllText etc.)
 	# resolve relative paths against [Environment]::CurrentDirectory (process CWD), which
 	# differs from PowerShell's Get-Location after Set-Location / cd.
-	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath 'logs') -Force -ErrorAction Stop).FullName
+	$runFolder = (Get-Date).ToString('yy-MM-dd-HHmmss')
+	$logsPath = (New-Item -ItemType Directory -Path (Join-Path $exportPath "logs/$runFolder") -Force -ErrorAction Stop).FullName
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '1-Export') -Force -ErrorAction Stop
+	$null = New-Item -ItemType Directory -Path (Join-Path $logsPath '2-Tests') -Force -ErrorAction Stop
 
 
 	# Send telemetry if not disabled
@@ -415,6 +482,18 @@ function Invoke-ZtAssessment {
 	Write-PSFMessage 'Creating report folder $Path'
 	$null = New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop
 
+	# Start the progress dashboard web server only in interactive, non-CI sessions
+	$isInteractive = [Environment]::UserInteractive -and ($Host.Name -ne 'Default Host') -and -not $isCI
+	if ($isInteractive -and -not $NoBrowser) {
+		try {
+			Start-ZtProgressServer
+		}
+		catch {
+			Write-PSFMessage -Level Warning -Message "Failed to start progress dashboard: $_"
+		}
+	}
+
+	try {
 	# Move the interactive configuration file to the report directory if it exists
 	if ($Interactive -and $tempConfigFile) {
 		try {
@@ -431,7 +510,7 @@ function Invoke-ZtAssessment {
 	# Collect data
 	if ($Resume) {
 		# Guard: verify the requested pillar is compatible with the exported data
-		$exportedPillar = Get-ZtConfig -ExportPath $exportPath -Property Pillar
+		$exportedPillar = Get-ZtConfig -ExportPath $ExportPath -Property Pillar
 		if ($exportedPillar -and $exportedPillar -ne $Pillar) {
 			if ($Pillar -eq 'All' -and $exportedPillar -ne 'All') {
 				throw "Resume requested with -Pillar All, but the existing export only contains '$exportedPillar' data. Run without -Resume to export all pillars."
@@ -443,17 +522,24 @@ function Invoke-ZtAssessment {
 	}
 
 	Write-PSFMessage -Message "Stage 1: Exporting Tenant Data" -Tag stage
-	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit
-	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar
+	Update-ZtProgressState -Stage 'export' -StageNumber 1 -StageName 'Exporting Tenant Data'
+	Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar -ThrottleLimit $ExportThrottleLimit -LogsPath $logsPath
+
+	Update-ZtProgressState -Stage 'database' -StageNumber 1 -StageName 'Importing Data into Database' -ClearWorkers
+	$database = Export-Database -ExportPath $exportPath -Pillar $Pillar -LogsPath $logsPath
 
 	try {
 		# Run the tests
 		Write-PSFMessage -Message "Stage 2: Running Tests" -Tag stage
+		Update-ZtProgressState -Stage 'tests' -StageNumber 2 -StageName 'Running Tests' -ClearWorkers -TotalItems 0 -CompletedItems 0 -FailedItems 0 -InProgressItems 0
 		Invoke-ZtTests -Database $database -Tests $Tests -Pillar $Pillar -ThrottleLimit $TestThrottleLimit -LogsPath $logsPath -Timeout $Timeout -TestTimeout $TestTimeout
+
 		Write-PSFMessage -Message "Stage 3: Adding Tenant Information" -Tag stage
+		Update-ZtProgressState -Stage 'tenantinfo' -StageNumber 3 -StageName 'Adding Tenant Information' -ClearWorkers -TotalItems 0
 		Invoke-ZtTenantInfo -Database $database -Pillar $Pillar
 
 		Write-PSFMessage -Message "Stage 4: Generating Test-Results" -Tag stage
+		Update-ZtProgressState -Stage 'results' -StageNumber 4 -StageName 'Generating Test Results' -ClearWorkers -TotalItems 0
 		$assessmentResults = Get-ZtAssessmentResults
 	}
 	finally {
@@ -463,15 +549,20 @@ function Invoke-ZtAssessment {
 	}
 
 	Write-PSFMessage -Message "Stage 5: Writing Assessment report data" -Tag stage
+	Update-ZtProgressState -Stage 'json' -StageNumber 5 -StageName 'Writing Assessment Report Data' -ClearWorkers -TotalItems 0
 	$assessmentResultsJson = $assessmentResults | ConvertTo-Json -Depth 10
 	$resultsJsonPath = Join-Path -Path $exportPath -ChildPath "ZeroTrustAssessmentReport.json"
 	$assessmentResultsJson | Set-PSFFileContent -Path $resultsJsonPath
 
 	Write-PSFMessage -Message "Stage 6: Generating Html Report" -Tag stage
+	Update-ZtProgressState -Stage 'html' -StageNumber 6 -StageName 'Generating HTML Report' -ClearWorkers -TotalItems 0
 	Write-ZtProgress -Activity "Creating html report"
 	$htmlReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport.html"
 	$output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
 	$output | Set-PSFFileContent -Path $htmlReportPath -Encoding UTF8NoBom
+
+	# Signal completion to the progress dashboard
+	Update-ZtProgressState -Stage 'done' -StageNumber 6 -StageName 'Assessment Complete' -ClearWorkers -TotalItems 0
 
 	#region Post Processing
 	Write-Host
@@ -480,7 +571,9 @@ function Invoke-ZtAssessment {
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host
 	Write-Host
-	Invoke-Item $htmlReportPath | Out-Null
+	if (-not $NoBrowser -and -not $isCI) {
+		Invoke-Item $htmlReportPath | Out-Null
+	}
 
 	if ($ExportLog) {
 		Write-ZtProgress -Activity "Creating support package"
@@ -490,5 +583,12 @@ function Invoke-ZtAssessment {
 		}
 		New-PSFSupportPackage -Path $logPath
 	}
+
+	# Give the progress dashboard a moment to show the completion state before shutting down
+	Start-Sleep -Seconds 2
 	#endregion Post Processing
+	}
+	finally {
+		Stop-ZtProgressServer
+	}
 }

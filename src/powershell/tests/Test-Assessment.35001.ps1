@@ -9,6 +9,7 @@ function Test-Assessment-35001 {
         ImplementationCost = 'Low',
         Service = ('Graph'),
         MinimumLicense = ('Microsoft 365 E5'),
+        CompatibleLicense = ('RMS_S_PREMIUM2'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = '',

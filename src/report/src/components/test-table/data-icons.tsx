@@ -4,6 +4,8 @@ import {
     ArrowUpIcon,
     CheckCircledIcon,
     CrossCircledIcon,
+    ExclamationTriangleIcon,
+    MinusIcon,
     QuestionMarkCircledIcon,
     StopwatchIcon,
   } from "@radix-ui/react-icons"
@@ -37,6 +39,12 @@ import {
       variant: "destructive"
     },
     {
+      value: "Error",
+      label: "Error",
+      icon: CrossCircledIcon,
+      variant: "destructive"
+    },
+    {
       value: "Investigate",
       label: "Investigate",
       icon: QuestionMarkCircledIcon,
@@ -58,9 +66,14 @@ import {
 
   export const impacts = [
     {
-      label: "Low",
-      value: "Low",
-      icon: ArrowDownIcon,
+      label: "Critical",
+      value: "Critical",
+      icon: ExclamationTriangleIcon,
+    },
+    {
+      label: "High",
+      value: "High",
+      icon: ArrowUpIcon,
     },
     {
       label: "Medium",
@@ -68,8 +81,13 @@ import {
       icon: ArrowRightIcon,
     },
     {
-      label: "High",
-      value: "High",
-      icon: ArrowUpIcon,
+      label: "Low",
+      value: "Low",
+      icon: ArrowDownIcon,
+    },
+    {
+      label: "Unranked",
+      value: "Unranked",
+      icon: MinusIcon,
     },
   ]

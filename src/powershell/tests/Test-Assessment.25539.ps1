@@ -14,6 +14,7 @@ function Test-Assessment-25539 {
     [ZtTest(
         Category = 'Azure Network Security',
         ImplementationCost = 'Low',
+        Service = ('Azure'),
         MinimumLicense = ('Azure_Firewall_Premium'),
         Pillar = 'Network',
         RiskLevel = 'High',

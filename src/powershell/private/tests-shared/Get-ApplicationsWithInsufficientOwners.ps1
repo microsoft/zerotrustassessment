@@ -18,13 +18,11 @@ function Get-ApplicationsWithInsufficientOwners {
         [string[]]$PrivilegeLevel
     )
 
-    # Get all apps with permissions
-    $allApps = Get-ApplicationsWithPermissions -Database $Database
+    # Get all apps with permissions, excluding Managed Identities before enrichment as owners cannot be assigned to them
+    $allApps = Get-ApplicationsWithPermissions -Database $Database -ExcludeServicePrincipalType 'ManagedIdentity'
 
-    # Filter by privilege level and owner count using Where-Object (more efficient)
-    $filteredApps = $allApps | Where-Object {
-        ($PrivilegeLevel -contains $_.Risk) -and ($_.OwnerCount -lt 2)
-    }
+    # Filter by privilege level and owner count
+    $filteredApps = @($allApps | Where-Object {($PrivilegeLevel -contains $_.Risk) -and ($_.OwnerCount -lt 2)})
 
     Write-PSFMessage "Filtered to $($filteredApps.Count) applications with < 2 owners matching privilege levels: $($PrivilegeLevel -join ', ')" -Level Verbose
 

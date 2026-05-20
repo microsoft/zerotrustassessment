@@ -82,7 +82,7 @@ function Test-ZtApplicationOwnership {
 			$classification = $app.Risk ?? 'Unranked'
 
 			# Build clickable Entra portal link
-			$entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/~/AppAppsPreview/objectId/$($app.id)"
+			$entraLink = "https://entra.microsoft.com/#view/Microsoft_AAD_IAM/ManagedAppMenuBlade/~/Overview/objectId/$($app.id)/appId/$($app.appId)"
 			$safeDisplayName = Get-SafeMarkdown -Text $app.displayName
 			$appLink = "[$safeDisplayName]($entraLink)"
 

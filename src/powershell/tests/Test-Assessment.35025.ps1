@@ -21,6 +21,7 @@ function Test-Assessment-35025 {
         ImplementationCost = 'Low',
         Service = ('ExchangeOnline'),
         MinimumLicense = ('Microsoft 365 E3'),
+        CompatibleLicense = ('RMS_S_PREMIUM'),
         Pillar = 'Data',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',

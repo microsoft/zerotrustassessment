@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Co-authoring is enabled for encrypted documents
 #>
@@ -8,6 +8,7 @@ function Test-Assessment-35009 {
     	Category = 'Sensitivity Labels',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E5'),
+    	CompatibleLicense = ('RMS_S_PREMIUM2'),
     	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',

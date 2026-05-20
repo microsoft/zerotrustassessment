@@ -72,6 +72,7 @@ function Export-ZtGraphEntity {
 	$maxSizeBytes = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Export.SignInLog.MaxSizeBytes' -Fallback 1073741824
 	if (Get-ZtConfig -ExportPath $ExportPath -Property $Name) {
 		Write-PSFMessage "Skipping '{0}' since it was downloaded previously" -StringValues $Name -Target $Name -Tag Export, redundant, skip
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail 'Skipped (cached)'
 		return
 	}
 
@@ -127,6 +128,16 @@ function Export-ZtGraphEntity {
 		)
 
 		Write-PSFMessage -Message "Adding {0} to {1}" -StringValues $PropertyName, $Name -Tag Graph
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "Batch: $PropertyName"
+
+		# Guard against empty pages: Invoke-ZtGraphBatchRequest requires a non-empty ArgumentList.
+		# Graph API can return a page with an empty 'value' array (e.g. when the tenant has no items,
+		# or on the last page of a paginated response), which would cause a PowerShell
+		# parameter-binding error for the mandatory [object[]] param.
+		if (-not $Results) {
+			Write-PSFMessage -Level Verbose -Message "No items to batch for property '{0}' in '{1}'. Skipping." -StringValues $PropertyName, $Name -Tag Graph
+			return
+		}
 
 		$data = Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id -Matched -ErrorAction SilentlyContinue -ErrorVariable failed
 		# Since the argument property is the original hashtable provided, we can update the hashtable as it is and thereby update the original object
@@ -163,9 +174,43 @@ function Export-ZtGraphEntity {
 	$startTime = Get-Date
 	$stopTime = $startTime.AddMinutes($MaximumQueryTime)
 	$hasTimeLimit = $MaximumQueryTime -gt 0
+	$previousNextLink = $null
 
 	do {
-		$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
+		# Update progress detail with the Graph API endpoint and page number
+		if ($pageIndex -eq 0) {
+			Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET $Uri"
+		}
+		else {
+			Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET $Uri — page $($pageIndex + 1)"
+		}
+
+		$results = $null
+		try {
+			$results = Invoke-ZtRetry -ScriptBlock { Invoke-MgGraphRequest -Method GET -Uri $actualUri -OutputType HashTable }
+		}
+		catch {
+			Write-PSFMessage -Level Warning "Export '$Name' failed on page $pageIndex. URI: $actualUri" -ErrorRecord $_ -Tag Export, Error
+			throw
+		}
+
+		# Validate response - API may return error JSON as a valid hashtable without throwing
+		if ($results -is [hashtable] -and $results.ContainsKey('error')) {
+			$errorCode = $results.error.code
+			$errorMessage = $results.error.message
+			Write-PSFMessage -Level Warning "API returned error response for '$Name' page ${pageIndex}: [$errorCode] $errorMessage" -Tag Export, Error
+			# Throw a structured error so callers can inspect error code/category
+			$exception = New-Object System.Exception("API returned error for '$Name': [$errorCode] $errorMessage")
+			$exception.Data['GraphErrorCode'] = $errorCode
+			$exception.Data['GraphErrorMessage'] = $errorMessage
+			$errorRecord = New-Object System.Management.Automation.ErrorRecord `
+				$exception, `
+				$errorCode, `
+				[System.Management.Automation.ErrorCategory]::InvalidOperation, `
+				$null
+			throw $errorRecord
+		}
+
 		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 
 		# Track file size for SignIn logs
@@ -197,7 +242,15 @@ function Export-ZtGraphEntity {
 		if (-not $actualUri) {
 			break
 		}
-		elseif ($hasTimeLimit -and (Get-Date) -gt $stopTime) {
+
+		# Detect stuck paging - same nextLink returned consecutively
+		if ($actualUri -eq $previousNextLink) {
+			Write-PSFMessage -Level Warning "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex. Stopping export." -Tag Export, Error
+			throw "Stuck paging detected for '$Name': nextLink unchanged on page $pageIndex"
+		}
+		$previousNextLink = $actualUri
+
+		if ($hasTimeLimit -and (Get-Date) -gt $stopTime) {
 			Write-PSFMessage "Maximum time limit reached for $Name"
 			break
 		}

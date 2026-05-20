@@ -252,7 +252,7 @@ Describe "Invoke-ZtRetry" {
 		}
 	}
 
-	Context "Error Filtering - Non-Retryable Errors (4xx)" {
+	Context "Error Filtering - 4xx Status Codes (Retryable and Non-Retryable)" {
 		It "Should NOT retry on HTTP 401 Unauthorized" {
 			$script:callCount = 0
 			{
@@ -288,19 +288,6 @@ Describe "Invoke-ZtRetry" {
 					throw "Response status code does not indicate success: 404 (Not Found)."
 				}
 			} | Should -Throw "*404*"
-
-			$script:callCount | Should -Be 1
-			Should -Invoke Start-Sleep -Times 0 -Exactly
-		}
-
-		It "Should NOT retry on HTTP 400 Bad Request" {
-			$script:callCount = 0
-			{
-				Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
-					$script:callCount++
-					throw "Response status code does not indicate success: 400 (Bad Request)."
-				}
-			} | Should -Throw "*400*"
 
 			$script:callCount | Should -Be 1
 			Should -Invoke Start-Sleep -Times 0 -Exactly

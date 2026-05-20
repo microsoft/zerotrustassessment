@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Sensitivity label policies are published to users
 
@@ -19,6 +19,7 @@ function Test-Assessment-35004 {
     	Category = 'Sensitivity Labels',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('SecurityCompliance'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',

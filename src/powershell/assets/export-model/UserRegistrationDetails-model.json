@@ -13,7 +13,7 @@
                 null
             ],
             "id": null,
-            "lastUpdatedDateTime": null,
+            "lastUpdatedDateTime": "1900-01-01T00:00:00Z",
             "userDisplayName": null,
             "isMfaCapable": null,
             "isMfaRegistered": null,

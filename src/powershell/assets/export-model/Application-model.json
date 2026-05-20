@@ -9,11 +9,11 @@
       "verifiedPublisher": {
         "displayName": null,
         "verifiedPublisherId": null,
-        "addedDateTime": null
+        "addedDateTime": "1900-01-01T00:00:00Z"
       },
       "orgRestrictions": [],
       "isDeviceOnlyAuthSupported": null,
-      "createdDateTime": null,
+      "createdDateTime": "1900-01-01T00:00:00Z",
       "appId": null,
       "migrationStatus": null,
       "createdByAppId": null,
@@ -58,7 +58,7 @@
       "defaultRedirectUri": null,
       "groupMembershipClaims": null,
       "tokenEncryptionKeyId": null,
-      "deletedDateTime": null,
+      "deletedDateTime": "1900-01-01T00:00:00Z",
       "web": {
         "redirectUris": [],
         "redirectUriSettings": [],

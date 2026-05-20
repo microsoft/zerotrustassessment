@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Office 365 Message Encryption is configured with simplified client access
 
@@ -21,6 +21,7 @@ function Test-Assessment-35026 {
     	Category = 'Microsoft Purview Message Encryption',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('ExchangeOnline'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',

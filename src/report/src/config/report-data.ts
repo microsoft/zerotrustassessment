@@ -119,6 +119,12 @@ export interface TestResultSummaryData {
   DataTotal?: number;
   NetworkPassed?: number;
   NetworkTotal?: number;
+  InfrastructurePassed?: number;
+  InfrastructureTotal?: number;
+  SecOpsPassed?: number;
+  SecOpsTotal?: number;
+  AIPassed?: number;
+  AITotal?: number;
 }
 export interface SankeyData {
   nodes: SankeyDataNode[];

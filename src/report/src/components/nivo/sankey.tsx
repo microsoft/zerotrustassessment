@@ -17,6 +17,17 @@ type SankeyData = {
 };
 
 export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyData }) => {
+    // Filter out nodes that have no connected links to avoid Nivo rendering errors
+    const connectedNodeIds = new Set<string>();
+    for (const link of data.links) {
+        connectedNodeIds.add(link.source);
+        connectedNodeIds.add(link.target);
+    }
+    const filteredData: SankeyData = {
+        nodes: data.nodes.filter(node => connectedNodeIds.has(node.id)),
+        links: data.links,
+    };
+
     const theme = {
         tooltip: {
             container: {
@@ -39,7 +50,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
     return (
     <div className={`h-full w-full ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
         <ResponsiveSankey
-        data={data}
+        data={filteredData}
         theme={theme}
         margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
         align="justify"

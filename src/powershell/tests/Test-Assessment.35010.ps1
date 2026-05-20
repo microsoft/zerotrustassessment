@@ -27,6 +27,7 @@ function Test-Assessment-35010 {
     	ImplementationCost = 'Medium',
     	Service = ('SecurityCompliance'),
     	MinimumLicense = ('Microsoft 365 E5'),
+    	CompatibleLicense = ('RMS_S_PREMIUM2'),
     	Pillar = 'Data',
     	RiskLevel = 'Low',
     	SfiPillar = 'Protect tenants and production systems',

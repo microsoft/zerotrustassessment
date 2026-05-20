@@ -17,6 +17,7 @@ function Test-Assessment-25392 {
     [ZtTest(
     	Category = 'Private Access',
     	ImplementationCost = 'Low',
+    	Service = ('Graph'),
     	MinimumLicense = ('Entra_Premium_Private_Access'),
     	CompatibleLicense = ('Entra_Premium_Private_Access'),
     	Pillar = 'Network',

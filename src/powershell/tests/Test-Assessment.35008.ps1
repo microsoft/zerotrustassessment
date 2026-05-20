@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     A default sensitivity label is configured for SharePoint document libraries
 
@@ -16,6 +16,7 @@ function Test-Assessment-35008 {
     	Category = 'SharePoint Online',
     	ImplementationCost = 'Low',
     	MinimumLicense = ('Microsoft 365 E5'),
+    	CompatibleLicense = ('RMS_S_PREMIUM2'),
     	Service = ('SharePointOnline'),
     	Pillar = 'Data',
     	RiskLevel = 'Medium',

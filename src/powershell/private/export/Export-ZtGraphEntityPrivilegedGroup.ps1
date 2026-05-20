@@ -37,6 +37,7 @@
 
 	if (Get-ZtConfig -ExportPath $ExportPath -Property $Name) {
 		Write-PSFMessage "Skipping {0} since it was downloaded previously" -StringValues $Name -Target $Name -Tag Export, redundant, skip
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail 'Skipped (cached)'
 		return
 	}
 
@@ -58,6 +59,7 @@
 		$results.value = @($groups | ForEach-Object {
 				# 5/10/2024 - Entra ID Role Enabled Security Groups do not currently support nesting so we don't need to get transitive members
 				$groupId = $_.principal.id
+				Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET beta/groups/$groupId/members"
 				$members = Get-ZtGroupMember -GroupId $groupId -OutputType Hashtable
 				foreach ($member in $members) {
 					# Clone the hashtable, so we don't modify the hashed results from the membership resolution

@@ -8,9 +8,9 @@
 .DESCRIPTION
     Updates the tests recommendations from the Entra, Intune, and Purview docs
 
-	Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs'
-	Assume the path to the Intune docs is in a parent directory to this repo with the name 'memdocs'
-	Assume the path to the Purview docs is in a parent directory to this repo with the name 'purview-pr'
+	Assume the path to the Entra docs is in a parent directory to this repo with the name 'entra-docs' (https://github.com/microsoftdocs/entra-docs)
+	Assume the path to the Intune docs is in a parent directory to this repo with the name 'memdocs' (https://github.com/microsoftdocs/memdocs)
+	Assume the path to the Purview docs is in a parent directory to this repo with the name 'purview-pr' (https://github.com/microsoftdocs/purview-pr)
 #>
 [CmdletBinding()]
 param (
@@ -356,7 +356,7 @@ $docsSources = @(
 	}
 	@{
 		Name        = 'Intune'
-		Folder      = Join-Path -Path "$($PSScriptRoot)/../../memdocs" -ChildPath 'intune/intune-service/protect/includes/secure-recommendations'
+		Folder      = Join-Path -Path "$($PSScriptRoot)/../../memdocs" -ChildPath 'intune/device-security/includes/secure-recommendations'
 		DocsBaseUrl = 'https://learn.microsoft.com/en-us/intune/'
 	}
 	@{
