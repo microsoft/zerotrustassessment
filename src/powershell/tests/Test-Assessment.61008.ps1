@@ -16,7 +16,7 @@
     Test ID: 61008
     Category: Secure AI Authentication and Access
     Pillar: AI
-    Required APIs: servicePrincipals (v1.0)
+    Required APIs: servicePrincipals (beta)
     Required Permissions: Application.Read.All, CustomSecAttributeAssignment.Read.All
     Required Roles: Attribute Assignment Reader or Attribute Assignment Administrator
     Workshop Task: AI_005
