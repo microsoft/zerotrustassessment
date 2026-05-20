@@ -64,7 +64,7 @@ function Test-Assessment-61012 {
     # Agent identity policies that are enabled, target high risk, and apply block.
     $blockingPolicies = @($agentIdentityPolicies | Where-Object {
         $_.state -eq 'enabled' -and
-        $_.conditions.agentIdRiskLevels -eq 'high' -and
+        ($_.conditions.agentIdRiskLevels -split ',') -contains 'high' -and
         (@($_.grantControls.builtInControls) -contains 'block')
     })
 
@@ -101,7 +101,7 @@ function Test-Assessment-61012 {
             $stateLabel = Get-ZtCaPolicyState -State $policy.state
 
             $riskLevel = if ($policy.conditions.agentIdRiskLevels) { $policy.conditions.agentIdRiskLevels } else { 'Not configured' }
-            $riskLevelLabel = if ($policy.conditions.agentIdRiskLevels -eq 'high') { "✅ $riskLevel" } else { "❌ $riskLevel" }
+            $riskLevelLabel = if (($policy.conditions.agentIdRiskLevels -split ',') -contains 'high') { "✅ $riskLevel" } else { "❌ $riskLevel" }
 
             $grantControls = (@($policy.grantControls.builtInControls) | Where-Object { $_ }) -join ', '
             if (-not $grantControls) { $grantControls = 'None' }
