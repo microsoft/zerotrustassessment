@@ -196,8 +196,7 @@ order by "@odata.type", displayName
     # Sub-condition A failures table
     # Note: Spec requested Object ID / App ID columns, but ZT engineering standards prohibit
     # raw IDs in output tables. The Display Name is linked to the per-item portal blade for
-    # agent identities, and to the all-blueprints listing page for blueprint principals
-    # (no confirmed per-item URL for that derived type).
+    # both agent identities and blueprint principals (see Get-AgentPortalUrl above).
     if ($subAFailed) {
         $mdInfo += "## Agent identities and blueprint principals without an assigned owner`n`n"
         $mdInfo += "| Object type | Display name | Account enabled |`n"
