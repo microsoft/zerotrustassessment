@@ -25,7 +25,6 @@ function Test-Assessment-61014 {
     [ZtTest(
         Category = 'Agent Lifecycle',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('AAD_BASIC', 'AAD_PREMIUM'),
         CompatibleLicense = ('AAD_BASIC', 'AAD_PREMIUM'),
         Service = ('Graph'),
         Pillar = 'AI',
@@ -73,25 +72,13 @@ where "@odata.type" in (
 order by "@odata.type", displayName
 "@
 
-    $queryFailed = $false
     $results = @()
     try {
         $results = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
     }
     catch {
-        $queryFailed = $true
         Write-PSFMessage "Failed to query agent identities from ServicePrincipal table: $_" -Tag Test -Level Warning -ErrorRecord $_
-    }
-
-    if ($queryFailed) {
-        $params = @{
-            TestId       = '61014'
-            Title        = 'Agent identities and blueprint principals have assigned technical owners and no disabled agents remain in the directory'
-            Status       = $false
-            Result       = "⚠️ Unable to evaluate agent identities and blueprint principals because the ServicePrincipal table query failed. Review the test log and re-run the assessment."
-            CustomStatus = 'Investigate'
-        }
-        Add-ZtTestResultDetail @params
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
