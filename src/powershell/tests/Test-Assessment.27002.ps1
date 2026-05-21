@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     TLS inspection certificates have sufficient validity period to prevent service disruption
 
@@ -15,17 +15,17 @@
 
 function Test-Assessment-27002 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'Low',
-        Service = ('Graph'),
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce', 'External'),
-        TestId = '27002',
-        Title = 'TLS inspection certificates have sufficient validity period to prevent service disruption',
-        UserImpact = 'High'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	Service = ('Graph'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce','External'),
+    	TestId = 27002,
+    	Title = 'TLS inspection certificates have a sufficient validity period',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

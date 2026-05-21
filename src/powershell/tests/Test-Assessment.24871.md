@@ -6,7 +6,7 @@ Enabling automatic Defender enrollment ensures Android devices are protected by 
 
 Use Intune to configure automatic enrollment into Microsoft Defender for Endpoint for Android devices to enforce mobile threat protection:
 
-- [Integrate Microsoft Defender for Endpoint with Intune and Onboard Devices](https://learn.microsoft.com/intune/intune-service/protect/advanced-threat-protection-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Integrate Microsoft Defender for Endpoint with Intune and Onboard Devices](https://learn.microsoft.com/intune/device-security/microsoft-defender/configure-integration?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

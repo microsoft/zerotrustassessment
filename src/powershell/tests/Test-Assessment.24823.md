@@ -6,7 +6,7 @@ Customizing the Company Portal with your organization’s branding and support c
 **Remediation action**
 
 Configure the Intune Company Portal with your organization’s branding and support contact information to enhance user experience and reduce support overhead:  
-- [Configure the Intune Company Portal](https://learn.microsoft.com/intune/intune-service/apps/company-portal-app?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Configure the Intune Company Portal](https://learn.microsoft.com/intune/app-management/configuration/configure-company-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

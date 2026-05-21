@@ -7,11 +7,11 @@ These policies enforce encryption, restrict data sharing, and require authentica
 **Remediation action**
 
 Deploy Intune app protection policies that encrypt data, restrict sharing, and require authentication in approved Android apps:  
-- [Deploy Intune app protection policies](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policies?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-an-iosipados-or-android-app-protection-policy)
-- [Review the Android app protection settings reference](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy-settings-android?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Deploy Intune app protection policies](https://learn.microsoft.com/intune/app-management/protection/create-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-an-iosipados-or-android-app-protection-policy)
+- [Review the Android app protection settings reference](https://learn.microsoft.com/intune/app-management/protection/ref-settings-android?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 
 For more information, see:  
-- [Learn about using app protection policies](https://learn.microsoft.com/intune/intune-service/apps/app-protection-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Learn about using app protection policies](https://learn.microsoft.com/intune/app-management/protection/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

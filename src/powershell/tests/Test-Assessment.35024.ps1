@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Azure Rights Management licensing is enabled
 
@@ -27,7 +27,7 @@ function Test-Assessment-35024 {
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce'),
     	TestId = 35024,
-    	Title = 'Azure Rights Management service is enabled',
+    	Title = 'Azure Rights Management service is activated',
     	UserImpact = 'High'
     )]
     [CmdletBinding()]
