@@ -59,11 +59,16 @@ function Test-Assessment-61008 {
         if ($Csa -is [string]) {
             if ([string]::IsNullOrWhiteSpace($Csa)) { return $false }
             if ($Csa.Trim() -eq '{}') { return $false }
-            return $true
+            try { $Csa = $Csa | ConvertFrom-Json } catch { return $false }
         }
         if ($Csa -is [hashtable]) { return $Csa.Count -gt 0 }
-        $props = @($Csa.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' })
-        return $props.Count -gt 0
+        $attrSets = @($Csa.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' })
+        foreach ($attrSet in $attrSets) {
+            if ($null -eq $attrSet.Value) { continue }
+            $attrs = @($attrSet.Value.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' -and $_.Name -notlike '@*' })
+            if ($attrs.Count -gt 0) { return $true }
+        }
+        return $false
     }
 
     function Get-CsaAttributeNames {
