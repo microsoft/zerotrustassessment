@@ -5,7 +5,7 @@ Device cleanup rules automatically hide inactive devices from admin views and re
 **Remediation action**
 
 Configure Intune device cleanup rules to automatically hide inactive devices from the tenant:  
-- [Create a device cleanup rule](https://learn.microsoft.com/intune/intune-service/fundamentals/device-cleanup-rules?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-to-create-a-device-cleanup-rule)
+- [Create a device cleanup rule](https://learn.microsoft.com/intune/governance/configure-cleanup-rules?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#how-to-create-a-device-cleanup-rule)
 
 For more information, see:  
 - [Using Intune device cleanup rules](https://techcommunity.microsoft.com/blog/devicemanagementmicrosoft/using-intune-device-cleanup-rules-updated-version/3760854) *on the Microsoft Tech Community blog*

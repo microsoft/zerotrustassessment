@@ -6,8 +6,8 @@ Enforcing Defender Antivirus policies ensures consistent protection against malw
 
 Configure and assign Intune policies for Microsoft Defender Antivirus to enforce real-time protection, maintain up-to-date definitions, and reduce exposure to malware:
 
-- [Configure Intune policies to manage Microsoft Defender Antivirus](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-antivirus-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#windows)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Configure Intune policies to manage Microsoft Defender Antivirus](https://learn.microsoft.com/intune/device-configuration/endpoint-security/antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#windows)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 <!--- Results --->
 %TestResult%
 

@@ -1,6 +1,4 @@
-Without Data Loss Prevention (DLP) policies, employees can freely share sensitive information through email, file uploads, or Microsoft Teams communications, increasing the risk of data breaches and regulatory violations.
-
-DLP policies automatically monitor, detect, and prevent the disclosure of sensitive information across Microsoft 365 workloads, providing automated protection against unauthorized data exfiltration.
+A DLP policy can help you identify, monitor, and automatically protect sensitive information in Enterprise applications & devices and Inline web traffic data. DLP policies act on a variety of locations, methods of data transmission, and types of user activities. By protecting sensitive information, DLP policies can help you prevent data leaks, ensure compliance with regulations, and maintain the confidentiality of your organization's data.
 
 **Remediation action**
 
