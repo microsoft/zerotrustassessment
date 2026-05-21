@@ -12,7 +12,7 @@
 RootModule = 'ZeroTrustAssessment.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.1.8'
+ModuleVersion = '2.3.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core', 'Desktop'
@@ -71,12 +71,7 @@ FormatsToProcess = 'ZeroTrustAssessment.format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Connect-ZtAssessment', 'Disconnect-ZtAssessment',
-               'Get-ZtExportStatistics', 'Get-ZtGraphScope', 'Get-ZtTest',
-               'Get-ZtTestStatistics', 'Invoke-ZtAssessment',
-               'Invoke-ZtGraphRequest', 'Invoke-ZtAzureRequest',
-               'Invoke-ZtAzureResourceGraphRequest', 'Clear-ZtRequiredModule',
-               'Get-ZtCurrentLicense'
+FunctionsToExport = @('Clear-ZtRequiredModule','Connect-ZtAssessment','Disconnect-ZtAssessment','Get-ZtCurrentLicense','Get-ZtExportStatistics','Get-ZtGraphScope','Get-ZtTest','Get-ZtTestStatistics','Invoke-ZtAssessment','Invoke-ZtAzureRequest','Invoke-ZtAzureResourceGraphRequest','Invoke-ZtGraphRequest')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -139,7 +134,7 @@ PrivateData = @{
         # ReleaseNotes = ''
 
         # Prerelease string of this module
-        Prerelease = 'preview'
+        Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
