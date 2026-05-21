@@ -101,14 +101,24 @@ function Test-Assessment-61009 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = ''
+    $mdInfo              = ''
+    $reportTitle         = 'Conditional Access policies covering agent principals'
+    $portalLink          = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
+    $portalPolicyBaseUrl = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/'
+
+    $formatTemplate = @'
+
+
+### [{0}]({1})
+
+| Policy | Targeted Agent Identity types | State | Grant controls | Status |
+| :----- | :---------------------------- | :---- | :------------- | :----- |
+{2}
+'@
+
+    $agentPolicies = @()
 
     if (-not $queryError) {
-        $caPoliciesLink      = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
-        $policyPortalBaseUrl = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/'
-
-        $agentPolicies = @()
-
         foreach ($policy in ($agentIdentityPolicies | Sort-Object displayName)) {
             $clientApps   = $policy.conditions.clientApplications
             $targetedType = if ($null -ne $clientApps -and
@@ -130,29 +140,19 @@ function Test-Assessment-61009 {
                 IsBlocking   = ($agentUserBlockPolicies | Where-Object { $_.id -eq $policy.id }).Count -gt 0
             }
         }
+    }
 
-        if ($agentPolicies.Count -eq 0) {
-            $mdInfo = "`n> No Conditional Access policies targeting agent identities or agent users were found.`n"
+    $tableRows = ''
+    if ($agentPolicies.Count -gt 0) {
+        foreach ($entry in $agentPolicies) {
+            $pol        = $entry.Policy
+            $policyName = Get-SafeMarkdown -Text $pol.displayName
+            $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
+            $status     = if ($entry.IsBlocking) { '✅ Pass' } else { '❌ Fail' }
+            $tableRows += "| [$policyName]($portalPolicyBaseUrl$($pol.id)) | $($entry.TargetedType) | $(Get-ZtCaPolicyState -State $pol.state) | $grants | $status |`n"
         }
-        else {
-            $tableRows = ''
-            foreach ($entry in $agentPolicies) {
-                $pol        = $entry.Policy
-                $policyName = Get-SafeMarkdown -Text $pol.displayName
-                $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
-                $status     = if ($entry.IsBlocking) { '✅ Pass' } else { '❌ Fail' }
-                $tableRows += "| [$policyName]($policyPortalBaseUrl$($pol.id)) | $($entry.TargetedType) | $(Get-ZtCaPolicyState -State $pol.state) | $grants | $status |`n"
-            }
 
-            $mdInfo = @"
-
-### [Conditional Access policies covering agent principals]($caPoliciesLink)
-
-| Policy | Targeted Agent Identity types | State | Grant controls | Status |
-| :----- | :---------------------------- | :---- | :------------- | :----- |
-$tableRows
-"@
-        }
+        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
