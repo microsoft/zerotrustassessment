@@ -135,7 +135,7 @@ WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
     }
     catch {
         Write-PSFMessage "Failed to query agent identities from database: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported -Result 'The Agent ID feature may not be available in this tenant, or the query returned an unexpected error.'
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No agent identity service principals were found.'
         return
     }
 
