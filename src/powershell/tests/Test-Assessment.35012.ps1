@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Container labels are configured for Teams, groups, and sites
 
@@ -17,18 +17,18 @@
 function Test-Assessment-35012 {
 
     [ZtTest(
-        Category = 'Sensitivity Labels Configuration',
-        ImplementationCost = 'Medium',
-        Service = ('SecurityCompliance'),
-        MinimumLicense = ('Microsoft 365 E5'),
-        CompatibleLicense = ('RMS_S_PREMIUM2'),
-        Pillar = ('Data', 'AI'),
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = 'Workforce',
-        TestId = 35012,
-        Title = 'Container labels are configured for Teams, groups, and sites',
-        UserImpact = 'High'
+    	Category = 'Sensitivity Labels Configuration',
+    	ImplementationCost = 'Medium',
+    	MinimumLicense = ('Microsoft 365 E5'),
+    	CompatibleLicense = ('RMS_S_PREMIUM2'),
+    	Service = ('SecurityCompliance'),
+    	Pillar = 'Data',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce'),
+    	TestId = 35012,
+    	Title = 'Container labels are configured for collaborative workspaces',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param()

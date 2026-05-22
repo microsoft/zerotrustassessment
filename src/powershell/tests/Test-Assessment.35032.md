@@ -1,6 +1,6 @@
-Adaptive Protection ensures that data loss prevention (DLP) policies are tailored to each user's risk profile, rather than applying the same rules to everyone. Without Adaptive Protection, organizations miss the chance to prevent insider threats because they can't respond to behavioral indicators like unusual data access or risky activities.
+With Adaptive Protection, organizations can apply the right controls to the right users based on the risk of their behavior.
 
-By integrating Insider Risk Management with DLP, Adaptive Protection uses machine learning to identify users as high, moderate, or low risk. This lets Adaptive Protection automatically apply stricter DLP controls to those at higher risk, while allowing more flexibility for others, an approach that helps protect sensitive data and supports operational efficiency.
+Adaptive Protection in Microsoft Purview integrates Microsoft Purview Insider Risk Management machine learning with Microsoft Purview Data Loss Prevention (DLP). When insider risk identifies a user who is engaging in risky behavior, they're dynamically assigned to an inside risk level. Then Adaptive Protection can automatically create a DLP policy to help protect the organization against the risky behavior that's associated with that inside risk level. As users insider risk levels change in insider risk management, the DLP policies applied to users can adjust.
 
 **Remediation action**
 

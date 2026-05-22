@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates that Port 53 is published or private DNS is configured for Private Access applications.
 
@@ -23,17 +23,17 @@
 
 function Test-Assessment-25400 {
     [ZtTest(
-        Category = 'Private Access',
-        ImplementationCost = 'Low',
-        Service = ('Graph'),
-        MinimumLicense = ('AAD_PREMIUM', 'Entra_Premium_Private_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'Low',
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25400,
-        Title = 'Is port 53 published or private DNS configured for Private Access applications',
-        UserImpact = 'Low'
+    	Category = 'Private Access',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('AAD_PREMIUM','Entra_Premium_Private_Access'),
+    	Service = ('Graph'),
+    	Pillar = 'Network',
+    	RiskLevel = 'Low',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25400,
+    	Title = 'DNS traffic for internal domains is routed through Private Access',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(

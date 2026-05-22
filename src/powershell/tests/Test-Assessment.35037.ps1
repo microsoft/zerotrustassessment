@@ -1,22 +1,22 @@
-<#
+﻿<#
 .SYNOPSIS
     Purview audit logging is enabled
 #>
 
 function Test-Assessment-35037 {
     [ZtTest(
-        Category = 'Data Security Posture Management',
-        ImplementationCost = 'Low',
-        Service = ('ExchangeOnline'),
-        MinimumLicense = ('Microsoft 365 E3'),
-        CompatibleLicense = ('RMS_S_PREMIUM'),
-        Pillar = ('Data', 'AI'),
-        RiskLevel = 'High',
-        SfiPillar = 'Protect tenants and production systems',
-        TenantType = ('Workforce','External'),
-        TestId = 35037,
-        Title = 'Purview audit logging is enabled',
-        UserImpact = 'Low'
+    	Category = 'Data Security Posture Management',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Microsoft 365 E3'),
+    	CompatibleLicense = ('RMS_S_PREMIUM'),
+    	Service = ('ExchangeOnline'),
+    	Pillar = 'Data',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect tenants and production systems',
+    	TenantType = ('Workforce','External'),
+    	TestId = 35037,
+    	Title = 'Microsoft 365 audit logging is enabled',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
