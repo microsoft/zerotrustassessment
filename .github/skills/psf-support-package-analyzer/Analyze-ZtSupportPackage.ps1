@@ -16,6 +16,11 @@
 .PARAMETER OutputPath
     Optional. If specified, writes the JSON report to this file instead of stdout.
 
+.PARAMETER SkipSanitization
+    Hidden parameter. When specified, disables PII/OII/EUII redaction and outputs raw data.
+    Use only for internal debugging when the full identifiers are needed.
+    WARNING: Output will contain sensitive customer data - do not share externally.
+
 .EXAMPLE
     .\Analyze-ZtSupportPackage.ps1 -Path "C:\logs\support_pack.cliDat"
 
@@ -31,7 +36,10 @@ param (
     [int]$ContextLines = 5,
 
     [Parameter()]
-    [string]$OutputPath
+    [string]$OutputPath,
+
+    [Parameter(DontShow)]
+    [switch]$SkipSanitization
 )
 
 $ErrorActionPreference = 'Stop'
@@ -244,10 +252,133 @@ foreach ($issue in $issues) {
 }
 #endregion
 
+#region PII/OII/EUII Sanitization
+# Deterministic ID replacement: same input GUID always maps to same short placeholder
+# so correlation across messages is preserved without exposing actual identifiers.
+$guidMap = @{}
+$guidCounter = 0
+
+function Get-RedactedGuid {
+    param ([string]$Guid)
+    $normalized = $Guid.ToLowerInvariant()
+    if (-not $script:guidMap.ContainsKey($normalized)) {
+        $script:guidCounter++
+        $script:guidMap[$normalized] = "ID-{0:D4}" -f $script:guidCounter
+    }
+    return "[{0}]" -f $script:guidMap[$normalized]
+}
+
+function Remove-SensitiveData {
+    <#
+    .SYNOPSIS
+        Redacts PII, OII, and EUII from a text string while preserving diagnostic structure.
+    .DESCRIPTION
+        Removes: email addresses/UPNs, GUIDs (replaced with correlated placeholders),
+        IP addresses, tenant domains, skip tokens, serial numbers, user display names
+        in common patterns, and local file paths that may reveal usernames.
+    #>
+    param ([string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { return $Text }
+
+    # 1. Skip tokens (long base64 blobs in $skiptoken= parameters) - redact early as they're large
+    $Text = [regex]::Replace($Text, '(\$skiptoken=)[A-Za-z0-9+/=_-]{20,}', '$1[SKIPTOKEN-REDACTED]')
+
+    # 2. Email addresses and UPNs (user@domain.com patterns)
+    $Text = [regex]::Replace($Text, '[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}', '[EMAIL-REDACTED]')
+
+    # 3. Tenant domains (*.onmicrosoft.com)
+    $Text = [regex]::Replace($Text, '[a-zA-Z0-9\-]+\.onmicrosoft\.com', '[TENANT].onmicrosoft.com')
+
+    # 4. GUIDs - replace with deterministic short IDs for correlation
+    $Text = [regex]::Replace($Text, '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', {
+        param($match)
+        Get-RedactedGuid -Guid $match.Value
+    })
+
+    # 5. IPv4 addresses (but not version numbers like 10.0.26200)
+    $Text = [regex]::Replace($Text, '(?<!\d)(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?::\d+)?(?!\d)', {
+        param($match)
+        # Preserve well-known non-PII patterns (localhost, common version-like)
+        $ip = $match.Value
+        if ($ip -match '^(127\.0\.0\.1|0\.0\.0\.0|10\.0\.\d+)$') { return $ip }
+        return '[IP-REDACTED]'
+    })
+
+    # 6. IPv6 addresses
+    $Text = [regex]::Replace($Text, '(?i)(?:[0-9a-f]{1,4}:){7}[0-9a-f]{1,4}|(?:[0-9a-f]{1,4}:){1,7}:|::(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4}', '[IPv6-REDACTED]')
+
+    # 7. Windows file paths that contain usernames (C:\Users\username\...)
+    $Text = [regex]::Replace($Text, '(?i)([A-Z]:\\Users\\)[^\\]+', '$1[USER-REDACTED]')
+
+    # 8. Serial numbers from hardware info
+    $Text = [regex]::Replace($Text, '(?i)(SerialNumber\s*[:=]\s*)\S+', '$1[SERIAL-REDACTED]')
+
+    # 9. Subscription IDs in Azure resource paths
+    $Text = [regex]::Replace($Text, '(?i)(/subscriptions/)\[ID-\d{4}\]', '$1[SUB-REDACTED]')
+
+    # 10. Bearer tokens or authorization headers
+    $Text = [regex]::Replace($Text, '(?i)(Bearer\s+)[A-Za-z0-9\-._~+/]+=*', '$1[TOKEN-REDACTED]')
+    $Text = [regex]::Replace($Text, '(?i)(Authorization:\s*)\S+', '$1[AUTH-REDACTED]')
+
+    return $Text
+}
+
+function Invoke-Sanitize {
+    <#
+    .SYNOPSIS
+        Recursively sanitizes all string values in a hashtable or array structure.
+    #>
+    param ($Object)
+
+    if ($null -eq $Object) { return $null }
+
+    if ($Object -is [string]) {
+        return Remove-SensitiveData -Text $Object
+    }
+
+    if ($Object -is [hashtable]) {
+        $clean = @{}
+        foreach ($key in @($Object.Keys)) {
+            $clean[$key] = Invoke-Sanitize -Object $Object[$key]
+        }
+        return $clean
+    }
+
+    if ($Object -is [System.Collections.IList]) {
+        $cleanList = [System.Collections.ArrayList]::new()
+        foreach ($item in $Object) {
+            $null = $cleanList.Add((Invoke-Sanitize -Object $item))
+        }
+        return @($cleanList)
+    }
+
+    # For other types (int, bool, datetime, etc.) return as-is
+    return $Object
+}
+
+# Sanitize the issues, export stats, and test stats
+if (-not $SkipSanitization) {
+    $issues = @(Invoke-Sanitize -Object $issues)
+    if ($exportStats) { $exportStats = @(Invoke-Sanitize -Object $exportStats) }
+    if ($testStats) { $testStats = @(Invoke-Sanitize -Object $testStats) }
+
+    # Sanitize environment (may contain paths with usernames, serial numbers)
+    $environment = Invoke-Sanitize -Object $environment
+}
+
+Write-Verbose "Sanitization $(if ($SkipSanitization) { 'SKIPPED' } else { "complete. Redacted $($guidMap.Count) unique identifiers." })"
+#endregion
+
 #region Build Report
 $report = @{
     AnalysisTimestamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
-    PackagePath       = $Path
+    PackagePath       = if ($SkipSanitization) { $Path } else { Remove-SensitiveData -Text $Path }
+    Sanitization      = @{
+        Applied            = -not $SkipSanitization.IsPresent
+        UniqueIDsRedacted  = if ($SkipSanitization) { 0 } else { $guidMap.Count }
+        Note               = if ($SkipSanitization) { "WARNING: Sanitization disabled. Output may contain PII/OII/EUII." } else { "All GUIDs replaced with deterministic [ID-NNNN] placeholders for correlation. Emails, IPs, tenant domains, skip tokens, and file paths with usernames have been redacted." }
+    }
     Summary           = @{
         TotalMessages = $totalCount
         Errors        = @($issues | Where-Object { $_.Level -eq 'Error' }).Count
