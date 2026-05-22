@@ -87,6 +87,8 @@
 	}
 
 	$testsToRun = Get-ZtTest -Tests $Tests -Pillar $Pillar -TenantType $tenantTypeMapping[$TenantType]
+	# Store the requested pillar so Get-ZtAssessmentResults can restrict TestPillar on cross-ref tests
+	$script:__ZtSession.RequestedPillar = $Pillar
 
 	# Filter based on preview feature flag
 	if (-not $script:__ZtSession.PreviewEnabled) {

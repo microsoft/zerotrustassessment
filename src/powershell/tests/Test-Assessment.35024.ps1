@@ -22,7 +22,7 @@ function Test-Assessment-35024 {
     	MinimumLicense = ('Microsoft 365 E3'),
     	CompatibleLicense = ('RMS_S_PREMIUM'),
     	Service = ('ExchangeOnline'),
-    	Pillar = 'Data',
+    	Pillar = ('Data', 'AI'),
     	RiskLevel = 'High',
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce'),

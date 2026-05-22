@@ -22,7 +22,7 @@ function Test-Assessment-35041 {
         Service = ('SecurityCompliance'),
         MinimumLicense = ('Microsoft 365 E5', 'Microsoft Purview PAYG'),
         CompatibleLicense = ('RMS_S_PREMIUM2'),
-        Pillar = 'Data',
+        Pillar = ('Data', 'AI'),
         RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
