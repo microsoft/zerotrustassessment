@@ -27,7 +27,7 @@ function Test-Assessment-61008 {
         Category = 'Secure AI Authentication and Access',
         ImplementationCost = 'Medium',
         Service = ('Graph'),
-        CompatibleLicense = ('AAD_BASIC', 'AAD_PREMIUM'),
+        CompatibleLicense = ('Free'),
         Pillar = 'AI',
         RiskLevel = 'Medium',
         SfiPillar = 'Protect identities and secrets',
