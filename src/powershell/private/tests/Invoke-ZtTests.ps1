@@ -119,7 +119,7 @@
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
 	# Tests that depend on SecurityCompliance remoting must run on the main thread regardless of pillar.
 	[int[]]$syncTestIds   = $testsToRun.Where{
-		$_.Pillar -eq 'Data' -or $_.Service -contains 'SecurityCompliance'
+		$_.Pillar -contains 'Data' -or $_.Service -contains 'SecurityCompliance'
 	}.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
