@@ -180,6 +180,22 @@ Use -ProductionBuild since this is not -Preview build.
 ./build/powershell/Build-PSModule.ps1 -ProductionBuild
 ```
 
+### DuckDB dependency flow
+
+DuckDB is declared in the root `packages.config`. The module uses `DuckDB.NET.Data.Full`; `DuckDB.NET.Bindings.Full` is also pinned there because it contains the native DuckDB assets used at runtime. The package is pinned to the newest DuckDB.NET line that still ships `net6.0` assemblies, matching the current PowerShell module runtime.
+
+During `Build-PSModule.ps1`, `Restore-NugetPackages.ps1` restores those packages into `build/packages`. The build then copies the managed assemblies and native Windows/macOS/Linux x64 libraries into the packaged module's `lib` folder:
+
+```text
+lib/DuckDB.NET.Data.dll
+lib/DuckDB.NET.Bindings.dll
+lib/duckdb.dll
+lib/libduckdb.dylib
+lib/libduckdb.so
+```
+
+To update DuckDB, change the DuckDB package versions in `packages.config` and run the module build again. Dependabot monitors this NuGet manifest.
+
 ### Publish to the PowerShell gallery
 
 To publish the module to the PowerShell gallery, run the following command from the root.

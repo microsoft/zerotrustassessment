@@ -206,6 +206,18 @@ PublishScripts/
 *.nuget.props
 *.nuget.targets
 
+# DuckDB binaries are restored from NuGet and copied during module build.
+src/powershell/lib/DuckDB.NET.Data.dll
+src/powershell/lib/DuckDB.NET.Bindings.dll
+src/powershell/lib/duckdb.dll
+src/powershell/lib/libduckdb.dylib
+src/powershell/lib/libduckdb.so
+build/release/**/lib/DuckDB.NET.Data.dll
+build/release/**/lib/DuckDB.NET.Bindings.dll
+build/release/**/lib/duckdb.dll
+build/release/**/lib/libduckdb.dylib
+build/release/**/lib/libduckdb.so
+
 # Microsoft Azure Build Output
 csx/
 *.build.csdef

@@ -61,6 +61,56 @@ if ($LicenseFileInfo.Exists) {
     Copy-Item $LicenseFileInfo.FullName -Destination (Join-Path $ModuleOutputDirectoryInfo.FullName License.txt) -Force
 }
 
+function Copy-DuckDBDependencyFiles {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [xml] $PackagesConfig,
+
+        [Parameter(Mandatory)]
+        [System.IO.DirectoryInfo] $PackagesDirectory,
+
+        [Parameter(Mandatory)]
+        [System.IO.DirectoryInfo] $ModuleOutputDirectory
+    )
+
+    $duckDBDataPackage = $PackagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Data.Full' | Select-Object -First 1
+    $duckDBBindingsPackage = $PackagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Bindings.Full' | Select-Object -First 1
+
+    if (!$duckDBDataPackage -and !$duckDBBindingsPackage) { return }
+    if (!$duckDBDataPackage -or !$duckDBBindingsPackage) {
+        throw 'DuckDB restore requires both DuckDB.NET.Data.Full and DuckDB.NET.Bindings.Full in packages.config.'
+    }
+
+    $targetFramework = [string] $duckDBDataPackage.targetFramework
+    if (!$targetFramework) { $targetFramework = 'net6.0' }
+
+    [System.IO.DirectoryInfo] $moduleLibDirectory = Join-Path $ModuleOutputDirectory.FullName 'lib'
+    Assert-DirectoryExists $moduleLibDirectory -ErrorAction Stop | Out-Null
+
+    $duckDBDataPackageDirectory = Join-Path $PackagesDirectory.FullName ("{0}.{1}" -f $duckDBDataPackage.id, $duckDBDataPackage.version)
+    $duckDBBindingsPackageDirectory = Join-Path $PackagesDirectory.FullName ("{0}.{1}" -f $duckDBBindingsPackage.id, $duckDBBindingsPackage.version)
+
+    $duckDBDataLibDirectory = Join-Path (Join-Path $duckDBDataPackageDirectory 'lib') $targetFramework
+    $duckDBBindingsLibDirectory = Join-Path (Join-Path $duckDBBindingsPackageDirectory 'lib') $targetFramework
+    $duckDBRuntimesDirectory = Join-Path $duckDBBindingsPackageDirectory 'runtimes'
+
+    $filesToCopy = @(
+        (Join-Path $duckDBDataLibDirectory 'DuckDB.NET.Data.dll'),
+        (Join-Path $duckDBBindingsLibDirectory 'DuckDB.NET.Bindings.dll'),
+        (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'win-x64') 'native') 'duckdb.dll'),
+        (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'osx') 'native') 'libduckdb.dylib'),
+        (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'linux-x64') 'native') 'libduckdb.so')
+    )
+
+    foreach ($file in $filesToCopy) {
+        if (!(Test-Path -Path $file -PathType Leaf)) {
+            throw "Expected DuckDB package asset not found: $file"
+        }
+        Copy-Item -Path $file -Destination $moduleLibDirectory.FullName -Force
+    }
+}
+
 if ($PackagesConfigFileInfo.Exists) {
     ## NuGet Restore
     &$PSScriptRoot\Restore-NugetPackages.ps1 -PackagesConfigPath $PackagesConfigFileInfo.FullName -OutputDirectory $PackagesDirectoryInfo.FullName
@@ -71,6 +121,7 @@ if ($PackagesConfigFileInfo.Exists) {
 
     ## Copy Packages to Module Output Directory
     foreach ($package in $xmlPackagesConfig.packages.package) {
+        if ($package.id -in 'DuckDB.NET.Data.Full', 'DuckDB.NET.Bindings.Full') { continue }
         [string[]] $targetFrameworks = $package.targetFramework
         if (!$targetFrameworks) { [string[]] $targetFrameworks = "net45", "netcoreapp2.1" }
         foreach ($targetFramework in $targetFrameworks) {
@@ -81,6 +132,8 @@ if ($PackagesConfigFileInfo.Exists) {
             Copy-Item ("{0}\*" -f $PackageDirectory) -Destination $PackageOutputDirectory.FullName -Recurse -Force
         }
     }
+
+    Copy-DuckDBDependencyFiles -PackagesConfig $xmlPackagesConfig -PackagesDirectory $PackagesDirectoryInfo -ModuleOutputDirectory $ModuleOutputDirectoryInfo
 }
 
 ## Get Module Output FileList
