@@ -45,25 +45,10 @@ function Test-Assessment-61006 {
 
     # In-scope roles - workshop guidance AI_149. Reader tier (Global Reader, Security Reader)
     # downgrades to Investigate instead of Fail at the tenant level per spec.
-    $inScopeRoles = @(
-        @{ Name = 'AI Administrator';                   Id = 'd2562ede-74db-457e-a7b6-544e236ebb61'; Tier = 'Admin'  }
-        @{ Name = 'Agent ID Administrator';             Id = 'db506228-d27e-4b7d-95e5-295956d6615f'; Tier = 'Admin'  }
-        @{ Name = 'Agent ID Developer';                 Id = 'adb2368d-a9be-41b5-8667-d96778e081b0'; Tier = 'Admin'  }
-        @{ Name = 'Agent Registry Administrator';       Id = '6b942400-691f-4bf0-9d12-d8a254a2baf5'; Tier = 'Admin'  }
-        @{ Name = 'Application Administrator';          Id = '9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3'; Tier = 'Admin'  }
-        @{ Name = 'Compliance Administrator';           Id = '17315797-102d-40b4-93e0-432062caca18'; Tier = 'Admin'  }
-        @{ Name = 'Compliance Data Administrator';      Id = 'e6d1a23a-da11-4be4-9570-befc86d067a7'; Tier = 'Admin'  }
-        @{ Name = 'Conditional Access Administrator';   Id = 'b1be1c3e-b65d-4f19-8427-f6fa0d97feb9'; Tier = 'Admin'  }
-        @{ Name = 'Global Reader';                      Id = 'f2ef992c-3afb-46b9-b7cf-a126ee74c451'; Tier = 'Reader' }
-        @{ Name = 'Global Secure Access Administrator'; Id = 'ac434307-12b9-4fa1-a708-88bf58caabc1'; Tier = 'Admin'  }
-        @{ Name = 'Identity Governance Administrator';  Id = '45d8d3c5-c802-45c6-b32a-1d70b5e1e86e'; Tier = 'Admin'  }
-        @{ Name = 'Intune Administrator';               Id = '3a2c62db-5318-420d-8d74-23affee5d9d5'; Tier = 'Admin'  }
-        @{ Name = 'Power Platform Administrator';       Id = '11648597-926c-4cf3-9c36-bcebb0ba8dcc'; Tier = 'Admin'  }
-        @{ Name = 'Security Administrator';             Id = '194ae4cb-b126-40b2-bd5b-6091b380977d'; Tier = 'Admin'  }
-        @{ Name = 'Security Operator';                  Id = '5f2222b1-57c3-48ba-8ad5-d4759f1fde6f'; Tier = 'Admin'  }
-        @{ Name = 'Security Reader';                    Id = '5d6b6bb7-de71-4623-b4af-96380a352509'; Tier = 'Reader' }
-        @{ Name = 'SharePoint Administrator';           Id = 'f28a1f50-f6e7-4571-818b-6a12f2af6b6c'; Tier = 'Admin'  }
-    )
+    # The canonical AI control-plane role catalog lives in
+    # private/tests-shared/Get-ZtAiAdminRoleDefinitions.ps1 so it can be reused
+    # by future AI_149-family checks.
+    $inScopeRoles = Get-ZtAiAdminRoleDefinitions
 
     $roleIdInClause = ($inScopeRoles | ForEach-Object { "'$($_.Id)'" }) -join ', '
 
@@ -75,9 +60,13 @@ function Test-Assessment-61006 {
     # Q1 equivalent: which role definitions are present in this tenant / cloud / SKU.
     Write-ZtProgress -Activity $activity -Status 'Loading role definitions'
     $presentRoleIds = @()
+    $roleDefinitionTableMissing = $false
     if ($existingTables -contains 'RoleDefinition') {
         $defSql = "SELECT cast(id AS varchar) AS id FROM main.""RoleDefinition"" WHERE id IN ($roleIdInClause)"
         $presentRoleIds = @(Invoke-DatabaseQuery -Database $Database -Sql $defSql | Select-Object -ExpandProperty id)
+    }
+    else {
+        $roleDefinitionTableMissing = $true
     }
 
     # Build the direct-assignment UNION over only the tables that exist for this tenant.
@@ -143,6 +132,14 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 SELECT DISTINCT cast(roleDefinitionId AS varchar)  AS roleDefinitionId,
                 cast(privilegedGroupId AS varchar) AS groupId
 FROM main."RoleEligibilityScheduleInstanceGroup"
+WHERE roleDefinitionId IN ($roleIdInClause)
+"@
+    }
+    if ($existingTables -contains 'RoleAssignmentGroup') {
+        $nonEmptyGroupSelects += @"
+SELECT DISTINCT cast(roleDefinitionId AS varchar)  AS roleDefinitionId,
+                cast(privilegedGroupId AS varchar) AS groupId
+FROM main."RoleAssignmentGroup"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
     }
@@ -217,11 +214,19 @@ WHERE roleDefinitionId IN ($roleIdInClause)
     $readerFails = @($evaluated | Where-Object { $_.Tier -eq 'Reader' -and $_.Outcome -eq 'Fail' })
     $investig    = @($evaluated | Where-Object { $_.Outcome -eq 'Investigate' })
 
-    if ($adminFails.Count -gt 0) {
+    if ($roleDefinitionTableMissing) {
+        $passed       = $false
+        $customStatus = 'Investigate'
+    }
+    elseif ($adminFails.Count -gt 0) {
         $passed       = $false
         $customStatus = $null
     }
     elseif ($investig.Count -gt 0 -or $readerFails.Count -gt 0) {
+        $passed       = $false
+        $customStatus = 'Investigate'
+    }
+    elseif ($evaluated.Count -eq 0) {
         $passed       = $false
         $customStatus = 'Investigate'
     }
@@ -232,8 +237,14 @@ WHERE roleDefinitionId IN ($roleIdInClause)
     #endregion Assessment Logic
 
     #region Report Generation
-    if ($passed) {
-        $headline = '✅ Every AI administrative role in Microsoft Entra has at least one tenant-scoped assigned principal.'
+    if ($roleDefinitionTableMissing) {
+        $headline = '🟡 Cannot evaluate AI administrative roles: the required `RoleDefinition` export table is missing from the ZTA database. Re-run the tenant export and try again.'
+    }
+    elseif ($evaluated.Count -eq 0) {
+        $headline = '🟡 None of the in-scope AI administrative role definitions were found in this tenant''s export. No roles were evaluated. Verify the export covers role definitions for this cloud/SKU.'
+    }
+    elseif ($passed) {
+        $headline = '✅ Every evaluated AI administrative role in Microsoft Entra has at least one tenant-scoped assigned principal.'
     }
     elseif ($customStatus -eq 'Investigate') {
         $headline = '🟡 One or more AI administrative roles have assignments only at administrative-unit or app scope, or a reader-tier role has no assigned principal. Confirm this matches your delegated-administration model.'

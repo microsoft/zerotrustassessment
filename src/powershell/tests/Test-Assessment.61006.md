@@ -4,13 +4,8 @@ The AI control plane in Microsoft Entra ID, Microsoft Purview, Microsoft Defende
 
 **Remediation action**
 
-Assign an Entra ID role via the admin center
 - [Assign an Entra ID role via the admin center](https://learn.microsoft.com/entra/identity/role-based-access-control/manage-roles-portal)
-
-Create a PIM-eligible assignment for an Entra ID role
 - [Create a PIM-eligible assignment for an Entra ID role](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-add-role-to-user)
-
-Assign Microsoft Purview roles and role groups
 - [Assign Microsoft Purview roles and role groups](https://learn.microsoft.com/purview/purview-permissions)
 
 <!--- Results --->
