@@ -238,16 +238,16 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 
     #region Report Generation
     if ($roleDefinitionTableMissing) {
-        $headline = '🟡 Cannot evaluate AI administrative roles: the required `RoleDefinition` export table is missing from the ZTA database. Re-run the tenant export and try again.'
+        $headline = '⚠️ Cannot evaluate AI administrative roles: the required `RoleDefinition` export table is missing from the ZTA database. Re-run the tenant export and try again.'
     }
     elseif ($evaluated.Count -eq 0) {
-        $headline = '🟡 None of the in-scope AI administrative role definitions were found in this tenant''s export. No roles were evaluated. Verify the export covers role definitions for this cloud/SKU.'
+        $headline = '⚠️ None of the in-scope AI administrative role definitions were found in this tenant''s export. No roles were evaluated. Verify the export covers role definitions for this cloud/SKU.'
     }
     elseif ($passed) {
-        $headline = '✅ Every evaluated AI administrative role in Microsoft Entra has at least one tenant-scoped assigned principal.'
+        $headline = '✅ Every AI administrative role in Microsoft Entra has at least one tenant-scoped assigned principal. (This check evaluates Microsoft Entra directory roles only; administrators granted through workload-native role systems — Microsoft Purview role groups, Defender XDR custom roles, Power Platform / Dataverse roles, SharePoint site permissions, Copilot Studio maker permissions — are out of scope.)'
     }
     elseif ($customStatus -eq 'Investigate') {
-        $headline = '🟡 One or more AI administrative roles have assignments only at administrative-unit or app scope, or a reader-tier role has no assigned principal. Confirm this matches your delegated-administration model.'
+        $headline = '⚠️ One or more AI administrative roles are assigned only at administrative-unit or app scope, with no tenant-wide principal. Confirm this matches your delegated-administration model. Reader-tier roles (`Global Reader`, `Security Reader`) with no assigned principal also surface here.'
     }
     else {
         $headline = '❌ One or more AI administrative roles in Microsoft Entra have no assigned principal (or only empty role-assignable groups).'
@@ -292,7 +292,7 @@ WHERE roleDefinitionId IN ($roleIdInClause)
                                '/resourceScope/%2F'
             $nameLink        = "[$(Get-SafeMarkdown -Text $r.Name)]($rolePortalUrl)"
             $outcomeIcon = switch ($r.Outcome) {
-                'Investigate' { '🟡 Investigate' }
+                'Investigate' { '⚠️ Investigate' }
                 'Fail'        { '❌ Fail' }
                 default       { $r.Outcome }
             }
