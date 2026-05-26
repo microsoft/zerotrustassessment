@@ -115,12 +115,12 @@ function Test-Assessment-61005 {
         foreach ($package in ($agentPackages | Select-Object -First 10)) {
             $displayName = Get-SafeMarkdown -Text $package.displayName
 
-            $elementTypes = if ($package.elementTypes) {
+            $elementTypes = Get-SafeMarkdown -Text (if ($package.elementTypes) {
                 ($package.elementTypes | Sort-Object) -join ', '
             }
-            else { 'N/A' }
+            else { 'N/A' })
 
-            $availableTo = if ($package.availableTo) {
+            $availableTo = Get-SafeMarkdown -Text (if ($package.availableTo) {
                 ($package.availableTo | ForEach-Object {
                     if ($_ -is [string])     { $_ }
                     elseif ($_.displayName)  { $_.displayName }
@@ -129,9 +129,9 @@ function Test-Assessment-61005 {
                     else                     { 'unknown' }
                 }) -join ', '
             }
-            else { 'N/A' }
+            else { 'N/A' })
 
-            $deployedTo = if ($package.deployedTo) {
+            $deployedTo = Get-SafeMarkdown -Text (if ($package.deployedTo) {
                 ($package.deployedTo | ForEach-Object {
                     if ($_ -is [string])     { $_ }
                     elseif ($_.displayName)  { $_.displayName }
@@ -140,7 +140,7 @@ function Test-Assessment-61005 {
                     else                     { 'unknown' }
                 }) -join ', '
             }
-            else { 'N/A' }
+            else { 'N/A' })
 
             $tableRows += "| $displayName | $elementTypes | $availableTo | $deployedTo |`n"
         }
