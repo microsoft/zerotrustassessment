@@ -377,7 +377,7 @@ ORDER BY displayName
                 $displayedA++
             }
             $truncationNoteA = if ($sponsorshipFailures.Count -gt $maxTableRows) {
-                "`n> Showing $maxTableRows of $($sponsorshipFailures.Count) records."
+                "`n_**Note**: This table is truncated and showing the first $maxTableRows out of $($sponsorshipFailures.Count) total._"
             } else { '' }
             "| Object kind | Display name | Failure reason |`n| :--- | :--- | :--- |`n$tableRowsA$truncationNoteA"
         }
@@ -400,7 +400,7 @@ ORDER BY displayName
             $displayedB++
         }
         $truncationNoteB = if ($agentTargetingPolicies.Count -gt $maxTableRows) {
-            "`n> Showing $maxTableRows of $($agentTargetingPolicies.Count) records."
+            "`n_**Note**: This table is truncated and showing the first $maxTableRows out of $($agentTargetingPolicies.Count) total._"
         } else { '' }
         "| Access package display name | Policy display name | Allowed target scope |`n| :--- | :--- | :--- |`n$tableRowsB$truncationNoteB"
     }
@@ -426,7 +426,7 @@ ORDER BY displayName
             $displayedC++
         }
         $truncationNoteC = if ($matchingWorkflowTasks.Count -gt $maxTableRows) {
-            "`n> Showing $maxTableRows of $($matchingWorkflowTasks.Count) records."
+            "`n_**Note**: This table is truncated and showing the first $maxTableRows out of $($matchingWorkflowTasks.Count) total._"
         } else { '' }
         "| Workflow display name | Workflow category | Workflow enabled | Matching task display name | Task enabled |`n| :--- | :--- | :--- | :--- | :--- |`n$tableRowsC$truncationNoteC"
     }
