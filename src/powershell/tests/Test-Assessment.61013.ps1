@@ -176,6 +176,9 @@ ORDER BY displayName
 
     # Q4: Assignment policies targeting agent identities — v1.0, server-side filtered to allDirectoryAgentIdentities,
     # with $expand=accessPackage to inline the parent package (id, displayName, catalogId) in a single round-trip.
+    # beta endpoints do not currently expose the allowedTargetScope property required
+    # for allDirectoryAgentIdentities filtering; v1.0 is used because it reliably returns
+    # allowedTargetScope (including allDirectoryAgentIdentities) in tenant testing.
     $q4QueryError = $null
     $agentTargetingPolicies = @()
     Write-ZtProgress -Activity $activity -Status 'Getting entitlement management assignment policies (Q4)'
