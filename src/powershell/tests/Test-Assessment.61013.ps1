@@ -26,8 +26,9 @@
 .NOTES
     Test ID: 61013
     Category: AI Authentication & Access
-    Required permissions: GroupMember.Read.All, EntitlementManagement.Read.All,
-                          LifecycleWorkflows.Read.All on Microsoft Graph
+    Required permissions: AgentIdentity.Read.All, AgentIdentity-Sponsor.Read.All,
+                          GroupMember.Read.All, EntitlementManagement.Read.All,
+                          LifecycleWorkflows-Workflow.Read.All on Microsoft Graph
 #>
 
 function Test-Assessment-61013 {
@@ -181,10 +182,16 @@ ORDER BY displayName
     try {
         $agentTargetingPolicies = @(Invoke-ZtGraphRequest `
             -RelativeUri 'identityGovernance/entitlementManagement/assignmentPolicies' `
+            -ApiVersion v1.0 `
             -QueryParameters @{ '$select' = 'id,displayName,allowedTargetScope'; '$expand' = 'accessPackage'; '$filter' = "allowedTargetScope eq 'allDirectoryAgentIdentities'" } `
             -ErrorAction Stop)
     }
     catch {
+        if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*' -or $_.Exception.Message -like '*accessDenied*') {
+            Write-PSFMessage 'Skipping test: Entra ID Governance licensing is required for entitlement management assignment policies.' -Tag Test -Level VeryVerbose
+            Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDGovernance
+            return
+        }
         $q4QueryError = $_
         Write-PSFMessage "Failed to get assignment policies: $_" -Tag Test -Level Warning
     }
@@ -201,6 +208,11 @@ ORDER BY displayName
             -ErrorAction Stop)
     }
     catch {
+        if ($_.Exception.Response.StatusCode -eq 403 -or $_.Exception.Message -like '*403*' -or $_.Exception.Message -like '*Forbidden*' -or $_.Exception.Message -like '*accessDenied*') {
+            Write-PSFMessage 'Skipping test: Entra ID Governance licensing is required for lifecycle workflows.' -Tag Test -Level VeryVerbose
+            Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDGovernance
+            return
+        }
         $q5QueryError = $_
         Write-PSFMessage "Failed to get lifecycle workflows: $_" -Tag Test -Level Warning
     }
