@@ -74,12 +74,12 @@ function Test-Assessment-61006 {
             $roleDefinitionTableMissing = $true
         }
 
-    # Build the direct-assignment UNION over only the tables that exist for this tenant.
-    # assignmentType = 'Assigned' on RoleAssignmentScheduleInstance excludes currently-active
-    # PIM activations, so an eligible-then-activated user is not double-counted as active.
-    $assignmentSelects = @()
-    if ($existingTables -contains 'RoleAssignmentScheduleInstance') {
-        $assignmentSelects += @"
+        # Build the direct-assignment UNION over only the tables that exist for this tenant.
+        # assignmentType = 'Assigned' on RoleAssignmentScheduleInstance excludes currently-active
+        # PIM activations, so an eligible-then-activated user is not double-counted as active.
+        $assignmentSelects = @()
+        if ($existingTables -contains 'RoleAssignmentScheduleInstance') {
+            $assignmentSelects += @"
 SELECT cast(roleDefinitionId AS varchar)        AS roleDefinitionId,
        cast(directoryScopeId AS varchar)        AS directoryScopeId,
        cast(principalId       AS varchar)       AS principalId,
@@ -89,9 +89,9 @@ FROM main."RoleAssignmentScheduleInstance"
 WHERE roleDefinitionId IN ($roleIdInClause)
   AND assignmentType = 'Assigned'
 "@
-    }
-    if ($existingTables -contains 'RoleAssignment') {
-        $assignmentSelects += @"
+        }
+        if ($existingTables -contains 'RoleAssignment') {
+            $assignmentSelects += @"
 SELECT cast(roleDefinitionId AS varchar)        AS roleDefinitionId,
        cast(directoryScopeId AS varchar)        AS directoryScopeId,
        cast(principalId       AS varchar)       AS principalId,
@@ -100,9 +100,9 @@ SELECT cast(roleDefinitionId AS varchar)        AS roleDefinitionId,
 FROM main."RoleAssignment"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
-    }
-    if ($existingTables -contains 'RoleEligibilityScheduleInstance') {
-        $assignmentSelects += @"
+        }
+        if ($existingTables -contains 'RoleEligibilityScheduleInstance') {
+            $assignmentSelects += @"
 SELECT cast(roleDefinitionId AS varchar)        AS roleDefinitionId,
        cast(directoryScopeId AS varchar)        AS directoryScopeId,
        cast(principalId       AS varchar)       AS principalId,
@@ -111,42 +111,42 @@ SELECT cast(roleDefinitionId AS varchar)        AS roleDefinitionId,
 FROM main."RoleEligibilityScheduleInstance"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
-    }
+        }
 
-    if ($assignmentSelects.Count -gt 0) {
-        Write-ZtProgress -Activity $activity -Status 'Loading role assignments'
-        $assignmentSql = $assignmentSelects -join "`n UNION ALL `n"
-        $assignments = @(Invoke-DatabaseQuery -Database $Database -Sql $assignmentSql -ErrorAction Stop)
-    }
+        if ($assignmentSelects.Count -gt 0) {
+            Write-ZtProgress -Activity $activity -Status 'Loading role assignments'
+            $assignmentSql = $assignmentSelects -join "`n UNION ALL `n"
+            $assignments = @(Invoke-DatabaseQuery -Database $Database -Sql $assignmentSql -ErrorAction Stop)
+        }
 
-    # Build the set of non-empty groups by (roleDefinitionId, groupId). Groups with zero
-    # expanded transitive members do not appear in the *Group tables and therefore do not
-    # satisfy the "named principal" requirement.
-    $nonEmptyGroupSelects = @()
-    if ($existingTables -contains 'RoleAssignmentScheduleInstanceGroup') {
-        $nonEmptyGroupSelects += @"
+        # Build the set of non-empty groups by (roleDefinitionId, groupId). Groups with zero
+        # expanded transitive members do not appear in the *Group tables and therefore do not
+        # satisfy the "named principal" requirement.
+        $nonEmptyGroupSelects = @()
+        if ($existingTables -contains 'RoleAssignmentScheduleInstanceGroup') {
+            $nonEmptyGroupSelects += @"
 SELECT DISTINCT cast(roleDefinitionId AS varchar)  AS roleDefinitionId,
                 cast(privilegedGroupId AS varchar) AS groupId
 FROM main."RoleAssignmentScheduleInstanceGroup"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
-    }
-    if ($existingTables -contains 'RoleEligibilityScheduleInstanceGroup') {
-        $nonEmptyGroupSelects += @"
+        }
+        if ($existingTables -contains 'RoleEligibilityScheduleInstanceGroup') {
+            $nonEmptyGroupSelects += @"
 SELECT DISTINCT cast(roleDefinitionId AS varchar)  AS roleDefinitionId,
                 cast(privilegedGroupId AS varchar) AS groupId
 FROM main."RoleEligibilityScheduleInstanceGroup"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
-    }
-    if ($existingTables -contains 'RoleAssignmentGroup') {
-        $nonEmptyGroupSelects += @"
+        }
+        if ($existingTables -contains 'RoleAssignmentGroup') {
+            $nonEmptyGroupSelects += @"
 SELECT DISTINCT cast(roleDefinitionId AS varchar)  AS roleDefinitionId,
                 cast(privilegedGroupId AS varchar) AS groupId
 FROM main."RoleAssignmentGroup"
 WHERE roleDefinitionId IN ($roleIdInClause)
 "@
-    }
+        }
 
         if ($nonEmptyGroupSelects.Count -gt 0) {
             $groupSql = $nonEmptyGroupSelects -join "`n UNION `n"
@@ -261,7 +261,7 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 
     #region Report Generation
     if ($dataCollectionFailed) {
-        $errMsg = if ($dataCollectionError) { $dataCollectionError.Exception.Message } else { 'unknown error' }
+        $errMsg = if ($dataCollectionError) { Get-SafeMarkdown -Text $dataCollectionError.Exception.Message } else { 'unknown error' }
         $headline = "⚠️ Cannot evaluate AI administrative roles: data collection from the ZTA database failed ($errMsg). Re-run the tenant export and try again."
     }
     elseif ($roleDefinitionTableMissing) {
@@ -303,6 +303,10 @@ WHERE roleDefinitionId IN ($roleIdInClause)
         $reportTitle = 'AI administrative roles with no tenant-scoped assigned principal'
         $tableRows = ''
 
+        # Portal link template for an Entra role's All Assignments blade.
+        # {0} = roleTemplateId (GUID), {1} = URI-encoded role display name.
+        $entraRoleAssignmentsUrlTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleMenuBlade/~/AllAssignments/objectId/{0}/roleName/{1}/roleTemplateId/{0}/adminUnitObjectId//customRole~/false/resourceScope/%2F'
+
         $formatTemplate = @'
 
 ## {0}
@@ -315,8 +319,8 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 
         foreach ($r in $nonPass) {
             $roleNameEncoded = [System.Uri]::EscapeDataString($r.Name)
-            $rolePortalUrl = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleMenuBlade/~/AllAssignments/objectId/{0}/roleName/{1}/roleTemplateId/{0}/adminUnitObjectId//customRole~/false/resourceScope/%2F' -f $r.Id, $roleNameEncoded
-            $nameLink = "[$(Get-SafeMarkdown -Text $r.Name)]($rolePortalUrl)"
+            $rolePortalUrl   = $entraRoleAssignmentsUrlTemplate -f $r.Id, $roleNameEncoded
+            $nameLink        = "[$(Get-SafeMarkdown -Text $r.Name)]($rolePortalUrl)"
             $outcomeIcon = switch ($r.Outcome) {
                 'Investigate' { '⚠️ Investigate' }
                 'Fail'        { '❌ Fail' }
