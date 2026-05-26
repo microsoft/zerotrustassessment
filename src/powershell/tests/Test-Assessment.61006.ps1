@@ -39,7 +39,6 @@ function Test-Assessment-61006 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $nl = [Environment]::NewLine
     $activity = 'Checking AI administrative roles for assigned principals'
     Write-ZtProgress -Activity $activity -Status 'Enumerating AI admin roles'
 
@@ -52,22 +51,28 @@ function Test-Assessment-61006 {
 
     $roleIdInClause = ($inScopeRoles | ForEach-Object { "'$($_.Id)'" }) -join ', '
 
-    # Discover which exported tables are present (varies by tenant license tier).
-    Write-ZtProgress -Activity $activity -Status 'Inspecting database schema'
-    $existingTables = @(Invoke-DatabaseQuery -Database $Database -Sql "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'" |
-        Select-Object -ExpandProperty table_name)
+    $presentRoleIds              = @()
+    $assignments                 = @()
+    $nonEmptyGroupKeys           = @{}
+    $roleDefinitionTableMissing  = $false
+    $dataCollectionFailed        = $false
+    $dataCollectionError         = $null
 
-    # Q1 equivalent: which role definitions are present in this tenant / cloud / SKU.
-    Write-ZtProgress -Activity $activity -Status 'Loading role definitions'
-    $presentRoleIds = @()
-    $roleDefinitionTableMissing = $false
-    if ($existingTables -contains 'RoleDefinition') {
-        $defSql = "SELECT cast(id AS varchar) AS id FROM main.""RoleDefinition"" WHERE id IN ($roleIdInClause)"
-        $presentRoleIds = @(Invoke-DatabaseQuery -Database $Database -Sql $defSql | Select-Object -ExpandProperty id)
-    }
-    else {
-        $roleDefinitionTableMissing = $true
-    }
+    try {
+        # Discover which exported tables are present (varies by tenant license tier).
+        Write-ZtProgress -Activity $activity -Status 'Inspecting database schema'
+        $existingTables = @(Invoke-DatabaseQuery -Database $Database -Sql "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'" -ErrorAction Stop |
+            Select-Object -ExpandProperty table_name)
+
+        # Q1 equivalent: which role definitions are present in this tenant / cloud / SKU.
+        Write-ZtProgress -Activity $activity -Status 'Loading role definitions'
+        if ($existingTables -contains 'RoleDefinition') {
+            $defSql = "SELECT cast(id AS varchar) AS id FROM main.""RoleDefinition"" WHERE id IN ($roleIdInClause)"
+            $presentRoleIds = @(Invoke-DatabaseQuery -Database $Database -Sql $defSql -ErrorAction Stop | Select-Object -ExpandProperty id)
+        }
+        else {
+            $roleDefinitionTableMissing = $true
+        }
 
     # Build the direct-assignment UNION over only the tables that exist for this tenant.
     # assignmentType = 'Assigned' on RoleAssignmentScheduleInstance excludes currently-active
@@ -108,11 +113,10 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 "@
     }
 
-    $assignments = @()
     if ($assignmentSelects.Count -gt 0) {
         Write-ZtProgress -Activity $activity -Status 'Loading role assignments'
-        $assignmentSql = $assignmentSelects -join "$nl UNION ALL $nl"
-        $assignments = @(Invoke-DatabaseQuery -Database $Database -Sql $assignmentSql)
+        $assignmentSql = $assignmentSelects -join "`n UNION ALL `n"
+        $assignments = @(Invoke-DatabaseQuery -Database $Database -Sql $assignmentSql -ErrorAction Stop)
     }
 
     # Build the set of non-empty groups by (roleDefinitionId, groupId). Groups with zero
@@ -144,18 +148,33 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 "@
     }
 
-    $nonEmptyGroupKeys = @{}
-    if ($nonEmptyGroupSelects.Count -gt 0) {
-        $groupSql = $nonEmptyGroupSelects -join "$nl UNION $nl"
-        $groupRows = @(Invoke-DatabaseQuery -Database $Database -Sql $groupSql)
-        foreach ($g in $groupRows) {
-            $nonEmptyGroupKeys["$($g.roleDefinitionId)|$($g.groupId)"] = $true
+        if ($nonEmptyGroupSelects.Count -gt 0) {
+            $groupSql = $nonEmptyGroupSelects -join "`n UNION `n"
+            $groupRows = @(Invoke-DatabaseQuery -Database $Database -Sql $groupSql -ErrorAction Stop)
+            foreach ($g in $groupRows) {
+                $nonEmptyGroupKeys["$($g.roleDefinitionId)|$($g.groupId)"] = $true
+            }
         }
+    }
+    catch {
+        $dataCollectionFailed = $true
+        $dataCollectionError  = $_
+        Write-PSFMessage -Level Warning -Tag Test -Message "Test 61006 data collection failed: $($_.Exception.Message)"
     }
     #endregion Data Collection
 
     #region Assessment Logic
     Write-ZtProgress -Activity $activity -Status 'Evaluating per-role outcomes'
+
+    # Index assignments by roleDefinitionId once to avoid O(roles * assignments) scans.
+    $assignmentsByRole = @{}
+    foreach ($a in $assignments) {
+        $key = $a.roleDefinitionId
+        if (-not $assignmentsByRole.ContainsKey($key)) {
+            $assignmentsByRole[$key] = [System.Collections.Generic.List[object]]::new()
+        }
+        $assignmentsByRole[$key].Add($a)
+    }
 
     $perRole = @()
     foreach ($role in $inScopeRoles) {
@@ -173,7 +192,7 @@ WHERE roleDefinitionId IN ($roleIdInClause)
             continue
         }
 
-        $rows = @($assignments | Where-Object { $_.roleDefinitionId -eq $roleId })
+        $rows = if ($assignmentsByRole.ContainsKey($roleId)) { @($assignmentsByRole[$roleId]) } else { @() }
 
         $qualifyingRows = @(
             foreach ($r in $rows) {
@@ -214,7 +233,11 @@ WHERE roleDefinitionId IN ($roleIdInClause)
     $readerFails = @($evaluated | Where-Object { $_.Tier -eq 'Reader' -and $_.Outcome -eq 'Fail' })
     $investig    = @($evaluated | Where-Object { $_.Outcome -eq 'Investigate' })
 
-    if ($roleDefinitionTableMissing) {
+    if ($dataCollectionFailed) {
+        $passed       = $false
+        $customStatus = 'Investigate'
+    }
+    elseif ($roleDefinitionTableMissing) {
         $passed       = $false
         $customStatus = 'Investigate'
     }
@@ -237,7 +260,11 @@ WHERE roleDefinitionId IN ($roleIdInClause)
     #endregion Assessment Logic
 
     #region Report Generation
-    if ($roleDefinitionTableMissing) {
+    if ($dataCollectionFailed) {
+        $errMsg = if ($dataCollectionError) { $dataCollectionError.Exception.Message } else { 'unknown error' }
+        $headline = "⚠️ Cannot evaluate AI administrative roles: data collection from the ZTA database failed ($errMsg). Re-run the tenant export and try again."
+    }
+    elseif ($roleDefinitionTableMissing) {
         $headline = '⚠️ Cannot evaluate AI administrative roles: the required `RoleDefinition` export table is missing from the ZTA database. Re-run the tenant export and try again.'
     }
     elseif ($evaluated.Count -eq 0) {
@@ -253,7 +280,7 @@ WHERE roleDefinitionId IN ($roleIdInClause)
         $headline = '❌ One or more AI administrative roles in Microsoft Entra have no assigned principal (or only empty role-assignable groups).'
     }
 
-    $testResultMarkdown = $headline + $nl + $nl + '%TestResult%'
+    $testResultMarkdown = $headline + "`n`n" + '%TestResult%'
 
     $notInScopeCount = @($perRole   | Where-Object { $_.Outcome -eq 'NotInScope' }).Count
     $passCount       = @($perRole   | Where-Object { $_.Outcome -eq 'Pass' }).Count
@@ -273,35 +300,35 @@ WHERE roleDefinitionId IN ($roleIdInClause)
 
     $nonPass = @($evaluated | Where-Object { $_.Outcome -ne 'Pass' } | Sort-Object Outcome, Name)
     if ($nonPass.Count -gt 0) {
-        $tableLines = @(
-            ''
-            ''
-            '## AI administrative roles with no tenant-scoped assigned principal'
-            ''
-            '| Role | Tenant-scoped principals | Restricted-scope principals | Tier | Outcome |'
-            '| :--- | :----------------------- | :-------------------------- | :--- | :------ |'
-        )
+        $reportTitle = 'AI administrative roles with no tenant-scoped assigned principal'
+        $tableRows = ''
+
+        $formatTemplate = @'
+
+## {0}
+
+| Role | Tenant-scoped principals | Restricted-scope principals | Tier | Outcome |
+| :--- | :----------------------- | :-------------------------- | :--- | :------ |
+{1}
+
+'@
+
         foreach ($r in $nonPass) {
             $roleNameEncoded = [System.Uri]::EscapeDataString($r.Name)
-            $rolePortalUrl   = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleMenuBlade/~/AllAssignments' +
-                               "/objectId/$($r.Id)" +
-                               "/roleName/$roleNameEncoded" +
-                               "/roleTemplateId/$($r.Id)" +
-                               '/adminUnitObjectId/' +
-                               '/customRole~/false' +
-                               '/resourceScope/%2F'
-            $nameLink        = "[$(Get-SafeMarkdown -Text $r.Name)]($rolePortalUrl)"
+            $rolePortalUrl = 'https://entra.microsoft.com/#view/Microsoft_AAD_IAM/RoleMenuBlade/~/AllAssignments/objectId/{0}/roleName/{1}/roleTemplateId/{0}/adminUnitObjectId//customRole~/false/resourceScope/%2F' -f $r.Id, $roleNameEncoded
+            $nameLink = "[$(Get-SafeMarkdown -Text $r.Name)]($rolePortalUrl)"
             $outcomeIcon = switch ($r.Outcome) {
                 'Investigate' { '⚠️ Investigate' }
                 'Fail'        { '❌ Fail' }
                 default       { $r.Outcome }
             }
-            $tableLines += "| $nameLink | $($r.TenantCount) | $($r.RestrictedCount) | $($r.Tier) | $outcomeIcon |"
+            $tableRows += "| $nameLink | $($r.TenantCount) | $($r.RestrictedCount) | $($r.Tier) | $outcomeIcon |`n"
         }
-        $mdLines += $tableLines
+
+        $mdLines += ($formatTemplate -f $reportTitle, $tableRows)
     }
 
-    $mdInfo = ($mdLines -join $nl) + $nl
+    $mdInfo = ($mdLines -join "`n") + "`n"
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
