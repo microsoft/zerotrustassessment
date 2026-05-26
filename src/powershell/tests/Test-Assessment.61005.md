@@ -2,10 +2,9 @@ The Microsoft 365 Agent Registry is the tenant-scoped catalogue that lists every
 
 **Remediation action**
 
-- [Manage agents for Microsoft 365 Copilot](https://learn.microsoft.com/microsoft-365-copilot/extensibility/agent-registry)
-- [Publish and deploy an agent](https://learn.microsoft.com/microsoft-365-copilot/extensibility/build-agent)
-- [Governance of agents in Microsoft 365 Copilot](https://learn.microsoft.com/microsoft-365-copilot/extensibility/governance)
-- [List Copilot packages (Microsoft Graph beta)](https://learn.microsoft.com/microsoft-365-copilot/extensibility/api/admin-settings/package/copilotpackages-list)
+1. [Manage agents for Microsoft 365 Copilot](https://learn.microsoft.com/microsoft-365-copilot/extensibility/agent-registry)
+2. [Publish and deploy an agent](https://learn.microsoft.com/microsoft-365-copilot/extensibility/build-agent)
+3. [Governance of agents in Microsoft 365 Copilot](https://learn.microsoft.com/microsoft-365-copilot/extensibility/governance)
 
 <!--- Results --->
 %TestResult%
