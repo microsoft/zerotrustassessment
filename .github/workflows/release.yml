@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  release:
-    types:
-      - published
   workflow_dispatch:
     inputs:
       tag:
@@ -39,7 +36,6 @@ jobs:
           $eventName = '${{ github.event_name }}'
           $tag = switch ($eventName) {
             'workflow_dispatch' { '${{ inputs.tag }}'; break }
-            'release' { '${{ github.event.release.tag_name }}'; break }
             default { '${{ github.ref_name }}' }
           }
 
@@ -78,6 +74,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           $ErrorActionPreference = 'Stop'
 
