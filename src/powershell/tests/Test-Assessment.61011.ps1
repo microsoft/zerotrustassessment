@@ -17,7 +17,9 @@ function Test-Assessment-61011 {
         UserImpact         = 'Medium'
     )]
     [CmdletBinding()]
-    param()
+    param(
+        $Database
+    )
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -32,10 +34,32 @@ function Test-Assessment-61011 {
 
     # Q1: Enumerate all agent identities in the tenant
     Write-ZtProgress -Activity $activity -Status 'Getting agent identities (Q1)'
-    $agentIdentities = Invoke-ZtGraphRequest `
-        -RelativeUri 'servicePrincipals/microsoft.graph.agentIdentity' `
-        -ApiVersion v1.0 `
-        -Select @('id', 'appId', 'displayName', 'agentIdentityBlueprintId', 'accountEnabled')
+    $agentIdentities = $null
+    if ($Database) {
+        $sqlQ1 = @"
+SELECT
+    id,
+    appId,
+    displayName,
+    agentIdentityBlueprintId,
+    accountEnabled
+FROM main.ServicePrincipal
+WHERE "@odata.type" = '#microsoft.graph.agentIdentity'
+ORDER BY displayName
+"@
+        try {
+            $agentIdentities = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ1)
+        }
+        catch {
+            Write-PSFMessage "Q1 DB query failed, falling back to Graph: $_" -Tag Test -Level Warning -ErrorRecord $_
+        }
+    }
+    if (-not $agentIdentities) {
+        $agentIdentities = Invoke-ZtGraphRequest `
+            -RelativeUri 'servicePrincipals/microsoft.graph.agentIdentity' `
+            -ApiVersion v1.0 `
+            -Select @('id', 'appId', 'displayName', 'agentIdentityBlueprintId', 'accountEnabled')
+    }
 
     if (-not $agentIdentities -or @($agentIdentities).Count -eq 0) {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
@@ -44,10 +68,31 @@ function Test-Assessment-61011 {
 
     # Q2: Enumerate all agent identity blueprints in the tenant
     Write-ZtProgress -Activity $activity -Status 'Getting agent identity blueprints (Q2)'
-    $agentBlueprints = Invoke-ZtGraphRequest `
-        -RelativeUri 'applications/microsoft.graph.agentIdentityBlueprint' `
-        -ApiVersion v1.0 `
-        -Select @('id', 'appId', 'displayName', 'signInAudience')
+    $agentBlueprints = $null
+    if ($Database) {
+        $sqlQ2 = @"
+SELECT
+    id,
+    appId,
+    displayName,
+    signInAudience
+FROM main.Application
+WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprint'
+ORDER BY displayName
+"@
+        try {
+            $agentBlueprints = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ2)
+        }
+        catch {
+            Write-PSFMessage "Q2 DB query failed, falling back to Graph: $_" -Tag Test -Level Warning -ErrorRecord $_
+        }
+    }
+    if (-not $agentBlueprints) {
+        $agentBlueprints = Invoke-ZtGraphRequest `
+            -RelativeUri 'applications/microsoft.graph.agentIdentityBlueprint' `
+            -ApiVersion v1.0 `
+            -Select @('id', 'appId', 'displayName', 'signInAudience')
+    }
 
     # Build lookup tables for blueprint joins
     # blueprintByAppId    : keyed by blueprint.appId  — matches agentIdentity.agentIdentityBlueprintId and Q4 parentAppId
