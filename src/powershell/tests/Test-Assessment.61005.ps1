@@ -115,13 +115,16 @@ function Test-Assessment-61005 {
         foreach ($package in ($agentPackages | Select-Object -First 10)) {
             $displayName = Get-SafeMarkdown -Text $package.displayName
 
-            $elementTypes = Get-SafeMarkdown -Text (if ($package.elementTypes) {
-                ($package.elementTypes | Sort-Object) -join ', '
+            if ($package.elementTypes) {
+                $elementTypesRaw = ($package.elementTypes | Sort-Object) -join ', '
             }
-            else { 'N/A' })
+            else {
+                $elementTypesRaw = 'N/A'
+            }
+            $elementTypes = Get-SafeMarkdown -Text $elementTypesRaw
 
-            $availableTo = Get-SafeMarkdown -Text (if ($package.availableTo) {
-                ($package.availableTo | ForEach-Object {
+            if ($package.availableTo) {
+                $availableToRaw = ($package.availableTo | ForEach-Object {
                     if ($_ -is [string])     { $_ }
                     elseif ($_.displayName)  { $_.displayName }
                     elseif ($_.type)         { $_.type }
@@ -129,10 +132,13 @@ function Test-Assessment-61005 {
                     else                     { 'unknown' }
                 }) -join ', '
             }
-            else { 'N/A' })
+            else {
+                $availableToRaw = 'N/A'
+            }
+            $availableTo = Get-SafeMarkdown -Text $availableToRaw
 
-            $deployedTo = Get-SafeMarkdown -Text (if ($package.deployedTo) {
-                ($package.deployedTo | ForEach-Object {
+            if ($package.deployedTo) {
+                $deployedToRaw = ($package.deployedTo | ForEach-Object {
                     if ($_ -is [string])     { $_ }
                     elseif ($_.displayName)  { $_.displayName }
                     elseif ($_.type)         { $_.type }
@@ -140,7 +146,10 @@ function Test-Assessment-61005 {
                     else                     { 'unknown' }
                 }) -join ', '
             }
-            else { 'N/A' })
+            else {
+                $deployedToRaw = 'N/A'
+            }
+            $deployedTo = Get-SafeMarkdown -Text $deployedToRaw
 
             $tableRows += "| $displayName | $elementTypes | $availableTo | $deployedTo |`n"
         }
