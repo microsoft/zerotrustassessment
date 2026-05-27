@@ -7,6 +7,7 @@
 	# InputName = '' # Name of other Export needed. For Type "PrivilegedGroup"
 	Uri = '' # Relative Uri to query
 	QueryString = '' # Any Query string to send along
+	# QueryStringAppend = '' # Query string fragment to append to QueryString
 	RelatedPropertyNames = @() # Sub-API Endpoints to include as an extra request
 	# MaximumQueryTime = '%MaximumSignInLogQueryTime%' # Limit the execution time to this duration. This is designed to prevent eternal paging in large tenants
 

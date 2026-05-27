@@ -29,6 +29,11 @@ function Export-ZtTenantData {
 		A higher number may offer better performance, but also risk throttling.
 		Defaults to 5.
 
+	.PARAMETER ExportQueryStringAppend
+		Optional query string fragment to append to each Graph entity export.
+		Use only query parameters that are valid for every exported endpoint in scope.
+		Do not include the leading '?' or '&'.
+
 	.EXAMPLE
 		PS C:\> Export-ZtTenantData -ExportPath $exportPath -Days $Days -MaximumSignInLogQueryTime $MaximumSignInLogQueryTime -Pillar $Pillar
 
@@ -52,6 +57,9 @@ function Export-ZtTenantData {
 
 		[int]
 		$ThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Export' -Fallback 5),
+
+		[string]
+		$ExportQueryStringAppend,
 
 		[string]
 		$LogsPath
@@ -135,6 +143,11 @@ https://github.com/microsoft/zerotrustassessment/issues
 		if ($exportCfg.Uri -like "%*%") { $exportCfg.Uri = $configVariables[$exportCfg.Uri.Trim("%")] }
 		if ($exportCfg.QueryString -like "%*%") { $exportCfg.QueryString = $configVariables[$exportCfg.QueryString.Trim("%")] }
 		if ($exportCfg.MaximumQueryTime -like "%*%") { $exportCfg.MaximumQueryTime = $configVariables[$exportCfg.MaximumQueryTime.Trim("%")] }
+
+		if ($ExportQueryStringAppend) {
+			$exportCfg.QueryStringAppend = $ExportQueryStringAppend
+			Write-PSFMessage -Level Verbose -Message "Appending export query string from command line to '{0}'." -StringValues $exportCfg.Name -Tag Export, config
+		}
 
 		$exportCfg
 	}

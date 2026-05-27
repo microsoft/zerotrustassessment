@@ -1,3 +1,12 @@
+> [!IMPORTANT]
+> This repository is a fork. Download the ZIP file from the latest release, then install it with:
+>
+> ```powershell
+> $modulePath = ($env:PSModulePath -split [IO.Path]::PathSeparator)[0]
+> Expand-Archive .\ZeroTrustAssessment-v0.1.0.zip -DestinationPath $modulePath -Force
+> Import-Module ZeroTrustAssessment -Force
+> ```
+
 [![PSGallery Version](https://img.shields.io/powershellgallery/v/ZeroTrustAssessment.svg?style=flat&logo=powershell&label=PSGallery%20Version)](https://www.powershellgallery.com/packages/ZeroTrustAssessment) 
 [![PSGallery Downloads](https://img.shields.io/powershellgallery/dt/ZeroTrustAssessment.svg?style=flat&logo=powershell&label=PSGallery%20Downloads)](https://www.powershellgallery.com/packages/ZeroTrustAssessment)
 

@@ -1,0 +1,127 @@
+name: Release PowerShell Module
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to package, for example v0.1.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    runs-on: windows-latest
+
+    env:
+      MODULE_NAME: ZeroTrustAssessment
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Package module
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $tag = if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            '${{ inputs.tag }}'
+          } else {
+            '${{ github.ref_name }}'
+          }
+
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tags must match v<major>.<minor>.<patch>, for example v0.1.0. Received: $tag"
+          }
+
+          $version = $tag.TrimStart('v')
+          $moduleName = $env:MODULE_NAME
+          $sourceDirectory = Join-Path $PWD 'src/powershell'
+          $stagingDirectory = Join-Path $env:RUNNER_TEMP 'module-package'
+          $moduleDirectory = Join-Path $stagingDirectory $moduleName
+          $packagesDirectory = Join-Path $env:RUNNER_TEMP 'nuget-packages'
+          $artifactDirectory = Join-Path $PWD 'artifacts'
+          $zipPath = Join-Path $artifactDirectory "$moduleName-$tag.zip"
+
+          Remove-Item -Path $stagingDirectory, $artifactDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -Path $moduleDirectory, $artifactDirectory -ItemType Directory -Force | Out-Null
+
+          Copy-Item -Path (Join-Path $sourceDirectory '*') -Destination $moduleDirectory -Recurse -Force
+          Copy-Item -Path (Join-Path $PWD 'LICENSE') -Destination (Join-Path $moduleDirectory 'License.txt') -Force
+
+          $manifestPath = Join-Path $moduleDirectory "$moduleName.psd1"
+          $manifestContent = Get-Content -Path $manifestPath -Raw
+          $manifestContent = $manifestContent -replace "ModuleVersion\s*=\s*'[^']+'", "ModuleVersion = '$version'"
+          Set-Content -Path $manifestPath -Value $manifestContent -NoNewline
+
+          & .\build\powershell\Restore-NugetPackages.ps1 `
+            -PackagesConfigPath (Join-Path $PWD 'packages.config') `
+            -OutputDirectory $packagesDirectory
+
+          $packagesConfig = [xml](Get-Content -Path (Join-Path $PWD 'packages.config') -Raw)
+          $duckDBDataPackage = $packagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Data.Full' | Select-Object -First 1
+          $duckDBBindingsPackage = $packagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Bindings.Full' | Select-Object -First 1
+
+          if (!$duckDBDataPackage -or !$duckDBBindingsPackage) {
+            throw 'DuckDB restore requires both DuckDB.NET.Data.Full and DuckDB.NET.Bindings.Full in packages.config.'
+          }
+
+          $targetFramework = [string]$duckDBDataPackage.targetFramework
+          if (!$targetFramework) { $targetFramework = 'net6.0' }
+
+          $moduleLibDirectory = Join-Path $moduleDirectory 'lib'
+          New-Item -Path $moduleLibDirectory -ItemType Directory -Force | Out-Null
+
+          $duckDBDataPackageDirectory = Join-Path $packagesDirectory ("{0}.{1}" -f $duckDBDataPackage.id, $duckDBDataPackage.version)
+          $duckDBBindingsPackageDirectory = Join-Path $packagesDirectory ("{0}.{1}" -f $duckDBBindingsPackage.id, $duckDBBindingsPackage.version)
+          $duckDBDataLibDirectory = Join-Path (Join-Path $duckDBDataPackageDirectory 'lib') $targetFramework
+          $duckDBBindingsLibDirectory = Join-Path (Join-Path $duckDBBindingsPackageDirectory 'lib') $targetFramework
+          $duckDBRuntimesDirectory = Join-Path $duckDBBindingsPackageDirectory 'runtimes'
+
+          $filesToCopy = @(
+            (Join-Path $duckDBDataLibDirectory 'DuckDB.NET.Data.dll'),
+            (Join-Path $duckDBBindingsLibDirectory 'DuckDB.NET.Bindings.dll'),
+            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'win-x64') 'native') 'duckdb.dll'),
+            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'osx') 'native') 'libduckdb.dylib'),
+            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'linux-x64') 'native') 'libduckdb.so')
+          )
+
+          foreach ($file in $filesToCopy) {
+            if (!(Test-Path -Path $file -PathType Leaf)) {
+              throw "Expected DuckDB package asset not found: $file"
+            }
+
+            Copy-Item -Path $file -Destination $moduleLibDirectory -Force
+          }
+
+          Compress-Archive -Path $moduleDirectory -DestinationPath $zipPath -Force
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "zip_path=$zipPath" >> $env:GITHUB_OUTPUT
+          "zip_name=$(Split-Path -Path $zipPath -Leaf)" >> $env:GITHUB_OUTPUT
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $tag = '${{ steps.package.outputs.tag }}'
+          $zipPath = '${{ steps.package.outputs.zip_path }}'
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --title $tag --notes "Release $tag" --verify-tag
+          }
+
+          gh release upload $tag $zipPath --clobber

@@ -419,3 +419,5 @@ ZeroTrustReport
 /src/powershell/export
 ZeroTrustReport
 /code-tests/TestResults
+
+*.patch

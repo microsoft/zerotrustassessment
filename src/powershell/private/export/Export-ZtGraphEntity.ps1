@@ -22,6 +22,10 @@ function Export-ZtGraphEntity {
 		Additional query information to include with the request.
 		Use this to speciy page-size information, properties to collect or other relevant parameters needed for this to work.
 
+	.PARAMETER QueryStringAppend
+		Additional query information to append to QueryString.
+		Use this for command-line or configuration overrides that should preserve the default export query.
+
 	.PARAMETER RelatedPropertyNames
 		Additional sub-datasets to retrieve for each entity.
 		For example in cases, where multiple requests are needed - such as "oauth2PermissionGrants" for Service Principals.
@@ -53,6 +57,11 @@ function Export-ZtGraphEntity {
 		[Parameter(Mandatory = $false)]
 		[string]
 		$QueryString,
+
+		# Parameters to append to QueryString. e.g. $filter=servicePrincipalType eq 'Application'
+		[Parameter(Mandatory = $false)]
+		[string]
+		$QueryStringAppend,
 
 		# The additional properties/relations to be queried for each object. e.g. oauth2PermissionGrants
 		[string[]]
@@ -161,6 +170,61 @@ function Export-ZtGraphEntity {
 			}
 		}
 	}
+
+	function Join-QueryString {
+		[CmdletBinding()]
+		param (
+			[string]
+			$Base,
+
+			[string]
+			$Append
+		)
+
+		$appendNormalized = $Append.TrimStart('?', '&')
+		if (-not $Base) {
+			return $appendNormalized
+		}
+
+		if (-not $appendNormalized) {
+			return $Base
+		}
+
+		$queryParts = [System.Collections.Generic.List[string]]::new()
+		foreach ($part in $Base.TrimEnd('&').Split('&', [System.StringSplitOptions]::RemoveEmptyEntries)) {
+			$queryParts.Add($part)
+		}
+
+		foreach ($appendPart in $appendNormalized.Split('&', [System.StringSplitOptions]::RemoveEmptyEntries)) {
+			$keyValue = $appendPart.Split('=', 2)
+			$key = $keyValue[0]
+			$value = if ($keyValue.Count -gt 1) { $keyValue[1] } else { '' }
+
+			if ($key -eq '$filter' -or $key -eq '%24filter') {
+				$merged = $false
+				for ($index = 0; $index -lt $queryParts.Count; $index++) {
+					$baseKeyValue = $queryParts[$index].Split('=', 2)
+					$baseKey = $baseKeyValue[0]
+					if ($baseKey -ne '$filter' -and $baseKey -ne '%24filter') {
+						continue
+					}
+
+					$baseValue = if ($baseKeyValue.Count -gt 1) { $baseKeyValue[1] } else { '' }
+					$queryParts[$index] = "$baseKey=($baseValue) and ($value)"
+					$merged = $true
+					break
+				}
+
+				if ($merged) {
+					continue
+				}
+			}
+
+			$queryParts.Add($appendPart)
+		}
+
+		$queryParts -join '&'
+	}
 	#endregion Utility Functions
 
 	$pageIndex = 0
@@ -170,7 +234,11 @@ function Export-ZtGraphEntity {
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $Name
 	Clear-ZtFolder -Path $folderPath
 
-	$actualUri = $Uri + '?' + $QueryString
+	if ($QueryStringAppend) {
+		$QueryString = Join-QueryString -Base $QueryString -Append $QueryStringAppend
+	}
+
+	$actualUri = if ($QueryString) { $Uri + '?' + $QueryString } else { $Uri }
 	$startTime = Get-Date
 	$stopTime = $startTime.AddMinutes($MaximumQueryTime)
 	$hasTimeLimit = $MaximumQueryTime -gt 0
