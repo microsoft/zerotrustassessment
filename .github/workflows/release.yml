@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       tag:
@@ -33,10 +36,11 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
-          $tag = if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
-            '${{ inputs.tag }}'
-          } else {
-            '${{ github.ref_name }}'
+          $eventName = '${{ github.event_name }}'
+          $tag = switch ($eventName) {
+            'workflow_dispatch' { '${{ inputs.tag }}'; break }
+            'release' { '${{ github.event.release.tag_name }}'; break }
+            default { '${{ github.ref_name }}' }
           }
 
           if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
@@ -45,62 +49,23 @@ jobs:
 
           $version = $tag.TrimStart('v')
           $moduleName = $env:MODULE_NAME
-          $sourceDirectory = Join-Path $PWD 'src/powershell'
-          $stagingDirectory = Join-Path $env:RUNNER_TEMP 'module-package'
-          $moduleDirectory = Join-Path $stagingDirectory $moduleName
-          $packagesDirectory = Join-Path $env:RUNNER_TEMP 'nuget-packages'
+          $releaseDirectory = Join-Path $PWD 'build/release'
+          $moduleDirectory = Join-Path (Join-Path $releaseDirectory $moduleName) $version
           $artifactDirectory = Join-Path $PWD 'artifacts'
           $zipPath = Join-Path $artifactDirectory "$moduleName-$tag.zip"
 
-          Remove-Item -Path $stagingDirectory, $artifactDirectory -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -Path $moduleDirectory, $artifactDirectory -ItemType Directory -Force | Out-Null
+          Remove-Item -Path $releaseDirectory, $artifactDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -Path $artifactDirectory -ItemType Directory -Force | Out-Null
 
-          Copy-Item -Path (Join-Path $sourceDirectory '*') -Destination $moduleDirectory -Recurse -Force
-          Copy-Item -Path (Join-Path $PWD 'LICENSE') -Destination (Join-Path $moduleDirectory 'License.txt') -Force
+          & .\build\powershell\Install-Prerequisites.ps1
+          & .\build\powershell\Build-PSModule.ps1 `
+            -BaseDirectory $PWD `
+            -OutputDirectory $releaseDirectory `
+            -ReleaseVersion $version `
+            -ProductionBuild
 
-          $manifestPath = Join-Path $moduleDirectory "$moduleName.psd1"
-          $manifestContent = Get-Content -Path $manifestPath -Raw
-          $manifestContent = $manifestContent -replace "ModuleVersion\s*=\s*'[^']+'", "ModuleVersion = '$version'"
-          Set-Content -Path $manifestPath -Value $manifestContent -NoNewline
-
-          & .\build\powershell\Restore-NugetPackages.ps1 `
-            -PackagesConfigPath (Join-Path $PWD 'packages.config') `
-            -OutputDirectory $packagesDirectory
-
-          $packagesConfig = [xml](Get-Content -Path (Join-Path $PWD 'packages.config') -Raw)
-          $duckDBDataPackage = $packagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Data.Full' | Select-Object -First 1
-          $duckDBBindingsPackage = $packagesConfig.packages.package | Where-Object id -EQ 'DuckDB.NET.Bindings.Full' | Select-Object -First 1
-
-          if (!$duckDBDataPackage -or !$duckDBBindingsPackage) {
-            throw 'DuckDB restore requires both DuckDB.NET.Data.Full and DuckDB.NET.Bindings.Full in packages.config.'
-          }
-
-          $targetFramework = [string]$duckDBDataPackage.targetFramework
-          if (!$targetFramework) { $targetFramework = 'net6.0' }
-
-          $moduleLibDirectory = Join-Path $moduleDirectory 'lib'
-          New-Item -Path $moduleLibDirectory -ItemType Directory -Force | Out-Null
-
-          $duckDBDataPackageDirectory = Join-Path $packagesDirectory ("{0}.{1}" -f $duckDBDataPackage.id, $duckDBDataPackage.version)
-          $duckDBBindingsPackageDirectory = Join-Path $packagesDirectory ("{0}.{1}" -f $duckDBBindingsPackage.id, $duckDBBindingsPackage.version)
-          $duckDBDataLibDirectory = Join-Path (Join-Path $duckDBDataPackageDirectory 'lib') $targetFramework
-          $duckDBBindingsLibDirectory = Join-Path (Join-Path $duckDBBindingsPackageDirectory 'lib') $targetFramework
-          $duckDBRuntimesDirectory = Join-Path $duckDBBindingsPackageDirectory 'runtimes'
-
-          $filesToCopy = @(
-            (Join-Path $duckDBDataLibDirectory 'DuckDB.NET.Data.dll'),
-            (Join-Path $duckDBBindingsLibDirectory 'DuckDB.NET.Bindings.dll'),
-            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'win-x64') 'native') 'duckdb.dll'),
-            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'osx') 'native') 'libduckdb.dylib'),
-            (Join-Path (Join-Path (Join-Path $duckDBRuntimesDirectory 'linux-x64') 'native') 'libduckdb.so')
-          )
-
-          foreach ($file in $filesToCopy) {
-            if (!(Test-Path -Path $file -PathType Leaf)) {
-              throw "Expected DuckDB package asset not found: $file"
-            }
-
-            Copy-Item -Path $file -Destination $moduleLibDirectory -Force
+          if (!(Test-Path -Path $moduleDirectory -PathType Container)) {
+            throw "Expected build output directory was not found: $moduleDirectory"
           }
 
           Compress-Archive -Path $moduleDirectory -DestinationPath $zipPath -Force

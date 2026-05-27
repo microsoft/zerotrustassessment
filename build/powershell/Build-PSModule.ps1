@@ -23,6 +23,9 @@
     [string] $LicensePath = ".\LICENSE",
     #
     [Parameter(Mandatory = $false)]
+    [string] $ReleaseVersion,
+    #
+    [Parameter(Mandatory = $false)]
     [switch] $SkipMergingNestedModuleScripts,
 
     # If true, builds the module for production, otherwise builds a preview module that is installed with -AllowPrerelease
@@ -33,8 +36,22 @@
 ## Initialize
 Import-Module "$PSScriptRoot\CommonFunctions.psm1" -Force -WarningAction SilentlyContinue -ErrorAction Stop
 
-## Increment the build number
-&$PSScriptRoot\Set-Version.ps1 -preview:(!$ProductionBuild)
+if ($ReleaseVersion) {
+    if ($ReleaseVersion -notmatch '^\d+\.\d+\.\d+$') {
+        throw "ReleaseVersion must match <major>.<minor>.<patch>, for example 0.1.0. Received: $ReleaseVersion"
+    }
+
+    $manifestPath = Get-PathInfo ".\src\powershell\*.psd1" -DefaultFilename "*.psd1" -ErrorAction Stop | Select-Object -Last 1
+    $publicScripts = @(Get-ChildItem -Path ".\src\powershell\public" -Recurse -Filter "*.ps1")
+    $functionNames = @($publicScripts.BaseName | Sort-Object)
+
+    Update-Metadata -Path $manifestPath.FullName -PropertyName FunctionsToExport -Value $functionNames
+    Update-Metadata -Path $manifestPath.FullName -PropertyName ModuleVersion -Value $ReleaseVersion
+    Update-Metadata -Path $manifestPath.FullName -PropertyName Prerelease -Value ''
+} else {
+    ## Increment the build number
+    &$PSScriptRoot\Set-Version.ps1 -preview:(!$ProductionBuild)
+}
 
 [System.IO.DirectoryInfo] $BaseDirectoryInfo = Get-PathInfo $BaseDirectory -InputPathType Directory -ErrorAction Stop
 [System.IO.DirectoryInfo] $OutputDirectoryInfo = Get-PathInfo $OutputDirectory -InputPathType Directory -DefaultDirectory $BaseDirectoryInfo.FullName -ErrorAction SilentlyContinue
