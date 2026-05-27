@@ -21,7 +21,7 @@ function Test-Assessment-61004 {
         Category = 'AI Cloud Posture',
         ImplementationCost = 'Medium',
         Service = ('Azure'),
-        MinimumLicense = ('Defender_for_Cloud'),
+        MinimumLicense = ('Microsoft_Defender_for_Cloud'),
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',
@@ -120,7 +120,7 @@ resourcecontainers
 
     #region Report Generation
 
-    $portalCspmLink             = 'https://portal.azure.com/#view/Microsoft_Azure_Security/SecurityMenuBlade/~/26'
+    $portalCspmLink             = 'https://portal.azure.com/#view/Microsoft_Azure_Security/SecurityMenuBlade/~/EnvironmentSettings'
     $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
 
     $formatTemplate = @'
