@@ -23,7 +23,7 @@ function Test-Assessment-61022 {
         Category = 'AI Threat Detection',
         ImplementationCost = 'Low',
         Service = ('Azure'),
-        MinimumLicense = ('Defender_for_Cloud'),
+        MinimumLicense = ('Microsoft_Defender_for_AI_Services'),
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -123,7 +123,13 @@ resources
         }
         catch {
             $httpStatusCode = $null
-            if ($_.Exception.Response) {
+            # Invoke-ZtAzureRequestCache throws a string like:
+            # "Azure REST request failed with status 403: ..."
+            # so there is no .Response property. Parse the message instead.
+            if ($_.Exception.Message -match 'with status (\d+):') {
+                $httpStatusCode = [int]$Matches[1]
+            }
+            elseif ($_.Exception.Response) {
                 $httpStatusCode = [int]$_.Exception.Response.StatusCode
             }
 
@@ -164,7 +170,7 @@ resources
     $passed = ($failedItems.Count -eq 0) -and ($investigateItems.Count -eq 0)
 
     if ($investigateItems.Count -gt 0 -and $failedItems.Count -eq 0) {
-        $testResultMarkdown = "⚠️ The Defender for AI Services plan state could not be determined for one or more in-scope subscriptions due to insufficient permissions or API errors.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Some of the queried resources returned status indicating not sufficient permissions. Please check you have at least reader access to the Azure Subscriptions being tested.`n`n%TestResult%"
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Microsoft Defender for AI Services is enabled on every Azure subscription that hosts Azure OpenAI or Azure AI Services accounts.`n`n%TestResult%"
@@ -178,7 +184,7 @@ resources
     #region Report Generation
 
     $portalDefenderLink         = 'https://portal.azure.com/#view/Microsoft_Azure_Security/SecurityMenuBlade/~/EnvironmentSettings'
-    $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
+    $portalSubPricingBaseLink    = 'https://portal.azure.com/#view/Microsoft_Azure_Security/PolicyMenuBlade/~/pricingTier/subscriptionId'
     $tableTitle = 'Defender for Cloud — Environment settings'
 
     $formatTemplate = @'
@@ -187,7 +193,7 @@ resources
 ## [{0}]({1})
 
 | Subscription | AI accounts in subscription | Defender for AI Services plan | Status |
-| :----------- | :--------------------------- | :----------------------------- | :----- |
+| :----------- | :-------------------------- | :---------------------------- | :----- |
 {2}
 '@
 
@@ -201,7 +207,7 @@ resources
     }
 
     foreach ($result in $displayResults) {
-        $subscriptionLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
+        $subscriptionLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubPricingBaseLink/$($result.SubscriptionId))"
         $planDisplay      = Get-SafeMarkdown -Text $result.PricingTier
         $statusDisplay    = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
