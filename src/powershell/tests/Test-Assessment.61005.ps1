@@ -12,7 +12,7 @@
     Test ID: 61005
     Category: AI Inventory & Lifecycle
     Pillar: AI
-    Required Permission: AgentPackage.Read.All (Delegated)
+    Required Permission: CopilotPackages.Read.All (Delegated)
 #>
 
 function Test-Assessment-61005 {
