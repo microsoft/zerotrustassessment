@@ -8,7 +8,7 @@ When Defender CSPM is not enabled on a subscription hosting AI workloads, miscon
 
 - [Enable Microsoft Defender for Cloud CSPM plan](https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-cspm-plan)
 - [AI security posture management in Defender for Cloud](https://learn.microsoft.com/azure/defender-for-cloud/ai-security-posture)
-- [Enable plans programmatically (\PUT .../pricings/CloudPosture`)](https://learn.microsoft.com/rest/api/defenderforcloud/pricings/update)
+- [Enable plans programmatically (PUT .../pricings/CloudPosture)](https://learn.microsoft.com/rest/api/defenderforcloud/pricings/update)
 
 <!--- Results --->
 %TestResult%
