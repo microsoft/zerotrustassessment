@@ -20,7 +20,7 @@ function Test-Assessment-61005 {
         Category = 'AI Inventory & Lifecycle',
         ImplementationCost = 'Low',
         Service = ('Graph'),
-        CompatibleLicense = ('AGENT_365'), # to be updated based on confirmation of license requirements
+        CompatibleLicense = ('Microsoft_365_Copilot','AGENT_365'), # to be updated based on confirmation of license requirements
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Protect tenants and production systems',
