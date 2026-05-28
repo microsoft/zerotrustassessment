@@ -121,7 +121,7 @@ resourcecontainers
     #region Report Generation
 
     $portalCspmLink             = 'https://portal.azure.com/#view/Microsoft_Azure_Security/SecurityMenuBlade/~/EnvironmentSettings'
-    $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
+    $portalSubPricingBaseLink    = 'https://portal.azure.com/#view/Microsoft_Azure_Security/PolicyMenuBlade/~/pricingTier/subscriptionId'
 
     $formatTemplate = @'
 
@@ -145,7 +145,7 @@ resourcecontainers
         }
 
         foreach ($result in $displayResults) {
-            $displayNameLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubscriptionBaseLink/$($result.SubscriptionId)/overview)"
+            $displayNameLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubPricingBaseLink/$($result.SubscriptionId))"
             $pricingTierSafe = $result.PricingTier
             $tableRows      += "| $displayNameLink | $pricingTierSafe |`n"
         }
