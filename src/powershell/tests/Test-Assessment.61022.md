@@ -4,7 +4,7 @@ When the plan is not enabled on every subscription, the SOC cannot determine whe
 
 **Source:** [Overview - AI threat protection](https://learn.microsoft.com/azure/defender-for-cloud/ai-threat-protection)
 
-## Remediation resources
+**Remediation action**
 
 - [Enable threat protection for AI services (step-by-step)](https://learn.microsoft.com/azure/defender-for-cloud/ai-onboarding)
 - [Overview — AI threat protection](https://learn.microsoft.com/azure/defender-for-cloud/ai-threat-protection)

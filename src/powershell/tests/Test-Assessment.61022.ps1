@@ -40,16 +40,6 @@ function Test-Assessment-61022 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Evaluating Microsoft Defender for AI Services plan coverage'
 
-    # Check if connected to Azure
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
-
-    $azContext = Get-AzContext -ErrorAction SilentlyContinue
-    if (-not $azContext) {
-        Write-PSFMessage 'Not connected to Azure.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
-        return
-    }
-
     # Q1 & Q2: Enumerate Azure OpenAI / Azure AI Services accounts with subscription display names
     # in a single Azure Resource Graph query using a join across resources and resourcecontainers
     Write-ZtProgress -Activity $activity -Status 'Querying Azure OpenAI and Azure AI Services accounts via Resource Graph'
@@ -199,7 +189,7 @@ resources
 
     $tableRows      = ''
     $maxDisplay     = 10
-    $displayResults = $evaluationResults
+    $displayResults = @($evaluationResults | Sort-Object DisplayName)
     $hasMoreItems   = $false
     if ($evaluationResults.Count -gt $maxDisplay) {
         $displayResults = @($evaluationResults | Select-Object -First $maxDisplay)
@@ -208,7 +198,7 @@ resources
 
     foreach ($result in $displayResults) {
         $subscriptionLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubPricingBaseLink/$($result.SubscriptionId))"
-        $planDisplay      = Get-SafeMarkdown -Text $result.PricingTier
+        $planDisplay      = $result.PricingTier
         $statusDisplay    = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
             'Fail'        { '❌ Fail' }
