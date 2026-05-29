@@ -1,0 +1,219 @@
+# Runs a full Invoke-ZtAssessment against a PR's code, using app-only (cert-based)
+# auth via Workload Identity Federation (WIF) + Key Vault. Reports are uploaded
+# to a PRIVATE Azure Storage container. The Actions log intentionally avoids
+# printing the blob URL, the Azure tenant/subscription/storage identifiers, or
+# PR metadata beyond what is needed for the run.
+#
+# Trigger: manual only. A maintainer dispatches it per PR. Fork PRs are safe because
+# the WIF token and KV-issued cert are never exposed to PR-author code automatically.
+#
+# Reviewer rule: do not add Write-Host / echo statements that print env values,
+# az output, or report paths. Anything echoed in a step ends up in the public log.
+#
+# One-time setup before this runs (do once per tenant / app registration):
+#
+#   1. Import the auth cert into Key Vault (PFX with private key):
+#        az keyvault certificate import \
+#          --vault-name <kv-name> --name <kv-cert-name> \
+#          --file <cert.pfx> --password <pfx-password>
+#
+#   2. Grant the app reg's service principal RBAC on the Azure resources it uses:
+#        - 'Key Vault Secrets User' on the vault (to read the cert PFX at runtime)
+#        - 'Storage Blob Data Contributor' on the container (to upload reports)
+#      Use `az role assignment create --assignee-object-id <sp-objectId> ...`.
+#
+#   3. Add a federated identity credential to the app registration so GitHub
+#      Actions can exchange its OIDC token for an Entra access token (WIF):
+#        - issuer:    https://token.actions.githubusercontent.com
+#        - subject:   repo:<owner>/<repo>:environment:zta-validation
+#        - audience:  api://AzureADTokenExchange
+#      Easiest in the portal: App reg → Certificates & secrets → Federated
+#      credentials → Add → 'GitHub Actions deploying Azure resources'.
+#
+#   4. In the repo, create the gated environment and its secrets:
+#        - Settings → Environments → New environment → `zta-validation`
+#          (add required reviewers; restrict deployment branches if desired)
+#        - Settings → Environments → zta-validation → Secrets → add these
+#          (env-scoped so they're auto-masked in run logs):
+#            ZTA_AZURE_CLIENT_ID, ZTA_AZURE_TENANT_ID, ZTA_AZURE_SUBSCRIPTION_ID,
+#            ZTA_KEYVAULT_NAME, ZTA_KEYVAULT_CERT_NAME,
+#            ZTA_STORAGE_ACCOUNT, ZTA_STORAGE_CONTAINER,
+#            ZTA_ASSESSMENT_TENANT_ID
+#
+# Also grant the app registration the Microsoft Graph application permissions
+# the assessment needs (all `*.Read.All`) and have a tenant admin consent.
+
+name: PR Validation (Run Assessment)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to validate'
+        required: true
+        type: string
+      pillar:
+        description: 'Pillar (Infrastructure/SecOps/AI auto-enable -Preview)'
+        required: false
+        default: 'AI'
+        type: choice
+        options:
+          - All
+          - Identity
+          - Devices
+          - Network
+          - Data
+          - Infrastructure
+          - SecOps
+          - AI
+      tests:
+        description: 'Comma-separated test IDs (overrides Pillar when set)'
+        required: false
+        type: string
+
+permissions:
+  id-token: write     # GitHub OIDC token — exchanged for an Entra access token via WIF
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    environment: zta-validation
+
+    # All identifiers are stored as environment-scoped secrets so GitHub
+    # auto-masks them in workflow run logs (this repo is public).
+    env:
+      AZURE_CLIENT_ID:       ${{ secrets.ZTA_AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID:       ${{ secrets.ZTA_AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.ZTA_AZURE_SUBSCRIPTION_ID }}
+      KEYVAULT_NAME:         ${{ secrets.ZTA_KEYVAULT_NAME }}
+      KEYVAULT_CERT_NAME:    ${{ secrets.ZTA_KEYVAULT_CERT_NAME }}
+      STORAGE_ACCOUNT:       ${{ secrets.ZTA_STORAGE_ACCOUNT }}
+      STORAGE_CONTAINER:     ${{ secrets.ZTA_STORAGE_CONTAINER }}
+      ASSESSMENT_TENANT_ID:  ${{ secrets.ZTA_ASSESSMENT_TENANT_ID }}
+
+    steps:
+      - name: Checkout base
+        uses: actions/checkout@v6
+
+      - name: Checkout PR head
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          # gh pr checkout infers the repo from the local git remote, which
+          # actions/checkout@v6 just set to this workflow's own repository.
+          # No --repo flag: this workflow must never operate on any other repo.
+          gh pr checkout ${{ inputs.pr_number }} | Out-Null
+          $sha = (git rev-parse HEAD).Trim()
+          $branch = (git rev-parse --abbrev-ref HEAD).Trim()
+          "RUN_SHA=$sha"       | Out-File -FilePath $env:GITHUB_ENV -Append
+          "RUN_BRANCH=$branch" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Azure login (Workload Identity Federation)
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ env.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Fetch cert from Key Vault and import to runner store
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # KV stores the full PFX inside the "secret" backing a certificate.
+          # Default contentType is application/x-pkcs12 with base64 value.
+          $pfxB64 = az keyvault secret show `
+            --vault-name $env:KEYVAULT_NAME `
+            --name       $env:KEYVAULT_CERT_NAME `
+            --query value -o tsv
+          if (-not $pfxB64) { throw "Empty cert payload from Key Vault." }
+
+          $pfxBytes = [Convert]::FromBase64String($pfxB64)
+          $pfxPath  = Join-Path $env:RUNNER_TEMP 'zta.pfx'
+          [IO.File]::WriteAllBytes($pfxPath, $pfxBytes)
+
+          $imported = Import-PfxCertificate `
+            -FilePath $pfxPath `
+            -CertStoreLocation 'Cert:\CurrentUser\My' `
+            -Exportable:$false
+          Remove-Item $pfxPath -Force
+
+          "CERT_THUMBPRINT=$($imported.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install module prerequisites
+        shell: pwsh
+        run: .\build\powershell\Install-Prerequisites.ps1
+
+      - name: Run assessment (Connect + Invoke, no browser)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Import-Module .\src\powershell\ZeroTrustAssessment.psd1 -Force
+
+          Connect-ZtAssessment `
+            -TenantId    $env:ASSESSMENT_TENANT_ID `
+            -ClientId    $env:AZURE_CLIENT_ID `
+            -Certificate $env:CERT_THUMBPRINT
+
+          $reportPath = Join-Path $env:RUNNER_TEMP 'ZeroTrustReport'
+          New-Item -ItemType Directory -Force -Path $reportPath | Out-Null
+          $logFile = Join-Path $reportPath 'invoke-zt.log'
+
+          $invokeArgs = @{
+            Path      = $reportPath
+            NoBrowser = $true
+          }
+          $pillar = '${{ inputs.pillar }}'
+          $tests  = '${{ inputs.tests }}'.Trim()
+          if ($tests) {
+            $invokeArgs['Tests'] = ($tests -split ',').Trim()
+          } elseif ($pillar -and $pillar -ne 'All') {
+            $invokeArgs['Pillar'] = $pillar
+            if ($pillar -in 'Infrastructure','SecOps','AI') {
+              $invokeArgs['Preview'] = $true
+            }
+          }
+
+          # Capture verbose output to a file (uploaded with the report);
+          # keep the public Actions log limited to file listing + counts.
+          Invoke-ZtAssessment @invokeArgs *>&1 |
+            Tee-Object -FilePath $logFile |
+            Out-Null
+
+          Get-ChildItem -File $reportPath |
+            Select-Object Name, @{n='SizeKB';e={[math]::Round($_.Length/1KB,1)}} |
+            Format-Table | Out-String | Write-Host
+
+          "REPORT_PATH=$reportPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload report to private blob container
+        shell: pwsh
+        run: |
+          # No URL, account, container, or prefix is echoed. Maintainers locate
+          # the new report by inspecting the storage container directly.
+          $stamp  = Get-Date -Format 'yyyyMMdd-HHmmss'
+          $prefix = "pr-${{ inputs.pr_number }}/$($env:RUN_SHA)/$stamp"
+
+          az storage blob upload-batch `
+            --account-name      $env:STORAGE_ACCOUNT `
+            --destination       $env:STORAGE_CONTAINER `
+            --destination-path  $prefix `
+            --source            $env:REPORT_PATH `
+            --auth-mode         login `
+            --overwrite         true *> $null
+
+          Write-Host "Upload complete."
+
+      - name: Remove cert from runner store
+        if: always()
+        shell: pwsh
+        run: |
+          if ($env:CERT_THUMBPRINT) {
+            Get-Item "Cert:\CurrentUser\My\$($env:CERT_THUMBPRINT)" -ErrorAction SilentlyContinue |
+              Remove-Item -Force
+          }
