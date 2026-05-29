@@ -99,7 +99,7 @@ function Test-Assessment-61005 {
     $mdInfo = ''
 
     if ($agentPackages -and $agentPackages.Count -gt 0) {
-        $portalLink = 'https://admin.microsoft.com/#/copilot'
+        $portalLink = 'https://admin.cloud.microsoft/?#/agents/all'
         $totalCount = $agentPackages.Count
 
         $formatTemplate = @'
