@@ -170,6 +170,14 @@ TestID Start               Duration         Success Error
 
 ## Building and publishing the module
 
+> Important: Install the prerequisites for build first
+
+```Powershell
+./build/powershell/Install-Prerequisites.ps1
+Install-Module -Name PackageManagement -Repository PSGallery -Force -AllowClobber
+Install-Module -Name PowerShellGet -Repository PSGallery -Force -AllowClobber
+```
+
 ### Create a preview build
 
 To build the module, run the following command from the root. This auto increments the version number.
