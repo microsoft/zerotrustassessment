@@ -38,16 +38,6 @@ function Test-Assessment-61004 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Evaluating Microsoft Defender for Cloud CSPM plan configuration'
 
-    # Check if connected to Azure
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
-
-    $azContext = Get-AzContext -ErrorAction SilentlyContinue
-    if (-not $azContext) {
-        Write-PSFMessage 'Not connected to Azure.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
-        return
-    }
-
     # Q1: Enumerate all enabled subscriptions via Azure Resource Graph
     Write-ZtProgress -Activity $activity -Status 'Querying enabled subscriptions via Resource Graph'
 
