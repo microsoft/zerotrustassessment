@@ -14,7 +14,8 @@
     2. For each workspace, query the Sentinel onboarding state resource via the
        Microsoft.SecurityInsights/onboardingStates/default ARM endpoint.
     3. Pass if at least one workspace returns HTTP 200 (Sentinel is onboarded).
-    4. Fail if no workspaces exist or every workspace returns HTTP 404 (not onboarded).
+    4. Fail if workspaces exist but every one returns HTTP 404 (Sentinel not onboarded).
+    5. Skip if no Log Analytics workspaces are found across accessible subscriptions.
 
 .NOTES
     Test ID: 61002
@@ -57,63 +58,21 @@ function Test-Assessment-61002 {
         return
     }
 
-    # Q1 + Q2: Use Azure Resource Graph to enumerate Log Analytics workspaces across all
-    # in-scope subscriptions. ARG respects caller RBAC and returns only accessible resources.
-    Write-ZtProgress -Activity $activity -Status 'Enumerating Log Analytics workspaces via Resource Graph'
-
-    $argQuery = @"
-resources
-| where type =~ 'microsoft.operationalinsights/workspaces'
-| join kind=leftouter (
-    resourcecontainers
-    | where type =~ 'microsoft.resources/subscriptions'
-    | project subscriptionName=name, subscriptionId
-) on subscriptionId
-| project
-    workspaceName=name,
-    workspaceId=id,
-    resourceGroup,
-    subscriptionId,
-    subscriptionName
-| order by subscriptionName asc, workspaceName asc
-"@
-
-    $allWorkspaces = @()
-    try {
-        $allWorkspaces = @(Invoke-ZtAzureResourceGraphRequest -Query $argQuery)
-        Write-PSFMessage "ARG query returned $($allWorkspaces.Count) Log Analytics workspace(s)." -Tag Test -Level VeryVerbose
-    }
-    catch {
-        Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+    # Delegate all data fetching (Q1+Q2+Q3) to the private helper.
+    # $null return signals an ARG failure; empty array signals no workspaces found.
+    $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
+    # $null signals an ARG query failure (e.g. no access to Resource Graph).
+    # An empty array (Count -eq 0) means no workspaces exist – spec says Skip, not Fail.
+    if ($null -eq $workspaceResults) {
+        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Q3: For each workspace, query the Sentinel onboarding state.
-    # HTTP 200 = Sentinel is onboarded; HTTP 404 = not onboarded.
-    # -FullResponse is used so that a 404 does not throw and the status code can be inspected.
-    $workspaceResults = @()
-    foreach ($workspace in $allWorkspaces) {
-        Write-ZtProgress -Activity $activity -Status "Checking Sentinel onboarding on workspace '$($workspace.workspaceName)'"
-
-        $sentinelPath = "$($workspace.workspaceId)/providers/Microsoft.SecurityInsights/onboardingStates/default?api-version=2024-03-01"
-
-        $sentinelOnboarded = $false
-        try {
-            $sentinelResponse = Invoke-ZtAzureRequest -Path $sentinelPath -FullResponse -ErrorAction Stop
-            $sentinelOnboarded = ($sentinelResponse.StatusCode -eq 200)
-        }
-        catch {
-            Write-PSFMessage "Error checking Sentinel onboarding for workspace '$($workspace.workspaceName)': $_" -Tag Test -Level Warning
-        }
-
-        $workspaceResults += [PSCustomObject]@{
-            SubscriptionName  = $workspace.subscriptionName
-            WorkspaceName     = $workspace.workspaceName
-            ResourceGroup     = $workspace.resourceGroup
-            WorkspaceId       = $workspace.workspaceId
-            SentinelOnboarded = $sentinelOnboarded
-        }
+    # Per spec: zero workspaces → Skipped, not Failed.
+    if ($workspaceResults.Count -eq 0) {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
     }
     #endregion Data Collection
 
@@ -150,22 +109,17 @@ resources
 
     $onboardedCount = $onboardedWorkspaces.Count
 
-    if ($workspaceResults.Count -gt 0) {
-        $tableRows = ''
-        foreach ($result in $workspaceResults) {
-            $subscriptionName = Get-SafeMarkdown -Text $result.SubscriptionName
-            $workspaceName    = Get-SafeMarkdown -Text $result.WorkspaceName
-            $resourceGroup    = Get-SafeMarkdown -Text $result.ResourceGroup
-            $workspaceLink    = "[$workspaceName]($($workspacePortalTemplate -f $result.WorkspaceId))"
-            $onboardedLabel   = if ($result.SentinelOnboarded) { '✅ Yes' } else { '❌ No' }
-            $tableRows        += "| $subscriptionName | $workspaceLink | $resourceGroup | $onboardedLabel |`n"
-        }
+    $tableRows = ''
+    foreach ($result in $workspaceResults) {
+        $subscriptionName = Get-SafeMarkdown -Text $result.SubscriptionName
+        $workspaceName    = Get-SafeMarkdown -Text $result.WorkspaceName
+        $resourceGroup    = Get-SafeMarkdown -Text $result.ResourceGroup
+        $workspaceLink    = "[$workspaceName]($($workspacePortalTemplate -f $result.WorkspaceId))"
+        $onboardedLabel   = if ($result.SentinelOnboarded) { '✅ Yes' } else { '❌ No' }
+        $tableRows        += "| $subscriptionName | $workspaceLink | $resourceGroup | $onboardedLabel |`n"
+    }
 
-        $mdInfo = $formatTemplate -f 'Workspaces and their Sentinel onboarding state', $workspacesPortalUrl, $tableRows, $workspaceResults.Count, $onboardedCount
-    }
-    else {
-        $mdInfo = "`nNo Log Analytics workspaces were found across accessible subscriptions.`n"
-    }
+    $mdInfo = $formatTemplate -f 'Workspaces and their Sentinel onboarding state', $workspacesPortalUrl, $tableRows, $workspaceResults.Count, $onboardedCount
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
