@@ -158,8 +158,10 @@ resources
     # Pass requires every in-scope subscription to have pricingTier == 'Standard'
     # Any Fail or Investigate subscription results in a non-pass overall outcome
     $passed = ($failedItems.Count -eq 0) -and ($investigateItems.Count -eq 0)
+    $customStatus = $null
 
     if ($investigateItems.Count -gt 0 -and $failedItems.Count -eq 0) {
+        $customStatus = 'Investigate'
         $testResultMarkdown = "⚠️ Some of the queried resources returned status indicating not sufficient permissions. Please check you have at least reader access to the Azure Subscriptions being tested.`n`n%TestResult%"
     }
     elseif ($passed) {
@@ -224,6 +226,9 @@ resources
         Title  = 'Microsoft Defender for AI Services is enabled on every Azure subscription that hosts Azure OpenAI or Azure AI Services accounts'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
