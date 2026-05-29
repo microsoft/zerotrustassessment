@@ -189,10 +189,11 @@ resources
 
     $tableRows      = ''
     $maxDisplay     = 10
-    $displayResults = @($evaluationResults | Sort-Object DisplayName)
+    $statusPriority = @{ Fail = 0; Investigate = 1; Pass = 2 }
+    $displayResults = @($evaluationResults | Sort-Object { $statusPriority[$_.RowStatus] }, DisplayName)
     $hasMoreItems   = $false
     if ($evaluationResults.Count -gt $maxDisplay) {
-        $displayResults = @($evaluationResults | Select-Object -First $maxDisplay)
+        $displayResults = @($displayResults | Select-Object -First $maxDisplay)
         $hasMoreItems   = $true
     }
 
