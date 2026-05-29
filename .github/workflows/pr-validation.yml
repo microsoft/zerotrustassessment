@@ -160,9 +160,14 @@ jobs:
             -ClientId    $env:AZURE_CLIENT_ID `
             -Certificate $env:CERT_THUMBPRINT
 
+          # Keep the tee log OUTSIDE -Path. Invoke-ZtAssessment auto-cleans a
+          # non-empty -Path in CI before starting, and Tee-Object holds an open
+          # handle for the entire run — putting the log under -Path causes the
+          # cleanup to fail with a sharing violation.
           $reportPath = Join-Path $env:RUNNER_TEMP 'ZeroTrustReport'
-          New-Item -ItemType Directory -Force -Path $reportPath | Out-Null
-          $logFile = Join-Path $reportPath 'invoke-zt.log'
+          $logDir     = Join-Path $env:RUNNER_TEMP 'zta-logs'
+          New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+          $logFile = Join-Path $logDir 'invoke-zt.log'
 
           $invokeArgs = @{
             Path      = $reportPath
@@ -184,6 +189,10 @@ jobs:
           Invoke-ZtAssessment @invokeArgs *>&1 |
             Tee-Object -FilePath $logFile |
             Out-Null
+
+          # Now that the cmdlet (and the tee handle) have completed, fold the
+          # log into the report folder so it ships with the upload.
+          Copy-Item $logFile (Join-Path $reportPath 'invoke-zt.log') -Force
 
           Get-ChildItem -File $reportPath |
             Select-Object Name, @{n='SizeKB';e={[math]::Round($_.Length/1KB,1)}} |
