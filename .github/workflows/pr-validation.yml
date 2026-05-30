@@ -166,8 +166,13 @@ jobs:
           # cleanup to fail with a sharing violation.
           $reportPath = Join-Path $env:RUNNER_TEMP 'ZeroTrustReport'
           $logDir     = Join-Path $env:RUNNER_TEMP 'zta-logs'
-          New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $reportPath | Out-Null
+          New-Item -ItemType Directory -Force -Path $logDir     | Out-Null
           $logFile = Join-Path $logDir 'invoke-zt.log'
+
+          # Export REPORT_PATH up-front so the upload step (if: always()) has
+          # somewhere to look even if the assessment throws.
+          "REPORT_PATH=$reportPath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
           $invokeArgs = @{
             Path      = $reportPath
@@ -184,35 +189,37 @@ jobs:
             }
           }
 
-          # Capture verbose output to a file (uploaded with the report);
-          # keep the public Actions log limited to file listing + counts.
-          Invoke-ZtAssessment @invokeArgs *>&1 |
-            Tee-Object -FilePath $logFile |
-            Out-Null
-
-          # Now that the cmdlet (and the tee handle) have completed, fold the
-          # log into the report folder so it ships with the upload.
-          Copy-Item $logFile (Join-Path $reportPath 'invoke-zt.log') -Force
-
-          Get-ChildItem -File $reportPath |
-            Select-Object Name, @{n='SizeKB';e={[math]::Round($_.Length/1KB,1)}} |
-            Format-Table | Out-String | Write-Host
-
-          "REPORT_PATH=$reportPath" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Generate PSF support package
-        shell: pwsh
-        run: |
-          # Writes powershell_support_pack_<timestamp>.zip directly into
-          # $env:REPORT_PATH so the next step uploads it alongside the report.
-          # Non-fatal: a missing diagnostic bundle must not block upload.
           try {
-            New-PSFSupportPackage -Path $env:REPORT_PATH -Force
-          } catch {
-            Write-Warning "New-PSFSupportPackage failed: $($_.Exception.Message)"
+            # Capture verbose output to a file (uploaded with the report);
+            # keep the public Actions log limited to file listing + counts.
+            Invoke-ZtAssessment @invokeArgs *>&1 |
+              Tee-Object -FilePath $logFile |
+              Out-Null
+          }
+          finally {
+            # Collect the PSF support bundle in the SAME process that ran the
+            # assessment — otherwise the imported ZeroTrustAssessment module,
+            # Write-PSFMessage history, $Error records, and command history
+            # are all gone (each `shell: pwsh` step is a fresh process).
+            # Runs on success AND on failure so we always get a diagnostic zip.
+            try {
+              New-PSFSupportPackage -Path $reportPath -Force
+            } catch {
+              Write-Warning "New-PSFSupportPackage failed: $($_.Exception.Message)"
+            }
+
+            # Fold the tee log into the report folder so it ships with the upload.
+            if (Test-Path $logFile) {
+              Copy-Item $logFile (Join-Path $reportPath 'invoke-zt.log') -Force
+            }
+
+            Get-ChildItem -File $reportPath -ErrorAction SilentlyContinue |
+              Select-Object Name, @{n='SizeKB';e={[math]::Round($_.Length/1KB,1)}} |
+              Format-Table | Out-String | Write-Host
           }
 
       - name: Upload report to private blob container
+        if: always() && env.REPORT_PATH != ''
         shell: pwsh
         run: |
           # No URL, account, container, or prefix is echoed. Maintainers locate
