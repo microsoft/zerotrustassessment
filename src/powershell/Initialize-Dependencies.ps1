@@ -240,8 +240,19 @@ function Initialize-Dependencies {
             $helperPath = Join-Path -Path $PSScriptRoot -ChildPath "private\utility\Get-ModuleImportOrder.ps1" -Resolve -ErrorAction Stop
             . $helperPath
             Write-Verbose -Message ('Module with DLLs to load: {0}' -f (([Microsoft.PowerShell.Commands.ModuleSpecification[]]$moduleManifest.RequiredModules).Name -join ', '))
-            # This method does not necessarily load the right dll (it ignores the load logic from the modules)
-            $msalToLoadInOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
+            # ExchangeOnlineManagement's binary New-EXOModule cmdlet is the most brittle MSAL caller:
+            # it NREs against newer MSAL (e.g. 4.83 from Az.Accounts 5.4) and FileLoadExceptions when
+            # forced to use an older MSAL than it ships (e.g. 4.57 from AipService). Az.Accounts and
+            # Microsoft.Graph remain compatible with the MSAL EXO bundles, so pin to EXO's MSAL when
+            # ExchangeOnlineManagement is in the set and isn't already first.
+            $msalLoadOrder = Get-ModuleImportOrder -Name $allModuleDependencies.Name
+            $exoMsalEntry = $msalLoadOrder | Where-Object { $_.Name -eq 'ExchangeOnlineManagement' } | Select-Object -First 1
+            if ($exoMsalEntry -and $msalLoadOrder[0].Name -ne 'ExchangeOnlineManagement') {
+                $msalToLoadInOrder = @($exoMsalEntry) + @($msalLoadOrder | Where-Object { $_.Name -ne 'ExchangeOnlineManagement' })
+            }
+            else {
+                $msalToLoadInOrder = $msalLoadOrder
+            }
 
             # Pre-load the highest available Microsoft.IdentityModel.Abstractions.dll.
             # Search only resolved MSAL directories and shallow well-known subdirs (bin, lib, net*)
