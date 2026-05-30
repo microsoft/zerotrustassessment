@@ -200,6 +200,18 @@ jobs:
 
           "REPORT_PATH=$reportPath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Generate PSF support package
+        shell: pwsh
+        run: |
+          # Writes powershell_support_pack_<timestamp>.zip directly into
+          # $env:REPORT_PATH so the next step uploads it alongside the report.
+          # Non-fatal: a missing diagnostic bundle must not block upload.
+          try {
+            New-PSFSupportPackage -Path $env:REPORT_PATH -Force
+          } catch {
+            Write-Warning "New-PSFSupportPackage failed: $($_.Exception.Message)"
+          }
+
       - name: Upload report to private blob container
         shell: pwsh
         run: |
