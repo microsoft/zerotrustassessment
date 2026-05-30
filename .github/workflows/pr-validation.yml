@@ -53,7 +53,7 @@ on:
         required: true
         type: string
       pillar:
-        description: 'Pillar (Infrastructure/SecOps/AI auto-enable -Preview)'
+        description: 'Pillar'
         required: false
         default: 'AI'
         type: choice
@@ -70,6 +70,11 @@ on:
         description: 'Comma-separated test IDs (overrides Pillar when set)'
         required: false
         type: string
+      preview:
+        description: 'Include preview tests (-Preview)'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   id-token: write     # GitHub OIDC token — exchanged for an Entra access token via WIF
@@ -178,15 +183,15 @@ jobs:
             Path      = $reportPath
             NoBrowser = $true
           }
+          if ([System.Convert]::ToBoolean('${{ inputs.preview }}')) {
+            $invokeArgs['Preview'] = $true
+          }
           $pillar = '${{ inputs.pillar }}'
           $tests  = '${{ inputs.tests }}'.Trim()
           if ($tests) {
             $invokeArgs['Tests'] = ($tests -split ',').Trim()
           } elseif ($pillar -and $pillar -ne 'All') {
             $invokeArgs['Pillar'] = $pillar
-            if ($pillar -in 'Infrastructure','SecOps','AI') {
-              $invokeArgs['Preview'] = $true
-            }
           }
 
           try {
