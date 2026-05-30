@@ -205,7 +205,11 @@ jobs:
             try {
               New-PSFSupportPackage -Path $reportPath -Force
             } catch {
-              Write-Warning "New-PSFSupportPackage failed: $($_.Exception.Message)"
+              # Public Actions log stays generic (no paths/details echoed);
+              # the full exception goes only to the private tee log shipped
+              # with the report.
+              Write-Warning 'New-PSFSupportPackage failed; see invoke-zt.log for details.'
+              $_ | Out-String | Add-Content -Path $logFile
             }
 
             # Fold the tee log into the report folder so it ships with the upload.
