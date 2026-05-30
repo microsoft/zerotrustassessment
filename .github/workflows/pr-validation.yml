@@ -145,7 +145,7 @@ jobs:
           $imported = Import-PfxCertificate `
             -FilePath $pfxPath `
             -CertStoreLocation 'Cert:\CurrentUser\My' `
-            -Exportable:$false
+            -Exportable
           Remove-Item $pfxPath -Force
 
           "CERT_THUMBPRINT=$($imported.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
