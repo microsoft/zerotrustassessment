@@ -75,13 +75,38 @@ resourcecontainers
         $displayName    = $subscription.displayName
 
         $pricingPath = "/subscriptions/$subscriptionId/providers/Microsoft.Security/pricings/CloudPosture?api-version=2024-01-01"
-        $pricingTier = 'Not Found'
+        $pricingTier = 'Not configured'
+        $rowStatus   = 'Fail'
 
         try {
             $pricingResponse = Invoke-ZtAzureRequest -Path $pricingPath
-            $pricingTier = if ($pricingResponse.properties.pricingTier) { $pricingResponse.properties.pricingTier } else { 'Unknown' }
+            if ($null -ne $pricingResponse -and $null -ne $pricingResponse.properties.pricingTier) {
+                $pricingTier = $pricingResponse.properties.pricingTier
+                $rowStatus   = if ($pricingTier -eq 'Standard') { 'Pass' } else { 'Fail' }
+            }
         }
         catch {
+            $httpStatusCode = $null
+            if ($_.Exception.Message -match 'with status (\d+):') {
+                $httpStatusCode = [int]$Matches[1]
+            }
+            elseif ($_.Exception.Response) {
+                $httpStatusCode = [int]$_.Exception.Response.StatusCode
+            }
+
+            if ($httpStatusCode -eq 404) {
+                # 404 means the plan has never been configured on this subscription; treat as Fail per spec
+                $pricingTier = 'Not configured'
+                $rowStatus   = 'Fail'
+            }
+            elseif ($httpStatusCode -in @(401, 403)) {
+                $pricingTier = 'Access denied'
+                $rowStatus   = 'Investigate'
+            }
+            else {
+                $pricingTier = 'Error'
+                $rowStatus   = 'Fail'
+            }
             Write-PSFMessage "Error querying Defender CSPM plan for subscription '$displayName' ($subscriptionId): $_" -Tag Test -Level Warning
         }
 
@@ -89,6 +114,7 @@ resourcecontainers
             SubscriptionId = $subscriptionId
             DisplayName    = $displayName
             PricingTier    = $pricingTier
+            RowStatus      = $rowStatus
         }
     }
 
@@ -96,10 +122,16 @@ resourcecontainers
 
     #region Assessment Logic
 
-    $failedItems = @($evaluationResults | Where-Object { $_.PricingTier -ne 'Standard' })
-    $passed = $failedItems.Count -eq 0
+    $failedItems      = @($evaluationResults | Where-Object { $_.RowStatus -eq 'Fail' })
+    $investigateItems = @($evaluationResults | Where-Object { $_.RowStatus -eq 'Investigate' })
+    $passed = ($failedItems.Count -eq 0) -and ($investigateItems.Count -eq 0)
+    $customStatus = $null
 
-    if ($passed) {
+    if ($investigateItems.Count -gt 0 -and $failedItems.Count -eq 0) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Test failed to evaluate for one or more Azure Subscriptions. Make sure the account used during Connect-ZtAssessment has at least Security Reader access to Azure Subscriptions tested.`n`n%TestResult%"
+    }
+    elseif ($passed) {
         $testResultMarkdown = "✅ Microsoft Defender for Cloud CSPM plan (Standard tier) is enabled on every in-scope Azure subscription.`n`n%TestResult%"
     }
     else {
@@ -118,16 +150,18 @@ resourcecontainers
 
 ## [{0}]({1})
 
-| Display name | Pricing tier |
-| :----------- | :----------- |
+| Subscription | Pricing tier | Status |
+| :----------- | :----------- | :----- |
 {2}
 '@
 
+    $nonPassItems = @($failedItems) + @($investigateItems)
     $mdInfo = ''
-    if ($failedItems.Count -gt 0) {
+    if ($nonPassItems.Count -gt 0) {
         $tableRows         = ''
         $maxItemsToDisplay = 10
-        $displayResults    = @($failedItems | Sort-Object DisplayName)
+        $statusPriority    = @{ Fail = 0; Investigate = 1 }
+        $displayResults    = @($nonPassItems | Sort-Object { $statusPriority[$_.RowStatus] }, DisplayName)
         $hasMoreItems      = $false
         if ($displayResults.Count -gt $maxItemsToDisplay) {
             $displayResults = @($displayResults | Select-Object -First $maxItemsToDisplay)
@@ -137,11 +171,15 @@ resourcecontainers
         foreach ($result in $displayResults) {
             $displayNameLink = "[$(Get-SafeMarkdown $result.DisplayName)]($portalSubPricingBaseLink/$($result.SubscriptionId))"
             $pricingTierSafe = $result.PricingTier
-            $tableRows      += "| $displayNameLink | $pricingTierSafe |`n"
+            $statusDisplay   = switch ($result.RowStatus) {
+                'Fail'        { '❌ Fail' }
+                'Investigate' { '⚠️ Investigate' }
+            }
+            $tableRows      += "| $displayNameLink | $pricingTierSafe | $statusDisplay |`n"
         }
 
         if ($hasMoreItems) {
-            $remainingCount = $failedItems.Count - $maxItemsToDisplay
+            $remainingCount = $nonPassItems.Count - $maxItemsToDisplay
             $tableRows += "`n... and $remainingCount more. [View all subscriptions in Microsoft Defender for Cloud]($portalCspmLink)`n"
         }
 
@@ -157,6 +195,9 @@ resourcecontainers
         Title  = 'Microsoft Defender for Cloud CSPM plan is enabled on all Azure subscriptions'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
