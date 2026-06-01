@@ -37,8 +37,16 @@ resources
         Write-PSFMessage "ARG query returned $($allWorkspaces.Count) Log Analytics workspace(s)." -Tag Test -Level VeryVerbose
     }
     catch {
-        if ($_.Exception.Message -match '403|Forbidden') {
-            Write-PSFMessage "Azure Resource Graph query returned 403 Forbidden — insufficient permissions to enumerate Log Analytics workspaces." -Tag Test -Level Warning
+        $httpStatusCode = $null
+        if ($_.Exception.Message -match 'with status (\d+):') {
+            $httpStatusCode = [int]$Matches[1]
+        }
+        elseif ($_.Exception.Response) {
+            $httpStatusCode = [int]$_.Exception.Response.StatusCode
+        }
+
+        if ($httpStatusCode -in @(401, 403)) {
+            Write-PSFMessage "Azure Resource Graph query returned $httpStatusCode — insufficient permissions to enumerate Log Analytics workspaces." -Tag Test -Level Warning
             return 'Forbidden'
         }
         Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
