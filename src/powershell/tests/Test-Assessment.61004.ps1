@@ -90,9 +90,6 @@ resourcecontainers
             if ($_.Exception.Message -match 'with status (\d+):') {
                 $httpStatusCode = [int]$Matches[1]
             }
-            elseif ($_.Exception.Response) {
-                $httpStatusCode = [int]$_.Exception.Response.StatusCode
-            }
 
             if ($httpStatusCode -eq 404) {
                 # 404 means the plan has never been configured on this subscription; treat as Fail per spec
