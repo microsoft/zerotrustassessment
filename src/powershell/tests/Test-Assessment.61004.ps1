@@ -144,6 +144,7 @@ resourcecontainers
 
     $portalCspmLink             = 'https://portal.azure.com/#view/Microsoft_Azure_Security/SecurityMenuBlade/~/EnvironmentSettings'
     $portalSubPricingBaseLink    = 'https://portal.azure.com/#view/Microsoft_Azure_Security/PolicyMenuBlade/~/pricingTier/subscriptionId'
+    $tableTitle = 'Subscriptions missing Defender CSPM plan'
 
     $formatTemplate = @'
 
@@ -183,7 +184,7 @@ resourcecontainers
             $tableRows += "`n... and $remainingCount more. [View all subscriptions in Microsoft Defender for Cloud]($portalCspmLink)`n"
         }
 
-        $mdInfo = $formatTemplate -f 'Subscriptions missing Defender CSPM plan', $portalCspmLink, $tableRows
+        $mdInfo = $formatTemplate -f $tableTitle, $portalCspmLink, $tableRows
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
