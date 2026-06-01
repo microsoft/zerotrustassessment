@@ -1,6 +1,6 @@
 # ZtTest License Attribute Values
 
-Source: `zerotrustassessment-dev/src/powershell/tests/Test-Assessment.*.ps1`
+Source: `src/powershell/tests/Test-Assessment.*.ps1`
 
 Summary:
 
