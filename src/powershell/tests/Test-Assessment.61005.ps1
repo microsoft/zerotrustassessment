@@ -53,8 +53,11 @@ function Test-Assessment-61005 {
         if ($errorMsg.Exception.Response.StatusCode) {
             $httpStatusCode = [int]$errorMsg.Exception.Response.StatusCode.value__
         }
-        elseif ($errorMsg.Exception.Message -match '(403|404)') {
-            $httpStatusCode = [int]$Matches[1]
+        elseif ($errorMsg.Exception.Message -match '403|Forbidden') {
+            $httpStatusCode = 403
+        }
+        elseif ($errorMsg.Exception.Message -match '404|NotFound') {
+            $httpStatusCode = 404
         }
     }
     #endregion Data Collection
