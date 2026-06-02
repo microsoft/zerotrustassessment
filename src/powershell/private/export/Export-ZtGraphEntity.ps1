@@ -161,6 +161,37 @@ function Export-ZtGraphEntity {
 			}
 		}
 	}
+
+	function Clear-GraphPagePayload {
+		[CmdletBinding()]
+		param (
+			$Results
+		)
+
+		if (-not $Results) {
+			return
+		}
+
+		if ($Results -is [System.Collections.IDictionary]) {
+			if ($Results.Contains('value')) {
+				$Results.Remove('value')
+			}
+			return
+		}
+
+		$valueProperty = $Results.PSObject.Properties['value']
+		if (-not $valueProperty) {
+			return
+		}
+
+		try {
+			$Results.PSObject.Properties.Remove('value')
+		}
+		catch {
+			$valueProperty.Value = $null
+		}
+	}
+
 	#endregion Utility Functions
 
 	$pageIndex = 0
@@ -170,7 +201,7 @@ function Export-ZtGraphEntity {
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $Name
 	Clear-ZtFolder -Path $folderPath
 
-	$actualUri = $Uri + '?' + $QueryString
+	$actualUri = if ($QueryString) { $Uri + '?' + $QueryString } else { $Uri }
 	$startTime = Get-Date
 	$stopTime = $startTime.AddMinutes($MaximumQueryTime)
 	$hasTimeLimit = $MaximumQueryTime -gt 0
@@ -211,32 +242,34 @@ function Export-ZtGraphEntity {
 			throw $errorRecord
 		}
 
-		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
+		$nextLink = if ($results) { $results.'@odata.nextLink' } else { $null }
+		try {
+			Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 
-		# Track file size for SignIn logs
-		if ($isSignInLog) {
-			$lastFile = Join-Path -Path $folderPath -ChildPath "$Name-$pageIndex.json"
-			if (Test-Path $lastFile) {
-				$fileSize = (Get-Item $lastFile).Length
-				$totalSize += $fileSize
+			# Track file size for SignIn logs
+			if ($isSignInLog) {
+				$lastFile = Join-Path -Path $folderPath -ChildPath "$Name-$pageIndex.json"
+				if (Test-Path $lastFile) {
+					$fileSize = (Get-Item $lastFile).Length
+					$totalSize += $fileSize
 
-				if ($totalSize -gt $maxSizeBytes) {
-					$sizeMB = [math]::Round($totalSize / 1MB, 2)
-					$limitMB = [math]::Round($maxSizeBytes / 1MB, 2)
-					Write-PSFMessage -Level Warning "Sign-in log export reached size limit of $limitMB MB (current: $sizeMB MB). Stopping export and continuing with next task." -Tag Export, SignIn, SizeLimit
-					Write-Host "⚠️ " -NoNewline -ForegroundColor Yellow
-					Write-Host "Sign-in log export reached the 1GB size limit ($sizeMB MB collected). Continuing with remaining exports..." -ForegroundColor Yellow
-					break
+					if ($totalSize -gt $maxSizeBytes) {
+						$sizeMB = [math]::Round($totalSize / 1MB, 2)
+						$limitMB = [math]::Round($maxSizeBytes / 1MB, 2)
+						Write-PSFMessage -Level Warning "Sign-in log export reached size limit of $limitMB MB (current: $sizeMB MB). Stopping export and continuing with next task." -Tag Export, SignIn, SizeLimit
+						Write-Host "⚠️ " -NoNewline -ForegroundColor Yellow
+						Write-Host "Sign-in log export reached the 1GB size limit ($sizeMB MB collected). Continuing with remaining exports..." -ForegroundColor Yellow
+						break
+					}
 				}
 			}
 		}
+		finally {
+			Clear-GraphPagePayload -Results $results
+			$results = $null
+		}
 
-		if (-not $results) {
-			$actualUri = $null
-		}
-		else {
-			$actualUri = $results.'@odata.nextLink'
-		}
+		$actualUri = $nextLink
 		$pageIndex++
 
 		if (-not $actualUri) {
