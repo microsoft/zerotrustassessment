@@ -9,6 +9,7 @@ function Test-Assessment-61011 {
         ImplementationCost = 'Medium',
         MinimumLicense     = ('P1'),
         Pillar             = 'AI',
+        Service            = ('Graph'),
         RiskLevel          = 'High',
         SfiPillar          = 'Protect identities and secrets',
         TenantType         = ('Workforce'),
