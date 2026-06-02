@@ -16,8 +16,8 @@
 
 function Test-Assessment-21835 {
     [ZtTest(
-    	Category = 'Application management',
-    	ImplementationCost = 'High',
+    	Category = 'Privileged access',
+    	ImplementationCost = 'Medium',
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
@@ -28,7 +28,7 @@ function Test-Assessment-21835 {
     	UserImpact = 'Low'
     )]
     [CmdletBinding()]
-    param()
+    param($Database)
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     if ( -not (Get-ZtLicense EntraIDP1) ) {
@@ -46,16 +46,17 @@ function Test-Assessment-21835 {
     $sql = @"
 SELECT
     vr.principalId as id,
-    vr.principalDisplayName as displayName,
-    vr.userPrincipalName,
-    vr.privilegeType,
-    u.onPremisesSyncEnabled,
-    vr."@odata.type"
+    ANY_VALUE(vr.principalDisplayName) as displayName,
+    ANY_VALUE(vr.userPrincipalName)    as userPrincipalName,
+    ANY_VALUE(vr.privilegeType)        as privilegeType,
+    ANY_VALUE(u.onPremisesSyncEnabled) as onPremisesSyncEnabled,
+    ANY_VALUE(vr."@odata.type")        as "@odata.type"
 FROM vwRole vr
 LEFT JOIN "User" u ON vr.principalId = u.id
 WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
     AND vr.privilegeType = 'Permanent'
     AND vr."@odata.type" = '#microsoft.graph.user'
+GROUP BY vr.principalId
 "@
 
     $permanentGAUsers = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
@@ -90,23 +91,22 @@ WHERE vr.roleDefinitionId = '62e90394-69f5-4237-9190-012177145e10'
             $authMethods = $userAuthInfo.AuthenticationMethods
 
             if ($authMethods) {
-                # Check if user has at least one phishing-resistant auth method (FIDO2 or Certificate)
-                # Note: Passwords are always present and cannot be removed, but CA policies can enforce phishing-resistant MFA
-                # fix for issue #579 - The logic now checks if users have at least one phishing-resistant authentication method (FIDO2 or Certificate) instead of requiring only those methods.
-                # This resolves the issue where passwords auth method were causing all accounts to be filtered out.
-                $hasPhishingResistant = $false
-                $authMethodTypes = @()
+                # Spec: accounts must have ONLY phishing-resistant auth methods (FIDO2 / CBA).
+                # passwordAuthenticationMethod is always present and cannot be removed (see #579),
+                # so it is treated as ignorable. All remaining methods must be FIDO2 or CBA.
+                $phishingResistantTypes = @(
+                    '#microsoft.graph.fido2AuthenticationMethod'
+                    '#microsoft.graph.x509CertificateAuthenticationMethod'
+                )
+                $ignorableTypes = @(
+                    '#microsoft.graph.passwordAuthenticationMethod'
+                )
 
-                foreach ($method in $authMethods) {
-                    $methodType = $method.'@odata.type'
-                    $authMethodTypes += $methodType
+                $authMethodTypes = @($authMethods | ForEach-Object { $_.'@odata.type' })
+                $relevantTypes   = @($authMethodTypes | Where-Object { $_ -notin $ignorableTypes })
 
-                    # Check if this method is FIDO2 or Certificate
-                    if ($methodType -eq '#microsoft.graph.fido2AuthenticationMethod' -or
-                        $methodType -eq '#microsoft.graph.x509CertificateAuthenticationMethod') {
-                        $hasPhishingResistant = $true
-                    }
-                }
+                $hasPhishingResistant = $relevantTypes.Count -gt 0 -and
+                    -not ($relevantTypes | Where-Object { $_ -notin $phishingResistantTypes })
 
                 if ($hasPhishingResistant) {
                     # This is a candidate emergency account
