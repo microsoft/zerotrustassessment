@@ -46,7 +46,7 @@
 
 	$readFolderPath = Join-Path -Path $ExportPath -ChildPath $InputName
 	$files = Get-ChildItem -Path $readFolderPath -File
-	$maxPageSize = 50000
+	$maxPageSize = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Export.PrivilegedGroup.MaxPageSize' -Fallback 50000
 
 	function New-PrivilegedGroupExportResults {
 		[CmdletBinding()]
@@ -55,45 +55,6 @@
 		@{
 			value = [System.Collections.Generic.List[object]]::new()
 		}
-	}
-
-	function Clear-PrivilegedGroupInputPayload {
-		[CmdletBinding()]
-		param (
-			$Results
-		)
-
-		if (-not $Results) {
-			return
-		}
-
-		if ($Results -is [System.Collections.IDictionary]) {
-			if ($Results.Contains('value')) {
-				$Results.Remove('value')
-			}
-			return
-		}
-
-		$valueProperty = $Results.PSObject.Properties['value']
-		if (-not $valueProperty) {
-			return
-		}
-
-		try {
-			$Results.PSObject.Properties.Remove('value')
-		}
-		catch {
-			$valueProperty.Value = $null
-		}
-	}
-
-	function Clear-PrivilegedGroupResultPayload {
-		[CmdletBinding()]
-		param (
-			$Results
-		)
-
-		Clear-PrivilegedGroupInputPayload -Results $Results
 	}
 
 	function Export-PrivilegedGroupResultsPage {
@@ -166,8 +127,8 @@
 			}
 		}
 		finally {
-			Clear-PrivilegedGroupInputPayload -Results $roleAssignments
-			Clear-PrivilegedGroupResultPayload -Results $results
+			Clear-GraphPagePayload -Results $roleAssignments
+			Clear-GraphPagePayload -Results $results
 			$roleAssignments = $null
 			$results = $null
 		}
