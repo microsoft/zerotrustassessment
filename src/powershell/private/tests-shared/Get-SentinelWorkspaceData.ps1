@@ -54,8 +54,9 @@ resources
     }
 
     # Q3: For each workspace query the Sentinel onboarding state.
-    # HTTP 200 = onboarded; HTTP 404 = not onboarded.
-    # -FullResponse prevents a 404 from throwing so the status code can be inspected.
+    # HTTP 200 = onboarded; HTTP 404 = not onboarded; HTTP 401/403 = permission error.
+    # -FullResponse prevents non-2xx responses from throwing so the status code can be
+    # inspected explicitly.  Anything other than 200/404 is treated as an error.
     $results = @()
     foreach ($workspace in $allWorkspaces) {
         Write-ZtProgress -Activity $Activity -Status "Checking Sentinel onboarding on workspace '$($workspace.workspaceName)'"
@@ -64,7 +65,18 @@ resources
         try {
             $sentinelPath = "$($workspace.workspaceId)/providers/Microsoft.SecurityInsights/onboardingStates/default?api-version=2024-03-01"
             $response = Invoke-ZtAzureRequest -Path $sentinelPath -FullResponse -ErrorAction Stop
-            $sentinelOnboarded = ($response.StatusCode -eq 200)
+
+            switch ([int]$response.StatusCode) {
+                200 { $sentinelOnboarded = $true }
+                404 { $sentinelOnboarded = $false }
+                { $_ -in @(401, 403) } {
+                    Write-PSFMessage "Sentinel onboarding check for workspace '$($workspace.workspaceName)' returned $($response.StatusCode) — insufficient permissions." -Tag Test -Level Warning
+                    return 'Forbidden'
+                }
+                default {
+                    Write-PSFMessage "Sentinel onboarding check for workspace '$($workspace.workspaceName)' returned unexpected status $($response.StatusCode)." -Tag Test -Level Warning
+                }
+            }
         }
         catch {
             Write-PSFMessage "Error checking Sentinel onboarding for workspace '$($workspace.workspaceName)': $_" -Tag Test -Level Warning
