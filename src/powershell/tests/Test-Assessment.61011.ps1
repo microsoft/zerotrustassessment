@@ -90,9 +90,8 @@ ORDER BY displayName
     if (-not $agentBlueprints) {
         $agentBlueprints = Invoke-ZtGraphRequest `
             -RelativeUri 'applications/microsoft.graph.agentIdentityBlueprint' `
-            -ApiVersion v1.0 `
+            -ApiVersion beta `
             -Select @('id', 'appId', 'displayName', 'signInAudience')
-    }
 
     # Build lookup tables for blueprint joins
     # blueprintByAppId    : keyed by blueprint.appId  — matches agentIdentity.agentIdentityBlueprintId and Q4 parentAppId
