@@ -58,9 +58,8 @@ ORDER BY displayName
     if (-not $agentIdentities) {
         $agentIdentities = Invoke-ZtGraphRequest `
             -RelativeUri 'servicePrincipals/microsoft.graph.agentIdentity' `
-            -ApiVersion v1.0 `
+            -ApiVersion beta `
             -Select @('id', 'appId', 'displayName', 'agentIdentityBlueprintId', 'accountEnabled')
-    }
 
     if (-not $agentIdentities -or @($agentIdentities).Count -eq 0) {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
