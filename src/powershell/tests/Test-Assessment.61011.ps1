@@ -60,11 +60,12 @@ ORDER BY displayName
             -RelativeUri 'servicePrincipals/microsoft.graph.agentIdentity' `
             -ApiVersion beta `
             -Select @('id', 'appId', 'displayName', 'agentIdentityBlueprintId', 'accountEnabled')
-
+    }
     if (-not $agentIdentities -or @($agentIdentities).Count -eq 0) {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
+
 
     # Q2: Enumerate all agent identity blueprints in the tenant
     Write-ZtProgress -Activity $activity -Status 'Getting agent identity blueprints (Q2)'
@@ -265,4 +266,5 @@ ORDER BY displayName
     Add-ZtTestResultDetail -Status $passed -Result $testResultMarkdown
 
     #endregion
+}
 }
