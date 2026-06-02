@@ -93,14 +93,11 @@ ORDER BY displayName
             -ApiVersion beta `
             -Select @('id', 'appId', 'displayName', 'signInAudience')
 
-    # Build lookup tables for blueprint joins
-    # blueprintByAppId    : keyed by blueprint.appId  — matches agentIdentity.agentIdentityBlueprintId and Q4 parentAppId
-    # blueprintByObjectId : keyed by blueprint.id     — matches Q3 resourceId
-    $blueprintByAppId    = @{}
-    $blueprintByObjectId = @{}
+    # Build lookup table for blueprint joins
+    # blueprintByAppId : keyed by blueprint.appId  — matches agentIdentity.agentIdentityBlueprintId and Q4 parentAppId
+    $blueprintByAppId = @{}
     foreach ($blueprint in $agentBlueprints) {
-        if (-not [string]::IsNullOrEmpty($blueprint.appId)) { $blueprintByAppId[$blueprint.appId]   = $blueprint }
-        if (-not [string]::IsNullOrEmpty($blueprint.id))    { $blueprintByObjectId[$blueprint.id]   = $blueprint }
+        if (-not [string]::IsNullOrEmpty($blueprint.appId)) { $blueprintByAppId[$blueprint.appId] = $blueprint }
     }
 
     # Fast-lookup set of blueprint object IDs for Q3 client-side filtering
