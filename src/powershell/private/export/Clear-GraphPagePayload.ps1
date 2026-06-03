@@ -1,3 +1,16 @@
+<#
+	.SYNOPSIS
+		Removes the Graph page payload from an export results object.
+
+	.DESCRIPTION
+		Removes the value property from a Microsoft Graph page results object so the
+		page payload can be released after it has been processed. Supports both
+		dictionary-based results and PowerShell objects with a value property.
+
+	.PARAMETER Results
+		The Graph page results object to clear.
+
+	#>
 function Clear-GraphPagePayload {
 	[CmdletBinding()]
 	param (

@@ -82,6 +82,9 @@
 
 		$filePath = Join-Path $Path "$Name-$($PageIndex.Value).json"
 		$Results | Export-PSFJson -Path $filePath -Depth 100 -Encoding UTF8NoBom
+		$fileName = [System.IO.Path]::GetFileName($filePath)
+		Write-PSFMessage "File {0} created" -StringValues $fileName -Target $Name -Tag Export, file, created
+		Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "File $fileName created"
 		$Results.value.Clear()
 		$PageIndex.Value++
 	}
