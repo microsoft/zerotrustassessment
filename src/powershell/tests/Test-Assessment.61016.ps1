@@ -178,7 +178,7 @@ function Test-Assessment-61016 {
         $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyUsers`` / ``UserRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ Either no workspaces are onboarded to Sentinel or no Sentinel-onboarded workspace has an Entra diagnostic setting covering it with both ``RiskyUsers`` and ``UserRiskEvents`` log categories enabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No Sentinel-onboarded workspace has a tenant-scoped Microsoft Entra diagnostic setting targeting it with both ``RiskyUsers`` and ``UserRiskEvents`` log categories enabled.`n`n%TestResult%"
     }
 
     $reportPortalUrl = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel'
