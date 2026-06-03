@@ -78,7 +78,7 @@ function Test-Assessment-61016 {
         # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
         Write-ZtProgress -Activity $activity -Status 'Querying Microsoft Entra diagnostic settings (tenant scope)'
         try {
-            $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticSettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
+            $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
             if ($diagResponse.StatusCode -in 401, 403) {
                 # Spec: 401/403 -> Investigate (insufficient directory-role permissions).
                 $investigateReason = $insufficientPermissionsMessage
