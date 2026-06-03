@@ -49,15 +49,6 @@ function Test-Assessment-61002 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Evaluating Microsoft Sentinel onboarding state across Log Analytics workspaces'
 
-    # Verify Azure connection
-    Write-ZtProgress -Activity $activity -Status 'Checking Azure connection'
-    $azContext = Get-AzContext -ErrorAction SilentlyContinue
-    if (-not $azContext) {
-        Write-PSFMessage 'Not connected to Azure.' -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedAzure
-        return
-    }
-
     # Delegate all data fetching (Q1+Q2+Q3) to the private helper.
     # 'Forbidden' signals a 403 on the ARG workspace query (spec: Investigate).
     # $null signals any other ARG failure.
@@ -79,7 +70,7 @@ function Test-Assessment-61002 {
 
     # $null signals a non-403 ARG failure.
     if ($null -eq $workspaceResults) {
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 

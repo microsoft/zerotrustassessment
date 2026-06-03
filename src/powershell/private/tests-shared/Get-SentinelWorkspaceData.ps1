@@ -19,6 +19,7 @@ resources
 | join kind=leftouter (
     resourcecontainers
     | where type =~ 'microsoft.resources/subscriptions'
+    | where tostring(properties.state) =~ 'Enabled'
     | project subscriptionName=name, subscriptionId
 ) on subscriptionId
 | project
