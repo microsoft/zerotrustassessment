@@ -262,7 +262,7 @@ export function DataTable<TData extends Test, TValue>({
 
                     {/* Risk Filter Toggles */}
                     <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium text-muted-foreground mr-1">Risk:</span>
+                        <span className="text-xs font-medium text-muted-foreground mr-1">{riskLabel}:</span>
                         {uniqueRisks.map((risk) => {
                             const isSelected = selectedRisks.includes(risk);
                             const riskCount = data.filter(item => item.TestRisk === risk).length;
