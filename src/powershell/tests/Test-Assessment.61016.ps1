@@ -54,93 +54,76 @@ function Test-Assessment-61016 {
     }
 
     $activity = 'Checking Microsoft Entra ID Protection risk events flowing to Sentinel workspaces'
+    $testTitle = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
     $requiredCategories = @('RiskyUsers', 'UserRiskEvents')
-    $customStatus = 'Investigate'
     $insufficientPermissionsMessage = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested and the Security Reader or Global Reader directory role for the tenant-scope diagnostic-settings read.'
 
-    # Q1 + Q2: enumerate Log Analytics workspaces and their Sentinel onboarding state via shared helper.
-    # 'Forbidden' => Investigate; $null => non-403 ARG failure (skip); empty => no workspaces (skip).
-    $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
+    # Tracks Investigate path; when set, the final emit reports Investigate without running the per-workspace evaluation.
+    $investigateReason = $null
+    $diagnosticSettings = @()
 
-    if ($workspaceResults -eq 'Forbidden') {
-        $params = @{
-            TestId       = '61016'
-            Status       = $false
-            Result       = $insufficientPermissionsMessage
-            CustomStatus = $customStatus
-        }
-        Add-ZtTestResultDetail @params
-        return
-    }
+    # Q1 + Q2: enumerate Log Analytics workspaces and their Sentinel onboarding state via shared helper.
+    # 'Forbidden' => Investigate; $null => non-403 ARG failure (skip); empty => no workspaces (handled in Assessment Logic).
+    $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
 
     if ($null -eq $workspaceResults) {
         Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
         return
     }
 
-    # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
-    Write-ZtProgress -Activity $activity -Status 'Querying Microsoft Entra diagnostic settings (tenant scope)'
-    $diagnosticSettings = @()
-    try {
-        $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticSettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
-        if ($diagResponse.StatusCode -in 401, 403) {
-            $params = @{
-                TestId       = '61016'
-                Status       = $false
-                Result       = $insufficientPermissionsMessage
-                CustomStatus = $customStatus
-            }
-            Add-ZtTestResultDetail @params
-            return
-        }
-        if ($diagResponse.StatusCode -ge 400) {
-            Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
-            $params = @{
-                TestId       = '61016'
-                Status       = $false
-                Result       = "⚠️ Microsoft Entra diagnostic settings query returned an unexpected status ($($diagResponse.StatusCode)). Please retry or investigate tenant-scope access."
-                CustomStatus = $customStatus
-            }
-            Add-ZtTestResultDetail @params
-            return
-        }
-        $diagnosticSettings = @(($diagResponse.Content | ConvertFrom-Json).value)
+    if ($workspaceResults -eq 'Forbidden') {
+        $investigateReason = $insufficientPermissionsMessage
     }
-    catch {
-        Write-PSFMessage "Failed to query Microsoft Entra diagnostic settings: $_" -Tag Test -Level Warning -ErrorRecord $_
-        $params = @{
-            TestId       = '61016'
-            Status       = $false
-            Result       = '⚠️ Microsoft Entra diagnostic settings query failed. Please retry or investigate tenant-scope access.'
-            CustomStatus = $customStatus
+    else {
+        # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
+        Write-ZtProgress -Activity $activity -Status 'Querying Microsoft Entra diagnostic settings (tenant scope)'
+        try {
+            $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticSettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
+            if ($diagResponse.StatusCode -in 401, 403) {
+                # Spec: 401/403 -> Investigate (insufficient directory-role permissions).
+                $investigateReason = $insufficientPermissionsMessage
+            }
+            elseif ($diagResponse.StatusCode -ge 500) {
+                # Spec: 5xx -> Investigate (transient ARM/aadiam failure, retry recommended).
+                Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
+                $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned a server error ($($diagResponse.StatusCode)). Please retry."
+            }
+            elseif ($diagResponse.StatusCode -ge 400) {
+                Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
+                $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned an unexpected status ($($diagResponse.StatusCode))."
+            }
+            else {
+                $diagnosticSettings = @(($diagResponse.Content | ConvertFrom-Json).value)
+            }
         }
-        Add-ZtTestResultDetail @params
-        return
+        catch {
+            Write-PSFMessage "Failed to query Microsoft Entra diagnostic settings: $_" -Tag Test -Level Warning -ErrorRecord $_
+            $investigateReason = '⚠️ Microsoft Entra diagnostic settings query failed. Please retry or investigate tenant-scope access.'
+        }
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $sentinelWorkspaces = @($workspaceResults | Where-Object { $_.SentinelOnboarded })
+    $sentinelWorkspaces = @()
+    $perWorkspace = @()
+    $passingWorkspaces = @()
+    $noSentinelWorkspace = $false
 
-    # Precondition (61002): no Sentinel-onboarded workspace -> Fail per spec.
-    if ($sentinelWorkspaces.Count -eq 0) {
-        $testResultMarkdown = "❌ No Sentinel-onboarded workspace in tenant.`n`n%TestResult%"
-        $mdInfo = "`n`nNo Log Analytics workspace in scope is onboarded to Microsoft Sentinel, so Microsoft Entra ID Protection risk events have nowhere to flow.`n"
-        $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
-        $params = @{
-            TestId = '61016'
-            Status = $false
-            Result = $testResultMarkdown
+    if (-not $investigateReason) {
+        $sentinelWorkspaces = @($workspaceResults | Where-Object { $_.SentinelOnboarded })
+
+        # Precondition (61002): no Sentinel-onboarded workspace -> Fail per spec.
+        if ($sentinelWorkspaces.Count -eq 0) {
+            $noSentinelWorkspace = $true
         }
-        Add-ZtTestResultDetail @params
-        return
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Evaluating diagnostic-setting coverage per workspace'
+    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+        Write-ZtProgress -Activity $activity -Status 'Evaluating diagnostic-setting coverage per workspace'
 
-    # Per workspace, union enabled categories across all diagnostic settings whose
-    # properties.workspaceId matches the workspace ARM id (case-insensitive).
-    $perWorkspace = foreach ($workspace in $sentinelWorkspaces) {
+        # Per workspace, union enabled categories across all diagnostic settings whose
+        # properties.workspaceId matches the workspace ARM id (case-insensitive).
+        $perWorkspace = foreach ($workspace in $sentinelWorkspaces) {
         $matchingSettings = @($diagnosticSettings | Where-Object {
             $_.properties.workspaceId -and
             ([string]$_.properties.workspaceId).Trim().ToLowerInvariant() -eq ([string]$workspace.WorkspaceId).Trim().ToLowerInvariant()
@@ -157,24 +140,32 @@ function Test-Assessment-61016 {
         $hasDiagnosticSetting = $matchingSettings.Count -gt 0
         $workspacePassed = $hasDiagnosticSetting -and ($missingCategories.Count -eq 0)
 
-        [PSCustomObject]@{
-            SubscriptionName     = $workspace.SubscriptionName
-            WorkspaceName        = $workspace.WorkspaceName
-            ResourceGroup        = $workspace.ResourceGroup
-            WorkspaceId          = $workspace.WorkspaceId
-            HasDiagnosticSetting = $hasDiagnosticSetting
-            EnabledCategories    = $enabledCategories
-            MissingCategories    = $missingCategories
-            Passed               = $workspacePassed
+            [PSCustomObject]@{
+                SubscriptionName     = $workspace.SubscriptionName
+                WorkspaceName        = $workspace.WorkspaceName
+                ResourceGroup        = $workspace.ResourceGroup
+                WorkspaceId          = $workspace.WorkspaceId
+                HasDiagnosticSetting = $hasDiagnosticSetting
+                EnabledCategories    = $enabledCategories
+                MissingCategories    = $missingCategories
+                Passed               = $workspacePassed
+            }
         }
+
+        $passingWorkspaces = @($perWorkspace | Where-Object { $_.Passed })
     }
 
-    $passingWorkspaces = @($perWorkspace | Where-Object { $_.Passed })
-    $passed = $passingWorkspaces.Count -ge 1
+    $passed = (-not $investigateReason) -and (-not $noSentinelWorkspace) -and ($passingWorkspaces.Count -ge 1)
     #endregion Assessment Logic
 
     #region Report Generation
-    if ($passed) {
+    if ($investigateReason) {
+        $testResultMarkdown = $investigateReason
+    }
+    elseif ($noSentinelWorkspace) {
+        $testResultMarkdown = "❌ No Sentinel-onboarded workspace in tenant.`n`nNo Log Analytics workspace in scope is onboarded to Microsoft Sentinel, so Microsoft Entra ID Protection risk events have nowhere to flow."
+    }
+    elseif ($passed) {
         $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyUsers`` / ``UserRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
     }
     else {
@@ -192,7 +183,17 @@ function Test-Assessment-61016 {
     }
 
     $tableRows = ''
-    foreach ($entry in $perWorkspace) {
+    $maxWorkspacesToDisplay = 10
+    # Sort failing workspaces first so they aren't truncated away; truncate by workspace so each workspace keeps both category rows together.
+    $statusPriority = @{ $false = 0; $true = 1 }
+    $displayWorkspaces = @($perWorkspace | Sort-Object { $statusPriority[[bool]$_.Passed] }, WorkspaceName)
+    $hasMoreItems = $false
+    if ($displayWorkspaces.Count -gt $maxWorkspacesToDisplay) {
+        $displayWorkspaces = @($displayWorkspaces | Select-Object -First $maxWorkspacesToDisplay)
+        $hasMoreItems = $true
+    }
+
+    foreach ($entry in $displayWorkspaces) {
         $subscriptionName = Get-SafeMarkdown -Text $entry.SubscriptionName
         $workspaceName = Get-SafeMarkdown -Text $entry.WorkspaceName
         $workspaceLink = "[$workspaceName]($($workspacePortalTemplate -f $entry.WorkspaceId))"
@@ -224,6 +225,11 @@ function Test-Assessment-61016 {
         }
     }
 
+    if ($hasMoreItems) {
+        $remainingCount = $perWorkspace.Count - $maxWorkspacesToDisplay
+        $tableRows += "`n... and $remainingCount more workspace(s). [View all in Microsoft Sentinel]($reportPortalUrl)`n"
+    }
+
     $formatTemplate = @'
 
 
@@ -240,15 +246,21 @@ function Test-Assessment-61016 {
 
 '@
 
-    $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count
-
-    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+        $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count
+        $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
+    }
     #endregion Report Generation
 
     $params = @{
         TestId = '61016'
+        Title  = $testTitle
         Status = $passed
         Result = $testResultMarkdown
+    }
+
+    if ($investigateReason) {
+        $params.CustomStatus = 'Investigate'
     }
 
     Add-ZtTestResultDetail @params
