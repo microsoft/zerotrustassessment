@@ -97,9 +97,9 @@ export function DataTable<TData extends Test, TValue>({
         return data;
     }, [data, pillar]);
 
-    // Default to High risk filter for Infrastructure pillar; reset on pillar switch
+    // Reset risk filter on pillar switch; do not auto-select any risk/severity value
     React.useEffect(() => {
-        setSelectedRisks(pillar === "Infrastructure" ? ["High"] : []);
+        setSelectedRisks([]);
     }, [pillar]);
 
     // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
