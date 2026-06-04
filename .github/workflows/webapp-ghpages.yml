@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
           cache-dependency-path: src/react/package-lock.json
       - name: Install dependencies
