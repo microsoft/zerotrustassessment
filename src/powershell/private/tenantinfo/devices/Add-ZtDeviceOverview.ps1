@@ -326,7 +326,7 @@ order by operatingSystem, deviceOwnership, isCompliant
         @{
             "description"  = "Mobile devices by compliance status."
             "nodes"        = $nodes
-            "totalDevices" = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+            "totalDevices" = ($results | Measure-Object -Property count -Sum).Sum ?? 0
         }
     }
 
