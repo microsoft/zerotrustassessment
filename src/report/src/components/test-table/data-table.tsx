@@ -57,6 +57,8 @@ export function DataTable<TData extends Test, TValue>({
     data,
     pillar,
 }: DataTableProps<TData, TValue>) {
+    const riskLabel = pillar === "Infrastructure" ? "Severity" : "Risk";
+
     const [sorting, setSorting] = React.useState<SortingState>([
         { id: "TestRisk", desc: false },
         { id: "TestStatus", desc: false },
@@ -95,9 +97,9 @@ export function DataTable<TData extends Test, TValue>({
         return data;
     }, [data, pillar]);
 
-    // Default to High risk filter for Infrastructure pillar; reset on pillar switch
+    // Reset risk filter on pillar switch; do not auto-select any risk/severity value
     React.useEffect(() => {
-        setSelectedRisks(pillar === "Infrastructure" ? ["High"] : []);
+        setSelectedRisks([]);
     }, [pillar]);
 
     // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
@@ -215,6 +217,9 @@ export function DataTable<TData extends Test, TValue>({
     const table = useReactTable({
         data: filteredData,
         columns,
+        meta: {
+            riskLabel,
+        },
         enableRowSelection: true,
         getCoreRowModel: getCoreRowModel(),
         onSortingChange: setSorting,
@@ -257,7 +262,7 @@ export function DataTable<TData extends Test, TValue>({
 
                     {/* Risk Filter Toggles */}
                     <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium text-muted-foreground mr-1">Risk:</span>
+                        <span className="text-xs font-medium text-muted-foreground mr-1">{riskLabel}:</span>
                         {uniqueRisks.map((risk) => {
                             const isSelected = selectedRisks.includes(risk);
                             const riskCount = data.filter(item => item.TestRisk === risk).length;
@@ -348,6 +353,10 @@ export function DataTable<TData extends Test, TValue>({
                                     return true;
                                 })
                                 .map((column) => {
+                                    const columnLabel = column.id === "TestRisk"
+                                        ? riskLabel
+                                        : (column.columnDef.meta?.label ?? column.id);
+
                                     return (
                                         <DropdownMenuCheckboxItem
                                             key={column.id}
@@ -357,7 +366,7 @@ export function DataTable<TData extends Test, TValue>({
                                                 column.toggleVisibility(!!value)
                                             }
                                         >
-                                            {column.columnDef.meta?.label ?? column.id}
+                                            {columnLabel}
                                         </DropdownMenuCheckboxItem>
                                     )
                                 })}
@@ -509,7 +518,7 @@ export function DataTable<TData extends Test, TValue>({
                                 <div className={`mt-2 text-sm ${selectedRow?.TestPillar === "Infrastructure" ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
-                                        <span className="font-semibold">Risk:</span>
+                                        <span className="font-semibold">{selectedRow?.TestPillar === "Infrastructure" ? "Severity:" : "Risk:"}</span>
                                         <span>{selectedRow?.TestRisk ?? "N/A"}</span>
                                     </div>
                                     {selectedRow?.TestPillar !== "Infrastructure" && (
