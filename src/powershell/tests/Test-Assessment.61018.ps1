@@ -141,7 +141,13 @@ function Test-Assessment-61018 {
     # Q1 + Q2 + onboarding check: returns 'Forbidden' on 401/403, $null on other failure.
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
     if ($null -eq $allWorkspaces -or $allWorkspaces -eq 'Forbidden') {
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        $params = @{
+            TestId = '61018'
+            Title  = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
+            Status = $false
+            Result = '❌ No Sentinel-onboarded workspace in tenant.'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
