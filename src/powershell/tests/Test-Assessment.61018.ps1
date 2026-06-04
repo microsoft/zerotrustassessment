@@ -53,7 +53,7 @@ function Test-Assessment-61018 {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
-    if($allWorkspaces -eq 'NoWorkspaces') {
+    if($allWorkspaces -eq 'NoWorkspaces' -or ($allWorkspaces | Where-Object { $_.SentinelOnboarded }).Count -eq 0) {
         $params = @{
             TestId = '61018'
             Title  = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
