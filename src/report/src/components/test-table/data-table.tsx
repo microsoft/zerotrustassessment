@@ -244,11 +244,10 @@ export function DataTable<TData extends Test, TValue>({
 
     const [sheetOpen, setSheetOpen] = React.useState(false);
     const [selectedRow, setSelectedRow] = React.useState<Test | null>(null);
-    const isInfrastructureRow = selectedRow
-        ? (Array.isArray(selectedRow.TestPillar)
-            ? selectedRow.TestPillar.includes("Infrastructure")
-            : selectedRow.TestPillar === "Infrastructure")
-        : false;
+    const selectedPillar = selectedRow?.TestPillar ?? null;
+    const isInfrastructureRow = Array.isArray(selectedPillar)
+        ? selectedPillar.includes("Infrastructure")
+        : selectedPillar === "Infrastructure";
     const mdRehypePlugins = isInfrastructureRow
         ? [rehypeRaw, rehypeSanitize]
         : [];
