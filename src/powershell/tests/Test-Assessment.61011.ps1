@@ -2,12 +2,35 @@
 .SYNOPSIS
     Checks whether every Microsoft Entra Agent ID in the tenant produced sign-in evidence
     consistent with users reaching the agent through Microsoft Entra in the last 30 days.
+
+.DESCRIPTION
+    For each agent identity service principal (microsoft.graph.agentIdentity), the test looks for
+    two positive signals in the last 30 days of sign-in logs:
+
+      Signal 1 (strong pass) — A non-interactive sign-in where the agent acquired a token on
+      behalf of a real user (agent.agentType eq 'agenticAppInstance' and agent.parentAppId
+      matches the agent's blueprint appId). This proves end-to-end delegated user authentication.
+
+      Signal 2 (pass) — An interactive user sign-in whose resourceId matches the agent's
+      blueprint object ID. This proves users reach the agent's blueprint audience through Entra.
+
+    An agent identity with neither signal in the lookback window is classified as Warning; the
+    tenant-level result is Fail when any agent identity is in Warning.
+
+.NOTES
+    Test ID: 61011
+    Workshop Task: AI_000
+    Pillar: AI
+    Category: AI Authentication & Access
+    Required permissions:
+      Application.Read.All — to enumerate agent identities (Q1) and blueprints (Q2)
+      AuditLog.Read.All   — to read interactive (Q3) and agentic non-interactive (Q4) sign-in logs
 #>
 function Test-Assessment-61011 {
     [ZtTest(
         Category           = 'AI Authentication & Access',
         ImplementationCost = 'Medium',
-        MinimumLicense     = ('P1'),
+        CompatibleLicense  = ('AAD_PREMIUM'),
         Pillar             = 'AI',
         Service            = ('Graph'),
         RiskLevel          = 'High',
@@ -22,15 +45,9 @@ function Test-Assessment-61011 {
         $Database
     )
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
-    if (-not (Get-ZtLicense EntraIDP1)) {
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP1
-        return
-    }
-
     #region Data Collection
 
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking whether agent identities produced Entra-mediated user-authentication sign-in evidence in the last 30 days'
 
     # Q1: Enumerate all agent identities in the tenant
@@ -66,7 +83,6 @@ ORDER BY displayName
         return
     }
 
-
     # Q2: Enumerate all agent identity blueprints in the tenant
     Write-ZtProgress -Activity $activity -Status 'Getting agent identity blueprints (Q2)'
     $agentBlueprints = $null
@@ -93,6 +109,7 @@ ORDER BY displayName
             -RelativeUri 'applications/microsoft.graph.agentIdentityBlueprint' `
             -ApiVersion beta `
             -Select @('id', 'appId', 'displayName', 'signInAudience')
+    }
 
     # Build lookup table for blueprint joins
     # blueprintByAppId : keyed by blueprint.appId  — matches agentIdentity.agentIdentityBlueprintId and Q4 parentAppId
@@ -175,7 +192,7 @@ ORDER BY displayName
         }
     }
 
-    #endregion
+    #endregion Data Collection
 
     #region Assessment Logic
 
@@ -223,7 +240,7 @@ ORDER BY displayName
 
     $passed = $warningAgents.Count -eq 0
 
-    #endregion
+    #endregion Assessment Logic
 
     #region Report Generation
 
@@ -263,8 +280,13 @@ ORDER BY displayName
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
-    Add-ZtTestResultDetail -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId = '61011'
+        Title  = 'Require users to use Microsoft Entra ID auth to interact with agents'
+        Status = $passed
+        Result = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 
-    #endregion
-}
+    #endregion Report Generation
 }
