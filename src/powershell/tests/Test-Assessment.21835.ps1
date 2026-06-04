@@ -306,7 +306,7 @@ GROUP BY vr.principalId
     else {
         # Investigate: more than two candidate emergency access accounts identified.
         $passed = $false
-        $testResultMarkdown = "More than 2 emergency access accounts were found. This should be investigated to ensure account purpose and usage is limited to emergency or `"break glass`" scenarios.`n`n"
+        $testResultMarkdown = "Three or more emergency access accounts appear to be configured based on cloud-only state, registered phishing-resistant credentials and CA policy exclusions. Review these accounts to determine whether this volume is excessive for your organization.`n`n"
     }
 
     # Add summary information
