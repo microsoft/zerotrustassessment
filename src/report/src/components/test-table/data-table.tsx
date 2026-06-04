@@ -244,7 +244,11 @@ export function DataTable<TData extends Test, TValue>({
 
     const [sheetOpen, setSheetOpen] = React.useState(false);
     const [selectedRow, setSelectedRow] = React.useState<Test | null>(null);
-    const mdRehypePlugins = selectedRow?.TestPillar === "Infrastructure"
+    const selectedPillar = selectedRow?.TestPillar ?? null;
+    const isInfrastructureRow = Array.isArray(selectedPillar)
+        ? selectedPillar.includes("Infrastructure")
+        : selectedPillar === "Infrastructure";
+    const mdRehypePlugins = isInfrastructureRow
         ? [rehypeRaw, rehypeSanitize]
         : [];
 
@@ -515,20 +519,20 @@ export function DataTable<TData extends Test, TValue>({
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader>
-                                <div className={`mt-2 text-sm ${selectedRow?.TestPillar === "Infrastructure" ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
+                                <div className={`mt-2 text-sm ${isInfrastructureRow ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
-                                        <span className="font-semibold">{selectedRow?.TestPillar === "Infrastructure" ? "Severity:" : "Risk:"}</span>
+                                        <span className="font-semibold">{isInfrastructureRow ? "Severity:" : "Risk:"}</span>
                                         <span>{selectedRow?.TestRisk ?? "N/A"}</span>
                                     </div>
-                                    {selectedRow?.TestPillar !== "Infrastructure" && (
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">User Impact:</span>
                                         <span>{selectedRow?.TestImpact ?? "N/A"}</span>
                                     </div>
                                     )}
-                                    {selectedRow?.TestPillar !== "Infrastructure" && (
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <Settings className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Implementation Effort:</span>
@@ -540,7 +544,7 @@ export function DataTable<TData extends Test, TValue>({
                                         <span className="font-semibold">Test ID:</span>
                                         <span>{selectedRow?.TestId ?? "N/A"}</span>
                                     </div>
-                                    {selectedRow?.TestPillar !== "Infrastructure" && (
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <BadgeCheck className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">License:</span>
