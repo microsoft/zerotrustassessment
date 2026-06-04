@@ -100,6 +100,17 @@ resources
         $subscriptionNameById[$sub.subscriptionId] = $sub.subscriptionName
     }
 
+    # Scope Q2 results to enabled subscriptions only.  ARG returns workspaces from all
+    # accessible subscriptions regardless of state, so workspaces whose subscriptionId is
+    # absent from $subscriptionNameById belong to disabled (or inaccessible) subscriptions
+    # and must be excluded before Q3 and before the 'NoWorkspaces' guard.
+    $allWorkspaces = @($allWorkspaces | Where-Object { $subscriptionNameById.ContainsKey($_.subscriptionId) })
+
+    if ($allWorkspaces.Count -eq 0) {
+        Write-PSFMessage "After scoping to enabled subscriptions, no Log Analytics workspaces remain." -Tag Test -Level Warning
+        return 'NoWorkspaces'
+    }
+
     # Q3: For each workspace query the Sentinel onboarding state.
     # HTTP 200 = onboarded; HTTP 404 = not onboarded; HTTP 401/403 = permission error.
     # -FullResponse prevents non-2xx responses from throwing so the status code can be
