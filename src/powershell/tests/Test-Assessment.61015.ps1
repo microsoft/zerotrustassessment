@@ -49,17 +49,23 @@ function Test-Assessment-61015 {
         'ADFSSignInLogs'
     )
 
-    # Q1 (subscriptions) + Q2 (workspaces) + onboarding-state check:
-    # Delegate to the shared helper. Returns the same sentinel values as used by 61002.
-    # 'Forbidden'       → 401/403 on Q1/Q2 ARG query (skip NoAzureAccess)
-    # $null             → unexpected ARG failure (skip NotSupported)
-    # 'NoSubscriptions' → no enabled subscriptions (skip NotApplicable)
-    # 'NoWorkspaces'    → no Log Analytics workspaces found (Fail — blocked by upstream 61002)
-    # array             → workspace results (SentinelOnboarded, PermissionError flags)
+    # Shared helper runs Q1+Q2; returns sentinel strings or workspace array.
+    # 'Forbidden'       → 401/403 on ARG query (Investigate)
+    # $null             → unexpected ARG failure (skip)
+    # 'NoSubscriptions' → no enabled subscriptions (skip)
+    # 'NoWorkspaces'    → no workspaces found (skip)
+    # array             → workspace results with SentinelOnboarded / PermissionError flags
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
 
     if ($workspaceResults -eq 'Forbidden') {
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        $params = @{
+            TestId       = '61015'
+            Title        = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
+            Status       = $false
+            Result       = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -69,37 +75,26 @@ function Test-Assessment-61015 {
     }
 
     if ($workspaceResults -eq 'NoSubscriptions') {
+        Write-PSFMessage 'No enabled subscriptions found — skipping Entra diagnostic settings check.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
-    # 'NoWorkspaces' (no Log Analytics workspaces at all) and an array with no Sentinel-onboarded
-    # workspaces are both the "blocked by upstream 61002" condition — both Fail per spec.
-    $sentinelWorkspaces = if ($workspaceResults -eq 'NoWorkspaces') {
-        @()
-    } else {
-        @($workspaceResults | Where-Object { $_.SentinelOnboarded })
-    }
-
-    if ($sentinelWorkspaces.Count -eq 0) {
-        $params = @{
-            TestId = '61015'
-            Title  = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
-            Status = $false
-            Result = "❌ No Sentinel-onboarded workspace was found in this tenant. Deploy Microsoft Sentinel and enable the Entra ID data connector to evaluate Entra log coverage."
-        }
-        Add-ZtTestResultDetail @params
+    # No workspaces found — skip, matching 61002.
+    if ($workspaceResults -eq 'NoWorkspaces') {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Entra diagnostic settings check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
     $tenantDiagnosticSettings = @()
     $q3PermissionError = $false
 
-    # Q3: List Microsoft Entra diagnostic settings once at tenant scope (cached for all workspace evaluations).
+    # Q3: Tenant-scoped Entra diagnostic settings — issued once and reused per workspace.
     Write-ZtProgress -Activity $activity -Status 'Querying tenant Entra diagnostic settings (Q3)'
     try {
         $q3Response = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticSettings?api-version=2017-04-01-preview'
-        $tenantDiagnosticSettings = @($q3Response.value)
+        $tenantDiagnosticSettings = @($q3Response)
     }
     catch {
         Write-PSFMessage "Entra diagnostic settings request threw: $($_.Exception.Message)" -Tag Test -Level Warning
@@ -109,7 +104,7 @@ function Test-Assessment-61015 {
 
     #region Assessment Logic
 
-    # Q3 permission error → return Investigate immediately (no data to evaluate)
+    # Q3 auth/transient error — no diagnostic data to evaluate.
     if ($q3PermissionError) {
         $params = @{
             TestId = '61015'
@@ -122,12 +117,41 @@ function Test-Assessment-61015 {
         return
     }
 
+    # Split by Q2 Sentinel onboarding check accessibility.
+    $checkableWorkspaces = @($workspaceResults | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces = @($workspaceResults | Where-Object { $_.PermissionError })
+    $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+
+    # Blocked workspaces may be the onboarded ones — can't conclude Fail without a clean result.
+    if ($forbiddenWorkspaces.Count -gt 0 -and $onboardedWorkspaces.Count -eq 0) {
+        $params = @{
+            TestId       = '61015'
+            Title        = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
+            Status       = $false
+            Result       = '⚠️ All Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. Please make sure you have Microsoft Sentinel Reader on each workspace.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    if ($onboardedWorkspaces.Count -eq 0) {
+        $params = @{
+            TestId = '61015'
+            Title  = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
+            Status = $false
+            Result = "❌ No Sentinel-onboarded workspace has an Entra diagnostic setting covering it with every required log category enabled. Also Fail when the Sentinel onboarding check failed."
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
     $workspaceRows = @()
     $workspacePassCount = 0
 
     Write-ZtProgress -Activity $activity -Status 'Evaluating workspace coverage via Entra diagnostic settings (Q3)'
 
-    foreach ($workspace in ($sentinelWorkspaces | Sort-Object SubscriptionName, ResourceGroup, WorkspaceName)) {
+    foreach ($workspace in ($onboardedWorkspaces | Sort-Object SubscriptionName, ResourceGroup, WorkspaceName)) {
         $workspaceResourceId = $workspace.WorkspaceId
         $workspaceResourceIdNormalized = $workspaceResourceId.TrimEnd('/').ToLowerInvariant()
         $workspaceName = $workspace.WorkspaceName
@@ -155,7 +179,7 @@ function Test-Assessment-61015 {
                 Select-Object -ExpandProperty category -Unique
         )
 
-        # ADFSSignInLogs is skipped only when AD FS is not applicable for this workspace scope.
+        # ADFSSignInLogs is N/A when no AD FS is federated to the tenant.
         $adfsApplicable = 'ADFSSignInLogs' -in $categoriesInMatchingSettings
         $missingCategories = @($requiredDiagnosticCategories | Where-Object {
             if ($_ -eq 'ADFSSignInLogs' -and -not $adfsApplicable) {
@@ -233,9 +257,6 @@ function Test-Assessment-61015 {
         if ($rowsToRenderOriginalCount -gt $maxTableRows) {
             $mdInfo += "_**Note**: This table is truncated and showing the first $maxTableRows out of $rowsToRenderOriginalCount rows._`n`n"
         }
-    }
-    else {
-        $mdInfo = 'No Sentinel-onboarded workspace rows were available to render for this tenant.'
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
