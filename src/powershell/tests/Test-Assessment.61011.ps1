@@ -52,9 +52,10 @@ function Test-Assessment-61011 {
     # Q1: Enumerate all agent identities from the exported database
     Write-ZtProgress -Activity $activity -Status 'Getting agent identities (Q1)'
     $sqlQ1 = @"
-SELECT id, appId, displayName, agentIdentityBlueprintId, accountEnabled
+SELECT id, appId, displayName, agentIdentityBlueprintId
 FROM main.ServicePrincipal
 WHERE "@odata.type" = '#microsoft.graph.agentIdentity'
+  AND accountEnabled = 1
 ORDER BY displayName
 "@
     try {
@@ -84,7 +85,8 @@ ORDER BY displayName
     }
     catch {
         Write-PSFMessage "Failed to query agent identity blueprints: $_" -Tag Test -Level Warning -ErrorRecord $_
-        $agentBlueprints = @()
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
     }
 
     # Build lookup tables: blueprintByAppId keyed by blueprint.appId
@@ -159,46 +161,53 @@ ORDER BY displayName
     #endregion Data Collection
 
     #region Assessment Logic
+    $passed = $false
+    $testResultMarkdown = ''
     $warningAgents = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-    foreach ($agentIdentity in $agentIdentities) {
-        $blueprintAppId = $agentIdentity.agentIdentityBlueprintId
-        $blueprint      = if (-not [string]::IsNullOrEmpty($blueprintAppId)) { $blueprintByAppId[$blueprintAppId] } else { $null }
-
-        $signal1HasDelegatedCall = $false
-        $signal2HasUserSignIn    = $false
-        $lastDelegatedCall       = $null
-        $lastUserSignIn          = $null
-
-        if ($blueprint) {
-            # Signal 1: agentic non-interactive sign-in with agent.parentAppId == blueprint.appId
-            $q4Records = $agenticSignInsByParentAppId[$blueprint.appId]
-            if ($q4Records -and $q4Records.Count -gt 0) {
-                $signal1HasDelegatedCall = $true
-                $lastDelegatedCall = ($q4Records | Sort-Object createdDateTime -Descending | Select-Object -First 1).createdDateTime
-            }
-
-            # Signal 2: interactive user sign-in with resourceId == blueprint.id
-            $q3Records = $interactiveSignInsByBlueprintObjectId[$blueprint.id]
-            if ($q3Records -and $q3Records.Count -gt 0) {
-                $signal2HasUserSignIn = $true
-                $lastUserSignIn = ($q3Records | Sort-Object createdDateTime -Descending | Select-Object -First 1).createdDateTime
-            }
-        }
-
-        if (-not $signal1HasDelegatedCall -and -not $signal2HasUserSignIn) {
-            $warningAgents.Add([PSCustomObject]@{
-                AgentDisplayName     = $agentIdentity.displayName
-                AgentObjectId        = $agentIdentity.id
-                BlueprintDisplayName = if ($blueprint) { $blueprint.displayName } else { '' }
-                BlueprintAppId       = if ($blueprint) { $blueprint.appId } else { '' }
-                LastUserSignIn       = $lastUserSignIn
-                LastDelegatedCall    = $lastDelegatedCall
-            })
-        }
+    if ($q3QueryError -and $q4QueryError) {
+        $testResultMarkdown = "❌ Unable to evaluate agent identity sign-in evidence because sign-in log data could not be retrieved.`n`n**Error:** ``$q3QueryError```n`n%TestResult%"
     }
+    else {
+        foreach ($agentIdentity in $agentIdentities) {
+            $blueprintAppId = $agentIdentity.agentIdentityBlueprintId
+            $blueprint      = if (-not [string]::IsNullOrEmpty($blueprintAppId)) { $blueprintByAppId[$blueprintAppId] } else { $null }
 
-    $passed = $warningAgents.Count -eq 0
+            $signal1HasDelegatedCall = $false
+            $signal2HasUserSignIn    = $false
+            $lastDelegatedCall       = $null
+            $lastUserSignIn          = $null
+
+            if ($blueprint) {
+                # Signal 1: agentic non-interactive sign-in with agent.parentAppId == blueprint.appId
+                $q4Records = $agenticSignInsByParentAppId[$blueprint.appId]
+                if ($q4Records -and $q4Records.Count -gt 0) {
+                    $signal1HasDelegatedCall = $true
+                    $lastDelegatedCall = ($q4Records | Sort-Object createdDateTime -Descending | Select-Object -First 1).createdDateTime
+                }
+
+                # Signal 2: interactive user sign-in with resourceId == blueprint.id
+                $q3Records = $interactiveSignInsByBlueprintObjectId[$blueprint.id]
+                if ($q3Records -and $q3Records.Count -gt 0) {
+                    $signal2HasUserSignIn = $true
+                    $lastUserSignIn = ($q3Records | Sort-Object createdDateTime -Descending | Select-Object -First 1).createdDateTime
+                }
+            }
+
+            if (-not $signal1HasDelegatedCall -and -not $signal2HasUserSignIn) {
+                $warningAgents.Add([PSCustomObject]@{
+                    AgentDisplayName     = $agentIdentity.displayName
+                    AgentObjectId        = $agentIdentity.id
+                    BlueprintDisplayName = if ($blueprint) { $blueprint.displayName } else { '' }
+                    BlueprintAppId       = if ($blueprint) { $blueprint.appId } else { '' }
+                    LastUserSignIn       = $lastUserSignIn
+                    LastDelegatedCall    = $lastDelegatedCall
+                })
+            }
+        }
+
+        $passed = $warningAgents.Count -eq 0
+    }
     #endregion Assessment Logic
 
     #region Report Generation
@@ -208,12 +217,13 @@ ORDER BY displayName
     $totalAgentCount    = @($agentIdentities).Count
     $warningCount       = $warningAgents.Count
 
-    if ($passed) {
-        $testResultMarkdown = "✅ Every agent identity in the tenant produced Entra-mediated user-authentication sign-in evidence in the last 30 days.`n`n%TestResult%"
-        $mdInfo = ''
-    }
-    else {
-        $testResultMarkdown = "❌ One or more agent identities produced no evidence of Entra-mediated user authentication in the last 30 days. The platform cannot confirm whether those agents enforce Microsoft Entra user authentication; verify each agent's host configuration directly.`n`n%TestResult%"
+    if ([string]::IsNullOrEmpty($testResultMarkdown)) {
+        if ($passed) {
+            $testResultMarkdown = "✅ Every agent identity in the tenant produced Entra-mediated user-authentication sign-in evidence in the last 30 days.`n`n%TestResult%"
+            $mdInfo = ''
+        }
+        else {
+            $testResultMarkdown = "❌ One or more agent identities produced no evidence of Entra-mediated user authentication in the last 30 days. The platform cannot confirm whether those agents enforce Microsoft Entra user authentication; verify each agent's host configuration directly.`n`n%TestResult%"
 
         $tableRows = ''
         foreach ($agent in $warningAgents) {
@@ -241,7 +251,8 @@ ORDER BY displayName
 '@
 
         $mdInfo = $formatTemplate -f $agentPortalUrl, $tableRows, $totalAgentCount, $warningCount
-    }
+        }
+    } # end if testResultMarkdown not already set
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
