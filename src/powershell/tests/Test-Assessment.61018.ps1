@@ -46,19 +46,55 @@ function Test-Assessment-61018 {
         return
     }
     if ($allWorkspaces -eq 'Forbidden') {
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
+        $params = @{
+            TestId       = '61018'
+            Title        = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when enumerating subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
-    if ($allWorkspaces -eq 'NoSubscriptions' -or $allWorkspaces -eq 'NoWorkspaces') {
+
+    # No enabled subscriptions accessible to the caller.
+    if ($allWorkspaces -eq 'NoSubscriptions') {
+        Write-PSFMessage 'No enabled subscriptions found — skipping Sentinel onboarding check.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
-    if(($allWorkspaces | Where-Object { $_.SentinelOnboarded }).Count -eq 0) {
-        $params = @{
-            TestId = '61018'
-            Title  = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
-            Status = $false
-            Result = '❌ No Sentinel-onboarded workspace in tenant.'
+
+    # No Log Analytics workspaces across accessible subscriptions.
+    if ($allWorkspaces -eq 'NoWorkspaces') {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Sentinel onboarding check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    $checkableWorkspaces  = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces  = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+
+    if ($onboardedWorkspaces.Count -eq 0) {
+        if ($forbiddenWorkspaces.Count -gt 0) {
+            # Auth errors on the Sentinel onboarding check mean we cannot confirm whether
+            # those workspaces are onboarded — we cannot rule out a passing workspace exists.
+            $params = @{
+                TestId       = '61018'
+                Title        = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
+                Status       = $false
+                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                CustomStatus = 'Investigate'
+            }
+        }
+        else {
+            # Full visibility, no workspace has Sentinel onboarded.
+            $params = @{
+                TestId = '61018'
+                Title  = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
+                Status = $false
+                Result = '❌ No Sentinel-onboarded workspace in tenant.'
+            }
         }
         Add-ZtTestResultDetail @params
         return
@@ -66,7 +102,7 @@ function Test-Assessment-61018 {
 
     $workspaceResults = @()
 
-    foreach ($workspace in ($allWorkspaces | Where-Object { $_.SentinelOnboarded })) {
+    foreach ($workspace in $onboardedWorkspaces) {
         $packageName = 'Not found'
         $rowStatus   = 'Fail'
 
