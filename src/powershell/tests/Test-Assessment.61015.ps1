@@ -90,7 +90,7 @@ function Test-Assessment-61015 {
     $tenantDiagnosticSettings = @()
     $q3PermissionError = $false
 
-    # Q3: Tenant-scoped Entra diagnostic settings — issued once and reused per workspace.
+    # Q3 (spec): Tenant-scoped Entra diagnostic settings — issued once and reused per workspace.
     Write-ZtProgress -Activity $activity -Status 'Querying tenant Entra diagnostic settings (Q3)'
     try {
         $q3Response = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticSettings?api-version=2017-04-01-preview'
@@ -140,7 +140,7 @@ function Test-Assessment-61015 {
             TestId = '61015'
             Title  = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
             Status = $false
-            Result = "❌ No Sentinel-onboarded workspace has an Entra diagnostic setting covering it with every required log category enabled. Also Fail when the Sentinel onboarding check failed."
+            Result = "❌ No Sentinel-onboarded workspace found across all accessible subscriptions."
         }
         Add-ZtTestResultDetail @params
         return
@@ -216,7 +216,7 @@ function Test-Assessment-61015 {
     }
     else {
         $passed = $false
-        $testResultMarkdown = "❌ No Sentinel-onboarded workspace has an Entra diagnostic setting covering it with every required log category enabled. Also Fail when the Sentinel onboarding check failed.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No Sentinel-onboarded workspace has an Entra diagnostic setting covering it with every required log category enabled.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
