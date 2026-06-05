@@ -75,7 +75,7 @@ ORDER BY displayName
     # Q2: Enumerate all agent identity blueprints from the exported database
     Write-ZtProgress -Activity $activity -Status 'Getting agent identity blueprints (Q2)'
     $sqlQ2 = @"
-SELECT id, appId, displayName, signInAudience
+SELECT id, appId, displayName
 FROM main.Application
 WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprint'
 ORDER BY displayName
@@ -165,8 +165,9 @@ ORDER BY displayName
     $testResultMarkdown = ''
     $warningAgents = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-    if ($q3QueryError -and $q4QueryError) {
-        $testResultMarkdown = "❌ Unable to evaluate agent identity sign-in evidence because sign-in log data could not be retrieved.`n`n**Error:** ``$q3QueryError```n`n%TestResult%"
+    if ($q3QueryError -or $q4QueryError) {
+        $errorDetail = if ($q3QueryError) { $q3QueryError } else { $q4QueryError }
+        $testResultMarkdown = "❌ Unable to evaluate agent identity sign-in evidence because sign-in log data could not be retrieved.`n`n**Error:** ``$errorDetail```n`n%TestResult%"
     }
     else {
         foreach ($agentIdentity in $agentIdentities) {
@@ -217,6 +218,7 @@ ORDER BY displayName
     $totalAgentCount    = @($agentIdentities).Count
     $warningCount       = $warningAgents.Count
 
+    $mdInfo = ''
     if ([string]::IsNullOrEmpty($testResultMarkdown)) {
         if ($passed) {
             $testResultMarkdown = "✅ Every agent identity in the tenant produced Entra-mediated user-authentication sign-in evidence in the last 30 days.`n`n%TestResult%"

@@ -5,7 +5,7 @@ An agent endpoint that does not require Microsoft Entra user authentication is a
 - [Authenticate users in interactive agents](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/interactive-agent-authenticate-user)
 - [Request delegated user authorization for interactive agents](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/interactive-agent-request-user-authorization)
 - [Agent users in Microsoft Entra Agent ID](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/agent-users)
-- [Microsoft Entra Agent ID overview](https://learn.microsoft.com/en-us/entra/agent-id/overview)
+- [Microsoft Entra Agent ID overview](https://learn.microsoft.com/en-us/entra/agent-id/what-is-microsoft-entra-agent-id)
 - [Sign-in logs in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-ins)
 
 <!--- Results --->
