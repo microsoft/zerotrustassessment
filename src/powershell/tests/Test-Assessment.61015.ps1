@@ -70,7 +70,7 @@ function Test-Assessment-61015 {
     }
 
     if ($null -eq $workspaceResults) {
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
