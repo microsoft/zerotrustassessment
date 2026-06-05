@@ -50,12 +50,15 @@ function Test-Assessment-61002 {
     $activity = 'Evaluating Microsoft Sentinel onboarding state across Log Analytics workspaces'
 
     # Delegate all data fetching (Q1+Q2+Q3) to the private helper.
-    # 'Forbidden' signals a 403 on the ARG workspace query (spec: Investigate).
-    # $null signals any other ARG failure.
-    # An empty array signals no workspaces found (spec: Skip).
+    # 'Forbidden'       → 401/403 on Q1 or Q2 ARG query (spec: Investigate).
+    # $null             → unexpected ARG failure.
+    # 'NoSubscriptions' → Q1 succeeded but no enabled subscriptions accessible (spec: Skip).
+    # 'NoWorkspaces'    → Q2 succeeded but no Log Analytics workspaces found (spec: Skip).
+    # array             → workspace results; individual entries may have PermissionError=$true
+    #                     when the Q3 Sentinel check returned 401/403 for that workspace.
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
 
-    # Per spec: Q2 returns 403 → Investigate.
+    # 401/403 on Q1 or Q2 ARG query → Investigate.
     if ($workspaceResults -eq 'Forbidden') {
         $params = @{
             TestId       = '61002'
@@ -68,22 +71,46 @@ function Test-Assessment-61002 {
         return
     }
 
-    # $null signals a non-403 ARG failure.
+    # Unexpected ARG failure.
     if ($null -eq $workspaceResults) {
         Add-ZtTestResultDetail -SkippedBecause NotSupported
         return
     }
 
-    # Per spec: zero workspaces → Skipped, not Failed.
-    if ($workspaceResults.Count -eq 0) {
-        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions.' -Tag Test -Level VeryVerbose
+    # No enabled subscriptions accessible to the caller.
+    if ($workspaceResults -eq 'NoSubscriptions') {
+        Write-PSFMessage 'No enabled subscriptions found — skipping Sentinel onboarding check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    # No Log Analytics workspaces across accessible subscriptions.
+    if ($workspaceResults -eq 'NoWorkspaces') {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Sentinel onboarding check.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $onboardedWorkspaces = @($workspaceResults | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces  = @($workspaceResults | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces  = @($workspaceResults | Where-Object { $_.PermissionError })
+    $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+
+    # If every workspace returned 403 on the Sentinel check, treat the whole result as Investigate.
+    if ($forbiddenWorkspaces.Count -gt 0 -and $checkableWorkspaces.Count -eq 0) {
+        $params = @{
+            TestId       = '61002'
+            Title        = 'Microsoft Sentinel is onboarded on at least one Log Analytics workspace'
+            Status       = $false
+            Result       = '⚠️ All Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. Please make sure you have Microsoft Sentinel Reader on each workspace.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    # Evaluate pass/fail only from workspaces that could be checked.
     $passed = $onboardedWorkspaces.Count -ge 1
 
     if ($passed) {
@@ -111,9 +138,11 @@ function Test-Assessment-61002 {
 
 - Total workspaces: {3}
 - Workspaces with Sentinel onboarded: {4}
+- Workspaces skipped (insufficient permissions): {5}
 '@
 
-    $onboardedCount = $onboardedWorkspaces.Count
+    $onboardedCount  = $onboardedWorkspaces.Count
+    $forbiddenCount  = $forbiddenWorkspaces.Count
 
     $tableRows = ''
     foreach ($result in $workspaceResults) {
@@ -121,11 +150,16 @@ function Test-Assessment-61002 {
         $workspaceName    = Get-SafeMarkdown -Text $result.WorkspaceName
         $resourceGroup    = Get-SafeMarkdown -Text $result.ResourceGroup
         $workspaceLink    = "[$workspaceName]($($workspacePortalTemplate -f $result.WorkspaceId))"
-        $onboardedLabel   = if ($result.SentinelOnboarded) { '✅ Yes' } else { '❌ No' }
+        $onboardedLabel   = if ($result.PermissionError) { '⚠️ No access' } elseif ($result.SentinelOnboarded) { '✅ Yes' } else { '❌ No' }
         $tableRows        += "| $subscriptionName | $workspaceLink | $resourceGroup | $onboardedLabel |`n"
     }
 
-    $mdInfo = $formatTemplate -f 'Workspaces and their Sentinel onboarding state', $workspacesPortalUrl, $tableRows, $workspaceResults.Count, $onboardedCount
+    $partialWarning = ''
+    if ($forbiddenCount -gt 0) {
+        $partialWarning = "`n`n> ⚠️ **$forbiddenCount workspace(s) could not be checked** due to insufficient permissions on the Sentinel onboarding state endpoint. Ensure Microsoft Sentinel Reader is granted on those workspaces and re-run the assessment."
+    }
+
+    $mdInfo = ($formatTemplate -f 'Workspaces and their Sentinel onboarding state', $workspacesPortalUrl, $tableRows, $workspaceResults.Count, $onboardedCount, $forbiddenCount) + $partialWarning
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
