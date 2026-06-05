@@ -3,22 +3,21 @@
     Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace.
 
 .DESCRIPTION
-    Verifies that Microsoft Entra ID Protection risk-event categories (RiskyUsers and
-    UserRiskEvents) are flowing into at least one Sentinel-onboarded Log Analytics workspace
+    Verifies that Microsoft Entra ID Protection risk-event categories (RiskyAgents and
+    AgentRiskEvents) are flowing into at least one Sentinel-onboarded Log Analytics workspace
     via a tenant-scoped Microsoft Entra diagnostic setting that targets the workspace.
     Configuring this diagnostic setting auto-enables the Microsoft Entra ID data connector
     (and Content Hub solution) inside Sentinel for the targeted workspace.
 
     Evaluation steps:
-      1. Skip if the tenant lacks an AAD_PREMIUM_P2 subscribed SKU (Identity Protection
-         requires Entra ID P2).
-      2. Enumerate Sentinel-onboarded Log Analytics workspaces (Q1 + Q2) via the shared
-         helper Get-SentinelWorkspaceData.
-      3. Read tenant-scoped Microsoft Entra diagnostic settings once (Q3).
-      4. For each Sentinel-onboarded workspace, union enabled categories across all
+      1. Enumerate Sentinel-onboarded Log Analytics workspaces (Q1 + Q2) via the shared
+         helper Get-SentinelWorkspaceData. Workspaces whose Sentinel onboarding check
+         returned 401/403 are surfaced via PermissionError=$true and treated as unknown.
+      2. Read tenant-scoped Microsoft Entra diagnostic settings once (Q3).
+      3. For each Sentinel-onboarded workspace, union enabled categories across all
          diagnostic settings whose properties.workspaceId matches the workspace ARM id,
-         and require both 'RiskyUsers' and 'UserRiskEvents' to be enabled.
-      5. Pass if at least one Sentinel-onboarded workspace satisfies the criterion.
+         and require both 'RiskyAgents' and 'AgentRiskEvents' to be enabled.
+      4. Pass if at least one Sentinel-onboarded workspace satisfies the criterion.
 
 .NOTES
     Test ID: 61016
@@ -32,7 +31,7 @@ function Test-Assessment-61016 {
         Category = 'AI Threat Detection',
         ImplementationCost = 'Low',
         Service = ('Azure'),
-        CompatibleLicense = ('AAD_PREMIUM_P2'),
+        CompatibleLicense = ('AAD_PREMIUM_P2', 'AGENT_365'),
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -47,32 +46,55 @@ function Test-Assessment-61016 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    # License precondition: Identity Protection requires Entra ID P2 (service plan AAD_PREMIUM_P2).
-    if (-not (Get-ZtLicense EntraIDP2)) {
+    if ( -not (Get-ZtLicense EntraIDP2) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
         return
     }
 
     $activity = 'Checking Microsoft Entra ID Protection risk events flowing to Sentinel workspaces'
     $testTitle = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
-    $requiredCategories = @('RiskyUsers', 'UserRiskEvents')
+    $requiredCategories = @('RiskyAgents', 'AgentRiskEvents')
     $insufficientPermissionsMessage = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested and the Security Reader or Global Reader directory role for the tenant-scope diagnostic-settings read.'
 
     # Tracks Investigate path; when set, the final emit reports Investigate without running the per-workspace evaluation.
     $investigateReason = $null
+    # Tracks the 61002 precondition Fail path (no Sentinel-onboarded workspace can exist in scope).
+    $noSentinelWorkspace = $false
     $diagnosticSettings = @()
 
     # Q1 + Q2: enumerate Log Analytics workspaces and their Sentinel onboarding state via shared helper.
-    # 'Forbidden' => Investigate; $null => non-403 ARG failure (skip); empty => no workspaces (handled in Assessment Logic).
+    # 'Forbidden'       => 401/403 on Q1 or Q2 ARG query (Investigate).
+    # $null             => unexpected ARG failure (Skip - NotApplicable).
+    # 'NoSubscriptions' => Q1 succeeded but no enabled subscriptions accessible (Fail - no Sentinel workspace can exist).
+    # 'NoWorkspaces'    => Q2 succeeded but no Log Analytics workspaces in scope (Fail - no Sentinel workspace can exist).
+    # array             => workspace results; entries with PermissionError=$true had a 401/403
+    #                      on the Sentinel onboarding check and must be treated as unknown.
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
-
-    if ($null -eq $workspaceResults) {
-        Add-ZtTestResultDetail -SkippedBecause NoAzureAccess
-        return
-    }
 
     if ($workspaceResults -eq 'Forbidden') {
         $investigateReason = $insufficientPermissionsMessage
+    }
+    elseif ($null -eq $workspaceResults) {
+        # Unexpected ARG failure (transient infrastructure issue), not a missing capability.
+        # NotApplicable (not NotSupported): NotSupported implies the capability doesn't exist
+        # for the tenant, whereas this is a transient infrastructure failure. Per reviewer
+        # feedback on the sibling 61015 PR for this same shared surface.
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+    # NOTE: 61016 intentionally diverges from peer 61002 here. 61002 treats no-subscriptions /
+    # no-workspaces as a Skip (NotApplicable); 61016 treats them as Fail, because the spec's
+    # 61002 precondition says "if 61002 returned Fail, short-circuit to Fail" and the Fail copy
+    # is "no workspaces are onboarded to Sentinel". Do not change these to skips.
+    elseif ($workspaceResults -eq 'NoSubscriptions') {
+        # Precondition (61002): no accessible subscriptions -> no Sentinel-onboarded workspace can exist -> Fail.
+        Write-PSFMessage 'No enabled subscriptions found - no Sentinel-onboarded workspace can exist.' -Tag Test -Level VeryVerbose
+        $noSentinelWorkspace = $true
+    }
+    elseif ($workspaceResults -eq 'NoWorkspaces') {
+        # Precondition (61002): no Log Analytics workspaces -> no Sentinel-onboarded workspace can exist -> Fail.
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions - no Sentinel-onboarded workspace can exist.' -Tag Test -Level VeryVerbose
+        $noSentinelWorkspace = $true
     }
     else {
         # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
@@ -105,15 +127,21 @@ function Test-Assessment-61016 {
 
     #region Assessment Logic
     $sentinelWorkspaces = @()
+    $forbiddenWorkspaces = @()
     $perWorkspace = @()
     $passingWorkspaces = @()
-    $noSentinelWorkspace = $false
 
-    if (-not $investigateReason) {
-        $sentinelWorkspaces = @($workspaceResults | Where-Object { $_.SentinelOnboarded })
+    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+        $forbiddenWorkspaces = @($workspaceResults | Where-Object { $_.PermissionError })
+        $sentinelWorkspaces  = @($workspaceResults | Where-Object { -not $_.PermissionError -and $_.SentinelOnboarded })
 
-        # Precondition (61002): no Sentinel-onboarded workspace -> Fail per spec.
-        if ($sentinelWorkspaces.Count -eq 0) {
+        # If no Sentinel-onboarded workspace was confirmed AND some workspaces could not be
+        # checked due to permission errors, we cannot rule out coverage -> Investigate.
+        if ($sentinelWorkspaces.Count -eq 0 -and $forbiddenWorkspaces.Count -gt 0) {
+            $investigateReason = '⚠️ All Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. Please ensure Microsoft Sentinel Reader is granted on each workspace and re-run the assessment.'
+        }
+        elseif ($sentinelWorkspaces.Count -eq 0) {
+            # Precondition (61002): no Sentinel-onboarded workspace -> Fail per spec.
             $noSentinelWorkspace = $true
         }
     }
@@ -124,24 +152,25 @@ function Test-Assessment-61016 {
         # Per workspace, union enabled categories across all diagnostic settings whose
         # properties.workspaceId matches the workspace ARM id (case-insensitive).
         $perWorkspace = foreach ($workspace in $sentinelWorkspaces) {
-        $matchingSettings = @($diagnosticSettings | Where-Object {
-            $_.properties.workspaceId -and
-            ([string]$_.properties.workspaceId).Trim().ToLowerInvariant() -eq ([string]$workspace.WorkspaceId).Trim().ToLowerInvariant()
-        })
+            $matchingSettings = @($diagnosticSettings | Where-Object {
+                $_.properties.workspaceId -and
+                ([string]$_.properties.workspaceId).Trim().ToLowerInvariant() -eq ([string]$workspace.WorkspaceId).Trim().ToLowerInvariant()
+            })
 
-        $enabledCategories = @(
-            $matchingSettings |
-                ForEach-Object { $_.properties.logs } |
-                Where-Object { $_.enabled -eq $true } |
-                Select-Object -ExpandProperty category -Unique
-        )
+            $enabledCategories = @(
+                $matchingSettings |
+                    ForEach-Object { $_.properties.logs } |
+                    Where-Object { $_.enabled -eq $true } |
+                    Select-Object -ExpandProperty category -Unique
+            )
 
-        $missingCategories = @($requiredCategories | Where-Object { $_ -notin $enabledCategories })
-        $hasDiagnosticSetting = $matchingSettings.Count -gt 0
-        $workspacePassed = $hasDiagnosticSetting -and ($missingCategories.Count -eq 0)
+            $missingCategories = @($requiredCategories | Where-Object { $_ -notin $enabledCategories })
+            $hasDiagnosticSetting = $matchingSettings.Count -gt 0
+            $workspacePassed = $hasDiagnosticSetting -and ($missingCategories.Count -eq 0)
 
             [PSCustomObject]@{
                 SubscriptionName     = $workspace.SubscriptionName
+                SubscriptionId       = $workspace.SubscriptionId
                 WorkspaceName        = $workspace.WorkspaceName
                 ResourceGroup        = $workspace.ResourceGroup
                 WorkspaceId          = $workspace.WorkspaceId
@@ -166,10 +195,10 @@ function Test-Assessment-61016 {
         $testResultMarkdown = "❌ No Sentinel-onboarded workspace in tenant.`n`nNo Log Analytics workspace in scope is onboarded to Microsoft Sentinel, so Microsoft Entra ID Protection risk events have nowhere to flow."
     }
     elseif ($passed) {
-        $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyUsers`` / ``UserRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
+        $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyAgents`` / ``AgentRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ No Sentinel-onboarded workspace has a tenant-scoped Microsoft Entra diagnostic setting targeting it with both ``RiskyUsers`` and ``UserRiskEvents`` log categories enabled.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No Sentinel-onboarded workspace has a tenant-scoped Microsoft Entra diagnostic setting targeting it with both ``RiskyAgents`` and ``AgentRiskEvents`` log categories enabled.`n`n%TestResult%"
     }
 
     $reportPortalUrl = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel'
@@ -178,8 +207,8 @@ function Test-Assessment-61016 {
 
     # Spec output: one row per (workspace, required category). Workspace passes only when both rows pass.
     $categoryTableMap = [ordered]@{
-        'RiskyUsers'     = 'AADRiskyUsers'
-        'UserRiskEvents' = 'AADUserRiskEvents'
+        'RiskyAgents'     = 'AADRiskyAgents'
+        'AgentRiskEvents' = 'AADAgentRiskEvents'
     }
 
     $tableRows = ''
@@ -198,10 +227,9 @@ function Test-Assessment-61016 {
         $workspaceName = Get-SafeMarkdown -Text $entry.WorkspaceName
         $workspaceLink = "[$workspaceName]($($workspacePortalTemplate -f $entry.WorkspaceId))"
 
-        # Extract subscription GUID from the workspace ARM id (/subscriptions/{id}/...).
         $subscriptionLink = $subscriptionName
-        if ($entry.WorkspaceId -match '/subscriptions/([0-9a-fA-F-]{36})/') {
-            $subscriptionLink = "[$subscriptionName]($($subscriptionPortalTemplate -f $Matches[1]))"
+        if ($entry.SubscriptionId) {
+            $subscriptionLink = "[$subscriptionName]($($subscriptionPortalTemplate -f $entry.SubscriptionId))"
         }
 
         foreach ($category in $categoryTableMap.Keys) {
@@ -242,12 +270,18 @@ function Test-Assessment-61016 {
 **Summary:**
 
 - Sentinel-onboarded workspaces: {2}
-- Workspaces with both ``RiskyUsers`` and ``UserRiskEvents`` enabled via Entra diagnostic setting: {3}
+- Workspaces with both ``RiskyAgents`` and ``AgentRiskEvents`` enabled via Entra diagnostic setting: {3}
+- Workspaces skipped (insufficient permissions on Sentinel onboarding check): {4}
+{5}
 
 '@
 
     if (-not $investigateReason -and -not $noSentinelWorkspace) {
-        $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count
+        $partialWarning = ''
+        if ($forbiddenWorkspaces.Count -gt 0) {
+            $partialWarning = "`n> ⚠️ **$($forbiddenWorkspaces.Count) workspace(s) could not be checked** for Sentinel onboarding due to insufficient permissions. Coverage for those workspaces is unknown."
+        }
+        $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count, $forbiddenWorkspaces.Count, $partialWarning
         $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     }
     #endregion Report Generation
