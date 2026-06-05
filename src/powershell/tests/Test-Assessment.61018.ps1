@@ -42,7 +42,7 @@ function Test-Assessment-61018 {
     # 'NoSubscriptions' / 'NoWorkspaces' when nothing is in scope.
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
     if ($null -eq $allWorkspaces) {
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
     if ($allWorkspaces -eq 'Forbidden') {
