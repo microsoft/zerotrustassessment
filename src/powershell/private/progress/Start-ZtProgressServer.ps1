@@ -29,8 +29,14 @@ function Start-ZtProgressServer {
 		}
 		$htmlContent = [System.IO.File]::ReadAllText($htmlPath)
 
+		# Generate a unique run ID so each browser tab can identify its assessment run.
+		# The runId is passed via URL hash (e.g. #run=abc123) rather than injected into HTML,
+		# so that reloading a stale tab preserves the original runId and stops polling.
+		$runId = [guid]::NewGuid().ToString('N')
+
 		# Get the ConcurrentDictionary backing the ProgressState DCO
 		$progressDict = $script:__ZtSession.ProgressState.Value
+		$progressDict['_runId'] = $runId
 
 		# Try to find an available port
 		$selectedPort = $null
@@ -54,7 +60,7 @@ function Start-ZtProgressServer {
 			return
 		}
 
-		$url = "http://localhost:$selectedPort"
+		$url = "http://localhost:$selectedPort#run=$runId"
 
 		# Create a dedicated runspace for the HTTP server
 		$runspace = [runspacefactory]::CreateRunspace()
@@ -175,7 +181,10 @@ function Start-ZtProgressServer {
 									$percent = [math]::Min(100, [math]::Floor(($completedItems + $failedItems) / $totalItems * 100))
 								}
 
+								$runIdVal = $null; $null = $ProgressDict.TryGetValue('_runId', [ref]$runIdVal)
+
 								$snapshot = @{
+									runId       = $runIdVal
 									stage       = $stage
 									stageNumber = $stageNumber
 									totalStages = $totalStages

@@ -5,9 +5,9 @@ Enforcing FileVault encryption protects data at rest on macOS devices, even if l
 **Remediation action**
 
 Use Intune to enforce FileVault encryption and monitor compliance on all managed macOS devices:  
-- [Create a FileVault disk encryption policy for macOS in Intune](https://learn.microsoft.com/intune/intune-service/protect/encrypt-devices-filevault?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-endpoint-security-policy-for-filevault)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
-- [Monitor device encryption with Intune](https://learn.microsoft.com/intune/intune-service/protect/encryption-monitor?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a FileVault disk encryption policy for macOS in Intune](https://learn.microsoft.com/intune/device-configuration/endpoint-security/encrypt-filevault-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-endpoint-security-policy-for-filevault)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Monitor device encryption with Intune](https://learn.microsoft.com/intune/device-management/monitor-encryption?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

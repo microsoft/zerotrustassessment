@@ -5,11 +5,11 @@ Enforcing Intune app protection policies within Conditional Access ensures only 
 **Remediation action**
 
 Configure app-based Conditional Access policies in Microsoft Entra and Intune to require app protection for access to corporate resources:  
-- [Set up app-based Conditional Access policies with Intune](https://learn.microsoft.com/intune/intune-service/protect/app-based-conditional-access-intune-create?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Set up app-based Conditional Access policies with Intune](https://learn.microsoft.com/intune/device-security/conditional-access-integration/create-app-based-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 
 For more information, see:  
 - [What is Conditional Access?](https://learn.microsoft.com/entra/identity/conditional-access/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Learn about app-based Conditional Access policies with Intune](https://learn.microsoft.com/intune/intune-service/protect/app-based-conditional-access-intune?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Learn about app-based Conditional Access policies with Intune](https://learn.microsoft.com/intune/device-security/conditional-access-integration/app-based-policies?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

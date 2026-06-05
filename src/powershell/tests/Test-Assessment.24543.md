@@ -5,8 +5,8 @@ Enforcing compliance policies ensures iOS/iPadOS devices meet core security requ
 **Remediation action**
 
 Create and assign Intune compliance policies to iOS/iPadOS devices to enforce organizational standards for secure access and management:  
-- [Create a compliance policy in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/protect/create-compliance-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
-- [Review the iOS/iPadOS compliance settings you can manage with Intune](https://learn.microsoft.com/intune/intune-service/protect/compliance-policy-create-ios?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a compliance policy in Microsoft Intune](https://learn.microsoft.com/intune/device-security/compliance/create-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
+- [Review the iOS/iPadOS compliance settings you can manage with Intune](https://learn.microsoft.com/intune/device-security/compliance/ref-ios-ipados-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

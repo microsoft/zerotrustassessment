@@ -18,7 +18,7 @@ function Test-Assessment-35008 {
     	MinimumLicense = ('Microsoft 365 E5'),
     	CompatibleLicense = ('RMS_S_PREMIUM2'),
     	Service = ('SharePointOnline'),
-    	Pillar = 'Data',
+    	Pillar = ('Data', 'AI'),
     	RiskLevel = 'Medium',
     	SfiPillar = 'Protect tenants and production systems',
     	TenantType = ('Workforce'),

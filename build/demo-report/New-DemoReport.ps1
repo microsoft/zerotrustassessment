@@ -120,7 +120,7 @@ $jsonContent.TenantInfo.DeviceOverview = @{
     DesktopDevicesSummary = @{
         entrahybridjoined = 200
         entrajoined       = 285
-        entrareigstered   = 100
+        entraregistered   = 100
         totalDevices      = 660
         description       = "Desktop devices (Windows and macOS) by join type and compliance status."
         nodes             = @(
@@ -298,26 +298,96 @@ else {
 if ($userMappings.Count -gt 0) {
     $replacementCount = 0
 
+    # Helper script block that applies all user-mapping + catch-all replacements
+    # to a single string and returns the anonymized version.
+    $applyAnonymization = {
+        param([string]$text)
+
+        if ([string]::IsNullOrEmpty($text)) { return $text }
+
+        # Secret redaction (must run first, before any other transforms).
+        # The assessment can capture failed HTTP requests in error records,
+        # which include the outbound "Authorization: Bearer <JWT>" header.
+        # We also redact bare JWT-looking tokens (eyXXX.YYY.ZZZ) anywhere in
+        # the text, as a defence in depth.
+        # Redact "Authorization: Bearer <token>" (optionally wrapped over
+        # multiple whitespace chars after the colon).
+        $text = $text -replace '(?i)Authorization\s*:\s*Bearer\s+[A-Za-z0-9._\-]+', 'Authorization: Bearer [REDACTED]'
+        # Redact "Bearer <jwt>" without the Authorization header prefix.
+        $text = $text -replace '(?i)\bBearer\s+ey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', 'Bearer [REDACTED]'
+        # Redact bare 3-part JWTs (header.payload.signature, base64url).
+        $text = $text -replace '\bey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}', '[REDACTED-JWT]'
+
+        # Replace each user's display name and UPN from the mapping.
+        # UPNs are replaced before display names because display names are often
+        # substrings of UPNs (e.g. "manoj" is in "manoj.p@..." and "Manoj.Kesana@...").
+        foreach ($mapping in $userMappings) {
+            if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalUserPrincipalName)) {
+                $text = $text -replace [regex]::Escape($mapping.OriginalUserPrincipalName), $mapping.DemoUserPrincipalName
+            }
+            if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalDisplayName)) {
+                $text = $text -replace [regex]::Escape($mapping.OriginalDisplayName), $mapping.DemoDisplayName
+            }
+        }
+
+        # Catch-all replacements for tenant-specific strings that may slip past
+        # the per-user mappings (e.g. new users not yet in demo-users.csv).
+        # Order matters: do simple, well-known swaps first so already-mapped
+        # demo accounts (finley@elapora.com -> finley@contoso.com) stay readable.
+        # Anything still on elapora.com after this is unmapped and gets a
+        # generic demouser-* alias.
+        $text = $text -replace [regex]::Escape('@elapora.com'), '@contoso.com'
+        $text = $text -replace [regex]::Escape('pora.onmicrosoft.com'), 'contoso.onmicrosoft.com'
+        # Replace the bare tenant brand "elapora" (used in service-principal /
+        # app-registration display names) with "contoso".
+        $text = $text -replace '(?i)elapora', 'contoso'
+        $text = $text -replace 'erill', 'anson'
+
+        # External guest users from other tenants: Name.Surname_otherorg.com#EXT#@...
+        # -> guest-user@external.com#EXT#@contoso.com
+        $text = $text -replace '(?i)[A-Za-z0-9._-]+_[A-Za-z0-9.-]+\.com#EXT#@[A-Za-z0-9.-]+', 'guest-user_external.com#EXT#@contoso.com'
+
+        # Auto-generated agent / app users: AgentUser1234567@... -> demouser1234567@contoso.com
+        $text = $text -replace '(?i)AgentUser(\d+)@[A-Za-z0-9.-]+', 'demouser$1@contoso.com'
+        # Any remaining UPN on the source tenant domain (only fires if @elapora.com
+        # somehow re-appears, or for variant spellings).
+        $text = $text -replace '(?i)([A-Za-z0-9._-]+)@elapora\.com', 'demouser-$1@contoso.com'
+        # GUID-like external UPN prefixes on the onmicrosoft tenant remnants
+        $text = $text -replace '(?i)([a-f0-9]{8,})@(contoso|pora)\.onmicrosoft\.com', 'demouser-$1@contoso.onmicrosoft.com'
+
+        # Standalone first-name / short-handle variants that show up in tenant-
+        # owned resource names (CA policies, app names, test accounts, etc.).
+        # These run AFTER the structured mappings so we don't double-replace.
+        $text = $text -replace '(?i)\b(komal[_-]?test|komal[_-]?\d+|komal\.p|komal)\b', 'peyton'
+        $text = $text -replace '(?i)\b(manoj[_-]?test|manoj[_-]?\d+|manoj\.kesana|manoj\.p|manoj)\b', 'finley'
+        $text = $text -replace '(?i)\b(praneeth[_-]?test|praneeth[_-]?\d+|praneeth)\b', 'parker'
+        $text = $text -replace '(?i)\b(sandeep\.p|sandeep)\b', 'sage'
+        $text = $text -replace '(?i)\b(sushant\.p|sushant)\b', 'river'
+        $text = $text -replace '(?i)\b(chukka\.p|chukka)\b', 'cameron'
+        $text = $text -replace '(?i)\b(varsha\.mane|varsha)\b', 'avery.brooks'
+        $text = $text -replace '(?i)\b(ravi\.kalwani|ravik|ravi)\b', 'ellis'
+        $text = $text -replace '(?i)(madura\.sonnadara|madura\w*)', 'charlie'
+        $text = $text -replace '(?i)\b(bagula|bagul)\b', 'morgan'
+        $text = $text -replace '(?i)\bafif(\.p|ahmed)?\b', 'hayden'
+        $text = $text -replace '(?i)\bkshitiz\b', 'sky'
+        $text = $text -replace '(?i)\b(jackief|jackie\s+fernandez)\b', 'jules'
+        $text = $text -replace '(?i)\bjackie\b', 'jules'
+        $text = $text -replace '(?i)\b(ty\.?grady(test)?|tygrady(test)?|grady)\b', 'dakota'
+        $text = $text -replace '(?i)\b(aleksandar|aleks)\b', 'jordan'
+        $text = $text -replace '(?i)\bdamien\b', 'avery'
+        $text = $text -replace '(?i)\bgael\b', 'jamie'
+        $text = $text -replace '(?i)\b(aahmed[_-]?test|aahmed)\b', 'hayden-test'
+
+        return $text
+    }
+
     foreach ($test in $jsonContent.Tests) {
         $wasModified = $false
 
         # Process TestDescription field
         if ($null -ne $test.TestDescription -and $test.TestDescription.Length -gt 0) {
             $originalDescription = $test.TestDescription
-
-            # Replace each user's display name and UPN from the mapping
-            foreach ($mapping in $userMappings) {
-                # Replace display names (case-insensitive)
-                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalDisplayName)) {
-                    $test.TestDescription = $test.TestDescription -replace [regex]::Escape($mapping.OriginalDisplayName), $mapping.DemoDisplayName
-                }
-
-                # Replace UPNs (case-insensitive)
-                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalUserPrincipalName)) {
-                    $test.TestDescription = $test.TestDescription -replace [regex]::Escape($mapping.OriginalUserPrincipalName), $mapping.DemoUserPrincipalName
-                }
-            }
-
+            $test.TestDescription = & $applyAnonymization $test.TestDescription
             if ($originalDescription -ne $test.TestDescription) {
                 $wasModified = $true
             }
@@ -326,26 +396,7 @@ if ($userMappings.Count -gt 0) {
         # Process TestResult field
         if ($null -ne $test.TestResult -and $test.TestResult.Length -gt 0) {
             $originalResult = $test.TestResult
-
-            # Replace each user's display name and UPN from the mapping
-            foreach ($mapping in $userMappings) {
-
-                # Replace UPNs (case-insensitive)
-                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalUserPrincipalName)) {
-                    $test.TestResult = $test.TestResult -replace [regex]::Escape($mapping.OriginalUserPrincipalName), $mapping.DemoUserPrincipalName
-                }
-
-                # Replace display names (case-insensitive)
-                if (-not [string]::IsNullOrWhiteSpace($mapping.OriginalDisplayName)) {
-                    $test.TestResult = $test.TestResult -replace [regex]::Escape($mapping.OriginalDisplayName), $mapping.DemoDisplayName
-                }
-
-                # Catch all for domain
-                $test.TestResult = $test.TestResult -replace [regex]::Escape("@elapora.com"), "@contoso.com"
-                $test.TestResult = $test.TestResult -replace [regex]::Escape("erill"), "anson"
-                $test.TestResult = $test.TestResult -replace [regex]::Escape("pora.onmicrosoft.com"), "contoso.onmicrosoft.com"
-            }
-
+            $test.TestResult = & $applyAnonymization $test.TestResult
             if ($originalResult -ne $test.TestResult) {
                 $wasModified = $true
             }
@@ -358,6 +409,65 @@ if ($userMappings.Count -gt 0) {
     }
 
     Write-Host "Anonymized user information in $replacementCount tests" -ForegroundColor Cyan
+
+    # Also anonymize string values anywhere under TenantInfo. Some report
+    # sections (e.g. ConfigDeviceAppProtectionPolicies) embed raw policy
+    # payloads that can contain personal URLs/emails, and they are NOT under
+    # the Tests array, so the per-test loop above never sees them.
+    Write-Host "Anonymizing string values under TenantInfo..." -ForegroundColor Cyan
+
+    $anonymizeNode = {
+        param($node)
+
+        if ($null -eq $node) { return }
+        # Primitives don't need recursion.
+        if ($node -is [string] -or $node.GetType().IsPrimitive -or $node -is [datetime] -or $node -is [decimal]) { return }
+
+        if ($node -is [System.Collections.IDictionary]) {
+            $keys = @($node.Keys)
+            foreach ($k in $keys) {
+                $v = $node[$k]
+                if ($v -is [string]) {
+                    $node[$k] = & $applyAnonymization $v
+                }
+                elseif ($null -ne $v) {
+                    & $anonymizeNode $v
+                }
+            }
+            return
+        }
+
+        if ($node -is [System.Collections.IList]) {
+            for ($i = 0; $i -lt $node.Count; $i++) {
+                $v = $node[$i]
+                if ($v -is [string]) {
+                    $node[$i] = & $applyAnonymization $v
+                }
+                elseif ($null -ne $v) {
+                    & $anonymizeNode $v
+                }
+            }
+            return
+        }
+
+        # PSCustomObject (the shape ConvertFrom-Json produces).
+        if ($node -is [System.Management.Automation.PSCustomObject]) {
+            foreach ($prop in @($node.PSObject.Properties)) {
+                $v = $prop.Value
+                if ($v -is [string]) {
+                    $prop.Value = & $applyAnonymization $v
+                }
+                elseif ($null -ne $v) {
+                    & $anonymizeNode $v
+                }
+            }
+            return
+        }
+    }
+
+    if ($null -ne $jsonContent.TenantInfo) {
+        & $anonymizeNode $jsonContent.TenantInfo
+    }
 }
 else {
     Write-Host "No user mappings available, skipping user anonymization" -ForegroundColor Yellow
@@ -388,3 +498,52 @@ Write-Host "Output: $OutputHtmlPath" -ForegroundColor Green
 # Optionally save the anonymized JSON as well
 $anonymizedJsonPath = $OutputHtmlPath -replace '\.html$', '.json'
 $jsonContent | ConvertTo-Json -Depth 100 | Out-File -FilePath $anonymizedJsonPath -Encoding utf8 -Force
+
+# ---------------------------------------------------------------------------
+# Post-generation verification: scan the produced HTML for known tenant
+# fingerprints. Anything found here means an individual / tenant identifier
+# slipped past anonymization and should be fixed (either by adding a row to
+# demo-users.csv or by extending the catch-all rules above).
+# ---------------------------------------------------------------------------
+Write-Host "Verifying anonymized output..." -ForegroundColor Cyan
+
+$leakPatterns = @(
+    @{ Name = 'elapora brand';        Pattern = '(?i)elapora' }
+    @{ Name = 'pora.onmicrosoft.com'; Pattern = '(?i)pora\.onmicrosoft\.com' }
+    @{ Name = 'merill literal';       Pattern = '(?i)merill' }
+    @{ Name = 'AgentUserNNNN';        Pattern = '(?i)AgentUser\d+' }
+    @{ Name = 'manoj';                Pattern = '(?i)\bmanoj\b' }
+    @{ Name = 'afif';                 Pattern = '(?i)\bafif\b' }
+    @{ Name = 'jackie';               Pattern = '(?i)\bjackie\b' }
+    @{ Name = 'kshitiz';              Pattern = '(?i)\bkshitiz\b' }
+    @{ Name = 'praneeth';             Pattern = '(?i)\bpraneeth\b' }
+    @{ Name = 'komal';                Pattern = '(?i)\bkomal\b' }
+    @{ Name = 'grady';                Pattern = '(?i)\bgrady\b' }
+    @{ Name = 'madura';               Pattern = '(?i)\bmadura\b' }
+    @{ Name = 'varsha';               Pattern = '(?i)\bvarsha\b' }
+    @{ Name = 'sandeep';              Pattern = '(?i)\bsandeep\b' }
+    @{ Name = 'sushant';              Pattern = '(?i)\bsushant\b' }
+    @{ Name = 'bagul';                Pattern = '(?i)\bbagul\b' }
+    @{ Name = 'aleksandar';           Pattern = '(?i)\baleksandar\b' }
+    @{ Name = 'damien';               Pattern = '(?i)\bdamien\b' }
+    @{ Name = 'Bearer token';         Pattern = '(?i)Authorization\s*:\s*Bearer\s+[A-Za-z0-9._\-]+' }
+    @{ Name = 'JWT (eyJ...)';         Pattern = '\bey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}' }
+)
+
+$producedHtml = Get-Content -Path $OutputHtmlPath -Raw
+$hasLeaks = $false
+foreach ($p in $leakPatterns) {
+    $matches = [regex]::Matches($producedHtml, $p.Pattern)
+    if ($matches.Count -gt 0) {
+        $hasLeaks = $true
+        $sample = ($matches | Select-Object -First 3 | ForEach-Object { $_.Value }) -join ', '
+        Write-Warning "Anonymization leak: '$($p.Name)' still appears $($matches.Count) time(s). Samples: $sample"
+    }
+}
+
+if (-not $hasLeaks) {
+    Write-Host "No known tenant fingerprints detected in output." -ForegroundColor Green
+}
+else {
+    Write-Warning "Add the leaking values to demo-users.csv or extend the catch-all rules in New-DemoReport.ps1."
+}

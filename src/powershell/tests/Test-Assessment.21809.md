@@ -1,4 +1,4 @@
-Enabling the Admin consent workflow in a Microsoft Entra tenant is a vital security measure that mitigates risks associated with unauthorized application access and privilege escalation. This check is important because it ensures that any application requesting elevated permission undergoes a review process by designated administrators before consent is granted. The admin consent workflow in Microsoft Entra ID notifies reviewers who evaluate and approve or deny consent requests based on the application's legitimacy and necessity. If this check doesn't pass, meaning the workflow is disabled, any application can request and potentially receive elevated permissions without administrative review. This poses a substantial security risk, as malicious actors could exploit this lack of oversight to gain unauthorized access to sensitive data, perform privilege escalation, or execute other malicious activities.
+Enabling the admin consent workflow in a Microsoft Entra tenant ensures that users who need access to an application that requires admin consent can submit a request for review rather than being blocked outright. Without the workflow, users who can't consent to an app on their own may resort to shadow IT workarounds, such as using personal accounts or unsanctioned alternatives—that are harder to monitor and secure. When the workflow is enabled, consent requests go through a logged, auditable process where designated reviewers are notified and evaluate each request before consent is granted. This improves observability into which applications users are requesting access to, and ensures that elevated permissions are reviewed and explicitly approved rather than silently blocked or granted without oversight.
 
 **Remediation action**
 
@@ -8,4 +8,3 @@ For admin consent requests, set the **Users can request admin consent to apps th
 - Or use the [Update adminConsentRequestPolicy](https://learn.microsoft.com/graph/api/adminconsentrequestpolicy-update?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) API to set the `isEnabled` property to true and other settings
 <!--- Results --->
 %TestResult%
-

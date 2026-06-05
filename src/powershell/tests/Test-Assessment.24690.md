@@ -5,7 +5,7 @@ Enforcing macOS update policies ensures devices receive timely patches, reducing
 **Remediation action**
 
 Configure and assign macOS update policies in Intune to enforce timely patching and reduce risk from unpatched vulnerabilities:  
-- [Manage macOS software updates in Intune](https://learn.microsoft.com/intune/intune-service/protect/software-updates-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Manage macOS software updates in Intune](https://learn.microsoft.com/intune/device-updates/apple/deprecated-mdm-policies-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

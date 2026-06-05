@@ -56,6 +56,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 
 > **Note:** To read Custom Security Attributes on service principals, the account running the assessment must also be assigned the **Attribute Assignment Reader** (or **Attribute Assignment Administrator**) Entra ID role. Without this role, Custom Security Attribute values will be returned as null.
 
+- Application.Read.All
 - AuditLog.Read.All
 - CrossTenantInformation.ReadBasic.All
 - CustomSecAttributeAssignment.Read.All
@@ -69,6 +70,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - EntitlementManagement.Read.All
 - IdentityRiskEvent.Read.All
 - IdentityRiskyUser.Read.All
+- LifecycleWorkflows-Workflow.Read.All
 - Policy.Read.All
 - Policy.Read.ConditionalAccess
 - Policy.Read.PermissionGrant
@@ -78,6 +80,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - UserAuthenticationMethod.Read.All
 - NetworkAccess.Read.All
 - IdentityRiskyServicePrincipal.Read.All
+- CopilotPackages.Read.All
 
 Run the following command to connect to Microsoft Graph and consent to the permissions using a Global Administrator account.
 

@@ -1,18 +1,10 @@
-Token protection policies in Entra ID tenants are crucial for safeguarding authentication tokens from misuse and unauthorized access. Without these policies, threat actors can intercept and manipulate tokens, leading to unauthorized access to sensitive resources. This can result in data exfiltration, lateral movement within the network, and potential compromise of privileged accounts.
-
-When token protection is not properly configured, threat actors can exploit several attack vectors:
-
-1. **Token theft and replay attacks** - Attackers can steal authentication tokens from compromised devices and replay them from different locations
-2. **Session hijacking** - Without secure sign-in session controls, attackers can hijack legitimate user sessions
-3. **Cross-platform token abuse** - Tokens issued for one platform (like mobile) can be misused on other platforms (like web browsers)
-4. **Persistent access** - Compromised tokens can provide long-term unauthorized access without triggering security alerts
-
-The attack chain typically involves initial access through token theft, followed by privilege escalation and persistence, ultimately leading to data exfiltration and impact across the organization's Microsoft 365 environment.
+Without the Token Protection Conditional Access policy, threat actors who steal sign-in session tokens can replay them from any device to gain unauthorized access to resources. Token theft allows attackers to bypass authentication entirely because the stolen token is already a valid proof of identity. This access vector enables lateral movement, privilege escalation, and data exfiltration without triggering reauthentication challenges.
+ 
+Token protection in Microsoft Entra ID binds sign-in session tokens to the device where they were originally issued, rendering stolen tokens unusable on attacker-controlled devices. Configuring the Conditional Access Token Protection policy for Windows and Apple platforms ensures that sign-in session tokens for critical services like SharePoint Online and Exchange Online can't be replayed from unauthorized endpoints.
 
 **Remediation action**
-- [Configure Conditional Access policies as per the best practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection#create-a-conditional-access-policy)
-- [Microsoft Entra Conditional Access token protection explained](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection)
-- [Configure session controls in Conditional Access](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-session)
 
+- [Configure token protection in Conditional Access](https://learn.microsoft.com/entra/identity/conditional-access/concept-token-protection?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-a-conditional-access-policy).
 <!--- Results --->
 %TestResult%
+

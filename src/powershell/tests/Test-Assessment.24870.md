@@ -6,11 +6,11 @@ Centrally managing Wi-Fi profiles for macOS devices in Intune ensures secure and
 
 Use Intune to configure and assign secure Wi-Fi profiles for macOS devices to enforce authentication and encryption standards:
 
-- [Configure Wi-Fi settings for macOS devices in Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-profile)
+- [Configure Wi-Fi settings for macOS devices in Intune](https://learn.microsoft.com/intune/device-configuration/templates/configure-wifi?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-profile)
 
 For more information, see:
 
-- [Review the available Wi-Fi settings for macOS devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-macos?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Review the available Wi-Fi settings for macOS devices in Microsoft Intune](https://learn.microsoft.com/intune/device-configuration/templates/ref-wifi-settings-apple?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

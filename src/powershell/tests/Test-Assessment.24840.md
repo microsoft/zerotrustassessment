@@ -9,10 +9,10 @@ Use Intune to configure secure Wi-Fi profiles that enforce authentication and en
 **Remediation action**
 
 Use Intune to configure and assign secure Wi-Fi profiles for Android devices to enforce authentication and encryption standards:  
-- [Deploy Wi-Fi profiles to devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-configure?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-profile)
+- [Deploy Wi-Fi profiles to devices in Microsoft Intune](https://learn.microsoft.com/intune/device-configuration/templates/configure-wifi?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-profile)
 
 For more information, see:  
-- [Review the available Wi-Fi settings for Android devices in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/configuration/wi-fi-settings-android-enterprise?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Review the available Wi-Fi settings for Android devices in Microsoft Intune](https://learn.microsoft.com/intune/device-configuration/templates/ref-wifi-settings-android-enterprise?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

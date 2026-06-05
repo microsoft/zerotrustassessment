@@ -23,6 +23,8 @@ import {
 
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import { AlertTriangle, Settings, Users, Shield, Eye, Wrench, Lock, Building, Zap, Columns, Hash, BadgeCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -55,6 +57,8 @@ export function DataTable<TData extends Test, TValue>({
     data,
     pillar,
 }: DataTableProps<TData, TValue>) {
+    const riskLabel = pillar === "Infrastructure" ? "Severity" : "Risk";
+
     const [sorting, setSorting] = React.useState<SortingState>([
         { id: "TestRisk", desc: false },
         { id: "TestStatus", desc: false },
@@ -64,6 +68,7 @@ export function DataTable<TData extends Test, TValue>({
     const [selectedSfiPillars, setSelectedSfiPillars] = React.useState<string[]>([]);
     const [selectedRisks, setSelectedRisks] = React.useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
+    const [showSkipped, setShowSkipped] = React.useState(false);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
         // Hide TestImpact by default
         TestImpact: false,
@@ -86,11 +91,16 @@ export function DataTable<TData extends Test, TValue>({
     const pillarFilteredData = React.useMemo(() => {
         if (pillar) {
             return data.filter(item =>
-                item.TestPillar === pillar
+                Array.isArray(item.TestPillar) ? item.TestPillar.includes(pillar) : item.TestPillar === pillar
             );
         }
         return data;
     }, [data, pillar]);
+
+    // Reset risk filter on pillar switch; do not auto-select any risk/severity value
+    React.useEffect(() => {
+        setSelectedRisks([]);
+    }, [pillar]);
 
     // Filter the data by pillar, selected SFI pillars, risks, and statuses if any are selected
     const filteredData = React.useMemo(() => {
@@ -116,12 +126,33 @@ export function DataTable<TData extends Test, TValue>({
                 item.TestStatus && selectedStatuses.includes(item.TestStatus)
             );
         } else {
-            // If no status filters are selected, exclude "Planned" items by default
-            result = result.filter(item => item.TestStatus !== "Planned");
+            // By default, exclude "Planned" and "Skipped" (unless showSkipped is checked)
+            result = result.filter(item =>
+                item.TestStatus !== "Planned" && (showSkipped || item.TestStatus !== "Skipped")
+            );
         }
 
         return result;
-    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses]);
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks, selectedStatuses, showSkipped]);
+
+    // Check if there are any skipped tests after applying SFI pillar and risk filters
+    const hasSkippedTests = React.useMemo(() => {
+        let result = pillarFilteredData;
+
+        if (selectedSfiPillars.length > 0) {
+            result = result.filter(item =>
+                item.TestSfiPillar && selectedSfiPillars.includes(item.TestSfiPillar)
+            );
+        }
+
+        if (selectedRisks.length > 0) {
+            result = result.filter(item =>
+                item.TestRisk && selectedRisks.includes(item.TestRisk)
+            );
+        }
+
+        return result.some(item => item.TestStatus === "Skipped");
+    }, [pillarFilteredData, selectedSfiPillars, selectedRisks]);
 
     // Get unique SFI pillars for the filter dropdown
     const uniqueSfiPillars = React.useMemo(() => {
@@ -137,8 +168,8 @@ export function DataTable<TData extends Test, TValue>({
             .map(item => item.TestRisk)
             .filter((risk): risk is string => risk !== null && risk !== undefined);
         const uniqueRiskSet = Array.from(new Set(risks));
-        // Custom order: High, Medium, Low
-        const riskOrder = ['High', 'Medium', 'Low'];
+        // Custom order: Critical, High, Medium, Low, Unranked
+        const riskOrder = ['Critical', 'High', 'Medium', 'Low', 'Unranked'];
         return uniqueRiskSet.sort((a, b) => {
             const indexA = riskOrder.indexOf(a);
             const indexB = riskOrder.indexOf(b);
@@ -186,6 +217,9 @@ export function DataTable<TData extends Test, TValue>({
     const table = useReactTable({
         data: filteredData,
         columns,
+        meta: {
+            riskLabel,
+        },
         enableRowSelection: true,
         getCoreRowModel: getCoreRowModel(),
         onSortingChange: setSorting,
@@ -210,6 +244,13 @@ export function DataTable<TData extends Test, TValue>({
 
     const [sheetOpen, setSheetOpen] = React.useState(false);
     const [selectedRow, setSelectedRow] = React.useState<Test | null>(null);
+    const selectedPillar = selectedRow?.TestPillar ?? null;
+    const isInfrastructureRow = Array.isArray(selectedPillar)
+        ? selectedPillar.includes("Infrastructure")
+        : selectedPillar === "Infrastructure";
+    const mdRehypePlugins = isInfrastructureRow
+        ? [rehypeRaw, rehypeSanitize]
+        : [];
 
     return (
 
@@ -225,7 +266,7 @@ export function DataTable<TData extends Test, TValue>({
 
                     {/* Risk Filter Toggles */}
                     <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium text-muted-foreground mr-1">Risk:</span>
+                        <span className="text-xs font-medium text-muted-foreground mr-1">{riskLabel}:</span>
                         {uniqueRisks.map((risk) => {
                             const isSelected = selectedRisks.includes(risk);
                             const riskCount = data.filter(item => item.TestRisk === risk).length;
@@ -309,7 +350,17 @@ export function DataTable<TData extends Test, TValue>({
                                 .filter(
                                     (column) => column.getCanHide()
                                 )
+                                .filter((column) => {
+                                    if (pillar === "Infrastructure") {
+                                        return !["TestImpact", "TestImplementationCost", "TestMinimumLicense"].includes(column.id);
+                                    }
+                                    return true;
+                                })
                                 .map((column) => {
+                                    const columnLabel = column.id === "TestRisk"
+                                        ? riskLabel
+                                        : (column.columnDef.meta?.label ?? column.id);
+
                                     return (
                                         <DropdownMenuCheckboxItem
                                             key={column.id}
@@ -319,7 +370,7 @@ export function DataTable<TData extends Test, TValue>({
                                                 column.toggleVisibility(!!value)
                                             }
                                         >
-                                            {column.columnDef.meta?.label ?? column.id}
+                                            {columnLabel}
                                         </DropdownMenuCheckboxItem>
                                     )
                                 })}
@@ -333,6 +384,7 @@ export function DataTable<TData extends Test, TValue>({
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">Filter by SFI Pillar:</span>
+
                         {selectedSfiPillars.length > 0 && (
                             <Button
                                 variant="ghost"
@@ -344,25 +396,40 @@ export function DataTable<TData extends Test, TValue>({
                             </Button>
                         )}
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Clear all filters button */}
-                        {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0) && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    setSelectedSfiPillars([]);
-                                    setSelectedRisks([]);
-                                    setSelectedStatuses([]);
-                                }}
-                                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                Clear All Filters
-                            </Button>
-                        )}
-                        <div className="text-xs text-muted-foreground">
-                            Showing {filteredData.length} of {pillarFilteredData.length} tests
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-4">
+                            {/* Clear all filters button */}
+                            {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0 || showSkipped) && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedSfiPillars([]);
+                                        setSelectedRisks([]);
+                                        setSelectedStatuses([]);
+                                        setShowSkipped(false);
+                                    }}
+                                    className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear All Filters
+                                </Button>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                                Showing {filteredData.length} of {pillarFilteredData.length} tests
+                            </div>
                         </div>
+                        {/* Show Skipped Tests Checkbox - only if there are skipped tests */}
+                        {hasSkippedTests && (
+                            <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+                                <input
+                                    type="checkbox"
+                                    checked={showSkipped}
+                                    onChange={(e) => setShowSkipped(e.target.checked)}
+                                    className="h-3.5 w-3.5 rounded border-gray-300 accent-gray-600 cursor-pointer"
+                                />
+                                <span className="text-xs text-muted-foreground">Show skipped tests</span>
+                            </label>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -452,27 +519,32 @@ export function DataTable<TData extends Test, TValue>({
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader>
-                                <div className="mt-2 grid grid-cols-3 gap-y-2 text-sm">
+                                <div className={`mt-2 text-sm ${isInfrastructureRow ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
-                                        <span className="font-semibold">Risk:</span>
+                                        <span className="font-semibold">{isInfrastructureRow ? "Severity:" : "Risk:"}</span>
                                         <span>{selectedRow?.TestRisk ?? "N/A"}</span>
                                     </div>
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">User Impact:</span>
                                         <span>{selectedRow?.TestImpact ?? "N/A"}</span>
                                     </div>
+                                    )}
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <Settings className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Implementation Effort:</span>
                                         <span>{selectedRow?.TestImplementationCost ?? "N/A"}</span>
                                     </div>
+                                    )}
                                     <div className="flex items-center gap-2">
                                         <Hash className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">Test ID:</span>
                                         <span>{selectedRow?.TestId ?? "N/A"}</span>
                                     </div>
+                                    {!isInfrastructureRow && (
                                     <div className="flex items-center gap-2">
                                         <BadgeCheck className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">License:</span>
@@ -488,6 +560,7 @@ export function DataTable<TData extends Test, TValue>({
                                             )}
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </CardHeader>
                         </Card>
@@ -500,14 +573,14 @@ export function DataTable<TData extends Test, TValue>({
                                 </div></CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestResult}</Markdown>
+                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestResult}</Markdown>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader><CardTitle>What was checked</CardTitle></CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]}>{selectedRow?.TestDescription}</Markdown>
+                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestDescription}</Markdown>
                             </CardContent>
                         </Card>
                     </div>

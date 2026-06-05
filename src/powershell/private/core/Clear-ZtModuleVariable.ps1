@@ -23,4 +23,5 @@ function Clear-ZtModuleVariable {
     $script:__ZtSession.ProgressState.Value.Clear()
     $script:__ZtSession.SignInLogDuration = $null
     $script:__ZtSession.PreviewEnabled = $false
+    $script:__ZtSession.RequestedPillar = $null
 }

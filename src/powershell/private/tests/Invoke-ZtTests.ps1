@@ -53,7 +53,7 @@
 		[string[]]
 		$Tests,
 
-		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data')]
+		[ValidateSet('All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')]
 		[string]
 		$Pillar = 'All',
 
@@ -87,12 +87,14 @@
 	}
 
 	$testsToRun = Get-ZtTest -Tests $Tests -Pillar $Pillar -TenantType $tenantTypeMapping[$TenantType]
+	# Store the requested pillar so Get-ZtAssessmentResults can restrict TestPillar on cross-ref tests
+	$script:__ZtSession.RequestedPillar = $Pillar
 
 	# Filter based on preview feature flag
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		# Non-preview mode: Only include stable/released pillars
 		$stablePillars = @('Identity', 'Devices', 'Network', 'Data')
-		$testsToRun = $testsToRun.Where{ $_.Pillar -in $stablePillars }
+		$testsToRun = $testsToRun.Where{ ($_.Pillar | Where-Object { $_ -in $stablePillars }) }
 	}
 
 	# Filter based on Compatible licenses
@@ -115,7 +117,10 @@
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	[int[]]$syncTestIds   = $testsToRun.Where{ $_.Pillar -eq 'Data'}.TestId
+	# Tests that depend on SecurityCompliance remoting must run on the main thread regardless of pillar.
+	[int[]]$syncTestIds   = $testsToRun.Where{
+		$_.Pillar -contains 'Data' -or $_.Service -contains 'SecurityCompliance'
+	}.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
 
@@ -143,10 +148,10 @@
 	finally {
 		if ($workflow) {
 			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
-			Disable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
 			$workflow | Remove-PSFRunspaceWorkflow
-			Enable-PSFConsoleInterrupt
+			Invoke-ZtSafeConsoleInterruptToggle -Enable
 		}
 	}
 }

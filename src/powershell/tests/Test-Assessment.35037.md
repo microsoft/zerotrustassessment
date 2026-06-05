@@ -1,6 +1,6 @@
-Purview audit logging logs who accessed sensitive data, when policy violations occurred, and what administrative actions were taken across Microsoft 365. When audit logs are available, security teams can investigate incidents, perform eDiscovery, detect insider threats, and demonstrate controls to auditors and regulators.
+Audit logging in Microsoft 365 records which users and admins accessed sensitive data, when policy violations occurred, and what administrative actions they took across Microsoft 365. When audit logs are available, security teams can investigate incidents, perform electronic discovery for investigations and legal cases, detect insider threats, and demonstrate controls to auditors and regulators by using Microsoft Purview auditing solutions.
 
-Without audit logging enabled, threat actors can often operate undetected, and incident response becomes impossible due to lack of evidence. Organizations that fail to enable audit logging also risk noncompliance with regulatory requirements that mandate activity logging for sensitive operations.
+Audit logging is on by default for Microsoft 365 organizations, but you can turn it off. If you turn off audit logging, threat actors can often operate undetected, and incident response becomes impossible due to lack of evidence. Organizations that don't enable audit logging also risk noncompliance with regulatory requirements that mandate activity logging for sensitive operations.
 
 **Remediation action**
 

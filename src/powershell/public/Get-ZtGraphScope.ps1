@@ -32,6 +32,7 @@
         'EntitlementManagement.Read.All'
         'IdentityRiskEvent.Read.All'
         'IdentityRiskyUser.Read.All'
+        'LifecycleWorkflows-Workflow.Read.All'
         'Policy.Read.All'
         'Policy.Read.ConditionalAccess'
         'Policy.Read.PermissionGrant'
@@ -42,6 +43,7 @@
         'UserAuthenticationMethod.Read.All'
         'NetworkAccess.Read.All'
         'IdentityRiskyServicePrincipal.Read.All'
+        'CopilotPackages.Read.All'
     )
 
     $scopes | Sort-Object -Unique

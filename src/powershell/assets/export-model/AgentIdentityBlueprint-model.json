@@ -1,0 +1,75 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications/microsoft.graph.agentIdentityBlueprint(sponsors(id))",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "disabledByMicrosoftStatus": null,
+      "publisherDomain": null,
+      "keyCredentials": [],
+      "verifiedPublisher": {
+        "displayName": null,
+        "verifiedPublisherId": null,
+        "addedDateTime": "1900-01-01T00:00:00Z"
+      },
+      "createdDateTime": "1900-01-01T00:00:00Z",
+      "appId": null,
+      "createdByAppId": null,
+      "displayName": null,
+      "optionalClaims": null,
+      "owners": [],
+      "sponsors": [
+        {
+          "id": null,
+          "@odata.type": null
+        }
+      ],
+      "api": {
+        "oauth2PermissionScopes": [],
+        "requestedAccessTokenVersion": 2,
+        "knownClientApplications": [],
+        "tokenEncryptionSetting": {
+          "automatedTokenVersion": {
+            "available": [],
+            "current": null
+          },
+          "scheme": null,
+          "audience": null
+        },
+        "acceptMappedClaims": null,
+        "preAuthorizedApplications": []
+      },
+      "appRoles": [],
+      "info": {
+        "logoUrl": null,
+        "privacyStatementUrl": null,
+        "marketingUrl": null,
+        "supportUrl": null,
+        "termsOfServiceUrl": null
+      },
+      "requiredResourceAccess": [],
+      "uniqueName": null,
+      "groupMembershipClaims": null,
+      "tokenEncryptionKeyId": null,
+      "web": {
+        "redirectUris": [],
+        "redirectUriSettings": [],
+        "logoutUrl": null,
+        "enabledResponseModes": null,
+        "implicitGrantSettings": {
+          "enableIdTokenIssuance": false,
+          "enableAccessTokenIssuance": false
+        },
+        "homePageUrl": null
+      },
+      "certification": null,
+      "identifierUris": [],
+      "tags": [],
+      "serviceManagementReference": null,
+      "managerApplications": [],
+      "description": null,
+      "id": null,
+      "passwordCredentials": [],
+      "signInAudience": null
+    }
+  ]
+}

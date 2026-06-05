@@ -77,7 +77,7 @@ function Set-TestMetadata {
 		[string]
 		$Pillar,
 
-		[ValidateSet('Low', 'Medium', 'High')]
+		[ValidateSet('Critical', 'High', 'Medium', 'Low', 'Unranked')]
 		[string]
 		$RiskLevel,
 

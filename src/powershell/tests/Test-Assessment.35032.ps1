@@ -25,7 +25,7 @@ function Test-Assessment-35032 {
         ImplementationCost = 'Low',
         Service = ('SecurityCompliance'),
         CompatibleLicense = ('EXCHANGE_S_ENTERPRISE'),
-        Pillar = 'Data',
+        Pillar = ('Data', 'AI'),
         RiskLevel = 'Medium',
         SfiPillar = 'Protect tenants and production systems',
         TenantType = ('Workforce'),
