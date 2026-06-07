@@ -13,20 +13,45 @@ type SankeyNode = {
 
 type SankeyData = {
     nodes: SankeyNode[];
-    links: any[]; // replace with the actual type of links
+    links: {
+        source: string;
+        target: string;
+        value: number;
+    }[];
 };
 
-export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyData }) => {
-    // Filter out nodes that have no connected links to avoid Nivo rendering errors
+type SankeyInputData = {
+    nodes: SankeyNode[];
+    links: {
+        source: string;
+        target: string;
+        value: number | null;
+    }[];
+};
+
+export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
+    const sanitizedLinks = data.links
+        .filter(link => Number.isFinite(Number(link.value)) && Number(link.value) > 0)
+        .map(link => ({ ...link, value: Number(link.value) }));
+
     const connectedNodeIds = new Set<string>();
-    for (const link of data.links) {
+    for (const link of sanitizedLinks) {
         connectedNodeIds.add(link.source);
         connectedNodeIds.add(link.target);
     }
+
     const filteredData: SankeyData = {
         nodes: data.nodes.filter(node => connectedNodeIds.has(node.id)),
-        links: data.links,
+        links: sanitizedLinks
     };
+
+    if (filteredData.links.length === 0 || filteredData.nodes.length === 0) {
+        return (
+            <div className={`flex h-full min-h-[8rem] w-full items-center justify-center px-4 text-center text-sm text-muted-foreground ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
+                No data available.
+            </div>
+        );
+    }
 
     const theme = {
         tooltip: {
