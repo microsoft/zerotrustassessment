@@ -56,13 +56,13 @@ function Test-Assessment-61015 {
     # 'NoWorkspaces'    → no workspaces found (skip)
     # array             → workspace results with SentinelOnboarded / PermissionError flags
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
-
+ $workspaceResults = $null
     if ($workspaceResults -eq 'Forbidden') {
         $params = @{
             TestId       = '61015'
             Title        = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
             Status       = $false
-            Result       = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested.'
+            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when querying subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -70,7 +70,14 @@ function Test-Assessment-61015 {
     }
 
     if ($null -eq $workspaceResults) {
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        $params = @{
+            TestId       = '61015'
+            Title        = 'Microsoft Entra ID data connector is enabled on the Microsoft Sentinel workspace with all log categories'
+            Status       = $false
+            Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying subscriptions or Log Analytics workspaces. This is likely a transient issue, please re-run the assessment.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
