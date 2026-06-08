@@ -28,7 +28,7 @@
 function Test-Assessment-61021 {
     [ZtTest(
         Category           = 'AI Threat Detection',
-        MinimumLicense      = ('Microsoft_365_Copilot'),
+        CompatibleLicense   = ('Microsoft_365_Copilot'),
         ImplementationCost = 'Low',
         Pillar             = 'AI',
         RiskLevel          = 'High',
