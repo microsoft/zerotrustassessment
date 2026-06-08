@@ -42,7 +42,14 @@ function Test-Assessment-61018 {
     # 'NoSubscriptions' / 'NoWorkspaces' when nothing is in scope.
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
     if ($null -eq $allWorkspaces) {
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        $params = @{
+            TestId       = '61018'
+            Title        = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying subscriptions or Log Analytics workspaces. This is likely a transient issue, please re-run the assessment.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
     if ($allWorkspaces -eq 'Forbidden') {
@@ -50,7 +57,7 @@ function Test-Assessment-61018 {
             TestId       = '61018'
             Title        = 'Microsoft Purview Information Protection data connector is enabled on the Microsoft Sentinel workspace'
             Status       = $false
-            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when enumerating subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
+            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when querying subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
