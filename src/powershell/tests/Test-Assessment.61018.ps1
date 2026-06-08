@@ -154,7 +154,7 @@ function Test-Assessment-61018 {
 
     if (-not $passed -and $investigateItems.Count -gt 0) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ The Content Hub API returned an authorization (401/403) or transient (5xx) error on at least one workspace, so the Microsoft Purview Information Protection solution state could not be determined for those workspaces. Re-run after verifying Microsoft Sentinel Reader on each affected workspace's resource group.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The Content Hub API returned an authorization (401/403) or transient (5xx) error on at least one workspace, so the Microsoft Purview Information Protection connector state could not be determined for those workspaces. Re-run after verifying Microsoft Sentinel Reader on each affected workspace's resource group.`n`n%TestResult%"
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ The Microsoft Purview Information Protection data connector is enabled on at least one Sentinel-onboarded workspace.`n`n%TestResult%"
