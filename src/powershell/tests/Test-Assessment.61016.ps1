@@ -31,7 +31,8 @@ function Test-Assessment-61016 {
         Category = 'AI Threat Detection',
         ImplementationCost = 'Low',
         Service = ('Azure'),
-        CompatibleLicense = ('AAD_PREMIUM_P2', 'AGENT_365'),
+        MinimumLicense = ('AAD_PREMIUM_P2', 'AGENT_365'),
+        CompatibleLicense = ('AAD_PREMIUM_P2&AGENT_365'),
         Pillar = 'AI',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -46,13 +47,12 @@ function Test-Assessment-61016 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if ( -not (Get-ZtLicense EntraIDP2) ) {
+    if (-not (Get-ZtLicense EntraIDP2)) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
         return
     }
 
     $activity = 'Checking Microsoft Entra ID Protection risk events flowing to Sentinel workspaces'
-    $testTitle = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
     $requiredCategories = @('RiskyAgents', 'AgentRiskEvents')
     $insufficientPermissionsMessage = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested and the Security Reader or Global Reader directory role for the tenant-scope diagnostic-settings read.'
 
@@ -214,8 +214,7 @@ function Test-Assessment-61016 {
     $tableRows = ''
     $maxWorkspacesToDisplay = 10
     # Sort failing workspaces first so they aren't truncated away; truncate by workspace so each workspace keeps both category rows together.
-    $statusPriority = @{ $false = 0; $true = 1 }
-    $displayWorkspaces = @($perWorkspace | Sort-Object { $statusPriority[[bool]$_.Passed] }, WorkspaceName)
+    $displayWorkspaces = @($perWorkspace | Sort-Object @{ Expression = { [int][bool]$_.Passed } }, WorkspaceName)
     $hasMoreItems = $false
     if ($displayWorkspaces.Count -gt $maxWorkspacesToDisplay) {
         $displayWorkspaces = @($displayWorkspaces | Select-Object -First $maxWorkspacesToDisplay)
@@ -253,9 +252,10 @@ function Test-Assessment-61016 {
         }
     }
 
+    $truncationNote = ''
     if ($hasMoreItems) {
         $remainingCount = $perWorkspace.Count - $maxWorkspacesToDisplay
-        $tableRows += "`n... and $remainingCount more workspace(s). [View all in Microsoft Sentinel]($reportPortalUrl)`n"
+        $truncationNote = "`n... and $remainingCount more workspace(s). [View all in Microsoft Sentinel]($reportPortalUrl)"
     }
 
     $formatTemplate = @'
@@ -281,14 +281,15 @@ function Test-Assessment-61016 {
         if ($forbiddenWorkspaces.Count -gt 0) {
             $partialWarning = "`n> ⚠️ **$($forbiddenWorkspaces.Count) workspace(s) could not be checked** for Sentinel onboarding due to insufficient permissions. Coverage for those workspaces is unknown."
         }
-        $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count, $forbiddenWorkspaces.Count, $partialWarning
+        $trailing = ($truncationNote + $partialWarning).TrimEnd()
+        $mdInfo = $formatTemplate -f $reportPortalUrl, $tableRows, $sentinelWorkspaces.Count, $passingWorkspaces.Count, $forbiddenWorkspaces.Count, $trailing
         $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     }
     #endregion Report Generation
 
     $params = @{
         TestId = '61016'
-        Title  = $testTitle
+        Title  = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
         Status = $passed
         Result = $testResultMarkdown
     }
