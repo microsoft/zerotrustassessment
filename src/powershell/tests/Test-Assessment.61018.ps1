@@ -161,7 +161,7 @@ function Test-Assessment-61018 {
     #region Report Generation
 
     $portalSentinelLink = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel'
-    $tableTitle         = 'Sentinel Content Hub solutions per workspace'
+    $tableTitle         = 'Sentinel data connectors per workspace'
 
     $formatTemplate = @'
 
