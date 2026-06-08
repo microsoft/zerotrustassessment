@@ -12,6 +12,8 @@ Notes:
 - Values are listed as scalar attribute elements. If an attribute contains an array, each element is listed separately.
 - `CompatibleLicense` expressions containing `&` are preserved as written because the runner treats each expression as one OR alternative with AND requirements inside it.
 - Explicit `$null` assignments are included as `$null`.
+- For the full list of Microsoft service plan identifiers, see [Product names and service plan identifiers for licensing](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference).
+- To check which service plans are active in a tenant, use the [subscribedSku Graph API resource](https://learn.microsoft.com/en-us/graph/api/resources/subscribedsku?view=graph-rest-beta).
 
 ## MinimumLicense
 
