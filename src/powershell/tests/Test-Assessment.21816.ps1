@@ -168,8 +168,8 @@ function Test-Assessment-21816 {
                         $permanentGAGroupList = $permanentGAGroupList | Where-Object { $_.id -ne $member.id }
                         Write-PSFMessage "Group $($member.displayName) uses PIM for Groups with no permanent members, excluding from permanent GA list" -Level Verbose
                     } else {
-                        # Group does not use PIM for Groups - get members and add to permanentGAUserList (Q5)
-                        $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -Select 'userPrincipalName,displayName,id,onPremisesSyncEnabled' -ApiVersion beta
+                        # Group does not use PIM for Groups - get members and add to permanentGAUserList (Q4)
+                        $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -ApiVersion beta
                         foreach ($groupMember in $groupMembers) {
                             # Only process users, skip service principals
                             if ($groupMember.'@odata.type' -eq '#microsoft.graph.user') {
