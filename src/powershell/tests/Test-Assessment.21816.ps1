@@ -19,13 +19,13 @@ function Test-Assessment-21816 {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     if( -not (Get-ZtLicense EntraIDP2) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
         return
     }
 
     #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking Microsoft Entra privileged role assignments are managed with PIM'
     Write-ZtProgress -Activity $activity
 
@@ -71,6 +71,7 @@ function Test-Assessment-21816 {
         if ($directoryRole) {
             Write-PSFMessage "Found directory role instance for $($role.displayName)" -Level Verbose
             # Get members of this role
+            # Raw call required — Get-ZtRoleMember flattens group members; group objects are needed to check PIM for Groups
             $roleMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($directoryRole.id)/members" -ApiVersion beta
             Write-PSFMessage "Found $($roleMembers.Count) members in role $($role.displayName)" -Level Verbose
 
@@ -79,6 +80,7 @@ function Test-Assessment-21816 {
                 $pimAssignment = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignmentScheduleInstances' -Filter "principalId eq '$($member.id)' and roleDefinitionId eq '$($role.templateId)'" -ApiVersion beta
                 Write-PSFMessage "PIM assignment check for $($member.displayName): Found=$($pimAssignment.Count) results" -Level Verbose
 
+                # Array member access — truthy when any Assigned record exists; Activated (JIT self-activation) records are excluded
                 if (-not $pimAssignment -or $pimAssignment.assignmentType -eq 'Assigned') {
                     # Not managed by PIM or standing active assignment
                     $memberInfo = [PSCustomObject]@{
@@ -123,12 +125,14 @@ function Test-Assessment-21816 {
     $gaDirectoryRole = Invoke-ZtGraphRequest -RelativeUri 'directoryRoles' -Filter "roleTemplateId eq '$globalAdminRoleId'" -ApiVersion beta
 
     if ($gaDirectoryRole) {
+        # Raw call required — Get-ZtRoleMember flattens group members; group objects are needed to check PIM for Groups
         $gaMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($gaDirectoryRole.id)/members" -ApiVersion beta
 
         foreach ($member in $gaMembers) {
             # Check if GA assignment is managed by PIM
             $pimAssignment = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignmentScheduleInstances' -Filter "principalId eq '$($member.id)' and roleDefinitionId eq '$globalAdminRoleId'" -ApiVersion beta
 
+            # Array member access — truthy when any Assigned record exists; Activated (JIT self-activation) records are excluded
             if (-not $pimAssignment -or $pimAssignment.assignmentType -eq 'Assigned') {
                 # Standing active GA assignment found
                 $memberInfo = [PSCustomObject]@{
@@ -196,6 +200,7 @@ function Test-Assessment-21816 {
     $hasPIMUsage = $eligibleGAUsers -gt 0
     $hasNonPIMPrivileged = ($nonPIMPrivilegedUsers.Count + $nonPIMPrivilegedGroups.Count) -gt 0
     $permanentGACount = $permanentGAUserList.Count
+    $customStatus = $null
 
     if (-not $hasPIMUsage) {
         $passed = $false
