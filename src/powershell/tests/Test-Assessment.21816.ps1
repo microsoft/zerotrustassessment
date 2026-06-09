@@ -19,13 +19,13 @@ function Test-Assessment-21816 {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     if( -not (Get-ZtLicense EntraIDP2) ) {
         Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
         return
     }
 
     #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking Microsoft Entra privileged role assignments are managed with PIM'
     Write-ZtProgress -Activity $activity
 
@@ -71,7 +71,8 @@ function Test-Assessment-21816 {
         if ($directoryRole) {
             Write-PSFMessage "Found directory role instance for $($role.displayName)" -Level Verbose
             # Get members of this role
-            $roleMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($directoryRole.id)/members" -Select 'userPrincipalName,displayName,id' -ApiVersion beta
+            # Raw call required — Get-ZtRoleMember flattens group members; group objects are needed to check PIM for Groups
+            $roleMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($directoryRole.id)/members" -ApiVersion beta
             Write-PSFMessage "Found $($roleMembers.Count) members in role $($role.displayName)" -Level Verbose
 
             foreach ($member in $roleMembers) {
@@ -79,8 +80,9 @@ function Test-Assessment-21816 {
                 $pimAssignment = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignmentScheduleInstances' -Filter "principalId eq '$($member.id)' and roleDefinitionId eq '$($role.templateId)'" -ApiVersion beta
                 Write-PSFMessage "PIM assignment check for $($member.displayName): Found=$($pimAssignment.Count) results" -Level Verbose
 
-                if (-not $pimAssignment -or ($pimAssignment.assignmentType -eq 'Assigned' -and $null -eq $pimAssignment.endDateTime)) {
-                    # Not managed by PIM or permanent assignment
+                # Array member access — truthy when any Assigned record exists; Activated (JIT self-activation) records are excluded
+                if (-not $pimAssignment -or $pimAssignment.assignmentType -eq 'Assigned') {
+                    # Not managed by PIM or standing active assignment
                     $memberInfo = [PSCustomObject]@{
                         displayName = $member.displayName
                         userPrincipalName = $member.userPrincipalName
@@ -89,13 +91,29 @@ function Test-Assessment-21816 {
                         roleDefinitionId = $role.id
                         roleName = $role.displayName
                         isPrivileged = $true
-                        assignmentType = if ($pimAssignment) { $pimAssignment.assignmentType } else { 'Not in PIM' }
+                        assignmentType = if ($pimAssignment) { ($pimAssignment | Select-Object -First 1).assignmentType } else { 'Not in PIM' }
                     }
 
                     if ($member.'@odata.type' -eq '#microsoft.graph.user') {
                         $nonPIMPrivilegedUsers += $memberInfo
                     } else {
-                        $nonPIMPrivilegedGroups += $memberInfo
+                        # Q5: Check if the group uses PIM for Groups to enforce JIT member access
+                        $pimForGroupsSchedules = $null
+                        $pimForGroupsPermanentMembers = @()
+                        try {
+                            $pimForGroupsSchedules = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/privilegedAccess/group/eligibilityScheduleInstances' -Filter "groupId eq '$($member.id)' and accessId eq 'member'" -ApiVersion beta -ErrorAction Stop
+                            if ($pimForGroupsSchedules) {
+                                # Also check for permanent active member assignments alongside eligibility schedules
+                                $allGroupAssignments = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/privilegedAccess/group/assignmentScheduleInstances' -Filter "groupId eq '$($member.id)' and accessId eq 'member'" -ApiVersion beta -ErrorAction Stop
+                                $pimForGroupsPermanentMembers = @($allGroupAssignments | Where-Object { $_.assignmentType -eq 'assigned' })
+                            }
+                        } catch {
+                            Write-PSFMessage "Could not check PIM for Groups for group $($member.displayName): $($_.Exception.Message). Treating as non-PIM managed." -Level Warning
+                        }
+                        if (-not $pimForGroupsSchedules -or $pimForGroupsPermanentMembers.Count -gt 0) {
+                            # Group does not use PIM for Groups, or has permanent active members alongside eligibility schedules
+                            $nonPIMPrivilegedGroups += $memberInfo
+                        }
                     }
                 }
             }
@@ -107,14 +125,16 @@ function Test-Assessment-21816 {
     $gaDirectoryRole = Invoke-ZtGraphRequest -RelativeUri 'directoryRoles' -Filter "roleTemplateId eq '$globalAdminRoleId'" -ApiVersion beta
 
     if ($gaDirectoryRole) {
-        $gaMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($gaDirectoryRole.id)/members" -Select 'userPrincipalName,displayName,id' -ApiVersion beta
+        # Raw call required — Get-ZtRoleMember flattens group members; group objects are needed to check PIM for Groups
+        $gaMembers = Invoke-ZtGraphRequest -RelativeUri "directoryRoles/$($gaDirectoryRole.id)/members" -ApiVersion beta
 
         foreach ($member in $gaMembers) {
             # Check if GA assignment is managed by PIM
             $pimAssignment = Invoke-ZtGraphRequest -RelativeUri 'roleManagement/directory/roleAssignmentScheduleInstances' -Filter "principalId eq '$($member.id)' and roleDefinitionId eq '$globalAdminRoleId'" -ApiVersion beta
 
-            if (-not $pimAssignment -or ($pimAssignment.assignmentType -eq 'Assigned' -and $null -eq $pimAssignment.endDateTime)) {
-                # Permanent GA assignment found
+            # Array member access — truthy when any Assigned record exists; Activated (JIT self-activation) records are excluded
+            if (-not $pimAssignment -or $pimAssignment.assignmentType -eq 'Assigned') {
+                # Standing active GA assignment found
                 $memberInfo = [PSCustomObject]@{
                     displayName = $member.displayName
                     userPrincipalName = $member.userPrincipalName
@@ -123,30 +143,49 @@ function Test-Assessment-21816 {
                     roleDefinitionId = $gaDirectoryRole.id
                     roleName = 'Global Administrator'
                     isPrivileged = $true
-                    assignmentType = if ($pimAssignment) { $pimAssignment.assignmentType } else { 'Not in PIM' }
+                    assignmentType = if ($pimAssignment) { ($pimAssignment | Select-Object -First 1).assignmentType } else { 'Not in PIM' }
                 }
 
                 if ($member.'@odata.type' -eq '#microsoft.graph.user') {
                     $permanentGAUserList += $memberInfo
                 } elseif ($member.'@odata.type' -eq '#microsoft.graph.group') {
                     $permanentGAGroupList += $memberInfo
-                    # Get group members - only users
-                    $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -Select 'userPrincipalName,displayName,id,onPremisesSyncEnabled' -ApiVersion beta
-                    foreach ($groupMember in $groupMembers) {
-                        # Only process users, skip service principals
-                        if ($groupMember.'@odata.type' -eq '#microsoft.graph.user') {
-                            $groupMemberInfo = [PSCustomObject]@{
-                                displayName = $groupMember.displayName
-                                userPrincipalName = $groupMember.userPrincipalName
-                                id = $groupMember.id
-                                roleTemplateId = $globalAdminRoleId
-                                roleDefinitionId = $gaDirectoryRole.id
-                                roleName = 'Global Administrator (via group)'
-                                isPrivileged = $true
-                                assignmentType = 'Via Group'
-                                onPremisesSyncEnabled = $groupMember.onPremisesSyncEnabled
+                    # Q4: Check if the group uses PIM for Groups to enforce JIT member access
+                    $pimForGroupsSchedules = $null
+                    $pimForGroupsPermanentMembers = @()
+                    try {
+                        $pimForGroupsSchedules = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/privilegedAccess/group/eligibilityScheduleInstances' -Filter "groupId eq '$($member.id)' and accessId eq 'member'" -ApiVersion beta -ErrorAction Stop
+                        if ($pimForGroupsSchedules) {
+                            # Also check for permanent active member assignments alongside eligibility schedules
+                            $allGroupAssignments = Invoke-ZtGraphRequest -RelativeUri 'identityGovernance/privilegedAccess/group/assignmentScheduleInstances' -Filter "groupId eq '$($member.id)' and accessId eq 'member'" -ApiVersion beta -ErrorAction Stop
+                            $pimForGroupsPermanentMembers = @($allGroupAssignments | Where-Object { $_.assignmentType -eq 'assigned' })
+                        }
+                    } catch {
+                        Write-PSFMessage "Could not check PIM for Groups for group $($member.displayName): $($_.Exception.Message). Treating as non-PIM managed." -Level Warning
+                    }
+                    if ($pimForGroupsSchedules -and $pimForGroupsPermanentMembers.Count -eq 0) {
+                        # Group enforces JIT via PIM for Groups with no permanent members - exclude from PermanentGAGroupList
+                        $permanentGAGroupList = $permanentGAGroupList | Where-Object { $_.id -ne $member.id }
+                        Write-PSFMessage "Group $($member.displayName) uses PIM for Groups with no permanent members, excluding from permanent GA list" -Level Verbose
+                    } else {
+                        # Group does not use PIM for Groups - get members and add to permanentGAUserList (Q5)
+                        $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -Select 'userPrincipalName,displayName,id,onPremisesSyncEnabled' -ApiVersion beta
+                        foreach ($groupMember in $groupMembers) {
+                            # Only process users, skip service principals
+                            if ($groupMember.'@odata.type' -eq '#microsoft.graph.user') {
+                                $groupMemberInfo = [PSCustomObject]@{
+                                    displayName = $groupMember.displayName
+                                    userPrincipalName = $groupMember.userPrincipalName
+                                    id = $groupMember.id
+                                    roleTemplateId = $globalAdminRoleId
+                                    roleDefinitionId = $gaDirectoryRole.id
+                                    roleName = 'Global Administrator (via group)'
+                                    isPrivileged = $true
+                                    assignmentType = 'Via Group'
+                                    onPremisesSyncEnabled = $groupMember.onPremisesSyncEnabled
+                                }
+                                $permanentGAUserList += $groupMemberInfo
                             }
-                            $permanentGAUserList += $groupMemberInfo
                         }
                     }
                 }
@@ -161,6 +200,7 @@ function Test-Assessment-21816 {
     $hasPIMUsage = $eligibleGAUsers -gt 0
     $hasNonPIMPrivileged = ($nonPIMPrivilegedUsers.Count + $nonPIMPrivilegedGroups.Count) -gt 0
     $permanentGACount = $permanentGAUserList.Count
+    $customStatus = $null
 
     if (-not $hasPIMUsage) {
         $passed = $false
@@ -171,10 +211,10 @@ function Test-Assessment-21816 {
     } elseif ($permanentGACount -gt 2) {
         $passed = $false
         $customStatus = 'Investigate'
-        $testResultMarkdown = 'Three or more accounts are permanently assigned the Global Administrator role. Review to determine whether these are emergency access accounts.'
+        $testResultMarkdown = 'Three or more accounts are permanently assigned the Global Administrator role. Review to determine whether these are emergency access accounts configured in accordance with Microsoft guidance.'
     } else {
         $passed = $true
-        $testResultMarkdown = 'All Microsoft Entra privileged role assignments are managed with PIM with the exception of up to two standing Global Administrator accounts.'
+        $testResultMarkdown = 'All Microsoft Entra privileged role assignments are managed with PIM with the exception of up to two standing Global Administrator accounts that are permitted by this check for emergency access.'
     }
 
     $testResultMarkdown += "`n`n%TestResult%"
@@ -236,9 +276,8 @@ function Test-Assessment-21816 {
         Result = $testResultMarkdown
     }
 
-    # Only add CustomStatus when it's "Investigate" (more than 2 permanent GAs)
-    if ($permanentGACount -gt 2) {
-        $params.CustomStatus = 'Investigate'
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
 
     Add-ZtTestResultDetail @params
