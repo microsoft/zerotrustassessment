@@ -37,6 +37,7 @@
         'Policy.Read.ConditionalAccess'
         'Policy.Read.PermissionGrant'
         'PrivilegedAccess.Read.AzureAD'
+        'PrivilegedAssignmentSchedule.Read.AzureADGroup'
         'PrivilegedEligibilitySchedule.Read.AzureADGroup'
         'Reports.Read.All'
         'RoleManagement.Read.All'
