@@ -47,81 +47,87 @@ function Test-Assessment-61016 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    if (-not (Get-ZtLicense EntraIDP2)) {
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedEntraIDP2
-        return
-    }
-
     $activity = 'Checking Microsoft Entra ID Protection risk events flowing to Sentinel workspaces'
     $requiredCategories = @('RiskyAgents', 'AgentRiskEvents')
     $insufficientPermissionsMessage = '⚠️ Some of the queried resources returned status indicating insufficient permissions. Please make sure you have at least reader access to the Azure subscriptions being tested and the Security Reader or Global Reader directory role for the tenant-scope diagnostic-settings read.'
 
     # Tracks Investigate path; when set, the final emit reports Investigate without running the per-workspace evaluation.
     $investigateReason = $null
-    # Tracks the 61002 precondition Fail path (no Sentinel-onboarded workspace can exist in scope).
-    $noSentinelWorkspace = $false
     $diagnosticSettings = @()
 
     # Q1 + Q2: enumerate Log Analytics workspaces and their Sentinel onboarding state via shared helper.
     # 'Forbidden'       => 401/403 on Q1 or Q2 ARG query (Investigate).
-    # $null             => unexpected ARG failure (Skip - NotApplicable).
-    # 'NoSubscriptions' => Q1 succeeded but no enabled subscriptions accessible (Fail - no Sentinel workspace can exist).
-    # 'NoWorkspaces'    => Q2 succeeded but no Log Analytics workspaces in scope (Fail - no Sentinel workspace can exist).
+    # $null             => unexpected ARG failure (Investigate).
+    # 'NoSubscriptions' => Q1 succeeded but no enabled subscriptions accessible (Skip - NotApplicable).
+    # 'NoWorkspaces'    => Q2 succeeded but no Log Analytics workspaces in scope (Skip - NotApplicable).
     # array             => workspace results; entries with PermissionError=$true had a 401/403
     #                      on the Sentinel onboarding check and must be treated as unknown.
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
 
+    # 401/403 on Q1 or Q2 ARG query -> Investigate.
     if ($workspaceResults -eq 'Forbidden') {
-        $investigateReason = $insufficientPermissionsMessage
+        $params = @{
+            TestId       = '61016'
+            Title        = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = $insufficientPermissionsMessage
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
     }
-    elseif ($null -eq $workspaceResults) {
-        # Unexpected ARG failure (transient infrastructure issue), not a missing capability.
-        # NotApplicable (not NotSupported): NotSupported implies the capability doesn't exist
-        # for the tenant, whereas this is a transient infrastructure failure. Per reviewer
-        # feedback on the sibling 61015 PR for this same shared surface.
+
+    # Unexpected ARG failure (transient infrastructure issue) -> Investigate.
+    if ($null -eq $workspaceResults) {
+        $params = @{
+            TestId       = '61016'
+            Title        = 'Microsoft Entra ID Protection risk events are flowing to the Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = '⚠️ Unexpected failure querying Azure Resource Graph for Log Analytics workspaces. Please retry.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    # No enabled subscriptions accessible to the caller -> Skip.
+    if ($workspaceResults -eq 'NoSubscriptions') {
+        Write-PSFMessage 'No enabled subscriptions found — skipping Sentinel diagnostic-setting check.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
-    # NOTE: 61016 intentionally diverges from peer 61002 here. 61002 treats no-subscriptions /
-    # no-workspaces as a Skip (NotApplicable); 61016 treats them as Fail, because the spec's
-    # 61002 precondition says "if 61002 returned Fail, short-circuit to Fail" and the Fail copy
-    # is "no workspaces are onboarded to Sentinel". Do not change these to skips.
-    elseif ($workspaceResults -eq 'NoSubscriptions') {
-        # Precondition (61002): no accessible subscriptions -> no Sentinel-onboarded workspace can exist -> Fail.
-        Write-PSFMessage 'No enabled subscriptions found - no Sentinel-onboarded workspace can exist.' -Tag Test -Level VeryVerbose
-        $noSentinelWorkspace = $true
+
+    # No Log Analytics workspaces across accessible subscriptions -> Skip.
+    if ($workspaceResults -eq 'NoWorkspaces') {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Sentinel diagnostic-setting check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
     }
-    elseif ($workspaceResults -eq 'NoWorkspaces') {
-        # Precondition (61002): no Log Analytics workspaces -> no Sentinel-onboarded workspace can exist -> Fail.
-        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions - no Sentinel-onboarded workspace can exist.' -Tag Test -Level VeryVerbose
-        $noSentinelWorkspace = $true
+
+    # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
+    Write-ZtProgress -Activity $activity -Status 'Querying Microsoft Entra diagnostic settings (tenant scope)'
+    try {
+        $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
+        if ($diagResponse.StatusCode -in 401, 403) {
+            # Spec: 401/403 -> Investigate (insufficient directory-role permissions).
+            $investigateReason = $insufficientPermissionsMessage
+        }
+        elseif ($diagResponse.StatusCode -ge 500) {
+            # Spec: 5xx -> Investigate (transient ARM/aadiam failure, retry recommended).
+            Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
+            $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned a server error ($($diagResponse.StatusCode)). Please retry."
+        }
+        elseif ($diagResponse.StatusCode -ge 400) {
+            Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
+            $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned an unexpected status ($($diagResponse.StatusCode))."
+        }
+        else {
+            $diagnosticSettings = @(($diagResponse.Content | ConvertFrom-Json).value)
+        }
     }
-    else {
-        # Q3: tenant-scoped Microsoft Entra diagnostic settings (single call).
-        Write-ZtProgress -Activity $activity -Status 'Querying Microsoft Entra diagnostic settings (tenant scope)'
-        try {
-            $diagResponse = Invoke-ZtAzureRequest -Path '/providers/microsoft.aadiam/diagnosticsettings?api-version=2017-04-01-preview' -FullResponse -ErrorAction Stop
-            if ($diagResponse.StatusCode -in 401, 403) {
-                # Spec: 401/403 -> Investigate (insufficient directory-role permissions).
-                $investigateReason = $insufficientPermissionsMessage
-            }
-            elseif ($diagResponse.StatusCode -ge 500) {
-                # Spec: 5xx -> Investigate (transient ARM/aadiam failure, retry recommended).
-                Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
-                $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned a server error ($($diagResponse.StatusCode)). Please retry."
-            }
-            elseif ($diagResponse.StatusCode -ge 400) {
-                Write-PSFMessage "Microsoft Entra diagnostic settings query failed with status $($diagResponse.StatusCode)." -Tag Test -Level Warning
-                $investigateReason = "⚠️ Microsoft Entra diagnostic settings query returned an unexpected status ($($diagResponse.StatusCode))."
-            }
-            else {
-                $diagnosticSettings = @(($diagResponse.Content | ConvertFrom-Json).value)
-            }
-        }
-        catch {
-            Write-PSFMessage "Failed to query Microsoft Entra diagnostic settings: $_" -Tag Test -Level Warning -ErrorRecord $_
-            $investigateReason = '⚠️ Microsoft Entra diagnostic settings query failed. Please retry or investigate tenant-scope access.'
-        }
+    catch {
+        Write-PSFMessage "Failed to query Microsoft Entra diagnostic settings: $_" -Tag Test -Level Warning -ErrorRecord $_
+        $investigateReason = '⚠️ Microsoft Entra diagnostic settings query failed. Please retry or investigate tenant-scope access.'
     }
     #endregion Data Collection
 
@@ -131,7 +137,7 @@ function Test-Assessment-61016 {
     $perWorkspace = @()
     $passingWorkspaces = @()
 
-    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+    if (-not $investigateReason) {
         $forbiddenWorkspaces = @($workspaceResults | Where-Object { $_.PermissionError })
         $sentinelWorkspaces  = @($workspaceResults | Where-Object { -not $_.PermissionError -and $_.SentinelOnboarded })
 
@@ -140,13 +146,9 @@ function Test-Assessment-61016 {
         if ($sentinelWorkspaces.Count -eq 0 -and $forbiddenWorkspaces.Count -gt 0) {
             $investigateReason = '⚠️ All Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. Please ensure Microsoft Sentinel Reader is granted on each workspace and re-run the assessment.'
         }
-        elseif ($sentinelWorkspaces.Count -eq 0) {
-            # Precondition (61002): no Sentinel-onboarded workspace -> Fail per spec.
-            $noSentinelWorkspace = $true
-        }
     }
 
-    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+    if (-not $investigateReason) {
         Write-ZtProgress -Activity $activity -Status 'Evaluating diagnostic-setting coverage per workspace'
 
         # Per workspace, union enabled categories across all diagnostic settings whose
@@ -184,15 +186,12 @@ function Test-Assessment-61016 {
         $passingWorkspaces = @($perWorkspace | Where-Object { $_.Passed })
     }
 
-    $passed = (-not $investigateReason) -and (-not $noSentinelWorkspace) -and ($passingWorkspaces.Count -ge 1)
+    $passed = (-not $investigateReason) -and ($passingWorkspaces.Count -ge 1)
     #endregion Assessment Logic
 
     #region Report Generation
     if ($investigateReason) {
         $testResultMarkdown = $investigateReason
-    }
-    elseif ($noSentinelWorkspace) {
-        $testResultMarkdown = "❌ No Sentinel-onboarded workspace in tenant.`n`nNo Log Analytics workspace in scope is onboarded to Microsoft Sentinel, so Microsoft Entra ID Protection risk events have nowhere to flow."
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyAgents`` / ``AgentRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
@@ -276,7 +275,7 @@ function Test-Assessment-61016 {
 
 '@
 
-    if (-not $investigateReason -and -not $noSentinelWorkspace) {
+    if (-not $investigateReason) {
         $partialWarning = ''
         if ($forbiddenWorkspaces.Count -gt 0) {
             $partialWarning = "`n> ⚠️ **$($forbiddenWorkspaces.Count) workspace(s) could not be checked** for Sentinel onboarding due to insufficient permissions. Coverage for those workspaces is unknown."
