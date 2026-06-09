@@ -196,6 +196,9 @@ function Test-Assessment-61016 {
     elseif ($passed) {
         $testResultMarkdown = "✅ Microsoft Entra ID Protection risk events (``RiskyAgents`` / ``AgentRiskEvents``) are configured to flow to at least one Sentinel-onboarded workspace — a tenant Entra diagnostic setting targets the workspace with both risk-event log categories enabled (which automatically enables the Sentinel connector and the Microsoft Entra ID Content Hub solution).`n`n%TestResult%"
     }
+    elseif ($sentinelWorkspaces.Count -eq 0) {
+        $testResultMarkdown = "❌ No Sentinel-onboarded workspace was found in the tenant.`n`n%TestResult%"
+    }
     else {
         $testResultMarkdown = "❌ No Sentinel-onboarded workspace has a tenant-scoped Microsoft Entra diagnostic setting targeting it with both ``RiskyAgents`` and ``AgentRiskEvents`` log categories enabled.`n`n%TestResult%"
     }
