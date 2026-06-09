@@ -14,7 +14,7 @@ export default function Infrastructure() {
                 <CardHeader>
                     <CardTitle className="mb-3">Assessment results</CardTitle>
                     <CardDescription>
-                        The results presented below are based on Zero Trust security principles for infrastructure.
+                        The results below are based on Microsoft Defender for Cloud recommendations identified in the scanned environment.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="gap-4 px-4 pb-4 pt-1">

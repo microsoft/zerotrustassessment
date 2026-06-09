@@ -1,0 +1,71 @@
+# ZtTest License Attribute Values
+
+Source: `src/powershell/tests/Test-Assessment.*.ps1`
+
+Summary:
+
+- `MinimumLicense`: 35 unique values.
+- `CompatibleLicense`: 10 unique values.
+
+Notes:
+
+- Values are listed as scalar attribute elements. If an attribute contains an array, each element is listed separately.
+- `CompatibleLicense` expressions containing `&` are preserved as written because the runner treats each expression as one OR alternative with AND requirements inside it.
+- Explicit `$null` assignments are included as `$null`.
+- For the full list of Microsoft service plan identifiers, see [Product names and service plan identifiers for licensing](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference).
+- To check which service plans are active in a tenant, use the [subscribedSku Graph API resource](https://learn.microsoft.com/en-us/graph/api/resources/subscribedsku?view=graph-rest-beta).
+
+## MinimumLicense
+
+| Value | Count | Test IDs |
+| --- | ---: | --- |
+| `$null` | 2 | 21789, 21854 |
+| `AAD_PREMIUM` | 15 | 25371, 25372, 25377, 25379, 25380, 25383, 25393, 25394, 25396, 25398, 25400, 25401, 25419, 25420, 61009 |
+| `AAD_PREMIUM_P2` | 1 | 61012 |
+| `Advanced Message Encryption add-on` | 1 | 35027 |
+| `AGENT_365` | 2 | 61009, 61012 |
+| `Azure Application Gateway Standard SKU` | 1 | 25541 |
+| `Azure Standard SKU` | 1 | 25543 |
+| `Azure WAF` | 11 | 25541, 26879, 26880, 26881, 26882, 26883, 27015, 27016, 27017, 27019, 27020 |
+| `Azure WAF on Azure Front Door Premium SKU` | 1 | 25543 |
+| `Azure_Application_Gateway_WAF` | 1 | 26888 |
+| `Azure_Firewall_Basic` | 1 | 25535 |
+| `Azure_Firewall_Premium` | 5 | 25535, 25537, 25539, 25550, 26887 |
+| `Azure_Firewall_Standard` | 3 | 25535, 25537, 26887 |
+| `Azure_Front_Door_Premium` | 1 | 26884 |
+| `Azure_FrontDoor_Premium` | 1 | 26889 |
+| `Azure_FrontDoor_Standard` | 1 | 26889 |
+| `Azure_WAF` | 1 | 27018 |
+| `DDoS_IP_Protection` | 3 | 25533, 26885, 26886 |
+| `DDoS_Network_Protection` | 3 | 25533, 26885, 26886 |
+| `Entra_Premium_Global_Secure_Access` | 1 | 25406 |
+| `Entra_Premium_Internet_Access` | 22 | 25372, 25375, 25377, 25380, 25381, 25382, 25407, 25408, 25409, 25410, 25411, 25413, 25415, 25416, 25419, 25420, 25422, 27000, 27001, 27002, 27003, 27004 |
+| `Entra_Premium_Private_Access` | 18 | 25372, 25375, 25381, 25382, 25391, 25392, 25393, 25394, 25395, 25396, 25398, 25399, 25400, 25403, 25419, 25420, 25422, 25466 |
+| `Entra_Private_Access` | 2 | 25480, 25481 |
+| `Entra_Suite` | 3 | 25376, 25381, 25403 |
+| `Free` | 33 | 21772, 21773, 21774, 21775, 21776, 21777, 21780, 21787, 21788, 21790, 21791, 21792, 21809, 21813, 21814, 21822, 21823, 21837, 21838, 21839, 21840, 21844, 21851, 21858, 21868, 21874, 21877, 21896, 21954, 21992, 22128, 24518, 24570 |
+| `Governance` | 3 | 21875, 21878, 21929 |
+| `Intune` | 35 | 24540, 24541, 24542, 24543, 24545, 24547, 24548, 24549, 24550, 24551, 24552, 24553, 24554, 24555, 24560, 24561, 24564, 24568, 24569, 24572, 24573, 24574, 24575, 24576, 24690, 24784, 24794, 24802, 24823, 24824, 24827, 24839, 24840, 24870, 24871 |
+| `Microsoft 365 E3` | 15 | 35003, 35004, 35007, 35013, 35014, 35015, 35016, 35017, 35018, 35024, 35025, 35026, 35027, 35028, 35037 |
+| `Microsoft 365 E5` | 9 | 35001, 35008, 35009, 35010, 35011, 35012, 35027, 35029, 35041 |
+| `Microsoft Purview PAYG` | 1 | 35041 |
+| `MIP_P1` | 2 | 35005, 35006 |
+| `N/A` | 1 | 50001 |
+| `P1` | 61 | 21771, 21781, 21782, 21783, 21784, 21786, 21793, 21795, 21796, 21800, 21801, 21802, 21803, 21804, 21806, 21807, 21808, 21810, 21811, 21812, 21824, 21825, 21828, 21829, 21830, 21831, 21832, 21835, 21836, 21841, 21842, 21845, 21846, 21847, 21848, 21849, 21850, 21865, 21866, 21867, 21869, 21870, 21872, 21884, 21885, 21886, 21888, 21889, 21891, 21892, 21941, 21953, 21955, 21964, 21985, 22072, 22124, 23183, 24546, 25384, 25405 |
+| `P2` | 19 | 21797, 21798, 21799, 21815, 21816, 21817, 21818, 21819, 21820, 21861, 21862, 21863, 21875, 21878, 21879, 21893, 21929, 22659, 25381 |
+| `Workload` | 1 | 21883 |
+
+## CompatibleLicense
+
+| Value | Count | Test IDs |
+| --- | ---: | --- |
+| `AAD_BASIC` | 2 | 61006, 61014 |
+| `AAD_PREMIUM` | 6 | 21770, 25379, 25383, 25401, 61006, 61014 |
+| `AAD_PREMIUM_P2` | 3 | 25379, 25383, 25401 |
+| `AAD_PREMIUM_P2&AGENT_365` | 2 | 61009, 61012 |
+| `AAD_PREMIUM&AGENT_365` | 2 | 61009, 61013 |
+| `Entra_Premium_Internet_Access` | 23 | 25370, 25371, 25372, 25375, 25376, 25377, 25381, 25382, 25384, 25406, 25407, 25408, 25409, 25410, 25411, 25415, 25416, 25419, 25420, 25422, 27001, 27003, 27004 |
+| `Entra_Premium_Private_Access` | 21 | 25370, 25371, 25372, 25375, 25376, 25381, 25382, 25384, 25391, 25392, 25394, 25395, 25396, 25398, 25399, 25403, 25419, 25420, 25422, 25480, 25481 |
+| `EXCHANGE_S_ENTERPRISE` | 14 | 35019, 35020, 35021, 35022, 35023, 35030, 35032, 35033, 35034, 35035, 35036, 35038, 35039, 35040 |
+| `RMS_S_PREMIUM` | 17 | 35003, 35004, 35005, 35006, 35007, 35013, 35014, 35015, 35016, 35017, 35018, 35024, 35025, 35026, 35027, 35028, 35037 |
+| `RMS_S_PREMIUM2` | 8 | 35001, 35008, 35009, 35010, 35011, 35012, 35029, 35041 |

@@ -203,10 +203,11 @@ export const columns: ColumnDef<Test>[] = [
             const b = RISK_ORDER[rowB.getValue(columnId) as string] ?? Number.POSITIVE_INFINITY
             return a - b
         },
-        header: ({ column }) => {
+        header: ({ column, table }) => {
+            const riskLabel = (table.options.meta as { riskLabel?: string } | undefined)?.riskLabel ?? "Risk"
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                    Risk
+                    {riskLabel}
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
