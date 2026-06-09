@@ -1,0 +1,12 @@
+An agent endpoint that does not require Microsoft Entra user authentication is an unauthenticated reachable surface inside the tenant's AI estate. A threat actor that locates such an endpoint — through reconnaissance of public agent URLs, leaked Copilot Studio links, or enumeration of Foundry project endpoints — can interact with the agent without presenting any identity, then ride the agent's own grants to reach grounding data, connected tools, and downstream APIs the agent is authorized to call. Because the call never reaches Microsoft Entra, no Conditional Access policy evaluates it, no sign-in risk score is computed, no audit record ties the action to a real user, and no later investigation can attribute the resulting data access. The runtime behaviour that enforces Entra user authentication lives inside each agent's host (Copilot Studio, Microsoft 365 Copilot, Microsoft Foundry, custom code, third-party platforms) and is therefore not directly observable from the directory; what *is* observable is the trail left in the Microsoft Entra sign-in logs whenever an agent and its callers do go through Entra. This check inspects the last 30 days of sign-in activity for each agent identity and classifies the agent by the strongest evidence found: a non-interactive agent sign-in whose subject is a real user (the agent calling downstream resources on behalf of a signed-in user) is the strongest positive signal; an interactive user sign-in to the agent's blueprint is a good positive signal that proves users do reach the agent through Entra; absence of either across the lookback window means the platform has no evidence the agent enforces Entra user authentication and a control owner must verify the agent's host configuration directly.
+
+**Remediation action**
+
+- [Authenticate users in interactive agents](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/interactive-agent-authenticate-user)
+- [Request delegated user authorization for interactive agents](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/interactive-agent-request-user-authorization)
+- [Agent users in Microsoft Entra Agent ID](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/agent-users)
+- [Microsoft Entra Agent ID overview](https://learn.microsoft.com/en-us/entra/agent-id/what-is-microsoft-entra-agent-id)
+- [Sign-in logs in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-ins)
+
+<!--- Results --->
+%TestResult%
