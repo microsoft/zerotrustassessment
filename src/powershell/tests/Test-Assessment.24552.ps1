@@ -94,11 +94,6 @@ function Test-Assessment-24552 {
         }
         $policySettingIds = @($firewallSetting.settingInstance.groupSettingCollectionValue[0].children.choiceSettingValue.value)
 
-        # Convert to array if it's a single value to ensure consistent handling
-        if ($policySettingIds -isnot [array]) {
-            $policySettingIds = @($policySettingIds)
-        }
-
         # Check if any of the policy's setting IDs match our valid setting IDs
         $hasValidSetting = $false
         foreach ($settingId in $policySettingIds) {
