@@ -89,10 +89,12 @@ function Test-Assessment-24552 {
         $validSettingIds = @('com.apple.security.firewall_enablefirewall_true')
 
         # Get all choice values from the firewall setting's children (PowerShell-side, avoids DuckDB lambda issues)
-        $firewallSetting = $macOSPolicy.settings | Where-Object {
-            $_.settingInstance.settingDefinitionId -eq 'com.apple.security.firewall_com.apple.security.firewall'
+        $firewallSetting = $macOSPolicy.settings | Where-Object { $_.settingInstance.settingDefinitionId -eq 'com.apple.security.firewall_com.apple.security.firewall' } | Select-Object -First 1
+        $policySettingIds = if ($firewallSetting -and $firewallSetting.settingInstance.groupSettingCollectionValue) {
+            @($firewallSetting.settingInstance.groupSettingCollectionValue[0].children.choiceSettingValue.value)
+        } else {
+            @()
         }
-        $policySettingIds = @($firewallSetting.settingInstance.groupSettingCollectionValue[0].children.choiceSettingValue.value)
 
         # Check if any of the policy's setting IDs match our valid setting IDs
         $hasValidSetting = $false
