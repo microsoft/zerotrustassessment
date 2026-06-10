@@ -49,14 +49,14 @@ function Test-Assessment-61021 {
 
     # Q1 (subscriptions) + Q2 (workspaces) + onboarding-state check:
     # Delegate to the shared helper used by 61002. Returns the same sentinel values.
+    # $null             → unexpected ARG failure (spec: Investigate)
     # 'Forbidden'       → 401/403 on Q1 or Q2 ARG query (spec: Investigate)
-    # $null             → unexpected ARG failure (spec: skip NotSupported)
     # 'NoSubscriptions' → no enabled subscriptions (spec: skip NotApplicable)
     # 'NoWorkspaces'    → no Log Analytics workspaces found (spec: skip NotApplicable)
     # array             → workspace results (SentinelOnboarded, PermissionError flags)
     $workspaceResults = Get-SentinelWorkspaceData -Activity $activity
 
-    if ($workspaceResults -eq 'Forbidden') {
+    if ($null -eq $workspaceResults) {
         $params = @{
             TestId       = '61021'
             Title        = 'Microsoft 365 Copilot data connector is enabled on the Microsoft Sentinel workspace'
@@ -68,8 +68,15 @@ function Test-Assessment-61021 {
         return
     }
 
-    if ($null -eq $workspaceResults) {
-        Add-ZtTestResultDetail -SkippedBecause NotSupported
+    if ($workspaceResults -eq 'Forbidden') {
+        $params = @{
+            TestId       = '61021'
+            Title        = 'Microsoft 365 Copilot data connector is enabled on the Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when querying subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
