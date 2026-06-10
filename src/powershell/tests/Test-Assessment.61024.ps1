@@ -11,7 +11,6 @@
     Category: AI Threat Detection
     Pillar: AI
     Required API: Azure Resource Manager (management.azure.com)
-    Depends on: 61002 (Sentinel onboarding precondition)
 #>
 
 function Test-Assessment-61024 {
