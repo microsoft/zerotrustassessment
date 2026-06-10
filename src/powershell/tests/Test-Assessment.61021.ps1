@@ -4,16 +4,11 @@
     Microsoft Sentinel-onboarded workspace.
 
 .DESCRIPTION
-    For each Microsoft Sentinel-onboarded Log Analytics workspace, the test evaluates two paths:
+    For each Microsoft Sentinel-onboarded Log Analytics workspace, the test checks whether
+    the "Microsoft Copilot" content package is installed from the Sentinel Content Hub (Q3).
 
-      Path A (ARM data connector): The workspace has either (a) an Office365 data connector with
-      CopilotActivity dataType enabled, or (b) a MicrosoftCopilot connector with its primary
-      dataType enabled.
-
-      Path B (Content Pack): The workspace has the "Microsoft Copilot" content package installed
-      from the Content Hub.
-
-    The tenant passes when at least one workspace satisfies either path.
+    The tenant passes when at least one workspace has the "Microsoft Copilot" content package
+    installed.
 
 .NOTES
     Test ID: 61021
@@ -21,14 +16,13 @@
     Pillar: AI
     Category: AI Threat Detection
     Required permissions:
-      Microsoft.Resources/subscriptions/read — subscription enumeration (Q1)
-      Microsoft.SecurityInsights/dataConnectors/read — data connector list per workspace (Q3)
-      Microsoft.SecurityInsights/contentPackages/read — content package list per workspace (Q4)
+      Microsoft.Resources/subscriptions/read          — subscription enumeration (Q1)
+      Microsoft.SecurityInsights/contentPackages/read — content package list per workspace (Q3)
 #>
 function Test-Assessment-61021 {
     [ZtTest(
         Category           = 'AI Threat Detection',
-        CompatibleLicense   = ('Microsoft_365_Copilot'),
+        CompatibleLicense  = ('Microsoft_365_Copilot'),
         ImplementationCost = 'Low',
         Pillar             = 'AI',
         RiskLevel          = 'High',
@@ -86,42 +80,36 @@ function Test-Assessment-61021 {
     }
 
     # Only Sentinel-onboarded workspaces are in scope for connector evaluation.
+    # Workspaces where Q3 (onboarding check) returned 401/403 have PermissionError=$true and
+    # SentinelOnboarded=$false — exclude them from the onboarded set but track them separately
+    # so we can return Investigate instead of a silent NotApplicable skip.
+    $permErrorFromHelper = @($workspaceResults | Where-Object { $_.PermissionError })
     $onboardedWorkspaces = @($workspaceResults | Where-Object { $_.SentinelOnboarded })
     if ($onboardedWorkspaces.Count -eq 0) {
+        if ($permErrorFromHelper.Count -gt 0) {
+            $params = @{
+                TestId       = '61021'
+                Title        = 'Microsoft 365 Copilot data connector is enabled on the Microsoft Sentinel workspace'
+                Status       = $false
+                Result       = '⚠️ Some of the queried resources returned status indicating not sufficient permissions. Please make sure you have at least reader access to the Azure Subscriptions being tested.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
+            return
+        }
         Write-PSFMessage 'No Sentinel-onboarded workspaces found — skipping connector check.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
-    # Q3 + Q4: For each Sentinel-onboarded workspace evaluate data connectors and content packages.
+    # Q3: For each Sentinel-onboarded workspace check for the "Microsoft Copilot" content package.
     $workspaceEvaluations = @()
 
     foreach ($workspace in $onboardedWorkspaces) {
-        Write-ZtProgress -Activity $activity -Status "Checking connectors on workspace '$($workspace.WorkspaceName)'"
+        Write-ZtProgress -Activity $activity -Status "Checking content packages on workspace '$($workspace.WorkspaceName)'"
 
-        # Q3: List data connectors — used to evaluate Path A
-        $connectors        = $null
-        $q3PermissionError = $false
-        try {
-            $connectors = Invoke-ZtAzureRequest `
-                -Path "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=2024-09-01" `
-                -ErrorAction Stop
-        }
-        catch {
-            $httpStatusCode = $null
-            if ($_.Exception.Message -match 'with status (\d+):') { $httpStatusCode = [int]$Matches[1] }
-            if ($httpStatusCode -in @(401, 403)) {
-                $q3PermissionError = $true
-                Write-PSFMessage "Q3 data connectors for workspace '$($workspace.WorkspaceName)' returned $httpStatusCode — insufficient permissions." -Tag Test -Level Warning
-            }
-            else {
-                Write-PSFMessage "Q3 data connectors for workspace '$($workspace.WorkspaceName)' failed: $_" -Tag Test -Level Warning
-            }
-        }
-
-        # Q4: List installed content packages — used to evaluate Path B
-        $packages          = $null
-        $q4PermissionError = $false
+        $packages        = $null
+        $permissionError = $false
         try {
             $packages = Invoke-ZtAzureRequest `
                 -Path "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/contentPackages?api-version=2024-09-01" `
@@ -131,54 +119,26 @@ function Test-Assessment-61021 {
             $httpStatusCode = $null
             if ($_.Exception.Message -match 'with status (\d+):') { $httpStatusCode = [int]$Matches[1] }
             if ($httpStatusCode -in @(401, 403)) {
-                $q4PermissionError = $true
-                Write-PSFMessage "Q4 content packages for workspace '$($workspace.WorkspaceName)' returned $httpStatusCode — insufficient permissions." -Tag Test -Level Warning
+                $permissionError = $true
+                Write-PSFMessage "Q3 content packages for workspace '$($workspace.WorkspaceName)' returned $httpStatusCode — insufficient permissions." -Tag Test -Level Warning
             }
             else {
-                Write-PSFMessage "Q4 content packages for workspace '$($workspace.WorkspaceName)' failed: $_" -Tag Test -Level Warning
+                # 5xx or network error — treat as Investigate per spec
+                $permissionError = $true
+                Write-PSFMessage "Q3 content packages for workspace '$($workspace.WorkspaceName)' failed (status $httpStatusCode): $_" -Tag Test -Level Warning
             }
         }
 
-        # Evaluate Path A: Office365/CopilotActivity or MicrosoftCopilot connector enabled
-        $pathAConnectorName = $null
-        $pathADataTypes     = $null
-        $pathAStatus        = 'Fail'
-        if ($q3PermissionError) {
-            $pathAStatus = 'NoAccess'
-        }
-        else {
-            foreach ($connector in $connectors) {
-                if ($connector.kind -ieq 'Office365') {
-                    if ($connector.properties.dataTypes.CopilotActivity.state -ieq 'Enabled') {
-                        $pathAConnectorName = 'Office365.CopilotActivity'
-                        $pathADataTypes     = 'CopilotActivity'
-                        $pathAStatus        = 'Pass'
-                        break
-                    }
-                }
-                elseif ($connector.kind -ieq 'MicrosoftCopilot') {
-                    $primaryDataType = $connector.properties.dataTypes | Select-Object -First 1
-                    if ($primaryDataType -and $primaryDataType.state -ieq 'Enabled') {
-                        $pathAConnectorName = 'MicrosoftCopilot'
-                        $pathADataTypes     = 'Enabled'
-                        $pathAStatus        = 'Pass'
-                        break
-                    }
-                }
-            }
-        }
-
-        # Evaluate Path B: "Microsoft Copilot" content package installed
-        $pathBPackageName = $null
-        $pathBStatus      = 'Fail'
-        if ($q4PermissionError) {
-            $pathBStatus = 'NoAccess'
+        $contentPackageName = $null
+        $rowStatus          = 'Fail'
+        if ($permissionError) {
+            $rowStatus = 'Investigate'
         }
         else {
             $copilotPackage = $packages | Where-Object { $_.properties.displayName -ieq 'Microsoft Copilot' } | Select-Object -First 1
             if ($copilotPackage) {
-                $pathBPackageName = $copilotPackage.properties.displayName
-                $pathBStatus      = 'Pass'
+                $contentPackageName = $copilotPackage.properties.displayName
+                $rowStatus          = 'Pass'
             }
         }
 
@@ -186,12 +146,9 @@ function Test-Assessment-61021 {
             SubscriptionName   = $workspace.SubscriptionName
             WorkspaceName      = $workspace.WorkspaceName
             WorkspaceId        = $workspace.WorkspaceId
-            PathAStatus        = $pathAStatus
-            PathAConnectorName = $pathAConnectorName
-            PathADataTypes     = $pathADataTypes
-            PathBStatus        = $pathBStatus
-            PathBPackageName   = $pathBPackageName
-            PermissionError    = ($q3PermissionError -or $q4PermissionError)
+            ContentPackageName = $contentPackageName
+            RowStatus          = $rowStatus
+            PermissionError    = $permissionError
         }
     }
 
@@ -199,12 +156,12 @@ function Test-Assessment-61021 {
 
     #region Assessment Logic
 
-    $passingWorkspaces   = @($workspaceEvaluations | Where-Object { $_.PathAStatus -eq 'Pass' -or $_.PathBStatus -eq 'Pass' })
-    $permissionErrors    = @($workspaceEvaluations | Where-Object { $_.PermissionError })
-    $checkableWorkspaces = @($workspaceEvaluations | Where-Object { -not $_.PermissionError })
+    $passingWorkspaces = @($workspaceEvaluations | Where-Object { $_.RowStatus -eq 'Pass' })
+    $investigateItems  = @($workspaceEvaluations | Where-Object { $_.RowStatus -eq 'Investigate' })
 
-    # All workspaces had permission errors on Q3/Q4 → return Investigate immediately
-    if ($permissionErrors.Count -gt 0 -and $checkableWorkspaces.Count -eq 0) {
+    # All workspaces had permission/server errors and none passed → return Investigate immediately
+    if ($investigateItems.Count -gt 0 -and $passingWorkspaces.Count -eq 0 -and
+        @($workspaceEvaluations | Where-Object { $_.RowStatus -eq 'Fail' }).Count -eq 0) {
         $params = @{
             TestId       = '61021'
             Title        = 'Microsoft 365 Copilot data connector is enabled on the Microsoft Sentinel workspace'
@@ -219,10 +176,10 @@ function Test-Assessment-61021 {
     $passed = $passingWorkspaces.Count -gt 0
 
     if ($passed) {
-        $testResultMarkdown = 'The Microsoft 365 Copilot data connector is enabled on at least one Sentinel-onboarded workspace.%TestResult%'
+        $testResultMarkdown = '✅ The Microsoft 365 Copilot data connector is enabled on at least one Sentinel-onboarded workspace.%TestResult%'
     }
     else {
-        $testResultMarkdown = 'The Microsoft 365 Copilot data connector is not enabled on any Sentinel-onboarded workspace.%TestResult%'
+        $testResultMarkdown = '❌ The Microsoft 365 Copilot data connector is not enabled on any Sentinel-onboarded workspace.%TestResult%'
     }
 
     #endregion Assessment Logic
@@ -235,8 +192,8 @@ function Test-Assessment-61021 {
 
 ### [Sentinel data connectors per workspace]({0})
 
-| Subscription | Workspace | Path | Connector / Package | Enabled dataTypes | Status |
-| :----------- | :-------- | :--- | :------------------ | :---------------- | :----- |
+| Subscription | Workspace | Content Package | Status |
+| :----------- | :-------- | :-------------- | :----- |
 {1}
 '@
 
@@ -244,30 +201,18 @@ function Test-Assessment-61021 {
     foreach ($evaluation in $workspaceEvaluations) {
         $subscriptionName = Get-SafeMarkdown -Text $evaluation.SubscriptionName
         $workspaceName    = Get-SafeMarkdown -Text $evaluation.WorkspaceName
-
-        # Path A row
-        $pathAConnector   = if ($evaluation.PathAConnectorName) { Get-SafeMarkdown -Text $evaluation.PathAConnectorName } else { 'absent' }
-        $pathADataTypes   = if ($evaluation.PathADataTypes)     { Get-SafeMarkdown -Text $evaluation.PathADataTypes }     else { 'n/a' }
-        $pathAStatusLabel = switch ($evaluation.PathAStatus) {
-            'Pass'     { 'Pass' }
-            'NoAccess' { '⚠️ No access' }
-            default    { 'Fail' }
+        $packageDisplay   = if ($evaluation.ContentPackageName) { Get-SafeMarkdown -Text $evaluation.ContentPackageName } else { 'absent' }
+        $statusDisplay    = switch ($evaluation.RowStatus) {
+            'Pass'        { '✅ Pass' }
+            'Investigate' { '⚠️ Investigate' }
+            default       { '❌ Fail' }
         }
-        $tableRows += "| $subscriptionName | $workspaceName | A (ARM data connector — Q3) | $pathAConnector | $pathADataTypes | $pathAStatusLabel |`n"
-
-        # Path B row
-        $pathBPackage     = if ($evaluation.PathBPackageName) { Get-SafeMarkdown -Text $evaluation.PathBPackageName } else { 'absent' }
-        $pathBStatusLabel = switch ($evaluation.PathBStatus) {
-            'Pass'     { 'Pass' }
-            'NoAccess' { '⚠️ No access' }
-            default    { 'Fail' }
-        }
-        $tableRows += "| $subscriptionName | $workspaceName | B (Content Pack — Q4) | $pathBPackage | n/a | $pathBStatusLabel |`n"
+        $tableRows += "| $subscriptionName | $workspaceName | $packageDisplay | $statusDisplay |`n"
     }
 
     $partialWarning = ''
-    if ($permissionErrors.Count -gt 0) {
-        $partialWarning = "`n`n> ⚠️ **$($permissionErrors.Count) workspace(s) could not be fully checked** due to insufficient permissions on the data connectors or content packages endpoint. Ensure Microsoft Sentinel Reader is granted on those workspaces and re-run the assessment."
+    if ($investigateItems.Count -gt 0) {
+        $partialWarning = "`n`n> ⚠️ **$($investigateItems.Count) workspace(s) could not be fully checked** due to insufficient permissions or a server error on the content packages endpoint. Ensure Microsoft Sentinel Reader is granted on those workspaces and re-run the assessment."
     }
 
     $mdInfo = ($formatTemplate -f $sentinelPortalUrl, $tableRows) + $partialWarning
@@ -281,7 +226,7 @@ function Test-Assessment-61021 {
         Status = $passed
         Result = $testResultMarkdown
     }
-    if (-not $passed -and $permissionErrors.Count -gt 0) {
+    if (-not $passed -and $investigateItems.Count -gt 0) {
         $params.CustomStatus = 'Investigate'
     }
 

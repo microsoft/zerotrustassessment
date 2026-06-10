@@ -6,7 +6,6 @@ When the Microsoft 365 Copilot connector is not enabled, Sentinel has no record 
 
 - [Connect the Microsoft 365 Copilot data connector](https://learn.microsoft.com/azure/sentinel/data-connectors-reference)
 - [Auditing Microsoft 365 Copilot interactions](https://learn.microsoft.com/purview/audit-copilot)
-- [Microsoft Sentinel data connectors reference](https://learn.microsoft.com/azure/sentinel/data-connectors-reference)
 
 <!--- Results --->
 %TestResult%
