@@ -55,7 +55,7 @@ function Test-Assessment-61021 {
             TestId       = '61021'
             Title        = 'Microsoft 365 Copilot data connector is enabled on the Microsoft Sentinel workspace'
             Status       = $false
-            Result       = '⚠️ Some of the queried resources returned status indicating not sufficient permissions. Please make sure you have at least reader access to the Azure Subscriptions being tested.'
+            Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying subscriptions or Log Analytics workspaces. This is likely a transient issue, please re-run the assessment.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
