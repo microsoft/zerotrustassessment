@@ -184,7 +184,7 @@ function Test-Assessment-21816 {
                         Write-PSFMessage "Group $($member.displayName) uses PIM for Groups with no permanent members, excluding from permanent GA list" -Level Verbose
                     } else {
                         # Group does not use PIM for Groups - get members and add to permanentGAUserList (Q4)
-                        $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -ApiVersion beta
+                        $groupMembers = Invoke-ZtGraphRequest -RelativeUri "groups/$($member.id)/members" -Select 'id,displayName,userPrincipalName,onPremisesSyncEnabled,appId' -ApiVersion beta
                         foreach ($groupMember in $groupMembers) {
                             if ($groupMember.'@odata.type' -eq '#microsoft.graph.user') {
                                 $groupMemberInfo = [PSCustomObject]@{
@@ -262,7 +262,7 @@ function Test-Assessment-21816 {
     $mdInfo += "| Privileged roles found | $($privilegedRoles.Count) |`n"
     $mdInfo += "| Eligible Global Administrators | $($eligibleGAUsers) |`n"
     $mdInfo += "| Non-PIM privileged users | $($nonPIMPrivilegedUsers.Count) |`n"
-    $mdInfo += "| Non-PIM privileged groups | $($nonPIMPrivilegedGroups.Count) |`n"
+    $mdInfo += "| Non-PIM privileged groups / service principals | $($nonPIMPrivilegedGroups.Count) |`n"
     $mdInfo += "| Permanent Global Administrator users | $($permanentGAUserList.Count) |`n"
 
     if ($nonPIMPrivilegedUsers.Count -gt 0 -or $nonPIMPrivilegedGroups.Count -gt 0) {
