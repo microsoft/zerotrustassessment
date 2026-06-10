@@ -42,17 +42,17 @@ Describe "Test-Assessment-25392" {
     }
 
     Context "When no connectors are found" {
-        It "Should pass with 'No connectors found' message" {
+        It "Should skip with 'No Private Access connectors were detected' message" {
             Mock Invoke-ZtGraphRequest { return @() }
             Mock Add-ZtTestResultDetail {
-                param($TestId, $Title, $Status, $Result)
+                param($SkippedBecause, $Result)
                 "## Scenario: No connectors found`n`n$Result`n" | Add-Content $script:outputFile
             }
 
             Test-Assessment-25392
 
             Should -Invoke Add-ZtTestResultDetail -ParameterFilter {
-                $Status -eq $true -and $Result -match "No private network connectors found"
+                $SkippedBecause -eq 'NotApplicable' -and $Result -match "No Private Access connectors were detected"
             }
         }
     }
