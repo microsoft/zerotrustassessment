@@ -17,7 +17,8 @@
 function Test-Assessment-61024 {
     [ZtTest(
         Category = 'AI Threat Detection',
-        MinimumLicense = ('Microsoft Defender XDR', 'Consumption-based: Microsoft Sentinel'),
+        MinimumLicense = ('WIN_DEF_ATP', 'MDATP_XPLAT', 'ATA', 'ADALLOM_STANDALONE', 'THREAT_INTELLIGENCE', 'IDENTITY_THREAT_PROTECTION', 'IDENTITY_THREAT_PROTECTION_FOR_EMS_E5', 'SPE_E5', 'Consumption-based: Microsoft Sentinel'),
+        CompatibleLicense = ('WIN_DEF_ATP', 'MDATP_XPLAT', 'ATA', 'ADALLOM_STANDALONE', 'THREAT_INTELLIGENCE', 'IDENTITY_THREAT_PROTECTION', 'IDENTITY_THREAT_PROTECTION_FOR_EMS_E5', 'SPE_E5'),
         ImplementationCost = 'Low',
         Pillar = 'AI',
         RiskLevel = 'High',
