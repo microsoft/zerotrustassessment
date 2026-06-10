@@ -76,19 +76,19 @@ function Test-Assessment-25392 {
     $latestVersion = $null
 
     # Step 1: Check if any connectors exist
-    if ($connectors -and $connectors.Count -gt 0) {
-        # Step 2: Get the latest version from documentation
-        Write-ZtProgress -Activity $activity -Status 'Getting latest version from documentation'
-        $latestVersion = Get-LatestConnectorVersion
+    if (-not $connectors -or $connectors.Count -eq 0) {
+        Write-PSFMessage 'No Private Access connectors found' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No Private Access connectors were detected.'
+        return
     }
+
+    # Step 2: Get the latest version from documentation
+    Write-ZtProgress -Activity $activity -Status 'Getting latest version from documentation'
+    $latestVersion = Get-LatestConnectorVersion
     #endregion Data Collection
 
     #region Assessment Logic
-    if (-not $connectors -or $connectors.Count -eq 0) {
-        $testResultMarkdown = "ℹ️ No private network connectors found in this tenant.`n`n%TestResult%"
-        $passed = $true  # No connectors means nothing to check - pass by default
-    }
-    elseif (-not $latestVersion) {
+    if (-not $latestVersion) {
         $testResultMarkdown = "⚠️ Could not retrieve the latest connector version from documentation. Manual verification required.`n`n%TestResult%"
         $passed = $false # Fail if we can't verify
     }
