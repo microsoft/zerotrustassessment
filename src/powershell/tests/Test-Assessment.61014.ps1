@@ -136,7 +136,7 @@ order by "@odata.type", displayName
     if ($ownerlessObjects.Count -gt 0) {
         $ownerlessAgents     = @($ownerlessObjects | Where-Object { $_.odataType -eq '#microsoft.graph.agentIdentity' } | Sort-Object displayName)
         $ownerlessBlueprints = @($ownerlessObjects | Where-Object { $_.odataType -eq '#microsoft.graph.agentIdentityBlueprintPrincipal' } | Sort-Object displayName)
-        $displayOwnerless    = @(($ownerlessAgents | Select-Object -First $maxPerType) + ($ownerlessBlueprints | Select-Object -First $maxPerType))
+        $displayOwnerless    = @($ownerlessAgents | Select-Object -First $maxPerType) + @($ownerlessBlueprints | Select-Object -First $maxPerType)
         $ownerlessHasMore    = ($ownerlessAgents.Count -gt $maxPerType) -or ($ownerlessBlueprints.Count -gt $maxPerType)
 
         $tableRows = ''
@@ -154,17 +154,17 @@ order by "@odata.type", displayName
             $enabled = if ($null -eq $item.accountEnabled) { 'N/A' } elseif ($item.accountEnabled) { '✅ Enabled' } else { '❌ Disabled' }
             $tableRows += "| ``$typeName`` | $nameLink | $enabled |`n"
         }
+        $mdInfo += $formatTemplate -f 'Agent identities and blueprint principals without an assigned owner', $tableRows
         if ($ownerlessHasMore) {
             $ownerlessHidden = [Math]::Max(0, $ownerlessAgents.Count - $maxPerType) + [Math]::Max(0, $ownerlessBlueprints.Count - $maxPerType)
-            $tableRows += "`n... and $ownerlessHidden more object(s). [View all agent identities]($allAgentsPortalUrl) / [View all blueprint principals]($allBlueprintsPortalUrl)"
+            $mdInfo += "`n`n_**Note**: This table is truncated and hiding $ownerlessHidden additional object(s). [View all agent identities]($allAgentsPortalUrl) / [View all blueprint principals]($allBlueprintsPortalUrl)._`n"
         }
-        $mdInfo += $formatTemplate -f 'Agent identities and blueprint principals without an assigned owner', $tableRows
     }
 
     if ($disabledObjects.Count -gt 0) {
         $disabledAgents     = @($disabledObjects | Where-Object { $_.odataType -eq '#microsoft.graph.agentIdentity' } | Sort-Object displayName)
         $disabledBlueprints = @($disabledObjects | Where-Object { $_.odataType -eq '#microsoft.graph.agentIdentityBlueprintPrincipal' } | Sort-Object displayName)
-        $displayDisabled    = @(($disabledAgents | Select-Object -First $maxPerType) + ($disabledBlueprints | Select-Object -First $maxPerType))
+        $displayDisabled    = @($disabledAgents | Select-Object -First $maxPerType) + @($disabledBlueprints | Select-Object -First $maxPerType)
         $disabledHasMore    = ($disabledAgents.Count -gt $maxPerType) -or ($disabledBlueprints.Count -gt $maxPerType)
 
         $tableRows = ''
@@ -182,11 +182,11 @@ order by "@odata.type", displayName
             $enabled = if ($null -eq $item.accountEnabled) { 'N/A' } elseif ($item.accountEnabled) { '✅ Enabled' } else { '❌ Disabled' }
             $tableRows += "| ``$typeName`` | $nameLink | $enabled |`n"
         }
+        $mdInfo += $formatTemplate -f 'Disabled agent identities and blueprint principals', $tableRows
         if ($disabledHasMore) {
             $disabledHidden = [Math]::Max(0, $disabledAgents.Count - $maxPerType) + [Math]::Max(0, $disabledBlueprints.Count - $maxPerType)
-            $tableRows += "`n... and $disabledHidden more object(s). [View all agent identities]($allAgentsPortalUrl) / [View all blueprint principals]($allBlueprintsPortalUrl)"
+            $mdInfo += "`n`n_**Note**: This table is truncated and hiding $disabledHidden additional object(s). [View all agent identities]($allAgentsPortalUrl) / [View all blueprint principals]($allBlueprintsPortalUrl)._`n"
         }
-        $mdInfo += $formatTemplate -f 'Disabled agent identities and blueprint principals', $tableRows
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
