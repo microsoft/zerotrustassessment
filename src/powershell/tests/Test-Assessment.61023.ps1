@@ -37,8 +37,9 @@ function Test-Assessment-61023 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity        = 'Checking Agent 365 Content Hub solution on Sentinel workspaces'
-    $a365ContentId   = 'azuresentinel.azure-sentinel-solution-a365observability'
-    $a365DisplayName = 'Agent 365'
+    $a365ContentId    = 'azuresentinel.azure-sentinel-solution-a365observability'
+    $a365DisplayName  = 'Agent 365'
+    $a365DisplayName2 = 'A365 Observability'
 
     # Q1 + Q2 + onboarding check.
     # Returns 'Forbidden' on ARG 401/403, $null on unexpected failure,
@@ -99,11 +100,12 @@ function Test-Assessment-61023 {
         }
         else {
             # Full visibility, no workspace has Sentinel onboarded.
+            # Short-circuit to Fail per spec precondition — mirrors the 61002 Fail outcome.
             $params = @{
                 TestId = '61023'
                 Title  = 'Agent 365 data connector is enabled on the Microsoft Sentinel workspace'
                 Status = $false
-                Result = '❌ No Sentinel-onboarded workspace in tenant.'
+                Result = '❌ Blocked by 61002: no Sentinel-onboarded workspace in tenant.'
             }
         }
         Add-ZtTestResultDetail @params
@@ -124,7 +126,10 @@ function Test-Assessment-61023 {
             $packages    = @(Invoke-ZtAzureRequest -Path $packagesPath -ErrorAction Stop)
             $a365Package = $packages | Where-Object {
                 $_.properties.contentId -eq $a365ContentId -or
-                ($_.properties.displayName -and $_.properties.displayName -ieq $a365DisplayName)
+                ($_.properties.displayName -and (
+                    $_.properties.displayName -ieq $a365DisplayName -or
+                    $_.properties.displayName -ieq $a365DisplayName2
+                ))
             } | Select-Object -First 1
             if ($a365Package) {
                 $packageName = $a365Package.properties.displayName
