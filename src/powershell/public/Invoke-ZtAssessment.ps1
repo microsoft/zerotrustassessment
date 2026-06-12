@@ -554,6 +554,26 @@ $titleLine
 	$resultsJsonPath = Join-Path -Path $exportPath -ChildPath "ZeroTrustAssessmentReport.json"
 	$assessmentResultsJson | Set-PSFFileContent -Path $resultsJsonPath
 
+	# Workshop generation is best-effort and silent. It runs as part of the report-writing
+	# stage (no dedicated progress stage) and a failure here must never fail the overall assessment.
+	try {
+		$mappingPath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ztw-task-mapping.json'
+		if (Test-Path -Path $mappingPath) {
+			# Convert native assessment results directly; Tests may contain hashtable entries.
+			$workshopResults = Convert-ZtAssessmentToWorkshop -AssessmentResults $assessmentResults -MappingFilePath $mappingPath -Pillar $Pillar
+			$workshopResultsJson = $workshopResults | ConvertTo-Json -Depth 10
+			$workshopJsonPath = Join-Path -Path $exportPath -ChildPath "ZeroTrustWorkshop.json"
+			$workshopResultsJson | Set-PSFFileContent -Path $workshopJsonPath
+			Write-PSFMessage -Message "Workshop data generated at $workshopJsonPath" -Level Verbose
+		}
+		else {
+			Write-PSFMessage -Message "Workshop task mapping not found at $mappingPath. Skipping workshop JSON generation." -Level Verbose
+		}
+	}
+	catch {
+		Write-PSFMessage -Level Warning -Message "Failed to generate workshop data. Continuing without workshop output." -ErrorRecord $_
+	}
+
 	Write-PSFMessage -Message "Stage 6: Generating Html Report" -Tag stage
 	Update-ZtProgressState -Stage 'html' -StageNumber 6 -StageName 'Generating HTML Report' -ClearWorkers -TotalItems 0
 	Write-ZtProgress -Activity "Creating html report"
