@@ -226,7 +226,7 @@ export interface Test {
   TestImplementationCost: string;
   TestMinimumLicense?: string[] | null;
   TestSfiPillar: string | null;
-  TestPillar: string | null;
+  TestPillar: string | string[] | null;
   SkippedReason: string | null;
   TestResult: string;
   TestSkipped: string;

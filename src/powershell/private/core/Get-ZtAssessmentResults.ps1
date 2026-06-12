@@ -83,6 +83,24 @@ function Get-ZtAssessmentResults {
 	$org = Get-Organization
 	$tests = $script:__ZtSession.TestResultDetail.Value.values
 
+	# Restrict TestPillar on cross-referenced tests (multi-pillar arrays) based on how the
+	# assessment was invoked. This runs on the main thread where RequestedPillar and PreviewEnabled
+	# are always available, avoiding runspace scope issues.
+	#   - Specific pillar (e.g. -Pillar AI): set TestPillar to exactly the requested pillar.
+	#   - -Pillar All + preview enabled: keep full array (test appears on every tagged page).
+	#   - -Pillar All + preview disabled: strip 'AI' so the AI preview page stays empty.
+	$_reqPillar   = $script:__ZtSession.RequestedPillar
+	$_previewOn   = $script:__ZtSession.PreviewEnabled
+	$_isAllPillar = (-not $_reqPillar -or $_reqPillar -eq 'All')
+	foreach ($test in $tests) {
+		if ($test.TestPillar -isnot [array]) { continue }
+		if (-not $_isAllPillar) {
+			$test.TestPillar = $_reqPillar
+		} elseif (-not $_previewOn) {
+			$test.TestPillar = $test.TestPillar | Where-Object { $_ -ne 'AI' }
+		}
+	}
+
 	$ztTestResults = [PSCustomObject][ordered]@{
 		ExecutedAt        = Get-Date
 		TenantId          = $mgContext.TenantId

@@ -812,7 +812,7 @@ function Connect-ZtAssessment {
 						}
 					}
 					else {
-						Connect-SPOService -Url $adminUrl -ErrorAction Stop
+						Connect-SPOService -Url $adminUrl -UseSystemBrowser $true -ErrorAction Stop
 					}
 					Write-Host -Object "   ✅ Connected" -ForegroundColor Green
 					Add-ZtConnectedService -Service 'SharePointOnline'
