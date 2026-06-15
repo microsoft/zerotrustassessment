@@ -108,6 +108,8 @@ Total EPM policies found: **{2}**
 
         foreach ($policy in ($epmPolicies | Select-Object -First 10)) {
             $policyName = Get-SafeMarkdown -Text $policy.name
+            $encodedTechnologies = ([string]$policy.technologies) -replace ',', '%2C'
+            $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($policy.id)/isAssigned~/true/technology/$encodedTechnologies/templateId/$($policy.templateReference.templateId)/platformName/$($policy.platforms)"
 
             if ($policy.isAssigned) {
                 $assigned = '✅ Yes'
@@ -120,7 +122,7 @@ Total EPM policies found: **{2}**
                 $rowStatus = 'Fail'
             }
 
-            $tableRows += "| $policyName | $($policy.PolicyType) | $assigned | $assignmentTarget | $rowStatus |`n"
+            $tableRows += "| [$policyName]($policyLink) | $($policy.PolicyType) | $assigned | $assignmentTarget | $rowStatus |`n"
         }
 
         if ($epmPolicies.Count -gt 10) {
