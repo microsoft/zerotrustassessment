@@ -21,6 +21,7 @@ function Test-Assessment-61023 {
         Category = 'AI Threat Detection',
         ImplementationCost = 'Low',
         MinimumLicense = ('AGENT_365', 'Consumption-based: Microsoft Sentinel'),
+        CompatibleLicense = ('AGENT_365'),
         Service = ('Azure'),
         Pillar = 'AI',
         RiskLevel = 'High',
