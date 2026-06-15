@@ -30,8 +30,14 @@ type SankeyInputData = {
 };
 
 export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
+    const validNodeIds = new Set(data.nodes.map(node => node.id));
     const sanitizedLinks = data.links
-        .filter(link => Number.isFinite(Number(link.value)) && Number(link.value) > 0)
+        .filter(link =>
+            validNodeIds.has(link.source) &&
+            validNodeIds.has(link.target) &&
+            Number.isFinite(Number(link.value)) &&
+            Number(link.value) > 0
+        )
         .map(link => ({ ...link, value: Number(link.value) }));
 
     const connectedNodeIds = new Set<string>();
