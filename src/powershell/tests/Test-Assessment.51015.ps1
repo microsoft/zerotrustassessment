@@ -21,7 +21,6 @@
 function Test-Assessment-51015 {
     [ZtTest(
         Category = 'Devices',
-        MinimumLicense = ('INTUNE_A'),
         CompatibleLicense = ('INTUNE_A'),
         ImplementationCost = 'Medium',
         Pillar = 'Devices',
