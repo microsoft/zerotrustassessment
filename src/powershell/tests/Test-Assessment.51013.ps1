@@ -1,13 +1,26 @@
 <#
 .SYNOPSIS
     App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)
+
+.DESCRIPTION
+    Checks whether at least one assigned App Protection Policy on both iOS and Android enforces
+    a block or wipe action when the managed app cannot re-authenticate the user. Without this
+    setting, disabled accounts and revoked tokens retain a multi-hour window of access to
+    corporate data on personally owned phones.
+
+.NOTES
+    Test ID: 51013
+    Category: Devices
+    Pillar: Devices
+    Required API: Microsoft Graph beta
+    Q1: deviceAppManagement/iosManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned)
+    Q2: deviceAppManagement/androidManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned)
 #>
 
 function Test-Assessment-51013 {
     [ZtTest(
         Category = 'Devices',
         ImplementationCost = 'Low',
-        MinimumLicense = ('INTUNE_A'),
         CompatibleLicense = ('INTUNE_A'),
         Pillar = 'Devices',
         RiskLevel = 'High',
@@ -20,9 +33,9 @@ function Test-Assessment-51013 {
     [CmdletBinding()]
     param()
 
+    #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    #region Data Collection
     $activity = 'Checking App Protection Policies for authentication failure enforcement'
     Write-ZtProgress -Activity $activity -Status 'Getting iOS app protection policies'
 
@@ -31,19 +44,26 @@ function Test-Assessment-51013 {
 
     try {
         # Q1: List all iOS app protection policies — auth-failure action and assignment state.
-        $iosPolicies = Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections?$select=id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop
+        $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections?$select=id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
 
         Write-ZtProgress -Activity $activity -Status 'Getting Android app protection policies'
         # Q2: List all Android app protection policies — auth-failure action and assignment state.
-        $androidPolicies = Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections?$select=id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop
+        $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections?$select=id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
     }
     catch {
-        # 403/Forbidden/accessDenied indicates missing Intune license or DeviceManagementApps.Read.All permission.
         if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
             Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
-            return
         }
-        Write-PSFMessage "Error retrieving App Protection Policies: $_" -Tag Test -Level Warning
+        else {
+            $params = @{
+                TestId = '51013'
+                Title  = 'App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)'
+                Status = $false
+                Result = "⚠️ An error occurred while querying App Protection Policies: $($_.Exception.Message)"
+            }
+            Add-ZtTestResultDetail @params
+        }
+        return
     }
     #endregion Data Collection
 
@@ -62,21 +82,21 @@ function Test-Assessment-51013 {
     $passed = $iosPass -and $androidPass
 
     if ($passed) {
-        $testResultMarkdown = "An assigned App Protection Policy blocks or wipes managed-app access on both iOS and Android when the managed app cannot re-authenticate the user (disabled account, blocked sign-in, revoked token).`n`n%TestResult%"
+        $testResultMarkdown = "✅ An assigned App Protection Policy blocks or wipes managed-app access on both iOS and Android when the managed app cannot re-authenticate the user (disabled account, blocked sign-in, revoked token).`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "No assigned App Protection Policy blocks or wipes managed-app access on authentication failure for iOS, Android, or both — disabled accounts and revoked tokens retain a multi-hour window of access to corporate data on personally owned phones.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No assigned App Protection Policy blocks or wipes managed-app access on authentication failure for iOS, Android, or both — disabled accounts and revoked tokens retain a multi-hour window of access to corporate data on personally owned phones.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
-    $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0'
+    $portalLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AppsMenu/~/protection'
     $maxRowsPerPlatform = 10
     $tableRows = ''
 
     foreach ($platformEntry in @(
-        [pscustomobject]@{ Platform = 'iOS/iPadOS'; Policies = $iosPolicies },
-        [pscustomobject]@{ Platform = 'Android';    Policies = $androidPolicies }
+        [pscustomobject]@{ Platform = 'iOS/iPadOS'; Policies = $iosPolicies;     OdataType = 'iosManagedAppProtection' },
+        [pscustomobject]@{ Platform = 'Android';    Policies = $androidPolicies; OdataType = 'androidManagedAppProtection' }
     )) {
         $platformLabel   = $platformEntry.Platform
         $platformPolicies = @($platformEntry.Policies)
@@ -85,12 +105,14 @@ function Test-Assessment-51013 {
 
         foreach ($policy in $displayPolicies) {
             $policyName    = Get-SafeMarkdown -Text $policy.displayName
+            $encodedName   = [Uri]::EscapeDataString($policy.displayName)
+            $policyLink    = 'https://intune.microsoft.com/#view/Microsoft_Intune/PolicyInstanceMenuBlade/~/0/policyId/{0}/policyOdataType/%23microsoft.graph.{1}/policyName/{2}' -f $policy.id, $platformEntry.OdataType, $encodedName
             # Map null/empty action to "not configured"; otherwise keep the enum value as-is.
             $actionLabel   = if ([string]::IsNullOrEmpty($policy.appActionIfUnableToAuthenticateUser)) { 'not configured' } else { $policy.appActionIfUnableToAuthenticateUser }
             $assignedLabel = if ($policy.isAssigned -eq $true) { '✅ Yes' } else { '❌ No' }
             $rowPassed     = ($policy.appActionIfUnableToAuthenticateUser -in $passingActions) -and ($policy.isAssigned -eq $true)
             $statusLabel   = if ($rowPassed) { '✅ Pass' } else { '❌ Fail' }
-            $tableRows    += "| $platformLabel | [$policyName]($portalLink) | $actionLabel | $assignedLabel | $statusLabel |`n"
+            $tableRows    += "| $platformLabel | [$policyName]($policyLink) | $actionLabel | $assignedLabel | $statusLabel |`n"
         }
 
         # Truncate: show first 10 rows per platform plus a summary row when the total exceeds 10.
@@ -102,7 +124,7 @@ function Test-Assessment-51013 {
     if ($tableRows.Length -gt 0) {
         $formatTemplate = @'
 
-## [App Protection Policies — Unable to Authenticate Action]({0})
+## [App Protection Policies - Unable to Authenticate Action]({0})
 
 | Platform | Policy name | Action on auth failure | Assigned | Status |
 | :------- | :---------- | :--------------------- | :------- | :----- |
