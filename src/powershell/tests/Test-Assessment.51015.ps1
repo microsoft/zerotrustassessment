@@ -127,9 +127,8 @@ function Test-Assessment-51015 {
             else {
                 '❌ Fail'
             }
-            $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AccessPolicyPropertiesSummary/policyId/$($policy.id)"
 
-            $tableRows += "| [$policyName]($policyLink) | $policyType | $platform | $approverGroupCount | $lastModified | $rowStatus |`n"
+            $tableRows += "| $policyName | $policyType | $platform | $approverGroupCount | $lastModified | $rowStatus |`n"
         }
 
         if ($policies.Count -gt 10) {
