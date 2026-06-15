@@ -11,6 +11,16 @@ function Add-ZtOverviewCaDevicesAllUsers {
 	)
 
 	#region Utility Functions
+	function Get-ZtiOverviewCaDevicesCount {
+		[CmdletBinding()]
+		param (
+			[AllowNull()]
+			$Rows
+		)
+
+		(($Rows | Measure-Object -Property cnt -Sum).Sum -as [int]) ?? 0
+	}
+
 	function Get-ZtiOverviewCaDevicesAllUsers {
 		[CmdletBinding()]
 		param (
@@ -19,10 +29,10 @@ function Add-ZtOverviewCaDevicesAllUsers {
 			$Database
 		)
 
-		$managed = ($Results | Where-Object isManaged).cnt -as [int]
-		$unmanaged = ($Results | Where-Object isManaged -EQ $false).cnt -as [int]
-		$compliant = $Results.Where{ $_.isManaged -and $_.isCompliant }.cnt -as [int]
-		$nonCompliant = $Results.Where{ $_.isManaged -and -not $_.isCompliant }.cnt -as [int]
+		$managed = Get-ZtiOverviewCaDevicesCount -Rows ($Results | Where-Object isManaged)
+		$unmanaged = Get-ZtiOverviewCaDevicesCount -Rows ($Results | Where-Object isManaged -EQ $false)
+		$compliant = Get-ZtiOverviewCaDevicesCount -Rows ($Results.Where{ $_.isManaged -and $_.isCompliant })
+		$nonCompliant = Get-ZtiOverviewCaDevicesCount -Rows ($Results.Where{ $_.isManaged -and -not $_.isCompliant })
 
 		$nodes = @(
 			@{
