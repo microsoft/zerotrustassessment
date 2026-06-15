@@ -82,6 +82,19 @@ function Test-Assessment-51015 {
     #endregion Data Collection
 
     #region Assessment Logic
+    # Guard: Q1 found policies but every Q2 detail call failed — cannot evaluate confidently.
+    if ($policies.Count -gt 0 -and $policyDetails.Count -eq 0) {
+        $params = @{
+            TestId       = '51015'
+            Title        = 'Multi Admin Approval is enabled in Intune to require a second admin to approve sensitive tenant changes'
+            Status       = $false
+            Result       = '⚠️ Unable to retrieve Intune Multi Admin Approval policy details for evaluation. Please retry and verify the required permissions.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
     # Pass: at least one Q2 policy detail has a non-empty approverGroupIds collection.
     # Fail: zero policies exist, OR every Q2 detail has an empty approverGroupIds.
     $passed = @($policyDetails.Values | Where-Object { $_ -and $_.approverGroupIds -and $_.approverGroupIds.Count -gt 0 }).Count -gt 0
