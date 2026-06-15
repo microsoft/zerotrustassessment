@@ -41,47 +41,22 @@ function Test-Assessment-51015 {
     $activity = 'Checking Intune Multi Admin Approval access policies'
     Write-ZtProgress -Activity $activity -Status 'Getting access policies'
 
-    # Q1: List all Intune operation approval policies (Multi Admin Approval).
-    # approverGroupIds is intentionally excluded — the list response can omit it; Q2 fetches it reliably per policy.
-    $policies = @()
-    try {
-        $policies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/operationApprovalPolicies' -Select 'id,displayName,policyType,policyPlatform,lastModifiedDateTime' -ApiVersion beta -ErrorAction Stop)
+    # ── STUB DATA (remove before merge) ────────────────────────────────────────
+    # Covers all three row states:
+    #   policy-pass    → Q2 succeeds, approverGroupIds populated  → ✅ Pass
+    #   policy-fail    → Q2 succeeds, approverGroupIds empty      → ❌ Fail
+    #   policy-unknown → Q2 intentionally absent from $policyDetails → ⚠️ Unknown
+    $policies = @(
+        [PSCustomObject]@{ id = 'policy-pass';    displayName = 'Stub — App Deployment Approval'; policyType = 'app';    policyPlatform = 'windows10AndLater'; lastModifiedDateTime = '2026-01-15T10:00:00Z' }
+        [PSCustomObject]@{ id = 'policy-fail';    displayName = 'Stub — Script Run Approval';     policyType = 'script'; policyPlatform = 'windows10AndLater'; lastModifiedDateTime = '2026-02-20T14:30:00Z' }
+        [PSCustomObject]@{ id = 'policy-unknown'; displayName = 'Stub — Q2 Failed Policy';        policyType = 'app';    policyPlatform = 'androidForWork';    lastModifiedDateTime = '2026-03-01T08:00:00Z' }
+    )
+    $policyDetails = @{
+        'policy-pass' = [PSCustomObject]@{ id = 'policy-pass'; approverGroupIds = @('group-aaa-111', 'group-bbb-222') }
+        'policy-fail' = [PSCustomObject]@{ id = 'policy-fail'; approverGroupIds = @() }
+        # 'policy-unknown' intentionally omitted — simulates a Q2 fetch failure
     }
-    catch {
-        # Surface all Q1 failures as Investigate so the run continues and the assessor gets a clear message.
-        # 403/Forbidden/accessDenied = permission gap; anything else = transient or unexpected error.
-        $result = if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
-            '⚠️ Insufficient permissions when querying Intune Multi Admin Approval policies. Ensure you have the required access to run this assessment.'
-        }
-        else {
-            "⚠️ An error occurred while querying Intune Multi Admin Approval policies: $($_.Exception.Message)"
-        }
-        $params = @{
-            TestId       = '51015'
-            Title        = 'Multi Admin Approval is enabled in Intune to require a second admin to approve sensitive tenant changes'
-            Status       = $false
-            Result       = $result
-            CustomStatus = 'Investigate'
-        }
-        Add-ZtTestResultDetail @params
-        return
-    }
-
-    # Q2: Fetch per-policy detail to reliably retrieve approverGroupIds.
-    # The list response (Q1) omits approverGroupIds; individual GETs always return it.
-    $policyDetails = @{}
-    if ($policies.Count -gt 0) {
-        Write-ZtProgress -Activity $activity -Status 'Getting policy details'
-        foreach ($policy in $policies) {
-            try {
-                $detail = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/operationApprovalPolicies/$($policy.id)" -ApiVersion beta -ErrorAction Stop
-                $policyDetails[$policy.id] = $detail
-            }
-            catch {
-                Write-PSFMessage "Q2 failed for policy $($policy.id): $_" -Tag Test -Level Warning
-            }
-        }
-    }
+    # ── END STUB DATA ────────────────────────────────────────────────────────
     #endregion Data Collection
 
     #region Assessment Logic
@@ -129,22 +104,24 @@ function Test-Assessment-51015 {
             $policyType = $policy.policyType
             $platform = $policy.policyPlatform
             $lastModified = Get-FormattedDate $policy.lastModifiedDateTime
-            # Use Q2 detail for approverGroupIds; fall back to 0 if detail fetch failed.
+            # Use Q2 detail for approverGroupIds.
+            # Distinguish Q2 fetch failure ($null detail) from a genuine policy with no approver group.
             $detail = $policyDetails[$policy.id]
-            $approverGroupCount = if ($detail -and $null -ne $detail.approverGroupIds) {
-                $detail.approverGroupIds.Count
+            if ($null -eq $detail) {
+                $approverGroupCount = 'Error'
+                $rowStatus = '⚠️ Unknown'
+            }
+            elseif ($detail.approverGroupIds -and $detail.approverGroupIds.Count -gt 0) {
+                $approverGroupCount = $detail.approverGroupIds.Count
+                $rowStatus = '✅ Pass'
             }
             else {
-                0
+                $approverGroupCount = 0
+                $rowStatus = '❌ Fail'
             }
-            $rowStatus = if ($approverGroupCount -gt 0) {
-                '✅ Pass'
-            }
-            else {
-                '❌ Fail'
-            }
+            $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/AccessPolicyPropertiesSummary/policyId/$($policy.id)"
 
-            $tableRows += "| $policyName | $policyType | $platform | $approverGroupCount | $lastModified | $rowStatus |`n"
+            $tableRows += "| [$policyName]($policyLink) | $policyType | $platform | $approverGroupCount | $lastModified | $rowStatus |`n"
         }
 
         if ($policies.Count -gt 10) {
