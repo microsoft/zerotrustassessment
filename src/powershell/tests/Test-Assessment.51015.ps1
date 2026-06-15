@@ -48,20 +48,23 @@ function Test-Assessment-51015 {
         $policies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/operationApprovalPolicies' -Select 'id,displayName,policyType,policyPlatform,lastModifiedDateTime' -ApiVersion beta -ErrorAction Stop)
     }
     catch {
-        # 403/Forbidden/accessDenied indicates insufficient permissions — surface as Investigate
-        # so the assessor can verify whether the permission gap or a licensing issue is the root cause.
-        if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
-            $params = @{
-                TestId       = '51015'
-                Title        = 'Multi Admin Approval is enabled in Intune to require a second admin to approve sensitive tenant changes'
-                Status       = $false
-                Result       = '⚠️ Insufficient permissions when querying Intune Multi Admin Approval policies. Ensure you have the required access to run this assessment.'
-                CustomStatus = 'Investigate'
-            }
-            Add-ZtTestResultDetail @params
-            return
+        # Surface all Q1 failures as Investigate so the run continues and the assessor gets a clear message.
+        # 403/Forbidden/accessDenied = permission gap; anything else = transient or unexpected error.
+        $result = if ($_.Exception.Message -match '403|Forbidden|accessDenied') {
+            '⚠️ Insufficient permissions when querying Intune Multi Admin Approval policies. Ensure you have the required access to run this assessment.'
         }
-        throw
+        else {
+            "⚠️ An error occurred while querying Intune Multi Admin Approval policies: $($_.Exception.Message)"
+        }
+        $params = @{
+            TestId       = '51015'
+            Title        = 'Multi Admin Approval is enabled in Intune to require a second admin to approve sensitive tenant changes'
+            Status       = $false
+            Result       = $result
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
     }
 
     # Q2: Fetch per-policy detail to reliably retrieve approverGroupIds.
