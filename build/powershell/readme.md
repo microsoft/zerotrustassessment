@@ -14,6 +14,16 @@ From the /src/powershell directory, run:
 Import-Module ./ZeroTrustAssessment.psd1 -Force
 ```
 
+### Connect to a tenant
+
+From the /src/powershell directory, run:
+
+```powershell
+Connect-ZtAssessment
+```
+
+> Note: It is recommended to also add the account to Windows Hello when asked, because the module is signing-in into multiple services - MS Graph, Azure, Exchange Online, Intune, SharePoint and there will be multiple login prompts.
+
 ### Invoke-ZtAssessment tips
 
 You can now run Invoke-ZtAssessment to test the module. Use the parameters to limit tests to individual pillars and specific tests within a pillar. See help for details.
@@ -159,6 +169,14 @@ TestID Start               Duration         Success Error
 
 
 ## Building and publishing the module
+
+> Important: Install the prerequisites for build first
+
+```Powershell
+./build/powershell/Install-Prerequisites.ps1
+Install-Module -Name PackageManagement -Repository PSGallery -Force -AllowClobber
+Install-Module -Name PowerShellGet -Repository PSGallery -Force -AllowClobber
+```
 
 ### Create a preview build
 

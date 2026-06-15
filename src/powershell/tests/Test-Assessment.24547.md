@@ -5,8 +5,8 @@ Enforcing compliance policies ensures that personally owned Android devices meet
 **Remediation action**
 
 Create and assign Intune compliance policies to Android Enterprise personally owned devices to enforce organizational standards for secure access and management:  
-- [Create a compliance policy in Microsoft Intune](https://learn.microsoft.com/intune/intune-service/protect/create-compliance-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
-- [Review the Android Enterprise compliance settings you can manage with Intune](https://learn.microsoft.com/intune/intune-service/protect/compliance-policy-create-android-for-work?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a compliance policy in Microsoft Intune](https://learn.microsoft.com/intune/device-security/compliance/create-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
+- [Review the Android Enterprise compliance settings you can manage with Intune](https://learn.microsoft.com/intune/device-security/compliance/ref-android-enterprise-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

@@ -5,8 +5,8 @@ Enforcing scope tags segments administrative access and aligns it with organizat
 **Remediation action**
 
 Use Intune scope tags and RBAC roles to limit admin access based on role, geography, or business unit:  
-- [Learn how to create and deploy scope tags for distributed IT](https://learn.microsoft.com/intune/intune-service/fundamentals/scope-tags?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Implement role-based access control with Microsoft Intune](https://learn.microsoft.com/intune/intune-service/fundamentals/role-based-access-control?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Learn how to create and deploy scope tags for distributed IT](https://learn.microsoft.com/intune/fundamentals/role-based-access-control/scope-tags?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Implement role-based access control with Microsoft Intune](https://learn.microsoft.com/intune/fundamentals/role-based-access-control/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

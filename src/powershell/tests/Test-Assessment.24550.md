@@ -5,9 +5,9 @@ Enforcing BitLocker across managed Windows devices is critical for compliance wi
 **Remediation action**
 
 Use Intune to enforce BitLocker encryption and monitor compliance across all managed Windows devices:  
-- [Create a BitLocker policy for Windows devices in Intune](https://learn.microsoft.com/intune/intune-service/protect/encrypt-devices?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-and-deploy-policy)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
-- [Monitor device encryption with Intune](https://learn.microsoft.com/intune/intune-service/protect/encryption-monitor?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a BitLocker policy for Windows devices in Intune](https://learn.microsoft.com/intune/device-configuration/endpoint-security/encrypt-bitlocker-windows?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-and-deploy-policy)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Monitor device encryption with Intune](https://learn.microsoft.com/intune/device-management/monitor-encryption?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

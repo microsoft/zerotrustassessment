@@ -6,11 +6,11 @@ Requiring device compliance in Conditional Access policies ensures only trusted 
 **Remediation action**
 
 Configure Conditional Access policies in Microsoft Entra to require device compliance before granting access to corporate resources:  
-- [Create a device compliance-based Conditional Access policy](https://learn.microsoft.com/intune/intune-service/protect/create-conditional-access-intune?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a device compliance-based Conditional Access policy](https://learn.microsoft.com/entra/identity/conditional-access/policy-all-users-device-compliance?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 
 For more information, see:
 - [What is Conditional Access?](https://learn.microsoft.com/entra/identity/conditional-access/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Integrate device compliance results with Conditional Access](https://learn.microsoft.com/intune/intune-service/protect/device-compliance-get-started?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#integrate-with-conditional-access)
+- [Integrate device compliance results with Conditional Access](https://learn.microsoft.com/intune/device-security/compliance/overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#integrate-with-conditional-access)
 <!--- Results --->
 %TestResult%
 

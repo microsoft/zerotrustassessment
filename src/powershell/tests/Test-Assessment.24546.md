@@ -5,10 +5,10 @@ Enforcing automatic enrollment ensures Windows devices are managed from the star
 **Remediation action**
 
 Enable automatic enrollment for Windows devices using Intune and Microsoft Entra to ensure all domain-joined or Entra-joined devices are managed:  
-- [Enable Windows automatic enrollment](https://learn.microsoft.com/intune/intune-service/enrollment/windows-enroll?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-windows-automatic-enrollment)
+- [Enable Windows automatic enrollment](https://learn.microsoft.com/intune/device-enrollment/windows/enable-automatic-mdm?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enable-windows-automatic-enrollment)
 
 For more information, see:  
-- [Deployment guide - Enrollment for Windows](https://learn.microsoft.com/intune/intune-service/fundamentals/deployment-guide-enroll?tabs=work-profile%2Ccorporate-owned-apple%2Cautomatic-enrollment&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enrollment-for-windows)
+- [Deployment guide - Enrollment for Windows](https://learn.microsoft.com/intune/device-enrollment/enroll-devices?tabs=work-profile%2Ccorporate-owned-apple%2Cautomatic-enrollment&wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#enrollment-for-windows)
 <!--- Results --->
 %TestResult%
 

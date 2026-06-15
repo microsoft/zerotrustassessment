@@ -6,11 +6,11 @@ Enforcing macOS Firewall policies ensures consistent control over inbound and ou
 
 Configure and assign **macOS Firewall** profiles in Intune to block unauthorized traffic and enforce consistent network protections across all managed macOS devices:
 
-- [Configure the built-in firewall on macOS devices](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-firewall-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Configure the built-in firewall on macOS devices](https://learn.microsoft.com/intune/device-configuration/endpoint-security/firewall?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 
 For more information, see:  
--  [Available macOS firewall settings](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-firewall-profile-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#macos-firewall-profile)
+-  [Available macOS firewall settings](https://learn.microsoft.com/intune/device-configuration/endpoint-security/ref-firewall-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#macos-firewall-profile)
 <!--- Results --->
 %TestResult%
 

@@ -12,7 +12,7 @@ function Test-Assessment-24552 {
         MinimumLicense = ('Intune'),
         Pillar = 'Devices',
         RiskLevel = 'Medium',
-        SfiPillar = 'Protect networks',
+        SfiPillar = 'Protect engineering systems',
         TenantType = ('Workforce'),
         TestId = 24552,
         Title = 'macOS Firewall policies protect against unauthorized network access',
@@ -57,51 +57,43 @@ function Test-Assessment-24552 {
     $activity = "Checking macOS Firewall Policy is Created and Assigned"
     Write-ZtProgress -Activity $activity -Status "Getting policy"
 
-    # Query: Retrieve all macOS policies with mdm and appleRemoteManagement technologies
-    # We use unnest(settings) to find the specific firewall setting we are interested in.
-    # We also cast assignments to JSON to simplify parsing in PowerShell.
+    # Query: Retrieve all macOS policies with mdm and appleRemoteManagement technologies.
+    # Settings and assignments are returned as JSON for PowerShell-side filtering,
+    # avoiding DuckDB list_transform lambda issues when data is null or absent.
     $sql = @"
-    SELECT
-        id,
-        name,
-        to_json(assignments) as assignments,
-        list_transform(
-            setting.settingInstance.groupSettingCollectionValue[1].children,
-            x -> x.choiceSettingValue."value"
-        ) as firewallSettingValues
-    FROM (
-        SELECT
-            id,
-            name,
-            assignments,
-            unnest(settings) as setting
-        FROM ConfigurationPolicy
-        WHERE platforms LIKE '%macOS%'
-          AND technologies LIKE '%mdm%'
-          AND technologies LIKE '%appleRemoteManagement%'
-    )
-    WHERE setting.settingInstance.SettingDefinitionID = 'com.apple.security.firewall_com.apple.security.firewall'
+    SELECT id, name, to_json(settings) as settings, to_json(assignments) as assignments
+    FROM ConfigurationPolicy
+    WHERE platforms LIKE '%macOS%'
+      AND technologies LIKE '%mdm%'
+      AND technologies LIKE '%appleRemoteManagement%'
 "@
-    $macOSFirewallPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
+    $macOSAllPolicies = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
 
-    # Parse JSON assignments field
-    foreach ($policy in $macOSFirewallPolicies) {
-        if ($policy.assignments) {
+    # Parse JSON fields
+    foreach ($policy in $macOSAllPolicies) {
+        if ($policy.settings -is [string]) {
+            $policy.settings = $policy.settings | ConvertFrom-Json
+        }
+        if ($policy.assignments -is [string]) {
             $policy.assignments = $policy.assignments | ConvertFrom-Json
         }
     }
+
+    # Filter to only policies that contain the macOS firewall setting definition
+    $macOSFirewallPolicies = @($macOSAllPolicies | Where-Object {
+        $_.settings.settingInstance.settingDefinitionId -contains 'com.apple.security.firewall_com.apple.security.firewall'
+    })
 
     # Filter policies to include only those related to firewall settings
     foreach ($macOSPolicy in $macOSFirewallPolicies) {
         $validSettingIds = @('com.apple.security.firewall_enablefirewall_true')
 
-        # Get all setting definition IDs from the policy (handle both single values and arrays)
-        # The SQL query returns this as a list of strings (or list of JSONs)
-        $policySettingIds = $macOSPolicy.firewallSettingValues
-
-        # Convert to array if it's a single value to ensure consistent handling
-        if ($policySettingIds -isnot [array]) {
-            $policySettingIds = @($policySettingIds)
+        # Get all choice values from the firewall setting's children (PowerShell-side, avoids DuckDB lambda issues)
+        $firewallSetting = $macOSPolicy.settings | Where-Object { $_.settingInstance.settingDefinitionId -eq 'com.apple.security.firewall_com.apple.security.firewall' } | Select-Object -First 1
+        $policySettingIds = if ($firewallSetting -and $firewallSetting.settingInstance.groupSettingCollectionValue) {
+            @($firewallSetting.settingInstance.groupSettingCollectionValue[0].children.choiceSettingValue.value)
+        } else {
+            @()
         }
 
         # Check if any of the policy's setting IDs match our valid setting IDs
@@ -124,8 +116,8 @@ function Test-Assessment-24552 {
     $passed = $false
     $testResultMarkdown = ""
 
-    # Test macOS firewall policy assignments
-    $passed = Test-PolicyAssignment -Policies $macOSFirewallPolicies
+    # Test macOS firewall policy assignments — only policies with firewall actually enabled count
+    $passed = Test-PolicyAssignment -Policies ($macOSFirewallPolicies | Where-Object { $_.FirewallSettings -eq $true })
 
     if ($passed) {
         $testResultMarkdown = "A macOS firewall policy is configured and assigned in Intune.`n`n%TestResult%"
@@ -148,7 +140,7 @@ function Test-Assessment-24552 {
 
 ## {0}
 
-| Policy Name | Status | Assignment Target | Firewall Status |
+| Policy name | Status | Assignment target | Firewall status |
 | :---------- | :----- | :---------------- | :-------------- |
 {1}
 

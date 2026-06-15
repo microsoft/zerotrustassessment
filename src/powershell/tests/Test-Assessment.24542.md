@@ -5,8 +5,8 @@ Enforcing compliance policies ensures macOS devices meet core security requireme
 **Remediation actions**
 
 Create and assign Intune compliance policies to macOS devices to enforce organizational standards for secure access and management:  
-- [Create and assign Intune compliance policies](https://learn.microsoft.com/intune/intune-service/protect/create-compliance-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
-- [Review the macOS compliance settings you can manage with Intune](https://learn.microsoft.com/intune/intune-service/protect/compliance-policy-create-mac-os?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create and assign Intune compliance policies](https://learn.microsoft.com/intune/device-security/compliance/create-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#create-the-policy)
+- [Review the macOS compliance settings you can manage with Intune](https://learn.microsoft.com/intune/device-security/compliance/ref-macos-settings?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
 

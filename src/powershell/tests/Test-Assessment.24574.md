@@ -5,8 +5,8 @@ Enforcing ASR rules helps block common attack techniques such as script-based ex
 **Remediation action**
 
 Use Intune to deploy **Attack Surface Reduction Rules** profiles for Windows devices to block high-risk behaviors and strengthen endpoint protection:
-- [Configure Intune profiles for Attack Surface Reduction Rules](https://learn.microsoft.com/intune/intune-service/protect/endpoint-security-asr-policy?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#devices-managed-by-intune)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Configure Intune profiles for Attack Surface Reduction Rules](https://learn.microsoft.com/intune/device-configuration/endpoint-security/attack-surface-reduction?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#devices-managed-by-intune)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 
 For more information, see:  
 - [Attack surface reduction rules reference](https://learn.microsoft.com/defender-endpoint/attack-surface-reduction-rules-reference?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci) in the Microsoft Defender documentation.

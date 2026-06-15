@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Sensitive data exfiltration through file transfers is prevented by network content filtering policies.
 .DESCRIPTION
@@ -9,17 +9,17 @@
 
 function Test-Assessment-25413 {
     [ZtTest(
-        Category = 'Global Secure Access',
-        ImplementationCost = 'High',
-        MinimumLicense = ('Entra_Premium_Internet_Access'),
-        Pillar = 'Network',
-        RiskLevel = 'High',
-        Service = ('Graph'),
-        SfiPillar = 'Protect networks',
-        TenantType = ('Workforce'),
-        TestId = 25413,
-        Title = 'Sensitive data exfiltration through file transfers is prevented by network content filtering policies',
-        UserImpact = 'Medium'
+    	Category = 'Global Secure Access',
+    	ImplementationCost = 'High',
+    	MinimumLicense = ('Entra_Premium_Internet_Access'),
+    	Service = ('Graph'),
+    	Pillar = 'Network',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 25413,
+    	Title = 'File transfer policies are configured to prevent data exfiltration',
+    	UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

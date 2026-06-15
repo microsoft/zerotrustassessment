@@ -79,14 +79,14 @@ order by operatingSystem, trustType, isCompliant
         $windowsEntraRegistered = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' } | Measure-Object -Property count -Sum).Sum ?? 0
 
         # Windows compliance by join type
-        $entraJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
-        $hybridJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
-        $registeredCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+        $entraJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
+        $hybridJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
+        $registeredCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
 
         # Windows non-compliant counts
-        $entraJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-        $hybridJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-        $registeredNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+        $entraJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
+        $hybridJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
+        $registeredNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
 
         # Windows unmanaged where isCompliant is null
         $entraJoinedUnmanaged = $windowsEntraJoined - ($entraJoinedCompliant + $entraJoinedNoncompliant)
@@ -234,15 +234,15 @@ order by operatingSystem, deviceOwnership, isCompliant
         $iosCompany = ($iosCompanyDevices | Measure-Object -Property count -Sum).Sum ?? 0
         $iosPersonal = ($iosPersonalDevices | Measure-Object -Property count -Sum).Sum ?? 0
 
-        $androidCompanyCompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
-        $androidPersonalCompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
-        $iosCompanyCompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
-        $iosPersonalCompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+        $androidCompanyCompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
+        $androidPersonalCompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
+        $iosCompanyCompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
+        $iosPersonalCompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
 
-        $androidCompanyNoncompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-        $androidPersonalNoncompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-        $iosCompanyNoncompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-        $iosPersonalNoncompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+        $androidCompanyNoncompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
+        $androidPersonalNoncompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
+        $iosCompanyNoncompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
+        $iosPersonalNoncompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
 
         $androidTotal = $androidCompany + $androidPersonal
         $iosTotal = $iosCompany + $iosPersonal
@@ -326,7 +326,7 @@ order by operatingSystem, deviceOwnership, isCompliant
         @{
             "description"  = "Mobile devices by compliance status."
             "nodes"        = $nodes
-            "totalDevices" = $results | Measure-Object -Property count -Sum | Select-Object -ExpandProperty Sum
+            "totalDevices" = ($results | Measure-Object -Property count -Sum).Sum ?? 0
         }
     }
 

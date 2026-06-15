@@ -5,8 +5,8 @@ Enforcing update policies disrupts this chain by ensuring devices are consistent
 **Remediation action**
 
 Configure and assign iOS/iPadOS update policies in Intune to enforce timely patching and reduce risk from unpatched vulnerabilities:  
-- [Manage iOS/iPadOS software updates in Intune](https://learn.microsoft.com/intune/intune-service/protect/software-updates-guide-ios-ipados?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
-- [Assign policies in Intune](https://learn.microsoft.com/intune/intune-service/configuration/device-profile-assign?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
+- [Manage iOS/iPadOS software updates in Intune](https://learn.microsoft.com/intune/device-updates/apple/planning-guide-ios-ipados?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Assign policies in Intune](https://learn.microsoft.com/intune/device-configuration/assign-device-profile?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#assign-a-policy-to-users-or-groups)
 <!--- Results --->
 %TestResult%
 
