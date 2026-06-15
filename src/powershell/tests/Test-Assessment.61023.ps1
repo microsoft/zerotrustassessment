@@ -100,12 +100,12 @@ function Test-Assessment-61023 {
         }
         else {
             # Full visibility, no workspace has Sentinel onboarded.
-            # Short-circuit to Fail per spec precondition — mirrors the 61002 Fail outcome.
+            # Full visibility, no workspace has Sentinel onboarded — nothing to evaluate.
             $params = @{
                 TestId = '61023'
                 Title  = 'Agent 365 data connector is enabled on the Microsoft Sentinel workspace'
                 Status = $false
-                Result = '❌ Blocked by 61002: no Sentinel-onboarded workspace in tenant.'
+                Result = '❌ No Sentinel-onboarded workspace found in tenant.'
             }
         }
         Add-ZtTestResultDetail @params
