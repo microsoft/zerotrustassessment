@@ -31,7 +31,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
 
     if (data.links.length === 0 || filteredNodes.length === 0) {
         return (
-             <div className={`flex h-full min-h-[8rem] w-full items-center justify-center px-4 text-center text-sm text-muted-foreground ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
+            <div className={`flex h-full min-h-[8rem] w-full items-center justify-center px-4 text-center text-sm text-muted-foreground ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
                 No data available.
             </div>
         );
