@@ -11,47 +11,32 @@ type SankeyNode = {
     // other properties...
 };
 
-type SankeyData = {
+export type SankeyData = {
     nodes: SankeyNode[];
-    links: {
-        source: string;
-        target: string;
-        value: number;
-    }[];
+    links: any[]; // replace with the actual type of links
 };
 
-type SankeyInputData = {
-    nodes: SankeyNode[];
-    links: {
-        source: string;
-        target: string;
-        value: number | null;
-    }[];
-};
-
-export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
-    const sanitizedLinks = data.links
-        .filter(link => Number.isFinite(Number(link.value)) && Number(link.value) > 0)
-        .map(link => ({ ...link, value: Number(link.value) }));
-
+export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyData }) => {
+    // Filter out nodes that have no connected links to avoid Nivo rendering errors
     const connectedNodeIds = new Set<string>();
-    for (const link of sanitizedLinks) {
+    for (const link of data.links) {
         connectedNodeIds.add(link.source);
         connectedNodeIds.add(link.target);
     }
-
+    const filteredNodes = data.nodes.filter(node => connectedNodeIds.has(node.id));
     const filteredData: SankeyData = {
-        nodes: data.nodes.filter(node => connectedNodeIds.has(node.id)),
-        links: sanitizedLinks
+        nodes: filteredNodes,
+        links: data.links,
     };
 
-    if (filteredData.links.length === 0 || filteredData.nodes.length === 0) {
+    if (data.links.length === 0 || filteredNodes.length === 0) {
         return (
-            <div className={`flex h-full min-h-[8rem] w-full items-center justify-center px-4 text-center text-sm text-muted-foreground ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
+            <div className={`flex h-full min-h-32 w-full items-center justify-center px-4 text-center text-sm text-muted-foreground ${isDark ? 'sankey-dark-mode' : 'sankey-light-mode'}`}>
                 No data available.
             </div>
         );
     }
+
 
     const theme = {
         tooltip: {
