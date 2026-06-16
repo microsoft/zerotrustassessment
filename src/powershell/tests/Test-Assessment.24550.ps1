@@ -10,7 +10,7 @@ function Test-Assessment-24550 {
     [ZtTest(
         Category = 'Device',
         ImplementationCost = 'Low',
-        MinimumLicense = ('INTUNE_A'),
+        CompatibleLicense = ('INTUNE_A'),
         Pillar = 'Devices',
         RiskLevel = 'High',
         SfiPillar = 'Protect engineering systems',
@@ -48,11 +48,6 @@ function Test-Assessment-24550 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
-    if ( -not (Get-ZtLicense Intune) ) {
-        Add-ZtTestResultDetail -SkippedBecause NotLicensedIntune
-        return
-    }
 
     $activity = "Checking Windows BitLocker policy is configured and assigned"
     Write-ZtProgress -Activity $activity -Status "Getting modern BitLocker policies"
