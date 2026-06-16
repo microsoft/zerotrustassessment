@@ -4,30 +4,59 @@ param (
 	$Repository = 'PSGallery'
 )
 
-Invoke-WebRequest 'https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1' | Invoke-Expression
-
 $modules = @(
-	"Pester" # Test Framework, runs the tests
-	"PSScriptAnalyzer" # PowerShell Best Practices analyzer, will be used in tests
-	'Refactor' # Used to update the metadata for individual test commands
-	"Metadata" # Used to update psd1 files instead of the broken Update-ModuleManifest command
+	@{ ModuleName = "Pester" } # Test Framework, runs the tests
+	@{ ModuleName = "PSScriptAnalyzer" } # PowerShell Best Practices analyzer, will be used in tests
+	@{ ModuleName = 'Refactor' } # Used to update the metadata for individual test commands
+	@{ ModuleName = "Metadata" } # Used to update psd1 files instead of the broken Update-ModuleManifest command
 )
 
 # Automatically add missing dependencies
 $data = Import-PowerShellDataFile -Path "$PSScriptRoot\..\..\src\powershell\ZeroTrustAssessment.psd1"
 foreach ($dependency in $data.RequiredModules) {
 	if ($dependency -is [string]) {
-		if ($modules -contains $dependency) {
+		if ($modules.ModuleName -contains $dependency) {
 			continue
 		}
-		$modules += $dependency
+		$modules += @{ ModuleName = $dependency }
 	}
 	else {
-		if ($modules -contains $dependency.ModuleName) {
+		if ($modules.ModuleName -contains $dependency.ModuleName) {
 			continue
 		}
-		$modules += $dependency.ModuleName
+		$modules += @{
+			ModuleName     = $dependency.ModuleName
+			RequiredVersion = $dependency.RequiredVersion
+			MinimumVersion = $dependency.ModuleVersion
+		}
 	}
 }
 
-Install-PSFModule -Name $modules
+# Ensure TLS 1.2 is used when contacting the PowerShell Gallery
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+# Make sure the NuGet package provider is available for Install-Module
+if (-not (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue)) {
+	Install-PackageProvider -Name NuGet -MinimumVersion '2.8.5.201' -Force -Scope CurrentUser | Out-Null
+}
+
+foreach ($module in $modules) {
+	$installParams = @{
+		Name               = $module.ModuleName
+		Repository         = $Repository
+		Scope              = 'CurrentUser'
+		Force              = $true
+		AllowClobber       = $true
+		SkipPublisherCheck = $true
+		ErrorAction        = 'Stop'
+	}
+	if ($module.RequiredVersion) {
+		$installParams['RequiredVersion'] = $module.RequiredVersion
+	}
+	elseif ($module.MinimumVersion) {
+		$installParams['MinimumVersion'] = $module.MinimumVersion
+	}
+
+	Write-Verbose "Installing module '$($module.ModuleName)' from repository '$Repository'."
+	Install-Module @installParams
+}

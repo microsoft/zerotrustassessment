@@ -30,7 +30,17 @@ param(
     [string]$InputJsonPath,
 
     [Parameter(Mandatory = $true)]
-    [string]$OutputHtmlPath
+    [string]$OutputHtmlPath,
+
+    # Optional secondary report. When supplied, the Network and AI pillars (all
+    # their tests + the matching summary counts) are overlaid from this report,
+    # replacing that data in the primary -InputJsonPath. Everything else
+    # (Identity / Devices / Data / SecOps, tenant identity, dashboard overview)
+    # is kept from the primary report. Brought tests are fully scrubbed of the
+    # source tenant's identifiers (emails, IPs, domain, brand, GUID).
+    [Parameter(Mandatory = $false)]
+    [ValidateScript({ Test-Path $_ -PathType Leaf })]
+    [string]$SourceJsonPath
 )
 
 # Set up paths
@@ -75,6 +85,125 @@ Write-Host "Loading JSON report from: $InputJsonPath" -ForegroundColor Cyan
 
 # Load the JSON report
 $jsonContent = Get-Content -Path $InputJsonPath -Raw | ConvertFrom-Json -Depth 100
+
+# ---------------------------------------------------------------------------
+# Optional: overlay the Network + AI pillars from a secondary source report.
+# Real exports often have far richer Network (Global Secure Access / Internet
+# Access) and AI pillars than the curated demo input. When -SourceJsonPath is
+# supplied we drop the primary report's Network/AI tests, bring in every
+# Network/AI test from the source, and copy the matching summary counts. This
+# also drives the home-page SWG defense-layer graphic, which keys off specific
+# Network TestIds.
+#
+# Because the source is a *real* tenant, every brought test is fully scrubbed
+# here (emails -> demouser<N>@contoso.com, IPv4 -> 203.0.113.x, tenant
+# domain/brand/GUID -> Contoso) before it is merged, in addition to the normal
+# anonymization passes that run later.
+# ---------------------------------------------------------------------------
+if ($PSBoundParameters.ContainsKey('SourceJsonPath')) {
+    $bringPillars = @('Network', 'AI')
+    Write-Host ("Overlaying {0} pillar(s) from source: {1}" -f ($bringPillars -join ' + '), $SourceJsonPath) -ForegroundColor Cyan
+    $sourceContent = Get-Content -Path $SourceJsonPath -Raw | ConvertFrom-Json -Depth 100
+
+    function Get-PillarSet {
+        param($Test)
+        $p = $Test.TestPillar
+        if ($null -eq $p) { return @() }
+        if ($p -is [System.Array]) { return @($p) }
+        return @($p)
+    }
+
+    $isBrought = {
+        param($test)
+        $pillars = Get-PillarSet $test
+        foreach ($x in $pillars) { if ($bringPillars -contains $x) { return $true } }
+        return $false
+    }
+
+    $keptTests = @($jsonContent.Tests | Where-Object { -not (& $isBrought $_) })
+    $broughtTests = @($sourceContent.Tests | Where-Object { & $isBrought $_ })
+
+    # Re-tag brought tests to the intersection of their pillars and the pillars
+    # we overlay. This drops non-brought tags (e.g. "Data" on a ["Data","AI"]
+    # test, so it doesn't surface on the sample-owned Data page) while keeping
+    # brought tags (e.g. a ["Network","AI"] test stays on both pages).
+    foreach ($test in $broughtTests) {
+        $kept = @(Get-PillarSet $test | Where-Object { $bringPillars -contains $_ })
+        $test.TestPillar = if ($kept.Count -eq 1) { $kept[0] } else { $kept }
+    }
+
+    # --- Full scrub of source-derived (real tenant) content ---
+    $demoTenantId = 'aaaabbbb-0000-cccc-1111-dddd2222eeee'
+    $srcTenantId = [string]$sourceContent.TenantId
+    $srcDomain = [string]$sourceContent.Domain
+    $srcName = [string]$sourceContent.TenantName
+    $srcBrand = if ($srcDomain -match '^([^.]+)\.') { $matches[1] } else { $srcName }
+
+    $script:__emailAliases = @{}
+    $script:__emailNext = 1
+    $script:__ipAliases = @{}
+    $script:__ipNext = 10
+
+    $scrub = {
+        param([string]$text)
+        if ([string]::IsNullOrEmpty($text)) { return $text }
+
+        # Emails -> deterministic demouser<N>@contoso.com (leave demo/Microsoft as-is).
+        $text = [regex]::Replace($text, '[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}', {
+            param($m)
+            $e = $m.Value
+            if ($e -match '(?i)@(contoso\.com|contoso\.onmicrosoft\.com|microsoft\.com)$') { return $e }
+            if (-not $script:__emailAliases.ContainsKey($e)) {
+                $script:__emailAliases[$e] = "demouser$($script:__emailNext)@contoso.com"
+                $script:__emailNext++
+            }
+            return $script:__emailAliases[$e]
+        })
+
+        # IPv4 -> deterministic TEST-NET (RFC 5737) 203.0.113.x.
+        $text = [regex]::Replace($text, '\b(?:\d{1,3}\.){3}\d{1,3}\b', {
+            param($m)
+            $ip = $m.Value
+            if (-not $script:__ipAliases.ContainsKey($ip)) {
+                $script:__ipAliases[$ip] = "203.0.113.$($script:__ipNext)"
+                $script:__ipNext++
+            }
+            return $script:__ipAliases[$ip]
+        })
+
+        if ($srcTenantId) { $text = $text -replace [regex]::Escape($srcTenantId), $demoTenantId }
+        # Any onmicrosoft tenant remnants -> contoso.onmicrosoft.com.
+        $text = $text -replace '(?i)[A-Za-z0-9-]+\.onmicrosoft\.com', 'contoso.onmicrosoft.com'
+        # Remaining references to the source domain (URLs, bare host names) -> contoso.com.
+        if ($srcDomain) { $text = $text -replace ('(?i)[A-Za-z0-9.\-]*' + [regex]::Escape($srcDomain)), 'contoso.com' }
+        if ($srcName) { $text = $text -replace ('(?i)' + [regex]::Escape($srcName)), 'Contoso' }
+        if ($srcBrand) { $text = $text -replace ('(?i)\b' + [regex]::Escape($srcBrand) + '\b'), 'contoso' }
+
+        return $text
+    }
+
+    foreach ($test in $broughtTests) {
+        foreach ($field in 'TestResult', 'TestDescription', 'SkippedReason') {
+            if (($test.PSObject.Properties.Name -contains $field) -and ($test.$field -is [string])) {
+                $test.$field = & $scrub $test.$field
+            }
+        }
+    }
+
+    $jsonContent.Tests = @($keptTests + $broughtTests)
+
+    # Overlay the summary counts for each brought pillar.
+    foreach ($pil in $bringPillars) {
+        $jsonContent.TestResultSummary."${pil}Passed" = $sourceContent.TestResultSummary."${pil}Passed"
+        $jsonContent.TestResultSummary."${pil}Total" = $sourceContent.TestResultSummary."${pil}Total"
+    }
+
+    Write-Host ("Brought {0} test(s) across {1}; scrubbed {2} email(s) and {3} IP(s)" -f `
+        $broughtTests.Count, ($bringPillars -join '/'), $script:__emailAliases.Count, $script:__ipAliases.Count) -ForegroundColor Cyan
+    foreach ($pil in $bringPillars) {
+        Write-Host ("  {0} summary now {1}/{2}" -f $pil, $jsonContent.TestResultSummary."${pil}Passed", $jsonContent.TestResultSummary."${pil}Total") -ForegroundColor Cyan
+    }
+}
 
 Write-Host "Anonymizing report data..." -ForegroundColor Cyan
 
