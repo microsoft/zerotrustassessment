@@ -78,7 +78,7 @@ function Convert-ZtAssessmentToWorkshop {
 	if (-not [string]::IsNullOrWhiteSpace($Pillar) -and $Pillar -ine 'all') {
 		$pillarFilterKey = $Pillar.ToLower()
 	}
-
+	Write-Host "Hello!"
 	$rawTests = Get-ObjectValue -InputObject $AssessmentResults -Name 'Tests'
 	$tests = if ($null -eq $rawTests) { @() } else { @($rawTests) }
 
