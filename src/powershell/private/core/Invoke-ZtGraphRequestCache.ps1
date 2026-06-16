@@ -86,9 +86,9 @@
 
 	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isInCache -and $isMethodGet) {
 		# Don't read from cache for batch requests.
-		Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
 		$results = $script:__ZtSession.GraphCache.Value[$cacheKey]
 		if ($results) {
+			Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
 			return $results
 		}
 	}

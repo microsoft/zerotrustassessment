@@ -71,7 +71,7 @@
 		[TimeSpan]
 		$Timeout = '1.00:00:00',
 
-		[int]
+		[PSFTimeSpan]
 		$TestTimeout = 60
 	)
 
@@ -127,17 +127,14 @@
 	[dateTime] $startTime = [datetime]::Now
 	$workflow = $null
 	try {
-		# Convert timeout minutes to timespan (0 = disabled)
-		$timeoutSpan = if ($TestTimeout -gt 0) { [timespan]::FromMinutes($TestTimeout) } else { [timespan]::Zero }
-
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $timeoutSpan
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $TestTimeout
 		}
 
 		# Then run Parallel Tests
 		if ($parallelTests) {
-			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath -TestTimeout $timeoutSpan
+			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath -TestTimeout $TestTimeout
 			Wait-ZtTest -Workflow $workflow -StartedAt $startTime -Timeout $Timeout
 			$workflow.Queues['Input'].ForEach{
 				Write-PSFMessage -Level Debug -Message "Test $_ was not processed before timeout was reached."

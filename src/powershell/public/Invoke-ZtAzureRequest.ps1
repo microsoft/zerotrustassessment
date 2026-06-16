@@ -267,13 +267,8 @@ function Invoke-ZtAzureRequest {
 		$effectiveMethod = if ($Method) { $Method } else { 'GET' }
 
 		#region Build Invoke-AzRestMethod parameters
-		# Start with all bound parameters, then remove our custom ones
-		$azParams = @{} + $PSBoundParameters
-
-		# Remove ZtAzureRequest-specific parameters (not recognized by Invoke-AzRestMethod)
-		foreach ($customParam in @('Select', 'Filter', 'QueryParameters', 'DisablePaging', 'DisableCache', 'FullResponse')) {
-			$azParams.Remove($customParam) | Out-Null
-		}
+		# Copy over parameters for Invoke-AzRestMethod
+		$azParams = $PSBoundParameters | ConvertTo-PSFHashtable -Exclude 'Select', 'Filter', 'QueryParameters', 'DisablePaging', 'DisableCache', 'FullResponse'
 
 		# Inject OData and custom query parameters into -Path or -Uri
 		$extraQueryParams = [ordered]@{}
@@ -352,8 +347,7 @@ function Invoke-ZtAzureRequest {
 		#endregion Determine cache key
 
 		#region Execute with caching
-		$results = Invoke-ZtAzureRequestCache -CacheKey $cacheKey -AzParams $azParams `
-			-DisableCache:$DisableCache -FullResponse:$FullResponse
+		$results = Invoke-ZtAzureRequestCache -CacheKey $cacheKey -AzParams $azParams -DisableCache:$DisableCache -FullResponse:$FullResponse
 		#endregion Execute with caching
 
 		#region Format Results

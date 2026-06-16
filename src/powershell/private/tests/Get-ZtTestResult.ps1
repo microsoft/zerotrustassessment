@@ -1,0 +1,56 @@
+﻿function Get-ZtTestResult {
+	<#
+	.SYNOPSIS
+		Retrieve the test result object for the specified test.
+
+	.DESCRIPTION
+		Retrieve the test result object for the specified test.
+		This will - on first call - generate a new, mostly empty object.
+		On subsequent calls - during retries or when considering on whether to retry at all - it will return the same object, which presumably has been updated since.
+
+	.PARAMETER Test
+		The test object for which we need a result dataset
+
+	.EXAMPLE
+		PS C:\> Get-ZtTestResult -TestID $Test
+
+		Retrieve the test result object for the specified test.
+	#>
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $true)]
+		$Test
+	)
+	begin {
+		if (-not $script:_testCache) {
+			$script:_testCache = @{}
+		}
+	}
+	process {
+		if ($script:_testCache[$TestID]) {
+			return $script:_testCache[$TestID]
+		}
+		$script:_testCache[$TestID] = [PSCustomObject]@{
+			PSTypeName  = 'ZeroTrustAssessment.TestStatistics'
+			TestID      = $Test.TestID
+			Test        = $Test
+			DisplayName = $Test.Title ? $Test.Title : $Test.TestID
+
+			# Performance Metrics, in case we want to identify problematic tests
+			Start       = $null
+			End         = $null
+			Duration    = $null
+			Attempts    = 1
+
+			# What Happened?
+			Success     = $true
+			Error       = $null
+			Messages    = $null
+			TimedOut    = $false
+
+			# Test should have no output, but we'll catch it anyways, just in case
+			Output      = $null
+		}
+		$script:_testCache[$TestID]
+	}
+}
