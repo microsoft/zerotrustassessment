@@ -20,16 +20,16 @@ $script:__ZtSession = @{
 	ProgressServer = $null # Holds the background runspace and listener for the progress web server
 	ModuleVersion = $moduleVersion
 }
-if ($lifetime = Get-PSFConfig -FullName 'ZeroTrustAssessment.Azure.CacheLifetime') {
+if ($lifetime = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.CacheLifetime') {
 	$script:__ZtSession.AzureCache.Value.SetLifetime($lifetime)
 }
-if ($lifetime = Get-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheLifetime') {
+if ($lifetime = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Graph.CacheLifetime') {
 	$script:__ZtSession.GraphCache.Value.SetLifetime($lifetime)
 }
-if ($maxItems = Get-PSFConfig -FullName 'ZeroTrustAssessment.Azure.CacheMaxItems') {
+if ($maxItems = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.CacheMaxItems') {
 	$script:__ZtSession.AzureCache.Value.SetMaxItems($maxItems)
 }
-if ($maxItems = Get-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems') {
+if ($maxItems = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems') {
 	$script:__ZtSession.GraphCache.Value.SetMaxItems($maxItems)
 }
 
