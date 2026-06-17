@@ -100,46 +100,36 @@ ORDER BY rd.displayName;
         }
     )
 
-    $notificationRules = @()
-    # This flag is used to control the flow of a loop, allowing the script to break out of the outer loop when set to $true.
-    $exitLoop = $false
-    $passed = $true
-
-    # Query activation notification rules for administrators
-    # For each policy ID, retrieve notification rules for role activation events sent to administrators
+    # Build one request per (policy, rule) pair and fetch them all in batched calls
     Write-ZtProgress -Activity $activity -Status "Getting activation notification rules"
 
-    foreach ($policyAssignment in $resultsPolicyAssignments) {
-        $policyId = $policyAssignment.policyId
-        $roleDisplayName = $policyAssignment.roleDisplayName
-
+    $ruleRequests = foreach ($policyAssignment in $resultsPolicyAssignments) {
         foreach ($ruleId in $notifications.ruleId) {
-            try {
-                $uri = "policies/roleManagementPolicies/$policyId/rules/$ruleId"
-
-                $rule = Invoke-ZtGraphRequest -RelativeUri $uri -ApiVersion 'v1.0' -ErrorAction Stop
-
-                if ($rule) {
-                    $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
-
-                    # TO-DO: When the performance of the API is improved, we can collect all rules and move the check outside the loop to determine if the test passes or fails.
-                    # Check if isDefaultRecipientsEnabled is false and notificationRecipients is an empty array
-                    if ($rule.isDefaultRecipientsEnabled -eq $false -and
-                        ($null -eq $rule.notificationRecipients -or $rule.notificationRecipients.Count -eq 0)) {
-                        $passed = $false
-                        $exitLoop = $true
-                        break  # Exit inner loop if condition is met
-                    }
-                }
+            [PSCustomObject]@{
+                PolicyId        = $policyAssignment.policyId
+                RuleId          = $ruleId
+                RoleDisplayName = $policyAssignment.roleDisplayName
             }
-            catch {
-                Write-Error "Failed to retrieve rule $ruleId for policy $($policyId): $($_.Exception.Message)"
-            }
-        }
-        if ($exitLoop) {
-            break # Exit outer loop if condition is met
         }
     }
+
+    $notificationRules = @()
+    if ($ruleRequests) {
+        $ruleResults = Invoke-ZtGraphBatchRequest -Path "policies/roleManagementPolicies/{0}/rules/{1}" -ArgumentList $ruleRequests -Properties PolicyId, RuleId -Matched -ErrorAction SilentlyContinue
+        foreach ($result in $ruleResults) {
+            if (-not $result.Success -or -not $result.Result) { continue }
+            $rule = $result.Result | Select-Object -First 1
+            $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $result.Argument.RoleDisplayName -Force -PassThru)
+        }
+    }
+
+    # A role is non-compliant when a notification rule has default recipients disabled and no
+    # additional recipients configured.
+    $failingRule = $notificationRules | Where-Object {
+        $_.isDefaultRecipientsEnabled -eq $false -and
+        ($null -eq $_.notificationRecipients -or $_.notificationRecipients.Count -eq 0)
+    } | Select-Object -First 1
+    $passed = -not $failingRule
 
     $testResultMarkdown = ""
 
@@ -148,7 +138,7 @@ ORDER BY rd.displayName;
         $testResultMarkdown += "Role notifications are properly configured for privileged role.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Role notifications are not properly configured.`n`nNote: To save time, this check stops when it finds the first role that does not have notifications. After fixing this role and all other roles, we recommend running the check again to verify.`n`n%TestResult%"
+        $testResultMarkdown += "Role notifications are not properly configured.`n`n%TestResult%"
     }
 
     # Build the detailed sections of the markdown

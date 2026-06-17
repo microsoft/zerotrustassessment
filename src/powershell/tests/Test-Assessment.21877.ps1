@@ -62,23 +62,23 @@ WHERE userType = 'Guest'
     $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
     $guestsWithSponsorsCount = 0
 
-    foreach ($guest in $guestUsers) {
-        try {
-            # Get the sponsors for the guest user
-            $guestUserWithSponsors = Invoke-ZtGraphRequest -RelativeUri "users/$($guest.id)?`$expand=sponsors" -ApiVersion 'v1.0'
+    $guestById = @{}
+    foreach ($guest in $guestUsers) { $guestById[$guest.id] = $guest }
 
-            # Check if guest has sponsors
-            if ($guestUserWithSponsors.sponsors -and $guestUserWithSponsors.sponsors.Count -gt 0) {
-                $guestsWithSponsorsCount++
-            }
-            else {
-                $guestsWithoutSponsors.Add($guestUserWithSponsors)
-            }
+    $sponsorResults = Invoke-ZtGraphBatchRequest -Path "users/{0}?`$expand=sponsors" -ArgumentList $guestUsers.id -Matched -ErrorAction SilentlyContinue
+
+    foreach ($result in $sponsorResults) {
+        if (-not $result.Success) {
+            $guestsWithoutSponsors.Add($guestById[$result.Argument])
+            continue
         }
-        catch {
-            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Verbose
-            # Treat as guest without sponsor if API call fails
-            $guestsWithoutSponsors.Add($guest)
+
+        $guestUserWithSponsors = $result.Result | Select-Object -First 1
+        if ($guestUserWithSponsors.sponsors -and $guestUserWithSponsors.sponsors.Count -gt 0) {
+            $guestsWithSponsorsCount++
+        }
+        else {
+            $guestsWithoutSponsors.Add($guestUserWithSponsors)
         }
     }
 
