@@ -58,30 +58,22 @@ WHERE userType = 'Guest'
 
     Write-ZtProgress -Activity $activity -Status "Checking sponsors for $totalGuestCount guest users"
 
-    # Process guests and check sponsors efficiently
-    $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
-    $guestsWithSponsorsCount = 0
-
-    $guestById = @{}
-    foreach ($guest in $guestUsers) { $guestById[$guest.id] = $guest }
+    # Collect the IDs of guests with a confirmed sponsor. Anything not confirmed (a failed or empty
+    # lookup) falls through to "without sponsor" by deriving that list from the original guest set.
+    $sponsoredIds = [System.Collections.Generic.HashSet[string]]::new()
 
     $sponsorResults = Invoke-ZtGraphBatchRequest -Path "users/{0}?`$expand=sponsors" -ArgumentList $guestUsers.id -Matched -ErrorAction SilentlyContinue
 
     foreach ($result in $sponsorResults) {
-        if (-not $result.Success) {
-            $guestsWithoutSponsors.Add($guestById[$result.Argument])
-            continue
-        }
-
+        if (-not $result.Success) { continue }
         $guestUserWithSponsors = $result.Result | Select-Object -First 1
-        if ($guestUserWithSponsors.sponsors -and $guestUserWithSponsors.sponsors.Count -gt 0) {
-            $guestsWithSponsorsCount++
-        }
-        else {
-            $guestsWithoutSponsors.Add($guestUserWithSponsors)
+        if ($guestUserWithSponsors.sponsors.Count -gt 0) {
+            [void]$sponsoredIds.Add($guestUserWithSponsors.id)
         }
     }
 
+    $guestsWithSponsorsCount = $sponsoredIds.Count
+    $guestsWithoutSponsors = @($guestUsers | Where-Object { -not $sponsoredIds.Contains($_.id) })
     $guestsWithoutSponsorsCount = $guestsWithoutSponsors.Count
     $passed = $guestsWithoutSponsorsCount -eq 0
 

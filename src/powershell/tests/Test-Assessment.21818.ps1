@@ -113,13 +113,13 @@ ORDER BY rd.displayName;
         }
     }
 
-    $notificationRules = @()
+    $notificationRules = [System.Collections.Generic.List[object]]::new()
     if ($ruleRequests) {
         $ruleResults = Invoke-ZtGraphBatchRequest -Path "policies/roleManagementPolicies/{0}/rules/{1}" -ArgumentList $ruleRequests -Properties PolicyId, RuleId -Matched -ErrorAction SilentlyContinue
         foreach ($result in $ruleResults) {
             if (-not $result.Success -or -not $result.Result) { continue }
             $rule = $result.Result | Select-Object -First 1
-            $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $result.Argument.RoleDisplayName -Force -PassThru)
+            $notificationRules.Add(($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $result.Argument.RoleDisplayName -Force -PassThru))
         }
     }
 
