@@ -74,7 +74,7 @@ function Test-Assessment-51019 {
             TestId       = '51019'
             Title        = 'MAM app access timeout and re-authentication are enforced after idle period'
             Status       = $false
-            Result       = '⚠️ The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
+            Result       = '⚠️ Unable to retrieve enrolled device counts for iOS / iPadOS and Android due to API access errors. Coverage could not be determined. Verify DeviceManagementManagedDevices.Read.All permission is granted and retry.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -128,22 +128,40 @@ function Test-Assessment-51019 {
     # Convert ISO 8601 duration to TimeSpan for numeric comparison against 30-minute threshold.
     $androidQualifying = @()
     if (-not $androidError) {
-        $androidQualifying = @($androidPolicies | Where-Object {
-            $_.isAssigned -eq $true -and
-            -not [string]::IsNullOrEmpty($_.periodOnlineBeforeAccessCheck) -and
-            [System.Xml.XmlConvert]::ToTimeSpan($_.periodOnlineBeforeAccessCheck).TotalMinutes -le 30 -and
-            ($_.pinRequired -eq $true -or $_.organizationalCredentialsRequired -eq $true)
-        })
+        foreach ($policy in $androidPolicies) {
+            if ($policy.isAssigned -eq $true -and
+                -not [string]::IsNullOrEmpty($policy.periodOnlineBeforeAccessCheck) -and
+                ($policy.pinRequired -eq $true -or $policy.organizationalCredentialsRequired -eq $true)) {
+                try {
+                    $timeSpan = [System.Xml.XmlConvert]::ToTimeSpan($policy.periodOnlineBeforeAccessCheck)
+                    if ($timeSpan.TotalMinutes -le 30) {
+                        $androidQualifying += $policy
+                    }
+                }
+                catch {
+                    Write-PSFMessage "Android policy '$($policy.displayName)' has malformed periodOnlineBeforeAccessCheck '$($policy.periodOnlineBeforeAccessCheck)'; treating as non-qualifying." -Tag Test -Level Warning
+                }
+            }
+        }
     }
 
     $iosQualifying = @()
     if (-not $iosError) {
-        $iosQualifying = @($iosPolicies | Where-Object {
-            $_.isAssigned -eq $true -and
-            -not [string]::IsNullOrEmpty($_.periodOnlineBeforeAccessCheck) -and
-            [System.Xml.XmlConvert]::ToTimeSpan($_.periodOnlineBeforeAccessCheck).TotalMinutes -le 30 -and
-            ($_.pinRequired -eq $true -or $_.organizationalCredentialsRequired -eq $true)
-        })
+        foreach ($policy in $iosPolicies) {
+            if ($policy.isAssigned -eq $true -and
+                -not [string]::IsNullOrEmpty($policy.periodOnlineBeforeAccessCheck) -and
+                ($policy.pinRequired -eq $true -or $policy.organizationalCredentialsRequired -eq $true)) {
+                try {
+                    $timeSpan = [System.Xml.XmlConvert]::ToTimeSpan($policy.periodOnlineBeforeAccessCheck)
+                    if ($timeSpan.TotalMinutes -le 30) {
+                        $iosQualifying += $policy
+                    }
+                }
+                catch {
+                    Write-PSFMessage "iOS/iPadOS policy '$($policy.displayName)' has malformed periodOnlineBeforeAccessCheck '$($policy.periodOnlineBeforeAccessCheck)'; treating as non-qualifying." -Tag Test -Level Warning
+                }
+            }
+        }
     }
 
     $androidVerdict = if ($androidQ1Error)                   { 'Investigate' }
@@ -161,7 +179,7 @@ function Test-Assessment-51019 {
     $anyInvestigate = ($androidVerdict -eq 'Investigate') -or ($iosVerdict -eq 'Investigate')
 
     # Overall: pass only when every in-scope platform passes (Investigate counts as non-pass).
-    $passed = (-not $iosInScope -or $iosVerdict -eq 'Pass') -and (-not $androidInScope -or $androidVerdict -eq 'Pass')
+    $passed = -not $anyInvestigate -and (-not $iosInScope -or $iosVerdict -eq 'Pass') -and (-not $androidInScope -or $androidVerdict -eq 'Pass')
 
     $investigateMsg = 'The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
 
@@ -222,12 +240,19 @@ function Test-Assessment-51019 {
             $orgCredsMd    = if ($policy.organizationalCredentialsRequired) { '✅ Yes' } else { '❌ No' }
             $assignedMd    = if ($policy.isAssigned) { '✅ Yes' } else { '❌ No' }
             # Per-policy verdict: Pass when all qualifying conditions are met.
-            $qualifies     = (
-                $policy.isAssigned -eq $true -and
+            $qualifies     = $false
+            if ($policy.isAssigned -eq $true -and
                 -not [string]::IsNullOrEmpty($policy.periodOnlineBeforeAccessCheck) -and
-                [System.Xml.XmlConvert]::ToTimeSpan($policy.periodOnlineBeforeAccessCheck).TotalMinutes -le 30 -and
-                ($policy.pinRequired -eq $true -or $policy.organizationalCredentialsRequired -eq $true)
-            )
+                ($policy.pinRequired -eq $true -or $policy.organizationalCredentialsRequired -eq $true)) {
+                try {
+                    $timeSpan = [System.Xml.XmlConvert]::ToTimeSpan($policy.periodOnlineBeforeAccessCheck)
+                    $qualifies = ($timeSpan.TotalMinutes -le 30)
+                }
+                catch {
+                    # Malformed duration — treat as non-qualifying
+                    $qualifies = $false
+                }
+            }
             $policyStatus  = if ($qualifies) { '✅ Pass' } else { '❌ Fail' }
             $tableRows    += "| [$policyName]($policyLink) | $onlineRecheck | $pinMd | $orgCredsMd | $assignedMd | $policyStatus |`n"
         }
