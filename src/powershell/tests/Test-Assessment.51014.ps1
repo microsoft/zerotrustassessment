@@ -94,7 +94,7 @@ function Test-Assessment-51014 {
     if ($iosInScope) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving iOS App Protection Policies'
         try {
-            $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections' -Select 'id,displayName,deviceComplianceRequired,appActionIfDeviceComplianceRequired,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
+            $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections' -Select 'id,displayName,deviceComplianceRequired,appActionIfDeviceComplianceRequired,isAssigned' -ApiVersion beta -ErrorAction Stop)
         }
         catch {
             Write-PSFMessage "Failed to retrieve iOS App Protection Policies: $_" -Level Warning
@@ -107,7 +107,7 @@ function Test-Assessment-51014 {
     if ($androidInScope) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving Android App Protection Policies'
         try {
-            $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections' -Select 'id,displayName,requiredAndroidSafetyNetDeviceAttestationType,appActionIfAndroidSafetyNetDeviceAttestationFailed,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
+            $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections' -Select 'id,displayName,requiredAndroidSafetyNetDeviceAttestationType,appActionIfAndroidSafetyNetDeviceAttestationFailed,isAssigned' -ApiVersion beta -ErrorAction Stop)
         }
         catch {
             Write-PSFMessage "Failed to retrieve Android App Protection Policies: $_" -Level Warning
