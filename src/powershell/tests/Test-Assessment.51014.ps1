@@ -1,6 +1,22 @@
 <#
 .SYNOPSIS
-    App Protection Policies block managed-app access on jailbroken or rooted mobile devices
+    App Protection Policies block managed-app access on jailbroken or rooted mobile devices.
+
+.DESCRIPTION
+    Checks whether at least one assigned App Protection Policy (MAM) per in-scope mobile platform
+    enforces a hard block or wipe on jailbroken iOS / iPadOS and rooted Android devices. Without this
+    gate, the OS sandbox is broken and every other MAM control (cut/copy/paste restrictions, encryption,
+    conditional launch) can be bypassed silently, creating a clear exfiltration path for corporate data.
+    iOS and Android are evaluated independently: iOS uses deviceComplianceRequired + appActionIfDeviceComplianceRequired;
+    Android uses requiredAndroidSafetyNetDeviceAttestationType + appActionIfAndroidSafetyNetDeviceAttestationFailed.
+
+.NOTES
+    Test ID: 51014
+    Category: Devices
+    Pillar: Devices
+    Required API: Microsoft Graph beta — deviceManagement/managedDevices (Q1, count only)
+                  deviceAppManagement/iosManagedAppProtections (Q2)
+                  deviceAppManagement/androidManagedAppProtections (Q3)
 #>
 
 function Test-Assessment-51014 {
