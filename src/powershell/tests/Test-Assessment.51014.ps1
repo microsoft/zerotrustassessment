@@ -20,9 +20,8 @@ function Test-Assessment-51014 {
     [CmdletBinding()]
     param()
 
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
     #region Data Collection
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking App Protection Policies for jailbreak and root enforcement'
 
     # Q1: Count enrolled iOS / iPadOS devices
@@ -32,8 +31,8 @@ function Test-Assessment-51014 {
     $iosDeviceCount           = 0
     $androidDeviceCount       = 0
     try {
-        $iosDevices     = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'" -Select 'id' -ApiVersion v1.0 -ErrorAction Stop
-        $iosDeviceCount = @($iosDevices).Count
+        $iosResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
+        $iosDeviceCount = [int]$iosResult.'@odata.count'
     }
     catch {
         Write-PSFMessage "Failed to retrieve iOS/iPadOS device count: $_" -Level Warning
@@ -43,8 +42,8 @@ function Test-Assessment-51014 {
     # Q1 (continued): Count enrolled Android devices
     Write-ZtProgress -Activity $activity -Status 'Counting enrolled Android devices'
     try {
-        $androidDevices     = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Android'" -Select 'id' -ApiVersion v1.0 -ErrorAction Stop
-        $androidDeviceCount = @($androidDevices).Count
+        $androidResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Android'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
+        $androidDeviceCount = [int]$androidResult.'@odata.count'
     }
     catch {
         Write-PSFMessage "Failed to retrieve Android device count: $_" -Level Warning
@@ -79,8 +78,7 @@ function Test-Assessment-51014 {
     if ($iosInScope) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving iOS App Protection Policies'
         try {
-            $relativeUri = 'deviceAppManagement/iosManagedAppProtections?$select=id,displayName,deviceComplianceRequired,appActionIfDeviceComplianceRequired,isAssigned,deployedAppCount'
-            $iosPolicies = Invoke-ZtGraphRequest -RelativeUri $relativeUri -ApiVersion beta -ErrorAction Stop
+            $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections' -Select 'id,displayName,deviceComplianceRequired,appActionIfDeviceComplianceRequired,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
         }
         catch {
             Write-PSFMessage "Failed to retrieve iOS App Protection Policies: $_" -Level Warning
@@ -93,8 +91,7 @@ function Test-Assessment-51014 {
     if ($androidInScope) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving Android App Protection Policies'
         try {
-            $relativeUri = 'deviceAppManagement/androidManagedAppProtections?$select=id,displayName,requiredAndroidSafetyNetDeviceAttestationType,appActionIfAndroidSafetyNetDeviceAttestationFailed,isAssigned,deployedAppCount'
-            $androidPolicies = Invoke-ZtGraphRequest -RelativeUri $relativeUri -ApiVersion beta -ErrorAction Stop
+            $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections' -Select 'id,displayName,requiredAndroidSafetyNetDeviceAttestationType,appActionIfAndroidSafetyNetDeviceAttestationFailed,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
         }
         catch {
             Write-PSFMessage "Failed to retrieve Android App Protection Policies: $_" -Level Warning
