@@ -57,7 +57,7 @@ function Test-Assessment-51014 {
             TestId       = '51014'
             Title        = 'App Protection Policies block managed-app access on jailbroken or rooted mobile devices'
             Status       = $false
-            Result       = '⚠️ Unable to retrieve enrolled device counts for iOS / iPadOS and Android. Verify DeviceManagementManagedDevices.Read.All is granted and retry.'
+            Result       = '⚠️ Unable to retrieve enrolled device counts for iOS / iPadOS and Android. The API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope..'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -93,7 +93,7 @@ function Test-Assessment-51014 {
     if ($androidInScope) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving Android App Protection Policies'
         try {
-            $relativeUri = 'deviceAppManagement/androidManagedAppProtections?$select=id,displayName,deviceComplianceRequired,appActionIfDeviceComplianceRequired,isAssigned,deployedAppCount'
+            $relativeUri = 'deviceAppManagement/androidManagedAppProtections?$select=id,displayName,requiredAndroidSafetyNetDeviceAttestationType,appActionIfAndroidSafetyNetDeviceAttestationFailed,isAssigned,deployedAppCount'
             $androidPolicies = Invoke-ZtGraphRequest -RelativeUri $relativeUri -ApiVersion beta -ErrorAction Stop
         }
         catch {
@@ -101,12 +101,26 @@ function Test-Assessment-51014 {
             $androidInvestigateReason = 'Unable to retrieve Android App Protection Policies. Verify DeviceManagementApps.Read.All is granted and retry.'
         }
     }
+
+    # If both platforms have a reason set (from Q1 or Q2/Q3 failures) neither can be evaluated — early-return Investigate.
+    if ($iosInvestigateReason -and $androidInvestigateReason) {
+        $params = @{
+            TestId       = '51014'
+            Title        = 'App Protection Policies block managed-app access on jailbroken or rooted mobile devices'
+            Status       = $false
+            Result       = '⚠️ The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
     #endregion Data Collection
 
     #region Assessment Logic
-    $acceptableActions       = @('block', 'wipe')
-    $iosDeepLinkTemplate     = 'https://intune.microsoft.com/#view/Microsoft_Intune/PolicyInstanceMenuBlade/~/0/policyId/{0}/policyOdataType/%23microsoft.graph.iosManagedAppProtection/policyName/{1}'
-    $androidDeepLinkTemplate = 'https://intune.microsoft.com/#view/Microsoft_Intune/PolicyInstanceMenuBlade/~/0/policyId/{0}/policyOdataType/%23microsoft.graph.androidManagedAppProtection/policyName/{1}'
+    $acceptableActions          = @('block', 'wipe')
+    $acceptableAttestationTypes = @('basicIntegrity', 'basicIntegrityAndDeviceCertification')
+    $iosDeepLinkTemplate        = 'https://intune.microsoft.com/#view/Microsoft_Intune/PolicyInstanceMenuBlade/~/0/policyId/{0}/policyOdataType/%23microsoft.graph.iosManagedAppProtection/policyName/{1}'
+    $androidDeepLinkTemplate    = 'https://intune.microsoft.com/#view/Microsoft_Intune/PolicyInstanceMenuBlade/~/0/policyId/{0}/policyOdataType/%23microsoft.graph.androidManagedAppProtection/policyName/{1}'
 
     # Annotate each policy with Status and PolicyDeepLink once — used by both pass/fail logic and table rendering
     foreach ($policy in $iosPolicies) {
@@ -119,8 +133,11 @@ function Test-Assessment-51014 {
     }
 
     foreach ($policy in $androidPolicies) {
-        $passes      = $policy.deviceComplianceRequired -eq $true -and
-                       $policy.appActionIfDeviceComplianceRequired -in $acceptableActions -and
+        # Android root detection uses SafetyNet / Play Integrity attestation properties, not deviceComplianceRequired.
+        # requiredAndroidSafetyNetDeviceAttestationType must be non-none, otherwise no attestation runs
+        # and the appActionIf...Failed setting never fires — rooted devices silently pass through.
+        $passes      = $policy.requiredAndroidSafetyNetDeviceAttestationType -in $acceptableAttestationTypes -and
+                       $policy.appActionIfAndroidSafetyNetDeviceAttestationFailed -in $acceptableActions -and
                        $policy.isAssigned -eq $true
         $encodedName = [System.Uri]::EscapeDataString($policy.displayName)
         $policy | Add-Member -MemberType NoteProperty -Name Status         -Value $passes -Force
@@ -141,16 +158,22 @@ function Test-Assessment-51014 {
                       else                                         { 'Fail' }
 
     # Overall verdict — priority: Fail > Investigate > Pass
-    $overallVerdict = if ($iosVerdict -eq 'Fail'        -or $androidVerdict -eq 'Fail')        { 'Fail' }
-                      elseif ($iosVerdict -eq 'Investigate' -or $androidVerdict -eq 'Investigate') { 'Investigate' }
-                      else                                                                       { 'Pass' }
+    $overallVerdict = if ($iosVerdict -eq 'Fail' -or $androidVerdict -eq 'Fail')                    { 'Fail' }
+                      elseif ($iosVerdict -eq 'Investigate' -or $androidVerdict -eq 'Investigate')  { 'Investigate' }
+                      else                                                                          { 'Pass' }
 
-    $passed = ($overallVerdict -eq 'Pass')
+    $passed       = $overallVerdict -eq 'Pass'
+    $customStatus = $null
 
-    $testResultMarkdown = switch ($overallVerdict) {
-        'Pass'        { "For every in-scope mobile platform with enrolled devices, an assigned App Protection Policy blocks or wipes managed-app access on jailbroken / rooted devices.`n`n%TestResult%" }
-        'Fail'        { "One or more in-scope mobile platforms (iOS / iPadOS, Android) has no assigned App Protection Policy that blocks or wipes managed-app access on jailbroken / rooted devices — the MAM data-protection model can be silently bypassed by users on compromised personal devices.`n`n%TestResult%" }
-        'Investigate' { "One or more mobile platforms could not be fully evaluated due to a query error; see the platform sections below.`n`n%TestResult%" }
+    if ($overallVerdict -eq 'Investigate') {
+        $customStatus       = 'Investigate'
+        $testResultMarkdown = "The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.`n`n%TestResult%"
+    }
+    elseif ($passed) {
+        $testResultMarkdown = "✅ For every in-scope mobile platform with enrolled devices, an assigned App Protection Policy blocks or wipes managed-app access on jailbroken / rooted devices.`n`n%TestResult%"
+    }
+    else {
+        $testResultMarkdown = "❌ One or more in-scope mobile platforms (iOS / iPadOS, Android) has no assigned App Protection Policy that blocks or wipes managed-app access on jailbroken / rooted devices — the MAM data-protection model can be silently bypassed by users on compromised personal devices.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -202,10 +225,10 @@ No App Protection Policies found for iOS / iPadOS.
             $iosRows = ''
             foreach ($policy in ($iosPolicies | Sort-Object @{ Expression = 'Status'; Descending = $true }, displayName | Select-Object -First $maxRows)) {
                 $policyNameSafe = Get-SafeMarkdown $policy.displayName
-                $complianceCell = if ($policy.deviceComplianceRequired) { 'true' } else { 'false' }
-                $actionCell     = if ($policy.appActionIfDeviceComplianceRequired) { $policy.appActionIfDeviceComplianceRequired } else { '—' }
-                $assignedCell   = if ($policy.isAssigned) { 'Yes' } else { 'No' }
-                $statusCell     = if ($policy.Status) { 'Pass' } else { 'Fail' }
+                $complianceCell = if ($policy.deviceComplianceRequired) { '✅ True' } else { '❌ False' }
+                $actionCell     = if ($policy.appActionIfDeviceComplianceRequired -in $acceptableActions) { "✅ $($policy.appActionIfDeviceComplianceRequired)" } else { "❌ $($policy.appActionIfDeviceComplianceRequired)" }
+                $assignedCell   = if ($policy.isAssigned) { '✅ Yes' } else { '❌ No' }
+                $statusCell     = if ($policy.Status) { '✅ Pass' } else { '❌ Fail' }
                 $iosRows       += "| [$policyNameSafe]($($policy.PolicyDeepLink)) | $complianceCell | $actionCell | $assignedCell | $statusCell |`n"
             }
             if ($iosTotalCount -gt $maxRows) {
@@ -264,12 +287,12 @@ No App Protection Policies found for Android.
         else {
             $androidRows = ''
             foreach ($policy in ($androidPolicies | Sort-Object @{ Expression = 'Status'; Descending = $true }, displayName | Select-Object -First $maxRows)) {
-                $policyNameSafe = Get-SafeMarkdown $policy.displayName
-                $complianceCell = if ($policy.deviceComplianceRequired) { 'true' } else { 'false' }
-                $actionCell     = if ($policy.appActionIfDeviceComplianceRequired) { $policy.appActionIfDeviceComplianceRequired } else { '—' }
-                $assignedCell   = if ($policy.isAssigned) { 'Yes' } else { 'No' }
-                $statusCell     = if ($policy.Status) { 'Pass' } else { 'Fail' }
-                $androidRows   += "| [$policyNameSafe]($($policy.PolicyDeepLink)) | $complianceCell | $actionCell | $assignedCell | $statusCell |`n"
+                $policyNameSafe  = Get-SafeMarkdown $policy.displayName
+                $attestationCell = if ($policy.requiredAndroidSafetyNetDeviceAttestationType -in $acceptableAttestationTypes) { "✅ $($policy.requiredAndroidSafetyNetDeviceAttestationType)" } else { "❌ $($policy.requiredAndroidSafetyNetDeviceAttestationType)" }
+                $actionCell      = if ($policy.appActionIfAndroidSafetyNetDeviceAttestationFailed -in $acceptableActions) { "✅ $($policy.appActionIfAndroidSafetyNetDeviceAttestationFailed)" } else { "❌ $($policy.appActionIfAndroidSafetyNetDeviceAttestationFailed)" }
+                $assignedCell    = if ($policy.isAssigned) { '✅ Yes' } else { '❌ No' }
+                $statusCell      = if ($policy.Status) { '✅ Pass' } else { '❌ Fail' }
+                $androidRows    += "| [$policyNameSafe]($($policy.PolicyDeepLink)) | $attestationCell | $actionCell | $assignedCell | $statusCell |`n"
             }
             if ($androidTotalCount -gt $maxRows) {
                 $androidRows += "| ... | | | | _$androidTotalCount total_ |`n"
@@ -280,8 +303,8 @@ No App Protection Policies found for Android.
 
 $androidHeaderLine
 
-| Policy name | Device compliance required | Action on Non-Compliance | Assigned | Status |
-| :---------- | :------------------------- | :----------------------- | :------- | :----- |
+| Policy name | Attestation type requested | Action on attestation failure | Assigned | Status |
+| :---------- | :------------------------- | :---------------------------- | :------- | :----- |
 $androidRows
 "@
         }
@@ -297,6 +320,8 @@ $androidRows
         Status = $passed
         Result = $testResultMarkdown
     }
-    if ($overallVerdict -eq 'Investigate') { $params['CustomStatus'] = 'Investigate' }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
+    }
     Add-ZtTestResultDetail @params
 }
