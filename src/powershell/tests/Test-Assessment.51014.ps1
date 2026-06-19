@@ -48,7 +48,7 @@ function Test-Assessment-51014 {
     $androidDeviceCount       = 0
     try {
         $iosResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
-        $iosDeviceCount = [int]$iosResult.'@odata.count'
+        $iosDeviceCount = $iosResult.'@odata.count'
     }
     catch {
         Write-PSFMessage "Failed to retrieve iOS/iPadOS device count: $_" -Level Warning
@@ -59,7 +59,7 @@ function Test-Assessment-51014 {
     Write-ZtProgress -Activity $activity -Status 'Counting enrolled Android devices'
     try {
         $androidResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Android'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
-        $androidDeviceCount = [int]$androidResult.'@odata.count'
+        $androidDeviceCount = $androidResult.'@odata.count'
     }
     catch {
         Write-PSFMessage "Failed to retrieve Android device count: $_" -Level Warning
