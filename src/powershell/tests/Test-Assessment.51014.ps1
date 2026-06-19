@@ -72,7 +72,7 @@ function Test-Assessment-51014 {
             TestId       = '51014'
             Title        = 'App Protection Policies block managed-app access on jailbroken or rooted mobile devices'
             Status       = $false
-            Result       = '⚠️ Unable to retrieve enrolled device counts for iOS / iPadOS and Android. The API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope..'
+            Result       = '⚠️ Unable to retrieve enrolled device counts for iOS / iPadOS and Android. The API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
