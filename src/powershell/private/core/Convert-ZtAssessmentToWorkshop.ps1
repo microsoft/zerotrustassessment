@@ -1,7 +1,7 @@
 function Convert-ZtAssessmentToWorkshop {
 	<#
 	.SYNOPSIS
-		Projects Zero Trust Assessment test results onto Zero Trust Workshop tasks.
+		Converts Zero Trust Assessment results into a JSON file importable by the Zero Trust Workshop.
 
 	.DESCRIPTION
 		Projects Zero Trust Assessment test results onto Zero Trust Workshop tasks
