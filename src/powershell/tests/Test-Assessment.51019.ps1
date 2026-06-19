@@ -52,7 +52,7 @@ function Test-Assessment-51019 {
 
     try {
         $iosResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
-        $iosDeviceCount = [int]$iosResult.'@odata.count'
+        $iosDeviceCount = $iosResult.'@odata.count'
     }
     catch {
         $iosQ1Error = $true
@@ -61,7 +61,7 @@ function Test-Assessment-51019 {
 
     try {
         $androidResult      = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Android'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
-        $androidDeviceCount = [int]$androidResult.'@odata.count'
+        $androidDeviceCount = $androidResult.'@odata.count'
     }
     catch {
         $androidQ1Error = $true
