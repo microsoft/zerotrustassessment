@@ -49,7 +49,7 @@
 		$PreviousMessages
 	)
 	begin {
-		$result = Get-ZtTestResult -TestID $Test
+		$result = Get-ZtTestResult -Test $Test
 	}
 	process {
 		Write-PSFMessage -Message "Processing test '{0}'" -StringValues $Test.TestID -Target $Test -Tag start

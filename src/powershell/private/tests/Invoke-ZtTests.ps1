@@ -147,7 +147,12 @@
 			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
 			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
-			$workflow | Remove-PSFRunspaceWorkflow
+			foreach ($fail in $workflow.Workers.Tester.Errors) {
+				Write-PSFMessage -Level VeryVerbose -Message 'Error processing test {0}' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.TargetObject.Error -Target $fail.TargetObject -Tag TestFail -ErrorStack
+			}
+			if (-not (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Debug.KeepWorkflows')) {
+				$workflow | Remove-PSFRunspaceWorkflow
+			}
 			Invoke-ZtSafeConsoleInterruptToggle -Enable
 		}
 	}

@@ -27,10 +27,10 @@
 		}
 	}
 	process {
-		if ($script:_testCache[$TestID]) {
-			return $script:_testCache[$TestID]
+		if ($script:_testCache[$Test.TestID]) {
+			return $script:_testCache[$Test.TestID]
 		}
-		$script:_testCache[$TestID] = [PSCustomObject]@{
+		$script:_testCache[$Test.TestID] = [PSCustomObject]@{
 			PSTypeName  = 'ZeroTrustAssessment.TestStatistics'
 			TestID      = $Test.TestID
 			Test        = $Test
@@ -51,6 +51,6 @@
 			# Test should have no output, but we'll catch it anyways, just in case
 			Output      = $null
 		}
-		$script:_testCache[$TestID]
+		$script:_testCache[$Test.TestID]
 	}
 }

@@ -1,9 +1,17 @@
-﻿Set-PSFConfig -Module ZeroTrustAssessment -Name 'Logging.Database.IncludeQueryResults' -Value $false -Initialize -Validation bool -Description 'Include the individual results from queries against the internal database in the logs. Significantly increases logsize and includes sensitive data.'
+﻿# Debugging Settings
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Logging.Database.IncludeQueryResults' -Value $false -Initialize -Validation bool -Description 'Include the individual results from queries against the internal database in the logs. Significantly increases logsize and includes sensitive data.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Logging.InMemoryLog.MinSize' -Value 51200 -Initialize -Validation integerpositive -Description 'The smallest size the in-memory log may be. If it is configured to be less than that, the size will be raised during module import. A large log may impact memory consumption, but will enable better troubleshooting.'
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Debug.KeepWorkflows' -Value $false -Initialize -Validation bool -Description 'Do not remove the parallelization engines after completion. This will leave artifacts and needs manual termination before starting again, but allows better debugging of background tasks.'
+
+# UX Settings
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'TabExpansion.TestLimit' -Value 10 -Initialize -Validation integerpositive -Description 'Maximum number of tests offered via tab exansion'
+
+# Export Settings
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Export.DependencyWaitLimit' -Value '1d' -Initialize -Validation timespan -Description 'During the export stage of the assessment, how long will a component wait for another export it depends on? If the dependencies are not exported by the timeout, export will fail.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Export.SignInLog.MaxSizeBytes' -Value 1073741824 -Initialize -Validation integerpositive -Description 'Maximum size in bytes for sign-in log exports. Defaults to 1GB (1073741824 bytes). When this limit is reached, the export will stop and continue with the next export.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Export' -Value 5 -Initialize -Validation integerpositive -Description 'Maximum number of data collectors processed in parallel'
+
+# Test Settings
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 5 -Initialize -Validation integerpositive -Description 'Maximum number of tests processed in parallel'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.Timeout' -Value '1h' -Initialize -Validation timespan -Description 'Maximum time a single test is allowed to run before it is stopped. Defaults to 1 hour. Set to 0 to disable the timeout. Tests that exceed this limit are recorded as timed out and execution continues with the next test.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.TimeoutType' -Value 'Idle' -Initialize -Description 'How the timeout for test execution is measured: Idle = "Since last activity", Start = "Since the Test was started"'
