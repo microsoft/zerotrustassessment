@@ -65,7 +65,7 @@ function Test-Assessment-51013 {
             TestId       = '51013'
             Title        = 'App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)'
             Status       = $false
-            Result       = '⚠️ This check could not complete because Microsoft Graph returned an error. Review the assessment logs.'
+            Result       = '⚠️ The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions - Global Reader at tenant scope.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -106,7 +106,7 @@ function Test-Assessment-51013 {
             TestId       = '51013'
             Title        = 'App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)'
             Status       = $false
-            Result       = '⚠️ This check could not complete because Microsoft Graph returned an error. Review the assessment logs.'
+            Result       = '⚠️ The Intune App Protection Policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions - Global Reader at tenant scope.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
