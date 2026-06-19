@@ -54,4 +54,45 @@ Describe "Add-ZtOverviewCaDevicesAllUsers" {
 		($nodes | Where-Object { $_.source -eq 'Managed' -and $_.target -eq 'Compliant' }).value | Should -Be 83
 		($nodes | Where-Object { $_.source -eq 'Managed' -and $_.target -eq 'Non-compliant' }).value | Should -Be 19
 	}
+
+	It "Should emit zero (never null) for buckets with no matching rows (issue 1310)" {
+		# Only unmanaged sign-ins present; managed/compliant buckets must resolve to 0,
+		# not $null, so the report Sankey does not receive value:null and crash.
+		Mock Invoke-DatabaseQuery {
+			@(
+				[pscustomobject]@{ isManaged = $false; isCompliant = $false; cnt = 2771 }
+			)
+		}
+
+		Add-ZtOverviewCaDevicesAllUsers -Database 'test'
+
+		$nodes = $script:tenantInfo.Value.nodes
+		foreach ($node in $nodes) {
+			$node.value | Should -Not -BeNullOrEmpty -Because "Sankey link $($node.source) -> $($node.target) must have a numeric value"
+			$node.value | Should -BeOfType [int]
+		}
+		($nodes | Where-Object { $_.source -eq 'User sign in' -and $_.target -eq 'Managed' }).value | Should -Be 0
+		($nodes | Where-Object { $_.source -eq 'Managed' -and $_.target -eq 'Compliant' }).value | Should -Be 0
+		($nodes | Where-Object { $_.source -eq 'Managed' -and $_.target -eq 'Non-compliant' }).value | Should -Be 0
+	}
+
+	It "Should store null (no Sankey object) when the EntraID license is Free" {
+		Mock Get-ZtLicenseInformation { 'Free' }
+		Mock Invoke-DatabaseQuery { throw "Should not query the database on a Free license" }
+
+		Add-ZtOverviewCaDevicesAllUsers -Database 'test'
+
+		$script:tenantInfo.Name | Should -Be 'OverviewCaDevicesAllUsers'
+		$script:tenantInfo.Value | Should -BeNullOrEmpty
+		Should -Invoke Invoke-DatabaseQuery -Times 0 -Exactly
+	}
+
+	It "Should store null when the SignIn table is empty or missing" {
+		Mock Invoke-DatabaseQuery { @() }
+
+		Add-ZtOverviewCaDevicesAllUsers -Database 'test'
+
+		$script:tenantInfo.Name | Should -Be 'OverviewCaDevicesAllUsers'
+		$script:tenantInfo.Value | Should -BeNullOrEmpty
+	}
 }
