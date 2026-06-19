@@ -12,7 +12,7 @@
 		The test object for which we need a result dataset
 
 	.EXAMPLE
-		PS C:\> Get-ZtTestResult -TestID $Test
+		PS C:\> Get-ZtTestResult -Test $Test
 
 		Retrieve the test result object for the specified test.
 	#>

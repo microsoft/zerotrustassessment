@@ -8,11 +8,12 @@ $prerelease = $manifest.PrivateData.PSData.Prerelease
 if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
 
 $script:__ZtSession = @{
-	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
+	# A DCO cache is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely. It also supports maximum number and maximum age of entries to prevent too heavy memory loads
 	GraphCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.GraphCache" -Cache -PassThru
 	AzureCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.AzureCache" -Cache -PassThru
 	GraphBaseUri = $null
 	TestMeta     = @()
+	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
 	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru

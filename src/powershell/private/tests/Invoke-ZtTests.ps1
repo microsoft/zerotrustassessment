@@ -35,8 +35,8 @@
 		connected services populated by Connect-ZtAssessment.
 
 	.PARAMETER TestTimeout
-		Maximum time in minutes a single test is allowed to run.
-		Defaults to: 60. Set to 0 to disable.
+		Maximum time a single test is allowed to run.
+		Defaults to: 60 minutes ('60m'). Set to 0 to disable.
 		For Data pillar tests and external-module/remoting-heavy operations,
 		this is a best-effort interruption rather than a guaranteed hard stop.
 
@@ -72,7 +72,7 @@
 		$Timeout = '1.00:00:00',
 
 		[PSFTimeSpan]
-		$TestTimeout = 60
+		$TestTimeout = '60m'
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)

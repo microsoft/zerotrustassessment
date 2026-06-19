@@ -102,7 +102,7 @@
 			Disconnect-Database -Database $global:database
 		}
 		$condition = {
-			$result = Get-ZtTestResult -TestID $Test
+			$result = Get-ZtTestResult -Test $this
 
 			# Check whether we should retry
 			$retryCount = $__PSF_Worker.RetryCount
@@ -123,7 +123,7 @@
 			$result.Duration = $result.End - $result.Start
 
 			Write-ZtTestError -Test $this -Result $result -ErrorRecord $_
-			Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $Test.TestID -Target $Test -Tag end
+			Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $this.TestID -Target $this -Tag end
 			Write-ZtTestFinish -Result $result -PreviousMessages $global:msgSoFar[$_.TestID] -Test $this -LogsPath $logsPath
 		}
 		#endregion Code

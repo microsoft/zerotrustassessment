@@ -51,7 +51,7 @@ Raising this number may improve performance, but risk hitting throttling limits.
 	Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
 
 .PARAMETER TestTimeout
-Maximum time in minutes a single test is allowed to run before it is stopped.
+Maximum time a single test is allowed to run before it is stopped.
 Defaults to 60 minutes. Set to 0 to disable the timeout.
 Tests that exceed this limit are recorded as timed out and execution continues with the next test.
 For Data pillar tests and other external-module/remoting-heavy operations, timeout is a
@@ -177,7 +177,7 @@ function Invoke-ZtAssessment {
 		[PSFTimeSpan]
 		$Timeout = '1.00:00:00',
 
-		# Maximum time in minutes a single test is allowed to run. Defaults to 60 minutes. Set to 0 to disable.
+		# Maximum time a single test is allowed to run. Defaults to 60 minutes. Set to 0 to disable.
 		# For Data pillar tests, timeout is best-effort because some external modules/remoting
 		# operations cannot be deterministically hard-stopped from within the current process.
 		[PSFTimeSpan]
