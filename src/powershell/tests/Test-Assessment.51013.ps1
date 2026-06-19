@@ -14,8 +14,8 @@
     Pillar: Devices
     Required API: Microsoft Graph v1.0, beta
     Q1: deviceManagement/managedDevices - enrolled device counts per platform (v1.0)
-    Q2: deviceAppManagement/iosManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned, deployedAppCount) (beta)
-    Q3: deviceAppManagement/androidManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned, deployedAppCount) (beta)
+    Q2: deviceAppManagement/iosManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned) (beta)
+    Q3: deviceAppManagement/androidManagedAppProtections (id, displayName, appActionIfUnableToAuthenticateUser, isAssigned) (beta)
 #>
 
 function Test-Assessment-51013 {
@@ -47,14 +47,20 @@ function Test-Assessment-51013 {
 
     try {
         $iosRaw = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'" -Select 'id' -Top 1 -QueryParameters @{ '$count' = 'true' } -DisablePaging -ApiVersion v1.0 -ErrorAction Stop
-        $iosDeviceCount = [int]($iosRaw.'@odata.count')
+        $iosDeviceCount = $iosRaw.'@odata.count'
 
         Write-ZtProgress -Activity $activity -Status 'Counting enrolled Android devices'
         $androidRaw = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Android'" -Select 'id' -Top 1 -QueryParameters @{ '$count' = 'true' } -DisablePaging -ApiVersion v1.0 -ErrorAction Stop
-        $androidDeviceCount = [int]($androidRaw.'@odata.count')
+        $androidDeviceCount = $androidRaw.'@odata.count'
     }
     catch {
-        Write-PSFMessage "Error counting enrolled devices: $($_.Exception.Message)" -Tag Test -Level Warning
+        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+        if ($statusCode -in @(401, 403)) {
+            Write-PSFMessage "Error counting enrolled devices: HTTP $statusCode - insufficient permissions to read managedDevices." -Tag Test -Level Warning
+        }
+        else {
+            Write-PSFMessage "Error counting enrolled devices: $($_.Exception.Message)" -Tag Test -Level Warning
+        }
         $params = @{
             TestId       = '51013'
             Title        = 'App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)'
@@ -83,13 +89,19 @@ function Test-Assessment-51013 {
     $androidPolicies = @()
 
     try {
-        $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections' -Select 'id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
+        $iosPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/iosManagedAppProtections' -Select 'id,displayName,appActionIfUnableToAuthenticateUser,isAssigned' -ApiVersion beta -ErrorAction Stop)
 
         Write-ZtProgress -Activity $activity -Status 'Getting Android app protection policies'
-        $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections' -Select 'id,displayName,appActionIfUnableToAuthenticateUser,isAssigned,deployedAppCount' -ApiVersion beta -ErrorAction Stop)
+        $androidPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceAppManagement/androidManagedAppProtections' -Select 'id,displayName,appActionIfUnableToAuthenticateUser,isAssigned' -ApiVersion beta -ErrorAction Stop)
     }
     catch {
-        Write-PSFMessage "Error querying App Protection Policies: $($_.Exception.Message)" -Tag Test -Level Warning
+        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+        if ($statusCode -in @(401, 403)) {
+            Write-PSFMessage "Error querying App Protection Policies: HTTP $statusCode - insufficient permissions to read App Protection Policies." -Tag Test -Level Warning
+        }
+        else {
+            Write-PSFMessage "Error querying App Protection Policies: $($_.Exception.Message)" -Tag Test -Level Warning
+        }
         $params = @{
             TestId       = '51013'
             Title        = 'App Protection Policies block managed-app access when user re-authentication fails (disabled Entra ID accounts, blocked sign-ins, expired tokens)'
