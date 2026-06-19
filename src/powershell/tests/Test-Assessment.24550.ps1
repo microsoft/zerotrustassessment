@@ -25,6 +25,39 @@ function Test-Assessment-24550 {
     )
 
     #region Helper Functions
+    function Get-AllSettingInstances {
+        # Recursively collects every setting instance in a policy's settings tree,
+        # including those nested inside groupSettingCollectionValue.children and
+        # groupSettingValue.children paths used by Settings Catalog policies.
+        param([array]$SettingInstances)
+        $result = [System.Collections.Generic.List[object]]::new()
+        foreach ($si in $SettingInstances) {
+            if ($null -eq $si) { continue }
+            $result.Add($si)
+            if ($si.groupSettingCollectionValue) {
+                foreach ($gsv in $si.groupSettingCollectionValue) {
+                    if ($gsv.children) {
+                        $result.AddRange([object[]](Get-AllSettingInstances -SettingInstances @($gsv.children)))
+                    }
+                }
+            }
+            if ($si.groupSettingValue -and $si.groupSettingValue.children) {
+                $result.AddRange([object[]](Get-AllSettingInstances -SettingInstances @($si.groupSettingValue.children)))
+            }
+            if ($si.choiceSettingValue -and $si.choiceSettingValue.children) {
+                $result.AddRange([object[]](Get-AllSettingInstances -SettingInstances @($si.choiceSettingValue.children)))
+            }
+            if ($si.choiceSettingCollectionValue) {
+                foreach ($csv in $si.choiceSettingCollectionValue) {
+                    if ($csv.children) {
+                        $result.AddRange([object[]](Get-AllSettingInstances -SettingInstances @($csv.children)))
+                    }
+                }
+            }
+        }
+        return $result
+    }
+
     function Test-PolicyAssignment {
         [CmdletBinding()]
         param(
@@ -53,15 +86,25 @@ function Test-Assessment-24550 {
     Write-ZtProgress -Activity $activity -Status "Getting modern BitLocker policies"
 
     # Query 1: Retrieve modern Windows 10 Settings Catalog / Endpoint Security configuration policies from DB
+    # templateReference is a DuckDB STRUCT — wrap in to_json() so PowerShell can access its properties.
+    # Personal Data Encryption policies are excluded in the WHERE clause.
     $sql = @"
-    SELECT id, name, platforms, templateReference, to_json(settings) as settings, to_json(assignments) as assignments
+    SELECT id, name, platforms,
+           to_json(templateReference) as templateReference,
+           to_json(settings) as settings,
+           to_json(assignments) as assignments
     FROM ConfigurationPolicy
     WHERE platforms LIKE '%windows10%'
+      AND (templateReference.templateDisplayName NOT LIKE '%Personal Data Encryption%'
+           OR templateReference.templateDisplayName IS NULL)
 "@
     $modernPoliciesRaw = Invoke-DatabaseQuery -Database $Database -Sql $sql -AsCustomObject
 
     # Parse JSON fields
     foreach ($policy in $modernPoliciesRaw) {
+        if ($policy.templateReference -is [string]) {
+            $policy.templateReference = $policy.templateReference | ConvertFrom-Json
+        }
         if ($policy.settings -is [string]) {
             $policy.settings = $policy.settings | ConvertFrom-Json
         }
@@ -77,19 +120,18 @@ function Test-Assessment-24550 {
     $windowsBitLockerPolicies = @()
     foreach ($policy in $modernPoliciesRaw) {
         $isEndpointSecurityDiskEncryption = $policy.templateReference.templateFamily -eq 'endpointSecurityDiskEncryption'
-        $isPersonalDataEncryption = $policy.templateReference.templateDisplayName -like '*Personal Data Encryption*'
 
-        # Flatten all settingDefinitionIds across all nested setting instances
-        $allSettingIds = $policy.settings.settingInstance.settingDefinitionId
-        if ($allSettingIds -isnot [array]) { $allSettingIds = @($allSettingIds) }
+        # Recursively flatten all setting instances to catch settings nested inside
+        # groupSettingCollectionValue.children (common in Settings Catalog BitLocker policies)
+        $allInstances    = Get-AllSettingInstances -SettingInstances @($policy.settings.settingInstance)
+        $allSettingIds   = @($allInstances | ForEach-Object { $_.settingDefinitionId } | Where-Object { $_ })
 
         $hasBitLockerSettings = ($allSettingIds | Where-Object { $_ -like 'device_vendor_msft_bitlocker*' }).Count -gt 0
 
-        # Only proceed if this is a BitLocker-relevant policy (not Personal Data Encryption)
-        if (-not $isPersonalDataEncryption -and ($isEndpointSecurityDiskEncryption -or $hasBitLockerSettings)) {
-            # Check that Require Device Encryption is explicitly enabled
-            $allChoiceValues = $policy.settings.settingInstance.choiceSettingValue.value
-            if ($allChoiceValues -isnot [array]) { $allChoiceValues = @($allChoiceValues) }
+        # Only proceed if this is a BitLocker-relevant policy
+        if ($isEndpointSecurityDiskEncryption -or $hasBitLockerSettings) {
+            # Check that Require Device Encryption is explicitly enabled anywhere in the setting tree
+            $allChoiceValues = @($allInstances | ForEach-Object { $_.choiceSettingValue.value } | Where-Object { $_ })
 
             if ($allChoiceValues -contains 'device_vendor_msft_bitlocker_requiredeviceencryption_1') {
                 $windowsBitLockerPolicies += $policy
@@ -216,7 +258,7 @@ $legacyRows
 
     $params = @{
         TestId = '24550'
-        Title  = 'Windows BitLocker policy is configured and assigned'
+        Title  = 'Data on Windows is protected by BitLocker encryption'
         Status = $passed
         Result = $testResultMarkdown
     }
