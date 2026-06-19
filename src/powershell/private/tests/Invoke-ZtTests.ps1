@@ -149,10 +149,10 @@
 			$workflow | Stop-PSFRunspaceWorkflow
 			foreach ($fail in $workflow.Workers.Tester.Errors) {
 				if ($script:__ZtSession.TestStatistics.Value[$fail.TargetObject.TestID]) {
-					Write-PSFMessage -Level Verbose -Message 'Error processing test {0}, will show up in the Dashboard as failed.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Handled -ErrorStack
+					Write-PSFMessage -Level Verbose -Message 'Error processing test {0}, will show up in the Dashboard as failed.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Handled
 				}
 				else {
-					Write-PSFMessage -Level Warning -Message 'System Error processing test {0}, will not show up in the Dashboard.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Unhandled -ErrorStack
+					Write-PSFMessage -Level Warning -Message 'System Error processing test {0}, will not show up in the Dashboard.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Unhandled
 				}
 			}
 			if (-not (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Debug.KeepWorkflows')) {
