@@ -148,7 +148,12 @@
 			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
 			foreach ($fail in $workflow.Workers.Tester.Errors) {
-				Write-PSFMessage -Level VeryVerbose -Message 'Error processing test {0}' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.TargetObject.Error -Target $fail.TargetObject -Tag TestFail -ErrorStack
+				if ($script:__ZtSession.TestStatistics.Value[$fail.TargetObject.TestID]) {
+					Write-PSFMessage -Level Verbose -Message 'Error processing test {0}, will show up in the Dashboard as failed.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Handled -ErrorStack
+				}
+				else {
+					Write-PSFMessage -Level Warning -Message 'System Error processing test {0}, will not show up in the Dashboard.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Unhandled -ErrorStack
+				}
 			}
 			if (-not (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Debug.KeepWorkflows')) {
 				$workflow | Remove-PSFRunspaceWorkflow
