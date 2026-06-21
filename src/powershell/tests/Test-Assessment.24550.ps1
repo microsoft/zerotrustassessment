@@ -142,7 +142,14 @@ function Test-Assessment-24550 {
     Write-ZtProgress -Activity $activity -Status "Getting legacy BitLocker profiles"
 
     # Query 2: Retrieve legacy Windows device configuration profiles that enforce BitLocker / device encryption
-    $deviceConfigsRaw = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/deviceConfigurations?`$expand=assignments" -ApiVersion beta
+    try {
+        $deviceConfigsRaw = Invoke-ZtGraphRequest -RelativeUri "deviceManagement/deviceConfigurations?`$expand=assignments" `
+            -ApiVersion beta -ErrorAction Stop
+    }
+    catch {
+        Write-PSFMessage "Failed to retrieve legacy device configuration profiles: $_" -Tag Test -Level Warning
+        $deviceConfigsRaw = @()
+    }
 
     $legacyWindowsBitLockerProfiles = @()
     $legacyWindowsTypes = @(
