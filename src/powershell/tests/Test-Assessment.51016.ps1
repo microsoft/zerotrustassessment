@@ -159,19 +159,18 @@ function Test-Assessment-51016 {
     $hasJustification     = $enablementRule -and ($enablementRule.enabledRules -contains 'Justification')
     $isExpirationRequired = $expirationRule -and ($expirationRule.isExpirationRequired -eq $true)
 
-    # Parse maximumDuration and compare against PT8H (28800 seconds)
-    $maxDurationRaw     = $expirationRule.maximumDuration
-    $maxDurationSeconds = 0
-    $maxDurationOk      = $false
+    # Parse maximumDuration and compare against PT8H (8 hours).
+    # [System.Xml.XmlConvert]::ToTimeSpan() handles ISO 8601 durations natively.
+    $maxDurationRaw    = $expirationRule.maximumDuration
+    $maxDurationOk     = $false
+    $maxDurationParsed = $false
     if ($isExpirationRequired -and $maxDurationRaw) {
-        if ($maxDurationRaw -match '^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$') {
-            $days    = if ($Matches[1]) { [int]$Matches[1] } else { 0 }
-            $hours   = if ($Matches[2]) { [int]$Matches[2] } else { 0 }
-            $minutes = if ($Matches[3]) { [int]$Matches[3] } else { 0 }
-            $secs    = if ($Matches[4]) { [int]$Matches[4] } else { 0 }
-            $maxDurationSeconds = $days * 86400 + $hours * 3600 + $minutes * 60 + $secs
+        try {
+            $maxDuration       = [System.Xml.XmlConvert]::ToTimeSpan($maxDurationRaw)
+            $maxDurationParsed = $true
+            $maxDurationOk     = $maxDuration.TotalSeconds -gt 0 -and $maxDuration.TotalSeconds -le 28800
         }
-        $maxDurationOk = ($maxDurationSeconds -gt 0) -and ($maxDurationSeconds -le 28800)
+        catch { }
     }
 
     # Q2: Count permanent standing enabled-Member assignments.
@@ -199,23 +198,22 @@ function Test-Assessment-51016 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $portalUrl = 'https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/ResourceMenuBlade/~/aadmigratedroles'
+    $tenantId          = (Get-MgContext).TenantId
+    $portalUrl         = "https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/menuId/members/roleName/Intune%20Administrator/roleObjectId/$intuneAdminRoleId/isRoleCustom~/false/roleTemplateId/$intuneAdminRoleId/resourceId/$tenantId/isInternalCall~/true"
+    $maxItemsToDisplay = 10
 
-    # --- Table 1: PIM Eligibility (Q3) — informational ---
+    # --- Table 1: PIM Eligibility (Q3 — Informational) ---
     $eligibilityRows = ''
     if ($eligibilitySchedules.Count -gt 0) {
-        $displaySchedules = if ($eligibilitySchedules.Count -gt 20) { $eligibilitySchedules[0..19] } else { $eligibilitySchedules }
-        foreach ($schedule in $displaySchedules) {
+        foreach ($schedule in ($eligibilitySchedules | Select-Object -First $maxItemsToDisplay)) {
             $principalName = Get-SafeMarkdown -Text ($schedule.principal.displayName ?? $schedule.principalId)
             $odataType     = $schedule.principal.'@odata.type'
             $principalType = if ($odataType) { $odataType -replace '#microsoft.graph\.', '' } else { 'Unknown' }
             $memberType    = if ($schedule.memberType) { $schedule.memberType } else { '-' }
             $startDt       = if ($schedule.startDateTime) { Get-FormattedDate $schedule.startDateTime } else { 'N/A' }
             $endDt         = if ($schedule.endDateTime)   { Get-FormattedDate $schedule.endDateTime }   else { 'Permanent' }
-            $eligibilityRows += "| $principalName | $principalType | $memberType | $startDt → $endDt | ℹ️ Informational |`n"
-        }
-        if ($eligibilitySchedules.Count -gt 20) {
-            $eligibilityRows += "| ... ($($eligibilitySchedules.Count) total) | | | | |`n"
+            $scheduleStatus = if ($schedule.status) { $schedule.status } else { '-' }
+            $eligibilityRows += "| $principalName | $principalType | $memberType | $startDt → $endDt | $scheduleStatus |`n"
         }
     }
     else {
@@ -243,7 +241,7 @@ function Test-Assessment-51016 {
     elseif (-not $isExpirationRequired) {
         '❌ Fail (expiration not required)'
     }
-    elseif ($maxDurationSeconds -eq 0) {
+    elseif (-not $maxDurationParsed) {
         '❌ Fail (duration not parseable)'
     }
     else {
@@ -258,8 +256,7 @@ function Test-Assessment-51016 {
     # --- Table 3: Standing permanent assignments (Q2) ---
     $standingRows = ''
     if ($assignmentInstances.Count -gt 0) {
-        $displayInstances = if ($assignmentInstances.Count -gt 20) { $assignmentInstances[0..19] } else { $assignmentInstances }
-        foreach ($instance in $displayInstances) {
+        foreach ($instance in ($assignmentInstances | Select-Object -First $maxItemsToDisplay)) {
             $principalName = Get-SafeMarkdown -Text ($instance.principal.displayName ?? $instance.principalId)
             $upn           = if ($instance.principal.userPrincipalName) { $instance.principal.userPrincipalName } else { '-' }
             $assignType    = if ($instance.assignmentType) { $instance.assignmentType } else { '-' }
@@ -277,26 +274,29 @@ function Test-Assessment-51016 {
             $rowStatus = if ($isPermanentStanding) { '❌ Fail' } else { '✅ Pass' }
             $standingRows += "| $principalName | $upn | $assignType | $memberType | $endTime | $accountEnabled | $rowStatus |`n"
         }
-        if ($assignmentInstances.Count -gt 20) {
-            $standingRows += "| ... ($($assignmentInstances.Count) total) | | | | | | |`n"
-        }
     }
     else {
-        $standingRows = "| *No role assignments found* | | | | | | |`n"
+        $standingRows = "| _no rows returned — no enabled Member user holds standing Intune Administrator_ | | | | | | ✅ Pass |`n"
     }
 
-    $mdInfo  = "`n## [Intune Administrator — PIM Eligibility (Q3)]($portalUrl)`n`n"
-    $mdInfo += "| Principal | Type | Member Type | Eligibility Window | Status |`n"
+    $mdInfo  = "`n## [PIM eligibility (ℹ️ Informational)]($portalUrl)`n`n"
+    $mdInfo += "| Principal | Type | Member type | Eligibility window | Status |`n"
     $mdInfo += "| :-------- | :--- | :---------- | :----------------- | :----- |`n"
     $mdInfo += $eligibilityRows
-    $mdInfo += "`n## [Activation Policy Rules (Q4)]($portalUrl)`n`n"
-    $mdInfo += "| Rule | Setting | Value | Required Value | Status |`n"
+    if ($eligibilitySchedules.Count -gt $maxItemsToDisplay) {
+        $mdInfo += "`n`n_**Note**: This table is truncated and showing the first $maxItemsToDisplay of $($eligibilitySchedules.Count) eligible assignments._`n"
+    }
+    $mdInfo += "`n## [Activation policy rules]($portalUrl)`n`n"
+    $mdInfo += "| Rule | Setting | Value | Required value | Status |`n"
     $mdInfo += "| :--- | :------ | :---- | :------------- | :----- |`n"
     $mdInfo += $policyRows
-    $mdInfo += "`n## [Standing Permanent Assignments (Q2)]($portalUrl)`n`n"
-    $mdInfo += "| Principal | UPN | Assignment Type | Member Type | End Time | Enabled | Status |`n"
+    $mdInfo += "`n## [Standing permanent assignments]($portalUrl)`n`n"
+    $mdInfo += "| Principal | UPN | Assignment type | Member type | End time | Enabled | Status |`n"
     $mdInfo += "| :-------- | :-- | :-------------- | :---------- | :------- | :------ | :----- |`n"
     $mdInfo += $standingRows
+    if ($assignmentInstances.Count -gt $maxItemsToDisplay) {
+        $mdInfo += "`n`n_**Note**: This table is truncated and showing the first $maxItemsToDisplay of $($assignmentInstances.Count) role assignment instances._`n"
+    }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
