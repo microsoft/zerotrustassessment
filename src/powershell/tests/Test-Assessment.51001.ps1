@@ -5,7 +5,7 @@
 
 function Test-Assessment-51001 {
     [ZtTest(
-        Category = 'Device',
+        Category = 'Devices',
         CompatibleLicense = ('Intune_Suite'),
         ImplementationCost = 'Medium',
         Pillar = 'Devices',
