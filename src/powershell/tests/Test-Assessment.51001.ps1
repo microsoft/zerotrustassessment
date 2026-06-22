@@ -10,6 +10,7 @@ function Test-Assessment-51001 {
         ImplementationCost = 'Medium',
         Pillar = 'Devices',
         RiskLevel = 'High',
+        Service = ('Graph'),
         SfiPillar = 'Protect engineering systems',
         TenantType = ('Workforce'),
         TestId = 51001,
@@ -27,6 +28,24 @@ function Test-Assessment-51001 {
     $activity = 'Checking that Windows Endpoint Privilege Management policies are configured and assigned'
     Write-ZtProgress -Activity $activity
 
+    # Q1: Verify Intune Suite / EPM license is present in the tenant
+    $epmLicensed = $false
+    $licenseQueryFailed = $false
+    try {
+        $subscribedSkus = Invoke-ZtGraphRequest -RelativeUri 'subscribedSkus' -ErrorAction Stop
+        $epmLicensed = @($subscribedSkus | Where-Object {
+            $_.capabilityStatus -eq 'Enabled' -and
+            ($_.servicePlans | Where-Object {
+                $_.servicePlanName -eq 'Intune-EPM' -and $_.provisioningStatus -eq 'Success'
+            })
+        }).Count -gt 0
+    }
+    catch {
+        $licenseQueryFailed = $true
+        Write-PSFMessage "Failed to retrieve subscribed SKUs: $_" -Tag Test -Level Warning
+    }
+
+    # Q2: Retrieve all EPM elevation settings and elevation rules policies
     $sql = @"
     SELECT id, name, platforms, technologies, isAssigned, templateReference, to_json(assignments) as assignments
     FROM ConfigurationPolicy
@@ -42,42 +61,46 @@ function Test-Assessment-51001 {
         $displayName = [string]$policy.templateReference.templateDisplayName
         $policyType = 'Other'
         if ($displayName -match 'Elevation settings') {
-            $policyType = 'Elevation settings'
+            $policyType = 'Elevation Settings'
         }
         elseif ($displayName -match 'Elevation rules') {
-            $policyType = 'Elevation rules'
+            $policyType = 'Elevation Rules'
         }
         $policy | Add-Member -NotePropertyName PolicyType -NotePropertyValue $policyType -Force
     }
 
-    $settingsPolicies = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation settings' })
-    $rulesPolicies    = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation rules' })
+    $settingsPolicies = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation Settings' })
+    $rulesPolicies    = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation Rules' })
 
     $settingsAssigned = @($settingsPolicies | Where-Object { $_.isAssigned }).Count -gt 0
     $rulesAssigned    = @($rulesPolicies    | Where-Object { $_.isAssigned }).Count -gt 0
     #endregion Data Collection
 
     #region Assessment Logic
-    if ($epmPolicies.Count -eq 0) {
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+    if ($licenseQueryFailed) {
+        Add-ZtTestResultDetail -TestId '51001' -Title 'Windows Endpoint Privilege Management is configured and assigned' -Status $false -CustomStatus 'Investigate' -UserImpact 'Medium' -Risk 'High' -ImplementationCost 'Medium' -AppliesTo 'Devices' -Tag 'Devices' -Result '⚠️ The Intune Endpoint Privilege Management policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
+        return
+    }
+    elseif (-not $epmLicensed) {
+        Add-ZtTestResultDetail -TestId '51001' -Title 'Windows Endpoint Privilege Management is configured and assigned' -Status $false -UserImpact 'Medium' -Risk 'High' -ImplementationCost 'Medium' -AppliesTo 'Devices' -Tag 'Devices' -Result '❌ Windows endpoints are not protected by centrally governed elevation control — the tenant does not have an active Intune Suite license (no Intune-EPM service plan). EPM is an Intune Suite add-on and cannot be enabled without the license.'
         return
     }
     elseif ($settingsAssigned -and $rulesAssigned) {
         $passed = $true
         $customStatus = $null
-        $summary = '✅ Windows Endpoint Privilege Management elevation settings and elevation rules policies are configured and assigned.'
+        $summary = '✅ At least one Windows Endpoint Privilege Management elevation settings policy is assigned, and at least one EPM elevation rules policy is created and assigned.'
     }
     elseif ($settingsAssigned -xor $rulesAssigned) {
         $passed = $false
-        $customStatus = 'Investigate'
+        $customStatus = $null
         $present = if ($settingsAssigned) { 'elevation settings' } else { 'elevation rules' }
         $missing = if ($settingsAssigned) { 'elevation rules' } else { 'elevation settings' }
-        $summary = "⚠️ An EPM $present policy is configured and assigned, but no $missing policy is assigned. Manual review is needed."
+        $summary = "❌ Windows endpoints are not protected by centrally governed elevation control — an EPM $present policy is assigned but no $missing policy is assigned. Both policy types are required."
     }
     else {
         $passed = $false
         $customStatus = $null
-        $summary = '❌ No Endpoint Privilege Management elevation settings policy or elevation rules policy is configured and assigned.'
+        $summary = '❌ Windows endpoints are not protected by centrally governed elevation control — no elevation settings policy or elevation rules policy is configured and assigned.'
     }
     #endregion Assessment Logic
 
@@ -100,8 +123,8 @@ function Test-Assessment-51001 {
 
 Total EPM policies found: **{2}**
 
-| Policy Name | Policy Type | Assigned | Assignment Targets | Status |
-| :---------- | :---------- | :------- | :----------------- | :----- |
+| Policy Name | Policy Type | Assigned | Status |
+| :---------- | :---------- | :------- | :----- |
 {3}
 
 '@
@@ -113,20 +136,18 @@ Total EPM policies found: **{2}**
 
             if ($policy.isAssigned) {
                 $assigned = '✅ Yes'
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $policy.assignments
                 $rowStatus = 'Pass'
             }
             else {
                 $assigned = '❌ No'
-                $assignmentTarget = 'None'
                 $rowStatus = 'Fail'
             }
 
-            $tableRows += "| [$policyName]($policyLink) | $($policy.PolicyType) | $assigned | $assignmentTarget | $rowStatus |`n"
+            $tableRows += "| [$policyName]($policyLink) | $($policy.PolicyType) | $assigned | $rowStatus |`n"
         }
 
         if ($epmPolicies.Count -gt 10) {
-            $tableRows += "| ... | ... | ... | ... | ... |`n"
+            $tableRows += "| ... | ... | ... | ... |`n"
         }
 
         # Format the template by replacing placeholders with values
