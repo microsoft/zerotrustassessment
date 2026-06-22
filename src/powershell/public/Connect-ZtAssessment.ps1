@@ -455,7 +455,9 @@ function Connect-ZtAssessment {
 				Write-PSFMessage -Message ('Loading Azure Information Protection required modules: {0}' -f ($resolvedRequiredModules.AipService.Name -join ', ')) -Level Verbose
 				$loadedAipServiceModules = $resolvedRequiredModules.AipService.ForEach{
 					#TODO: only add -UseWindowsPowerShell for the modules in WindowsRequiredModules based on module manifest.
-					$_ | Import-Module -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
+
+					# Use Path (full path to the .psd1 manifest) so WinPS5 implicit remoting can locate the module, even when it is installed under the PS7 module path ([..]\PowerShell\Modules) rather than the WinPS5 path ([..]\WindowsPowerShell\Modules)
+					Import-Module -Name $_.Path -Global -ErrorAction Stop -PassThru -UseWindowsPowerShell -WarningAction SilentlyContinue
 				}
 
 				$loadedAipServiceModules.ForEach{
