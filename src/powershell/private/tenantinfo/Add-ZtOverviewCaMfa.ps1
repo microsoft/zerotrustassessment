@@ -18,10 +18,10 @@ function Add-ZtOverviewCaMfa {
 			$Database
 		)
 
-		$caMfa = @($Results).Where{ $_.conditionalAccessStatus -eq 'success' -and $_.authenticationRequirement -eq 'multiFactorAuthentication' }.cnt -as [int]
-		$caNoMfa = @($Results).Where{ $_.conditionalAccessStatus -eq 'success' -and $_.authenticationRequirement -eq 'singleFactorAuthentication' }.cnt -as [int]
-		$noCaMfa = @($Results).Where{ $_.conditionalAccessStatus -eq 'notApplied' -and $_.authenticationRequirement -eq 'multiFactorAuthentication' }.cnt -as [int]
-		$noCaNoMfa = @($Results).Where{ $_.conditionalAccessStatus -eq 'notApplied' -and $_.authenticationRequirement -eq 'singleFactorAuthentication' }.cnt -as [int]
+		$caMfa = (@($Results).Where{ $_.conditionalAccessStatus -eq 'success' -and $_.authenticationRequirement -eq 'multiFactorAuthentication' }.cnt -as [int]) ?? 0
+		$caNoMfa = (@($Results).Where{ $_.conditionalAccessStatus -eq 'success' -and $_.authenticationRequirement -eq 'singleFactorAuthentication' }.cnt -as [int]) ?? 0
+		$noCaMfa = (@($Results).Where{ $_.conditionalAccessStatus -eq 'notApplied' -and $_.authenticationRequirement -eq 'multiFactorAuthentication' }.cnt -as [int]) ?? 0
+		$noCaNoMfa = (@($Results).Where{ $_.conditionalAccessStatus -eq 'notApplied' -and $_.authenticationRequirement -eq 'singleFactorAuthentication' }.cnt -as [int]) ?? 0
 
 		$nodes = @(
 			@{
