@@ -49,7 +49,7 @@ function Convert-ZtAssessmentToWorkshop {
 		[string] $Pillar,
 
 		[Parameter(Mandatory = $false)]
-		[string[]] $KnownPillars = @('identity', 'devices', 'data', 'network', 'infrastructure', 'secops', 'ai')
+		[string[]] $KnownPillars = @('identity', 'devices', 'data', 'network', 'infrastructure', 'security-ops', 'ai')
 	)
 
 	function Get-ObjectValue {
