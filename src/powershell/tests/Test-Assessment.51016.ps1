@@ -200,6 +200,7 @@ function Test-Assessment-51016 {
     #region Report Generation
     $tenantId          = (Get-MgContext).TenantId
     $portalUrl         = "https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/menuId/members/roleName/Intune%20Administrator/roleObjectId/$intuneAdminRoleId/isRoleCustom~/false/roleTemplateId/$intuneAdminRoleId/resourceId/$tenantId/isInternalCall~/true"
+    $roleSettingsPortalUrl = "https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/settings/menuId/members/roleName/Intune%20Administrator/roleObjectId/$intuneAdminRoleId/isRoleCustom~/false/roleTemplateId/$intuneAdminRoleId/resourceId/$tenantId/isInternalCall~/true"
     $maxItemsToDisplay = 10
 
     # --- Table 1: PIM Eligibility (Q3 — Informational) ---
@@ -279,14 +280,14 @@ function Test-Assessment-51016 {
         $standingRows = "| _no rows returned — no enabled Member user holds standing Intune Administrator_ | | | | | | ✅ Pass |`n"
     }
 
-    $mdInfo  = "`n## [PIM eligibility (ℹ️ Informational)]($portalUrl)`n`n"
+    $mdInfo  = "`n## [PIM eligibility (Informational)]($portalUrl)`n`n"
     $mdInfo += "| Principal | Type | Member type | Eligibility window | Status |`n"
     $mdInfo += "| :-------- | :--- | :---------- | :----------------- | :----- |`n"
     $mdInfo += $eligibilityRows
     if ($eligibilitySchedules.Count -gt $maxItemsToDisplay) {
         $mdInfo += "`n`n_**Note**: This table is truncated and showing the first $maxItemsToDisplay of $($eligibilitySchedules.Count) eligible assignments._`n"
     }
-    $mdInfo += "`n## [Activation policy rules]($portalUrl)`n`n"
+    $mdInfo += "`n## [Activation policy rules]($roleSettingsPortalUrl)`n`n"
     $mdInfo += "| Rule | Setting | Value | Required value | Status |`n"
     $mdInfo += "| :--- | :------ | :---- | :------------- | :----- |`n"
     $mdInfo += $policyRows
