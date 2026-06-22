@@ -48,19 +48,19 @@ function Test-Assessment-51018 {
     # If zero Windows devices are enrolled, the check is reported as Skipped.
     Write-ZtProgress -Activity $activity -Status 'Checking enrolled Windows devices'
     $windowsDeviceCount = 0
-    $windowsQ1Error = $false
+    $q1Error = $false
 
     try {
         $windowsResult = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Windows'" -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
         $windowsDeviceCount = $windowsResult.'@odata.count'
     }
     catch {
-        $windowsQ1Error = $true
+        $q1Error = $true
         Write-PSFMessage "Windows enrolled-device query (Q1) failed: $_" -Tag Test -Level Warning
     }
 
     # If Q1 failed, scope cannot be determined — stop early.
-    if ($windowsQ1Error) {
+    if ($q1Error) {
         $params = @{
             TestId       = '51018'
             Title        = 'Windows App Control for Business (WDAC) is configured and assigned via Intune'
