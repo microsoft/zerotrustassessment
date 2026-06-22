@@ -41,8 +41,7 @@ function Test-Assessment-51021 {
 
     # Q2: Retrieve active and eligible Intune Administrator role assignments via Graph.
     # templateId == roleDefinitionId for built-in Entra roles, so Q1 is skipped — the well-known GUID is used directly.
-    # Failures here are non-fatal; the Entra admin rows are simply omitted from the output table.
-    $intuneAdminRoleId = '3a2c62db-5318-420d-8d74-23affee5d9d5'
+    $intuneAdminRoleId = Get-ZtRoleInfo -RoleName 'IntuneAdministrator'
     Write-ZtProgress -Activity $activity -Status 'Retrieving Intune Administrator role assignments'
     $entraAdminAssignments = @()
     try {
