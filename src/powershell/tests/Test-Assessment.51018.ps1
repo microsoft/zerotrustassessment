@@ -51,7 +51,7 @@ function Test-Assessment-51018 {
     $q1Error = $false
 
     try {
-        $windowsResult = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Windows'" -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
+        $windowsResult = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Filter "operatingSystem eq 'Windows'" -Select 'id' -Top 1 -QueryParameters @{'$count' = 'true'} -ApiVersion beta -DisablePaging -ErrorAction Stop
         $windowsDeviceCount = $windowsResult.'@odata.count'
     }
     catch {
