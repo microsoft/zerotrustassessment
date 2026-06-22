@@ -213,6 +213,17 @@ function Initialize-Dependencies {
                     $moduleSpec | &$saveModuleCmd @saveModuleCmdParams
                     Write-Host -Object ('    ⬇️ Module {0} saved successfully.' -f $moduleSpec.Name) -ForegroundColor Green
                 }
+
+                # Unblock files downloaded from the internet so WinPS5 implicit remoting can load their DLLs.
+                # Downloaded files carry a Zone.Identifier ADS mark that causes 0x80131515 when .NET tries to load them.
+                if ($IsWindows) {
+                    $savedModulePath = Join-Path -Path $RequiredModulesPath -ChildPath $moduleSpec.Name
+                    if (Test-Path -Path $savedModulePath) {
+                        Get-ChildItem -Path $savedModulePath -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+                            ($_ | Get-Item -Stream Zone.Identifier -ErrorAction SilentlyContinue) -and (Get-Content -LiteralPath $_.FullName -Stream Zone.Identifier -ErrorAction SilentlyContinue) -match 'ZoneId\s*=\s*[34]'
+                        } | Unblock-File -ErrorAction SilentlyContinue
+                    }
+                }
             }
             catch
             {
