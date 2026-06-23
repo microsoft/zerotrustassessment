@@ -45,6 +45,7 @@
         'NetworkAccess.Read.All'
         'IdentityRiskyServicePrincipal.Read.All'
         'CopilotPackages.Read.All'
+        'SecurityIdentitiesSensors.Read.All'
     )
 
     $scopes | Sort-Object -Unique
