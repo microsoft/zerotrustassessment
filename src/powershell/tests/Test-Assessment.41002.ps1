@@ -84,32 +84,46 @@ function Test-Assessment-41002 {
             $testResultMarkdown = "❌ Microsoft Defender for Identity is onboarded but no domain controller sensors are registered.`n`n%TestResult%"
         }
         else {
-            # Treat unrecognised enum values as unsafe to interpret
-            $hasUnknown = ($allDcSensors | Where-Object {
-                $_.deploymentStatus -eq 'unknownFutureValue' -or
-                $_.healthStatus     -eq 'unknownFutureValue'
-            } | Measure-Object).Count -gt 0
+            # Classify each sensor field-by-field per the spec enum mapping, then compute
+            # per-sensor and overall verdicts using Fail > Investigate > Pass precedence.
+            foreach ($sensor in $allDcSensors) {
+                $deployVerdict = switch ($sensor.deploymentStatus) {
+                    'upToDate'                                                      { 'Pass' }
+                    { $_ -in @('updating', 'syncing', 'unknownFutureValue') }       { 'Investigate' }
+                    default                                                         { 'Fail' }
+                }
+                $serviceVerdict = switch ($sensor.serviceStatus) {
+                    'running'                                                       { 'Pass' }
+                    { $_ -in @('starting', 'onboarding', 'unknown',
+                               'unknownFutureValue') }                              { 'Investigate' }
+                    default                                                         { 'Fail' }
+                }
+                $healthVerdict = switch ($sensor.healthStatus) {
+                    'healthy'            { 'Pass' }
+                    'unknownFutureValue' { 'Investigate' }
+                    default              { 'Fail' }
+                }
+                $issuesVerdict = if ($sensor.openHealthIssuesCount -eq 0) { 'Pass' } else { 'Fail' }
 
-            if ($hasUnknown) {
+                $fieldVerdicts = @($deployVerdict, $serviceVerdict, $healthVerdict, $issuesVerdict)
+                $sensorVerdict = if     ($fieldVerdicts -contains 'Fail')        { 'Fail' }
+                                 elseif ($fieldVerdicts -contains 'Investigate') { 'Investigate' }
+                                 else                                            { 'Pass' }
+                $sensor | Add-Member -NotePropertyName SensorVerdict -NotePropertyValue $sensorVerdict -Force
+            }
+
+            $allVerdicts = @($allDcSensors | Select-Object -ExpandProperty SensorVerdict)
+            if ($allVerdicts -contains 'Fail') {
+                $passed             = $false
+                $testResultMarkdown = "❌ One or more Microsoft Defender for Identity domain controller sensors are missing, unhealthy, outdated, or not running.`n`n%TestResult%"
+            }
+            elseif ($allVerdicts -contains 'Investigate') {
                 $customStatus       = 'Investigate'
-                $testResultMarkdown = "⚠️ One or more domain controller sensors report an unrecognised status value (``unknownFutureValue``). The assessment cannot safely determine pass or fail; review sensor health in the Defender XDR portal.`n`n%TestResult%"
+                $testResultMarkdown = "⚠️ One or more domain controller sensors report a transient or unrecognised status. Review sensor health in the Defender XDR portal.`n`n%TestResult%"
             }
             else {
-                $failingSensors = @($allDcSensors | Where-Object {
-                    $_.deploymentStatus      -ne 'upToDate' -or
-                    $_.healthStatus          -ne 'healthy'  -or
-                    $_.serviceStatus         -ne 'running'  -or
-                    $_.openHealthIssuesCount -ne 0
-                })
-
-                if ($failingSensors.Count -eq 0) {
-                    $passed             = $true
-                    $testResultMarkdown = "✅ All Microsoft Defender for Identity domain controller sensors are installed, healthy, up-to-date, and running.`n`n%TestResult%"
-                }
-                else {
-                    $passed             = $false
-                    $testResultMarkdown = "❌ One or more Microsoft Defender for Identity domain controller sensors are missing, unhealthy, outdated, or not running.`n`n%TestResult%"
-                }
+                $passed             = $true
+                $testResultMarkdown = "✅ All Microsoft Defender for Identity domain controller sensors are installed, healthy, up-to-date, and running.`n`n%TestResult%"
             }
         }
     }
@@ -117,7 +131,7 @@ function Test-Assessment-41002 {
 
     #region Report Generation
     $mdInfo     = ''
-    $portalLink = 'https://security.microsoft.com/settings/identities'
+    $portalLink = 'https://security.microsoft.com/securitysettings/identities'
 
     if ($allDcSensors.Count -gt 0) {
         $maxDisplay     = 10
@@ -125,12 +139,7 @@ function Test-Assessment-41002 {
         $displaySensors = $allDcSensors | Select-Object -First $maxDisplay
         $isTruncated    = $totalCount -gt $maxDisplay
 
-        $hasFailures = ($allDcSensors | Where-Object {
-            $_.deploymentStatus      -ne 'upToDate' -or
-            $_.healthStatus          -ne 'healthy'  -or
-            $_.serviceStatus         -ne 'running'  -or
-            $_.openHealthIssuesCount -ne 0
-        } | Measure-Object).Count -gt 0
+        $hasFailures = ($allDcSensors | Where-Object { $_.SensorVerdict -ne 'Pass' } | Measure-Object).Count -gt 0
 
         if ($isTruncated -or $hasFailures) {
             $mdInfo += "[Defender XDR > Settings > Identities > Sensors]($portalLink)`n`n"
@@ -144,18 +153,18 @@ function Test-Assessment-41002 {
         $mdInfo += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | ---: | :--- |`n"
 
         foreach ($sensor in $displaySensors) {
-            $isHealthy = (
-                $sensor.deploymentStatus      -eq 'upToDate' -and
-                $sensor.healthStatus          -eq 'healthy'  -and
-                $sensor.serviceStatus         -eq 'running'  -and
-                $sensor.openHealthIssuesCount -eq 0
-            )
-            $rowStatus  = if ($isHealthy) { '✅ Pass' } else { '❌ Fail' }
+            $rowStatus  = switch ($sensor.SensorVerdict) {
+                'Pass'        { '✅ Pass' }
+                'Investigate' { '⚠️ Investigate' }
+                default       { '❌ Fail' }
+            }
             $sensorName = Get-SafeMarkdown -Text $sensor.displayName
             $mdInfo += "| $sensorName | $($sensor.domainName) | $($sensor.sensorType) | $($sensor.version) | $($sensor.deploymentStatus) | $($sensor.healthStatus) | $($sensor.serviceStatus) | $($sensor.openHealthIssuesCount) | $rowStatus |`n"
         }
 
-
+        if ($isTruncated) {
+            $mdInfo += "| ... | ... | ... | ... | ... | ... | ... | ... | ... |`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
@@ -163,7 +172,6 @@ function Test-Assessment-41002 {
 
     $params = @{
         TestId = '41002'
-        Title  = 'MDI domain controller sensor health'
         Status = $passed
         Result = $testResultMarkdown
     }
