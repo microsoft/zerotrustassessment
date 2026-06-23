@@ -7,6 +7,7 @@ function Test-Assessment-51001 {
     [ZtTest(
         Category = 'Devices',
         ImplementationCost = 'Medium',
+        MinimumLicense = ('Intune_Suite'),
         Pillar = 'Devices',
         RiskLevel = 'High',
         Service = ('Graph'),
@@ -71,13 +72,13 @@ function Test-Assessment-51001 {
     $settingsPolicies = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation Settings' })
     $rulesPolicies    = @($epmPolicies | Where-Object { $_.PolicyType -eq 'Elevation Rules' })
 
-    $settingsAssigned = @($settingsPolicies | Where-Object { $_.isAssigned }).Count -gt 0
-    $rulesAssigned    = @($rulesPolicies    | Where-Object { $_.isAssigned }).Count -gt 0
+    $settingsAssigned = @($settingsPolicies | Where-Object { $_.assignments -and $_.assignments.Count -gt 0 }).Count -gt 0
+    $rulesAssigned    = @($rulesPolicies    | Where-Object { $_.assignments -and $_.assignments.Count -gt 0 }).Count -gt 0
     #endregion Data Collection
 
     #region Assessment Logic
     if ($licenseQueryFailed) {
-        Add-ZtTestResultDetail -TestId '51001' -Status $false -CustomStatus 'Investigate' -Result '⚠️ The Intune Endpoint Privilege Management policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
+        Add-ZtTestResultDetail -TestId '51001' -Status $false -CustomStatus 'Investigate' -Result '⚠️ The licensing check (subscribedSkus) failed — an authorization (401/403) or transient (5xx) error was returned, so EPM license status and policy coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
         return
     }
     elseif (-not $epmLicensed) {
@@ -133,7 +134,7 @@ Total EPM policies found: **{2}**
             $encodedTechnologies = ([string]$policy.technologies) -replace ',', '%2C'
             $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($policy.id)/isAssigned~/true/technology/$encodedTechnologies/templateId/$($policy.templateReference.templateId)/platformName/$($policy.platforms)"
 
-            if ($policy.isAssigned) {
+            if ($policy.assignments -and $policy.assignments.Count -gt 0) {
                 $assigned = '✅ Yes'
                 $rowStatus = 'Pass'
             }
