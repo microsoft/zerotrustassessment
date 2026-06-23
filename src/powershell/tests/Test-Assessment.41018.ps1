@@ -13,8 +13,10 @@
 function Test-Assessment-41018 {
     [ZtTest(
         Category = 'Identity threat protection',
+        CompatibleLicense = ('ATA'),
         ImplementationCost = 'Low',
-        Pillar = 'Identity',
+        MinimumLicense = ('ATA'),
+        Pillar = 'SecOps',
         RiskLevel = 'High',
         Service = ('Graph'),
         SfiPillar = 'Monitor and detect cyberthreats',
@@ -78,7 +80,7 @@ function Test-Assessment-41018 {
             TestId       = '41018'
             Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
             Status       = $false
-            Result       = '⚠️ One or more MDI health issues returned an unknown severity value; coverage cannot be determined with confidence. Re-run after verifying schema compatibility.'
+            Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -98,7 +100,7 @@ function Test-Assessment-41018 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $healthPageUrl = 'https://security.microsoft.com/settings/identities'
+    $healthPageUrl = 'https://security.microsoft.com/securitysettings/identities'
     $mdInfo        = ''
 
     if ($healthIssues.Count -gt 0) {
