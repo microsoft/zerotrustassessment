@@ -4,10 +4,11 @@
 #>
 
 function Test-Assessment-51001 {
+    # CompatibleLicense is intentionally omitted: a custom license check is performed
+    # in the function body (verifying the Intune-EPM service plan via subscribedSkus).
     [ZtTest(
         Category = 'Devices',
         ImplementationCost = 'Medium',
-        MinimumLicense = ('Intune_Suite'),
         Pillar = 'Devices',
         RiskLevel = 'High',
         Service = ('Graph'),
