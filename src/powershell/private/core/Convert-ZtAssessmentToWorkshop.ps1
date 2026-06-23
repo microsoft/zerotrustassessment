@@ -72,6 +72,37 @@ function Convert-ZtAssessmentToWorkshop {
 		return $null
 	}
 
+	function Remove-MarkdownFormatting {
+		# Normalises a single note line for the Workshop importer:
+		#   * [text](url) -> text   (unwrap inline links, drop the URL)
+		#   * leading #, ##, ###    (drop markdown heading markers)
+		#   * **bold** -> bold      (remove bold emphasis markers)
+		#   * `n / \n literals      (strip stray newline escapes from source text)
+		# Backtick code spans are intentionally preserved.
+		param (
+			[Parameter(Mandatory = $false)]
+			[string] $Text
+		)
+
+		if ([string]::IsNullOrEmpty($Text)) { return $Text }
+
+		# Matches a markdown inline link [text](url) and captures the display
+		# text. The url alternation tolerates one level of nested parentheses
+		# (common in Azure portal / Wikipedia-style URLs) so the link is fully
+		# consumed.
+		$linkRegex = [regex]'\[([^\]]+)\]\((?:[^()]|\([^()]*\))*\)'
+
+		$Text = $linkRegex.Replace($Text, '$1')               # [text](url) -> text
+		$Text = [regex]::Replace($Text, '^\s*#{1,6}\s*', '')   # leading heading hashes
+		$Text = $Text -replace '\*\*', ''                      # **bold** -> bold
+		# Some source TestResult values contain literal newline escape sequences
+		# (PowerShell-style `n or C-style \n) that leaked in as visible text
+		# rather than real line breaks. Strip them so they don't appear in notes.
+		$Text = $Text -replace '`n', ' ' -replace '\\n', ' '
+		$Text = [regex]::Replace($Text, '\s{2,}', ' ')         # collapse doubled spaces
+		return $Text.Trim()
+	}
+
 	# The assessment pipeline passes the literal 'All' as its "no filter" sentinel.
 	# Treat 'All' (and empty) as no filter; anything else is a specific pillar.
 	$pillarFilterKey = $null
@@ -159,6 +190,10 @@ function Convert-ZtAssessmentToWorkshop {
 				$notesText = $testResult.Trim()
 			}
 		}
+
+		# Clean markdown/link/heading noise out of the extracted finding so the
+		# Workshop notes show plain, readable text (no-op for already-plain text).
+		$notesText = Remove-MarkdownFormatting -Text $notesText
 
 		foreach ($pillarName in $pillarNames) {
 			$pillarKey = $pillarName.ToLower()
