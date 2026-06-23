@@ -5,8 +5,7 @@
 
 function Test-Assessment-51001 {
     [ZtTest(
-        Category = 'Device',
-        CompatibleLicense = ('Intune_Suite'),
+        Category = 'Devices',
         ImplementationCost = 'Medium',
         Pillar = 'Devices',
         RiskLevel = 'High',
@@ -78,11 +77,11 @@ function Test-Assessment-51001 {
 
     #region Assessment Logic
     if ($licenseQueryFailed) {
-        Add-ZtTestResultDetail -TestId '51001' -Title 'Windows Endpoint Privilege Management is configured and assigned' -Status $false -CustomStatus 'Investigate' -UserImpact 'Medium' -Risk 'High' -ImplementationCost 'Medium' -AppliesTo 'Devices' -Tag 'Devices' -Result '⚠️ The Intune Endpoint Privilege Management policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
+        Add-ZtTestResultDetail -TestId '51001' -Status $false -CustomStatus 'Investigate' -Result '⚠️ The Intune Endpoint Privilege Management policies API returned an authorization (401/403) or transient (5xx) error, so coverage could not be determined. Re-run after verifying caller permissions — Global Reader at tenant scope.'
         return
     }
     elseif (-not $epmLicensed) {
-        Add-ZtTestResultDetail -TestId '51001' -Title 'Windows Endpoint Privilege Management is configured and assigned' -Status $false -UserImpact 'Medium' -Risk 'High' -ImplementationCost 'Medium' -AppliesTo 'Devices' -Tag 'Devices' -Result '❌ Windows endpoints are not protected by centrally governed elevation control — the tenant does not have an active Intune Suite license (no Intune-EPM service plan). EPM is an Intune Suite add-on and cannot be enabled without the license.'
+        Add-ZtTestResultDetail -TestId '51001' -Status $false -Result '❌ Windows endpoints are not protected by centrally governed elevation control — the tenant does not have an active Intune Suite license (no Intune-EPM service plan). EPM is an Intune Suite add-on and cannot be enabled without the license.'
         return
     }
     elseif ($settingsAssigned -and $rulesAssigned) {
