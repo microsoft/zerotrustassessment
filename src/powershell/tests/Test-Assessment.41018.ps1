@@ -117,7 +117,7 @@ function Test-Assessment-41018 {
             $issueType    = $issue.healthIssueType
             $sensors      = if ($issue.sensorDNSNames -and $issue.sensorDNSNames.Count -gt 0) { $issue.sensorDNSNames -join ', ' } else { '—' }
             $domains      = if ($issue.domainNames -and $issue.domainNames.Count -gt 0) { $issue.domainNames -join ', ' } else { '—' }
-            $lastModified = if ($issue.lastModifiedDateTime) { "$($issue.lastModifiedDateTime)".Substring(0, 10) } else { '—' }
+            $lastModified = if ($issue.lastModifiedDateTime) { Get-FormattedDate -DateString $issue.lastModifiedDateTime } else { '—' }
             $rowStatus    = if ($issue.severity -in ('medium', 'high')) { '❌ Fail' } else { '⚠️ Low severity' }
             $tableRows   += "| $displayName | $severity | $issueType | $sensors | $domains | $lastModified | $rowStatus |`n"
         }
