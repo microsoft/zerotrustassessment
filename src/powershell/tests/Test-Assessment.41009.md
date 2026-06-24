@@ -3,7 +3,7 @@ Dormant accounts (accounts that have not authenticated for an extended period â€
 **Remediation action**
 
 - [Remove dormant accounts from sensitive groups](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/accounts)
-- [Microsoft Defender for Identity security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments)
+- [Microsoft Defender for Identity security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-assessment)
 - [Protected accounts and groups in Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory)
 
 <!--- Results --->
