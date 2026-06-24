@@ -47,7 +47,7 @@ name: PR Validation (Run Assessment)
 
 # Surface the validated PR in the Actions run list so a maintainer can tell at a
 # glance which PR each run targeted (pr_number is a user-supplied dispatch input).
-run-name: PR Validation — PR #${{ inputs.pr_number }}
+run-name: "PR Validation — PR #${{ inputs.pr_number }}"
 
 on:
   workflow_dispatch:
