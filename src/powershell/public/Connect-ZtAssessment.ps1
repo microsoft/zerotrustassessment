@@ -71,8 +71,8 @@ function Connect-ZtAssessment {
 		[switch]
 		$UseTokenCache,
 
-		[string]
 		[Alias('Tenant')]
+		[string]
 		$TenantId,
 
 		[string]
