@@ -15,7 +15,6 @@ function Test-Assessment-41018 {
         Category = 'Identity threat protection',
         CompatibleLicense = ('ATA'),
         ImplementationCost = 'Low',
-        MinimumLicense = ('ATA'),
         Pillar = 'SecOps',
         RiskLevel = 'High',
         Service = ('Graph'),
