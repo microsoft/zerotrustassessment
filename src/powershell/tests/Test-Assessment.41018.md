@@ -4,7 +4,7 @@ Microsoft Defender for Identity health issues are the service's self-diagnostic 
 
 - [Microsoft Defender for Identity health issues](https://learn.microsoft.com/en-us/defender-for-identity/health-alerts)
 - [Troubleshoot Microsoft Defender for Identity known issues](https://learn.microsoft.com/en-us/defender-for-identity/troubleshooting-known-issues)
-- [Microsoft Defender for Identity sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/sensor-settings)
+- [Microsoft Defender for Identity sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-sensor-settings)
 
 <!--- Results --->
 %TestResult%
