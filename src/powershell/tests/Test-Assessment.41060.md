@@ -1,0 +1,11 @@
+Cloud-delivered protection connects Microsoft Defender Antivirus to Microsoft cloud protection services, also called Microsoft Advanced Protection Service. Microsoft Learn states that these services work with Defender Antivirus to provide accurate, real-time, and intelligent protection and rapid identification of new threats, sometimes before any endpoint is infected. This matters because new malware can appear before a device has received a traditional security intelligence update. When cloud protection is enabled, Defender Antivirus can query Microsoft cloud services that use distributed resources and machine learning to deliver faster protection to endpoints. Learn recommends keeping cloud protection turned on and notes that some Defender for Endpoint capabilities, including block at first sight and certain attack surface reduction protections, depend on it. Cloud protection is enabled by default, but previous organizational policy can disable it, so tenant-level evidence is still needed. This check reads the pinned MDATP Secure Score control IDs `scid_2016`, `scid_5094`, and `scid_6094` named for this spec and requires every returned control to be fully scored and not ignored.
+
+**Remediation action**
+
+- [Use Microsoft cloud-delivered protection](https://learn.microsoft.com/en-us/defender-endpoint/cloud-protection-microsoft-defender-antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Turn on cloud protection](https://learn.microsoft.com/en-us/defender-endpoint/enable-cloud-protection-microsoft-defender-antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Specify the cloud protection level](https://learn.microsoft.com/en-us/defender-endpoint/specify-cloud-protection-level-microsoft-defender-antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Configure block at first sight](https://learn.microsoft.com/en-us/defender-endpoint/configure-block-at-first-sight-microsoft-defender-antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Configure and validate Microsoft Defender Antivirus network connections](https://learn.microsoft.com/en-us/defender-endpoint/configure-network-connections-microsoft-defender-antivirus?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+<!--- Results --->
+%TestResult%
