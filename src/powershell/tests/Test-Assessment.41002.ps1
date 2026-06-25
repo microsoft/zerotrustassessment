@@ -3,7 +3,7 @@
     Microsoft Defender for Identity sensor is installed and healthy on every domain controller.
 
 .DESCRIPTION
-    Checks that at least one MDI domain controller sensor is registered per domain,
+    Checks that at least one MDI domain controller sensor is registered in the tenant,
     and that every registered domain controller sensor is up-to-date, healthy, and running.
 
 .NOTES
