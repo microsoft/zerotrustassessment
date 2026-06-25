@@ -48,25 +48,24 @@ function Test-Assessment-41018 {
 
     #region Assessment Logic
     if ($queryError) {
-        $errText = $queryError.ToString()
+        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $queryError
+        $errText    = $queryError.ToString()
 
-        # 403 with "not onboarded" in the body means MDI is not licensed/provisioned — skip.
-        # 403 with an empty message ("UnknownError") means the caller lacks SecurityIdentitiesHealth.Read.All — investigate.
-        # The two cases both return HTTP 403 but carry different error codes in the response body.
-        if ($errText -match 'not onboarded to Microsoft Defender for Identity' -or $errText -match '"code":"Forbidden"') {
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        # Known Investigate cases: unauthenticated (401), permission missing (403 + UnknownError), or transient/server error (5xx).
+        if (($httpStatus -eq 403 -and $errText -match '"code":"UnknownError"') -or $httpStatus -ge 500) {
+            $params = @{
+                TestId       = '41018'
+                Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
+                Status       = $false
+                Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
             return
         }
 
-        # All other errors (permission missing, transient failures, 5xx) → Investigate.
-        $params = @{
-            TestId       = '41018'
-            Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
-            Status       = $false
-            Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
-            CustomStatus = 'Investigate'
-        }
-        Add-ZtTestResultDetail @params
+        # Everything else (404, 403 Forbidden, "not onboarded") → MDI not provisioned — skip.
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
@@ -135,7 +134,7 @@ function Test-Assessment-41018 {
         $formatTemplate = @'
 
 
-### [Defender XDR — Identity health issues]({0})
+### [Defender XDR > Settings > Identities > Health issues]({0})
 
 {1}| Display name | Severity | Type | Affected sensors | Affected domains | Last modified | Status |
 | :----------- | :------- | :--- | :--------------- | :--------------- | :------------ | :----- |
