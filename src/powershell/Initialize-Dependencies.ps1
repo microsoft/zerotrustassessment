@@ -219,9 +219,12 @@ function Initialize-Dependencies {
                 if ($IsWindows) {
                     $savedModulePath = Join-Path -Path $RequiredModulesPath -ChildPath $moduleSpec.Name
                     if (Test-Path -Path $savedModulePath) {
-Get-ChildItem -Path $savedModulePath -Recurse -File -Filter '*.dll' -ErrorAction SilentlyContinue | Where-Object {
-    (Get-Item -LiteralPath $_.FullName -Stream Zone.Identifier -ErrorAction SilentlyContinue) -and ((Get-Content -LiteralPath $_.FullName -Stream Zone.Identifier -ErrorAction SilentlyContinue) -match 'ZoneId\s*=\s*(3|4)\b')
-} | Unblock-File -ErrorAction SilentlyContinue
+                        Get-ChildItem -Path $savedModulePath -Recurse -File -Filter '*.dll' -ErrorAction SilentlyContinue | ForEach-Object {
+                            $zoneData = Get-Content -LiteralPath $_.FullName -Stream Zone.Identifier -ErrorAction SilentlyContinue
+                            if ($zoneData -match 'ZoneId\s*=\s*(3|4)\b') {
+                                Unblock-File -LiteralPath $_.FullName -ErrorAction SilentlyContinue
+                            }
+                        }
                     }
                 }
             }
