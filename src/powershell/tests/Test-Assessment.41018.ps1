@@ -5,7 +5,7 @@
 .NOTES
     Test ID: 41018
     Workshop Task: SECOPS-018
-    Pillar: Identity
+    Pillar: SecOps
     Category: Identity threat protection
     Required permission: SecurityIdentitiesHealth.Read.All
 #>
@@ -47,25 +47,48 @@ function Test-Assessment-41018 {
     #endregion Data Collection
 
     #region Assessment Logic
+    $investigateParams = @{
+        TestId       = '41018'
+        Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
+        Status       = $false
+        Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
+        CustomStatus = 'Investigate'
+    }
+
     if ($queryError) {
         $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $queryError
-        $errText    = $queryError.ToString()
 
-        # Known Investigate cases: unauthenticated (401), permission missing (403 + UnknownError), or transient/server error (5xx).
-        if (($httpStatus -eq 403 -and $errText -match '"code":"UnknownError"') -or $httpStatus -ge 500) {
-            $params = @{
-                TestId       = '41018'
-                Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
-                Status       = $false
-                Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
-                CustomStatus = 'Investigate'
+        # 403 → Parse error code to distinguish permission denied from not-onboarded.
+        # - "UnknownError": permission missing (SecurityIdentitiesHealth.Read.All not consented) → Investigate.
+        # - "Forbidden" or unparseable: MDI not onboarded → NotApplicable.
+        if ($httpStatus -eq 403) {
+            $errorCode = $null
+            try {
+                $errStr = $queryError.ToString()
+                if ($errStr -match '(\{"error".*\})') {
+                    $errorCode = ($Matches[1] | ConvertFrom-Json).error.code
+                }
             }
-            Add-ZtTestResultDetail @params
+            catch {
+                # Parse failure; treat as not onboarded.
+                Write-PSFMessage "Failed to parse error response; treating as MDI not onboarded." -Tag Test -Level VeryVerbose
+            }
+
+            if ($errorCode -eq 'UnknownError') {
+                Add-ZtTestResultDetail @investigateParams
+                return
+            }
+            # Fall through to NotApplicable check below.
+        }
+
+        # 404 or 403 (non-UnknownError) → MDI not onboarded.
+        if ($httpStatus -in (403, 404)) {
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
             return
         }
 
-        # Everything else (404, 403 Forbidden, "not onboarded") → MDI not provisioned — skip.
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        # 401, 5xx, or any other error → Investigate.
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
@@ -74,14 +97,7 @@ function Test-Assessment-41018 {
     # unknownFutureValue in severity signals API schema drift → Investigate.
     $unknownItems = @($healthIssues | Where-Object { $_.severity -eq 'unknownFutureValue' })
     if ($unknownItems.Count -gt 0) {
-        $params = @{
-            TestId       = '41018'
-            Title        = 'No open Microsoft Defender for Identity health issues are present in the tenant'
-            Status       = $false
-            Result       = '⚠️ Microsoft Defender for Identity is deployed but the healthIssues collection returned an error.'
-            CustomStatus = 'Investigate'
-        }
-        Add-ZtTestResultDetail @params
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
