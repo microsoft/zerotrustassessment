@@ -123,7 +123,7 @@ function Test-Assessment-41018 {
 
         if ($totalCount -gt $maxDisplay) {
             $remaining  = $totalCount - $maxDisplay
-            $tableRows += "| ... ($remaining more) | | | | | | |`n"
+            $tableRows += "| ... | ... | ... | ... | ... | ... | ... |`n"
         }
 
         # Show count above the table when results are truncated.
