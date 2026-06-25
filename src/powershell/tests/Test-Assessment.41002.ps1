@@ -18,7 +18,7 @@
 function Test-Assessment-41002 {
     [ZtTest(
         Category = 'Identity threat protection',
-        CompatibleLicense = ('EMS_E5', 'Microsoft_Defender_for_Identity'),
+        CompatibleLicense = ('ATA'),
         ImplementationCost = 'Medium',
         Pillar = 'SecOps',
         RiskLevel = 'High',
@@ -90,12 +90,18 @@ function Test-Assessment-41002 {
                 $deployVerdict = switch ($sensor.deploymentStatus) {
                     'upToDate'                                                      { 'Pass' }
                     { $_ -in @('updating', 'syncing', 'unknownFutureValue') }       { 'Investigate' }
+                    # 'outdated' is unadjudicated (open product call); treat as Investigate pending GA decision
+                    'outdated'                                                      { 'Investigate' }
+                    { $_ -in @('updateFailed', 'startFailure', 'unreachable',
+                               'disconnected', 'notConfigured') }                  { 'Fail' }
                     default                                                         { 'Fail' }
                 }
                 $serviceVerdict = switch ($sensor.serviceStatus) {
                     'running'                                                       { 'Pass' }
                     { $_ -in @('starting', 'onboarding', 'unknown',
                                'unknownFutureValue') }                              { 'Investigate' }
+                    # 'stopped' and 'disabled' are unadjudicated (open product call); treat as Investigate pending GA decision
+                    { $_ -in @('stopped', 'disabled') }                            { 'Investigate' }
                     default                                                         { 'Fail' }
                 }
                 $healthVerdict = switch ($sensor.healthStatus) {
@@ -136,10 +142,11 @@ function Test-Assessment-41002 {
     if ($allDcSensors.Count -gt 0) {
         $maxDisplay     = 10
         $totalCount     = $allDcSensors.Count
-        $displaySensors = $allDcSensors | Select-Object -First $maxDisplay
+        $sortedSensors  = $allDcSensors | Sort-Object -Property domainName, displayName
+        $displaySensors = $sortedSensors | Select-Object -First $maxDisplay
         $isTruncated    = $totalCount -gt $maxDisplay
 
-        $hasFailures = ($allDcSensors | Where-Object { $_.SensorVerdict -ne 'Pass' } | Measure-Object).Count -gt 0
+        $hasFailures = ($allDcSensors | Where-Object { $_.SensorVerdict -eq 'Fail' } | Measure-Object).Count -gt 0
 
         if ($isTruncated -or $hasFailures) {
             $mdInfo += "[Defender XDR > Settings > Identities > Sensors]($portalLink)`n`n"
