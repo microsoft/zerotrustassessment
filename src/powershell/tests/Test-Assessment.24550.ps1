@@ -8,7 +8,7 @@
 
 function Test-Assessment-24550 {
     [ZtTest(
-        Category = 'Device',
+        Category = 'Devices',
         ImplementationCost = 'Low',
         CompatibleLicense = ('INTUNE_A'),
         Pillar = 'Devices',
@@ -156,19 +156,19 @@ function Test-Assessment-24550 {
         '#microsoft.graph.windows10EndpointProtectionConfiguration',
         '#microsoft.graph.windows10GeneralConfiguration'
     )
-    foreach ($profile in $deviceConfigsRaw) {
-        if ($profile.'@odata.type' -notin $legacyWindowsTypes) { continue }
+    foreach ($deviceConfig in $deviceConfigsRaw) {
+        if ($deviceConfig.'@odata.type' -notin $legacyWindowsTypes) { continue }
 
         $enforcesBitLocker = (
-            $profile.storageRequireDeviceEncryption -eq $true -or
-            $profile.bitLockerEncryptDevice -eq $true -or
-            $null -ne $profile.bitLockerSystemDrivePolicy -or
-            $null -ne $profile.bitLockerFixedDrivePolicy -or
-            $null -ne $profile.bitLockerRemovableDrivePolicy
+            $deviceConfig.storageRequireDeviceEncryption -eq $true -or
+            $deviceConfig.bitLockerEncryptDevice -eq $true -or
+            $null -ne $deviceConfig.bitLockerSystemDrivePolicy -or
+            $null -ne $deviceConfig.bitLockerFixedDrivePolicy -or
+            $null -ne $deviceConfig.bitLockerRemovableDrivePolicy
         )
 
         if ($enforcesBitLocker) {
-            $legacyWindowsBitLockerProfiles += $profile
+            $legacyWindowsBitLockerProfiles += $deviceConfig
         }
     }
 
@@ -226,21 +226,21 @@ $modernRows
     # Legacy BitLocker profiles section
     if ($legacyWindowsBitLockerProfiles.Count -gt 0) {
         $legacyRows = ""
-        foreach ($profile in $legacyWindowsBitLockerProfiles) {
-            $profileName = Get-SafeMarkdown -Text $profile.displayName
-            $odataType = $profile.'@odata.type' -replace '#microsoft.graph.', ''
+        foreach ($legacyProfile in $legacyWindowsBitLockerProfiles) {
+            $profileName = Get-SafeMarkdown -Text $legacyProfile.displayName
+            $odataType = $legacyProfile.'@odata.type' -replace '#microsoft.graph.', ''
 
             $encryptionFields = @()
-            if ($profile.storageRequireDeviceEncryption -eq $true) { $encryptionFields += 'Device Encryption' }
-            if ($profile.bitLockerEncryptDevice -eq $true) { $encryptionFields += 'BitLocker Encrypt Device' }
-            if ($null -ne $profile.bitLockerSystemDrivePolicy) { $encryptionFields += 'System Drive Policy' }
-            if ($null -ne $profile.bitLockerFixedDrivePolicy) { $encryptionFields += 'Fixed Drive Policy' }
-            if ($null -ne $profile.bitLockerRemovableDrivePolicy) { $encryptionFields += 'Removable Drive Policy' }
+            if ($legacyProfile.storageRequireDeviceEncryption -eq $true) { $encryptionFields += 'Device Encryption' }
+            if ($legacyProfile.bitLockerEncryptDevice -eq $true) { $encryptionFields += 'BitLocker Encrypt Device' }
+            if ($null -ne $legacyProfile.bitLockerSystemDrivePolicy) { $encryptionFields += 'System Drive Policy' }
+            if ($null -ne $legacyProfile.bitLockerFixedDrivePolicy) { $encryptionFields += 'Fixed Drive Policy' }
+            if ($null -ne $legacyProfile.bitLockerRemovableDrivePolicy) { $encryptionFields += 'Removable Drive Policy' }
             $encryptionSettings = $encryptionFields -join ', '
 
-            $assignmentCount = $profile.assignments.Count
-            if ($profile.assignments -and $profile.assignments.Count -gt 0) {
-                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $profile.assignments
+            $assignmentCount = $legacyProfile.assignments.Count
+            if ($legacyProfile.assignments -and $legacyProfile.assignments.Count -gt 0) {
+                $assignmentTarget = Get-PolicyAssignmentTarget -Assignments $legacyProfile.assignments
             }
             else {
                 $assignmentTarget = 'None'
