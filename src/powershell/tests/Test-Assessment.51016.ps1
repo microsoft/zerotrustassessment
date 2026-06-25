@@ -38,6 +38,28 @@ function Test-Assessment-51016 {
     [CmdletBinding()]
     param()
 
+    #region Helper Functions
+    # Calls Add-ZtTestResultDetail and returns $true when the exception is 401/403/5xx.
+    # Returns $false for all other errors so the caller can rethrow.
+    # Checks the response object first, then falls back to message text (mirrors Test-Assessment.61005 pattern).
+    function Test-ZtPimHttpError {
+        param($Err, $Params)
+        $status = $null
+        if ($Err.Exception.Response.StatusCode) {
+            $status = [int]$Err.Exception.Response.StatusCode.value__
+        }
+        elseif ($Err.Exception.Message -match '401|Unauthorized')                                   { $status = 401 }
+        elseif ($Err.Exception.Message -match '403|Forbidden')                                      { $status = 403 }
+        elseif ($Err.Exception.Message -match '5\d\d|Internal|ServiceUnavailable|GatewayTimeout')  { $status = 500 }
+
+        if ($status -eq 401 -or $status -eq 403 -or $status -ge 500) {
+            Add-ZtTestResultDetail @Params
+            return $true
+        }
+        return $false
+    }
+    #endregion Helper Functions
+
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
@@ -57,22 +79,11 @@ function Test-Assessment-51016 {
 
     $roleDefinition = $null
     try {
-        $roleDefinition = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleDefinitions/$intuneAdminTemplateId" -ApiVersion beta -ErrorAction Stop
+            $roleDefinition = Invoke-ZtGraphRequest -RelativeUri "roleManagement/directory/roleDefinitions/$intuneAdminTemplateId" -ApiVersion beta -ErrorAction Stop
     }
     catch {
-        Add-ZtTestResultDetail @investigateParams
-        return
-    }
-
-    if (-not $roleDefinition) {
-        $params = @{
-            TestId = '51016'
-            Title  = 'Privileged Identity Management is enforced for Intune Administrator role assignments'
-            Status = $false
-            Result = '❌ The Intune Administrator role definition was not found in this tenant. Verify the tenant has Microsoft Entra RBAC access and the required permissions.'
-        }
-        Add-ZtTestResultDetail @params
-        return
+        if (Test-ZtPimHttpError -Err $_ -Params $investigateParams) { return }
+        throw
     }
 
     $intuneAdminRoleId = $roleDefinition.id
@@ -91,8 +102,8 @@ function Test-Assessment-51016 {
             -ErrorAction Stop)
     }
     catch {
-        Add-ZtTestResultDetail @investigateParams
-        return
+        if (Test-ZtPimHttpError -Err $_ -Params $investigateParams) { return }
+        throw
     }
 
     # Q3: Enumerate roleEligibilitySchedules (informational only — does not drive Pass/Fail).
@@ -110,8 +121,8 @@ function Test-Assessment-51016 {
             -ErrorAction Stop)
     }
     catch {
-        Add-ZtTestResultDetail @investigateParams
-        return
+        if (Test-ZtPimHttpError -Err $_ -Params $investigateParams) { return }
+        throw
     }
 
     # Q4: Retrieve the role-management policy assignment and expand activation rules.
@@ -131,8 +142,8 @@ function Test-Assessment-51016 {
         }
     }
     catch {
-        Add-ZtTestResultDetail @investigateParams
-        return
+        if (Test-ZtPimHttpError -Err $_ -Params $investigateParams) { return }
+        throw
     }
     #endregion Data Collection
 
