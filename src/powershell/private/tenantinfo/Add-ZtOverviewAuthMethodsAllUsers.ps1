@@ -48,11 +48,11 @@ where list_has_any([$MethodTypes], methodsRegistered)
 			$Database
 		)
 
-		$singleFactor = Get-ZtiAllUsersAuthMethodCountSingleFactor -Database $Database
-		$phone = Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'mobilePhone'"
-		$authenticator = Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'microsoftAuthenticatorPush', 'softwareOneTimePasscode', 'microsoftAuthenticatorPasswordless'"
-		$passkey = Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator'"
-		$whfb = Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'windowsHelloForBusiness'"
+		$singleFactor = ((Get-ZtiAllUsersAuthMethodCountSingleFactor -Database $Database) -as [int]) ?? 0
+		$phone = ((Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'mobilePhone'") -as [int]) ?? 0
+		$authenticator = ((Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'microsoftAuthenticatorPush', 'softwareOneTimePasscode', 'microsoftAuthenticatorPasswordless'") -as [int]) ?? 0
+		$passkey = ((Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'passKeyDeviceBound', 'passKeyDeviceBoundAuthenticator'") -as [int]) ?? 0
+		$whfb = ((Get-ZtiAllUsersAuthMethodCount -Database $Database -MethodTypes "'windowsHelloForBusiness'") -as [int]) ?? 0
 
 		$nodes = @(
 			@{

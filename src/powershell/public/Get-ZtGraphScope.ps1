@@ -37,12 +37,17 @@
         'Policy.Read.ConditionalAccess'
         'Policy.Read.PermissionGrant'
         'PrivilegedAccess.Read.AzureAD'
+        'PrivilegedAssignmentSchedule.Read.AzureADGroup'
+        'PrivilegedEligibilitySchedule.Read.AzureADGroup'
         'Reports.Read.All'
         'RoleManagement.Read.All'
         'UserAuthenticationMethod.Read.All'
         'NetworkAccess.Read.All'
         'IdentityRiskyServicePrincipal.Read.All'
         'CopilotPackages.Read.All'
+        'SecurityEvents.Read.All'
+        'SecurityIdentitiesSensors.Read.All'
+        'SecurityIdentitiesHealth.Read.All'
     )
 
     $scopes | Sort-Object -Unique

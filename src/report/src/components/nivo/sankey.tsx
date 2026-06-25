@@ -20,19 +20,54 @@ type SankeyData = {
     }[];
 };
 
+type SankeyLink = {
+    source: string;
+    target: string;
+    value: number | null;
+};
+
 type SankeyInputData = {
     nodes: SankeyNode[];
-    links: {
-        source: string;
-        target: string;
-        value: number | null;
-    }[];
+    links: SankeyLink[];
+};
+
+// A Sankey link with a missing (null / non-numeric) value should not break the whole
+// graph when the rest of the links are valid. For an intermediate node the inbound flow
+// equals its outbound flow, so we reconstruct a missing link's value from the sum of the
+// target node's outgoing links (e.g. "User sign in -> Managed" = "Managed -> Compliant" +
+// "Managed -> Non-compliant"). Genuine zero values are preserved (and later filtered out),
+// only truly missing values are reconstructed; leaf links that cannot be reconstructed are
+// left as NaN and dropped by the downstream validity filter.
+const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: string; value: number }[] => {
+    const toNumber = (value: number | null): number => (value == null ? NaN : Number(value));
+
+    return links.map(link => {
+        const numericValue = toNumber(link.value);
+        if (Number.isFinite(numericValue)) {
+            return { source: link.source, target: link.target, value: numericValue };
+        }
+
+        const targetOutflow = links.reduce((sum, candidate) => {
+            if (candidate.source !== link.target) {
+                return sum;
+            }
+            const candidateValue = toNumber(candidate.value);
+            return Number.isFinite(candidateValue) && candidateValue > 0 ? sum + candidateValue : sum;
+        }, 0);
+
+        return { source: link.source, target: link.target, value: targetOutflow > 0 ? targetOutflow : NaN };
+    });
 };
 
 export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
-    const sanitizedLinks = data.links
-        .filter(link => Number.isFinite(Number(link.value)) && Number(link.value) > 0)
-        .map(link => ({ ...link, value: Number(link.value) }));
+    const validNodeIds = new Set(data.nodes.map(node => node.id));
+    const sanitizedLinks = reconstructLinkValues(data.links)
+        .filter(link =>
+            validNodeIds.has(link.source) &&
+            validNodeIds.has(link.target) &&
+            Number.isFinite(link.value) &&
+            link.value > 0
+        );
 
     const connectedNodeIds = new Set<string>();
     for (const link of sanitizedLinks) {
