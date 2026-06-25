@@ -32,7 +32,7 @@ function Test-Assessment-41009 {
     [ZtTest(
         Category = 'Identity threat protection',
         ImplementationCost = 'Low',
-        MinimumLicense = ('ATA'),
+        CompatibleLicense = ('ATA'),
         Service = ('Graph'),
         Pillar = 'SecOps',
         RiskLevel = 'High',
@@ -70,11 +70,11 @@ function Test-Assessment-41009 {
         if ($errorMsgQ1.Exception.Response.StatusCode) {
             $httpStatusQ1 = [int]$errorMsgQ1.Exception.Response.StatusCode.value__
         }
+        elseif ($errorMsgQ1.Exception.Message -match '401|Unauthorized') {
+            $httpStatusQ1 = 401
+        }
         elseif ($errorMsgQ1.Exception.Message -match '403|Forbidden') {
             $httpStatusQ1 = 403
-        }
-        elseif ($errorMsgQ1.Exception.Message -match '404|NotFound') {
-            $httpStatusQ1 = 404
         }
     }
 
@@ -84,14 +84,8 @@ function Test-Assessment-41009 {
     if ($null -ne $controlProfile) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving latest Microsoft Secure Score'
         try {
-            $scoreResponse = Invoke-ZtGraphRequest -RelativeUri 'security/secureScores' -Top 1 -ApiVersion beta -ErrorAction Stop
-            # Invoke-ZtGraphRequest may return the value array or the first object directly.
-            if ($scoreResponse -is [System.Collections.IEnumerable] -and -not ($scoreResponse -is [string])) {
-                $latestSecureScore = @($scoreResponse)[0]
-            }
-            else {
-                $latestSecureScore = $scoreResponse
-            }
+            $scoreResponse     = Invoke-ZtGraphRequest -RelativeUri 'security/secureScores' -Top 1 -ApiVersion beta -ErrorAction Stop
+            $latestSecureScore = @($scoreResponse)[0]
         }
         catch {
             Write-PSFMessage "Failed to retrieve Secure Score: $_" -Level Warning
@@ -105,65 +99,69 @@ function Test-Assessment-41009 {
     $passed       = $false
     $customStatus = $null
 
-    # ── Investigate: Q1 returned 404 or 403 (profile not in tenant or insufficient perms) ──
+    # ── Investigate: Q1 returned no profile (MDI not onboarded or not yet provisioned) or 401/403 (insufficient permissions) ──
     if ($null -eq $controlProfile) {
         if ($httpStatusQ1 -in @(401, 403)) {
             $investigateReason = "The `SecurityEvents.Read.All` permission is required to read Secure Score control profiles. Verify the permission is consented and re-run the assessment."
         }
         else {
-            $investigateReason = "The Microsoft Defender for Identity posture recommendation `"Remove dormant accounts from sensitive groups`" (`$controlId`) was not found in this tenant's Microsoft Secure Score. Verify that MDI posture assessments are enabled: check that at least one MDI sensor is healthy at **Microsoft Defender XDR > Settings > Identities > Sensors** and that Identity recommendations are visible at **Microsoft Defender XDR > Secure Score > Recommendations**."
+            $investigateReason = "The Microsoft Defender for Identity posture recommendation `"Remove dormant accounts from sensitive groups`" was not found in the tenant's Microsoft Secure Score; verify that MDI posture assessments are enabled."
         }
 
         $testResultMarkdown = "⚠️ $investigateReason`n`n%TestResult%"
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail `
-            -TestId '41009' `
-            -Title  'Dormant accounts have been removed from sensitive Active Directory groups' `
-            -Status $passed `
-            -Result $testResultMarkdown `
-            -CustomStatus $customStatus
+        Add-ZtTestResultDetail @{
+            TestId       = '41009'
+            Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
+            Status       = $passed
+            Result       = $testResultMarkdown
+            CustomStatus = $customStatus
+        }
         return
     }
 
     # Resolve profile fields
+    $controlId     = $controlProfile.id
     $profileTitle  = $controlProfile.title
     $maxScore      = $controlProfile.maxScore
     $actionUrl     = $controlProfile.actionUrl
 
     # ── Investigate: Q2 returned no data at all ──
     if ($null -eq $latestSecureScore) {
-        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile exists but the current Microsoft Secure Score snapshot could not be retrieved. Re-run the assessment to get an up-to-date score.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile exists but the current Microsoft Secure Score snapshot could not be retrieved.`n`n%TestResult%"
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail `
-            -TestId '41009' `
-            -Title  'Dormant accounts have been removed from sensitive Active Directory groups' `
-            -Status $passed `
-            -Result $testResultMarkdown `
-            -CustomStatus $customStatus
+        Add-ZtTestResultDetail @{
+            TestId       = '41009'
+            Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
+            Status       = $passed
+            Result       = $testResultMarkdown
+            CustomStatus = $customStatus
+        }
         return
     }
 
     # ── Locate the per-control entry inside controlScores[] ──
     $controlScoreEntry = $null
-    if ($latestSecureScore.value.controlScores) {
-        $controlScoreEntry = $latestSecureScore.value.controlScores |
+    if ($latestSecureScore.controlScores) {
+        $controlScoreEntry = $latestSecureScore.controlScores |
             Where-Object { $_.controlName -eq $controlId } |
             Select-Object -First 1
     }
 
     # ── Investigate: profile exists but the snapshot has no entry for this control ──
     if ($null -eq $controlScoreEntry) {
-        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile (`$controlId`) exists but the latest Secure Score snapshot has no scored entry for this control. MDI posture assessments may not yet have run against this tenant. Re-run the assessment after confirming MDI sensor health at **Microsoft Defender XDR > Settings > Identities > Sensors**.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile ($controlId) exists but the latest Secure Score snapshot has no scored entry for this control.`n`n%TestResult%"
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail `
-            -TestId '41009' `
-            -Title  'Dormant accounts have been removed from sensitive Active Directory groups' `
-            -Status $passed `
-            -Result $testResultMarkdown `
-            -CustomStatus $customStatus
+        Add-ZtTestResultDetail @{
+            TestId       = '41009'
+            Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
+            Status       = $passed
+            Result       = $testResultMarkdown
+            CustomStatus = $customStatus
+        }
         return
     }
 
@@ -179,7 +177,7 @@ function Test-Assessment-41009 {
     }
     else {
         $passed             = $false
-        $testResultMarkdown = "❌ One or more dormant accounts are members of sensitive Active Directory groups.`n`nThe per-account list is available only in the Defender XDR portal. Use the link in the table below to enumerate exposed accounts.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more dormant accounts are members of sensitive Active Directory groups.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -188,35 +186,37 @@ function Test-Assessment-41009 {
 
     $defenderLink = 'https://security.microsoft.com/securescore?viewid=actions'
 
-    $scoreDisplay  = if ($null -ne $currentScore) { $currentScore } else { 'N/A' }
-    $maxDisplay    = if ($null -ne $maxScore) { $maxScore } else { 'N/A' }
-    $pctDisplay    = if ($null -ne $scoreInPercentage) { "$([math]::Round($scoreInPercentage, 1))%" } else { 'N/A' }
-    $statusDisplay = if ($null -ne $implementationStatus) { $implementationStatus } else { 'N/A' }
-    $syncDisplay   = if ($null -ne $lastSynced) { $lastSynced } else { 'N/A' }
+    $scoreDisplay     = if ($null -ne $currentScore) { $currentScore } else { 'N/A' }
+    $maxDisplay       = if ($null -ne $maxScore) { $maxScore } else { 'N/A' }
+    $pctDisplay       = if ($null -ne $scoreInPercentage) { "$([math]::Round($scoreInPercentage, 1))%" } else { 'N/A' }
+    $impStatusDisplay = if ($null -ne $implementationStatus) { $implementationStatus } else { 'N/A' }
+    $syncDisplay      = if ($null -ne $lastSynced) { $lastSynced } else { 'N/A' }
+    $statusLabel      = if ($passed) { '✅ Pass' } elseif ($customStatus) { "⚠️ $customStatus" } else { '❌ Fail' }
 
     $actionLinkMarkdown = ''
     if (-not [string]::IsNullOrWhiteSpace($actionUrl)) {
-        $actionLinkMarkdown = "[$profileTitle]($actionUrl)"
+        $actionLinkMarkdown = "[$(Get-SafeMarkdown $profileTitle)]($actionUrl)"
     }
     elseif (-not [string]::IsNullOrWhiteSpace($profileTitle)) {
-        $actionLinkMarkdown = $profileTitle
+        $actionLinkMarkdown = Get-SafeMarkdown $profileTitle
     }
     else {
         $actionLinkMarkdown = 'Remove dormant accounts from sensitive groups'
     }
 
-    $tableRows = "| $actionLinkMarkdown | $scoreDisplay | $maxDisplay | $pctDisplay | $statusDisplay | $syncDisplay |`n"
+    
+    $tableRows = "| $actionLinkMarkdown | $scoreDisplay | $maxDisplay | $pctDisplay | $impStatusDisplay | $syncDisplay | $statusLabel |`n"
 
     $mdFailLink = ''
     if (-not $passed) {
-        $mdFailLink = "`n[Defender XDR > Secure Score > Recommendations]($defenderLink)`n"
+        $mdFailLink = "`n## [Defender XDR > Secure Score > Recommendations]($defenderLink)`n"
     }
 
     $mdTable = @"
 
 $mdFailLink
-| Recommendation title | Current score | Maximum score | Score % | Implementation status | Last synced |
-| :------------------- | :-----------: | :-----------: | :-----: | :-------------------- | :---------- |
+| Recommendation title | Current score | Maximum score | Score % | Implementation status | Last synced | Status |
+| :------------------- | :-----------: | :-----------: | :-----: | :-------------------- | :---------- | :----: |
 $tableRows
 "@
 
