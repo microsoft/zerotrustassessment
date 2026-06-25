@@ -5,7 +5,6 @@ import { SankeyDataNode } from "@/config/report-data";
 
 export const MobileSankey = ({ data }: { data: SankeyDataNode[] }) => {
     const theme = useContext(ThemeProviderContext);
-    const filteredData = data.filter(link => link.value != null && link.value > 0);
 
     return (
         <ZtResponsiveSankey isDark={(theme.theme === 'dark' || theme.theme === 'system' && window.matchMedia("(prefers-color-scheme: dark)").matches) ? true : false} data={{
@@ -47,7 +46,7 @@ export const MobileSankey = ({ data }: { data: SankeyDataNode[] }) => {
                     "nodeColor": "hsl(0, 100%, 50%)"
                 },
             ],
-            "links": filteredData
+            "links": data
         }} />
     );
 }

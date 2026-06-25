@@ -20,7 +20,7 @@ function Connect-ZtAssessment {
 		Uses Graph Powershell's cached authentication tokens.
 
 	.PARAMETER TenantId
-		The tenant ID to connect to. If not specified, the default tenant will be used.
+		The tenant identifier to connect to. Accepts the tenant id (GUID) or any verified domain name of the tenant. If not specified, the default /organizations will be used. Alias: Tenant.
 
 	.PARAMETER ClientId
 		If specified, connects using a custom application identity. See https://learn.microsoft.com/powershell/microsoftgraph/authentication-commands
@@ -71,6 +71,7 @@ function Connect-ZtAssessment {
 		[switch]
 		$UseTokenCache,
 
+		[Alias('Tenant')]
 		[string]
 		$TenantId,
 

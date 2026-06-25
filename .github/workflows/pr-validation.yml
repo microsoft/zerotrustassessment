@@ -45,6 +45,10 @@
 
 name: PR Validation (Run Assessment)
 
+# Surface the validated PR in the Actions run list so a maintainer can tell at a
+# glance which PR each run targeted (pr_number is a user-supplied dispatch input).
+run-name: "PR Validation — PR #${{ inputs.pr_number }}"
+
 on:
   workflow_dispatch:
     inputs:
@@ -55,7 +59,7 @@ on:
       pillar:
         description: 'Pillar'
         required: false
-        default: 'AI'
+        default: 'All'
         type: choice
         options:
           - All
@@ -119,8 +123,26 @@ jobs:
           "RUN_SHA=$sha"       | Out-File -FilePath $env:GITHUB_ENV -Append
           "RUN_BRANCH=$branch" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Record validated PR in run summary
+        shell: pwsh
+        run: |
+          # Write a short, clickable summary so maintainers can jump straight to
+          # the validated PR from the run page. Only the user-supplied PR number
+          # and public repo/branch/SHA are included — no secrets or report paths.
+          $repo = '${{ github.repository }}'
+          $pr   = '${{ inputs.pr_number }}'
+          $lines = @(
+            '## Validated PR',
+            '',
+            "Pull request: [#$pr](https://github.com/$repo/pull/$pr)",
+            "Repository: ``$repo``",
+            "Branch: ``$($env:RUN_BRANCH)``",
+            "Commit: ``$($env:RUN_SHA)``"
+          )
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
       - name: Azure login (Workload Identity Federation)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id:       ${{ env.AZURE_CLIENT_ID }}
           tenant-id:       ${{ env.AZURE_TENANT_ID }}
@@ -227,6 +249,20 @@ jobs:
               Format-Table | Out-String | Write-Host
           }
 
+      - name: Refresh Azure login before upload (WIF assertion expires on long runs)
+        # The GitHub OIDC token used as the WIF client assertion is short-lived and
+        # has no refresh token. On long assessments the original assertion expires
+        # before the upload requests a Storage data-plane token (AADSTS700024), so
+        # re-login here to mint a fresh assertion. Runs on success AND failure so the
+        # diagnostic report still uploads. Report files live on the runner disk and
+        # are untouched by re-login.
+        if: always() && env.REPORT_PATH != ''
+        uses: azure/login@v3
+        with:
+          client-id:       ${{ env.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
       - name: Upload report to private blob container
         if: always() && env.REPORT_PATH != ''
         shell: pwsh
@@ -243,6 +279,13 @@ jobs:
             --source            $env:REPORT_PATH `
             --auth-mode         login `
             --overwrite         true *> $null
+          $uploadExit = $LASTEXITCODE
+
+          # Never report success on a non-zero az exit. az output is intentionally
+          # suppressed (log hygiene); surface only the exit code, not its content.
+          if ($uploadExit -ne 0) {
+            throw "Blob upload failed (az exit $uploadExit)."
+          }
 
           Write-Host "Upload complete."
 
