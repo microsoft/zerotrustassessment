@@ -193,7 +193,7 @@ function Test-Assessment-41003 {
     $showPortalLink = $isTruncated -or $anyNonPass.Count -gt 0
 
     $preTableLines = ''
-    if ($totalCount -gt 10) {
+    if ($isTruncated) {
         $preTableLines += "Total sensors of these types: $totalCount (showing first 10)`n`n"
     }
     if ($showPortalLink) {
