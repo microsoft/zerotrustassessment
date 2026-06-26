@@ -25,6 +25,7 @@ function Test-Assessment-41060 {
         ImplementationCost = 'Low',
         Service = ('Graph'),
         MinimumLicense = ('WIN_DEF_ATP', 'MDE_LITE'),
+        CompatibleLicense = ('WIN_DEF_ATP', 'MDE_LITE'),
         Pillar = 'SecOps',
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
