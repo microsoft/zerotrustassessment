@@ -12,6 +12,7 @@
 
 .NOTES
     Test ID: 41060
+    Workshop Task Id: SECOPS-060
     Category: Endpoint threat protection
     Pillar: SecOps
     Required Module: Microsoft.Graph.Authentication
@@ -50,9 +51,9 @@ function Test-Assessment-41060 {
     $controlProfiles = @()
     try {
         $filter = "service eq 'MDATP' and (id eq 'scid_2016' or id eq 'scid_5094' or id eq 'scid_6094')"
-        $encodedFilter = [uri]::EscapeDataString($filter)
         $controlProfiles = @(Invoke-ZtGraphRequest `
-                -RelativeUri "security/secureScoreControlProfiles?`$filter=$encodedFilter" `
+                -RelativeUri "security/secureScoreControlProfiles" `
+                -Filter $filter `
                 -ApiVersion v1.0 `
                 -ErrorAction Stop)
         Write-PSFMessage "Q1a returned $($controlProfiles.Count) MDATP control profile(s)" -Tag Test -Level VeryVerbose
@@ -67,14 +68,20 @@ function Test-Assessment-41060 {
 
     $latestSecureScore = $null
     try {
-        $secureScores = @(Invoke-ZtGraphRequest `
-                -RelativeUri 'security/secureScores?$top=1' `
+        # -DisablePaging returns the raw Graph response wrapper (avoids paging the full score
+        # history that $top=1 would otherwise trigger via the nextLink). Unwrap .value to get the
+        # actual secureScore snapshot(s).
+        $secureScoresResponse = Invoke-ZtGraphRequest `
+                -RelativeUri 'security/secureScores' `
                 -ApiVersion v1.0 `
-                -ErrorAction Stop)
+                -Top 1 `
+                -ErrorAction Stop `
+                -DisablePaging
+        $secureScores = @($secureScoresResponse.value)
         if ($secureScores.Count -gt 0) {
             $latestSecureScore = $secureScores[0]
         }
-        Write-PSFMessage "Q1b returned $($secureScores.Count) Secure Score snapshot(s)" -Tag Test -Level VeryVerbose
+        Write-PSFMessage "Q1b returned $($secureScores.Count) Secure Score snapshot(s)" -Tag Test -Level Debug
     }
     catch {
         $scoreQueryFailed = $true
@@ -176,14 +183,8 @@ function Test-Assessment-41060 {
 {2}
 '@
 
-    $maxDisplay = 10
-    # Surface non-passing controls first so failures are visible within the truncation window.
+    # Surface non-passing controls first so failures are listed at the top.
     $displayResults = @($evaluationResults | Sort-Object RowPassed, Title)
-    $hasMoreItems = $false
-    if ($evaluationResults.Count -gt $maxDisplay) {
-        $displayResults = @($displayResults | Select-Object -First $maxDisplay)
-        $hasMoreItems = $true
-    }
 
     $tableRows = ''
     foreach ($result in $displayResults) {
@@ -192,16 +193,13 @@ function Test-Assessment-41060 {
         $tableRows += "| $(Get-SafeMarkdown $result.Title) | $($result.ControlId) | $($result.Score) | $($result.MaxScore) | $($result.Ignored) | $lastModifiedDisplay | $statusDisplay |`n"
     }
 
-    if ($hasMoreItems) {
-        $remainingCount = $evaluationResults.Count - $maxDisplay
-        $tableRows += "| ... | | | | | | |`n"
-        $tableRows += "`nShowing $maxDisplay of $($evaluationResults.Count) items. [View all in Microsoft Secure Score]($portalLink)`n"
-    }
-
     $mdInfo = $formatTemplate -f $tableTitle, $portalLink, $tableRows
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
+
+    $passedCount = @($evaluationResults | Where-Object RowPassed).Count
+    Write-PSFMessage "Emitted $($evaluationResults.Count) control results: $passedCount passed, $($failedItems.Count) failed" -Tag Test -Level VeryVerbose
 
     Add-ZtTestResultDetail -TestId '41060' `
         -Title 'Cloud-delivered protection is enabled in Microsoft Defender Antivirus' `
