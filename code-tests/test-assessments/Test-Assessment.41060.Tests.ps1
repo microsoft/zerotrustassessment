@@ -46,6 +46,32 @@ Describe "Test-Assessment-41060" {
         $outputDir = Split-Path $script:outputFile
         if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir | Out-Null }
         "# Test Results for 41060`n" | Set-Content $script:outputFile
+
+        # Shared mock data — three pinned MDATP control profiles with the titles the Graph API returns.
+        # Defined in BeforeAll (run phase) so the variable is available when mocks execute.
+        $script:allProfiles = @(
+            [PSCustomObject]@{
+                id                   = 'scid_2016'
+                title                = 'Turn on cloud-delivered protection in Microsoft Defender Antivirus'
+                maxScore             = 10
+                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                controlStateUpdates  = @()
+            },
+            [PSCustomObject]@{
+                id                   = 'scid_5094'
+                title                = 'Set cloud-delivered protection to advanced'
+                maxScore             = 8
+                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                controlStateUpdates  = @()
+            },
+            [PSCustomObject]@{
+                id                   = 'scid_6094'
+                title                = 'Enable cloud protection sample submission'
+                maxScore             = 9
+                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                controlStateUpdates  = @()
+            }
+        )
     }
 
     BeforeEach {
@@ -54,32 +80,6 @@ Describe "Test-Assessment-41060" {
         Mock Get-SafeMarkdown { param($Text) return $Text }
         Mock Get-FormattedDate { param($DateString) return $DateString }
     }
-
-    # Shared mock data — three pinned MDATP control profiles with the titles the Graph API returns.
-    # Title strings are kept verbatim so assertions can match exactly what the SUT writes to the table.
-    $script:allProfiles = @(
-        [PSCustomObject]@{
-            id                   = 'scid_2016'
-            title                = 'Turn on cloud-delivered protection in Microsoft Defender Antivirus'
-            maxScore             = 10
-            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-            controlStateUpdates  = @()
-        },
-        [PSCustomObject]@{
-            id                   = 'scid_5094'
-            title                = 'Set cloud-delivered protection to advanced'
-            maxScore             = 8
-            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-            controlStateUpdates  = @()
-        },
-        [PSCustomObject]@{
-            id                   = 'scid_6094'
-            title                = 'Enable cloud protection sample submission'
-            maxScore             = 9
-            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-            controlStateUpdates  = @()
-        }
-    )
 
     Context "When all pinned cloud-protection controls are fully scored" {
         It "Should pass and report every control as passing" {
