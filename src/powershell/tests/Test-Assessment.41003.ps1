@@ -200,25 +200,21 @@ function Test-Assessment-41003 {
         $preTableLines += "[Defender XDR > Settings > Identities > Sensors]($sensorPortalUrl)`n`n"
     }
 
+    # Emoji lookup is invariant across rows; build it once. For every status field the
+    # verdict label equals the verdict name, so a single hashtable drives all columns.
+    $verdictEmoji = @{ Pass = '✅'; Investigate = '⚠️'; Fail = '❌' }
+
     $tableRows = ''
     foreach ($sensor in $displayRows) {
         $sensorDisplayName = Get-SafeMarkdown -Text $sensor.displayName
-        $domain            = $sensor.domainName
         $typeDisplay       = if ($sensorTypeDisplayNames.ContainsKey($sensor.sensorType)) { $sensorTypeDisplayNames[$sensor.sensorType] } else { $sensor.sensorType }
-        $version           = $sensor.version
-        $verdictEmoji = @{ Pass = '✅'; Investigate = '⚠️'; Fail = '❌' }
-        $deployStatus = "$($verdictEmoji[$sensor.deployStatusVerdict]) $($sensor.deploymentStatus)"
-        $healthStatus = "$($verdictEmoji[$sensor.healthStatusVerdict]) $($sensor.healthStatus)"
-        $serviceStatus = "$($verdictEmoji[$sensor.svcStatusVerdict]) $($sensor.serviceStatus)"
-        $openIssues   = if ($sensor.issuesVerdict -eq 'Pass') { "✅ $([int]$sensor.openHealthIssuesCount)" } else { "❌ $([int]$sensor.openHealthIssuesCount)" }
+        $deployStatus      = "$($verdictEmoji[$sensor.deployStatusVerdict]) $($sensor.deploymentStatus)"
+        $healthStatus      = "$($verdictEmoji[$sensor.healthStatusVerdict]) $($sensor.healthStatus)"
+        $serviceStatus     = "$($verdictEmoji[$sensor.svcStatusVerdict]) $($sensor.serviceStatus)"
+        $openIssues        = "$($verdictEmoji[$sensor.issuesVerdict]) $([int]$sensor.openHealthIssuesCount)"
+        $rowStatus         = "$($verdictEmoji[$sensor.sensorStatus]) $($sensor.sensorStatus)"
 
-        $rowStatus = switch ($sensor.sensorStatus) {
-            'Pass'        { '✅ Pass' }
-            'Investigate' { '⚠️ Investigate' }
-            default       { '❌ Fail' }
-        }
-
-        $tableRows += "| $sensorDisplayName | $domain | $typeDisplay | $version | $deployStatus | $healthStatus | $serviceStatus | $openIssues | $rowStatus |`n"
+        $tableRows += "| $sensorDisplayName | $($sensor.domainName) | $typeDisplay | $($sensor.version) | $deployStatus | $healthStatus | $serviceStatus | $openIssues | $rowStatus |`n"
     }
 
     if ($isTruncated) {
