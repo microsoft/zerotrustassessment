@@ -3,51 +3,48 @@ Describe "Test-Assessment-41060" {
         $here = $PSScriptRoot
         $srcRoot = Join-Path $here "../../src/powershell"
 
-        # Mock external module dependencies that may not be loaded in the test host
+        # global:-stub every module-provided command the SUT calls so the test also runs
+        # standalone (harness debug tree) where the ZeroTrustAssessment module is not imported.
         if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
-            function Write-PSFMessage {
-            }
+            function global:Write-PSFMessage {}
         }
         if (-not (Get-Command Write-ZtProgress -ErrorAction SilentlyContinue)) {
-            function Write-ZtProgress {
-            }
+            function global:Write-ZtProgress {}
         }
         if (-not (Get-Command Invoke-ZtGraphRequest -ErrorAction SilentlyContinue)) {
-            function Invoke-ZtGraphRequest {
+            function global:Invoke-ZtGraphRequest {
                 param($RelativeUri, $Filter, $ApiVersion, $Top, [switch]$DisablePaging)
             }
         }
+        # Add-ZtTestResultDetail needs a faithful param block: Should -Invoke -ParameterFilter can
+        # only bind named args if the mocked command exposes those parameters.
         if (-not (Get-Command Add-ZtTestResultDetail -ErrorAction SilentlyContinue)) {
-            function Add-ZtTestResultDetail {
+            function global:Add-ZtTestResultDetail {
+                param(
+                    [string]   $Description, [bool]     $Status,    [string]   $Result,
+                    [Object[]] $GraphObjects,[string]   $GraphObjectType,
+                    [string]   $TestId,      [string]   $Title,     [string]   $SkippedBecause,
+                    [string]   $UserImpact,  [string]   $Risk,      [string]   $ImplementationCost,
+                    [string[]] $AppliesTo,   [string[]] $Tag,       [string]   $CustomStatus,
+                    [string[]] $NotConnectedService,    [string]   $Pillar,    [string]   $Category
+                )
             }
         }
         if (-not (Get-Command Get-SafeMarkdown -ErrorAction SilentlyContinue)) {
-            function Get-SafeMarkdown {
-                param($Text) return $Text
-            }
+            function global:Get-SafeMarkdown { param($Text) return $Text }
         }
         if (-not (Get-Command Get-FormattedDate -ErrorAction SilentlyContinue)) {
-            function Get-FormattedDate {
-                param($DateString) return $DateString
-            }
+            function global:Get-FormattedDate { param($DateString) return $DateString }
         }
 
-        # Load the class
         $classPath = Join-Path $srcRoot "classes/ZtTest.ps1"
-        if (-not ("ZtTest" -as [type])) {
-            . $classPath
-        }
+        if (-not ("ZtTest" -as [type])) { . $classPath }
 
-        # Load the SUT
-        $sut = Join-Path $srcRoot "tests/Test-Assessment.41060.ps1"
-        . $sut
+        . (Join-Path $srcRoot "tests/Test-Assessment.41060.ps1")
 
-        # Setup output file
         $script:outputFile = Join-Path $here "../TestResults/Report-Test-Assessment.41060.md"
         $outputDir = Split-Path $script:outputFile
-        if (-not (Test-Path $outputDir)) {
-            New-Item -ItemType Directory -Path $outputDir | Out-Null
-        }
+        if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir | Out-Null }
         "# Test Results for 41060`n" | Set-Content $script:outputFile
     }
 
@@ -58,67 +55,51 @@ Describe "Test-Assessment-41060" {
         Mock Get-FormattedDate { param($DateString) return $DateString }
     }
 
+    # Shared mock data — three pinned MDATP control profiles with the titles the Graph API returns.
+    # Title strings are kept verbatim so assertions can match exactly what the SUT writes to the table.
+    $script:allProfiles = @(
+        [PSCustomObject]@{
+            id                   = 'scid_2016'
+            title                = 'Turn on cloud-delivered protection in Microsoft Defender Antivirus'
+            maxScore             = 10
+            lastModifiedDateTime = '2026-06-26T00:00:00Z'
+            controlStateUpdates  = @()
+        },
+        [PSCustomObject]@{
+            id                   = 'scid_5094'
+            title                = 'Set cloud-delivered protection to advanced'
+            maxScore             = 8
+            lastModifiedDateTime = '2026-06-26T00:00:00Z'
+            controlStateUpdates  = @()
+        },
+        [PSCustomObject]@{
+            id                   = 'scid_6094'
+            title                = 'Enable cloud protection sample submission'
+            maxScore             = 9
+            lastModifiedDateTime = '2026-06-26T00:00:00Z'
+            controlStateUpdates  = @()
+        }
+    )
+
     Context "When all pinned cloud-protection controls are fully scored" {
-        It "Should pass" {
-            # Q1a: the three pinned MDATP Secure Score control profiles, each with a maxScore.
-            # Q1b: the latest Secure Score snapshot whose controlScores meet or exceed each maxScore.
-            # The mock branches on $RelativeUri to mirror the two Graph calls the test makes.
+        It "Should pass and report every control as passing" {
             Mock Invoke-ZtGraphRequest {
                 if ($RelativeUri -eq 'security/secureScoreControlProfiles') {
-                    return @(
-                        [PSCustomObject]@{
-                            id                   = 'scid_2016'
-                            title                = 'Turn on cloud-delivered protection in Microsoft Defender Antivirus'
-                            maxScore             = 10
-                            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-                            controlStateUpdates  = @()
-                        },
-                        [PSCustomObject]@{
-                            id                   = 'scid_5094'
-                            title                = 'Set cloud-delivered protection to advanced'
-                            maxScore             = 8
-                            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-                            controlStateUpdates  = @()
-                        },
-                        [PSCustomObject]@{
-                            id                   = 'scid_6094'
-                            title                = 'Enable cloud protection sample submission'
-                            maxScore             = 9
-                            lastModifiedDateTime = '2026-06-26T00:00:00Z'
-                            controlStateUpdates  = @()
-                        }
-                    )
+                    return $script:allProfiles
                 }
                 elseif ($RelativeUri -eq 'security/secureScores') {
-                    # Shaped like GET /v1.0/security/secureScores?$top=1 (response wrapper with .value).
                     return [PSCustomObject]@{
-                        '@odata.context' = 'https://graph.microsoft.com/v1.0/$metadata#security/secureScores'
-                        value            = @(
+                        value = @(
                             [PSCustomObject]@{
-                                id            = '536279f6-15cc-45f2-be2d-61e352b51eef_2026-06-26'
-                                azureTenantId = '536279f6-15cc-45f2-be2d-61e352b51eef'
+                                id              = '536279f6-15cc-45f2-be2d-61e352b51eef_2026-06-26'
+                                azureTenantId   = '536279f6-15cc-45f2-be2d-61e352b51eef'
                                 createdDateTime = '2026-06-26T00:00:00Z'
-                                currentScore  = 1032.09
-                                maxScore      = 1717
-                                controlScores = @(
-                                    [PSCustomObject]@{
-                                        controlCategory = 'Device'
-                                        controlName     = 'scid_2016'
-                                        score           = 10
-                                        scoreInPercentage = 100
-                                    },
-                                    [PSCustomObject]@{
-                                        controlCategory = 'Device'
-                                        controlName     = 'scid_5094'
-                                        score           = 8
-                                        scoreInPercentage = 100
-                                    },
-                                    [PSCustomObject]@{
-                                        controlCategory = 'Device'
-                                        controlName     = 'scid_6094'
-                                        score           = 9
-                                        scoreInPercentage = 100
-                                    }
+                                currentScore    = 1032.09
+                                maxScore        = 1717
+                                controlScores   = @(
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_2016'; score = 10; scoreInPercentage = 100 },
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_5094'; score = 8;  scoreInPercentage = 100 },
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_6094'; score = 9;  scoreInPercentage = 100 }
                                 )
                             }
                         )
@@ -137,15 +118,14 @@ Describe "Test-Assessment-41060" {
 
             Test-Assessment-41060
 
-            Should -Invoke Add-ZtTestResultDetail -Times 1 -Exactly -ParameterFilter {
-                $Status -eq $true
-            }
-            $script:capturedResult | Should -Match 'Cloud-delivered protection is enabled'
+            $script:capturedStatus | Should -Be $true
+            $script:capturedResult | Should -Match ([regex]::Escape('✅ Cloud-delivered protection is enabled in Microsoft Defender Antivirus.'))
             $script:capturedResult | Should -Match 'scid_2016'
             $script:capturedResult | Should -Match 'scid_5094'
             $script:capturedResult | Should -Match 'scid_6094'
-            $script:capturedResult | Should -Match '✅ Pass'
-            $script:capturedResult | Should -Not -Match '❌ Fail'
+            $script:capturedResult | Should -Match ([regex]::Escape('✅ Pass'))
+            $script:capturedResult | Should -Not -Match ([regex]::Escape('❌ Fail'))
         }
     }
+
 }
