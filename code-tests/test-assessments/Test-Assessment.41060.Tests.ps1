@@ -52,23 +52,23 @@ Describe "Test-Assessment-41060" {
         $script:allProfiles = @(
             [PSCustomObject]@{
                 id                   = 'scid_2016'
-                title                = 'Turn on cloud-delivered protection in Microsoft Defender Antivirus'
-                maxScore             = 10
-                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                title                = 'Enable cloud-delivered protection'
+                maxScore             = 8
+                lastModifiedDateTime = '2026-06-27T00:00:00Z'
                 controlStateUpdates  = @()
             },
             [PSCustomObject]@{
                 id                   = 'scid_5094'
-                title                = 'Set cloud-delivered protection to advanced'
+                title                = 'Enable Microsoft Defender Antivirus cloud-delivered protection in macOS'
                 maxScore             = 8
-                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                lastModifiedDateTime = '2026-06-27T00:00:00Z'
                 controlStateUpdates  = @()
             },
             [PSCustomObject]@{
                 id                   = 'scid_6094'
-                title                = 'Enable cloud protection sample submission'
-                maxScore             = 9
-                lastModifiedDateTime = '2026-06-26T00:00:00Z'
+                title                = 'Enable Microsoft Defender Antivirus cloud-delivered protection for Linux'
+                maxScore             = 8
+                lastModifiedDateTime = '2026-06-27T00:00:00Z'
                 controlStateUpdates  = @()
             }
         )
@@ -97,9 +97,9 @@ Describe "Test-Assessment-41060" {
                                 currentScore    = 1032.09
                                 maxScore        = 1717
                                 controlScores   = @(
-                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_2016'; score = 10; scoreInPercentage = 100 },
-                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_5094'; score = 8;  scoreInPercentage = 100 },
-                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_6094'; score = 9;  scoreInPercentage = 100 }
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_2016'; score = 8; scoreInPercentage = 100 },
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_5094'; score = 8; scoreInPercentage = 100 },
+                                    [PSCustomObject]@{ controlCategory = 'Device'; controlName = 'scid_6094'; score = 8; scoreInPercentage = 100 }
                                 )
                             }
                         )
@@ -110,7 +110,7 @@ Describe "Test-Assessment-41060" {
             $script:capturedStatus = $null
             $script:capturedResult = $null
             Mock Add-ZtTestResultDetail {
-                param($TestId, $Title, $Status, $Result, $CustomStatus)
+                param($TestId, $Title, $Status, $Result)
                 $script:capturedStatus = $Status
                 $script:capturedResult = $Result
                 "## Scenario: All pinned controls fully scored`n`n$Result`n" | Add-Content $script:outputFile

@@ -24,7 +24,6 @@ function Test-Assessment-41060 {
         Category = 'Endpoint threat protection',
         ImplementationCost = 'Low',
         Service = ('Graph'),
-        MinimumLicense = ('WIN_DEF_ATP', 'MDE_LITE'),
         CompatibleLicense = ('WIN_DEF_ATP', 'MDE_LITE'),
         Pillar = 'SecOps',
         RiskLevel = 'High',
