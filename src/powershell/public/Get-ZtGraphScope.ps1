@@ -45,6 +45,7 @@
         'NetworkAccess.Read.All'
         'IdentityRiskyServicePrincipal.Read.All'
         'CopilotPackages.Read.All'
+        'SecurityEvents.Read.All'
         'SecurityIdentitiesSensors.Read.All'
         'SecurityIdentitiesHealth.Read.All'
     )
