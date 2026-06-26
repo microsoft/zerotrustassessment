@@ -86,6 +86,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - SecurityEvents.Read.All
 - SecurityIdentitiesSensors.Read.All
 - SecurityIdentitiesHealth.Read.All
+- SecurityAlert.Read.All
 
 Run the following command to connect to Microsoft Graph and consent to the permissions using a Global Administrator account.
 
