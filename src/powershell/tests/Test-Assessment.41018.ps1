@@ -144,7 +144,7 @@ function Test-Assessment-41018 {
         # Show count above the table when results are truncated.
         $preTableLines = ''
         if ($totalCount -gt $maxDisplay) {
-            $preTableLines = "Total open issues: $totalCount.`n`n"
+            $preTableLines = "Total open issues: $totalCount`n`n"
         }
 
         $formatTemplate = @'
