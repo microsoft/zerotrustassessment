@@ -129,6 +129,11 @@ function Convert-ZtAssessmentToWorkshop {
 	$modifiedCount  = 0
 	$collectedNotes = @{}   # "pillar|taskId" -> List[string] of findings
 
+	# Any single finding longer than this is compacted to the concise TestTitle so
+	# verbose result text doesn't dominate a task's notes (and leaves room for other
+	# findings). Findings at or under this length are used verbatim.
+	$maxNotesLineLength = 200
+
 	foreach ($test in $tests) {
 		$testId = [string](Get-ObjectValue -InputObject $test -Name 'TestId')
 
@@ -157,6 +162,16 @@ function Convert-ZtAssessmentToWorkshop {
 			}
 			else {
 				$notesText = $testResult.Trim()
+			}
+		}
+
+		# Compact an overly long finding to the concise TestTitle so verbose result
+		# text doesn't dominate the notes. Falls back to the original finding when no
+		# TestTitle is available, so nothing is lost.
+		if ($notesText.Length -gt $maxNotesLineLength) {
+			$testTitle = [string](Get-ObjectValue -InputObject $test -Name 'TestTitle')
+			if (-not [string]::IsNullOrWhiteSpace($testTitle)) {
+				$notesText = $testTitle.Trim()
 			}
 		}
 
