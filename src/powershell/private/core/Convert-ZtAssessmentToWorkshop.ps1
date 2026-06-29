@@ -129,18 +129,35 @@ function Convert-ZtAssessmentToWorkshop {
 	$modifiedCount  = 0
 	$collectedNotes = @{}   # "pillar|taskId" -> List[string] of findings
 
+	# Diagnostics: tally why tests are excluded so the reasons can be surfaced at
+	# Verbose level after the loop. These counters never affect the output document.
+	$skippedStatus       = 0   # TestStatus = 'Skipped'
+	$skippedNoPillar     = 0   # missing / empty TestPillar
+	$skippedPillarFilter = 0   # test sits entirely outside the -Pillar selection
+
 	foreach ($test in $tests) {
 		$testId = [string](Get-ObjectValue -InputObject $test -Name 'TestId')
 
 		$testStatus = [string](Get-ObjectValue -InputObject $test -Name 'TestStatus')
-		if ($testStatus -ieq 'Skipped') { continue }
+		if ($testStatus -ieq 'Skipped') { $skippedStatus++; continue }
 
 		# TestPillar may be a scalar string OR an array (cross-referenced / multi-pillar
 		# tests). In-memory it is frequently a single-element array that only collapses to a
 		# scalar once serialized to JSON, so normalise to a list of scalar pillar strings.
 		$pillarRaw = Get-ObjectValue -InputObject $test -Name 'TestPillar'
 		$pillarNames = @($pillarRaw) | ForEach-Object { "$_" } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-		if ($pillarNames.Count -eq 0) { continue }
+		if ($pillarNames.Count -eq 0) { $skippedNoPillar++; continue }
+
+		# When a -Pillar filter is active, count (and skip) tests whose pillar(s) are
+		# entirely outside the selection. Multi-pillar tests with at least one matching
+		# pillar still flow through; the inner loop filters their non-matching pillars.
+		if ($pillarFilterKey) {
+			$matchesFilter = $false
+			foreach ($pn in $pillarNames) {
+				if ($pn.ToLower() -eq $pillarFilterKey) { $matchesFilter = $true; break }
+			}
+			if (-not $matchesFilter) { $skippedPillarFilter++; continue }
+		}
 
 		# Extract the headline finding: first non-empty line of TestResult (computed once).
 		$testResult = Get-ObjectValue -InputObject $test -Name 'TestResult'
@@ -201,6 +218,17 @@ function Convert-ZtAssessmentToWorkshop {
 				}
 			}
 		}
+	}
+
+	# Surface why tests were excluded (Verbose only; never alters the output document).
+	if ($skippedStatus -gt 0) {
+		Write-PSFMessage -Level Verbose -Message "Skipped $skippedStatus test(s) with TestStatus = 'Skipped'."
+	}
+	if ($skippedNoPillar -gt 0) {
+		Write-PSFMessage -Level Verbose -Message "Skipped $skippedNoPillar test(s) with missing or empty TestPillar."
+	}
+	if ($skippedPillarFilter -gt 0) {
+		Write-PSFMessage -Level Verbose -Message "Skipped $skippedPillarFilter test(s) outside the selected pillar '$pillarFilterKey'."
 	}
 
 	# --- Combine collected notes (dedup identical lines; importer rejects repeats) ---
