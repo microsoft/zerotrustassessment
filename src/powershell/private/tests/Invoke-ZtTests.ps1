@@ -111,15 +111,21 @@
 	$skippedTestsForService.ForEach{
 		$notConnectedService = ($_).Service.Where{ $_ -notin $ConnectedService }
 		# Mark the test as skipped.
+		Write-PSFMessage -Message ('Test {0} is skipped because no service connection was found' -f $_.TestId) -Level Verbose
 		Add-ZtTestResultDetail -SkippedBecause NotConnectedToService -TestId $_.TestId -NotConnectedService $notConnectedService
 	}
 
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	# Tests that depend on SecurityCompliance remoting must run on the main thread regardless of pillar.
+	# Tests that depend on SecurityCompliance/ExchangeOnline/SharePointOnline must run on the main thread
+	# regardless of pillar: those services expose their cmdlets through dynamically-generated, connection-bound
+	# proxy modules (Connect-IPPSSession / Connect-ExchangeOnline / Connect-SPOService) that only exist in the
+	# main runspace where Connect-ZtAssessment ran. In a worker runspace those cmdlets are "not recognized",
+	# so such tests would incorrectly skip (e.g. Get-SafeLinksPolicy, Get-OrganizationConfig, Get-SPOTenant).
+	[string[]]$mainThreadServices = @('SecurityCompliance', 'ExchangeOnline', 'SharePointOnline')
 	[int[]]$syncTestIds   = $testsToRun.Where{
-		$_.Pillar -contains 'Data' -or $_.Service -contains 'SecurityCompliance'
+		$_.Pillar -contains 'Data' -or ($_.Service | Where-Object { $_ -in $mainThreadServices })
 	}.TestId
 	$syncTests     = $testsToRun.Where{ $_.TestId -in $syncTestIds }
 	$parallelTests = $testsToRun.Where{ $_.TestId -notin $syncTestIds }
