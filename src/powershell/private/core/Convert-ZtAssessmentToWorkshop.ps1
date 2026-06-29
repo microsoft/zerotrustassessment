@@ -204,6 +204,15 @@ function Convert-ZtAssessmentToWorkshop {
 	}
 
 	# --- Combine collected notes (dedup identical lines; importer rejects repeats) ---
+	# The Workshop importer rejects any task whose notes field exceeds this many
+	# characters (spaces included). The combined notes for each task - including the
+	# "ZT Assessment result:" wrapper - are hard-capped to this length so the export
+	# always imports successfully regardless of how many tests map to one task.
+	$maxNotesLength = 1000
+	# Horizontal ellipsis for the "more findings" marker, built from a code point so
+	# the marker text is never affected by how this script file itself is decoded.
+	$ellipsis = [char]::ConvertFromUtf32(0x2026)
+
 	foreach ($noteKey in $collectedNotes.Keys) {
 		$parts = $noteKey -split '\|', 2
 		$pKey  = $parts[0]
@@ -213,8 +222,48 @@ function Convert-ZtAssessmentToWorkshop {
 		foreach ($line in $collectedNotes[$noteKey]) {
 			if ($seen.Add($line)) { $uniqueLines.Add($line) }
 		}
+
+		# Hard-cap the final notes to $maxNotesLength characters (wrapper included).
+		# Keep whole lines and, when truncation is needed, append a marker noting how
+		# many findings were dropped so nothing looks silently lost. Truncating on
+		# line boundaries keeps each retained finding readable.
+		$prefix     = "ZT Assessment result:`n"
+		$suffix     = "`n"
+		$bodyBudget = $maxNotesLength - $prefix.Length - $suffix.Length
+
 		$combined = ($uniqueLines) -join "`n"
-		$pillars[$pKey].taskOverrides[$oKey].notes = "ZT Assessment result:`n$combined`n"
+		if ($combined.Length -le $bodyBudget) {
+			$finalBody = $combined
+		}
+		else {
+			$total      = $uniqueLines.Count
+			$kept       = [System.Collections.Generic.List[string]]::new()
+			$runningLen = 0
+			for ($idx = 0; $idx -lt $total; $idx++) {
+				$line = $uniqueLines[$idx]
+				$sep  = if ($kept.Count -gt 0) { 1 } else { 0 }
+				$prospective = $runningLen + $sep + $line.Length
+				# Reserve room for the drop marker if any lines would remain after this one.
+				$dropAfter = $total - ($kept.Count + 1)
+				$markerLen = if ($dropAfter -gt 0) { 1 + "$ellipsis(+$dropAfter more findings)".Length } else { 0 }
+				if (($prospective + $markerLen) -le $bodyBudget) {
+					$kept.Add($line)
+					$runningLen = $prospective
+				}
+				else {
+					break
+				}
+			}
+			$dropped   = $total - $kept.Count
+			$finalBody = ($kept) -join "`n"
+			if ($dropped -gt 0) {
+				$marker = "$ellipsis(+$dropped more findings)"
+				$finalBody = if ($finalBody.Length -gt 0) { "$finalBody`n$marker" } else { $marker }
+			}
+			Write-PSFMessage -Level Warning -Message "Notes for $pKey/$oKey exceeded $maxNotesLength chars; kept $($kept.Count) of $total finding(s)."
+		}
+
+		$pillars[$pKey].taskOverrides[$oKey].notes = "$prefix$finalBody$suffix"
 	}
 
 	# --- Statistics ---
