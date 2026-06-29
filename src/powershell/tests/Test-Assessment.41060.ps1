@@ -46,7 +46,15 @@ function Test-Assessment-41060 {
 
     # Q1a: Read the pinned MDATP Secure Score control profiles (scid_2016, scid_5094, scid_6094).
     # The OData $filter contains single quotes and parentheses, so it is URL-encoded before use.
-    Write-ZtProgress -Activity $activity -Status 'Getting MDATP Secure Score control profiles'
+    Write-ZtProgress -Activity $activity -Status 'Getting MDATP Secure Score control profiles for cloud delivered protection'
+
+    $investigateParams = @{
+        TestId       = '41060'
+        Title        = 'Cloud-delivered protection is enabled in Microsoft Defender Antivirus'
+        Status       = $false
+        CustomStatus = 'Investigate'
+        Result       = "⚠️ The pinned cloud protection Secure Score controls or latest Secure Score snapshot could not be read due to a permission or connectivity error. Verify the caller has the ``SecurityEvents.Read.All`` Graph permission (Entra role: Security Reader) and re-run."
+    }
 
     $controlProfiles = @()
     try {
@@ -54,13 +62,29 @@ function Test-Assessment-41060 {
         $controlProfiles = @(Invoke-ZtGraphRequest `
                 -RelativeUri "security/secureScoreControlProfiles" `
                 -Filter $filter `
-                -ApiVersion v1.0 `
+                -ApiVersion beta `
                 -ErrorAction Stop)
         Write-PSFMessage "Q1a returned $($controlProfiles.Count) MDATP control profile(s)" -Tag Test -Level VeryVerbose
     }
     catch {
+        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+        if ($statusCode -eq 404) {
+            Write-PSFMessage "MDATP Secure Score control profiles returned HTTP $statusCode — Microsoft Defender for Endpoint is likely not onboarded for this tenant." -Tag Test -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+            return
+        }
+        elseif ($statusCode -in (401, 403)) {
+            Write-PSFMessage "Failed to get MDATP Secure Score control profiles due to authorization issues (HTTP $statusCode). Make sure the required permissions are granted and roles are activated: $_" -Tag Test -Level Warning
+            $investigateParams.Result = "⚠️ Unable to retrieve MDATP cloud protection Secure Score control profiles. Make sure the required permissions are granted and roles are activated: `SecurityEvents.Read.All` Graph permission (Entra role: Security Reader)."
+            Add-ZtTestResultDetail @investigateParams
+            return
+        }
+
+        # any other error (network, 5xx, etc.) is treated as an investigate condition.
+        Add-ZtTestResultDetail @investigateParams
         $profileQueryFailed = $true
-        Write-PSFMessage "Failed to get MDATP Secure Score control profiles: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Failed to get MDATP Secure Score control profiles (HTTP $statusCode): $_" -Tag Test -Level Warning
+        return
     }
 
     # Q1b: Read the most recent Secure Score snapshot.
@@ -73,7 +97,7 @@ function Test-Assessment-41060 {
         # actual secureScore snapshot(s).
         $secureScoresResponse = Invoke-ZtGraphRequest `
                 -RelativeUri 'security/secureScores' `
-                -ApiVersion v1.0 `
+                -ApiVersion beta `
                 -Top 1 `
                 -ErrorAction Stop `
                 -DisablePaging
@@ -84,38 +108,47 @@ function Test-Assessment-41060 {
         Write-PSFMessage "Q1b returned $($secureScores.Count) Secure Score snapshot(s)" -Tag Test -Level Debug
     }
     catch {
+        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+        if ($statusCode -in @(404)) {
+            Write-PSFMessage "Secure Score API returned HTTP $statusCode — the Microsoft Secure Score service is likely not available or not licensed for this tenant." -Tag Test -Level Warning
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+            return
+        }
+        elseif ($statusCode -in (401, 403)) {
+            Write-PSFMessage "Failed to get latest Secure Score snapshot due to authorization issues (HTTP $statusCode). Make sure the required permissions are granted and roles are activated: $_" -Tag Test -Level Warning
+            $investigateParams.Result = "⚠️ Unable to retrieve the latest Secure Score snapshot. Make sure the required permissions are granted and roles are activated: `SecurityEvents.Read.All` Graph permission (Entra role: Security Reader)."
+            Add-ZtTestResultDetail @investigateParams
+            return
+        }
+
+        # any other error (network, 5xx, etc.) is treated as an investigate condition.
         $scoreQueryFailed = $true
-        Write-PSFMessage "Failed to get latest Secure Score snapshot: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Failed to get latest Secure Score snapshot (HTTP $statusCode): $_" -Tag Test -Level Warning
+        Add-ZtTestResultDetail @investigateParams
+        return
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $false
-    $customStatus = $null
+    $passed = $falsef
 
-    # Investigate: either query failed (permission/HTTP error) — cannot determine posture.
+    # Investigate: either query failed with a non-403/404 error (e.g. 401, 5xx, network)
+    # — cannot determine posture. 403/404 (service not onboarded/licensed) is handled above.
     if ($profileQueryFailed -or $scoreQueryFailed) {
-        Add-ZtTestResultDetail -TestId '41060' `
-            -Title 'Cloud-delivered protection is enabled in Microsoft Defender Antivirus' `
-            -Status $false -CustomStatus 'Investigate' `
-            -Result "⚠️ The pinned cloud protection Secure Score controls or latest Secure Score snapshot could not be read. This may indicate a permission or connectivity issue. The least-privileged Graph permission is ``SecurityEvents.Read.All`` (Entra role: Security Reader)."
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
     # Investigate: no pinned control profiles returned, or no Secure Score snapshot available.
     if ($controlProfiles.Count -eq 0) {
-        Add-ZtTestResultDetail -TestId '41060' `
-            -Title 'Cloud-delivered protection is enabled in Microsoft Defender Antivirus' `
-            -Status $false -CustomStatus 'Investigate' `
-            -Result "⚠️ No pinned MDATP cloud protection Secure Score control profiles were returned. The control IDs may not be present for this tenant's Microsoft Defender for Endpoint plan."
+        $investigateParams.Result = "⚠️ No pinned MDATP cloud protection Secure Score control profiles were returned. The control IDs may not be present for this tenant's Microsoft Defender for Endpoint plan."
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
     if ($null -eq $latestSecureScore) {
-        Add-ZtTestResultDetail -TestId '41060' `
-            -Title 'Cloud-delivered protection is enabled in Microsoft Defender Antivirus' `
-            -Status $false -CustomStatus 'Investigate' `
-            -Result '⚠️ No Microsoft Secure Score snapshot was returned, so the pinned cloud protection controls cannot be scored.'
+        $investigateParams.Result = '⚠️ No Microsoft Secure Score snapshot was returned, so the pinned cloud protection controls cannot be scored.'
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
@@ -133,14 +166,18 @@ function Test-Assessment-41060 {
     $evaluationResults = @()
     foreach ($controlProfile in $controlProfiles) {
         $matchingScore = if ($controlScoreByName.ContainsKey($controlProfile.id)) { $controlScoreByName[$controlProfile.id] } else { $null }
-        $score = if ($null -ne $matchingScore -and $null -ne $matchingScore.score) { [double]$matchingScore.score } else { $null }
-        $maxScore = if ($null -ne $controlProfile.maxScore) { [double]$controlProfile.maxScore } else { $null }
+        $score = if ($null -ne $matchingScore -and $null -ne $matchingScore.score) { $matchingScore.score } else { $null }
+        $maxScore = if ($null -ne $controlProfile.maxScore) { $controlProfile.maxScore } else { $null }
 
         # The most recent controlStateUpdates entry carries the resolved state ('Ignored',
         # 'Default', ...) and its updatedDateTime. Fall back to the profile-level
         # lastModifiedDateTime (both may be null for never-modified controls).
         $latestStateUpdate = @($controlProfile.controlStateUpdates | Sort-Object updatedDateTime -Descending | Select-Object -First 1)[0]
         $isIgnored = ($null -ne $latestStateUpdate -and $latestStateUpdate.state -eq 'Ignored')
+        # Intentional spec deviation: spec maps Last Modified → lastModifiedDateTime, but
+        # controlStateUpdates.updatedDateTime is preferred when present because it reflects when
+        # the admin last changed the control state (Ignored/Default/etc.), which is more
+        # actionable than when the profile object itself was last touched.
         $lastModified = if ($null -ne $latestStateUpdate -and $null -ne $latestStateUpdate.updatedDateTime) { $latestStateUpdate.updatedDateTime } else { $controlProfile.lastModifiedDateTime }
 
         $isFullyScored = ($null -ne $score -and $null -ne $maxScore -and $score -ge $maxScore)
