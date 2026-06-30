@@ -58,30 +58,22 @@ WHERE userType = 'Guest'
 
     Write-ZtProgress -Activity $activity -Status "Checking sponsors for $totalGuestCount guest users"
 
-    # Process guests and check sponsors efficiently
-    $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
-    $guestsWithSponsorsCount = 0
+    # Collect the IDs of guests with a confirmed sponsor. Anything not confirmed (a failed or empty
+    # lookup) falls through to "without sponsor" by deriving that list from the original guest set.
+    $sponsoredIds = [System.Collections.Generic.HashSet[string]]::new()
 
-    foreach ($guest in $guestUsers) {
-        try {
-            # Get the sponsors for the guest user
-            $guestUserWithSponsors = Invoke-ZtGraphRequest -RelativeUri "users/$($guest.id)?`$expand=sponsors" -ApiVersion 'v1.0'
+    $sponsorResults = Invoke-ZtGraphBatchRequest -Path "users/{0}?`$expand=sponsors" -ArgumentList $guestUsers.id -Matched -ErrorAction SilentlyContinue
 
-            # Check if guest has sponsors
-            if ($guestUserWithSponsors.sponsors -and $guestUserWithSponsors.sponsors.Count -gt 0) {
-                $guestsWithSponsorsCount++
-            }
-            else {
-                $guestsWithoutSponsors.Add($guestUserWithSponsors)
-            }
-        }
-        catch {
-            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Verbose
-            # Treat as guest without sponsor if API call fails
-            $guestsWithoutSponsors.Add($guest)
+    foreach ($result in $sponsorResults) {
+        if (-not $result.Success) { continue }
+        $guestUserWithSponsors = $result.Result | Select-Object -First 1
+        if ($guestUserWithSponsors.sponsors.Count -gt 0) {
+            [void]$sponsoredIds.Add($guestUserWithSponsors.id)
         }
     }
 
+    $guestsWithSponsorsCount = $sponsoredIds.Count
+    $guestsWithoutSponsors = @($guestUsers | Where-Object { -not $sponsoredIds.Contains($_.id) })
     $guestsWithoutSponsorsCount = $guestsWithoutSponsors.Count
     $passed = $guestsWithoutSponsorsCount -eq 0
 
