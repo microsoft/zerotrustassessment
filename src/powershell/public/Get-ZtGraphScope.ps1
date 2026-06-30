@@ -50,6 +50,7 @@
         'SecurityIdentitiesSensors.Read.All'
         'SecurityIdentitiesHealth.Read.All'
         'SecurityAlert.Read.All'
+        'SecurityIncident.Read.All'
     )
 
     $scopes | Sort-Object -Unique
