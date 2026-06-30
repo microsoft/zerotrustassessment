@@ -52,14 +52,14 @@ function Test-Assessment-41009 {
     Write-ZtProgress -Activity $activity -Status 'Retrieving MDI secure score control profile'
        
     # Q1 – Retrieve the MDI "Remove dormant accounts from sensitive groups" control profile.
-    # Using the stable direct-GET form rather than a $filter query so the 404 response
-    # unambiguously signals that the profile is absent from this tenant.
+    # This uses a $filter query; an empty result set indicates the profile is absent from this tenant.
     
     $controlProfile = $null
     $errorMsgQ1     = $null
     $httpStatusQ1   = $null
 
     try {
+
         $profileResults = Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -Filter "service eq 'Azure ATP' and id eq 'AATP_DormantAccounts'" -ApiVersion beta -ErrorAction Stop
         $controlProfile = $profileResults | Select-Object -First 1
     }
@@ -102,7 +102,7 @@ function Test-Assessment-41009 {
     # ── Investigate: Q1 returned no profile (MDI not onboarded or not yet provisioned) or 401/403 (insufficient permissions) ──
     if ($null -eq $controlProfile) {
         if ($httpStatusQ1 -in @(401, 403)) {
-            $investigateReason = "The `SecurityEvents.Read.All` permission is required to read Secure Score control profiles. Verify the permission is consented and re-run the assessment."
+            $investigateReason = 'The **SecurityEvents.Read.All** permission is required to read Secure Score control profiles. Verify the permission is consented and re-run the assessment.'
         }
         elseif ($null -ne $errorMsgQ1) {
             $investigateReason = "Microsoft Graph returned an unexpected error retrieving the MDI Secure Score control profile. Re-run the assessment in 5–10 minutes and open a support ticket if the error persists."
