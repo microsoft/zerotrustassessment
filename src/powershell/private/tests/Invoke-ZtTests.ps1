@@ -118,9 +118,9 @@
 	$testsToRun = $testsToRun.Where{ $_.TestId -notin $skippedTestsForService.TestId }
 
 	# Separate Sync Tests (Compliance/ExchangeOnline/SharePointOnline/AIP) from Parallel Tests (because of DLL order to manage in runspaces & remoting into WPS)
-	# Tests that depend on SecurityCompliance/ExchangeOnline/SharePointOnline must run on the main thread
+	# Tests that depend on SecurityCompliance/ExchangeOnline/SharePointOnline/AIPService must run on the main thread
 	# regardless of pillar: those services expose their cmdlets through dynamically-generated, connection-bound
-	# proxy modules (Connect-IPPSSession / Connect-ExchangeOnline / Connect-SPOService) that only exist in the
+	# proxy modules (Connect-IPPSSession / Connect-ExchangeOnline / Connect-SPOService / Connect-AipService) that only exist in the
 	# main runspace where Connect-ZtAssessment ran. In a worker runspace those cmdlets are "not recognized",
 	# so such tests would incorrectly skip (e.g. Get-SafeLinksPolicy, Get-OrganizationConfig, Get-SPOTenant).
 	$mainThreadServices = 'SecurityCompliance', 'ExchangeOnline', 'SharePointOnline', 'AipService'
