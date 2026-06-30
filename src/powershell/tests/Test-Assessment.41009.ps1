@@ -104,20 +104,24 @@ function Test-Assessment-41009 {
         if ($httpStatusQ1 -in @(401, 403)) {
             $investigateReason = "The `SecurityEvents.Read.All` permission is required to read Secure Score control profiles. Verify the permission is consented and re-run the assessment."
         }
+        elseif ($null -ne $errorMsgQ1) {
+            $investigateReason = "Microsoft Graph returned an unexpected error retrieving the MDI Secure Score control profile. Re-run the assessment in 5–10 minutes and open a support ticket if the error persists."
+        }
         else {
             $investigateReason = "The Microsoft Defender for Identity posture recommendation `"Remove dormant accounts from sensitive groups`" was not found in the tenant's Microsoft Secure Score; verify that MDI posture assessments are enabled."
         }
 
-        $testResultMarkdown = "⚠️ $investigateReason`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ $investigateReason"
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail @{
+        $params = @{
             TestId       = '41009'
             Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
             Status       = $passed
             Result       = $testResultMarkdown
             CustomStatus = $customStatus
         }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -129,16 +133,17 @@ function Test-Assessment-41009 {
 
     # ── Investigate: Q2 returned no data at all ──
     if ($null -eq $latestSecureScore) {
-        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile exists but the current Microsoft Secure Score snapshot could not be retrieved.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile exists but the current Microsoft Secure Score snapshot could not be retrieved."
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail @{
+        $params = @{
             TestId       = '41009'
             Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
             Status       = $passed
             Result       = $testResultMarkdown
             CustomStatus = $customStatus
         }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -152,16 +157,17 @@ function Test-Assessment-41009 {
 
     # ── Investigate: profile exists but the snapshot has no entry for this control ──
     if ($null -eq $controlScoreEntry) {
-        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile ($controlId) exists but the latest Secure Score snapshot has no scored entry for this control.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The MDI dormant-accounts control profile ($controlId) exists but the latest Secure Score snapshot has no scored entry for this control."
         $customStatus       = 'Investigate'
 
-        Add-ZtTestResultDetail @{
+        $params = @{
             TestId       = '41009'
             Title        = 'Dormant accounts have been removed from sensitive Active Directory groups'
             Status       = $passed
             Result       = $testResultMarkdown
             CustomStatus = $customStatus
         }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -186,11 +192,11 @@ function Test-Assessment-41009 {
 
     $defenderLink = 'https://security.microsoft.com/securescore?viewid=actions'
 
-    $scoreDisplay     = if ($null -ne $currentScore) { $currentScore } else { 'N/A' }
-    $maxDisplay       = if ($null -ne $maxScore) { $maxScore } else { 'N/A' }
-    $pctDisplay       = if ($null -ne $scoreInPercentage) { "$([math]::Round($scoreInPercentage, 1))%" } else { 'N/A' }
-    $impStatusDisplay = if ($null -ne $implementationStatus) { $implementationStatus } else { 'N/A' }
-    $syncDisplay      = if ($null -ne $lastSynced) { $lastSynced } else { 'N/A' }
+    $scoreDisplay     = if ($null -ne $currentScore) { $currentScore } else { '-' }
+    $maxDisplay       = if ($null -ne $maxScore) { $maxScore } else { '-' }
+    $pctDisplay       = if ($null -ne $scoreInPercentage) { "$([math]::Round($scoreInPercentage, 1))%" } else { '-' }
+    $impStatusDisplay = if (-not [string]::IsNullOrEmpty($implementationStatus)) { $implementationStatus } else { '-' }
+    $syncDisplay      = if (-not [string]::IsNullOrEmpty($lastSynced)) { $lastSynced } else { '-' }
     $statusLabel      = if ($passed) { '✅ Pass' } elseif ($customStatus) { "⚠️ $customStatus" } else { '❌ Fail' }
 
     $actionLinkMarkdown = ''
