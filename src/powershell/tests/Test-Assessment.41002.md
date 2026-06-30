@@ -8,12 +8,14 @@ To install or repair the MDI sensor on a domain controller:
 1. Sign in to [Microsoft Defender XDR](https://security.microsoft.com) as a Global Administrator or Security Administrator.
 2. Navigate to **Settings > Identities > Sensors**.
 3. Download the sensor installer and follow [Install the Microsoft Defender for Identity sensor](https://learn.microsoft.com/en-us/defender-for-identity/deploy/install-sensor).
-4. For outdated sensors, see [Update Microsoft Defender for Identity sensors](https://learn.microsoft.com/en-us/defender-for-identity/deploy/sensor-settings#sensor-update-process).
+4. For outdated sensors, see [Update Microsoft Defender for Identity sensors](https://learn.microsoft.com/en-us/defender-for-identity/sensor-settings#update-sensors).
 5. For unhealthy sensors, review [Microsoft Defender for Identity health alerts](https://learn.microsoft.com/en-us/defender-for-identity/health-alerts).
 
 - [Plan capacity for Microsoft Defender for Identity](https://learn.microsoft.com/en-us/defender-for-identity/deploy/capacity-planning)
 - [Install the Microsoft Defender for Identity sensor](https://learn.microsoft.com/en-us/defender-for-identity/deploy/install-sensor)
-- [Configure Microsoft Defender for Identity sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/sensor-settings)
+- [Configure Microsoft Defender for Identity sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-sensor-settings)
+- [Update Microsoft Defender for Identity sensors](https://learn.microsoft.com/en-us/defender-for-identity/sensor-settings#update-sensors)
+- [Microsoft Defender for Identity health alerts](https://learn.microsoft.com/en-us/defender-for-identity/health-alerts)
 - [Troubleshoot Microsoft Defender for Identity sensor failures](https://learn.microsoft.com/en-us/defender-for-identity/troubleshooting-known-issues)
 
 <!--- Results --->

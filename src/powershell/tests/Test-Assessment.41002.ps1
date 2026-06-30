@@ -77,7 +77,7 @@ function Test-Assessment-41002 {
         $testResultMarkdown = "⚠️ No Microsoft Defender for Identity sensors are registered in this tenant. Verify whether Defender for Identity has been onboarded. If onboarding is recent (<24 h), allow the inventory to propagate and re-run.`n`n%TestResult%"
     }
     else {
-        $allDcSensors = @($sensors | Where-Object { $_.sensorType -eq 'domainControllerIntegrated' })
+        $allDcSensors = @($sensors | Where-Object { $_.sensorType -in @('domainControllerIntegrated', 'domainControllerStandalone') })
 
         if ($allDcSensors.Count -eq 0) {
             $passed             = $false
@@ -140,13 +140,22 @@ function Test-Assessment-41002 {
     $portalLink = 'https://security.microsoft.com/securitysettings/identities'
 
     if ($allDcSensors.Count -gt 0) {
+        # Per spec: on Fail show Fail+Investigate sensors; on Investigate show Investigate only; on Pass show all
+        $reportSensors = if ($passed) {
+            $allDcSensors
+        } elseif ($customStatus -eq 'Investigate') {
+            @($allDcSensors | Where-Object { $_.SensorVerdict -eq 'Investigate' })
+        } else {
+            @($allDcSensors | Where-Object { $_.SensorVerdict -in @('Fail', 'Investigate') })
+        }
+
         $maxDisplay     = 10
-        $totalCount     = $allDcSensors.Count
-        $sortedSensors  = $allDcSensors | Sort-Object -Property domainName, displayName
+        $totalCount     = $reportSensors.Count
+        $sortedSensors  = $reportSensors | Sort-Object -Property domainName, displayName
         $displaySensors = $sortedSensors | Select-Object -First $maxDisplay
         $isTruncated    = $totalCount -gt $maxDisplay
 
-        $hasFailures = ($allDcSensors | Where-Object { $_.SensorVerdict -eq 'Fail' } | Measure-Object).Count -gt 0
+        $hasFailures = ($reportSensors | Where-Object { $_.SensorVerdict -eq 'Fail' } | Measure-Object).Count -gt 0
 
         if ($isTruncated -or $hasFailures) {
             $mdInfo += "[Defender XDR > Settings > Identities > Sensors]($portalLink)`n`n"
