@@ -19,6 +19,7 @@
 
     # Default read-only scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
+		'Application.Read.All'
         'AuditLog.Read.All'
         'CrossTenantInformation.ReadBasic.All'
         'CustomSecAttributeAssignment.Read.All'
@@ -48,6 +49,7 @@
         'SecurityEvents.Read.All'
         'SecurityIdentitiesSensors.Read.All'
         'SecurityIdentitiesHealth.Read.All'
+        'SecurityAlert.Read.All'
     )
 
     $scopes | Sort-Object -Unique

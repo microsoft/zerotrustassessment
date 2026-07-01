@@ -1,0 +1,12 @@
+Active Directory Federation Services, Active Directory Certificate Services, and Microsoft Entra Connect form the identity backbone that extends a customer's on-premises directory into the cloud: AD FS issues federated authentication tokens for cloud applications, AD CS issues the certificates that machines and users present across the forest, and Microsoft Entra Connect synchronizes on-premises accounts and credential material into Microsoft Entra ID. A threat actor who reaches any of these servers operates at the same trust level as the directory itself — capable of issuing forged authentication artifacts, enrolling certificates as arbitrary users, or replaying synchronized credentials into cloud sessions — and that activity blends in with the legitimate, signed identity traffic these servers produce by design. Host-level antivirus and network monitoring catch only the noisiest stages of such attacks; the argument that the existing domain controller sensors and perimeter controls are enough does not hold, because the abusive actions originate on the federation, certificate, and synchronization servers themselves, not on the domain controllers downstream. The high-fidelity signals that distinguish legitimate federation, certificate issuance, and directory replication from their abusive look-alikes are produced by the Microsoft Defender for Identity sensor running locally on each of these roles, so ensuring an MDI sensor is installed, current, and healthy on every AD FS, AD CS, and Entra Connect server extends identity-aware detection to the components that originate identity itself, and the workspace's sensor inventory becomes the auditable record that this coverage is in place rather than assumed.
+
+**Remediation action**
+
+- [Plan AD FS, AD CS, and Microsoft Entra Connect sensors](https://learn.microsoft.com/en-us/defender-for-identity/deploy/active-directory-federation-services)
+- [Install the Microsoft Defender for Identity sensor](https://learn.microsoft.com/en-us/defender-for-identity/deploy/install-sensor)
+- [Configure Microsoft Defender for Identity sensor settings](https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-sensor-settings)
+- [Microsoft Defender for Identity health alerts](https://learn.microsoft.com/en-us/defender-for-identity/health-alerts)
+- [Troubleshoot known issues](https://learn.microsoft.com/en-us/defender-for-identity/troubleshooting-known-issues)
+
+<!--- Results --->
+%TestResult%
