@@ -187,8 +187,8 @@ function Test-Assessment-41009 {
     $maxDisplay       = if ($null -ne $maxScore) { $maxScore } else { '-' }
     $pctDisplay       = if ($null -ne $scoreInPercentage) { "$([math]::Round($scoreInPercentage, 1))%" } else { '-' }
     $impStatusDisplay = if (-not [string]::IsNullOrEmpty($implementationStatus)) { $implementationStatus } else { '-' }
-    $syncDisplay      = if (-not [string]::IsNullOrEmpty($lastSynced)) { $lastSynced } else { '-' }
-    $statusLabel      = if ($passed) { '✅ Pass' } elseif ($customStatus) { "⚠️ $customStatus" } else { '❌ Fail' }
+    $syncDisplay      = if (-not [string]::IsNullOrEmpty($lastSynced)) { Get-FormattedDate -DateString $lastSynced } else { '-' }
+    $statusLabel      = if ($passed) { '✅ Pass' } else { '❌ Fail' }
 
     $actionLinkMarkdown = ''
     if (-not [string]::IsNullOrWhiteSpace($actionUrl)) {
