@@ -75,8 +75,8 @@ function Test-Assessment-41009 {
     if ($null -ne $controlProfile) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving latest Microsoft Secure Score'
         try {
-            $scoreResponse     = Invoke-ZtGraphRequest -RelativeUri 'security/secureScores' -Top 1 -ApiVersion beta -ErrorAction Stop
-            $latestSecureScore = @($scoreResponse)[0]
+            $scoreResponse     = Invoke-ZtGraphRequest -RelativeUri 'security/secureScores' -Top 1 -ApiVersion beta -DisablePaging -ErrorAction Stop
+            $latestSecureScore = $scoreResponse.value | Select-Object -First 1
         }
         catch {
             Write-PSFMessage "Failed to retrieve Secure Score: $_" -Level Warning
