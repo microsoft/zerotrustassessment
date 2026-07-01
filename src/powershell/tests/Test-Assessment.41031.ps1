@@ -217,7 +217,7 @@ function Test-Assessment-41031 {
 
     $preTableLines = ''
     if ($totalCount -gt $maxDisplay) {
-        $preTableLines = "Showing 10 of $totalCount policies. [View all in Microsoft 365 Defender > Policies & rules > Threat policies > Safe Attachments]($portalUrl)`n`n"
+        $preTableLines = "Showing $maxDisplay of $totalCount policies. [View all in Microsoft 365 Defender > Policies & rules > Threat policies > Safe Attachments]($portalUrl)`n`n"
     }
 
     $formatTemplate = @'
