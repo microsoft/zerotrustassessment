@@ -64,18 +64,9 @@ function Test-Assessment-41009 {
         $controlProfile = $profileResults | Select-Object -First 1
     }
     catch {
-        $errorMsgQ1 = $_
+        $errorMsgQ1   = $_
+        $httpStatusQ1 = Get-ZtHttpStatusCode -ErrorRecord $_
         Write-PSFMessage "Failed to retrieve MDI control profile: $errorMsgQ1" -Level Warning
-
-        if ($errorMsgQ1.Exception.Response.StatusCode) {
-            $httpStatusQ1 = [int]$errorMsgQ1.Exception.Response.StatusCode.value__
-        }
-        elseif ($errorMsgQ1.Exception.Message -match '401|Unauthorized') {
-            $httpStatusQ1 = 401
-        }
-        elseif ($errorMsgQ1.Exception.Message -match '403|Forbidden') {
-            $httpStatusQ1 = 403
-        }
     }
 
     # Q2 – Retrieve the most recent Secure Score snapshot.
