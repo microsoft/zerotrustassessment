@@ -90,7 +90,7 @@ function Test-Assessment-41041 {
 
     # Q3: Classify each MDO incident. Stale = not updated in 24 hours (status already filtered to active/inProgress by Q1).
     $incidentResults = foreach ($incident in $mdoIncidents) {
-        $lastUpdated     = [datetime]$incident.lastUpdateDateTime
+        $lastUpdated     = if ([string]::IsNullOrEmpty($incident.lastUpdateDateTime)) { $now } else { [datetime]$incident.lastUpdateDateTime }
         $hoursSinceUpdate = [math]::Round(($now - $lastUpdated).TotalHours, 1)
         $isStale         = $hoursSinceUpdate -gt $staleThresholdHours
         $isAssigned      = -not [string]::IsNullOrWhiteSpace($incident.assignedTo)
