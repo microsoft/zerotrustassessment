@@ -14,7 +14,7 @@ function Test-Assessment-41081 {
 
     [ZtTest(
         Category = 'SaaS threat detection',
-        CompatibleLicense = ('ADALLOM_STANDALONE'),
+        #CompatibleLicense = ('ADALLOM_STANDALONE'),
         ImplementationCost = 'Low',
         Pillar = 'SecOps',
         RiskLevel = 'High',
@@ -93,7 +93,7 @@ function Test-Assessment-41081 {
     #region Report Generation
     $portalUrl = 'https://security.microsoft.com/cloudapps/policies'
 
-    $preTableLines = "##[Defender XDR > Cloud apps > Policies > Anomaly detection]($portalUrl)`n`n"
+    $preTableLines = "## [Defender XDR > Cloud apps > Policies > Anomaly detection]($portalUrl)`n`n"
 
     # Only render the alert table when anomaly alerts were found (Pass case).
     if ($passed) {
@@ -101,8 +101,9 @@ function Test-Assessment-41081 {
         $displayRows = @($anomalyAlerts | Select-Object -First 10)
         $isTruncated = $totalCount -gt 10
 
+        $countLine = ''
         if ($isTruncated) {
-            $preTableLines = "Total alerts: $totalCount (showing first 10)`n`n" + $preTableLines
+            $countLine = "Total alerts: $totalCount (showing first 10)`n`n"
         }
 
         $tableRows = ''
@@ -122,9 +123,8 @@ function Test-Assessment-41081 {
         }
 
         $mdInfo = @"
-$preTableLines
-
-| Alert title | Severity | Detection source | Created | Status | Alert URL |
+`n$preTableLines
+$countLine| Alert title | Severity | Detection source | Created | Status | Alert URL |
 | :---------- | :------- | :--------------- | :------ | :----- | :-------- |
 $tableRows
 "@
