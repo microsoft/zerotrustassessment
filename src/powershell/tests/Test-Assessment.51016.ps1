@@ -25,7 +25,7 @@
 function Test-Assessment-51016 {
     [ZtTest(
         Category = 'Devices',
-        CompatibleLicense = ('INTUNE_A'),
+        CompatibleLicense = ('INTUNE_A&AAD_PREMIUM_P2'),
         ImplementationCost = 'Low',
         Pillar = 'Devices',
         RiskLevel = 'High',
@@ -41,16 +41,9 @@ function Test-Assessment-51016 {
     #region Helper Functions
     # Calls Add-ZtTestResultDetail and returns $true when the exception is 401/403/5xx.
     # Returns $false for all other errors so the caller can rethrow.
-    # Checks the response object first, then falls back to message text (mirrors Test-Assessment.61005 pattern).
     function Test-ZtPimHttpError {
         param($Err, $Params)
-        $status = $null
-        if ($Err.Exception.Response.StatusCode) {
-            $status = [int]$Err.Exception.Response.StatusCode.value__
-        }
-        elseif ($Err.Exception.Message -match '401|Unauthorized')                                   { $status = 401 }
-        elseif ($Err.Exception.Message -match '403|Forbidden')                                      { $status = 403 }
-        elseif ($Err.Exception.Message -match '5\d\d|Internal|ServiceUnavailable|GatewayTimeout')  { $status = 500 }
+        $status = Get-ZtHttpStatusCode -ErrorRecord $Err
 
         if ($status -eq 401 -or $status -eq 403 -or $status -ge 500) {
             Add-ZtTestResultDetail @Params
@@ -203,7 +196,7 @@ function Test-Assessment-51016 {
         $testResultMarkdown = '✅ The Intune Administrator role is managed with safe privileged-access controls — no enabled Member user has standing permanent Intune Administrator access, and PIM activations require MFA, justification, and a bounded duration.'
     }
     else {
-        $testResultMarkdown = '❌ The Intune Administrator role is not adequately protected — either the tenant has no Microsoft Entra ID P2 license (so PIM cannot be configured at all), one or more enabled Member users has standing permanent Intune Administrator access, or the activation policy is missing MFA / justification / duration limits.'
+        $testResultMarkdown = '❌ The Intune Administrator role is not adequately protected — one or more enabled Member users has standing permanent Intune Administrator access, or the activation policy is missing MFA / justification / duration limits.'
     }
     $testResultMarkdown += "`n`n%TestResult%"
     #endregion Assessment Logic
@@ -222,8 +215,13 @@ function Test-Assessment-51016 {
             $odataType     = $schedule.principal.'@odata.type'
             $principalType = if ($odataType) { $odataType -replace '#microsoft.graph\.', '' } else { 'Unknown' }
             $memberType    = if ($schedule.memberType) { $schedule.memberType } else { '-' }
-            $startDt       = if ($schedule.startDateTime) { Get-FormattedDate $schedule.startDateTime } else { 'N/A' }
-            $endDt         = if ($schedule.endDateTime)   { Get-FormattedDate $schedule.endDateTime }   else { 'Permanent' }
+            $startRaw      = $schedule.scheduleInfo.startDateTime
+            $exp           = $schedule.scheduleInfo.expiration
+            $startDt       = if ($startRaw) { Get-FormattedDate $startRaw } else { 'N/A' }
+            $endDt         = if ($exp.endDateTime)                              { Get-FormattedDate $exp.endDateTime }
+                             elseif ($exp.type -eq 'noExpiration' -or -not $exp) { 'Permanent' }
+                             elseif ($exp.duration)                              { $exp.duration }
+                             else                                                { 'Permanent' }
             $scheduleStatus = if ($schedule.status) { $schedule.status } else { '-' }
             $eligibilityRows += "| $principalName | $principalType | $memberType | $startDt → $endDt | $scheduleStatus |`n"
         }
