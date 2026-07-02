@@ -32,12 +32,30 @@ function Test-Assessment-41031 {
     }
     catch {
         Write-PSFMessage "Failed to retrieve Safe Attachments policies: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        # Spec: ATP_ENTERPRISE gates this test, so a cmdlet failure points to an Exchange Online
+        # permission or connectivity issue rather than an unlicensed tenant.
+        $params = @{
+            TestId       = '41031'
+            Title        = 'Safe Attachments policies in Microsoft Defender for Office 365 are configured to detonate and block'
+            Status       = $false
+            Result       = '⚠️ Safe Attachments policies could not be retrieved (no policies were returned, the cmdlet is unavailable, or the Exchange Online rule set cannot be read), or an enabled rule references a policy that does not exist; because MDO licensing gates this test, an empty or failed result points to an Exchange Online permission or connectivity issue rather than absence of protection — verify Exchange Online access and re-run.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
     if ($allPolicies.Count -eq 0) {
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        # Spec: Built-in Protection is always present in every MDO-licensed tenant, so zero rows
+        # indicates an Exchange Online permission or connectivity anomaly, not an unlicensed tenant.
+        $params = @{
+            TestId       = '41031'
+            Title        = 'Safe Attachments policies in Microsoft Defender for Office 365 are configured to detonate and block'
+            Status       = $false
+            Result       = '⚠️ Safe Attachments policies could not be retrieved (no policies were returned, the cmdlet is unavailable, or the Exchange Online rule set cannot be read), or an enabled rule references a policy that does not exist; because MDO licensing gates this test, an empty or failed result points to an Exchange Online permission or connectivity issue rather than absence of protection — verify Exchange Online access and re-run.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
