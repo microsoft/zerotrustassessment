@@ -14,7 +14,7 @@ function Test-Assessment-41081 {
 
     [ZtTest(
         Category = 'SaaS threat detection',
-        CompatibleLicense = ('ADALLOM_S_STANDALONE'),
+        CompatibleLicense = ('ADALLOM_S_STANDALONE','ADALLOM_S_O365'),
         ImplementationCost = 'Low',
         Pillar = 'SecOps',
         RiskLevel = 'High',
