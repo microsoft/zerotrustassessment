@@ -42,10 +42,10 @@
 		Write-PSFMessage -Message "Retrieving group members for {0}." -StringValues "$GroupId"
 
 		if ($Recurse) {
-			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/transitiveMembers" -ApiVersion v1.0 -OutputType $OutputType
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/transitiveMembers" -Top 999 -ApiVersion v1.0 -OutputType $OutputType
 		}
 		else {
-			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/members" -ApiVersion v1.0 -OutputType $OutputType
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/members" -Top 999 -ApiVersion v1.0 -OutputType $OutputType
 		}
 	}
 }
