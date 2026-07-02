@@ -200,7 +200,6 @@ function Test-Assessment-41009 {
     else {
         $actionLinkMarkdown = 'Remove dormant accounts from sensitive groups'
     }
-
     
     $tableRows = "| $actionLinkMarkdown | $scoreDisplay | $maxDisplay | $pctDisplay | $impStatusDisplay | $syncDisplay | $statusLabel |`n"
 
