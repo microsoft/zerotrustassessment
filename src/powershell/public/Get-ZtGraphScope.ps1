@@ -19,8 +19,9 @@
 
     # Default read-only scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
-		'Application.Read.All'
+        'Application.Read.All'
         'AuditLog.Read.All'
+        'CopilotPackages.Read.All'
         'CrossTenantInformation.ReadBasic.All'
         'CustomSecAttributeAssignment.Read.All'
         'DeviceManagementApps.Read.All'
@@ -32,8 +33,10 @@
         'DirectoryRecommendations.Read.All'
         'EntitlementManagement.Read.All'
         'IdentityRiskEvent.Read.All'
+        'IdentityRiskyServicePrincipal.Read.All'
         'IdentityRiskyUser.Read.All'
         'LifecycleWorkflows-Workflow.Read.All'
+        'NetworkAccess.Read.All'
         'Policy.Read.All'
         'Policy.Read.ConditionalAccess'
         'Policy.Read.PermissionGrant'
@@ -42,15 +45,12 @@
         'PrivilegedEligibilitySchedule.Read.AzureADGroup'
         'Reports.Read.All'
         'RoleManagement.Read.All'
-        'UserAuthenticationMethod.Read.All'
-        'NetworkAccess.Read.All'
-        'IdentityRiskyServicePrincipal.Read.All'
-        'CopilotPackages.Read.All'
-        'SecurityEvents.Read.All'
-        'SecurityIdentitiesSensors.Read.All'
-        'SecurityIdentitiesHealth.Read.All'
         'SecurityAlert.Read.All'
+        'SecurityEvents.Read.All'
+        'SecurityIdentitiesHealth.Read.All'
+        'SecurityIdentitiesSensors.Read.All'
         'SecurityIncident.Read.All'
+        'UserAuthenticationMethod.Read.All'
     )
 
     $scopes | Sort-Object -Unique
