@@ -175,11 +175,6 @@ function Test-Assessment-41029 {
             $testResultMarkdown += "`n_Showing first 10 of $totalInScope policies. [View all anti-malware policies](https://security.microsoft.com/antimalwarev2)._`n"
         }
 
-        # Informational admin-notification roll-up (does not affect Pass/Fail per spec)
-        $internalNotifyCount = @($inScopePolicies | Where-Object { $_.EnableInternalSenderAdminNotifications -eq $true }).Count
-        $externalNotifyCount = @($inScopePolicies | Where-Object { $_.EnableExternalSenderAdminNotifications -eq $true }).Count
-
-        $testResultMarkdown += "`n> Of $totalInScope in-scope policies, $internalNotifyCount have ``EnableInternalSenderAdminNotifications == True`` and $externalNotifyCount have ``EnableExternalSenderAdminNotifications == True``. Microsoft's baseline recommends both off; these settings do not affect this check's Pass/Fail.`n"
     }
     #endregion Report Generation
 
