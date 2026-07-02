@@ -121,25 +121,25 @@
 		Clear-PSFMessage
 		$gs = [PSFScope]::Global()
 		$gs.EnableFunctions()
-		$null = $gs.Functions.Remove("Test-Assessment.91001")
-		$null = $gs.Functions.Remove("Test-Assessment.91002")
-		$null = $gs.Functions.Remove("Test-Assessment.91003")
+		$null = $gs.Functions.Remove("Test-Assessment.X91001")
+		$null = $gs.Functions.Remove("Test-Assessment.X91002")
+		$null = $gs.Functions.Remove("Test-Assessment.X91003")
 	}
 
 	Context "Successful execution" {
 		It "Runs the test command, writes started progress/log stub, updates state, and forwards expected inputs to Write-ZtTestFinish" {
-			$testItem = New-DummyZtTest -TestId '91001' -CommandName 'Test-Assessment.91001' -Title 'Parallel Test'
+			$testItem = New-DummyZtTest -TestId '91001' -CommandName 'Test-Assessment.X91001' -Title 'Parallel Test'
 			$script:testResult.TestID = $testItem.TestID
 			$script:testResult.DisplayName = $testItem.Title
 
-			function global:Test-Assessment.91001 {
+			function global:Test-Assessment.X91001 {
 				[CmdletBinding()]
 				param(
 					$Database
 				)
 				'command-ok'
 			}
-			Mock 'Test-Assessment.91001' {
+			Mock 'Test-Assessment.X91001' {
 				param($Database)
 				'command-ok'
 			}
@@ -168,7 +168,7 @@
 				$WorkerStatus -eq 'Running' -and
 				$WorkerDetail -eq 'Starting test...'
 			}
-			Should -Invoke 'Test-Assessment.91001' -Times 1 -Exactly
+			Should -Invoke 'Test-Assessment.X91001' -Times 1 -Exactly
 			Should -Invoke Write-ZtTestProgress -Times 1 -Exactly -ParameterFilter {
 				$TestID -eq $testItem.TestID -and
 				$LogsPath -eq $script:logsPath -and
@@ -184,39 +184,39 @@
 		}
 
 		It "Increments Attempts when Start is already present" {
-			$testItem = New-DummyZtTest -TestId '91002' -CommandName 'Test-Assessment.91002' -Title 'Retry Test'
+			$testItem = New-DummyZtTest -TestId '91002' -CommandName 'Test-Assessment.X91002' -Title 'Retry Test'
 			$script:testResult.TestID = $testItem.TestID
 			$script:testResult.DisplayName = $testItem.Title
 			$script:testResult.Start = Get-Date
 			$script:testResult.Attempts = 2
 
-			function global:Test-Assessment.91002 {
+			function global:Test-Assessment.X91002 {
 				[CmdletBinding()]
 				param()
 				'command-retry'
 			}
-			Mock 'Test-Assessment.91002' { 'command-retry' }
+			Mock 'Test-Assessment.X91002' { 'command-retry' }
 
 			Invoke-ZtTestParallel -Test $testItem -LogsPath $script:logsPath -PreviousMessages $script:previousMessages | Out-Null
 
 			$script:testResult.Attempts | Should -Be 3
-			Should -Invoke 'Test-Assessment.91002' -Times 1 -Exactly
+			Should -Invoke 'Test-Assessment.X91002' -Times 1 -Exactly
 		}
 	}
 
 	Context "Database parameter handling" {
 		It "Does not pass Database to command when the command has no Database parameter" {
-			$testItem = New-DummyZtTest -TestId '91003' -CommandName 'Test-Assessment.91003' -Title 'No DB Param Test'
+			$testItem = New-DummyZtTest -TestId '91003' -CommandName 'Test-Assessment.X91003' -Title 'No DB Param Test'
 			$script:testResult.TestID = $testItem.TestID
 			$script:testResult.DisplayName = $testItem.Title
 			$databaseObj = [DuckDB.NET.Data.DuckDBConnection]::new()
 
-			function global:Test-Assessment.91003 {
+			function global:Test-Assessment.X91003 {
 				[CmdletBinding()]
 				param()
 				'command-no-db'
 			}
-			Mock 'Test-Assessment.91003' {
+			Mock 'Test-Assessment.X91003' {
 				param($Database)
 				if ($PSBoundParameters.ContainsKey('Database')) {
 					throw 'Database parameter should not have been bound'
@@ -226,7 +226,7 @@
 
 			Invoke-ZtTestParallel -Test $testItem -Database $databaseObj -PreviousMessages $script:previousMessages | Out-Null
 
-			Should -Invoke 'Test-Assessment.91003' -Times 1 -Exactly -ParameterFilter {
+			Should -Invoke 'Test-Assessment.X91003' -Times 1 -Exactly -ParameterFilter {
 				$null -eq $Database
 			}
 			Should -Invoke Write-ZtTestProgress -Times 0 -Exactly
