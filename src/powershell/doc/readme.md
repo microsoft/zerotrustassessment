@@ -1,4 +1,4 @@
-# Microsoft Zero Trust Assessment V2 - Private Preview
+# Microsoft Zero Trust Assessment - Preview
 
 > The shortlink to this page is: [aka.ms/zerotrust/v2/privatepreview](https://aka.ms/zerotrust/v2/privatepreview)
 
