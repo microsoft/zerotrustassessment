@@ -83,7 +83,7 @@ function Test-Assessment-41081 {
         # anomaly-detection-attributed; administrator review is required.
         $passed       = $false
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Microsoft Defender for Cloud Apps returned alerts in the last 90 days but none have ``detectionSource = cloudAppSecurity`` with a non-null ``alertPolicyId``. Review built-in anomaly detection policy state in the Microsoft Defender portal.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Microsoft Defender for Cloud Apps returned alerts in the last 90 days but none have **detectionSource = cloudAppSecurity** with a non-null **alertPolicyId**. Review built-in anomaly detection policy state in the Microsoft Defender portal.`n`n%TestResult%"
     } else {
         $passed = $false
         $testResultMarkdown = "❌ No Microsoft Defender for Cloud Apps anomaly detection policy alerts were observed in the last 90 days.`n`n%TestResult%"
