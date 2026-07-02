@@ -1,6 +1,13 @@
 <#
 .SYNOPSIS
     Checks that compromised identities surfaced by Microsoft Defender for Identity alerts have been remediated.
+
+.NOTES
+    Test ID: 41019
+    Workshop Task: SECOPS-019
+    Pillar: SecOps
+    Category: Identity threat protection
+    Required permission: SecurityAlert.Read.All
 #>
 
 function Test-Assessment-41019 {
@@ -220,7 +227,7 @@ function Test-Assessment-41019 {
             default                                              { "❌ $($row.RemediationStatus)" }
         }
         $assignedTo        = if ([string]::IsNullOrEmpty($row.AssignedTo)) { '—' } else { $row.AssignedTo }
-        $firstActivity     = if ([string]::IsNullOrEmpty($row.FirstActivity)) { '—' } else { $row.FirstActivity }
+        $firstActivity     = if ([string]::IsNullOrEmpty($row.FirstActivity)) { '—' } else { Get-FormattedDate -DateString $row.FirstActivity }
 
         $incidentCell = if (-not [string]::IsNullOrEmpty($row.IncidentWebUrl)) {
             "[Incident $($row.IncidentId)]($($row.IncidentWebUrl))"
