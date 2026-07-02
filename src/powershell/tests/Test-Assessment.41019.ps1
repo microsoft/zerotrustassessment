@@ -191,8 +191,10 @@ function Test-Assessment-41019 {
     $showPortalLink = $isTruncated -or $anyNonPass.Count -gt 0
 
     $preTableLines = ''
-    if ($totalCount -gt 10) {
+    if ($isTruncated) {
         $preTableLines += "Total compromised identities: $totalCount (showing first 10)`n`n"
+    } else {
+        $preTableLines += "Total compromised identities: $totalCount`n`n"
     }
     if ($showPortalLink) {
         $preTableLines += "[Defender XDR > Investigation & response > Alerts]($alertsPortalUrl)`n`n"
@@ -212,7 +214,11 @@ function Test-Assessment-41019 {
 
         $severity          = $row.AlertSeverity
         $alertStatus       = $row.AlertStatus
-        $remediationStatus = $row.RemediationStatus
+        $remediationStatus = switch ($row.RemediationStatus) {
+            { $_ -in $containedStatuses }                        { "✅ $($row.RemediationStatus)" }
+            { $_ -in $inProgressStatuses -or $_ -eq 'absent' }  { "⚠️ $($row.RemediationStatus)" }
+            default                                              { "❌ $($row.RemediationStatus)" }
+        }
         $assignedTo        = if ([string]::IsNullOrEmpty($row.AssignedTo)) { '—' } else { $row.AssignedTo }
         $firstActivity     = if ([string]::IsNullOrEmpty($row.FirstActivity)) { '—' } else { $row.FirstActivity }
 
