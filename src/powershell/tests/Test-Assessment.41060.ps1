@@ -41,9 +41,6 @@ function Test-Assessment-41060 {
 
     $activity = 'Checking cloud-delivered protection in Microsoft Defender Antivirus'
 
-    $profileQueryFailed = $false
-    $scoreQueryFailed = $false
-
     # Q1a: Read the pinned MDATP Secure Score control profiles (scid_2016, scid_5094, scid_6094).
     # The OData $filter contains single quotes and parentheses, so it is URL-encoded before use.
     Write-ZtProgress -Activity $activity -Status 'Getting MDATP Secure Score control profiles for cloud delivered protection'
@@ -81,9 +78,8 @@ function Test-Assessment-41060 {
         }
 
         # any other error (network, 5xx, etc.) is treated as an investigate condition.
-        Add-ZtTestResultDetail @investigateParams
-        $profileQueryFailed = $true
         Write-PSFMessage "Failed to get MDATP Secure Score control profiles (HTTP $statusCode): $_" -Tag Test -Level Warning
+        Add-ZtTestResultDetail @investigateParams
         return
     }
 
@@ -109,7 +105,7 @@ function Test-Assessment-41060 {
     }
     catch {
         $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
-        if ($statusCode -in @(404)) {
+        if ($statusCode -eq 404) {
             Write-PSFMessage "Secure Score API returned HTTP $statusCode — the Microsoft Secure Score service is likely not available or not licensed for this tenant." -Tag Test -Level Warning
             Add-ZtTestResultDetail -SkippedBecause NotApplicable
             return
@@ -122,7 +118,6 @@ function Test-Assessment-41060 {
         }
 
         # any other error (network, 5xx, etc.) is treated as an investigate condition.
-        $scoreQueryFailed = $true
         Write-PSFMessage "Failed to get latest Secure Score snapshot (HTTP $statusCode): $_" -Tag Test -Level Warning
         Add-ZtTestResultDetail @investigateParams
         return
@@ -130,14 +125,7 @@ function Test-Assessment-41060 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $passed = $falsef
-
-    # Investigate: either query failed with a non-403/404 error (e.g. 401, 5xx, network)
-    # — cannot determine posture. 403/404 (service not onboarded/licensed) is handled above.
-    if ($profileQueryFailed -or $scoreQueryFailed) {
-        Add-ZtTestResultDetail @investigateParams
-        return
-    }
+    $passed = $false
 
     # Investigate: no pinned control profiles returned, or no Secure Score snapshot available.
     if ($controlProfiles.Count -eq 0) {
