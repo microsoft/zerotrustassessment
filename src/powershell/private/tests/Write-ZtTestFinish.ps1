@@ -88,5 +88,10 @@
 		else {
 			Write-PSFRunspaceQueue -Name $__PSF_Worker.OutQueue -Value $Result -UseCurrent
 		}
+
+		# Cleanup Result Reference
+		if ($script:_testCache -and $script:_testCache[$Test.TestID]) {
+			$script:_testCache.Remove($Test.TestID)
+		}
 	}
 }

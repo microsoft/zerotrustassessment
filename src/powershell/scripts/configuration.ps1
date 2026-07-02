@@ -14,7 +14,7 @@ Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Export' -Value 5 
 # Test Settings
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 5 -Initialize -Validation integerpositive -Description 'Maximum number of tests processed in parallel'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.Timeout' -Value '1h' -Initialize -Validation timespan -Description 'Maximum time a single test is allowed to run before it is stopped. Defaults to 1 hour. Set to 0 to disable the timeout. Tests that exceed this limit are recorded as timed out and execution continues with the next test.'
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.TimeoutType' -Value 'Idle' -Initialize -Description 'How the timeout for test execution is measured: Idle = "Since last activity", Start = "Since the Test was started"'
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.TimeoutType' -Value 'Idle' -Validation rstimeout -Initialize -Description 'How the timeout for test execution is measured: Idle = "Since last activity", Start = "Since the Test was started"'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryCount' -Value 0 -Validation integerpositive -Initialize -Description 'How many times a failed test should be reattempted.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryTimeout' -Value $false -Validation bool -Initialize -Description 'Whether a timedout test should be reattempted.'
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.Statistics.MaxMessageCount' -Value 1024 -Validation integerpositive -Initialize -Description 'How many log messages will be stored in the test statistics. If the number is higher than specified, the message objects will be simplified to help preserve memory.'

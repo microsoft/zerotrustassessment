@@ -22,7 +22,11 @@
 
 	.PARAMETER TestTimeout
 		Maximum time a single test is allowed to run.
-		Passed through to Invoke-ZtTest for per-test timeout enforcement.
+		Either from start to finish or how long it may remain "Idle" (That is, not report activity. Logging Messages shows activity).
+		Which mode is determined by the configuration setting 'ZeroTrustAssessment.Tests.TimeoutType'
+		Modes available at this time:
+		- Idle: Timeout is measured from last activity
+		- Start: Timeout is measured from start of the Test
 
 	.EXAMPLE
 		PS C:\> Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
@@ -116,15 +120,15 @@
 				)
 			) { return $true }
 
-			$result.TimedOut = $_ -match 'Workitem timed out'
+			$result.TimedOut = $_.Exception -is [System.TimeoutException] -and $_ -match 'Workitem timed out'
 
 			# Let's fail this
 			$result.End = Get-Date
 			$result.Duration = $result.End - $result.Start
 
-			Write-ZtTestError -Test $this -Result $result -ErrorRecord $_
+			$null = Write-ZtTestError -Test $this -Result $result -ErrorRecord $_
 			Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $this.TestID -Target $this -Tag end
-			Write-ZtTestFinish -Result $result -PreviousMessages $global:msgSoFar[$_.TestID] -Test $this -LogsPath $logsPath
+			$null = Write-ZtTestFinish -Result $result -PreviousMessages $global:msgSoFar[$this.TestID] -Test $this -LogsPath $logsPath
 		}
 		#endregion Code
 

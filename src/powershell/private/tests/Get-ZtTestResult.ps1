@@ -8,6 +8,9 @@
 		This will - on first call - generate a new, mostly empty object.
 		On subsequent calls - during retries or when considering on whether to retry at all - it will return the same object, which presumably has been updated since.
 
+		Note: The cached result object is cleared from the test cache when calling Write-ZtTestFinish.
+		Calling Get-ZtTestResult after that will again create a new result object.
+
 	.PARAMETER Test
 		The test object for which we need a result dataset
 

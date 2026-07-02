@@ -52,12 +52,12 @@ function Invoke-ZtAzureRequestCache {
 	$cacheBlocked = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.DisableCache'
 	if ($cacheBlocked) { $DisableCache = $true }
 	$isGet = -not $AzParams.ContainsKey('Method') -or $AzParams['Method'] -eq 'GET'
-	$isInCache = $script:__ZtSession.AzureCache.Value.ContainsKey($CacheKey)
+	$cachedResult = $script:__ZtSession.AzureCache.Value[$CacheKey]
 
 	# Check cache for GET requests
-	if (-not $cacheBlocked -and -not $DisableCache -and $isGet -and $isInCache) {
+	if (-not $cacheBlocked -and -not $DisableCache -and $isGet -and $cachedResult) {
 		Write-PSFMessage "Using Azure cache: $($CacheKey)" -Level Debug
-		$cachedResult = $script:__ZtSession.AzureCache.Value[$CacheKey]
+
 		if ($FullResponse) {
 			# Return a synthetic response object for cached content
 			return [PSCustomObject]@{
