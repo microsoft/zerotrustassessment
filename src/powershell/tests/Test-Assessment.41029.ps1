@@ -69,7 +69,11 @@ function Test-Assessment-41029 {
         # Step 3: Build in-scope set = default policy + policies referenced by enabled rules
         $enabledRules = @($rules | Where-Object { $_.State -eq 'Enabled' })
 
-        # Build case-insensitive lookup by Identity for rule-to-policy resolution
+        # Build case-insensitive lookup by Identity for rule-to-policy resolution.
+        # The spec says match on "Identity or Name", but for Get-MalwareFilterPolicy the returned
+        # Identity IS the policy name string (Exchange accepts name, GUID, or DN as input; the
+        # cmdlet echoes back the name as Identity). MalwareFilterRule.MalwareFilterPolicy also
+        # stores the policy name, so a single Identity-keyed lookup satisfies both identifiers.
         $policyByIdentity = @{}
         foreach ($policy in $policies) {
             $policyByIdentity[$policy.Identity] = $policy
@@ -112,11 +116,16 @@ function Test-Assessment-41029 {
             foreach ($policy in $inScopePolicies) {
                 if ($policy.QuarantineTag -ne 'AdminOnlyAccessPolicy') {
                     # Step 6: Customer-defined quarantine policy — release behavior cannot be confirmed
+                    $policy | Add-Member -NotePropertyName RowResult -NotePropertyValue '⚠️ Investigate' -Force
                     $investigatePolicies += $policy
                 }
                 elseif ($policy.EnableFileFilter -ne $true -or $policy.ZapEnabled -ne $true) {
                     # Step 7 (fail): Common Attachment Filter or ZAP is not enabled
+                    $policy | Add-Member -NotePropertyName RowResult -NotePropertyValue '❌ Fail' -Force
                     $nonCompliantPolicies += $policy
+                }
+                else {
+                    $policy | Add-Member -NotePropertyName RowResult -NotePropertyValue '✅ Pass' -Force
                 }
             }
 
@@ -144,7 +153,7 @@ function Test-Assessment-41029 {
         $truncated = $totalInScope -gt 10
 
         $testResultMarkdown += "`n`n### [In-scope anti-malware policies](https://security.microsoft.com/antimalwarev2)`n`n"
-        $testResultMarkdown += "| Identity | Is Default | Common Attachment Filter | File Types (count) | ZAP | Quarantine Tag | Applied | Result |`n"
+        $testResultMarkdown += "| Identity | Is default | Common attachment filter | File types (count) | ZAP | Quarantine tag | Applied | Result |`n"
         $testResultMarkdown += "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`n"
 
         foreach ($policy in $displayPolicies) {
@@ -155,17 +164,7 @@ function Test-Assessment-41029 {
             $zap            = if ($policy.ZapEnabled -eq $true) { '✅ Yes' } else { '❌ No' }
             $quarantineTag  = Get-SafeMarkdown -Text $policy.QuarantineTag
             $applied        = if ($policy.IsDefault -eq $true) { 'Default catch-all' } else { 'Via enabled rule' }
-
-            # Per-row result is independent of the overall $customStatus
-            $rowResult = if ($policy.QuarantineTag -ne 'AdminOnlyAccessPolicy') {
-                '⚠️ Investigate'
-            }
-            elseif ($policy.EnableFileFilter -eq $true -and $policy.ZapEnabled -eq $true) {
-                '✅ Pass'
-            }
-            else {
-                '❌ Fail'
-            }
+            $rowResult      = $policy.RowResult
 
             $testResultMarkdown += "| $identity | $isDefault | $fileFilter | $fileTypesCount | $zap | $quarantineTag | $applied | $rowResult |`n"
         }
@@ -174,6 +173,10 @@ function Test-Assessment-41029 {
             $testResultMarkdown += "| ... | | | | | | | |`n"
             $testResultMarkdown += "`n_Showing first 10 of $totalInScope policies. [View all anti-malware policies](https://security.microsoft.com/antimalwarev2)._`n"
         }
+
+        $internalNotifyCount = @($inScopePolicies | Where-Object { $_.EnableInternalSenderAdminNotifications -eq $true }).Count
+        $externalNotifyCount = @($inScopePolicies | Where-Object { $_.EnableExternalSenderAdminNotifications -eq $true }).Count
+        $testResultMarkdown += "`n_Of $totalInScope in-scope policies, $internalNotifyCount have internal sender admin notifications enabled and $externalNotifyCount have external sender admin notifications enabled. Microsoft's baseline recommends both off; these settings do not affect this check's Pass/Fail._`n"
 
     }
     #endregion Report Generation
