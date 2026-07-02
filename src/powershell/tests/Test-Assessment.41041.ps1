@@ -32,8 +32,10 @@ function Test-Assessment-41041 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking MDO Automated Investigation and Response incident staleness'
 
-    $windowStart = (Get-Date).AddDays(-30).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-    $incidentUri = "security/incidents?`$filter=(status eq 'active' or status eq 'inProgress') and createdDateTime ge $windowStart&`$expand=alerts"
+    $windowStart    = (Get-Date).AddDays(-30).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $incidentFilter = "(status eq 'active' or status eq 'inProgress') and createdDateTime ge $windowStart"
+    $incidentSelect = 'id,displayName,severity,status,assignedTo,createdDateTime,lastUpdateDateTime,incidentWebUrl'
+    $alertsExpand   = "alerts(`$select=id,status,serviceSource;`$filter=serviceSource eq 'microsoftDefenderForOffice365')"
 
     $allIncidents = $null
     $queryError   = $null
@@ -41,8 +43,8 @@ function Test-Assessment-41041 {
     Write-ZtProgress -Activity $activity -Status 'Querying active Microsoft 365 Defender incidents'
 
     try {
-        # Q1: Enumerate active and unresolved Microsoft 365 Defender incidents in the last 30 days.
-        $allIncidents = Invoke-ZtGraphRequest -RelativeUri $incidentUri -ApiVersion beta -ErrorAction Stop
+        # Q1: Enumerate active and in-progress MDO incidents in the last 30 days; server-side alert filter reduces payload.
+        $allIncidents = Invoke-ZtGraphRequest -RelativeUri 'security/incidents' -ApiVersion beta -Filter $incidentFilter -Select $incidentSelect -QueryParameters @{ '$expand' = $alertsExpand } -ErrorAction Stop
     }
     catch {
         $queryError = $_
@@ -74,10 +76,8 @@ function Test-Assessment-41041 {
         return
     }
 
-    # Q2: Retain only incidents where at least one alert originates from MDO.
-    $mdoIncidents = @($allIncidents | Where-Object {
-        ($_.alerts | Where-Object { $_.serviceSource -eq 'microsoftDefenderForOffice365' }).Count -gt 0
-    })
+    # Q2: Retain incidents that have at least one MDO alert (alerts already server-side filtered by expand).
+    $mdoIncidents = @($allIncidents | Where-Object { @($_.alerts).Count -gt 0 })
 
     if ($mdoIncidents.Count -eq 0) {
         Write-PSFMessage 'No MDO-origin incidents in the last 30 days — skipping AIR staleness check.' -Tag Test -Level VeryVerbose
