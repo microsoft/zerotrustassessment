@@ -7,7 +7,7 @@ function Test-Assessment-41029 {
     [ZtTest(
         Category = 'Email and collaboration security',
         ImplementationCost = 'Low',
-        Service = ('SecurityCompliance'),
+        Service = ('ExchangeOnline'),
         CompatibleLicense = ('EXCHANGE_S_STANDARD'),
         Pillar = 'SecOps',
         RiskLevel = 'High',
