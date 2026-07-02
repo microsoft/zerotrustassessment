@@ -11,6 +11,7 @@ function Test-Assessment-41003 {
         ImplementationCost = 'Medium',
         Pillar = 'SecOps',
         RiskLevel = 'High',
+        Service = ('Graph'),
         SfiPillar = 'Monitor and detect cyberthreats',
         TenantType = ('Workforce'),
         TestId = 41003,
