@@ -40,6 +40,19 @@ if (-not (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyCo
 	Install-PackageProvider -Name NuGet -MinimumVersion '2.8.5.201' -Force -Scope CurrentUser | Out-Null
 }
 
+# Ensure the target repository is registered for PowerShellGet.
+# PowerShell 7.6+ bundles Microsoft.PowerShell.PSResourceGet as the default package module
+# and no longer seeds the PSGallery source for the legacy PowerShellGet/PackageManagement stack
+# that Install-Module relies on, so register it explicitly when missing.
+if (-not (Get-PSRepository -Name $Repository -ErrorAction SilentlyContinue)) {
+	if ($Repository -eq 'PSGallery') {
+		Register-PSRepository -Default -ErrorAction Stop
+	}
+	else {
+		throw "Repository '$Repository' is not registered for PowerShellGet. Register it before running this script."
+	}
+}
+
 foreach ($module in $modules) {
 	$installParams = @{
 		Name               = $module.ModuleName

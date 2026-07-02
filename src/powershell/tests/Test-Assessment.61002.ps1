@@ -34,7 +34,7 @@ function Test-Assessment-61002 {
         ImplementationCost = 'Medium',
         Service = ('Azure'),
         MinimumLicense = ('Microsoft_Sentinel'),
-        Pillar = 'AI',
+        Pillar = ('AI', 'SecOps'),
         RiskLevel = 'High',
         SfiPillar = 'Monitor and detect cyberthreats',
         TenantType = ('Workforce'),
