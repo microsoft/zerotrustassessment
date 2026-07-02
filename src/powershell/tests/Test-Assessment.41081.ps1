@@ -14,7 +14,7 @@ function Test-Assessment-41081 {
 
     [ZtTest(
         Category = 'SaaS threat detection',
-        #CompatibleLicense = ('ADALLOM_STANDALONE'),
+        CompatibleLicense = ('ADALLOM_S_STANDALONE'),
         ImplementationCost = 'Low',
         Pillar = 'SecOps',
         RiskLevel = 'High',
@@ -109,11 +109,11 @@ function Test-Assessment-41081 {
         $tableRows = ''
         foreach ($alert in $displayRows) {
             $title           = Get-SafeMarkdown -Text $alert.title
-            $severity        = $alert.severity
-            $detectionSource = $alert.detectionSource
-            $created         = $alert.createdDateTime
-            $alertStatus     = $alert.status
-            $alertUrl        = if ($alert.alertWebUrl) { "[$($alert.alertWebUrl)]($($alert.alertWebUrl))" } else { '' }
+            $severity        = if ($alert.severity)        { $alert.severity }        else { '—' }
+            $detectionSource = if ($alert.detectionSource) { $alert.detectionSource } else { '—' }
+            $created         = if ($alert.createdDateTime) { Get-FormattedDate -DateString $alert.createdDateTime } else { '—' }
+            $alertStatus     = if ($alert.status)          { $alert.status }          else { '—' }
+            $alertUrl        = if ($alert.alertWebUrl)     { "[$($alert.alertWebUrl)]($($alert.alertWebUrl))" } else { '—' }
 
             $tableRows += "| $title | $severity | $detectionSource | $created | $alertStatus | $alertUrl |`n"
         }
