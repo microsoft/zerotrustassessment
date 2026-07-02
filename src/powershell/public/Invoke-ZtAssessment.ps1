@@ -51,7 +51,7 @@ Raising this number may improve performance, but risk hitting throttling limits.
 	Defaults to: 24 hours. Adjust this value if you have a large number of tests or expect some tests to take a long time.
 
 .PARAMETER TestTimeout
-Maximum time in minutes a single test is allowed to run before it is stopped.
+Maximum time a single test is allowed to run before it is stopped.
 Defaults to 60 minutes. Set to 0 to disable the timeout.
 Tests that exceed this limit are recorded as timed out and execution continues with the next test.
 For Data pillar tests and other external-module/remoting-heavy operations, timeout is a
@@ -151,13 +151,9 @@ function Invoke-ZtAssessment {
 		# Path to a configuration file. Parameters specified on the command line will override values from the configuration file.
 		[Parameter(ParameterSetName = 'Default')]
 		[ValidateScript({
-				if (Test-Path $_ -PathType Leaf) {
-					$true
-				}
-				else {
-					throw "Configuration file '$_' does not exist."
-				}
-			})]
+				Test-Path $_ -PathType Leaf
+			},
+			ErrorMessage = "Configuration file '{0}' does not exist.")]
 		[string]
 		$ConfigurationFile,
 
@@ -178,14 +174,14 @@ function Invoke-ZtAssessment {
 		[int]
 		$TestThrottleLimit = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.ThrottleLimit.Tests' -Fallback 5),
 
-		[TimeSpan]
+		[PSFTimeSpan]
 		$Timeout = '1.00:00:00',
 
-		# Maximum time in minutes a single test is allowed to run. Defaults to 60 minutes. Set to 0 to disable.
+		# Maximum time a single test is allowed to run. Defaults to 60 minutes. Set to 0 to disable.
 		# For Data pillar tests, timeout is best-effort because some external modules/remoting
 		# operations cannot be deterministically hard-stopped from within the current process.
-		[int]
-		$TestTimeout = [math]::Floor((Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))).TotalMinutes),
+		[PSFTimeSpan]
+		$TestTimeout = (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.Timeout' -Fallback ([timespan]::FromMinutes(60))),
 
 		# If specified, suppresses automatic browser opening for both the progress dashboard and the final HTML report.
 		[Parameter(ParameterSetName = 'Default')]

@@ -5,7 +5,7 @@
 
 	.DESCRIPTION
 		Execute individual tests and collect execution statistics.
-		This command is expected to be run from background runspaces launched by Start-ZtTestExecution.
+		This command is expected to be run from the main runspaces.
 
 		Use Get-ZtTestStatistics to retrieve the results of these executions.
 
@@ -210,36 +210,6 @@
 	}
 
 	end {
-		$result.Messages = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId) | Where-Object { $_ -notin $previousMessages }
-		Write-ZtTestStatistics -Result $result
-
-		# Update progress dashboard with final status
-		if ($result.TimedOut) {
-			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'TimedOut' -WorkerDetail "Timed out after $($result.Duration)"
-		}
-		elseif ($result.Success) {
-			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $testDisplayName -WorkerStatus 'Done' -WorkerDetail ''
-		}
-		# Failed status already set in the catch block
-
-		# Write per-test log file (overwrites stub) and progress entry
-		if ($LogsPath) {
-			Write-ZtTestLog -Result $result -LogsPath $LogsPath
-			if ($result.TimedOut) {
-				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action TimedOut -Duration $result.Duration -ErrorMessage "$($result.Error)"
-			}
-			elseif ($result.Success) {
-				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Completed -Duration $result.Duration
-			}
-			elseif ($result.Error) {
-				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Error -Duration $result.Duration -ErrorMessage "Error: $($result.Error.Exception.Message)"
-			}
-			else {
-				$progressError = if ($result.Error) { "Error: $($result.Error.Exception.Message)" } else { $null }
-				Write-ZtTestProgress -TestID $result.TestID -LogsPath $LogsPath -Action Failed -Duration $result.Duration -ErrorMessage $progressError
-			}
-		}
-
-		$result
+		Write-ZtTestFinish -Result $result -PreviousMessages $previousMessages -Test $Test -LogsPath $LogsPath -PassThru
 	}
 }

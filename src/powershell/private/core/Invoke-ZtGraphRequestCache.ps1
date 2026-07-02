@@ -81,16 +81,13 @@
 		$headerString = ($Headers.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Value)" }) -join '&'
 		$cacheKey = "$cacheKey|$headerString"
 	}
-	$isInCache = $script:__ZtSession.GraphCache.Value.ContainsKey($cacheKey)
+	$cachedResult = $script:__ZtSession.GraphCache.Value[$cacheKey]
 	$isMethodGet = $Method -eq 'GET'
 
-	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isInCache -and $isMethodGet) {
-		# Don't read from cache for batch requests.
+	# Don't read from cache for batch requests.
+	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $cachedResult -and $isMethodGet) {
 		Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
-		$results = $script:__ZtSession.GraphCache.Value[$cacheKey]
-		if ($results) {
-			return $results
-		}
+		return $cachedResult
 	}
 
 	Write-PSFMessage "Invoking Graph: $($Uri.AbsoluteUri)" -Level Debug -Tag Graph

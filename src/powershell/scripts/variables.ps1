@@ -8,17 +8,30 @@ $prerelease = $manifest.PrivateData.PSData.Prerelease
 if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
 
 $script:__ZtSession = @{
-	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
-	GraphCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.GraphCache" -Dictionary -PassThru
-	AzureCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.AzureCache" -Dictionary -PassThru
+	# A DCO cache is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely. It also supports maximum number and maximum age of entries to prevent too heavy memory loads
+	GraphCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.GraphCache" -Cache -PassThru
+	AzureCache   = Set-PSFDynamicContentObject -Name "ZtAssessment.AzureCache" -Cache -PassThru
 	GraphBaseUri = $null
 	TestMeta     = @()
+	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
 	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru
 	ProgressState = Set-PSFDynamicContentObject -Name "ZtAssessment.ProgressState" -Dictionary -PassThru
 	ProgressServer = $null # Holds the background runspace and listener for the progress web server
 	ModuleVersion = $moduleVersion
+}
+if ($lifetime = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.CacheLifetime') {
+	$script:__ZtSession.AzureCache.Value.SetLifetime($lifetime)
+}
+if ($lifetime = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Graph.CacheLifetime') {
+	$script:__ZtSession.GraphCache.Value.SetLifetime($lifetime)
+}
+if ($maxItems = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Azure.CacheMaxItems') {
+	$script:__ZtSession.AzureCache.Value.SetMaxItems($maxItems)
+}
+if ($maxItems = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems') {
+	$script:__ZtSession.GraphCache.Value.SetMaxItems($maxItems)
 }
 
 $script:__ZtThrottling = Set-PSFDynamicContentObject -Name "ZtAssessment.Throttles" -Dictionary -PassThru

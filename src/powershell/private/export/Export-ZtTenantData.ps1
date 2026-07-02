@@ -163,7 +163,9 @@ https://github.com/microsoft/zerotrustassessment/issues
 				$script:__ZtSession.ExportStatistics[$result.Name] = $result
 			}
 
-			$workflow | Remove-PSFRunspaceWorkflow
+			if (-not (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Debug.KeepWorkflows')) {
+				$workflow | Remove-PSFRunspaceWorkflow
+			}
 		}
 
 		Invoke-ZtSafeConsoleInterruptToggle -Enable

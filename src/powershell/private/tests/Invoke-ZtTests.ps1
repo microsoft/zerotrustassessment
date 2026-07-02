@@ -35,8 +35,8 @@
 		connected services populated by Connect-ZtAssessment.
 
 	.PARAMETER TestTimeout
-		Maximum time in minutes a single test is allowed to run.
-		Defaults to: 60. Set to 0 to disable.
+		Maximum time a single test is allowed to run.
+		Defaults to: 60 minutes ('60m'). Set to 0 to disable.
 		For Data pillar tests and external-module/remoting-heavy operations,
 		this is a best-effort interruption rather than a guaranteed hard stop.
 
@@ -71,8 +71,8 @@
 		[TimeSpan]
 		$Timeout = '1.00:00:00',
 
-		[int]
-		$TestTimeout = 60
+		[PSFTimeSpan]
+		$TestTimeout = '60m'
 	)
 
 	# Get Tenant Type (AAD = Workforce, CIAM = EEID)
@@ -133,17 +133,14 @@
 	[dateTime] $startTime = [datetime]::Now
 	$workflow = $null
 	try {
-		# Convert timeout minutes to timespan (0 = disabled)
-		$timeoutSpan = if ($TestTimeout -gt 0) { [timespan]::FromMinutes($TestTimeout) } else { [timespan]::Zero }
-
 		# Run Sync Tests in the main thread
 		foreach ($test in $syncTests) {
-			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $timeoutSpan
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $TestTimeout
 		}
 
 		# Then run Parallel Tests
 		if ($parallelTests) {
-			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath -TestTimeout $timeoutSpan
+			$workflow = Start-ZtTestExecution -Tests $parallelTests -DbPath $Database.Database -ThrottleLimit $ThrottleLimit -LogsPath $LogsPath -TestTimeout $TestTimeout
 			Wait-ZtTest -Workflow $workflow -StartedAt $startTime -Timeout $Timeout
 			$workflow.Queues['Input'].ForEach{
 				Write-PSFMessage -Level Debug -Message "Test $_ was not processed before timeout was reached."
@@ -156,7 +153,17 @@
 			# Disable CTRL+C to prevent impatient users from finishing the cleanup. Failing to do so may lead to a locked database, preventing a clean restart.
 			Invoke-ZtSafeConsoleInterruptToggle -Disable
 			$workflow | Stop-PSFRunspaceWorkflow
-			$workflow | Remove-PSFRunspaceWorkflow
+			foreach ($fail in $workflow.Workers.Tester.Errors) {
+				if ($script:__ZtSession.TestStatistics.Value[$fail.TargetObject.TestID]) {
+					Write-PSFMessage -Level Verbose -Message 'Error processing test {0}, will show up in the Dashboard as failed.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Handled
+				}
+				else {
+					Write-PSFMessage -Level Warning -Message 'System Error processing test {0}, will not show up in the Dashboard.' -StringValues $fail.TargetObject.TestID -ErrorRecord $fail.Error -Target $fail.TargetObject -Tag TestFail, Unhandled
+				}
+			}
+			if (-not (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Debug.KeepWorkflows')) {
+				$workflow | Remove-PSFRunspaceWorkflow
+			}
 			Invoke-ZtSafeConsoleInterruptToggle -Enable
 		}
 	}

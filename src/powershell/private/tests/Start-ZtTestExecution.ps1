@@ -22,7 +22,11 @@
 
 	.PARAMETER TestTimeout
 		Maximum time a single test is allowed to run.
-		Passed through to Invoke-ZtTest for per-test timeout enforcement.
+		Either from start to finish or how long it may remain "Idle" (That is, not report activity. Logging Messages shows activity).
+		Which mode is determined by the configuration setting 'ZeroTrustAssessment.Tests.TimeoutType'
+		Modes available at this time:
+		- Idle: Timeout is measured from last activity
+		- Start: Timeout is measured from start of the Test
 
 	.EXAMPLE
 		PS C:\> Start-ZtTestExecution -Tests $testsToRun -DbPath $Database.Database -ThrottleLimit $ThrottleLimit
@@ -53,7 +57,6 @@
 			databasePath = $DbPath
 			moduleRoot   = $script:ModuleRoot
 			logsPath     = $LogsPath
-			testTimeout  = $TestTimeout
 		}
 		# Explicitly including all modules required, as we later import the psm1, not the psd1 file
 		#TODO: This is brittle
@@ -86,27 +89,74 @@
 
 		#endregion Calculate Resources to Import
 
+		#region Code
+		$begin = {
+			$script:ModuleRoot = $moduleRoot
+			$global:database = Connect-Database -Path $databasePath -PassThru
+			$global:msgSoFar = @{}
+		}
+		$process = {
+			if (-not $global:msgSoFar[$_.TestID]) {
+				$global:msgSoFar.Clear()
+				$global:msgSoFar[$_.TestID] = Get-PSFMessage -Runspace ([runspace]::DefaultRunspace.InstanceId)
+			}
+			Invoke-ZtTestParallel -Test $_ -Database $global:database -LogsPath $logsPath -PreviousMessages $global:msgSoFar[$_.TestID]
+		}
+		$end = {
+			Disconnect-Database -Database $global:database
+		}
+		$condition = {
+			$result = Get-ZtTestResult -Test $this
+
+			# Check whether we should retry
+			$retryCount = $__PSF_Worker.RetryCount
+			if ($__PSF_Agent.CurrentItem.RetryCount) { $retryCount = $__PSF_Agent.CurrentItem.RetryCount }
+			$retryTimeout = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.RetryTimeout'
+			if (
+				$result.Attempts -lt $retryCount -and
+				(
+					$retryTimeout -or
+					$_ -notmatch 'Workitem timed out'
+				)
+			) { return $true }
+
+			$result.TimedOut = $_.Exception -is [System.TimeoutException] -and $_ -match 'Workitem timed out'
+
+			# Let's fail this
+			$result.End = Get-Date
+			$result.Duration = $result.End - $result.Start
+
+			$null = Write-ZtTestError -Test $this -Result $result -ErrorRecord $_
+			Write-PSFMessage -Message "Processing test '{0}' - Concluded" -StringValues $this.TestID -Target $this -Tag end
+			$null = Write-ZtTestFinish -Result $result -PreviousMessages $global:msgSoFar[$this.TestID] -Test $this -LogsPath $logsPath
+		}
+		#endregion Code
+
 		$param = @{
-			InQueue       = 'Input'
-			OutQueue      = 'Results'
-			Count         = $ThrottleLimit
-			Variables     = $variables
-			CloseOutQueue = $true
-			Modules       = $modules
-			KillToStop	  = $true
+			InQueue        = 'Input'
+			OutQueue       = 'Results'
+			Count          = $ThrottleLimit
+			Variables      = $variables
+			CloseOutQueue  = $true
+			Modules        = $modules
+			KillToStop     = $true
+			RetryCount     = 1 + (Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.RetryCount')
+			RetryCondition = $condition
+		}
+		if ($TestTimeout.TotalSeconds -gt 0) {
+			$param.Timeout = $TestTimeout
+			$param.TimeoutType = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Tests.TimeoutType'
+			$typeNames = [enum]::GetNames([PSFramework.Runspace.RSTimeout]) -notmatch '^None$|^Undefined$'
+			if ($param.TimeoutType -notin $typeNames) {
+				Write-PSFMessage -Level Warning -Message "Invalid Test-Timeout Type configured: {0}. Available types: {1}. Defaulting to 'Idle'" -StringValues $param.TimeoutType, ($typeNames -join ', ')
+				$param.TimeoutType = 'Idle'
+			}
 		}
 	}
 
 	process {
 		$workflow = New-PSFRunspaceWorkflow -Name 'ZeroTrustAssessment.Tests' -Force
-		$null = $workflow | Add-PSFRunspaceWorker -Name Tester @param -Begin {
-			$script:ModuleRoot = $moduleRoot
-			$global:database = Connect-Database -Path $databasePath -PassThru
-		} -ScriptBlock {
-			Invoke-ZtTest -Test $_ -Database $global:database -LogsPath $logsPath -TestTimeout $testTimeout
-		} -End {
-			Disconnect-Database -Database $global:database
-		}
+		$null = $workflow | Add-PSFRunspaceWorker -Name Tester @param -Begin $begin -ScriptBlock $process -End $end
 		$workflow | Write-PSFRunspaceQueue -Name Input -BulkValues @($Tests) -Close
 		$workflow | Start-PSFRunspaceWorkflow
 		$workflow
