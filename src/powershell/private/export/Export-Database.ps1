@@ -59,7 +59,7 @@ function Export-Database {
         cast(r.principal.displayName as varchar)        as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
         cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
-        cast(r.principal.uniqueName as varchar)          as uniqueName,
+        null                                            as uniqueName, -- uniqueName is no longer pulled from Graph (unused downstream); kept as null to preserve the vwRole column shape
         cast(r.principal."@odata.type" as varchar)      as "@odata.type",
         cast(r.principalId as varchar)                  as principalId,
         '$PrivilegeType'                                as privilegeType

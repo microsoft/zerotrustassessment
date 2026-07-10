@@ -69,7 +69,7 @@ Describe "Export-Database" {
         <#
             Tests the SP-only variant against RoleAssignment.
             Without RoleAssignment-model.json the 'principal' struct would be inferred
-            from SP data alone (no 'userPrincipalName' or 'uniqueName' fields), causing
+            from SP data alone (no 'userPrincipalName' field), causing
             field-not-found errors in the vwRole SQL. The model pre-declares all fields
             as nullable so DuckDB always builds a complete struct via union_by_name.
         #>
@@ -144,7 +144,7 @@ Describe "Export-Database" {
             When every entry in RoleEligibilityScheduleInstance has a group principal,
             DuckDB infers the 'principal' struct with group-specific fields (e.g. uniqueName)
             but WITHOUT userPrincipalName. Fixed by RoleEligibilityScheduleInstance-model.json
-            which pre-declares all principal fields (userPrincipalName, uniqueName, displayName)
+            which pre-declares the principal fields the view reads (userPrincipalName, displayName, id)
             as nullable — DuckDB merges them via union_by_name so direct field access is safe.
             Also validates field-level correctness per principal type in the resulting vwRole.
         #>
@@ -218,17 +218,20 @@ Describe "Export-Database" {
             $script:dbGroupOnly | Should -Not -BeNull
         }
 
-        It "Should populate uniqueName for group principals in vwRole" {
+        It "Should surface group principals in vwRole with a null uniqueName (no longer pulled from Graph)" {
+            # uniqueName is intentionally no longer selected from the expanded principal
+            # (nested $select omits it); vwRole keeps the column as a null literal for schema stability.
             # Use @() to ensure array even when Invoke-DatabaseQuery returns a single hashtable row,
             # since $singleHashtable[0] would be $null (hashtable key lookup, not index).
             $rows = @(Invoke-DatabaseQuery -Database $script:dbGroupOnly -Sql @"
-select uniqueName, userPrincipalName
+select principalDisplayName, uniqueName, userPrincipalName
 from vwRole
 where "@odata.type" = '#microsoft.graph.group'
 "@)
             $rows | Should -Not -BeNullOrEmpty
-            $rows[0]['uniqueName']        | Should -Be 'testgroup@contoso.com'
-            $rows[0]['userPrincipalName'] | Should -BeNullOrEmpty
+            $rows[0]['principalDisplayName'] | Should -Be 'TestGroup'
+            $rows[0]['uniqueName']           | Should -BeNullOrEmpty
+            $rows[0]['userPrincipalName']    | Should -BeNullOrEmpty
         }
 
         It "Should populate userPrincipalName for user principals and leave uniqueName null" {
