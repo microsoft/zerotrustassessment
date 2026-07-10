@@ -112,7 +112,6 @@ function Test-Assessment-41114 {
     # --- Q3: Safe Links for Teams — pass if at least one policy has Teams enabled ---
     $q3Unknown = $q3Error -or $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0
     $q3Enabled = -not $q3Unknown -and [bool]($safeLinksPolicies | Where-Object { $_.EnableSafeLinksForTeams -eq $true })
-    $q3Enabled = $false
     if ($q3Unknown) { $anyInvestigate = $true } elseif (-not $q3Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
         Setting   = "[Safe Links for Teams]($q3PortalLink)"
