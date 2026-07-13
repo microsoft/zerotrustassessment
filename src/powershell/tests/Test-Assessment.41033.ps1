@@ -18,7 +18,7 @@ function Test-Assessment-41033 {
         ImplementationCost = 'Low',
         Pillar             = 'SecOps',
         RiskLevel          = 'High',
-        Service            = ('SecurityCompliance'),
+        Service            = ('ExchangeOnline'),
         SfiPillar          = 'Protect tenants and isolate production systems',
         TenantType         = ('Workforce'),
         TestId             = 41033,
