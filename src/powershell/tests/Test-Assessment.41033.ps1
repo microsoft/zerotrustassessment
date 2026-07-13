@@ -45,6 +45,8 @@ function Test-Assessment-41033 {
             EnableTargetedDomainsProtection, TargetedDomainsToProtect, TargetedDomainProtectionAction,
             EnableOrganizationDomainsProtection, PhishThresholdLevel,
             HonorDmarcPolicy, DmarcQuarantineAction, DmarcRejectAction,
+            EnableFirstContactSafetyTips, EnableSimilarUsersSafetyTips,
+            EnableSimilarDomainsSafetyTips, EnableUnusualCharactersSafetyTips,
             TargetedUserQuarantineTag, TargetedDomainQuarantineTag,
             MailboxIntelligenceQuarantineTag, SpoofQuarantineTag)
     }
@@ -57,7 +59,7 @@ function Test-Assessment-41033 {
     Write-ZtProgress -Activity $activity -Status 'Querying anti-phishing rules'
     try {
         $rules = @(Get-AntiPhishRule -ErrorAction Stop | Select-Object `
-            Name, AntiPhishPolicy, Priority, State)
+            Name, AntiPhishPolicy, Priority, State, RecipientDomainIs, SentTo, SentToMemberOf)
     }
     catch {
         Write-PSFMessage "Failed to retrieve anti-phishing rules: $_" -Tag Test -Level Warning
@@ -81,14 +83,10 @@ function Test-Assessment-41033 {
         return
     }
 
-    # Quarantine tag names that permit recipients to self-release quarantined messages
     $selfReleaseTags = @('DefaultFullAccessPolicy', 'DefaultFullAccessWithNotificationPolicy')
 
-    # Identify enabled rules and map them to their policy names
     $enabledRules   = @($rules | Where-Object { $_.State -eq 'Enabled' })
     $allPolicyNames = @($policies | Select-Object -ExpandProperty Identity)
-
-    # Rules whose referenced policy is absent from Get-AntiPhishPolicy output
     $orphanedRules  = @($enabledRules | Where-Object { $_.AntiPhishPolicy -notin $allPolicyNames })
 
     # Build policy-name → enabled rule names map
@@ -100,162 +98,172 @@ function Test-Assessment-41033 {
         [void]$policyRuleMap[$rule.AntiPhishPolicy].Add($rule.Name)
     }
 
-    # Evaluate each policy
+    # Evaluate each policy, producing canonical reason strings per spec §"Canonical Result reason strings"
     $policyResults = foreach ($policy in $policies) {
-        $userCount   = if ($policy.TargetedUsersToProtect) { @($policy.TargetedUsersToProtect).Count } else { 0 }
-        $domainCount = if ($policy.TargetedDomainsToProtect) { @($policy.TargetedDomainsToProtect).Count } else { 0 }
-        $appliedRule = if ($policyRuleMap.ContainsKey($policy.Identity)) {
-            ($policyRuleMap[$policy.Identity] -join ', ')
-        }
-        else { '' }
+        $isBuiltIn = $policy.IsBuiltInProtection -eq $true
+        $isDefault = $policy.IsDefault -eq $true
+        $reasons   = [System.Collections.Generic.List[string]]::new()
 
-        # Core compliance flags
-        $spoofOk        = $policy.EnableSpoofIntelligence -eq $true
-        $dmarcOk        = $policy.HonorDmarcPolicy -eq $true
-        $mbxIntelOk     = $policy.EnableMailboxIntelligence -eq $true -and $policy.EnableMailboxIntelligenceProtection -eq $true
-        $mbxActionOk    = $policy.MailboxIntelligenceProtectionAction -eq 'Quarantine'
-        $authFailOk     = $policy.AuthenticationFailAction -eq 'Quarantine'
-        $meetsMinSubset = $spoofOk -and $dmarcOk -and $mbxIntelOk
+        if (-not $isBuiltIn) {
+            $userCount   = if ($policy.TargetedUsersToProtect)   { @($policy.TargetedUsersToProtect).Count }   else { 0 }
+            $domainCount = if ($policy.TargetedDomainsToProtect) { @($policy.TargetedDomainsToProtect).Count } else { 0 }
 
-        # Impersonation coverage
-        $hasUserImpers  = $policy.EnableTargetedUserProtection -eq $true -and $userCount -gt 0
-        $hasOrgDomains  = $policy.EnableOrganizationDomainsProtection -eq $true
-        $hasDomainImpers = ($policy.EnableTargetedDomainsProtection -eq $true -and $domainCount -gt 0) -or $hasOrgDomains
-        $userActionOk   = ($policy.EnableTargetedUserProtection -ne $true) -or $policy.TargetedUserProtectionAction -eq 'Quarantine'
-        $domActionOk    = ($policy.EnableTargetedDomainsProtection -ne $true) -or $policy.TargetedDomainProtectionAction -eq 'Quarantine'
-
-        # Quarantine tag compliance — collect only non-empty tag values
-        $qtags          = @(
-            $policy.TargetedUserQuarantineTag,
-            $policy.TargetedDomainQuarantineTag,
-            $policy.MailboxIntelligenceQuarantineTag,
-            $policy.SpoofQuarantineTag
-        ) | Where-Object { -not [string]::IsNullOrEmpty($_) }
-        $hasSelfRelease = ($qtags | Where-Object { $_ -in $selfReleaseTags }).Count -gt 0
-
-        # Compliant modulo threshold: all requirements met except PhishThresholdLevel >= 2
-        $isCompliantModuloThreshold = $meetsMinSubset -and $hasUserImpers -and $hasDomainImpers -and
-                                      $mbxActionOk -and $authFailOk -and $userActionOk -and $domActionOk -and
-                                      (-not $hasSelfRelease)
-
-        # Full compliance: adds threshold requirement
-        $isFullyCompliant = $isCompliantModuloThreshold -and $policy.PhishThresholdLevel -ge 2
-
-        # Per-row verdict
-        $rowStatus = if ($policy.IsBuiltInProtection -eq $true) {
-            # Built-in protection has Microsoft-managed fixed settings
-            if ($meetsMinSubset) { 'Pass' } else { 'Investigate' }
-        }
-        elseif ($policy.IsDefault -eq $true) {
-            # Default policy: minimum subset + self-release + threshold check
-            if ($hasSelfRelease -or -not $meetsMinSubset) { 'Fail' }
-            elseif ($policy.PhishThresholdLevel -eq 1) { 'Investigate' }
-            else { 'Pass' }
-        }
-        else {
-            # Custom policy: full compliance required
-            if (-not $spoofOk -or -not $dmarcOk -or $hasSelfRelease -or
-                ($policy.EnableTargetedUserProtection -eq $true -and $userCount -eq 0)) {
-                'Fail'
+            # Impersonation checks — custom policies only; default policy is evaluated against the minimum subset only
+            if (-not $isDefault) {
+                if ($policy.EnableTargetedUserProtection -ne $true -or $userCount -eq 0) {
+                    [void]$reasons.Add('Fail (targeted users empty)')
+                }
+                if ($policy.EnableTargetedDomainsProtection -ne $true -or $domainCount -eq 0) {
+                    [void]$reasons.Add('Fail (targeted domains empty)')
+                }
+                if ($policy.EnableOrganizationDomainsProtection -ne $true) {
+                    [void]$reasons.Add('Fail (org domains not protected)')
+                }
             }
-            elseif ($isFullyCompliant) {
-                'Pass'
+
+            # Core checks (default and custom)
+            if ($policy.EnableMailboxIntelligence -ne $true -or $policy.EnableMailboxIntelligenceProtection -ne $true) {
+                [void]$reasons.Add('Fail (mailbox intelligence off)')
             }
-            elseif ($isCompliantModuloThreshold -and $policy.PhishThresholdLevel -eq 1) {
-                'Investigate'
+            if ($policy.EnableSpoofIntelligence -ne $true) {
+                [void]$reasons.Add('Fail (spoof off)')
             }
-            else {
-                'Fail'
+            if ($policy.HonorDmarcPolicy -ne $true) {
+                [void]$reasons.Add('Fail (dmarc not honored)')
+            }
+            if ($policy.AuthenticationFailAction -ne 'Quarantine') {
+                [void]$reasons.Add('Fail (auth-fail delivered)')
+            }
+
+            # Per-verdict action checks — only when the feature is enabled; name the offending property
+            foreach ($check in @(
+                @{ Enabled = $policy.EnableTargetedUserProtection;        Prop = 'TargetedUserProtectionAction' }
+                @{ Enabled = $policy.EnableTargetedDomainsProtection;     Prop = 'TargetedDomainProtectionAction' }
+                @{ Enabled = $policy.EnableMailboxIntelligenceProtection; Prop = 'MailboxIntelligenceProtectionAction' }
+            )) {
+                if ($check.Enabled -eq $true -and $policy.($check.Prop) -in @('NoAction', 'MoveToJmf')) {
+                    [void]$reasons.Add("Fail (impersonation action not enforced: $($check.Prop))")
+                }
+            }
+
+            # Quarantine tag self-release — name the offending property
+            foreach ($tp in @('TargetedUserQuarantineTag', 'TargetedDomainQuarantineTag', 'MailboxIntelligenceQuarantineTag', 'SpoofQuarantineTag')) {
+                $val = $policy.$tp
+                if (-not [string]::IsNullOrEmpty($val) -and $val -in $selfReleaseTags) {
+                    [void]$reasons.Add("Fail (self-release quarantine tag: $tp)")
+                }
+            }
+
+            # Investigate: threshold=1, only when there are no Fail reasons
+            if (($reasons | Where-Object { $_ -like 'Fail *' }).Count -eq 0 -and $policy.PhishThresholdLevel -eq 1) {
+                [void]$reasons.Add('Investigate (phish threshold=1)')
             }
         }
 
-        # Display-only computed fields
-        $userImpersonDisplay = if ($policy.IsBuiltInProtection -or $policy.IsDefault) {
-            '—'
-        }
-        elseif ($hasUserImpers) {
-            "✅ ($userCount)"
-        }
-        else {
-            "❌ ($userCount)"
+        # Derive row status; multiple Fail reasons merge into a single Fail (reason1; reason2) per spec
+        $hasFail        = ($reasons | Where-Object { $_ -like 'Fail *' }).Count -gt 0
+        $hasInvestigate = ($reasons | Where-Object { $_ -like 'Investigate *' }).Count -gt 0
+        $rowStatus      = if ($hasFail) { 'Fail' } elseif ($hasInvestigate) { 'Investigate' } else { 'Pass' }
+        $rowResult      = if ($hasFail) {
+            "Fail ($(@($reasons | ForEach-Object { $_ -replace '^Fail \((.+)\)$', '$1' }) -join '; '))"
+        } elseif ($hasInvestigate) {
+            "Investigate ($(@($reasons | ForEach-Object { $_ -replace '^Investigate \((.+)\)$', '$1' }) -join '; '))"
+        } else { 'Pass' }
+
+        # Identity with [default] / [built-in] / [disabled] suffixes
+        $suffixes = @()
+        if ($isDefault) { $suffixes += '[default]' }
+        if ($isBuiltIn) { $suffixes += '[built-in]' }
+        if ($policy.Enabled -eq $false) { $suffixes += '[disabled]' }
+        $identityDisplay = $policy.Identity + $(if ($suffixes) { " $($suffixes -join ' ')" } else { '' })
+
+        # Scope column: "Applied via rule <Name>" or "Not applied"
+        $scopeDisplay = if ($policyRuleMap.ContainsKey($policy.Identity)) {
+            'Applied via rule ' + ($policyRuleMap[$policy.Identity] -join ', ')
+        } else { 'Not applied' }
+
+        # Impersonation column: Users: N • Domains: N • Org: Y/N • MailboxIntel: Y/N
+        $uCount  = if ($policy.TargetedUsersToProtect)   { @($policy.TargetedUsersToProtect).Count }   else { 0 }
+        $dCount  = if ($policy.TargetedDomainsToProtect) { @($policy.TargetedDomainsToProtect).Count } else { 0 }
+        $orgY    = if ($policy.EnableOrganizationDomainsProtection -eq $true) { 'Y' } else { 'N' }
+        $mbxY    = if ($policy.EnableMailboxIntelligence -eq $true -and $policy.EnableMailboxIntelligenceProtection -eq $true) { 'Y' } else { 'N' }
+        $impersonDisplay = if ($isBuiltIn) { '—' } else {
+            "Users: $uCount • Domains: $dCount • Org: $orgY • MailboxIntel: $mbxY"
         }
 
-        $domImpersonDisplay = if ($policy.IsBuiltInProtection -or $policy.IsDefault) {
-            '—'
-        }
-        elseif ($hasDomainImpers) {
-            if ($hasOrgDomains) { '✅ (org)' } else { "✅ ($domainCount)" }
-        }
-        else {
-            '❌'
-        }
+        # Authentication column: Spoof: Y/N • DMARC: Y/N • AuthFail: <action>
+        $spoofY      = if ($policy.EnableSpoofIntelligence -eq $true) { 'Y' } else { 'N' }
+        $dmarcY      = if ($policy.HonorDmarcPolicy -eq $true) { 'Y' } else { 'N' }
+        $authDisplay = "Spoof: $spoofY • DMARC: $dmarcY • AuthFail: $($policy.AuthenticationFailAction)"
 
-        $allAdminOnly  = $qtags.Count -gt 0 -and ($qtags | Where-Object { $_ -ne 'AdminOnlyAccessPolicy' }).Count -eq 0
-        $qTagDisplay   = if ($hasSelfRelease) { '❌ Self-release' }
-                         elseif ($allAdminOnly) { '✅ Admin-only' }
-                         elseif ($qtags.Count -eq 0) { '—' }
-                         else { '⚠️ Custom' }
+        # Phish threshold with label
+        $threshDisplay = switch ([int]$policy.PhishThresholdLevel) {
+            1 { '1 Standard' }
+            2 { '2 Aggressive' }
+            3 { '3 More aggressive' }
+            4 { '4 Most aggressive' }
+            default { "$($policy.PhishThresholdLevel)" }
+        }
 
         [PSCustomObject]@{
-            Identity                    = $policy.Identity
-            PolicyType                  = if ($policy.IsBuiltInProtection -eq $true) { 'Built-in' }
-                                          elseif ($policy.IsDefault -eq $true) { 'Default' }
-                                          else { 'Custom' }
-            SpoofIntel                  = if ($spoofOk) { '✅' } else { '❌' }
-            DMARC                       = if ($dmarcOk) { '✅' } else { '❌' }
-            MailboxIntel                = if ($mbxIntelOk) { '✅' } else { '❌' }
-            UserImpersonation           = $userImpersonDisplay
-            DomainImpersonation         = $domImpersonDisplay
-            PhishThreshold              = $policy.PhishThresholdLevel
-            QuarantineTags              = $qTagDisplay
-            AppliedViaRule              = $appliedRule
-            RowStatus                   = $rowStatus
-            IsDefault                   = $policy.IsDefault -eq $true
-            IsBuiltIn                   = $policy.IsBuiltInProtection -eq $true
-            IsFullyCompliant            = $isFullyCompliant
-            IsCompliantModuloThreshold  = $isCompliantModuloThreshold
-            HasImpersonation            = $hasUserImpers -or $hasDomainImpers
+            IdentityDisplay = $identityDisplay
+            IsDefault       = $isDefault
+            IsBuiltIn       = $isBuiltIn
+            Scope           = $scopeDisplay
+            Impersonation   = $impersonDisplay
+            Authentication  = $authDisplay
+            PhishThreshold  = $threshDisplay
+            Result          = $rowResult
+            RowStatus       = $rowStatus
         }
     }
     $policyResults = @($policyResults)
 
-    # Applicable policies (non-built-in; default + custom with enabled rules)
-    $applicablePolicies      = @($policyResults | Where-Object { -not $_.IsBuiltIn -and ($_.IsDefault -or $_.AppliedViaRule -ne '') })
-    $defaultResult           = $policyResults | Where-Object { $_.IsDefault }
-    $policiesWithEnabledRule = @($policyResults | Where-Object { -not $_.IsDefault -and -not $_.IsBuiltIn -and $_.AppliedViaRule -ne '' })
+    # Identify in-scope policy groups
+    $defaultResult   = $policyResults | Where-Object { $_.IsDefault }
+    $ruleRefPolicies = @($policyResults | Where-Object { -not $_.IsBuiltIn -and -not $_.IsDefault -and $_.Scope -ne 'Not applied' })
+    $allApplicable   = @($policyResults | Where-Object { -not $_.IsBuiltIn -and ($_.IsDefault -or $_.Scope -ne 'Not applied') })
 
-    $anyFullyCompliant              = ($applicablePolicies | Where-Object { $_.IsFullyCompliant }).Count -gt 0
-    $anyCompliantModuloThreshold    = ($applicablePolicies | Where-Object { $_.IsCompliantModuloThreshold }).Count -gt 0
-    $anyApplicableInvestigate       = ($applicablePolicies | Where-Object { $_.RowStatus -eq 'Investigate' }).Count -gt 0
+    $defaultMeetsSubset  = -not $defaultResult -or $defaultResult.RowStatus -ne 'Fail'
+    $anyCustomPass       = ($ruleRefPolicies | Where-Object { $_.RowStatus -eq 'Pass' }).Count -gt 0
+    $anyCustomFail       = ($ruleRefPolicies | Where-Object { $_.RowStatus -eq 'Fail' }).Count -gt 0
+    $anyApplicableInvest = ($allApplicable | Where-Object { $_.RowStatus -eq 'Investigate' }).Count -gt 0
+    $failCount           = ($allApplicable | Where-Object { $_.RowStatus -eq 'Fail' }).Count
+
+    # Overall verdict: Fail > Investigate > Pass
+    $isFail   = (-not $defaultMeetsSubset) -or $anyCustomFail
+    $isInvest = -not $isFail -and (-not $anyCustomPass -or $anyApplicableInvest -or $orphanedRules.Count -gt 0)
 
     $passed       = $false
     $customStatus = $null
+    $aggregation  = ''
 
-    if ($orphanedRules.Count -gt 0) {
-        $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ An enabled anti-phishing rule references a policy that does not exist. Manual review is required to confirm the customer's intent.`n`n%TestResult%"
+    if ($isFail) {
+        # Orphaned rules appended to Fail aggregation per spec
+        $aggParts = @("$failCount $(if ($failCount -eq 1) {'policy'} else {'policies'}) non-compliant")
+        if ($orphanedRules.Count -gt 0) {
+            $aggParts += "$($orphanedRules.Count) orphaned $(if ($orphanedRules.Count -eq 1) {'rule'} else {'rules'})"
+        }
+        $aggregation        = $aggParts -join ', '
+        $testResultMarkdown = "❌ One or more anti-phishing policies disable a key control (spoof, DMARC, mailbox intelligence, or impersonation protection), have empty impersonation lists, or apply non-quarantine actions to phishing.`n`n%TestResult%"
     }
-    elseif ($defaultResult -and $defaultResult.RowStatus -eq 'Fail') {
-        $testResultMarkdown = "❌ The default anti-phishing policy disables a critical control (spoof intelligence, DMARC honoring, or mailbox intelligence) or allows recipient self-release from quarantine.`n`n%TestResult%"
-    }
-    elseif (-not $anyCompliantModuloThreshold) {
-        $allImpersonEmpty = ($applicablePolicies | Where-Object { $_.HasImpersonation }).Count -eq 0
-        if ($allImpersonEmpty) {
-            $testResultMarkdown = "❌ Impersonation protection lists are empty across all anti-phishing policies. No targeted user or domain impersonation protection is configured.`n`n%TestResult%"
+    elseif ($isInvest) {
+        $customStatus = 'Investigate'
+        if ($orphanedRules.Count -gt 0) {
+            $aggregation        = ($orphanedRules | ForEach-Object { "orphaned rule $($_.Name) references phantom policy" }) -join '; '
+            $testResultMarkdown = "⚠️ An enabled anti-phishing rule references a policy that does not exist. Manual review is required to confirm the customer's intent.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "❌ One or more anti-phishing policies disable a key control (spoof intelligence, DMARC, mailbox intelligence, or impersonation protection), have empty impersonation lists, or apply non-quarantine actions to phishing.`n`n%TestResult%"
+            $triggerText        = if ($defaultResult -and $defaultResult.RowStatus -eq 'Investigate') {
+                'phish threshold=1 in default policy'
+            } else { 'phish threshold=1 in one or more policies' }
+            $aggregation        = $triggerText
+            $testResultMarkdown = "⚠️ One or more anti-phishing policies have \`PhishThresholdLevel\` set to 1 (Standard, the lowest setting); manual review is required to confirm the customer's intent.`n`n%TestResult%"
         }
-    }
-    elseif (($policiesWithEnabledRule | Where-Object { $_.RowStatus -eq 'Fail' }).Count -gt 0) {
-        $testResultMarkdown = "❌ One or more anti-phishing policies referenced by enabled rules disable a key control or apply non-quarantine actions to phishing.`n`n%TestResult%"
-    }
-    elseif (-not $anyFullyCompliant -or $anyApplicableInvestigate) {
-        $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ One or more anti-phishing policies have `PhishThresholdLevel` set to 1 (Standard, the lowest setting); manual review is required to confirm the customer's intent.`n`n%TestResult%"
     }
     else {
         $passed             = $true
+        $aggregation        = 'at least one compliant policy applies, default policy meets required subset, no orphaned rules'
         $testResultMarkdown = "✅ Anti-phishing policies are configured with spoof intelligence, DMARC honoring, mailbox intelligence, and impersonation protection for users and domains; high-confidence phishing is quarantined to admin-only release.`n`n%TestResult%"
     }
     #endregion Assessment Logic
@@ -265,43 +273,42 @@ function Test-Assessment-41033 {
     $maxDisplay = 10
     $totalCount = $policyResults.Count
 
-    $statusOrder   = @{ Fail = 0; Investigate = 1; Pass = 2 }
-    $sortedResults = @($policyResults | Sort-Object { $statusOrder[$_.RowStatus] }, PolicyType, Identity)
-    $displayRows   = $sortedResults | Select-Object -First $maxDisplay
-    $isTruncated   = $totalCount -gt $maxDisplay
+    $overallVerdict = if ($passed) { 'Pass' } elseif ($customStatus) { 'Investigate' } else { 'Fail' }
+    $overallLine    = "**Overall: $overallVerdict** — $aggregation"
+
+    $statusOrder = @{ Fail = 0; Investigate = 1; Pass = 2 }
+    $displayRows = @($policyResults | Sort-Object { $statusOrder[$_.RowStatus] }, IdentityDisplay) | Select-Object -First $maxDisplay
+    $isTruncated = $totalCount -gt $maxDisplay
 
     $tableRows = ''
     foreach ($row in $displayRows) {
-        $identityMd = Get-SafeMarkdown -Text $row.Identity
-        $ruleMd     = if ($row.AppliedViaRule) { Get-SafeMarkdown -Text $row.AppliedViaRule } else { '—' }
-        $statusMd   = switch ($row.RowStatus) {
-            'Pass'        { '✅ Pass' }
-            'Fail'        { '❌ Fail' }
-            'Investigate' { '⚠️ Investigate' }
-        }
-        $tableRows += "| $identityMd | $($row.PolicyType) | $($row.SpoofIntel) | $($row.DMARC) | $($row.MailboxIntel) | $($row.UserImpersonation) | $($row.DomainImpersonation) | $($row.PhishThreshold) | $($row.QuarantineTags) | $ruleMd | $statusMd |`n"
+        $identityMd = Get-SafeMarkdown -Text $row.IdentityDisplay
+        $scopeMd    = Get-SafeMarkdown -Text $row.Scope
+        $resultMd   = Get-SafeMarkdown -Text $row.Result
+        $tableRows += "| $identityMd | $scopeMd | $($row.Impersonation) | $($row.Authentication) | $($row.PhishThreshold) | $resultMd |`n"
     }
 
     if ($isTruncated) {
-        $tableRows += "| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |`n"
+        $tableRows += "| ... | ... | ... | ... | ... | ... |`n"
     }
 
-    $preTableLines = ''
-    if ($isTruncated) {
-        $preTableLines = "Showing $maxDisplay of $totalCount policies. [View all in Microsoft 365 Defender]($portalLink)`n`n"
-    }
+    $preTableLines = if ($isTruncated) {
+        "Showing $maxDisplay of $totalCount policies. [View all in Microsoft 365 Defender]($portalLink)`n`n"
+    } else { '' }
 
     $formatTemplate = @'
 
 
-### [Microsoft 365 Defender > Policies & rules > Anti-phishing]({0})
+{0}
 
-{1}| Policy | Type | Spoof intel | DMARC | Mailbox intel | User impersonation | Domain impersonation | Phish threshold | Quarantine tags | Applied via rule | Status |
-| :----- | :--- | :---------: | :---: | :-----------: | :----------------- | :------------------- | --------------: | :-------------- | :--------------- | :----- |
-{2}
+### [Microsoft 365 Defender > Policies & rules > Anti-phishing]({1})
+
+{2}| Policy | Scope | Impersonation | Authentication | Phish threshold | Result |
+| :----- | :---- | :------------ | :------------- | --------------: | :----- |
+{3}
 '@
 
-    $mdInfo             = $formatTemplate -f $portalLink, $preTableLines, $tableRows
+    $mdInfo             = $formatTemplate -f $overallLine, $portalLink, $preTableLines, $tableRows
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
