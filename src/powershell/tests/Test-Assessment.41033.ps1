@@ -52,7 +52,14 @@ function Test-Assessment-41033 {
     }
     catch {
         Write-PSFMessage "Failed to retrieve anti-phishing policies: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
+        $params = @{
+            TestId       = '41033'
+            Title        = 'Anti-phishing policies in Microsoft Defender for Office 365 are configured with impersonation and spoof protection'
+            Status       = $false
+            Result       = "⚠️ Anti-phishing policies could not be retrieved. Verify that the account has the required permissions and that the Exchange Online session is active. Error: $_"
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -63,8 +70,30 @@ function Test-Assessment-41033 {
     }
     catch {
         Write-PSFMessage "Failed to retrieve anti-phishing rules: $_" -Tag Test -Level Warning
-        Add-ZtTestResultDetail -SkippedBecause NotConnectedExchange
+        $params = @{
+            TestId       = '41033'
+            Title        = 'Anti-phishing policies in Microsoft Defender for Office 365 are configured with impersonation and spoof protection'
+            Status       = $false
+            Result       = "⚠️ Anti-phishing rules could not be retrieved. Verify that the account has the required permissions and that the Exchange Online session is active. Error: $_"
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
+    }
+
+    Write-ZtProgress -Activity $activity -Status 'Querying quarantine policies'
+    # $quarantineTagMap: tag name → $true when PermissionToRelease (bit 32) is set (recipients can self-release)
+    # Falls back to $null on error; assessment then uses built-in tag name list as a fallback
+    $quarantineTagMap = $null
+    try {
+        $quarantineTagMap = @{}
+        Get-QuarantinePolicy -ErrorAction Stop | ForEach-Object {
+            $quarantineTagMap[$_.Name] = (([int]$_.EndUserQuarantinePermissionsValue -band 32) -ne 0)
+        }
+    }
+    catch {
+        Write-PSFMessage "Get-QuarantinePolicy failed; self-release check will fall back to built-in tag names. Error: $_" -Tag Test -Level Warning
+        $quarantineTagMap = $null
     }
     #endregion Data Collection
 
@@ -83,7 +112,8 @@ function Test-Assessment-41033 {
         return
     }
 
-    $selfReleaseTags = @('DefaultFullAccessPolicy', 'DefaultFullAccessWithNotificationPolicy')
+    # Known built-in tags that grant PermissionToRelease; used as fallback when quarantine policy data is unavailable
+    $builtInSelfReleaseTags = @('DefaultFullAccessPolicy', 'DefaultFullAccessWithNotificationPolicy')
 
     $enabledRules   = @($rules | Where-Object { $_.State -eq 'Enabled' })
     $allPolicyNames = @($policies | Select-Object -ExpandProperty Identity)
@@ -119,6 +149,15 @@ function Test-Assessment-41033 {
                 if ($policy.EnableOrganizationDomainsProtection -ne $true) {
                     [void]$reasons.Add('Fail (org domains not protected)')
                 }
+                if ($policy.EnableTargetedUserProtection -eq $true -and $policy.EnableSimilarUsersSafetyTips -ne $true) {
+                    [void]$reasons.Add('Fail (similar users safety tips off)')
+                }
+                if ($policy.EnableTargetedDomainsProtection -eq $true -and $policy.EnableSimilarDomainsSafetyTips -ne $true) {
+                    [void]$reasons.Add('Fail (similar domains safety tips off)')
+                }
+                if ($policy.EnableUnusualCharactersSafetyTips -ne $true) {
+                    [void]$reasons.Add('Fail (unusual characters safety tips off)')
+                }
             }
 
             # Core checks (default and custom)
@@ -131,8 +170,23 @@ function Test-Assessment-41033 {
             if ($policy.HonorDmarcPolicy -ne $true) {
                 [void]$reasons.Add('Fail (dmarc not honored)')
             }
-            if ($policy.AuthenticationFailAction -ne 'Quarantine') {
+            if (-not $isDefault -and $policy.AuthenticationFailAction -ne 'Quarantine') {
                 [void]$reasons.Add('Fail (auth-fail delivered)')
+            }
+            if ($policy.EnableUnauthenticatedSender -ne $true) {
+                [void]$reasons.Add('Fail (unauthenticated sender indicator off)')
+            }
+            if ($policy.EnableViaTag -ne $true) {
+                [void]$reasons.Add('Fail (via tag off)')
+            }
+            if ($policy.EnableFirstContactSafetyTips -ne $true) {
+                [void]$reasons.Add('Fail (first contact safety tips off)')
+            }
+            if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcQuarantineAction -ne 'Quarantine') {
+                [void]$reasons.Add('Fail (DMARC quarantine action not quarantine)')
+            }
+            if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcRejectAction -ne 'Quarantine') {
+                [void]$reasons.Add('Fail (DMARC reject action not quarantine)')
             }
 
             # Per-verdict action checks — only when the feature is enabled; name the offending property
@@ -141,22 +195,30 @@ function Test-Assessment-41033 {
                 @{ Enabled = $policy.EnableTargetedDomainsProtection;     Prop = 'TargetedDomainProtectionAction' }
                 @{ Enabled = $policy.EnableMailboxIntelligenceProtection; Prop = 'MailboxIntelligenceProtectionAction' }
             )) {
-                if ($check.Enabled -eq $true -and $policy.($check.Prop) -in @('NoAction', 'MoveToJmf')) {
+                if ($check.Enabled -eq $true -and $policy.($check.Prop) -ne 'Quarantine') {
                     [void]$reasons.Add("Fail (impersonation action not enforced: $($check.Prop))")
                 }
             }
 
-            # Quarantine tag self-release — name the offending property
+            # Quarantine tag self-release — check PermissionToRelease bit (decimal 32) from collected policy data;
+            # fall back to built-in tag names when Get-QuarantinePolicy data is unavailable
             foreach ($tp in @('TargetedUserQuarantineTag', 'TargetedDomainQuarantineTag', 'MailboxIntelligenceQuarantineTag', 'SpoofQuarantineTag')) {
                 $val = $policy.$tp
-                if (-not [string]::IsNullOrEmpty($val) -and $val -in $selfReleaseTags) {
-                    [void]$reasons.Add("Fail (self-release quarantine tag: $tp)")
+                if (-not [string]::IsNullOrEmpty($val)) {
+                    $allowsSelfRelease = if ($null -ne $quarantineTagMap -and $quarantineTagMap.ContainsKey($val)) {
+                        $quarantineTagMap[$val]
+                    } else {
+                        $val -in $builtInSelfReleaseTags
+                    }
+                    if ($allowsSelfRelease) {
+                        [void]$reasons.Add("Fail (self-release quarantine tag: $tp)")
+                    }
                 }
             }
 
-            # Investigate: threshold=1, only when there are no Fail reasons
-            if (($reasons | Where-Object { $_ -like 'Fail *' }).Count -eq 0 -and $policy.PhishThresholdLevel -eq 1) {
-                [void]$reasons.Add('Investigate (phish threshold=1)')
+            # Investigate: threshold below Microsoft-recommended minimum of 3, only when there are no Fail reasons
+            if (($reasons | Where-Object { $_ -like 'Fail *' }).Count -eq 0 -and $policy.PhishThresholdLevel -lt 3) {
+                [void]$reasons.Add("Investigate (phish threshold=$($policy.PhishThresholdLevel), below recommended minimum of 3)")
             }
         }
 
@@ -254,11 +316,17 @@ function Test-Assessment-41033 {
             $testResultMarkdown = "⚠️ An enabled anti-phishing rule references a policy that does not exist. Manual review is required to confirm the customer's intent.`n`n%TestResult%"
         }
         else {
-            $triggerText        = if ($defaultResult -and $defaultResult.RowStatus -eq 'Investigate') {
-                'phish threshold=1 in default policy'
-            } else { 'phish threshold=1 in one or more policies' }
-            $aggregation        = $triggerText
-            $testResultMarkdown = "⚠️ One or more anti-phishing policies have \`PhishThresholdLevel\` set to 1 (Standard, the lowest setting); manual review is required to confirm the customer's intent.`n`n%TestResult%"
+            if ($anyApplicableInvest) {
+                $triggerText        = if ($defaultResult -and $defaultResult.RowStatus -eq 'Investigate') {
+                    'phish threshold below 3 in default policy'
+                } else { 'phish threshold below 3 in one or more policies' }
+                $aggregation        = $triggerText
+                $testResultMarkdown = "⚠️ One or more anti-phishing policies have \`PhishThresholdLevel\` below 3 (Microsoft recommends 3 — More aggressive — for Standard, and 4 — Most aggressive — for Strict); manual review is required to confirm the customer's intent.`n`n%TestResult%"
+            }
+            else {
+                $aggregation        = 'no custom anti-phishing policy with full impersonation controls is applied to any recipient'
+                $testResultMarkdown = "⚠️ Only the default anti-phishing policy is in effect. The default policy is evaluated against the minimum spoof and DMARC subset only; it does not enforce targeted-user, domain, or org-domain impersonation protection. Configure a custom policy with impersonation controls and assign it via an enabled rule.`n`n%TestResult%"
+            }
         }
     }
     else {
