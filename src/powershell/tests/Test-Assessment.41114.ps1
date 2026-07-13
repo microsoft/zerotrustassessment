@@ -1,6 +1,13 @@
 <#
 .SYNOPSIS
     Checks that Microsoft Teams protection policies are configured to block malicious messages, links, and attachments.
+
+.NOTES
+    Test ID: 41114
+    Workshop Task: SECOPS-114
+    Pillar: SecOps
+    Category: Email and collaboration security
+    Required role: Security Reader
 #>
 
 function Test-Assessment-41114 {
@@ -22,8 +29,13 @@ function Test-Assessment-41114 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    $activity = 'Checking Microsoft Teams protection policies in Microsoft Defender for Office 365'
+    if ((Get-MgContext).Environment -eq 'USGov' -or (Get-MgContext).Environment -eq 'USGovDoD') {
+        Write-PSFMessage 'This test is not applicable to the USGov or USGovDoD environments.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotSupported -Result 'This test is not applicable to the USGov or USGovDoD environments.'
+        return
+    }
 
+    $activity = 'Checking Microsoft Teams protection policies in Microsoft Defender for Office 365'
     Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Attachments policy for SharePoint, OneDrive, and Teams'
     $safeAttachmentPolicy = $null
     $q1Error = $null
@@ -38,14 +50,14 @@ function Test-Assessment-41114 {
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Teams ZAP protection policy'
     $teamsProtectionPolicy = $null
-    $q2aError = $null
+    $q2Error = $null
     try {
         # Q2: Retrieve Teams ZAP policy state.
-        $teamsProtectionPolicy = Get-TeamsProtectionPolicy -ErrorAction Stop | Select-Object Name, ZapEnabled, HighConfidencePhishQuarantineTag, MalwareQuarantineTag
+        $teamsProtectionPolicy = Get-TeamsProtectionPolicy -ErrorAction Stop | Select-Object Name, ZapEnabled
     }
     catch {
-        $q2aError = $_
-        Write-PSFMessage "Q2a: Failed to retrieve Teams protection policy: $_" -Tag Test -Level Warning
+        $q2Error = $_
+        Write-PSFMessage "Q2: Failed to retrieve Teams protection policy: $_" -Tag Test -Level Warning
     }
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Links policies'
@@ -100,7 +112,7 @@ function Test-Assessment-41114 {
     })
 
     # --- Q2: ZAP for Teams ---
-    $q2Unknown = $q2aError -or $null -eq $teamsProtectionPolicy
+    $q2Unknown = $q2Error -or $null -eq $teamsProtectionPolicy
     $q2Enabled = -not $q2Unknown -and $teamsProtectionPolicy.ZapEnabled -eq $true
     if ($q2Unknown) { $anyInvestigate = $true } elseif (-not $q2Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{

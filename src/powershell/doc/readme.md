@@ -159,6 +159,8 @@ stored locally on the desktop. We recommend storing this report securely and del
 
 After providing Administrator consent to the permissions, you can run the assessment with an account that has been assigned the **Global Reader** role.
 
+> **Note:** Some tests that evaluate Exchange Online protection policies require the **Security Reader** role in the Microsoft Defender portal in addition to Global Reader. Without this role, those Exchange Online cmdlets will return permission errors and the affected tests will generate unexpected output.
+
 We recommend the following two-step flow. First connect to the specific tenant you want to assess, then run the assessment:
 
 ```powershell
