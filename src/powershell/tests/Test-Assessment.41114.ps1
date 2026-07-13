@@ -17,7 +17,7 @@ function Test-Assessment-41114 {
         ImplementationCost = 'Low',
         Pillar = 'SecOps',
         RiskLevel = 'High',
-        Service = ('ExchangeOnline'),
+        Service = ('Graph','ExchangeOnline'),
         SfiPillar = 'Protect tenants and isolate production systems',
         TenantType = ('Workforce'),
         TestId = 41114,
@@ -103,7 +103,7 @@ function Test-Assessment-41114 {
     $q4PortalLink = 'https://security.microsoft.com/securitysettings/userSubmission'
 
     # --- Q1: Safe Attachments for SharePoint, OneDrive, and Teams ---
-    $q1Unknown = $q1Error -or $null -eq $safeAttachmentPolicy
+    $q1Unknown = $q1Error -or $null -eq $safeAttachmentPolicy -or $null -eq $safeAttachmentPolicy.EnableATPForSPOTeamsODB
     $q1Enabled = -not $q1Unknown -and $safeAttachmentPolicy.EnableATPForSPOTeamsODB -eq $true
     if ($q1Unknown) { $anyInvestigate = $true } elseif (-not $q1Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
@@ -113,7 +113,7 @@ function Test-Assessment-41114 {
     })
 
     # --- Q2: ZAP for Teams ---
-    $q2Unknown = $q2Error -or $null -eq $teamsProtectionPolicy
+    $q2Unknown = $q2Error -or $null -eq $teamsProtectionPolicy -or $null -eq $teamsProtectionPolicy.ZapEnabled
     $q2Enabled = -not $q2Unknown -and $teamsProtectionPolicy.ZapEnabled -eq $true
     if ($q2Unknown) { $anyInvestigate = $true } elseif (-not $q2Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
@@ -123,7 +123,8 @@ function Test-Assessment-41114 {
     })
 
     # --- Q3: Safe Links for Teams — pass if at least one policy has Teams enabled ---
-    $q3Unknown = $q3Error -or $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0
+    $q3Unknown = $q3Error -or $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0 -or
+                 (-not ($safeLinksPolicies | Where-Object { $null -ne $_.EnableSafeLinksForTeams }))
     $q3Enabled = -not $q3Unknown -and [bool]($safeLinksPolicies | Where-Object { $_.EnableSafeLinksForTeams -eq $true })
     if ($q3Unknown) { $anyInvestigate = $true } elseif (-not $q3Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
