@@ -29,7 +29,8 @@ function Test-Assessment-41114 {
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-    if ((Get-MgContext).Environment -eq 'USGov' -or (Get-MgContext).Environment -eq 'USGovDoD') {
+    $mgEnv = (Get-MgContext).Environment
+    if ($mgEnv -eq 'USGov' -or $mgEnv -eq 'USGovDoD') {
         Write-PSFMessage 'This test is not applicable to the USGov or USGovDoD environments.' -Tag Test -Level VeryVerbose
         Add-ZtTestResultDetail -SkippedBecause NotSupported -Result 'This test is not applicable to the USGov or USGovDoD environments.'
         return
