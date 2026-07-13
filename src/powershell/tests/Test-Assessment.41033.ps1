@@ -220,11 +220,11 @@ function Test-Assessment-41033 {
     $policyResults = @($policyResults)
 
     # Identify in-scope policy groups
-    $defaultResult   = $policyResults | Where-Object { $_.IsDefault }
+    $defaultResult   = $policyResults | Where-Object { $_.IsDefault } | Select-Object -First 1
     $ruleRefPolicies = @($policyResults | Where-Object { -not $_.IsBuiltIn -and -not $_.IsDefault -and $_.Scope -ne 'Not applied' })
     $allApplicable   = @($policyResults | Where-Object { -not $_.IsBuiltIn -and ($_.IsDefault -or $_.Scope -ne 'Not applied') })
 
-    $defaultMeetsSubset  = -not $defaultResult -or $defaultResult.RowStatus -ne 'Fail'
+    $defaultMeetsSubset  = (-not $defaultResult) -or ($defaultResult.RowStatus -ne 'Fail')
     $anyCustomPass       = ($ruleRefPolicies | Where-Object { $_.RowStatus -eq 'Pass' }).Count -gt 0
     $anyCustomFail       = ($ruleRefPolicies | Where-Object { $_.RowStatus -eq 'Fail' }).Count -gt 0
     $anyApplicableInvest = ($allApplicable | Where-Object { $_.RowStatus -eq 'Investigate' }).Count -gt 0
