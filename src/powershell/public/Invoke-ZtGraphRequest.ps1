@@ -48,6 +48,13 @@ function Invoke-ZtGraphRequest {
 		[Parameter(Mandatory = $false)]
 		[ValidateSet('v1.0', 'beta')]
 		[string] $ApiVersion = 'v1.0',
+		# HTTP method.
+		[Parameter(Mandatory = $false)]
+		[ValidateSet('GET', 'POST')]
+		[string] $Method = 'GET',
+		# Request body for non-GET methods.
+		[Parameter(Mandatory = $false)]
+		[string] $Body,
 		# Specifies consistency level.
 		[Parameter(Mandatory = $false)]
 		[string] $ConsistencyLevel = 'eventual',
@@ -103,6 +110,8 @@ function Invoke-ZtGraphRequest {
 			OutputType = $OutputType
 			DisableCache = $DisableCache
 			OutputFilePath = $OutputFilePath
+			Method = $Method
+			Body = $Body
 		}
 
 		#region Utility Functions
@@ -171,7 +180,7 @@ function Invoke-ZtGraphRequest {
 		if ($DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1)) {
 			Write-Warning ('This command is invoking {0} individual Graph requests. For better performance, remove the -DisableBatching parameter.' -f ($RelativeUri.Count * $UniqueId.Count))
 		}
-		$doBatch = -not $DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1)
+		$doBatch = ($Method -eq 'GET') -and -not $DisableBatching -and ($RelativeUri.Count -gt 1 -or $UniqueId.Count -gt 1)
 
 		## Process Each RelativeUri
 		foreach ($uri in $RelativeUri) {
@@ -223,10 +232,12 @@ function Invoke-ZtGraphRequest {
 				}
 				else {
 
-					$results = Invoke-ZtGraphRequestCache -Method GET -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri @requestParam
+					$results = Invoke-ZtGraphRequestCache -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri @requestParam
 
 					Format-Result -Results $results -RawOutput $DisablePaging
-					Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
+					if ($Method -eq 'GET') {
+						Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
+					}
 				}
 			}
 			#endregion Execute individual or queue batch
