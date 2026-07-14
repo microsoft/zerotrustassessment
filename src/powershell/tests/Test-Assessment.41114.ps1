@@ -61,6 +61,20 @@ function Test-Assessment-41114 {
         Write-PSFMessage "Q2: Failed to retrieve Teams protection policy: $_" -Tag Test -Level Warning
     }
 
+    Write-ZtProgress -Activity $activity -Status 'Retrieving Teams ZAP exception rule'
+    $teamsProtectionPolicyRule = $null
+    $q2rError = $null
+    try {
+        # Q2b: Retrieve Teams ZAP exception rule. Null return is expected when no exceptions are configured
+        # (the default). A populated ExceptIf* property means some recipients are excluded from ZAP.
+        $teamsProtectionPolicyRule = Get-TeamsProtectionPolicyRule -ErrorAction Stop |
+            Select-Object Name, TeamsProtectionPolicy, ExceptIfSentTo, ExceptIfSentToMemberOf, ExceptIfRecipientDomainIs
+    }
+    catch {
+        $q2rError = $_
+        Write-PSFMessage "Q2b: Failed to retrieve Teams protection policy rule: $_" -Tag Test -Level Warning
+    }
+
     Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Links policies'
     $safeLinksPolicies = $null
     $q3Error = $null
@@ -121,6 +135,31 @@ function Test-Assessment-41114 {
         Value     = if ($q2Unknown) { '⚠️ Query error — verify in portal' } elseif ($q2Enabled) { '✅ Yes' } else { '❌ No' }
         RowResult = if ($q2Unknown) { '⚠️ Investigate' } elseif ($q2Enabled) { '✅ Pass' } else { '❌ Fail' }
     })
+
+    # --- Q2b: ZAP for Teams — exception scope ---
+    # Null rule = no exceptions = all users covered (healthy default); add a row only when
+    # the rule exists with at least one populated ExceptIf* property, or on query error.
+    $q2rHasExceptions = (-not $q2rError) -and ($null -ne $teamsProtectionPolicyRule) -and (
+        $teamsProtectionPolicyRule.ExceptIfSentTo -or
+        $teamsProtectionPolicyRule.ExceptIfSentToMemberOf -or
+        $teamsProtectionPolicyRule.ExceptIfRecipientDomainIs
+    )
+    if ($q2rError) {
+        $anyInvestigate = $true
+        $controlRows.Add([PSCustomObject]@{
+            Setting   = "[ZAP for Teams — exception scope]($q2PortalLink)"
+            Value     = '⚠️ Query error — verify in portal'
+            RowResult = '⚠️ Investigate'
+        })
+    }
+    elseif ($q2rHasExceptions) {
+        $anyInvestigate = $true
+        $controlRows.Add([PSCustomObject]@{
+            Setting   = "[ZAP for Teams — exception scope]($q2PortalLink)"
+            Value     = '⚠️ Exceptions configured'
+            RowResult = '⚠️ Investigate — exceptions reduce ZAP coverage'
+        })
+    }
 
     # --- Q3: Safe Links for Teams — pass if at least one policy has Teams enabled ---
     $q3Unknown = $q3Error -or $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0 -or
