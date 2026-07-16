@@ -124,6 +124,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - SecurityIdentitiesHealth.Read.All
 - SecurityIdentitiesSensors.Read.All
 - SecurityIncident.Read.All
+- ThreatHunting.Read.All
 - UserAuthenticationMethod.Read.All
 
 Run the following command to connect to the services and consent to the permissions using a Global Administrator account. We recommend **explicitly specifying the tenant** you want to assess:
@@ -158,6 +159,8 @@ This assessment is a read-only assessment, and all data is run and
 stored locally on the desktop. We recommend storing this report securely and deleting the generated folder and its contents from the local drive once the assessment is complete.
 
 After providing Administrator consent to the permissions, you can run the assessment with an account that has been assigned the **Global Reader** role.
+
+> **Note:** Some tests that evaluate Exchange Online protection policies require the **Security Reader** role in the Microsoft Defender portal in addition to Global Reader. Without this role, those Exchange Online cmdlets will return permission errors and the affected tests may generate unexpected output.
 
 We recommend the following two-step flow. First connect to the specific tenant you want to assess, then run the assessment:
 

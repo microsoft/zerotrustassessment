@@ -1,0 +1,9 @@
+Microsoft Defender for Identity alerts on Kerberoasting, DCSync, suspicious LDAP enumeration, and other directory attacks. When these alerts are not triaged and tuned, two outcomes follow: real intrusions are missed because the queue is dominated by benign noise, and the noise is never reduced using known sensitive groups, allow-listed service accounts, and excluded subnets. A threat actor benefits from both outcomes — their reconnaissance and credential theft blends into the unhandled backlog, and the time between alert and response stretches past the window in which containment is still possible. Microsoft Defender for Identity provides per-alert tuning controls and a classification workflow that feeds back into the detection model; this check confirms the open Defender for Identity alert backlog has been worked and that recurring benign sources have been excluded so genuine intrusions surface promptly. Because no Microsoft Graph API exposes Defender XDR alert tuning or suppression rule configuration, this check uses classification activity over the trailing 30 days as a proxy for tuning discipline: it passes when at least 80 percent of MDI alerts are classified and no alert older than seven days remains new and unclassified.
+
+**Remediation action**
+
+- [Microsoft Defender for Identity alert categories](https://learn.microsoft.com/en-us/defender-for-identity/alerts-overview?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Tune alerts in Microsoft Defender XDR](https://learn.microsoft.com/en-us/defender-xdr/investigate-alerts?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Microsoft Defender XDR alert tuning](https://learn.microsoft.com/en-us/defender-xdr/investigate-alerts?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci#tune-an-alert)
+<!--- Results --->
+%TestResult%

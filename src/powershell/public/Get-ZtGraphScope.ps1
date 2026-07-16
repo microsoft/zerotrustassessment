@@ -50,6 +50,7 @@
         'SecurityIdentitiesHealth.Read.All'
         'SecurityIdentitiesSensors.Read.All'
         'SecurityIncident.Read.All'
+        'ThreatHunting.Read.All'
         'UserAuthenticationMethod.Read.All'
     )
 
