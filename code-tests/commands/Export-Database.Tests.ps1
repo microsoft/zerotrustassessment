@@ -20,9 +20,9 @@ Describe "Export-Database" {
         }
 
         # Helper — creates a temp export folder with the minimum files needed for the
-        # Identity pillar. Tables with model files (Application, ServicePrincipalSignIn, and
-        # the three role tables) get their schema from those. The three tables below have no
-        # model files and need at least one real data file.
+        # Identity pillar. User, Application, ServicePrincipal, SignIn,
+        # ServicePrincipalSignIn, and the role tables get empty-export schemas from models.
+        # RoleDefinition still needs a real row because it has no model.
         function script:New-TestExportPath ([string]$Suffix) {
             $path = Join-Path $env:TEMP "zt-test-$Suffix-$(Get-Random)"
             New-Item -ItemType Directory -Path $path -Force | Out-Null
@@ -45,21 +45,6 @@ Describe "Export-Database" {
                 isBuiltIn    = $true
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $path "RoleDefinition\RoleDefinition-0.json")
-
-            # User — minimal (no model file)
-            @{ value = @(@{
-                id                = 'u-00000001'
-                displayName       = 'Test User'
-                userPrincipalName = 'test@contoso.com'
-            }) } | ConvertTo-Json -Depth 3 |
-                Set-Content (Join-Path $path "User\User-0.json")
-
-            # ServicePrincipal — minimal (no model file)
-            @{ value = @(@{
-                id          = 'sp-00000001'
-                displayName = 'TestServicePrincipal'
-            }) } | ConvertTo-Json -Depth 3 |
-                Set-Content (Join-Path $path "ServicePrincipal\ServicePrincipal-0.json")
 
             return $path
         }
@@ -129,8 +114,19 @@ Describe "Export-Database" {
             Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'Free' }
             $db = $null
             try {
-                { $db = Export-Database -ExportPath $script:testPath1 -Pillar Identity } |
-                    Should -Not -Throw
+                $db = Export-Database -ExportPath $script:testPath1 -Pillar Identity
+                $db | Should -Not -BeNull
+
+                { Invoke-DatabaseQuery -Database $db -Sql @'
+select id, signInActivity.lastSuccessfulSignInDateTime from main."User" limit 0;
+select id, unnest(passwordCredentials).endDateTime, unnest(keyCredentials).startDateTime, servicePrincipalLockConfiguration.isEnabled from main."Application" limit 0;
+select id, replyUrls, unnest(appRoles).id, unnest(appRoleAssignments).appRoleId, unnest(oauth2PermissionGrants).scope, owners from main."ServicePrincipal" limit 0;
+select createdDateTime, deviceDetail.isManaged, deviceDetail.isCompliant, status.errorCode from main."SignIn" limit 0;
+select appId, lastSignInActivity.lastSignInDateTime from main."ServicePrincipalSignIn" limit 0;
+'@ } | Should -Not -Throw
+
+                @(Invoke-DatabaseQuery -Database $db -Sql 'select * from main."User"') | Should -BeNullOrEmpty
+                @(Invoke-DatabaseQuery -Database $db -Sql 'select * from main."ServicePrincipal"') | Should -BeNullOrEmpty
             }
             finally {
                 if ($db) { Disconnect-Database -Database $db }

@@ -23,6 +23,11 @@ function Get-TableSchemaConfig {
     )
 
     $configs = @{
+        'Application' = @{
+            'use_union_by_name' = $true
+            'sample_size' = 50
+            'reason' = 'customSecurityAttributes is an open complex type with varying nested keys across applications'
+        }
         'ServicePrincipal' = @{
             'use_union_by_name' = $true
             'sample_size' = 50

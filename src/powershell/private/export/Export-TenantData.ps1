@@ -59,10 +59,10 @@ function Export-TenantData {
 
 	if ($Pillar -in ('All', 'Identity')) {
 
-		$userQueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
+		$userQueryString = '$top=999&$select=id,displayName,userPrincipalName,accountEnabled,userType,passwordPolicies,createdDateTime,onPremisesSyncEnabled,externalUserState'
 		if ($EntraIDPlan -ne 'Free') {
 			#Add premium fields
-			$userQueryString += ', signInActivity'
+			$userQueryString += ',signInActivity'
 		}
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'User' `
 			-EntityUri 'beta/users' -ProgressActivity 'Users' `
@@ -70,11 +70,11 @@ function Export-TenantData {
 
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'Application' `
 			-EntityUri 'beta/applications' -ProgressActivity 'Applications' `
-			-QueryString '$top=999' -ShowCount
+			-QueryString '$top=999&$select=id,appId,displayName,signInAudience,passwordCredentials,keyCredentials,servicePrincipalLockConfiguration,tags,customSecurityAttributes' -ShowCount
 
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'ServicePrincipal' `
 			-EntityUri 'beta/servicePrincipals' -ProgressActivity 'Service Principals' `
-			-QueryString '$expand=appRoleAssignments&$top=999' -RelatedPropertyNames @('oauth2PermissionGrants', 'owners') `
+			-QueryString '$expand=appRoleAssignments&$top=999&$select=id,appId,displayName,appOwnerOrganizationId,publisherName,signInAudience,passwordCredentials,keyCredentials,servicePrincipalType,accountEnabled,tags,customSecurityAttributes,agentIdentityBlueprintId,createdByAppId,preferredSingleSignOnMode,appRoleAssignmentRequired,appRoles,replyUrls' -RelatedPropertyNames @('oauth2PermissionGrants', 'owners') `
 			-ShowCount
 
 		if ((Get-MgContext).Environment -eq 'Global') {
@@ -88,19 +88,19 @@ function Export-TenantData {
 		# Active role assignments
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
 			-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
-			-QueryString "`$expand=principal"
+			-QueryString '$expand=principal($select=id,displayName,userPrincipalName)'
 
 		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
 			# API requires PIM license
 			# Filter for permanently assigned/active (ignore PIM eligible users that have temporarily actived)
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentScheduleInstance' `
 				-EntityUri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ProgressActivity 'Role Assignment Instance' `
-				-QueryString "`$expand=principal&`$filter = assignmentType eq 'Assigned'"
+				-QueryString '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
 
 			# Filter for currently valid, eligible role assignments
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleInstance' `
 				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ProgressActivity 'Role Eligibility Instance' `
-				-QueryString "`$expand=principal"
+				-QueryString '$expand=principal($select=id,displayName,userPrincipalName)'
 
 			# Export role management policy assignments for PIM activation alert configuration
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `
@@ -129,7 +129,7 @@ function Export-TenantData {
 		if ($EntraIDPlan -ne 'Free') {
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'SignIn' `
 				-EntityUri 'beta/auditlogs/signins' -ProgressActivity 'Sign In Logs' `
-				-QueryString (Get-ZtiAuditQueryString -PastDays $Days) -MaximumQueryTime $MaximumSignInLogQueryTime
+				-QueryString "$(Get-ZtiAuditQueryString -PastDays $Days)&`$select=createdDateTime,deviceDetail,conditionalAccessStatus,authenticationRequirement,isInteractive,status" -MaximumQueryTime $MaximumSignInLogQueryTime
 		}
 	}
 

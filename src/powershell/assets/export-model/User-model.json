@@ -1,0 +1,24 @@
+{
+  "value": [
+    {
+      "isZtModelRow": true,
+      "id": "00000000-0000-0000-0000-000000000000",
+      "displayName": "",
+      "userPrincipalName": "",
+      "accountEnabled": false,
+      "userType": "",
+      "passwordPolicies": "",
+      "createdDateTime": "1900-01-01T00:00:00Z",
+      "onPremisesSyncEnabled": false,
+      "externalUserState": "",
+      "signInActivity": {
+        "lastSignInDateTime": "1900-01-01T00:00:00Z",
+        "lastSignInRequestId": "00000000-0000-0000-0000-000000000000",
+        "lastNonInteractiveSignInDateTime": "1900-01-01T00:00:00Z",
+        "lastNonInteractiveSignInRequestId": "00000000-0000-0000-0000-000000000000",
+        "lastSuccessfulSignInDateTime": "1900-01-01T00:00:00Z",
+        "lastSuccessfulSignInRequestId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  ]
+}

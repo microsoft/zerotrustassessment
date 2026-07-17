@@ -1,0 +1,81 @@
+{
+  "value": [
+    {
+      "isZtModelRow": true,
+      "@odata.type": "#microsoft.graph.servicePrincipal",
+      "id": "00000000-0000-0000-0000-000000000000",
+      "appId": "00000000-0000-0000-0000-000000000000",
+      "displayName": "",
+      "appOwnerOrganizationId": "00000000-0000-0000-0000-000000000000",
+      "publisherName": "",
+      "signInAudience": "",
+      "passwordCredentials": [
+        {
+          "customKeyIdentifier": null,
+          "displayName": "",
+          "endDateTime": "1900-01-01T00:00:00Z",
+          "hint": "",
+          "keyId": "00000000-0000-0000-0000-000000000000",
+          "secretText": null,
+          "startDateTime": "1900-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [
+        {
+          "customKeyIdentifier": null,
+          "displayName": "",
+          "endDateTime": "1900-01-01T00:00:00Z",
+          "key": null,
+          "keyId": "00000000-0000-0000-0000-000000000000",
+          "startDateTime": "1900-01-01T00:00:00Z",
+          "type": "",
+          "usage": ""
+        }
+      ],
+      "servicePrincipalType": "",
+      "accountEnabled": false,
+      "tags": [""],
+      "customSecurityAttributes": {},
+      "agentIdentityBlueprintId": "00000000-0000-0000-0000-000000000000",
+      "createdByAppId": "00000000-0000-0000-0000-000000000000",
+      "preferredSingleSignOnMode": "",
+      "appRoleAssignmentRequired": false,
+      "appRoles": [
+        {
+          "allowedMemberTypes": [""],
+          "description": "",
+          "displayName": "",
+          "id": "00000000-0000-0000-0000-000000000000",
+          "isEnabled": false,
+          "origin": "",
+          "value": ""
+        }
+      ],
+      "replyUrls": [""],
+      "appRoleAssignments": [
+        {
+          "appRoleId": "00000000-0000-0000-0000-000000000000",
+          "createdDateTime": "1900-01-01T00:00:00Z",
+          "deletedDateTime": null,
+          "id": "00000000-0000-0000-0000-000000000000",
+          "principalDisplayName": "",
+          "principalId": "00000000-0000-0000-0000-000000000000",
+          "principalType": "",
+          "resourceDisplayName": "",
+          "resourceId": "00000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "oauth2PermissionGrants": [
+        {
+          "clientId": "00000000-0000-0000-0000-000000000000",
+          "consentType": "",
+          "id": "00000000-0000-0000-0000-000000000000",
+          "principalId": "00000000-0000-0000-0000-000000000000",
+          "resourceId": "00000000-0000-0000-0000-000000000000",
+          "scope": ""
+        }
+      ],
+      "owners": []
+    }
+  ]
+}
