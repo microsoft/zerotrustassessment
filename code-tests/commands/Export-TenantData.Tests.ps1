@@ -37,6 +37,9 @@ Describe 'Export-TenantData Graph query allowlists' {
 		$servicePrincipal.QueryString | Should -Be $script:servicePrincipalQuery
 		$servicePrincipal.RelatedPropertyNames | Should -Be @('oauth2PermissionGrants', 'owners')
 		($config | Where-Object Name -eq 'SignIn').QueryString | Should -Be "%AuditQueryString%&$script:signInSelect"
+		($config | Where-Object Name -eq 'RoleAssignment').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)'
+		($config | Where-Object Name -eq 'RoleAssignmentScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
+		($config | Where-Object Name -eq 'RoleEligibilityScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)'
 	}
 
 	It 'uses the focused allowlists in the hardcoded export path' {
@@ -61,6 +64,15 @@ Describe 'Export-TenantData Graph query allowlists' {
 		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
 			$EntityName -eq 'SignIn' -and $QueryString -match '^createdDateTime ge .* and status/errorcode eq 0 and appid eq ''89bee1f7-5e6e-4d8a-9f3d-ecd601259da7''&' -and
 			$QueryString.EndsWith($script:signInSelect)
+		}
+		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
+			$EntityName -eq 'RoleAssignment' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)'
+		}
+		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
+			$EntityName -eq 'RoleAssignmentScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
+		}
+		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
+			$EntityName -eq 'RoleEligibilityScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)'
 		}
 	}
 

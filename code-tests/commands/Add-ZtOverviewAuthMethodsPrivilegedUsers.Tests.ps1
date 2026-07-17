@@ -58,6 +58,26 @@ Describe "Add-ZtOverviewAuthMethodsPrivilegedUsers" {
 		}
 	}
 
+	It "Should compute nonzero Sankey values for a group-derived privileged user" {
+		$database = Connect-Database -Transient
+		try {
+			Invoke-DatabaseQuery -Database $database -NonQuery -Sql @'
+create table UserRegistrationDetails (id varchar, methodsRegistered varchar[]);
+insert into UserRegistrationDetails values ('user-1', ['mobilePhone']);
+create view vwRole as select 'user-1'::varchar as principalId;
+'@
+
+			Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $database
+
+			$nodes = $script:tenantInfo.Value.nodes
+			($nodes | Where-Object { $_.source -eq 'Users' -and $_.target -eq 'Phishable' }).value | Should -Be 1
+			($nodes | Where-Object { $_.source -eq 'Phishable' -and $_.target -eq 'Phone' }).value | Should -Be 1
+		}
+		finally {
+			Disconnect-Database -Database $database
+		}
+	}
+
 	It "Should store null (no Sankey object) when the EntraID license is Free" {
 		Mock Get-ZtLicenseInformation { 'Free' }
 		Mock Invoke-DatabaseQuery { throw "Should not query the database on a Free license" }

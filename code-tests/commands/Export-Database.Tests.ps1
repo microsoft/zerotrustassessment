@@ -147,10 +147,9 @@ select appId, lastSignInActivity.lastSignInDateTime from main."ServicePrincipalS
         BeforeAll {
             $script:testPath2 = New-TestExportPath -Suffix 'grouponly'
 
-            # RoleAssignment — normal user assignment; this is NOT the bug trigger
+			# RoleAssignment with only the nested principal ID returned by the focused expansion.
             @{ value = @(@{
                 id               = 'ra-00000001'
-                principalId      = 'u-00000001'
                 directoryScopeId = '/'
                 roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
                 principal        = @{
@@ -230,13 +229,14 @@ where "@odata.type" = '#microsoft.graph.group'
             $rows[0]['userPrincipalName']    | Should -BeNullOrEmpty
         }
 
-        It "Should populate userPrincipalName for user principals and leave uniqueName null" {
+        It "Should derive the user principal ID and UPN from the focused principal expansion" {
             $rows = @(Invoke-DatabaseQuery -Database $script:dbGroupOnly -Sql @"
-select uniqueName, userPrincipalName
+select principalId, uniqueName, userPrincipalName
 from vwRole
 where "@odata.type" = '#microsoft.graph.user'
 "@)
             $rows | Should -Not -BeNullOrEmpty
+            $rows[0]['principalId']       | Should -Be 'u-00000001'
             $rows[0]['userPrincipalName'] | Should -Be 'test@contoso.com'
             $rows[0]['uniqueName']        | Should -BeNullOrEmpty
         }

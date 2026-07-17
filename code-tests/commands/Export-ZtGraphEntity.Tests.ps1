@@ -112,4 +112,65 @@ Describe "Export-ZtGraphEntity" {
             Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphBatchRequest -Times 1 -Exactly
         }
     }
+
+    Context "Privileged group role assignments" {
+        BeforeEach {
+            $script:groupExportPath = Join-Path $TestDrive 'privileged-groups'
+            $roleAssignmentPath = Join-Path $script:groupExportPath 'RoleAssignment'
+            New-Item -ItemType Directory -Path $roleAssignmentPath -Force | Out-Null
+
+            @{
+                value = @(
+                    @{
+                        roleDefinitionId = 'role-1'
+                        principal = @{
+                            id = '11111111-1111-1111-1111-111111111111'
+                            displayName = 'Privileged group'
+							'@odata.type' = '#microsoft.graph.group'
+                        }
+                    },
+                    @{
+                        roleDefinitionId = 'role-2'
+                        principal = @{
+                            id = '22222222-2222-2222-2222-222222222222'
+                            displayName = 'Direct user'
+                            userPrincipalName = 'direct@contoso.com'
+                            '@odata.type' = '#microsoft.graph.user'
+                        }
+                    }
+                )
+            } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $roleAssignmentPath 'RoleAssignment-0.json')
+
+            Mock -ModuleName ZeroTrustAssessment Get-ZtConfig { $false }
+            Mock -ModuleName ZeroTrustAssessment Set-ZtConfig {}
+            Mock -ModuleName ZeroTrustAssessment Update-ZtProgressState {}
+            Mock -ModuleName ZeroTrustAssessment Get-ZtGroupMember {
+                @(
+                    @{
+                        id = 'user-1'
+                        displayName = 'Privileged user'
+                        userPrincipalName = 'privileged@contoso.com'
+                        '@odata.type' = '#microsoft.graph.user'
+                    }
+                )
+            }
+        }
+
+        It "exports group members with the role definition used by vwRole" {
+            Export-ZtGraphEntityPrivilegedGroup -ExportPath $script:groupExportPath `
+                -InputName 'RoleAssignment' -Name 'RoleAssignmentGroup'
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Get-ZtGroupMember -Times 1 -Exactly -ParameterFilter {
+                $GroupId -eq '11111111-1111-1111-1111-111111111111'
+            }
+
+            $outputPath = Join-Path $script:groupExportPath 'RoleAssignmentGroup/RoleAssignmentGroup-0.json'
+            $output = Get-Content $outputPath -Raw | ConvertFrom-Json
+            $output.value.Count | Should -Be 1
+            $output.value[0].id | Should -Be 'user-1'
+            $output.value[0].privilegedGroupId | Should -Be '11111111-1111-1111-1111-111111111111'
+            $output.value[0].roleDefinitionId | Should -Be 'role-1'
+            $output.value[0].'@odata.type' | Should -Be '#microsoft.graph.user'
+        }
+    }
 }
