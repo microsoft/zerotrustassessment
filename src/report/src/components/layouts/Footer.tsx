@@ -121,6 +121,8 @@ export function Footer() {
                         </a>
                         <span>•</span>
                         <span>{assessmentDate}</span>
+                        <span>•</span>
+                        <span>v{reportData.CurrentVersion}</span>
                     </div>
 
                     {/* Theme Toggle (Hidden but available for future use) */}
