@@ -125,7 +125,6 @@ Describe "Export-ZtGraphEntity" {
                         roleDefinitionId = 'role-1'
                         principal = @{
                             id = '11111111-1111-1111-1111-111111111111'
-                            displayName = 'Privileged group'
 							'@odata.type' = '#microsoft.graph.group'
                         }
                     },
@@ -133,8 +132,6 @@ Describe "Export-ZtGraphEntity" {
                         roleDefinitionId = 'role-2'
                         principal = @{
                             id = '22222222-2222-2222-2222-222222222222'
-                            displayName = 'Direct user'
-                            userPrincipalName = 'direct@contoso.com'
                             '@odata.type' = '#microsoft.graph.user'
                         }
                     }
@@ -171,6 +168,45 @@ Describe "Export-ZtGraphEntity" {
             $output.value[0].privilegedGroupId | Should -Be '11111111-1111-1111-1111-111111111111'
             $output.value[0].roleDefinitionId | Should -Be 'role-1'
             $output.value[0].'@odata.type' | Should -Be '#microsoft.graph.user'
+        }
+
+    }
+
+    Context "Role principal persistence" {
+        BeforeEach {
+            $script:roleExportPath = Join-Path $TestDrive 'role-principal'
+            Mock -ModuleName ZeroTrustAssessment Get-ZtConfig { $false }
+            Mock -ModuleName ZeroTrustAssessment Set-ZtConfig {}
+            Mock -ModuleName ZeroTrustAssessment Update-ZtProgressState {}
+            Mock -ModuleName ZeroTrustAssessment Get-PSFConfigValue { 1073741824 }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                @{
+                    value = @(@{
+                        id = 'assignment-1'
+                        principalId = 'user-1'
+                        roleDefinitionId = 'role-1'
+                        principal = @{
+                            '@odata.type' = '#microsoft.graph.user'
+                            id = 'user-1'
+                            displayName = 'Test User'
+                            userPrincipalName = 'test@contoso.com'
+                            accountEnabled = $true
+                            assignedLicenses = @(@{ skuId = 'sku-1' })
+                        }
+                    })
+                }
+            }
+        }
+
+        It "persists only the role principal properties consumed downstream" {
+            Export-ZtGraphEntity -Name 'RoleAssignment' `
+                -Uri 'beta/roleManagement/directory/roleAssignments' `
+                -QueryString '$expand=principal' -ExportPath $script:roleExportPath
+
+            $output = Get-Content (Join-Path $script:roleExportPath 'RoleAssignment/RoleAssignment-0.json') -Raw | ConvertFrom-Json
+            @($output.value[0].principal.PSObject.Properties.Name | Sort-Object) | Should -Be @('@odata.type', 'displayName', 'id')
+            $output.value[0].principal.PSObject.Properties.Name | Should -Not -Contain 'accountEnabled'
+            $output.value[0].principal.PSObject.Properties.Name | Should -Not -Contain 'assignedLicenses'
         }
     }
 }

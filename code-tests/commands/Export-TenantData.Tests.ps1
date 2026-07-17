@@ -37,9 +37,9 @@ Describe 'Export-TenantData Graph query allowlists' {
 		$servicePrincipal.QueryString | Should -Be $script:servicePrincipalQuery
 		$servicePrincipal.RelatedPropertyNames | Should -Be @('oauth2PermissionGrants', 'owners')
 		($config | Where-Object Name -eq 'SignIn').QueryString | Should -Be "%AuditQueryString%&$script:signInSelect"
-		($config | Where-Object Name -eq 'RoleAssignment').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)'
-		($config | Where-Object Name -eq 'RoleAssignmentScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
-		($config | Where-Object Name -eq 'RoleEligibilityScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName,userPrincipalName)'
+		($config | Where-Object Name -eq 'RoleAssignment').QueryString | Should -Be '$expand=principal($select=id,displayName)'
+		($config | Where-Object Name -eq 'RoleAssignmentScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName)&$filter = assignmentType eq ''Assigned'''
+		($config | Where-Object Name -eq 'RoleEligibilityScheduleInstance').QueryString | Should -Be '$expand=principal($select=id,displayName)'
 	}
 
 	It 'uses the focused allowlists in the hardcoded export path' {
@@ -66,13 +66,13 @@ Describe 'Export-TenantData Graph query allowlists' {
 			$QueryString.EndsWith($script:signInSelect)
 		}
 		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
-			$EntityName -eq 'RoleAssignment' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)'
+			$EntityName -eq 'RoleAssignment' -and $QueryString -eq '$expand=principal($select=id,displayName)'
 		}
 		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
-			$EntityName -eq 'RoleAssignmentScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
+			$EntityName -eq 'RoleAssignmentScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName)&$filter = assignmentType eq ''Assigned'''
 		}
 		Should -Invoke -ModuleName ZeroTrustAssessment Export-GraphEntity -Times 1 -Exactly -ParameterFilter {
-			$EntityName -eq 'RoleEligibilityScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName,userPrincipalName)'
+			$EntityName -eq 'RoleEligibilityScheduleInstance' -and $QueryString -eq '$expand=principal($select=id,displayName)'
 		}
 	}
 
@@ -83,6 +83,9 @@ Describe 'Export-TenantData Graph query allowlists' {
 		$servicePrincipal = (Get-Content (Join-Path $modelRoot 'ServicePrincipal-model.json') -Raw | ConvertFrom-Json).value[0]
 		$signIn = (Get-Content (Join-Path $modelRoot 'SignIn-model.json') -Raw | ConvertFrom-Json).value[0]
 		$servicePrincipalSignIn = (Get-Content (Join-Path $modelRoot 'ServicePrincipalSignIn-model.json') -Raw | ConvertFrom-Json).value[0]
+		$roleAssignment = (Get-Content (Join-Path $modelRoot 'RoleAssignment-model.json') -Raw | ConvertFrom-Json).value[0]
+		$roleAssignmentScheduleInstance = (Get-Content (Join-Path $modelRoot 'RoleAssignmentScheduleInstance-model.json') -Raw | ConvertFrom-Json).value[0]
+		$roleEligibilityScheduleInstance = (Get-Content (Join-Path $modelRoot 'RoleEligibilityScheduleInstance-model.json') -Raw | ConvertFrom-Json).value[0]
 
 		@($user.PSObject.Properties.Name) | Should -Be @('isZtModelRow', 'id', 'displayName', 'userPrincipalName', 'accountEnabled', 'userType', 'passwordPolicies', 'createdDateTime', 'onPremisesSyncEnabled', 'externalUserState', 'signInActivity')
 		@($user.PSObject.Properties.Name) | Should -Not -Contain 'assignedPlans'
@@ -111,6 +114,10 @@ Describe 'Export-TenantData Graph query allowlists' {
 		@($servicePrincipalSignIn.PSObject.Properties.Name) | Should -Be @('isZtModelRow', 'applicationAuthenticationClientSignInActivity', 'delegatedClientSignInActivity', 'appId', 'applicationAuthenticationResourceSignInActivity', 'delegatedResourceSignInActivity', 'lastSignInActivity', 'id')
 		foreach ($activityName in @('applicationAuthenticationClientSignInActivity', 'delegatedClientSignInActivity', 'applicationAuthenticationResourceSignInActivity', 'delegatedResourceSignInActivity', 'lastSignInActivity')) {
 			@($servicePrincipalSignIn.$activityName.PSObject.Properties.Name) | Should -Be @('lastSignInRequestId', 'lastSignInDateTime')
+		}
+
+		foreach ($roleExport in @($roleAssignment, $roleAssignmentScheduleInstance, $roleEligibilityScheduleInstance)) {
+			@($roleExport.principal.PSObject.Properties.Name) | Should -Be @('@odata.type', 'id', 'displayName')
 		}
 	}
 }

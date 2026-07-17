@@ -88,19 +88,19 @@ function Export-TenantData {
 		# Active role assignments
 		Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignment' `
 			-EntityUri 'beta/roleManagement/directory/roleAssignments' -ProgressActivity 'Role Assignments' `
-			-QueryString '$expand=principal($select=id,displayName,userPrincipalName)'
+			-QueryString '$expand=principal($select=id,displayName)'
 
 		if ($EntraIDPlan -eq "P2" -or $EntraIDPlan -eq "Governance") {
 			# API requires PIM license
 			# Filter for permanently assigned/active (ignore PIM eligible users that have temporarily actived)
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleAssignmentScheduleInstance' `
 				-EntityUri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ProgressActivity 'Role Assignment Instance' `
-				-QueryString '$expand=principal($select=id,displayName,userPrincipalName)&$filter = assignmentType eq ''Assigned'''
+				-QueryString '$expand=principal($select=id,displayName)&$filter = assignmentType eq ''Assigned'''
 
 			# Filter for currently valid, eligible role assignments
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleEligibilityScheduleInstance' `
 				-EntityUri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ProgressActivity 'Role Eligibility Instance' `
-				-QueryString '$expand=principal($select=id,displayName,userPrincipalName)'
+				-QueryString '$expand=principal($select=id,displayName)'
 
 			# Export role management policy assignments for PIM activation alert configuration
 			Export-GraphEntity -ExportPath $ExportPath -EntityName 'RoleManagementPolicyAssignment' `

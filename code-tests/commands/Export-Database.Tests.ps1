@@ -147,19 +147,27 @@ select appId, lastSignInActivity.lastSignInDateTime from main."ServicePrincipalS
         BeforeAll {
             $script:testPath2 = New-TestExportPath -Suffix 'grouponly'
 
-			# RoleAssignment with only the nested principal ID returned by the focused expansion.
+            # RoleAssignment uses the compact principal shape saved after selective expansion.
             @{ value = @(@{
                 id               = 'ra-00000001'
+                principalId      = 'u-00000001'
                 directoryScopeId = '/'
                 roleDefinitionId = 'a0b1c2d3-0000-0000-0000-000000000001'
                 principal        = @{
-                    '@odata.type'     = '#microsoft.graph.user'
-                    id                = 'u-00000001'
-                    displayName       = 'Test User'
-                    userPrincipalName = 'test@contoso.com'
+                    '@odata.type' = '#microsoft.graph.user'
+                    id            = 'u-00000001'
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath2 "RoleAssignment\RoleAssignment-0.json")
+
+            @{ value = @(@{
+                id                = 'u-00000001'
+                displayName       = 'Test User'
+                userPrincipalName = 'test@contoso.com'
+                accountEnabled    = $true
+                userType          = 'Member'
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath2 "User\User-0.json")
 
             # RoleEligibilityScheduleInstance — group-only principals.
             # Groups have 'uniqueName' but NOT 'userPrincipalName'.
@@ -213,7 +221,7 @@ select appId, lastSignInActivity.lastSignInDateTime from main."ServicePrincipalS
             $script:dbGroupOnly | Should -Not -BeNull
         }
 
-        It "Should surface group principals in vwRole with a null uniqueName (no longer pulled from Graph)" {
+        It "Should surface group principals in vwRole with the selected display name" {
             # uniqueName is intentionally no longer selected from the expanded principal
             # (nested $select omits it); vwRole keeps the column as a null literal for schema stability.
             # Use @() to ensure array even when Invoke-DatabaseQuery returns a single hashtable row,
@@ -229,7 +237,7 @@ where "@odata.type" = '#microsoft.graph.group'
             $rows[0]['userPrincipalName']    | Should -BeNullOrEmpty
         }
 
-        It "Should derive the user principal ID and UPN from the focused principal expansion" {
+        It "Should derive the user principal ID and UPN from the compact principal and User table" {
             $rows = @(Invoke-DatabaseQuery -Database $script:dbGroupOnly -Sql @"
 select principalId, uniqueName, userPrincipalName
 from vwRole
@@ -252,8 +260,15 @@ where "@odata.type" = '#microsoft.graph.user'
         BeforeAll {
             $script:testPath3 = New-TestExportPath -Suffix 'p2sponly'
 
-            # RoleAssignmentScheduleInstance — SP-only principals; no userPrincipalName in the struct.
-            # This is the P2/Governance equivalent of the Free/P1 RoleAssignment SP-only case.
+            @{ value = @(@{
+                id = 'sp-00000001'
+                appId = 'app-00000001'
+                displayName = 'TestServicePrincipal'
+                '@odata.type' = '#microsoft.graph.servicePrincipal'
+            }) } | ConvertTo-Json -Depth 5 |
+                Set-Content (Join-Path $script:testPath3 "ServicePrincipal\ServicePrincipal-0.json")
+
+            # Graph supports nested principal selection for id only on this endpoint.
             @{ value = @(@{
                 id               = 'rasi-00000001'
                 principalId      = 'sp-00000001'
@@ -262,7 +277,6 @@ where "@odata.type" = '#microsoft.graph.user'
                 principal        = @{
                     '@odata.type' = '#microsoft.graph.servicePrincipal'
                     id            = 'sp-00000001'
-                    displayName   = 'TestServicePrincipal'
                 }
             }) } | ConvertTo-Json -Depth 5 |
                 Set-Content (Join-Path $script:testPath3 "RoleAssignmentScheduleInstance\RoleAssignmentScheduleInstance-0.json")
@@ -304,12 +318,22 @@ where "@odata.type" = '#microsoft.graph.user'
             }
         }
 
-        It "Should create vwRole without error when only service principals are assigned to roles (P2 path)" {
+		It "Should build the P2 vwRole row from an id-only expanded principal" {
             Mock -ModuleName ZeroTrustAssessment Get-ZtLicenseInformation { return 'P2' }
             $db = $null
             try {
-                { $db = Export-Database -ExportPath $script:testPath3 -Pillar Identity } |
-                    Should -Not -Throw
+				$db = Export-Database -ExportPath $script:testPath3 -Pillar Identity
+				$db | Should -Not -BeNull
+
+				$rows = @(Invoke-DatabaseQuery -Database $db -Sql @'
+select principalId, principalDisplayName, "@odata.type", privilegeType
+from vwRole
+where principalId = 'sp-00000001' and privilegeType = 'Permanent'
+'@)
+				$rows.Count | Should -Be 1
+				$rows[0]['principalId'] | Should -Be 'sp-00000001'
+				$rows[0]['principalDisplayName'] | Should -Be 'TestServicePrincipal'
+				$rows[0]['@odata.type'] | Should -Be '#microsoft.graph.servicePrincipal'
             }
             finally {
                 if ($db) { Disconnect-Database -Database $db }

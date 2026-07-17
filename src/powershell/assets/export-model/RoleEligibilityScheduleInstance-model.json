@@ -21,9 +21,8 @@
       "action": null,
       "principal": {
         "@odata.type": null,
-        "displayName": null,
-        "userPrincipalName": null,
-        "id": null
+        "id": null,
+        "displayName": null
       },
       "targetScheduleId": null,
       "justification": null,

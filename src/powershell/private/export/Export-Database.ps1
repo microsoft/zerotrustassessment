@@ -56,15 +56,17 @@ function Export-Database {
     select
         rd.isPrivileged,
         cast(r."roleDefinitionId" as varchar)           as roleDefinitionId,
-        cast(r.principal.displayName as varchar)        as principalDisplayName,
+		coalesce(u.displayName, sp.displayName, cast(r.principal.displayName as varchar)) as principalDisplayName,
         rd.displayName                                  as roleDisplayName,
-        cast(r.principal.userPrincipalName as varchar)  as userPrincipalName,
+		u.userPrincipalName                                  as userPrincipalName,
         null                                            as uniqueName, -- uniqueName is no longer pulled from Graph (unused downstream); kept as null to preserve the vwRole column shape
-        cast(r.principal."@odata.type" as varchar)      as "@odata.type",
+		coalesce(cast(r.principal."@odata.type" as varchar), case when u.id is not null then '#microsoft.graph.user' when sp.id is not null then '#microsoft.graph.servicePrincipal' end) as "@odata.type",
         cast(r.principal.id as varchar)                 as principalId,
         '$PrivilegeType'                                as privilegeType
     from main."$TableName" r
         left join main."RoleDefinition" rd on r."roleDefinitionId" = rd.id
+		left join main."User" u on cast(r.principal.id as varchar) = u.id
+		left join main."ServicePrincipal" sp on cast(r.principal.id as varchar) = sp.id
 
 	union all
 

@@ -99,6 +99,16 @@ function Export-ZtGraphEntity {
 		)
 		Write-PSFMessage "Exporting $Name page $PageIndex"
 		$newResults = $Results
+		if ($Name -eq 'RoleAssignment') {
+			foreach ($item in $Results.Value) {
+				if (-not $item.principal) { continue }
+				$item.principal = @{
+					'@odata.type' = $item.principal.'@odata.type'
+					id            = $item.principal.id
+					displayName   = $item.principal.displayName
+				}
+			}
+		}
 
 		if ($RelatedPropertyNames) {
 			$items = $Results.Value
