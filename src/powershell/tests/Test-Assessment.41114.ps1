@@ -132,8 +132,8 @@ function Test-Assessment-41114 {
     })
 
     # --- Q2: ZAP for Teams — evaluated per enabled Teams Protection rule/policy ---
-    # Build lookup: policy Name → policy object. An empty lookup when q2Error occurred means every
-    # enabled rule will produce an orphan-rule Investigate row, which is correct per spec.
+    # Build lookup: policy Name → policy object. If Teams Protection policies could not be retrieved, the lookup stays empty and
+    # each enabled rule will produce an orphan-policy Investigate row, which is correct per spec.
     $teamsPolicyByName = @{}
     if ($teamsProtectionPolicy) {
         foreach ($p in $teamsProtectionPolicy) {
@@ -219,15 +219,19 @@ function Test-Assessment-41114 {
         }
     }
 
-    if ($q3rError) {
-        # Cannot determine which Safe Links rules are enabled — Investigate.
+    # Zero or null $safeLinksPolicies is a retrieval/permission anomaly: every MDO P1 tenant has at
+    # least Built-in Protection, so an empty result should not silently become a Fail verdict.
+    $q3PolicyAnomaly = $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0
+
+    if ($q3rError -or $q3PolicyAnomaly) {
+        # Cannot determine which Safe Links rules or policies are active — Investigate.
         $anyInvestigate = $true
         $controlRows.Add([PSCustomObject]@{
             Setting        = "[Safe Links for Teams]($q3PortalLink)"
             Policy         = ''
             AppliedViaRule = ''
             Enabled        = '⚠️ Unknown'
-            Status         = '⚠️ Investigate — could not retrieve Safe Links rules'
+            Status         = '⚠️ Investigate — could not retrieve Safe Links rules or policies'
         })
     }
     else {
