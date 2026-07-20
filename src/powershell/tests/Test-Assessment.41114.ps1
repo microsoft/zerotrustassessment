@@ -49,43 +49,54 @@ function Test-Assessment-41114 {
         Write-PSFMessage "Q1: Failed to retrieve Safe Attachments policy: $_" -Tag Test -Level Warning
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Retrieving Teams ZAP protection policy'
+    Write-ZtProgress -Activity $activity -Status 'Retrieving Teams protection policy'
     $teamsProtectionPolicy = $null
     $q2Error = $null
     try {
-        # Q2: Retrieve Teams ZAP policy state.
-        $teamsProtectionPolicy = Get-TeamsProtectionPolicy -ErrorAction Stop | Select-Object Name, ZapEnabled
+        # Q2a: Retrieve Teams protection policy (ZAP and quarantine settings).
+        $teamsProtectionPolicy = @(Get-TeamsProtectionPolicy -ErrorAction Stop | Select-Object Name, ZapEnabled)
     }
     catch {
         $q2Error = $_
         Write-PSFMessage "Q2: Failed to retrieve Teams protection policy: $_" -Tag Test -Level Warning
     }
 
-    Write-ZtProgress -Activity $activity -Status 'Retrieving Teams ZAP exception rule'
+    Write-ZtProgress -Activity $activity -Status 'Retrieving Teams protection policy rule'
     $teamsProtectionPolicyRule = $null
     $q2rError = $null
     try {
-        # Q2b: Retrieve Teams ZAP exception rule. Null return is expected when no exceptions are configured
-        # (the default). A populated ExceptIf* property means some recipients are excluded from ZAP.
-        $teamsProtectionPolicyRule = Get-TeamsProtectionPolicyRule -ErrorAction Stop |
-            Select-Object Name, TeamsProtectionPolicy, ExceptIfSentTo, ExceptIfSentToMemberOf, ExceptIfRecipientDomainIs
+        # Q2b: Retrieve Teams protection rule
+        $teamsProtectionPolicyRule = @(Get-TeamsProtectionPolicyRule -ErrorAction Stop |
+            Select-Object Name, TeamsProtectionPolicy, State, ExceptIfSentTo, ExceptIfSentToMemberOf, ExceptIfRecipientDomainIs)
     }
     catch {
         $q2rError = $_
-        Write-PSFMessage "Q2b: Failed to retrieve Teams protection policy rule: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Q2r: Failed to retrieve Teams protection policy rule: $_" -Tag Test -Level Warning
     }
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Links policies'
     $safeLinksPolicies = $null
     $q3Error = $null
     try {
-        # Q3: Retrieve all Safe Links policies; IsBuiltInProtection identifies the Microsoft-managed
+        # Q3a: Retrieve all Safe Links policies; IsBuiltInProtection identifies the Microsoft-managed
         # Built-in Protection preset that applies to users not covered by a Standard/Strict/custom policy.
         $safeLinksPolicies = @(Get-SafeLinksPolicy -ErrorAction Stop | Select-Object Identity, IsBuiltInProtection, IsDefault, EnableSafeLinksForTeams)
     }
     catch {
         $q3Error = $_
         Write-PSFMessage "Q3: Failed to retrieve Safe Links policies: $_" -Tag Test -Level Warning
+    }
+
+    Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Links rules'
+    $safeLinksRules = $null
+    $q3rError = $null
+    try {
+        # Q3b: Retrieve Safe Links rules; only enabled rules determine which policies are in scope.
+        $safeLinksRules = @(Get-SafeLinksRule -ErrorAction Stop | Select-Object Name, SafeLinksPolicy, State)
+    }
+    catch {
+        $q3rError = $_
+        Write-PSFMessage "Q3r: Failed to retrieve Safe Links rules: $_" -Tag Test -Level Warning
     }
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Defender submission policy'
@@ -105,108 +116,206 @@ function Test-Assessment-41114 {
     $anyFail        = $false
     $anyInvestigate = $false
 
-    # Control rows: Setting (friendly portal label with link), Value (✅/❌/⚠️ string), RowResult
     $controlRows = [System.Collections.Generic.List[PSCustomObject]]::new()
-
-    # For each query: $qNUnknown = data could not be fetched; $qNEnabled = control is on.
-    # Verdict flags and the single controlRows.Add are resolved from those two booleans.
 
     $q1PortalLink = 'https://security.microsoft.com/safeattachmentv2'
     $q2PortalLink = 'https://security.microsoft.com/securitysettings/teamsProtectionPolicy'
     $q3PortalLink = 'https://security.microsoft.com/safelinksv2'
     $q4PortalLink = 'https://security.microsoft.com/securitysettings/userSubmission'
 
-    # --- Q1: Safe Attachments for SharePoint, OneDrive, and Teams ---
+    # --- Q1: Safe Attachments for SharePoint, OneDrive, and Teams (tenant-wide) ---
     $q1Unknown = $q1Error -or $null -eq $safeAttachmentPolicy -or $null -eq $safeAttachmentPolicy.EnableATPForSPOTeamsODB
     $q1Enabled = -not $q1Unknown -and $safeAttachmentPolicy.EnableATPForSPOTeamsODB -eq $true
     if ($q1Unknown) { $anyInvestigate = $true } elseif (-not $q1Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
-        Setting   = "[Safe Attachments for SharePoint, OneDrive, and Microsoft Teams]($q1PortalLink)"
-        Value     = if ($q1Unknown) { '⚠️ Query error — verify in portal' } elseif ($q1Enabled) { '✅ Yes' } else { '❌ No' }
-        RowResult = if ($q1Unknown) { '⚠️ Investigate' } elseif ($q1Enabled) { '✅ Pass' } else { '❌ Fail' }
+        Setting        = "[Safe Attachments for SharePoint, OneDrive, and Microsoft Teams]($q1PortalLink)"
+        Policy         = ''
+        AppliedViaRule = ''
+        Enabled        = if ($q1Unknown) { '⚠️ Unknown' } elseif ($q1Enabled) { '✅ Yes' } else { '❌ No' }
+        Status         = if ($q1Unknown) { '⚠️ Investigate' } elseif ($q1Enabled) { '✅ Pass' } else { '❌ Fail' }
     })
 
-    # --- Q2: ZAP for Teams ---
-    $q2Unknown = $q2Error -or $null -eq $teamsProtectionPolicy -or $null -eq $teamsProtectionPolicy.ZapEnabled
-    $q2Enabled = -not $q2Unknown -and $teamsProtectionPolicy.ZapEnabled -eq $true
-    if ($q2Unknown) { $anyInvestigate = $true } elseif (-not $q2Enabled) { $anyFail = $true }
-    $controlRows.Add([PSCustomObject]@{
-        Setting   = "[ZAP for Teams]($q2PortalLink)"
-        Value     = if ($q2Unknown) { '⚠️ Query error — verify in portal' } elseif ($q2Enabled) { '✅ Yes' } else { '❌ No' }
-        RowResult = if ($q2Unknown) { '⚠️ Investigate' } elseif ($q2Enabled) { '✅ Pass' } else { '❌ Fail' }
-    })
+    # --- Q2: ZAP for Teams — evaluated per enabled Teams Protection rule/policy ---
+    # Build lookup: policy Name → policy object. An empty lookup when q2Error occurred means every
+    # enabled rule will produce an orphan-rule Investigate row, which is correct per spec.
+    $teamsPolicyByName = @{}
+    if ($teamsProtectionPolicy) {
+        foreach ($p in $teamsProtectionPolicy) {
+            $teamsPolicyByName[$p.Name] = $p
+        }
+    }
 
-    # --- Q2b: ZAP for Teams — exception scope ---
-    # Null rule = no exceptions = all users covered (healthy default); add a row only when
-    # the rule exists with at least one populated ExceptIf* property, or on query error.
-    $q2rHasExceptions = (-not $q2rError) -and ($null -ne $teamsProtectionPolicyRule) -and (
-        $teamsProtectionPolicyRule.ExceptIfSentTo -or
-        $teamsProtectionPolicyRule.ExceptIfSentToMemberOf -or
-        $teamsProtectionPolicyRule.ExceptIfRecipientDomainIs
-    )
     if ($q2rError) {
+        # Cannot determine if a Teams Protection rule is enabled — Investigate.
         $anyInvestigate = $true
         $controlRows.Add([PSCustomObject]@{
-            Setting   = "[ZAP for Teams — exception scope]($q2PortalLink)"
-            Value     = '⚠️ Query error — verify in portal'
-            RowResult = '⚠️ Investigate'
+            Setting        = "[ZAP for Teams]($q2PortalLink)"
+            Policy         = ''
+            AppliedViaRule = ''
+            Enabled        = '⚠️ Unknown'
+            Status         = '⚠️ Investigate — could not retrieve Teams Protection rules'
         })
     }
-    elseif ($q2rHasExceptions) {
+    else {
+        $enabledTeamsRules = @($teamsProtectionPolicyRule | Where-Object { $_.State -eq 'Enabled' })
+        if ($enabledTeamsRules.Count -eq 0) {
+            # Spec: "no applicable rule is enabled" → Fail.
+            $anyFail = $true
+            $controlRows.Add([PSCustomObject]@{
+                Setting        = "[ZAP for Teams]($q2PortalLink)"
+                Policy         = ''
+                AppliedViaRule = ''
+                Enabled        = '❌ No enabled rule'
+                Status         = '❌ Fail — no enabled Teams Protection rule'
+            })
+        }
+        else {
+            foreach ($rule in $enabledTeamsRules) {
+                $policyName    = $rule.TeamsProtectionPolicy
+                $policy        = $teamsPolicyByName[$policyName]
+                $hasExceptions = $rule.ExceptIfSentTo -or $rule.ExceptIfSentToMemberOf -or $rule.ExceptIfRecipientDomainIs
+
+                if ($null -eq $policy) {
+                    # Orphan rule: policy referenced by an enabled rule does not exist (or policies
+                    # could not be fetched) — manual review required.
+                    $anyInvestigate = $true
+                    $controlRows.Add([PSCustomObject]@{
+                        Setting        = "[ZAP for Teams]($q2PortalLink)"
+                        Policy         = $policyName
+                        AppliedViaRule = $rule.Name
+                        Enabled        = '⚠️ Unknown'
+                        Status         = '⚠️ Investigate — referenced policy not found'
+                    })
+                    continue
+                }
+
+                $zapEnabled = $policy.ZapEnabled -eq $true
+                # Fail takes priority over Investigate per spec ordering.
+                if (-not $zapEnabled) {
+                    $anyFail   = $true
+                    $rowStatus = '❌ Fail'
+                }
+                elseif ($hasExceptions) {
+                    $anyInvestigate = $true
+                    $rowStatus      = '⚠️ Investigate — exceptions reduce ZAP coverage'
+                }
+                else {
+                    $rowStatus = '✅ Pass'
+                }
+
+                $controlRows.Add([PSCustomObject]@{
+                    Setting        = "[ZAP for Teams]($q2PortalLink)"
+                    Policy         = $policyName
+                    AppliedViaRule = $rule.Name
+                    Enabled        = if ($zapEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = $rowStatus
+                })
+            }
+        }
+    }
+
+    # --- Q3: Safe Links for Teams — evaluated per enabled Safe Links rule/policy ---
+    # Build lookup: policy Identity → policy object.
+    $safeLinksPolicyByIdentity = @{}
+    if ($safeLinksPolicies) {
+        foreach ($p in $safeLinksPolicies) {
+            $safeLinksPolicyByIdentity[$p.Identity] = $p
+        }
+    }
+
+    if ($q3rError) {
+        # Cannot determine which Safe Links rules are enabled — Investigate.
         $anyInvestigate = $true
         $controlRows.Add([PSCustomObject]@{
-            Setting   = "[ZAP for Teams — exception scope]($q2PortalLink)"
-            Value     = '⚠️ Exceptions configured'
-            RowResult = '⚠️ Investigate — exceptions reduce ZAP coverage'
+            Setting        = "[Safe Links for Teams]($q3PortalLink)"
+            Policy         = ''
+            AppliedViaRule = ''
+            Enabled        = '⚠️ Unknown'
+            Status         = '⚠️ Investigate — could not retrieve Safe Links rules'
         })
     }
+    else {
+        $enabledSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -eq 'Enabled' })
+        if ($enabledSafeLinksRules.Count -eq 0) {
+            # Spec: "no applicable rule is enabled" → Fail.
+            $anyFail = $true
+            $controlRows.Add([PSCustomObject]@{
+                Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                Policy         = ''
+                AppliedViaRule = ''
+                Enabled        = '❌ No enabled rule'
+                Status         = '❌ Fail — no enabled Safe Links rule'
+            })
+        }
+        else {
+            foreach ($rule in $enabledSafeLinksRules) {
+                $policyIdentity = $rule.SafeLinksPolicy
+                $policy         = $safeLinksPolicyByIdentity[$policyIdentity]
 
-    # --- Q3: Safe Links for Teams — pass if at least one policy has Teams enabled ---
-    $q3Unknown = $q3Error -or $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0 -or
-                 (-not ($safeLinksPolicies | Where-Object { $null -ne $_.EnableSafeLinksForTeams }))
-    $q3Enabled = -not $q3Unknown -and [bool]($safeLinksPolicies | Where-Object { $_.EnableSafeLinksForTeams -eq $true })
-    if ($q3Unknown) { $anyInvestigate = $true } elseif (-not $q3Enabled) { $anyFail = $true }
-    $controlRows.Add([PSCustomObject]@{
-        Setting   = "[Safe Links for Teams]($q3PortalLink)"
-        Value     = if ($q3Unknown) { '⚠️ Query error — verify in portal' } elseif ($q3Enabled) { '✅ Yes' } else { '❌ No' }
-        RowResult = if ($q3Unknown) { '⚠️ Investigate' } elseif ($q3Enabled) { '✅ Pass' } else { '❌ Fail' }
-    })
+                if ($null -eq $policy) {
+                    # Orphan rule or Safe Links policies could not be fetched.
+                    $anyInvestigate = $true
+                    $controlRows.Add([PSCustomObject]@{
+                        Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                        Policy         = $policyIdentity
+                        AppliedViaRule = $rule.Name
+                        Enabled        = '⚠️ Unknown'
+                        Status         = '⚠️ Investigate — referenced policy not found'
+                    })
+                    continue
+                }
 
-    # --- Q4: Monitor reported items in Microsoft Teams ---
+                $teamsEnabled = $policy.EnableSafeLinksForTeams -eq $true
+                if (-not $teamsEnabled) { $anyFail = $true }
+
+                $controlRows.Add([PSCustomObject]@{
+                    Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                    Policy         = $policyIdentity
+                    AppliedViaRule = $rule.Name
+                    Enabled        = if ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = if ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
+                })
+            }
+        }
+    }
+
+    # --- Q4: Monitor reported items in Microsoft Teams (tenant-wide) ---
     $q4Unknown = $q4Error -or $null -eq $reportSubmissionPolicy -or $null -eq $reportSubmissionPolicy.ReportChatMessageEnabled
     $q4Enabled = -not $q4Unknown -and $reportSubmissionPolicy.ReportChatMessageEnabled -eq $true
     if ($q4Unknown) { $anyInvestigate = $true } elseif (-not $q4Enabled) { $anyFail = $true }
     $controlRows.Add([PSCustomObject]@{
-        Setting   = "[Monitor reported items in Microsoft Teams]($q4PortalLink)"
-        Value     = if ($q4Unknown) { '⚠️ Query error — verify in portal' } elseif ($q4Enabled) { '✅ Yes' } else { '❌ No' }
-        RowResult = if ($q4Unknown) { '⚠️ Investigate' } elseif ($q4Enabled) { '✅ Pass' } else { '❌ Fail' }
+        Setting        = "[Monitor reported items in Microsoft Teams]($q4PortalLink)"
+        Policy         = ''
+        AppliedViaRule = ''
+        Enabled        = if ($q4Unknown) { '⚠️ Unknown' } elseif ($q4Enabled) { '✅ Yes' } else { '❌ No' }
+        Status         = if ($q4Unknown) { '⚠️ Investigate' } elseif ($q4Enabled) { '✅ Pass' } else { '❌ Fail' }
     })
 
-    # Final verdict: Fail takes priority over Investigate.
+    # Final verdict — Fail takes priority over Investigate (spec ordering: Skipped → Fail → Investigate → Pass).
     $passed       = $false
     $customStatus = $null
     if ($anyFail) {
-        $testResultMarkdown = "❌ One or more Teams protection controls are disabled, leaving report monitoring, link scanning, file detonation, or post-delivery quarantine coverage incomplete.`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more Teams protection controls is disabled or has no enabled rule applying it, leaving report monitoring, link scanning, file detonation, or post-delivery quarantine coverage incomplete.`n`n%TestResult%"
     }
     elseif ($anyInvestigate) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ A required policy is missing, an exception scope may exclude too many recipients, or the tenant cloud/licensing needs manual confirmation.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ An enabled rule references a missing policy, an enabled Teams Protection rule has exceptions, or the tenant cloud/licensing needs manual confirmation.`n`n%TestResult%"
     }
     else {
         $passed             = $true
-        $testResultMarkdown = "✅ Microsoft Teams protection is configured for messages, links, and attachments: Safe Attachments, Safe Links for Teams, ZAP for Teams, and Defender submission monitoring for Teams reports are enabled.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Microsoft Teams protection is configured for messages, links, and attachments: Safe Attachments, Safe Links for Teams, ZAP for Teams, and Defender submission monitoring for Teams reports are enabled on every policy in use.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $tableRows = ''
     foreach ($row in $controlRows) {
-        $tableRows += "| $($row.Setting) | $($row.Value) | $($row.RowResult) |`n"
+        $tableRows += "| $($row.Setting) | $($row.Policy) | $($row.AppliedViaRule) | $($row.Enabled) | $($row.Status) |`n"
     }
 
     $formatTemplate = @'
-| Setting | Enabled | Status |
-| :------ | :------ | :----- |
+| Setting | Policy | Applied via Rule | Enabled | Status |
+| :------ | :----- | :--------------- | :------ | :----- |
 {0}
 '@
 
