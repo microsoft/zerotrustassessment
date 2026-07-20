@@ -185,9 +185,14 @@ function Test-Assessment-41114 {
                     continue
                 }
 
-                $zapEnabled = $policy.ZapEnabled -eq $true
-                # Fail takes priority over Investigate per spec ordering.
-                if (-not $zapEnabled) {
+                $zapUnknown = $null -eq $policy.ZapEnabled
+                $zapEnabled = -not $zapUnknown -and $policy.ZapEnabled -eq $true
+                # Null/ambiguous ZapEnabled → Investigate; false → Fail; Fail takes priority over Investigate.
+                if ($zapUnknown) {
+                    $anyInvestigate = $true
+                    $rowStatus      = '⚠️ Investigate — ZapEnabled value is ambiguous'
+                }
+                elseif (-not $zapEnabled) {
                     $anyFail   = $true
                     $rowStatus = '❌ Fail'
                 }
@@ -203,7 +208,7 @@ function Test-Assessment-41114 {
                     Setting        = "[ZAP for Teams]($q2PortalLink)"
                     Policy         = $policyName
                     AppliedViaRule = $rule.Name
-                    Enabled        = if ($zapEnabled) { '✅ Yes' } else { '❌ No' }
+                    Enabled        = if ($zapUnknown) { '⚠️ Unknown' } elseif ($zapEnabled) { '✅ Yes' } else { '❌ No' }
                     Status         = $rowStatus
                 })
             }
@@ -253,14 +258,15 @@ function Test-Assessment-41114 {
             }
             else {
                 # Built-in Protection applies as a preset with no explicit rule; AppliedViaRule is blank.
-                $teamsEnabled = $builtInSafeLinksPolicy.EnableSafeLinksForTeams -eq $true
-                if (-not $teamsEnabled) { $anyFail = $true }
+                $teamsUnknown = $null -eq $builtInSafeLinksPolicy.EnableSafeLinksForTeams
+                $teamsEnabled = -not $teamsUnknown -and $builtInSafeLinksPolicy.EnableSafeLinksForTeams -eq $true
+                if ($teamsUnknown) { $anyInvestigate = $true } elseif (-not $teamsEnabled) { $anyFail = $true }
                 $controlRows.Add([PSCustomObject]@{
                     Setting        = "[Safe Links for Teams]($q3PortalLink)"
                     Policy         = "(Built-in) $($builtInSafeLinksPolicy.Identity)"
                     AppliedViaRule = ''
-                    Enabled        = if ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
-                    Status         = if ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
+                    Enabled        = if ($teamsUnknown) { '⚠️ Unknown' } elseif ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = if ($teamsUnknown) { '⚠️ Investigate' } elseif ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
                 })
             }
         }
@@ -282,15 +288,16 @@ function Test-Assessment-41114 {
                     continue
                 }
 
-                $teamsEnabled = $policy.EnableSafeLinksForTeams -eq $true
-                if (-not $teamsEnabled) { $anyFail = $true }
+                $teamsUnknown = $null -eq $policy.EnableSafeLinksForTeams
+                $teamsEnabled = -not $teamsUnknown -and $policy.EnableSafeLinksForTeams -eq $true
+                if ($teamsUnknown) { $anyInvestigate = $true } elseif (-not $teamsEnabled) { $anyFail = $true }
 
                 $controlRows.Add([PSCustomObject]@{
                     Setting        = "[Safe Links for Teams]($q3PortalLink)"
                     Policy         = $policyIdentity
                     AppliedViaRule = $rule.Name
-                    Enabled        = if ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
-                    Status         = if ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
+                    Enabled        = if ($teamsUnknown) { '⚠️ Unknown' } elseif ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = if ($teamsUnknown) { '⚠️ Investigate' } elseif ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
                 })
             }
         }
