@@ -32,7 +32,7 @@ function Test-Assessment-41114 {
     $mgEnv = (Get-MgContext).Environment
     if ($mgEnv -eq 'USGov' -or $mgEnv -eq 'USGovDoD') {
         Write-PSFMessage 'This test is not applicable to the USGov or USGovDoD environments.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotSupported -Result 'This test is not applicable to the USGov or USGovDoD environments.'
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'This test is not applicable to the USGov or USGovDoD environments.'
         return
     }
 
@@ -310,7 +310,9 @@ function Test-Assessment-41114 {
     #region Report Generation
     $tableRows = ''
     foreach ($row in $controlRows) {
-        $tableRows += "| $($row.Setting) | $($row.Policy) | $($row.AppliedViaRule) | $($row.Enabled) | $($row.Status) |`n"
+        $policyMd         = if ($row.Policy) { Get-SafeMarkdown $row.Policy } else { '' }
+        $appliedViaRuleMd = if ($row.AppliedViaRule) { Get-SafeMarkdown $row.AppliedViaRule } else { '' }
+        $tableRows += "| $($row.Setting) | $policyMd | $appliedViaRuleMd | $($row.Enabled) | $($row.Status) |`n"
     }
 
     $formatTemplate = @'
