@@ -51,13 +51,11 @@ function Test-Assessment-41114 {
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Teams protection policy'
     $teamsProtectionPolicy = $null
-    $q2Error = $null
     try {
         # Q2a: Retrieve Teams protection policy (ZAP and quarantine settings).
         $teamsProtectionPolicy = @(Get-TeamsProtectionPolicy -ErrorAction Stop | Select-Object Name, ZapEnabled)
     }
     catch {
-        $q2Error = $_
         Write-PSFMessage "Q2: Failed to retrieve Teams protection policy: $_" -Tag Test -Level Warning
     }
 
@@ -76,14 +74,12 @@ function Test-Assessment-41114 {
 
     Write-ZtProgress -Activity $activity -Status 'Retrieving Safe Links policies'
     $safeLinksPolicies = $null
-    $q3Error = $null
     try {
         # Q3a: Retrieve all Safe Links policies; IsBuiltInProtection identifies the Microsoft-managed
         # Built-in Protection preset that applies to users not covered by a Standard/Strict/custom policy.
         $safeLinksPolicies = @(Get-SafeLinksPolicy -ErrorAction Stop | Select-Object Identity, IsBuiltInProtection, IsDefault, EnableSafeLinksForTeams)
     }
     catch {
-        $q3Error = $_
         Write-PSFMessage "Q3: Failed to retrieve Safe Links policies: $_" -Tag Test -Level Warning
     }
 
