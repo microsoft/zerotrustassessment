@@ -237,15 +237,32 @@ function Test-Assessment-41114 {
     else {
         $enabledSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -eq 'Enabled' })
         if ($enabledSafeLinksRules.Count -eq 0) {
-            # Spec: "no applicable rule is enabled" → Fail.
-            $anyFail = $true
-            $controlRows.Add([PSCustomObject]@{
-                Setting        = "[Safe Links for Teams]($q3PortalLink)"
-                Policy         = ''
-                AppliedViaRule = ''
-                Enabled        = '❌ No enabled rule'
-                Status         = '❌ Fail — no enabled Safe Links rule'
-            })
+            # No custom/preset Safe Links rules are enabled. Built-in Protection applies tenant-wide
+            # without an explicit rule, so evaluate it directly rather than issuing a blanket Fail.
+            $builtInSafeLinksPolicy = $safeLinksPolicies | Where-Object { $_.IsBuiltInProtection -eq $true } | Select-Object -First 1
+            if ($null -eq $builtInSafeLinksPolicy) {
+                # Anomalous: every MDO P1 tenant should have a Built-in Protection preset.
+                $anyInvestigate = $true
+                $controlRows.Add([PSCustomObject]@{
+                    Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                    Policy         = ''
+                    AppliedViaRule = ''
+                    Enabled        = '⚠️ Unknown'
+                    Status         = '⚠️ Investigate — no enabled Safe Links rule and Built-in Protection not found'
+                })
+            }
+            else {
+                # Built-in Protection applies as a preset with no explicit rule; AppliedViaRule is blank.
+                $teamsEnabled = $builtInSafeLinksPolicy.EnableSafeLinksForTeams -eq $true
+                if (-not $teamsEnabled) { $anyFail = $true }
+                $controlRows.Add([PSCustomObject]@{
+                    Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                    Policy         = "(Built-in) $($builtInSafeLinksPolicy.Identity)"
+                    AppliedViaRule = ''
+                    Enabled        = if ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = if ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
+                })
+            }
         }
         else {
             foreach ($rule in $enabledSafeLinksRules) {
