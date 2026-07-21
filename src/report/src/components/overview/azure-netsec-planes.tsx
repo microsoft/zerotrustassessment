@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/accordion";
 import { reportData, Test } from "@/config/report-data";
 import { CheckCircledIcon, CrossCircledIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
-import { ShieldCheck } from "lucide-react";
 
 // ─── Plane spec-ID constants ──────────────────────────────────────────────────
 
@@ -166,19 +165,6 @@ export function AzureNetSecPlanes() {
 
     return (
         <div className="flex flex-col gap-4">
-            {/* Section header */}
-            <div className="flex items-center gap-2">
-                <ShieldCheck className="size-5 shrink-0 text-muted-foreground" />
-                <div>
-                    <h3 className="text-2xl font-semibold tabular-nums leading-none">
-                        Azure network security
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Defense plane posture — availability, inbound, and outbound protection.
-                    </p>
-                </div>
-            </div>
-
             {/* Priority Gap Callout — shown only when failures exist */}
             {priorityGaps.length > 0 && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
@@ -208,7 +194,7 @@ export function AzureNetSecPlanes() {
             )}
 
             <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center">
-                <div className="shrink-0 rounded-md border bg-card p-3">
+                <div className="shrink-0">
                     <svg width="420" height="420" viewBox="0 0 420 420" className="h-auto max-w-full" aria-label="Azure network security defense planes">
                         {planes.map((plane) => {
                             const isHovered = hoveredPlane === plane.id;
