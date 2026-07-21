@@ -40,6 +40,7 @@ import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -1489,6 +1490,13 @@ export default function Dashboard() {
                         <SwgDefenseLayers />
                     </CardContent>
                 </Card>
+            </div>
+            )}
+
+            {/* Network - Azure Network Security Defense Planes Section */}
+            {hasAzureNetSecData() && (
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                <AzureNetSecPlanes />
             </div>
             )}
         </TooltipProvider>
