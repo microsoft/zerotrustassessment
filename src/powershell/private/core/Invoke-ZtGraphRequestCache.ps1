@@ -82,10 +82,11 @@
 		$cacheKey = "$cacheKey|$headerString"
 	}
 	$cachedResult = $script:__ZtSession.GraphCache.Value[$cacheKey]
+	$isCached = $cachedResult -or $script:__ZtSession.GraphCache.Value.ContainsKey($CacheKey)
 	$isMethodGet = $Method -eq 'GET'
 
 	# Don't read from cache for batch requests.
-	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $cachedResult -and $isMethodGet) {
+	if (-not $cacheBlocked -and -not $DisableCache -and -not $isBatch -and $isCached -and $isMethodGet) {
 		Write-PSFMessage "Using graph cache: $($cacheKey)" -Level Debug
 		return $cachedResult
 	}
