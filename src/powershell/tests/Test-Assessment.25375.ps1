@@ -217,7 +217,7 @@ function Test-Assessment-25375 {
             $capabilityStatus = $sku.CapabilityStatus
 
             # List tracked service plans in this SKU
-            $trackedPlans = @($sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values } | ForEach-Object { $_.ServicePlanName })
+            $trackedPlans = @($sku.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values } | ForEach-Object { Get-SafeMarkdown -Text $_.ServicePlanName })
             $planList = if ($trackedPlans.Count -gt 0) { $trackedPlans -join ', ' } else { '—' }
 
             $available = $sku.PrepaidUnits.Enabled
