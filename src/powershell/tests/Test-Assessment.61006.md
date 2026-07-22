@@ -1,12 +1,17 @@
-The AI control plane in Microsoft Entra ID, Microsoft Purview, Microsoft Defender, Microsoft Intune, Microsoft Power Platform, Microsoft SharePoint, and Microsoft Global Secure Access — the administrative scopes that manage agent identities, Microsoft 365 Copilot admin settings, Conditional Access for AI, Copilot Studio environments, AI grounding sources, AI posture signals, and AI detection and response — must have named principals assigned to each role. When any of these roles has no assigned principals, no human operator is accountable for that slice of the AI surface: agent identities go un-reviewed, Copilot admin settings drift, AI-specific detections have no owner to tune, AI-network policies go un-adjusted, and AI-related escalations have no designated responder. Threat actors exploit this by targeting the AI control plane directly, relying on the gap between "the role exists in the directory" and "someone is actually watching it" — a gap that is invisible from a standard role-exposure audit but immediately consequential when an AI-related incident requires action. Confirming that every AI admin role has at least one assigned principal is the minimum organizational posture for AI administration: it does not prescribe who the principal is, how many there are, or how the assignment is made, but it guarantees that every AI admin scope has at least one accountable party.
+The AI control plane surface includes Microsoft 365, Microsoft Power Platform, Microsoft SharePoint, and every layer of the Microsoft Security stack. Microsoft Entra ID is the identity control plane for this entire surface, and its administrative scopes manage agent identities, Microsoft 365 Copilot admin settings, Conditional Access for AI, Copilot Studio environments, AI grounding sources, AI posture signals, and AI detection and response. If there's no human assigned to an administrative role that manages these AI capabilities, then there's no accountable operator for that slice of the AI surface. This gap could mean:
 
-**Scope of this check.** This check evaluates **Microsoft Entra directory role** assignments only. AI administration can also be granted through portal-native role systems that are *not* Entra directory roles — for example Microsoft Purview role groups, Microsoft Defender XDR custom roles, Power Platform environment-scoped roles and Dataverse security roles, SharePoint site-level permissions, and Copilot Studio maker permissions. A role appearing as "unassigned" here means no Entra principal is assigned to the corresponding Entra role; a workload-native administrator may still exist outside Entra and is out of scope for this assessment.
+- Agent identities aren't monitored or reviewed
+- Admin settings drift
+- AI-specific detections have no owner to investigate or adjust
+- Network control policies for AI aren't adjusted as the AI estate evolves
+- AI-related escalations have no designated responder
+
+Threat actors exploit this gap by targeting the AI control plane directly. They rely on the gap between a role existing in the directory and someone actually monitoring it. Confirming that every AI admin role has at least one assigned principal is the minimum organizational posture for AI administration. This check evaluates Microsoft Entra directory role assignments only. A role appearing as unassigned means no Microsoft Entra principal is assigned to the corresponding directory role, so workload-native administrators might still exist outside Microsoft Entra and are outside this assessment. AI administration of other platforms, such as Microsoft Purview role groups or Microsoft Defender custom roles, must be reviewed separately.
 
 **Remediation action**
 
-- [Assign an Entra ID role via the admin center](https://learn.microsoft.com/entra/identity/role-based-access-control/manage-roles-portal)
-- [Create a PIM-eligible assignment for an Entra ID role](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-add-role-to-user)
-- [Assign Microsoft Purview roles and role groups](https://learn.microsoft.com/purview/purview-permissions)
-
+- [Assign a Microsoft Entra ID role via the admin center](https://learn.microsoft.com/entra/identity/role-based-access-control/manage-roles-portal?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
+- [Create a PIM-eligible assignment for a Microsoft Entra ID role](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-add-role-to-user?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
+
