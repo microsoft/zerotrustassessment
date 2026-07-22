@@ -232,7 +232,7 @@ function Test-Assessment-25375 {
         }
 
         # Build complete table with header row
-        $tableWithHeader = $countHeader + "| SKU Name | Capability Status | Tracked Service Plans Included | Available | Assigned |`n"
+        $tableWithHeader = "| SKU Name | Capability Status | Tracked Service Plans Included | Available | Assigned |`n"
         $tableWithHeader += "| :------- | :---------------- | :----------------------------- | --------: | -------: |`n"
         $tableWithHeader += $skuDetailRows
 
