@@ -30,10 +30,12 @@ interface GroupResult {
 
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
-function calcStatus(passed: number, failed: number, total: number): PlaneStatus {
-    if (passed === 0 && failed === 0) return "na";
+function calcStatus(passed: number, failed: number, investigate: number, total: number): PlaneStatus {
+    if (total === 0) return "na";
     if (failed > 0) return "fail";
+    if (investigate > 0) return "partial";
     if (passed === total) return "pass";
+    if (passed === 0) return "na";
     return "partial";
 }
 
@@ -41,8 +43,9 @@ function computeGroup(specIds: string[]): GroupResult {
     const tests = reportData.Tests.filter((test) => specIds.includes(String(test.TestId)));
     const passed = tests.filter((test) => test.TestStatus === "Passed").length;
     const failed = tests.filter((test) => test.TestStatus === "Failed" || test.TestStatus === "Error").length;
+    const investigate = tests.filter((test) => test.TestStatus === "Investigate").length;
 
-    return { passed, total: tests.length, status: calcStatus(passed, failed, tests.length), tests };
+    return { passed, total: tests.length, status: calcStatus(passed, failed, investigate, tests.length), tests };
 }
 
 // ─── Guard for conditional rendering in Dashboard.tsx ─────────────────────────
@@ -113,7 +116,10 @@ export function AzureNetSecPlanes() {
         const inbFailed = [...ag.tests, ...fd.tests].filter(
             (test) => test.TestStatus === "Failed" || test.TestStatus === "Error"
         ).length;
-        const inbStatus = calcStatus(inbPassed, inbFailed, inbTotal);
+        const inbInvestigate = [...ag.tests, ...fd.tests].filter(
+            (test) => test.TestStatus === "Investigate"
+        ).length;
+        const inbStatus = calcStatus(inbPassed, inbFailed, inbInvestigate, inbTotal);
 
         return {
             av, ag, fd, out,
