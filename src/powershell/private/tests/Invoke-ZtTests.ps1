@@ -91,8 +91,8 @@
 	$script:__ZtSession.RequestedPillar = $Pillar
 
 	# Filter based on preview feature flag.
-	# Keep current released pillars in stable by default. Future preview-only pillars can be
-	# added to $previewPillars and will then require -Preview to run.
+	# In non-preview mode, only stable pillars are included in the run list.
+	# Preview mode keeps the full set returned by Get-ZtTest.
 	$stablePillars = @('Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')
 	if (-not $script:__ZtSession.PreviewEnabled) {
 		$testsToRun = $testsToRun.Where{ ($_.Pillar | Where-Object { $_ -in $stablePillars }) }
