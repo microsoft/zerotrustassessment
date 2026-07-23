@@ -7,7 +7,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { reportData, Test } from "@/config/report-data";
-import { CheckCircledIcon, CrossCircledIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { CheckCircledIcon, CrossCircledIcon, MinusCircledIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 // ─── Plane spec-ID constants ──────────────────────────────────────────────────
 
@@ -23,54 +23,32 @@ type PlaneStatus = "pass" | "partial" | "fail" | "na";
 
 interface GroupResult {
     passed: number;
-    total: number;  // active (non-skipped/planned) test count
+    total: number;
     status: PlaneStatus;
     tests: Test[];
 }
 
-interface PriorityGap {
-    test: Test;
-    planeName: string;
-    planeTotal: number; // plane active-test count — used for tie-breaking
-}
-
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
-function riskWeight(risk: string | null | undefined): number {
-    switch ((risk ?? "").toLowerCase()) {
-        case "critical":
-        case "high":   return 0;
-        case "medium": return 1;
-        case "low":    return 2;
-        default:       return 3;
-    }
-}
-
-function calcStatus(passed: number, total: number): PlaneStatus {
-    if (total === 0) return "na";
+function calcStatus(passed: number, failed: number, total: number): PlaneStatus {
+    if (passed === 0 && failed === 0) return "na";
+    if (failed > 0) return "fail";
     if (passed === total) return "pass";
-    if (passed === 0) return "fail";
     return "partial";
 }
 
 function computeGroup(specIds: string[]): GroupResult {
-    const matched = specIds
-        .map((id) => reportData.Tests.find((t) => t.TestId === id))
-        .filter((t): t is Test => t !== undefined);
+    const tests = reportData.Tests.filter((test) => specIds.includes(String(test.TestId)));
+    const passed = tests.filter((test) => test.TestStatus === "Passed").length;
+    const failed = tests.filter((test) => test.TestStatus === "Failed" || test.TestStatus === "Error").length;
 
-    // Exclude skipped/planned — they don't contribute to passing or failing counts
-    const active = matched.filter(
-        (t) => t.TestStatus !== "Skipped" && t.TestStatus !== "Planned"
-    );
-    const passed = active.filter((t) => t.TestStatus === "Passed").length;
-
-    return { passed, total: active.length, status: calcStatus(passed, active.length), tests: active };
+    return { passed, total: tests.length, status: calcStatus(passed, failed, tests.length), tests };
 }
 
 // ─── Guard for conditional rendering in Dashboard.tsx ─────────────────────────
 
 export function hasAzureNetSecData(): boolean {
-    return reportData.Tests.some((t) => ALL_SPEC_IDS.includes(t.TestId));
+    return reportData.Tests.some((test) => ALL_SPEC_IDS.includes(String(test.TestId)));
 }
 
 function getStatusBadgeVariant(status: PlaneStatus): "success" | "destructive" | "warning" | "secondary" {
@@ -107,8 +85,13 @@ function getTestStatusIcon(testStatus: string) {
         case "Failed":
         case "Error":
             return <CrossCircledIcon className="size-4 shrink-0 text-rose-500" />;
-        default:
+        case "Investigate":
             return <QuestionMarkCircledIcon className="size-4 shrink-0 text-amber-500" />;
+        case "Skipped":
+        case "Planned":
+        case "NotApplicable":
+        default:
+            return <MinusCircledIcon className="size-4 shrink-0 text-muted-foreground" />;
     }
 }
 
@@ -119,7 +102,6 @@ export function AzureNetSecPlanes() {
     const {
         av, ag, fd, out,
         inbPassed, inbTotal, inbStatus,
-        priorityGaps,
     } = useMemo(() => {
         const av  = computeGroup(AVAILABILITY_IDS);
         const ag  = computeGroup(APPGW_WAF_IDS);
@@ -128,29 +110,14 @@ export function AzureNetSecPlanes() {
 
         const inbPassed = ag.passed + fd.passed;
         const inbTotal  = ag.total  + fd.total;
-        const inbStatus = calcStatus(inbPassed, inbTotal);
-
-        const gapEntries = (group: GroupResult, name: string, size: number): PriorityGap[] =>
-            group.tests
-                .filter((t) => t.TestStatus !== "Passed")
-                .map((test) => ({ test, planeName: name, planeTotal: size }));
-
-        const gaps: PriorityGap[] = [
-            ...gapEntries(av,  "Availability",             av.total),
-            ...gapEntries(ag,  "Inbound · AppGW WAF",      inbTotal),
-            ...gapEntries(fd,  "Inbound · Front Door WAF", inbTotal),
-            ...gapEntries(out, "Outbound",                 out.total),
-        ];
-
-        gaps.sort((a, b) => {
-            const rDiff = riskWeight(a.test.TestRisk) - riskWeight(b.test.TestRisk);
-            return rDiff !== 0 ? rDiff : a.planeTotal - b.planeTotal;
-        });
+        const inbFailed = [...ag.tests, ...fd.tests].filter(
+            (test) => test.TestStatus === "Failed" || test.TestStatus === "Error"
+        ).length;
+        const inbStatus = calcStatus(inbPassed, inbFailed, inbTotal);
 
         return {
             av, ag, fd, out,
             inbPassed, inbTotal, inbStatus,
-            priorityGaps: gaps,
         };
     }, []);
 
@@ -165,34 +132,6 @@ export function AzureNetSecPlanes() {
 
     return (
         <div className="flex flex-col gap-4">
-            {/* Priority Gap Callout — shown only when failures exist */}
-            {priorityGaps.length > 0 && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
-                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">
-                        ⚠ Biggest gaps right now
-                    </p>
-                    <p className="mt-0.5 text-xs text-red-600 dark:text-red-400 mb-3">
-                        Ranked by risk level, then by plane exposure — a lone failure in a 1-check plane surfaces before a partial failure in a larger one.
-                    </p>
-                    <div className="space-y-2">
-                        {priorityGaps.slice(0, 10).map((gap) => (
-                            <div key={gap.test.TestId} className="flex items-start gap-2 text-xs">
-                                <span className="shrink-0 text-red-500">🟥</span>
-                                <span className="shrink-0 font-semibold text-red-800 dark:text-red-200">
-                                    {gap.planeName}
-                                </span>
-                                <span className="min-w-0 flex-1 text-red-700 dark:text-red-300">
-                                    — {gap.test.TestTitle}
-                                </span>
-                                <span className="shrink-0 tabular-nums text-red-500 dark:text-red-400">
-                                    {gap.test.TestRisk} · {gap.test.TestId}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
             <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center">
                 <div className="shrink-0">
                     <svg width="420" height="420" viewBox="0 0 420 420" className="h-auto max-w-full" aria-label="Azure network security defense planes">
@@ -231,11 +170,11 @@ export function AzureNetSecPlanes() {
                         {planes.map((plane) => (
                             <AccordionItem key={plane.id} value={`plane-${plane.id}`} className="mb-1 rounded-md border px-3">
                                 <AccordionTrigger className="py-3 hover:no-underline">
-                                    <div className="flex w-full items-center gap-3 text-left">
+                                    <div className="grid w-full grid-cols-[1rem_minmax(0,1fr)_5rem_2rem] items-center gap-3 text-left">
                                         <span className="w-4 shrink-0 text-xs font-mono text-muted-foreground">{plane.id}</span>
-                                        <span className="flex-1 text-sm font-medium">{plane.name}</span>
-                                        <Badge variant={getStatusBadgeVariant(plane.result.status)} className="mr-2">{getStatusLabel(plane.result.status)}</Badge>
-                                        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{plane.result.total === 0 ? "N/A" : `${plane.result.passed}/${plane.result.total}`}</span>
+                                        <span className="min-w-0 text-sm font-medium">{plane.name}</span>
+                                        <Badge variant={getStatusBadgeVariant(plane.result.status)} className="justify-self-end">{getStatusLabel(plane.result.status)}</Badge>
+                                        <span className="text-right text-xs tabular-nums text-muted-foreground">{plane.result.total === 0 ? "N/A" : `${plane.result.passed}/${plane.result.total}`}</span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
