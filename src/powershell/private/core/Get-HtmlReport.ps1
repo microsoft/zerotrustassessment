@@ -16,7 +16,11 @@ function Get-HtmlReport {
 
         # Path to store temporary file used during generation
         [Parameter(Mandatory = $false)]
-        [string] $Path
+        [string] $Path,
+
+        # Optional template path. Defaults to the primary report template.
+        [Parameter(Mandatory = $false)]
+        [string] $TemplatePath
     )
 
     #$json = $AssessmentResults | ConvertTo-Json -Depth 10 -WarningAction Ignore
@@ -27,7 +31,17 @@ function Get-HtmlReport {
     Remove-Item -Path $resultsJsonPath -Force -ErrorAction SilentlyContinue | Out-Null
 
     Write-PSFMessage -Message $json -Level Debug
-    $htmlFilePath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.html'
+    $htmlFilePath = if ([string]::IsNullOrWhiteSpace($TemplatePath)) {
+        Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.html'
+    }
+    else {
+        $TemplatePath
+    }
+
+    if (-not (Test-Path -Path $htmlFilePath -PathType Leaf)) {
+        throw "Report template not found at path: $htmlFilePath"
+    }
+
     $templateHtml = Get-Content -Path $htmlFilePath -Raw
 
     # Insert the test results json into the template
@@ -35,6 +49,10 @@ function Get-HtmlReport {
     $endMarker = 'EndOfJson:"EndOfJson"}'
     $insertLocationStart = $templateHtml.IndexOf($startMarker)
     $insertLocationEnd = $templateHtml.IndexOf($endMarker) + $endMarker.Length
+
+    if ($insertLocationStart -lt 0 -or $insertLocationEnd -lt $endMarker.Length) {
+        throw "Report template markers were not found in template: $htmlFilePath"
+    }
 
     $outputHtml = $templateHtml.Substring(0, $insertLocationStart)
     $outputHtml += "reportData= $json"

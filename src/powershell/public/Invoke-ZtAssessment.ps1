@@ -575,15 +575,23 @@ $titleLine
 	Update-ZtProgressState -Stage 'html' -StageNumber 6 -StageName 'Generating HTML Report' -ClearWorkers -TotalItems 0
 	Write-ZtProgress -Activity "Creating html report"
 	$htmlReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport.html"
+	$htmlClassicReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport-classic.html"
+
 	$output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
 	$output | Set-PSFFileContent -Path $htmlReportPath -Encoding UTF8NoBom
+
+	$classicTemplatePath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.classic.html'
+	$classicOutput = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path -TemplatePath $classicTemplatePath
+	$classicOutput | Set-PSFFileContent -Path $htmlClassicReportPath -Encoding UTF8NoBom
 
 	# Signal completion to the progress dashboard
 	Update-ZtProgressState -Stage 'done' -StageNumber 6 -StageName 'Assessment Complete' -ClearWorkers -TotalItems 0
 
 	#region Post Processing
 	Write-Host
-	Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
+	Write-Host "🛡️ Zero Trust Assessment reports generated:" -ForegroundColor Green
+	Write-Host "  - default: $htmlReportPath" -ForegroundColor Green
+	Write-Host "  - classic: $htmlClassicReportPath" -ForegroundColor Green
 	Show-ZtiSecurityWarning -ExportPath $exportPath
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host
