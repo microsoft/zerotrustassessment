@@ -28,17 +28,17 @@ export function Header() {
     console.log(reportData);
     return (
         <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur">
-            <div className="container px-4 md:px-8 flex h-14 items-center">
+            <div className="container px-4 md:px-8 flex h-[50px] items-center">
                 <div className="mr-4 hidden md:flex">
                     <NavLink to="/" className="mr-6 flex items-center space-x-2">
                         <Logo />
                     </NavLink>
-                    <nav className="flex items-center space-x-6 text-sm font-medium">
+                    <nav className="flex items-center space-x-6 text-sm font-medium leading-tight">
                         {mainMenu.map((menu, index) =>
                             menu.items !== undefined ? (
                                 <DropdownMenu key={index}>
                                     <DropdownMenuTrigger className={cn(
-                                        "flex items-center py-1 focus:outline-none text-sm font-medium transition-colors hover:text-primary",
+                                        "flex items-center py-0.5 leading-tight focus:outline-none text-sm font-medium transition-colors hover:text-primary",
                                         (menu.items.filter(subitem => subitem.to !== undefined).map(subitem => subitem.to))
                                             .includes(location.pathname) ? 'text-foreground' : 'text-foreground/60',
                                     )}>
@@ -71,7 +71,7 @@ export function Header() {
                                     key={index}
                                     to={menu.to ?? ""}
                                     className={({ isActive }) => cn(
-                                        "text-sm font-medium transition-colors hover:text-primary",
+                                        "text-sm font-medium leading-tight transition-colors hover:text-primary",
                                         isActive ? "text-foreground" : "text-foreground/60"
                                     )}>
                                     {menu.title}
@@ -190,7 +190,7 @@ export function Header() {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant='ghost'
-                                    className='relative h-8'>
+                                    className='relative h-7 leading-tight'>
                                     {reportData.TenantName}
                                 </Button>
                             </DropdownMenuTrigger>

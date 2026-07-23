@@ -24,8 +24,20 @@ function Get-HtmlReport {
     )
 
     #$json = $AssessmentResults | ConvertTo-Json -Depth 10 -WarningAction Ignore
-    # Need to write to a file and read it back to avoid the json being escaped
-    $resultsJsonPath = Join-Path $Path "ZeroTrustAssessmentReportTemp.json"
+    # Need to write to a file and read it back to avoid the json being escaped.
+    # Fall back to OS temp path when a report path is not provided.
+    $outputPath = if ([string]::IsNullOrWhiteSpace($Path)) {
+        [System.IO.Path]::GetTempPath()
+    }
+    else {
+        $Path
+    }
+
+    if (-not (Test-Path -Path $outputPath -PathType Container)) {
+        $null = New-Item -ItemType Directory -Path $outputPath -Force
+    }
+
+    $resultsJsonPath = Join-Path $outputPath "ZeroTrustAssessmentReportTemp.json"
     $AssessmentResults | Out-File -FilePath $resultsJsonPath
     $json = Get-Content -Path $resultsJsonPath -Raw
     Remove-Item -Path $resultsJsonPath -Force -ErrorAction SilentlyContinue | Out-Null

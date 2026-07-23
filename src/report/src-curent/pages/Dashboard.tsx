@@ -1,9 +1,10 @@
-import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig, Briefcase, Monitor } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig, Briefcase, Monitor, Luggage, Layers3, ArrowRight } from "lucide-react";
 
 import {
     Bar,
     BarChart,
     Cell,
+    Label,
     LabelList,
     Pie,
     PieChart,
@@ -52,46 +53,72 @@ export default function Dashboard() {
         return `${(passedNum / totalNum) * 100}%`;
     };
 
+    const getTenantOverviewMetric = (keys: string[]): number | null => {
+        const tenantOverview = reportData.TenantInfo?.TenantOverview as Record<string, unknown> | undefined | null;
+
+        if (!tenantOverview) {
+            return null;
+        }
+
+        for (const key of keys) {
+            const value = tenantOverview[key];
+            const numberValue = typeof value === 'number' ? value : Number(value);
+
+            if (!Number.isNaN(numberValue) && Number.isFinite(numberValue)) {
+                return numberValue;
+            }
+        }
+
+        return null;
+    };
+
     return (
         <TooltipProvider delayDuration={200}>
-            <div className="w-full flex flex-col gap-6 mt-8">
+            <div className="w-full flex flex-col gap-6 mt-[26px]">
                 {/* Tenant Info - Single Line Horizontal */}
                 <Card>
-                    <CardHeader className="flex flex-row space-y-0 pb-2 pl-6 pr-12 pt-4 items-center gap-8">
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Building2 className="size-5 shrink-0" />
-                            <CardTitle className="text-lg">Tenant info</CardTitle>
-                        </div>
-                        <div className="flex items-center gap-6 flex-1 min-w-0">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-sm text-muted-foreground shrink-0">Name</span>
-                                <span className="font-medium truncate">{reportData.TenantName || 'Not Available'}</span>
+                    <CardHeader className="flex flex-col space-y-1.5 pt-3 pl-4 pr-12 pb-3">
+                        <div className="flex flex-row flex-wrap items-baseline gap-x-14 gap-y-2">
+                            <div className="flex items-baseline gap-2">
+                                <Building2 className="size-5 shrink-0 self-center" />
+                                <CardTitle className="text-2xl font-semibold leading-none tracking-tight">Tenant info</CardTitle>
                             </div>
-                            <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-sm text-muted-foreground shrink-0">Tenant ID</span>
-                                <span className="font-mono text-xs truncate">{reportData.TenantId || 'Not Available'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-sm text-muted-foreground shrink-0">Primary Domain</span>
-                                <span className="font-medium truncate">{reportData.Domain || 'Not Available'}</span>
+                            <div className="flex flex-1 flex-row items-center gap-x-72">
+                                <div className="flex flex-row items-baseline gap-2 min-w-0">
+                                    <span className="text-sm text-muted-foreground">Name</span>
+                                    <span className="font-medium truncate">{reportData.TenantName || 'Not Available'}</span>
+                                </div>
+                                <div className="flex flex-row items-baseline gap-2 min-w-0">
+                                    <span className="text-sm text-muted-foreground">Tenant ID</span>
+                                    <span className="font-mono text-xs truncate">{reportData.TenantId || 'Not Available'}</span>
+                                </div>
+                                <div className="flex flex-row items-baseline gap-2 min-w-0">
+                                    <span className="text-sm text-muted-foreground">Primary Domain</span>
+                                    <span className="font-medium truncate">{reportData.Domain || 'Not Available'}</span>
+                                </div>
                             </div>
                         </div>
                     </CardHeader>
                 </Card>
 
                 {/* Metrics Grid - Full Width - 4 Columns */}
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
                     {/* Users Card */}
                     <Card className="flex h-full flex-col">
-                        <CardHeader className="pb-2 pt-4 px-4">
+                        <CardHeader className="flex flex-col space-y-1.5 p-6 px-4 pt-2 pb-3">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <User className="size-5" />
                                 Users
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 flex items-center pt-0 pb-4 px-4">
+                        <CardContent className="p-6 pt-0 flex flex-1 items-center px-4 pb-4">
                             <div className="grid w-full gap-4 grid-cols-2">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
+                                    <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                        <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-1)" }}>
+                                            <User className="size-[1.515rem]" />
+                                        </span>
+                                    </span>
                                     <div className="flex flex-col gap-0.5">
                                         <span className="text-muted-foreground text-sm font-medium flex items-center gap-1">
                                             Total users
@@ -101,7 +128,12 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
+                                    <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                        <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-1)" }}>
+                                            <Luggage className="size-[1.515rem]" />
+                                        </span>
+                                    </span>
                                     <div className="flex flex-col gap-0.5">
                                         <span className="text-muted-foreground text-sm font-medium flex items-center gap-1">
                                             Guest users
@@ -117,15 +149,20 @@ export default function Dashboard() {
 
                     {/* Devices Card */}
                     <Card className="flex h-full flex-col">
-                        <CardHeader className="pb-2 pt-4 px-4">
+                        <CardHeader className="flex flex-col space-y-1.5 p-6 px-4 pt-2 pb-3">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <MonitorSmartphone className="size-5" />
                                 Devices
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 flex items-center pt-0 pb-4 px-4">
+                        <CardContent className="p-6 pt-0 flex flex-1 items-center px-4 pb-4">
                             <div className="grid w-full gap-4 grid-cols-2">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
+                                    <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                        <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-2)" }}>
+                                            <Monitor className="size-[1.515rem]" />
+                                        </span>
+                                    </span>
                                     <div className="flex flex-col gap-0.5">
                                         <span className="text-muted-foreground text-sm font-medium">
                                             Total devices
@@ -135,7 +172,12 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
+                                    <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                        <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-2)" }}>
+                                            <MonitorSmartphone className="size-[1.515rem]" />
+                                        </span>
+                                    </span>
                                     <div className="flex flex-col gap-0.5">
                                         <span className="text-muted-foreground text-sm font-medium">
                                             Managed
@@ -151,17 +193,22 @@ export default function Dashboard() {
 
                     {/* Groups & Apps Card */}
                     <Card className="flex h-full flex-col">
-                        <CardHeader className="pb-2 pt-4 px-4">
+                        <CardHeader className="flex flex-col space-y-1.5 p-6 px-4 pt-2 pb-3">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Users className="size-5" />
                                 Groups &amp; apps
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 flex items-center pt-0 pb-4 px-4">
+                        <CardContent className="p-6 pt-0 flex flex-1 items-center px-4 pb-4">
                             <div className="grid w-full gap-4 grid-cols-2">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className="cursor-pointer">
+                                        <div className="cursor-pointer flex items-center gap-3 ">
+                                            <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                                <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-3)" }}>
+                                                    <Users className="size-[1.515rem]" />
+                                                </span>
+                                            </span>
                                             <div className="flex items-center gap-3">
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="text-muted-foreground text-sm font-medium flex items-center gap-1">
@@ -181,7 +228,12 @@ export default function Dashboard() {
                                 </Tooltip>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className="cursor-pointer">
+                                        <div className="cursor-pointer flex items-center gap-3 ">
+                                            <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                                <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-3)" }}>
+                                                    <Layers3 className="size-[1.515rem]" />
+                                                </span>
+                                            </span>
                                             <div className="flex items-center gap-3">
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="text-muted-foreground text-sm font-medium flex items-center gap-1">
@@ -205,27 +257,40 @@ export default function Dashboard() {
 
                     {/* Agents Card */}
                     <Card className="flex h-full flex-col">
-                        <CardHeader className="pb-2 pt-4 px-4">
+                        <CardHeader className="flex flex-col space-y-1.5 p-6 px-4 pt-2 pb-3">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Bot className="size-5" />
                                 Agents
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 flex items-center pt-0 pb-4 px-4">
+                        <CardContent className="p-6 pt-0 flex flex-1 items-center px-4 pb-4">
                             <div className="grid w-full gap-4 grid-cols-2">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
+                                    <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                        <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-4)" }}>
+                                            <Bot className="size-[1.515rem]" />
+                                        </span>
+                                    </span>
                                     <div className="flex flex-col gap-0.5">
                                         <span className="text-muted-foreground text-sm font-medium">
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            —
+                                            {(() => {
+                                                const value = getTenantOverviewMetric(['AgentCount', 'AgentsCount', 'TotalAgentCount']);
+                                                return value === null ? '—' : formatNumber(value);
+                                            })()}
                                         </span>
                                     </div>
                                 </div>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className="cursor-pointer">
+                                        <div className="cursor-pointer flex items-center gap-3 ">
+                                            <span className="relative flex shrink-0 overflow-hidden size-[1.609rem] rounded-sm">
+                                                <span className="flex h-full w-full items-center justify-center shrink-0 rounded-sm bg-transparent" style={{ color: "var(--viz-4)" }}>
+                                                    <User className="size-[1.515rem]" />
+                                                </span>
+                                            </span>
                                             <div className="flex items-center gap-3">
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="text-muted-foreground text-sm font-medium flex items-center gap-1">
@@ -233,7 +298,10 @@ export default function Dashboard() {
                                                         <Info className="size-3.5 shrink-0 opacity-70" />
                                                     </span>
                                                     <span className="text-lg font-medium">
-                                                        —
+                                                        {(() => {
+                                                            const value = getTenantOverviewMetric(['AgentActiveUserCount', 'ActiveAgentUserCount', 'AgentUsersActiveCount']);
+                                                            return value === null ? '—' : formatNumber(value);
+                                                        })()}
                                                     </span>
                                                 </div>
                                             </div>
@@ -246,18 +314,19 @@ export default function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
+
                 </div>
 
                 {/* Assessment Results - Full Width */}
                 <Card x-chunk="charts-01-chunk-5">
-                    <CardHeader className="pb-2 pt-6 px-4">
+                    <CardHeader className="pb-3 pt-3 px-4">
                         <CardTitle className="text-2xl font-semibold flex items-center gap-2">
                             <ShieldCheck className="size-5" />
                             Assessment
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 pl-11 pr-4 pb-6">
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                             {/* Identity */}
                             <div className="flex flex-col gap-1.5">
                                 <div className="text-sm text-muted-foreground">Identity</div>
@@ -399,21 +468,33 @@ export default function Dashboard() {
             </div>
 
             {/* Identity summary */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-6">
-                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <div className="flex flex-col gap-4 mt-[26px]">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-4 items-stretch">
 
-                    <div className="grid w-full gap-6 lg:col-span-1">
-                        {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                        {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
                         >
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <UserCog className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    Privileged users auth methods
-                                </CardTitle>
+                            <CardHeader className="space-y-2 pt-3 pb-3">
+                                <div className="flex flex-row items-center gap-2">
+                                    <UserCog className="size-8" />
+                                    <CardTitle className="text-2xl tabular-nums">
+                                        Privileged users auth methods
+                                    </CardTitle>
+                                    <a
+                                        href="#/identity"
+                                        className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent h-9 rounded-md px-3 ml-auto shrink-0 text-muted-foreground hover:text-foreground"
+                                    >
+                                        View all
+                                        <ArrowRight className="ml-1 size-4" />
+                                    </a>
+                                </div>
+                                <CardDescription>
+                                    {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.description || "No description available"}
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-1 h-[480px]">
                                 <ChartContainer
                                     config={{
                                         steps: {
@@ -421,6 +502,7 @@ export default function Dashboard() {
                                             color: "hsl(var(--chart-1))",
                                         },
                                     }}
+                                    className="h-[480px] w-full"
                                 >
                                     {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
                                         <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsPrivilegedUsers.nodes} />
@@ -431,11 +513,6 @@ export default function Dashboard() {
                                     )}
                                 </ChartContainer>
                             </CardContent>
-                            <CardFooter className="flex-col items-start gap-1">
-                                <CardDescription>
-                                    {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.description || "No description available"}
-                                </CardDescription>
-                            </CardFooter>
                         </Card>
                         ) : null}
 
@@ -443,13 +520,25 @@ export default function Dashboard() {
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
                         >
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <Users className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    All users auth methods
-                                </CardTitle>
+                            <CardHeader className="space-y-2 pt-3 pb-3">
+                                <div className="flex flex-row items-center gap-2">
+                                    <Users className="size-8" />
+                                    <CardTitle className="text-2xl tabular-nums">
+                                        All users auth methods
+                                    </CardTitle>
+                                    <a
+                                        href="#/identity"
+                                        className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent h-9 rounded-md px-3 ml-auto shrink-0 text-muted-foreground hover:text-foreground"
+                                    >
+                                        View all
+                                        <ArrowRight className="ml-1 size-4" />
+                                    </a>
+                                </div>
+                                <CardDescription>
+                                    {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.description || "No description available"}
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-1 h-[480px]">
                                 <ChartContainer
                                     config={{
                                         steps: {
@@ -457,6 +546,7 @@ export default function Dashboard() {
                                             color: "hsl(var(--chart-1))",
                                         },
                                     }}
+                                    className="h-[480px] w-full"
                                 >
                                     {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
                                         <AuthMethodSankey data={reportData.TenantInfo.OverviewAuthMethodsAllUsers.nodes} />
@@ -467,17 +557,12 @@ export default function Dashboard() {
                                     )}
                                 </ChartContainer>
                             </CardContent>
-                            <CardFooter className="flex-col items-start gap-1">
-                                <CardDescription>
-                                    {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.description || "No description available"}
-                                </CardDescription>
-                            </CardFooter>
                         </Card>
                         ) : null}
                         {/* {<Card
                             className="lg:max-w-md" x-chunk="charts-01-chunk-0"
                         >
-                            <CardHeader className="space-y-0 pb-2">
+                            <CardHeader className="space-y-0 pt-3 pb-3">
                                 <CardDescription>Defender for Office 365</CardDescription>
                                 <CardTitle className="text-4xl tabular-nums">
                                     1,284{" "}
@@ -600,7 +685,7 @@ export default function Dashboard() {
                         {/* <Card
                         className="flex flex-col lg:max-w-md" x-chunk="charts-01-chunk-1"
                     >
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2 [&>div]:flex-1">
+                        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pt-3 pb-3 [&>div]:flex-1">
                             <div>
                                 <CardDescription>Purview</CardDescription>
                                 <CardTitle className="flex items-baseline gap-1 text-4xl tabular-nums">
@@ -719,78 +804,320 @@ export default function Dashboard() {
                         </CardContent>
                     </Card> */}
                     </div>
-                    <div className="grid w-full gap-6 lg:col-span-1">
-                        {reportData.TenantInfo?.OverviewAuthMethodsAllUsers?.nodes ? (
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                        {reportData.TenantInfo?.DeviceOverview?.ManagedDevices ? (
                         <Card
-                            className="lmax-w-xs" x-chunk="charts-01-chunk-0"
+                            className="lmax-w-xs flex h-full flex-col" x-chunk="charts-01-chunk-0"
                         >
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <User className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    User authentication
-                                </CardTitle>
+                            <CardHeader className="space-y-2 pt-3 pb-3">
+                                <div className="flex flex-row items-start gap-2">
+                                    <MonitorSmartphone className="size-8 shrink-0" />
+                                    <div className="flex flex-col gap-1">
+                                        <CardTitle className="text-2xl tabular-nums">
+                                            Device summary
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.description || "Total devices and Microsoft Defender for Endpoint sensor coverage by OS."}
+                                        </CardDescription>
+                                    </div>
+                                    <a
+                                        href="#/devices"
+                                        className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent h-9 rounded-md px-3 ml-auto shrink-0 text-muted-foreground hover:text-foreground"
+                                    >
+                                        View all
+                                        <ArrowRight className="ml-1 size-4" />
+                                    </a>
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-6 pt-0 flex flex-1 flex-col pb-2 h-[480px]">
                                 <ChartContainer
                                     config={{
-                                        steps: {
-                                            label: "Steps",
-                                            color: "hsl(var(--chart-1))",
+                                        covered: {
+                                            label: "MDE sensor installed",
+                                            color: "hsl(240, 40%, 45%)",
+                                        },
+                                        notCovered: {
+                                            label: "Not covered",
+                                            color: "hsl(240, 45%, 80%)",
                                         },
                                     }}
+                                    className="aspect-auto w-full flex-1 min-h-[250px]"
                                 >
-                                    {reportData.TenantInfo?.OverviewCaMfaAllUsers?.nodes ? (
-                                        <CaSankey data={reportData.TenantInfo.OverviewCaMfaAllUsers.nodes} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                            No data available
-                                        </div>
-                                    )}
+                                    <BarChart
+                                        margin={{
+                                            left: 64,
+                                            right: 64,
+                                            top: 0,
+                                            bottom: 0,
+                                        }}
+                                        data={(() => {
+                                            const osSummary = reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+                                            const desktopNodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
+                                            const mobileNodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
+
+                                            const getFlow = (nodes: { source: string; target: string; value: number | null }[], sourceMatcher: (source: string) => boolean, targetMatcher: (target: string) => boolean) =>
+                                                nodes
+                                                    .filter(link => sourceMatcher(link.source) && targetMatcher(link.target))
+                                                    .reduce((sum, link) => sum + (Number(link.value) || 0), 0);
+
+                                            const finalizeCoverage = (total: number, coveredRaw: number, notCoveredRaw: number) => {
+                                                const safeTotal = Math.max(0, total || 0);
+                                                const safeCovered = Math.max(0, coveredRaw || 0);
+                                                const safeNotCovered = Math.max(0, notCoveredRaw || 0);
+                                                const known = safeCovered + safeNotCovered;
+                                                const adjustedNotCovered = known < safeTotal ? safeNotCovered + (safeTotal - known) : safeNotCovered;
+                                                const cappedCovered = Math.min(safeTotal, safeCovered);
+                                                const cappedNotCovered = Math.max(0, Math.min(safeTotal - cappedCovered, adjustedNotCovered));
+                                                const percent = safeTotal > 0 ? Math.round((cappedCovered / safeTotal) * 100) : 0;
+                                                return {
+                                                    covered: cappedCovered,
+                                                    notCovered: safeTotal - cappedCovered,
+                                                    percent,
+                                                };
+                                            };
+
+                                            const windowsTotal = osSummary?.windowsCount || 0;
+                                            const windowsCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Compliant");
+                                            const windowsNotCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Non-compliant" || t === "Unmanaged");
+                                            const windows = finalizeCoverage(windowsTotal, windowsCoveredRaw, windowsNotCoveredRaw);
+
+                                            const macTotal = osSummary?.macOSCount || 0;
+                                            const macCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Compliant");
+                                            const macNotCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Non-compliant" || t === "Unmanaged");
+                                            const mac = finalizeCoverage(macTotal, macCoveredRaw, macNotCoveredRaw);
+
+                                            const iosTotal = osSummary?.iosCount || 0;
+                                            const iosCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Compliant");
+                                            const iosNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Non-compliant");
+                                            const ios = finalizeCoverage(iosTotal, iosCoveredRaw, iosNotCoveredRaw);
+
+                                            const androidTotal = osSummary?.androidCount || 0;
+                                            const androidCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Compliant");
+                                            const androidNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Non-compliant");
+                                            const android = finalizeCoverage(androidTotal, androidCoveredRaw, androidNotCoveredRaw);
+
+                                            const linuxTotal = osSummary?.linuxCount || 0;
+                                            const linux = finalizeCoverage(linuxTotal, 0, linuxTotal);
+
+                                            return [
+                                                { os: "Windows", total: windowsTotal, covered: windows.covered, notCovered: windows.notCovered, label: `${formatNumber(windows.covered)}/${formatNumber(windowsTotal)} (${windows.percent}%)` },
+                                                { os: "macOS", total: macTotal, covered: mac.covered, notCovered: mac.notCovered, label: `${formatNumber(mac.covered)}/${formatNumber(macTotal)} (${mac.percent}%)` },
+                                                { os: "iOS/iPadOS", total: iosTotal, covered: ios.covered, notCovered: ios.notCovered, label: `${formatNumber(ios.covered)}/${formatNumber(iosTotal)} (${ios.percent}%)` },
+                                                { os: "Android", total: androidTotal, covered: android.covered, notCovered: android.notCovered, label: `${formatNumber(android.covered)}/${formatNumber(androidTotal)} (${android.percent}%)` },
+                                                { os: "Linux", total: linuxTotal, covered: linux.covered, notCovered: linux.notCovered, label: `${formatNumber(linux.covered)}/${formatNumber(linuxTotal)} (${linux.percent}%)` },
+                                            ];
+                                        })()}
+                                        layout="vertical"
+                                        barSize={32}
+                                        barGap={36}
+                                    >
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            dataKey="os"
+                                            type="category"
+                                            tickLine={false}
+                                            tickMargin={6}
+                                            axisLine={false}
+                                            className=""
+                                        />
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent/>}
+                                        />
+                                        <Bar dataKey="covered" stackId="deviceCoverage" fill="var(--color-covered)" radius={[5, 0, 0, 5]} />
+                                        <Bar dataKey="notCovered" stackId="deviceCoverage" fill="var(--color-notCovered)" radius={[0, 5, 5, 0]}>
+                                            <LabelList
+                                                position="right"
+                                                dataKey="label"
+                                                offset={8}
+                                                fontSize={12}
+                                                fill="hsl(var(--foreground))"
+                                            />
+                                        </Bar>
+                                    </BarChart>
                                 </ChartContainer>
+
+                                <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="size-2.5 rounded-full" style={{ backgroundColor: 'hsl(240, 40%, 45%)' }} />
+                                        MDE sensor installed
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="size-2.5 rounded-full" style={{ backgroundColor: 'hsl(240, 45%, 80%)' }} />
+                                        Not covered
+                                    </div>
+                                </div>
                             </CardContent>
-                            <CardFooter className="flex-col items-start gap-1">
-                                <CardDescription>
-                                    {reportData.TenantInfo?.OverviewCaMfaAllUsers?.description || "No description available"}
-                                </CardDescription>
+
+                            <CardFooter className="items-center flex flex-row border-t p-4">
+                                <div className="flex w-full items-center gap-2">
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Desktops</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const osSummary = reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+                                                const desktops = (osSummary?.windowsCount || 0) + (osSummary?.macOSCount || 0) + (osSummary?.linuxCount || 0);
+                                                const mobiles = (osSummary?.iosCount || 0) + (osSummary?.androidCount || 0);
+                                                const total = desktops + mobiles;
+                                                return total > 0 ? Math.round((desktops / total) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">%</span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="text-xs text-muted-foreground">Mobiles</div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const osSummary = reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+                                                const desktops = (osSummary?.windowsCount || 0) + (osSummary?.macOSCount || 0) + (osSummary?.linuxCount || 0);
+                                                const mobiles = (osSummary?.iosCount || 0) + (osSummary?.androidCount || 0);
+                                                const total = desktops + mobiles;
+                                                return total > 0 ? Math.round((mobiles / total) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">%</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </CardFooter>
                         </Card>
                         ) : null}
 
-                        {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
+                        {reportData.TenantInfo?.DeviceOverview?.ManagedDevices &&
+                            reportData.TenantInfo?.DeviceOverview?.DeviceCompliance &&
+                            (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
+                            (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
                         <Card
-                            className="lmax-w-xs" x-chunk="charts-01-chunk-0"
+                            className="lmax-w-xs flex h-full flex-col" x-chunk="charts-01-chunk-0"
                         >
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <MonitorSmartphone className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums ">
-                                    Device sign-ins
-                                </CardTitle>
+                            <CardHeader className="space-y-2 pt-3 pb-3">
+                                <div className="flex flex-row items-center gap-2">
+                                    <CircleCheckBig className="size-8" />
+                                    <CardTitle className="text-2xl tabular-nums ">
+                                        Device compliance
+                                    </CardTitle>
+                                    <a
+                                        href="#/devices"
+                                        className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent h-9 rounded-md px-3 ml-auto shrink-0 text-muted-foreground hover:text-foreground"
+                                    >
+                                        View all
+                                        <ArrowRight className="ml-1 size-4" />
+                                    </a>
+                                </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-6 pt-0 flex flex-1 items-center justify-center pb-2">
                                 <ChartContainer
                                     config={{
-                                        steps: {
-                                            label: "Steps",
-                                            color: "hsl(var(--chart-1))",
+                                        compliant: {
+                                            label: "Compliant",
+                                            color: "hsl(142, 76%, 36%)",
+                                        },
+                                        nonCompliant: {
+                                            label: "Non-compliant",
+                                            color: "hsl(0, 84%, 60%)",
                                         },
                                     }}
+                                    className="mx-auto h-[250px] w-full"
                                 >
-                                    {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.nodes ? (
-                                        <CaDeviceSankey data={reportData.TenantInfo.OverviewCaDevicesAllUsers.nodes} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                            No data available
-                                        </div>
-                                    )}
+                                    <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                                        <Pie
+                                            data={[
+                                                {
+                                                    name: "Compliant",
+                                                    value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0,
+                                                    fill: "var(--color-compliant)",
+                                                },
+                                                {
+                                                    name: "Non-compliant",
+                                                    value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0,
+                                                    fill: "var(--color-nonCompliant)",
+                                                },
+                                            ]}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={50}
+                                            outerRadius={100}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                            cornerRadius={5}
+                                        >
+                                            <Cell fill="var(--color-compliant)" />
+                                            <Cell fill="var(--color-nonCompliant)" />
+                                            <Label
+                                                content={({ viewBox }) => {
+                                                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                                                        const compliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
+                                                        const nonCompliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
+                                                        const totalDevices = compliantCount + nonCompliantCount;
+
+                                                        return (
+                                                            <text
+                                                                x={viewBox.cx}
+                                                                y={viewBox.cy}
+                                                                textAnchor="middle"
+                                                                dominantBaseline="middle"
+                                                            >
+                                                                <tspan
+                                                                    x={viewBox.cx}
+                                                                    y={viewBox.cy}
+                                                                    className="fill-foreground text-2xl font-bold"
+                                                                >
+                                                                    {formatNumber(totalDevices)}
+                                                                </tspan>
+                                                                <tspan
+                                                                    x={viewBox.cx}
+                                                                    y={(viewBox.cy || 0) + 20}
+                                                                    className="fill-muted-foreground text-xs"
+                                                                >
+                                                                    devices
+                                                                </tspan>
+                                                            </text>
+                                                        )
+                                                    }
+                                                }}
+                                            />
+                                        </Pie>
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                    </PieChart>
                                 </ChartContainer>
                             </CardContent>
-                            <CardFooter className="flex-col items-start gap-1">
-                                <CardDescription>
-                                    {reportData.TenantInfo?.OverviewCaDevicesAllUsers?.description || "No description available"}
-                                </CardDescription>
+                            <CardFooter className="items-center flex flex-row border-t p-4">
+                                <div className="flex w-full items-center gap-2">
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }} />
+                                            Compliant
+                                        </div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const compliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
+                                                const nonCompliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
+                                                const totalDevices = compliantCount + nonCompliantCount;
+                                                return totalDevices > 0 ? Math.round((compliantCount / totalDevices) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">%</span>
+                                        </div>
+                                    </div>
+                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+                                    <div className="grid flex-1 auto-rows-min gap-0.5">
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(0, 84%, 60%)' }} />
+                                            Non-compliant
+                                        </div>
+                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
+                                            {(() => {
+                                                const compliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
+                                                const nonCompliantCount = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
+                                                const totalDevices = compliantCount + nonCompliantCount;
+                                                return totalDevices > 0 ? Math.round((nonCompliantCount / totalDevices) * 100) : 0;
+                                            })()}
+                                            <span className="text-sm font-normal text-muted-foreground">%</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </CardFooter>
                         </Card>
-                        ) : null}
+                        )}
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >
@@ -908,7 +1235,7 @@ export default function Dashboard() {
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-3"
                         >
-                            <CardHeader className="p-4 pb-0">
+                            <CardHeader className="px-4 pt-2 pb-0">
                                 <CardTitle>Defender Actions</CardTitle>
                                 <CardDescription>
                                     Over the last 7 days, your workbook actions have been triggered over 130 times
@@ -994,220 +1321,13 @@ export default function Dashboard() {
             </div>
 
             {/* Devices Section */}
-            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+            <div className="flex flex-col gap-4 mt-[26px]">
                 {/* <PageHeader>
                     <PageHeaderHeading>Devices</PageHeaderHeading>
                 </PageHeader> */}
 
-                <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-                    {/* Device summary chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices ? (
-                        <Card className="w-full">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <MonitorSmartphone className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex pb-4 h-[250px]">
-                                <ChartContainer
-                                    config={{
-                                        value: {
-                                            label: "Devices",
-                                        },
-                                    }}
-                                    className="h-[250px] w-full"
-                                >
-                                    <BarChart
-                                        margin={{
-                                            left: 12,
-                                            right: 0,
-                                            top: 0,
-                                            bottom: 10,
-                                        }}
-                                        data={[
-                                            {
-                                                dataKey: "Windows",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0}`,
-                                                fill: "hsl(var(--chart-1))",
-                                            },
-                                            {
-                                                dataKey: "macOS",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0}`,
-                                                fill: "hsl(var(--chart-2))",
-                                            },
-                                            {
-                                                dataKey: "iOS/iPadOS",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0}`,
-                                                fill: "hsl(var(--chart-3))",
-                                            },
-                                            {
-                                                dataKey: "Android",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0}`,
-                                                fill: "hsl(var(--chart-5))",
-                                            },
-                                            {
-                                                dataKey: "Linux",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0}`,
-                                                fill: "hsl(var(--chart-4))",
-                                            },
-                                        ]}
-                                        layout="vertical"
-                                        barSize={32}
-                                        barGap={2}
-                                    >
-                                        <XAxis type="number" dataKey="value" hide />
-                                        <YAxis
-                                            dataKey="dataKey"
-                                            type="category"
-                                            tickLine={false}
-                                            tickMargin={4}
-                                            axisLine={false}
-                                            className=""
-                                        />
-                                        <ChartTooltip
-                                            cursor={false}
-                                            content={<ChartTooltipContent/>}
-                                        />
-                                        <Bar dataKey="value" radius={5}>
-                                            <LabelList
-                                                position="insideLeft"
-                                                dataKey="label"
-                                                fill="white"
-                                                offset={8}
-                                                fontSize={12}
-                                            />
-                                        </Bar>
-                                    </BarChart>
-                                </ChartContainer>
-                            </CardContent>
-                            <CardFooter className="flex flex-row border-t p-4">
-                                <div className="flex w-full items-center gap-2">
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Desktops</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.desktopCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Mobiles</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.mobileCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    ) : null}
-
-                    {/* Device compliance chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices &&
-                        reportData.TenantInfo?.DeviceOverview?.DeviceCompliance &&
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
-                            <Card className="w-full">
-                                <CardHeader className="space-y-0 pb-2 flex-row">
-                                    <CircleCheckBig className="pr-2 size-8" />
-                                    <CardTitle className="text-2xl tabular-nums ">
-                                        Device compliance
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex pb-2 h-[250px]">
-                                    <ChartContainer
-                                        config={{
-                                            compliant: {
-                                                label: "Compliant",
-                                                color: "hsl(142, 76%, 36%)",
-                                            },
-                                            nonCompliant: {
-                                                label: "Non-compliant",
-                                                color: "hsl(0, 84%, 60%)",
-                                            },
-                                        }}
-                                        className="mx-auto aspect-square w-full max-h-full"
-                                    >
-                                        <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                            <Pie
-                                                data={[
-                                                    {
-                                                        name: "Compliant",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0,
-                                                        fill: "var(--color-compliant)",
-                                                    },
-                                                    {
-                                                        name: "Non-compliant",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0,
-                                                        fill: "var(--color-nonCompliant)",
-                                                    },
-                                                ]}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={50}
-                                                outerRadius={100}
-                                                paddingAngle={2}
-                                                dataKey="value"
-                                                cornerRadius={5}
-                                            >
-                                                <Cell fill="var(--color-compliant)" />
-                                                <Cell fill="var(--color-nonCompliant)" />
-                                            </Pie>
-                                            <ChartTooltip content={<ChartTooltipContent />} />
-                                        </PieChart>
-                                    </ChartContainer>
-                                </CardContent>
-                                <CardFooter className="flex flex-row border-t p-4">
-                                    <div className="flex w-full items-center gap-2">
-                                        <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm bg-green-600"></div>
-                                                Compliant
-                                            </div>
-                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {(() => {
-                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
-                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
-                                                    const total = compliant + nonCompliant;
-                                                    return total > 0 ? Math.round((compliant / total) * 100) : 0;
-                                                })()}
-                                                <span className="text-sm font-normal text-muted-foreground">
-                                                    %
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                        <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm bg-red-500"></div>
-                                                Non-compliant
-                                            </div>
-                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {(() => {
-                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
-                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
-                                                    const total = compliant + nonCompliant;
-                                                    return total > 0 ? Math.round((nonCompliant / total) * 100) : 0;
-                                                })()}
-                                                <span className="text-sm font-normal text-muted-foreground">
-                                                    %
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardFooter>
-                            </Card>
-                        )}
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-4 items-stretch">
+                    {/* Device summary and Device compliance are rendered in the overview row above */}
 
                     {/* Corporate vs Personal chart */}
                     {reportData.TenantInfo?.DeviceOverview?.ManagedDevices &&
@@ -1215,7 +1335,7 @@ export default function Dashboard() {
                         (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0) +
                         (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0) > 0 && (
                             <Card className="w-full">
-                                <CardHeader className="space-y-0 pb-2 flex-row">
+                                <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                                     <Briefcase className="pr-2 size-8" />
                                     <CardTitle className="text-2xl tabular-nums ">
                                         Device ownership
@@ -1309,7 +1429,7 @@ export default function Dashboard() {
                                             {/* Desktop devices chart */}
                     {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes && reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes.length > 0 && (
                         <Card className="w-full lg:col-span-3">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
+                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                                 <Monitor className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">
                                     Desktop devices
@@ -1394,7 +1514,7 @@ export default function Dashboard() {
                     {/* Mobile devices chart */}
                     {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo?.DeviceOverview?.ManagedDevices && (
                         <Card className="w-full lg:col-span-3">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
+                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />
                                 <CardTitle className="text-2xl tabular-nums">
                                     Mobile devices
@@ -1472,9 +1592,9 @@ export default function Dashboard() {
 
             {/* Network - SWG Defense Layers Section */}
             {hasSwgData() && (
-            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-stretch mt-[26px]">
                 <Card>
-                    <CardHeader className="space-y-0 pb-2 flex-row">
+                    <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                         <ShieldCheck className="pr-2 size-8" />
                         <div>
                             <CardTitle className="text-2xl tabular-nums">
