@@ -64,10 +64,10 @@ where the module's signing certificate is trusted by policy).
 WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
 
 .PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests.
 
 .PARAMETER Preview
-When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publicly available yet.
+When specified, enables running preview-only pillars and features.
 
 .EXAMPLE
 Invoke-ZtAssessment
@@ -259,12 +259,15 @@ $titleLine
 		return
 	}
 
-	# Validate preview pillar requirements
-	$previewPillars = @('Infrastructure', 'SecOps', 'AI')
-	if ($Pillar -in $previewPillars -and -not $Preview) {
+	# Validate preview pillar requirements.
+	# Current released pillars run by default. Add future preview-only pillars to
+	# $previewPillars to gate them behind the -Preview switch.
+	$stablePillars = @('Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')
+	$previewPillars = @()
+	if ($Pillar -in $previewPillars -and $Pillar -notin $stablePillars -and -not $Preview) {
 		Write-Host
 		Write-Host "❌ " -NoNewline -ForegroundColor Red
-		Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+		Write-Host "The '$Pillar' pillar requires the " -NoNewline -ForegroundColor Red
 		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
 		Write-Host " switch." -ForegroundColor Red
 		Write-Host

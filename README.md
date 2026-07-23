@@ -17,6 +17,8 @@ Connect-ZtAssessment
 Invoke-ZtAssessment
 ```
 
+By default, `Invoke-ZtAssessment` now runs all current pillars: Identity, Devices, Network, Data, Infrastructure, SecOps, and AI. The `-Preview` switch is reserved for future preview-only features.
+
 ## Infrastructure Pillar Scope
 
 Infrastructure pillar results are based on Microsoft Defender for Cloud recommendations and only include Azure subscriptions tagged with `ZeroTrustAssessment:Infrastructure`.

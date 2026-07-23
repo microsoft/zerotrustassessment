@@ -10,7 +10,7 @@ Manually checking a tenant's configuration against the published guidance can be
 
 The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
 
-The assessment is organized into **pillars**. The **Identity**, **Devices**, **Network**, and **Data** pillars are generally available. Additional preview pillars (**Infrastructure**, **SecOps**, and **AI**) can be enabled with the `-Preview` switch. See [Preview pillars](#preview-pillars-infrastructure-secops-and-ai) for details.
+The assessment is organized into **pillars**. The current default run includes **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**. The `-Preview` switch remains available for any future preview-only features. See [Preview-only pillars](#preview-only-pillars-future-use) for details.
 
 ## Prerequisites
 
@@ -201,8 +201,8 @@ The most commonly used parameters are described below. All parameters are option
 | Parameter | Description |
 |-----------|-------------|
 | `-Path <string>` | Folder where the report and exported data are written. Defaults to `./ZeroTrustReport` in the current directory. |
-| `-Pillar <string>` | Which pillar to assess. One of `All` (default), `Identity`, `Devices`, `Network`, `Data`, `Infrastructure`, `SecOps`, or `AI`. The last three are preview pillars and require `-Preview`. |
-| `-Preview` | Enables the preview pillars (`Infrastructure`, `SecOps`, `AI`). Without this switch only the generally available pillars run. See [Preview pillars](#preview-pillars-infrastructure-secops-and-ai). |
+| `-Pillar <string>` | Which pillar to assess. One of `All` (default), `Identity`, `Devices`, `Network`, `Data`, `Infrastructure`, `SecOps`, or `AI`. |
+| `-Preview` | Enables preview-only pillars when available in future releases. Current pillars do not require this switch. See [Preview-only pillars](#preview-only-pillars-future-use). |
 | `-Resume` | Reuses the data that was already exported to `-Path` on a previous run, skipping data collection and database rebuild, and re-runs only the tests/report. Useful to regenerate the report or re-run tests without re-exporting. The pillar must match the pillar used for the original export. |
 | `-Tests <id[,id...]>` | Runs only the specified test ID(s) (exact match, no wildcards). If omitted, all tests for the selected pillar run. Example: `-Tests 21770, 21771`. |
 | `-Days <1-30>` | Number of days of sign-in logs to query (1-30, default 30). |
@@ -216,21 +216,20 @@ The most commonly used parameters are described below. All parameters are option
 | `-TestTimeout <minutes/timespan>` | Maximum time a single test may run (default 60; `0` = disabled). Supports humanized input notation, such as `30m`, `2h`, or `'2h 15m'`. |
 | `-ExportThrottleLimit <n>` / `-TestThrottleLimit <n>` | Maximum number of parallel data collectors / tests (default 5 each). |
 
-### Preview pillars (Infrastructure, SecOps, and AI)
+### Preview-only pillars (future use)
 
-By default the assessment runs only the generally available pillars: **Identity**, **Devices**, **Network**, and **Data**.
+By default the assessment now runs all current pillars: **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**.
 
-The newest pillars - **Infrastructure**, **SecOps**, and **AI** - are in preview and are gated behind the `-Preview` switch. To include them, add `-Preview`:
+The `-Preview` switch is reserved for future preview-only features. When new preview-only pillars are introduced, include `-Preview` to run them:
 
 ```powershell
-# Run all pillars, including the preview pillars
-Invoke-ZtAssessment -Preview
+# Run all current pillars (default behavior)
+Invoke-ZtAssessment
 
-# Run a single preview pillar (still requires -Preview)
-Invoke-ZtAssessment -Pillar SecOps -Preview
+# Example future usage when preview-only pillars are introduced
+# Invoke-ZtAssessment -Preview
+# Invoke-ZtAssessment -Pillar <FuturePreviewPillar> -Preview
 ```
-
-If you select a preview pillar with `-Pillar` but omit `-Preview`, the assessment stops and reminds you to add the `-Preview` switch.
 
 ### Recommended: use a dedicated clean VM
 
@@ -244,7 +243,7 @@ After the assessment completes, you are redirected to the **Overview** tab of th
 
 ![Screenshot of Results](media/image5.png)
 
-The **Identity**, **Devices**, **Network**, **Data** (and **Infrastructure**, **SecOps** and **AI** as _preview_) tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
+The **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI** tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
 
 ![Screenshot of test results](media/image6.png)
 
@@ -284,8 +283,7 @@ To remove the assessment, follow these steps.
 
 The **Identity** tab shows the results of the assessment on your tenant.
 
-The other tabs are in progress. Feel free to share feedback on the
-report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
+Feel free to share feedback on the report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
 
 ## FAQs
 
