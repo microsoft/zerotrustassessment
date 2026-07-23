@@ -262,9 +262,8 @@ $titleLine
 	# Validate preview pillar requirements.
 	# Current released pillars run by default. Add future preview-only pillars to
 	# $previewPillars to gate them behind the -Preview switch.
-	$stablePillars = @('Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')
 	$previewPillars = @()
-	if ($Pillar -in $previewPillars -and $Pillar -notin $stablePillars -and -not $Preview) {
+	if ($Pillar -in $previewPillars -and -not $Preview) {
 		Write-Host
 		Write-Host "❌ " -NoNewline -ForegroundColor Red
 		Write-Host "The '$Pillar' pillar requires the " -NoNewline -ForegroundColor Red
