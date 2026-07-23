@@ -53,7 +53,7 @@ function Test-Assessment-25375 {
         Agent365       = 'd0ce5ebb-9db0-491f-b780-8973a1d815fe' # AGENT_365
     }
 
-    $skuCmdletFailed = $false
+    $errorMsg = $null
     $subscribedSkus = @()
 
     # Q1: Retrieve tenant licenses with GSA service plans
@@ -61,7 +61,7 @@ function Test-Assessment-25375 {
         $subscribedSkus = Invoke-ZtGraphRequest -RelativeUri 'subscribedSkus' -ApiVersion beta -ErrorAction Stop
     }
     catch {
-        $skuCmdletFailed = $true
+        $errorMsg = $_
         Write-PSFMessage "Failed to retrieve subscribed SKUs: $_" -Tag Test -Level Warning
     }
     #endregion Data Collection
@@ -72,10 +72,10 @@ function Test-Assessment-25375 {
     $customStatus = $null
 
     # Handle query failure - cannot determine license status
-    if ($skuCmdletFailed) {
+    if ($errorMsg) {
         Write-PSFMessage "Unable to retrieve GSA license data due to query failure" -Tag Test -Level Warning
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Unable to determine Global Secure Access licensing prerequisites due to query failure, connection issues, or insufficient permissions.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unable to determine Global Secure Access licensing prerequisites due to query failure, connection issues, or insufficient permissions.`n`nError: $errorMsg"
 
         $params = @{
             TestId       = '25375'
@@ -88,16 +88,10 @@ function Test-Assessment-25375 {
         return
     }
 
-    # Filter SKUs containing any GSA service plans - if none exist, skip the test
+    # Filter SKUs containing any GSA service plans
     $gsaSkus = @($subscribedSkus | Where-Object {
         $_.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values }
     })
-
-    if ($gsaSkus.Count -eq 0) {
-        Write-PSFMessage 'No GSA-related SKUs found in tenant.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'No GSA licenses are available in this tenant.'
-        return
-    }
 
     # Identify which GSA service plans are available with Enabled status
     $availableServicePlans = @{}
@@ -172,33 +166,15 @@ function Test-Assessment-25375 {
         # Build requirement status table
         $requirementTableRows = ''
 
-        # Determine source SKUs for each service plan
-        $internetAccessSkus = @($gsaSkus | Where-Object {
-            $_.CapabilityStatus -eq 'Enabled' -and ($_.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.InternetAccess })
-        } | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber })
+        # Determine source SKUs containing any GSA service plan
+        $gsaSourceSkus = @($gsaSkus | Where-Object {
+            $_.CapabilityStatus -eq 'Enabled' -and ($_.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values })
+        } | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber } | Select-Object -Unique)
 
-        $privateAccessSkus = @($gsaSkus | Where-Object {
-            $_.CapabilityStatus -eq 'Enabled' -and ($_.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.PrivateAccess })
-        } | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber })
-
-        $agent365Skus = @($gsaSkus | Where-Object {
-            $_.CapabilityStatus -eq 'Enabled' -and ($_.ServicePlans | Where-Object { $_.ServicePlanId -eq $gsaServicePlanIds.Agent365 })
-        } | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber })
-
-        # Internet Access row
-        $internetStatus = if ($hasInternetAccess) { '✅ Enabled' } else { '❌ Missing' }
-        $internetSkuList = if ($internetAccessSkus.Count -gt 0) { $internetAccessSkus -join ', ' } else { '—' }
-        $requirementTableRows += "| Microsoft Entra Internet Access | $internetStatus | $internetSkuList |`n"
-
-        # Private Access row
-        $privateStatus = if ($hasPrivateAccess) { '✅ Enabled' } else { '❌ Missing' }
-        $privateSkuList = if ($privateAccessSkus.Count -gt 0) { $privateAccessSkus -join ', ' } else { '—' }
-        $requirementTableRows += "| Microsoft Entra Private Access | $privateStatus | $privateSkuList |`n"
-
-        # Agent 365 row
-        $agent365Status = if ($hasAgent365) { '✅ Enabled' } else { '❌ Missing' }
-        $agent365SkuList = if ($agent365Skus.Count -gt 0) { $agent365Skus -join ', ' } else { '—' }
-        $requirementTableRows += "| Microsoft Agent 365 | $agent365Status | $agent365SkuList |`n"
+        # Single aggregate row per spec
+        $gsaStatus = if ($hasGsaEntitlement) { '✅ Enabled' } else { '❌ Missing' }
+        $gsaSkuList = if ($gsaSourceSkus.Count -gt 0) { $gsaSourceSkus -join ', ' } else { '—' }
+        $requirementTableRows += "| Global Secure Access licensing entitlement | $gsaStatus | $gsaSkuList |`n"
 
         # Build SKU details table
         $skuDetailRows = ''
