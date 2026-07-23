@@ -28,7 +28,7 @@ function Test-Assessment-25375 {
     	Category = 'Global Secure Access',
     	ImplementationCost = 'Low',
     	Service = ('Graph'),
-    	CompatibleLicense = ('AAD_PREMIUM','AAD_PREMIUM_P2'),
+    	CompatibleLicense = ('AAD_PREMIUM'),
     	Pillar = 'Network',
     	RiskLevel = 'High',
     	SfiPillar = 'Protect networks',
@@ -166,10 +166,8 @@ function Test-Assessment-25375 {
         # Build requirement status table
         $requirementTableRows = ''
 
-        # Determine source SKUs containing any GSA service plan
-        $gsaSourceSkus = @($gsaSkus | Where-Object {
-            $_.CapabilityStatus -eq 'Enabled' -and ($_.ServicePlans | Where-Object { $_.ServicePlanId -in $gsaServicePlanIds.Values })
-        } | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber } | Select-Object -Unique)
+        # Determine source SKUs containing any GSA service plan (regardless of capability status)
+        $gsaSourceSkus = @($gsaSkus | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber } | Select-Object -Unique)
 
         # Single aggregate row per spec
         $gsaStatus = if ($hasGsaEntitlement) { '✅ Enabled' } else { '❌ Missing' }
