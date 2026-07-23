@@ -140,48 +140,31 @@ function Test-Assessment-25375 {
     #endregion Assessment Logic
 
     #region Report Generation
-    # Build detailed information if we have GSA-related SKUs
-    $mdInfo = ''
+    # Always generate report tables for successful queries
+    $reportTitle = 'Licenses'
+    $portalLink = 'https://admin.microsoft.com/Adminportal/Home#/licenses'
+
+    # Build requirement status table (always shown)
+    $requirementTableRows = ''
+
+    # Determine source SKUs containing any GSA service plan (regardless of capability status)
+    $gsaSourceSkus = @($gsaSkus | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber } | Select-Object -Unique)
+
+    # Single aggregate row per spec
+    $gsaStatus = if ($hasGsaEntitlement) { '✅ Enabled' } else { '❌ Missing' }
+    $gsaSkuList = if ($gsaSourceSkus.Count -gt 0) { $gsaSourceSkus -join ', ' } else { '—' }
+    $requirementTableRows += "| Global Secure Access licensing entitlement | $gsaStatus | $gsaSkuList |`n"
+
+    # Build SKU details table
+    $skuDetailRows = ''
+    $countHeader = ''
 
     if ($gsaSkus.Count -gt 0) {
-        $reportTitle = 'Licenses'
-        $portalLink = 'https://admin.microsoft.com/Adminportal/Home#/licenses'
-
-        $formatTemplate = @'
-
-
-## [{0}]({1})
-
-**Tenant Licensing Summary:**
-
-| Requirement | Status | Source SKU(s) |
-| :---------- | :----- | :------------ |
-{2}
-
-**SKUs Containing Tracked Service Plans:**
-
-{4}{3}
-'@
-
-        # Build requirement status table
-        $requirementTableRows = ''
-
-        # Determine source SKUs containing any GSA service plan (regardless of capability status)
-        $gsaSourceSkus = @($gsaSkus | ForEach-Object { Get-SafeMarkdown -Text $_.SkuPartNumber } | Select-Object -Unique)
-
-        # Single aggregate row per spec
-        $gsaStatus = if ($hasGsaEntitlement) { '✅ Enabled' } else { '❌ Missing' }
-        $gsaSkuList = if ($gsaSourceSkus.Count -gt 0) { $gsaSourceSkus -join ', ' } else { '—' }
-        $requirementTableRows += "| Global Secure Access licensing entitlement | $gsaStatus | $gsaSkuList |`n"
-
-        # Build SKU details table
-        $skuDetailRows = ''
         $maxDisplay = 10
         $totalSkus = $gsaSkus.Count
         $displaySkus = if ($totalSkus -gt $maxDisplay) { $gsaSkus | Select-Object -First $maxDisplay } else { $gsaSkus }
 
         # Add count header if truncation occurs
-        $countHeader = ''
         if ($totalSkus -gt $maxDisplay) {
             $countHeader = "Showing $maxDisplay of $totalSkus SKUs.`n`n"
         }
@@ -204,14 +187,34 @@ function Test-Assessment-25375 {
             $remaining = $totalSkus - $maxDisplay
             $skuDetailRows += "| ... ($remaining more) | | | | |`n"
         }
-
-        # Build complete table with header row
-        $tableWithHeader = "| SKU Name | Capability Status | Tracked Service Plans Included | Available | Assigned |`n"
-        $tableWithHeader += "| :------- | :---------------- | :----------------------------- | --------: | -------: |`n"
-        $tableWithHeader += $skuDetailRows
-
-        $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $requirementTableRows, $tableWithHeader, $countHeader
     }
+    else {
+        # No SKUs with tracked service plans found
+        $skuDetailRows = "| No SKUs containing tracked Global Secure Access service plans found | | | | |`n"
+    }
+
+    # Build complete table with header row
+    $tableWithHeader = "| SKU Name | Capability Status | Tracked Service Plans Included | Available | Assigned |`n"
+    $tableWithHeader += "| :------- | :---------------- | :----------------------------- | --------: | -------: |`n"
+    $tableWithHeader += $skuDetailRows
+
+    $formatTemplate = @'
+
+
+## [{0}]({1})
+
+**Tenant Licensing Summary:**
+
+| Requirement | Status | Source SKU(s) |
+| :---------- | :----- | :------------ |
+{2}
+
+**SKUs Containing Tracked Service Plans:**
+
+{4}{3}
+'@
+
+    $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $requirementTableRows, $tableWithHeader, $countHeader
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
