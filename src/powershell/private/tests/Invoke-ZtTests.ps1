@@ -90,10 +90,11 @@
 	# Store the requested pillar so Get-ZtAssessmentResults can restrict TestPillar on cross-ref tests
 	$script:__ZtSession.RequestedPillar = $Pillar
 
-	# Filter based on preview feature flag
+	# Filter based on preview feature flag.
+	# In non-preview mode, only stable pillars are included in the run list.
+	# Preview mode keeps the full set returned by Get-ZtTest.
+	$stablePillars = @('Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', 'AI')
 	if (-not $script:__ZtSession.PreviewEnabled) {
-		# Non-preview mode: Only include stable/released pillars
-		$stablePillars = @('Identity', 'Devices', 'Network', 'Data')
 		$testsToRun = $testsToRun.Where{ ($_.Pillar | Where-Object { $_ -in $stablePillars }) }
 	}
 
