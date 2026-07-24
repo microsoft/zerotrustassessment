@@ -1,6 +1,18 @@
 <#
 .SYNOPSIS
     User and Entity Behavior Analytics (UEBA) is enabled in Microsoft Sentinel
+
+.DESCRIPTION
+    Verifies UEBA configuration on every Sentinel-onboarded Log Analytics workspace by querying
+    the Microsoft.SecurityInsights/settings/Ueba and settings/EntityAnalytics resources via ARM.
+    Reports per-workspace UEBA state, configured data sources, onboarding date, and entity providers.
+
+.NOTES
+    Test ID: 41209
+    Workshop Task: SECOPS_103
+    Pillar: SecOps
+    Category: Security information and event management
+    Required API: Azure Resource Manager (management.azure.com)
 #>
 
 function Test-Assessment-41209 {
