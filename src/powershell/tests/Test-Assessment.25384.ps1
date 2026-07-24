@@ -386,10 +386,14 @@ function Test-Assessment-25384 {
     #endregion Report Generation
 
     $params = @{
-        TestId = '25384'
-        Title  = 'Application admin rights are constrained to specific Private Access apps, not tenant-wide'
-        Status = $passed
-        Result = $testResultMarkdown
+        TestId     = '25384'
+        Title      = 'Application admin rights are constrained to specific Private Access apps, not tenant-wide'
+        Status     = $passed
+        Result     = $testResultMarkdown
+        ResultData = @{
+            AssignmentCount = $assignments.Count
+            Assignments     = @($assignments | Select-Object directoryScopeId)
+        }
     }
 
     Add-ZtTestResultDetail @params

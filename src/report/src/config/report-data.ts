@@ -20,6 +20,7 @@ export interface TenantInfo {
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
   OverviewAuthMethodsAllUsers?: SankeyData | null;
+  OverviewPrivateAccess?: PrivateAccessSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
   ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
@@ -135,6 +136,11 @@ export interface SankeyData {
   entrahybridjoined?: number;
   entrajoined?: number;
 }
+
+export interface PrivateAccessSankeyData extends SankeyData {
+  adminAtRisk: boolean;
+  populationMismatch: boolean;
+}
 export interface SankeyDataNode {
   value: number | null;
   source: string;
@@ -246,6 +252,7 @@ export interface Test {
   TestTags: string[] | null;
   TestId: string;
   TestDescription: string;
+  TestData?: unknown;
 }
 
 export const reportData: ZeroTrustAssessmentReport = {
