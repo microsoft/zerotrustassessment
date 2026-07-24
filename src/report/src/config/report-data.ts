@@ -149,11 +149,18 @@ export interface TenantOverview {
   ManagedDeviceCount: number;
 }
 export interface DeviceOverview {
+  DeviceSummary: DeviceSummary | null;
   DesktopDevicesSummary: SankeyData | null;
   MobileSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
   DeviceOwnership: DeviceOwnership | null;
+}
+
+export interface DeviceSummary {
+  description: string;
+  totalDevices: number | null;
+  deviceOperatingSystemSummary: DeviceOperatingSystemSummary;
 }
 
 export interface DeviceOwnership {
@@ -743,6 +750,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       }
     ],
     "DeviceOverview": {
+      "DeviceSummary": null,
       "DesktopDevicesSummary": {
         "nodes": [
           {

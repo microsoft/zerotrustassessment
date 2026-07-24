@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { columns } from "@/components/test-table/columns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DevicesConfig from "@/components/DevicesConfig";
+import DevicesInsightsAccordion from "@/components/DevicesInsightsAccordion";
 import { BarChart3, Settings } from "lucide-react";
 
 
@@ -14,6 +15,9 @@ export default function Devices() {
             <PageHeader>
                 <PageHeaderHeading>Devices</PageHeaderHeading>
             </PageHeader>
+            <div className="mb-2">
+                <DevicesInsightsAccordion />
+            </div>
             <Tabs defaultValue="assessment" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="assessment" className="flex items-center gap-2">

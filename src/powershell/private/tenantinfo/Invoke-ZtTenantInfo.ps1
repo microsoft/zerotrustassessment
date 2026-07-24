@@ -27,8 +27,9 @@ function Invoke-ZtTenantInfo {
 
     if ($Pillar -in ('All', 'Devices')) {
         $IntunePlan = Get-ZtLicenseInformation -Product Intune
+        Add-ZtDeviceOverview -Database $Database
+
         if ($null -ne $IntunePlan) {
-            Add-ZtDeviceOverview -Database $Database
             Add-ZtDeviceWindowsEnrollment
             Add-ZtDeviceEnrollmentRestriction
             Add-ZTDeviceCompliancePolicies

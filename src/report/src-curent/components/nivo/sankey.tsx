@@ -31,17 +31,26 @@ type SankeyInputData = {
     links: SankeyLink[];
 };
 
+const isNonEmptyNodeId = (nodeId: string): boolean => typeof nodeId === 'string' && nodeId.trim().length > 0;
+
+const isRenderableLinkTopology = (link: SankeyLink): boolean =>
+    isNonEmptyNodeId(link.source) &&
+    isNonEmptyNodeId(link.target) &&
+    link.source !== link.target;
+
 // A Sankey link with a missing (null / non-numeric) value should not break the whole
 // graph when the rest of the links are valid. For an intermediate node the inbound flow
 // equals its outbound flow, so we reconstruct a missing link's value from the sum of the
 // target node's outgoing links (e.g. "User sign in -> Managed" = "Managed -> Compliant" +
-// "Managed -> Non-compliant"). Genuine zero values are preserved,
+// "Managed -> Non-compliant"). Genuine zero values are preserved (and later filtered out),
 // only truly missing values are reconstructed; leaf links that cannot be reconstructed are
-// set to zero so the sankey topology can still render.
+// left as NaN and dropped by the downstream validity filter.
 const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: string; value: number }[] => {
     const toNumber = (value: number | null): number => (value == null ? NaN : Number(value));
 
-    return links.map(link => {
+    return links
+        .filter(isRenderableLinkTopology)
+        .map(link => {
         const numericValue = toNumber(link.value);
         if (Number.isFinite(numericValue)) {
             return { source: link.source, target: link.target, value: numericValue };
@@ -52,10 +61,10 @@ const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: s
                 return sum;
             }
             const candidateValue = toNumber(candidate.value);
-            return Number.isFinite(candidateValue) && candidateValue >= 0 ? sum + candidateValue : sum;
+            return Number.isFinite(candidateValue) && candidateValue > 0 ? sum + candidateValue : sum;
         }, 0);
 
-        return { source: link.source, target: link.target, value: targetOutflow >= 0 ? targetOutflow : 0 };
+        return { source: link.source, target: link.target, value: targetOutflow > 0 ? targetOutflow : NaN };
     });
 };
 
@@ -70,13 +79,13 @@ export const ZtResponsiveSankey = ({
     labelFontSize?: number,
     labelPadding?: number,
 }) => {
-    const validNodeIds = new Set(data.nodes.map(node => node.id));
+    const validNodeIds = new Set(data.nodes.map(node => node.id).filter(isNonEmptyNodeId));
     const sanitizedLinks = reconstructLinkValues(data.links)
         .filter(link =>
             validNodeIds.has(link.source) &&
             validNodeIds.has(link.target) &&
             Number.isFinite(link.value) &&
-            link.value >= 0
+            link.value > 0
         );
 
     const connectedNodeIds = new Set<string>();
