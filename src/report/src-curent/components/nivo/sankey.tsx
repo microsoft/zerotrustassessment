@@ -35,9 +35,9 @@ type SankeyInputData = {
 // graph when the rest of the links are valid. For an intermediate node the inbound flow
 // equals its outbound flow, so we reconstruct a missing link's value from the sum of the
 // target node's outgoing links (e.g. "User sign in -> Managed" = "Managed -> Compliant" +
-// "Managed -> Non-compliant"). Genuine zero values are preserved (and later filtered out),
+// "Managed -> Non-compliant"). Genuine zero values are preserved,
 // only truly missing values are reconstructed; leaf links that cannot be reconstructed are
-// left as NaN and dropped by the downstream validity filter.
+// set to zero so the sankey topology can still render.
 const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: string; value: number }[] => {
     const toNumber = (value: number | null): number => (value == null ? NaN : Number(value));
 
@@ -52,21 +52,31 @@ const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: s
                 return sum;
             }
             const candidateValue = toNumber(candidate.value);
-            return Number.isFinite(candidateValue) && candidateValue > 0 ? sum + candidateValue : sum;
+            return Number.isFinite(candidateValue) && candidateValue >= 0 ? sum + candidateValue : sum;
         }, 0);
 
-        return { source: link.source, target: link.target, value: targetOutflow > 0 ? targetOutflow : NaN };
+        return { source: link.source, target: link.target, value: targetOutflow >= 0 ? targetOutflow : 0 };
     });
 };
 
-export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
+export const ZtResponsiveSankey = ({
+    isDark,
+    data,
+    labelFontSize = 12,
+    labelPadding = 16,
+}: {
+    isDark: boolean,
+    data: SankeyInputData,
+    labelFontSize?: number,
+    labelPadding?: number,
+}) => {
     const validNodeIds = new Set(data.nodes.map(node => node.id));
     const sanitizedLinks = reconstructLinkValues(data.links)
         .filter(link =>
             validNodeIds.has(link.source) &&
             validNodeIds.has(link.target) &&
             Number.isFinite(link.value) &&
-            link.value > 0
+            link.value >= 0
         );
 
     const connectedNodeIds = new Set<string>();
@@ -102,7 +112,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
         },
         labels: {
             text: {
-                fontSize: 12
+                fontSize: labelFontSize
             }
         }
     };
@@ -138,7 +148,7 @@ export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: San
         enableLinkGradient={true}
         labelPosition="inside"
         labelOrientation="horizontal"
-        labelPadding={16}
+        labelPadding={labelPadding}
         labelTextColor={isDark ? '#ffffff' : '#000000'}
         sort='input'
         legends={[]}

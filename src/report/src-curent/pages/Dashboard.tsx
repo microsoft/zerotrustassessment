@@ -1427,7 +1427,7 @@ export default function Dashboard() {
                         )}
 
                                             {/* Desktop devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes && reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes.length > 0 && (
+                    {
                         <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                                 <Monitor className="pr-2 size-8" />
@@ -1509,10 +1509,10 @@ export default function Dashboard() {
                                 </div>
                             </CardFooter>
                         </Card>
-                    )}
+                    }
 
                     {/* Mobile devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo?.DeviceOverview?.ManagedDevices && (
+                    {
                         <Card className="w-full lg:col-span-3">
                             <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />
@@ -1585,7 +1585,7 @@ export default function Dashboard() {
                                 </div>
                             </CardFooter>
                         </Card>
-                    )}
+                    }
 
                 </div>
             </div>
