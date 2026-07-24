@@ -53,15 +53,15 @@ function Add-ZtOverviewPrivateAccess {
     $appScopedAssignments = $assignments.Count - $tenantWideAssignments
 
     $nodes = @(
-        @{ source = 'Private Access apps'; target = 'Broad segments - at-risk'; value = $broadSegments.Count },
-        @{ source = 'Private Access apps'; target = 'Segmentation manual review'; value = $segmentationManualReview.Count },
-        @{ source = 'Private Access apps'; target = 'Population mismatch - manual review'; value = $unmatchedAuthenticationApps.Count },
-        @{ source = 'Private Access apps'; target = 'Least-privilege segments'; value = $segmentationClean.Count },
-        @{ source = 'Least-privilege segments'; target = 'Password-only - at-risk'; value = $passwordOnly },
-        @{ source = 'Least-privilege segments'; target = 'Authentication manual review'; value = $authenticationManualReview },
-        @{ source = 'Least-privilege segments'; target = 'Strong auth - Zero Trust'; value = $strongAuth },
-        @{ source = 'Application Administrator assignments'; target = 'Tenant-wide admin - at-risk'; value = $tenantWideAssignments },
-        @{ source = 'Application Administrator assignments'; target = 'App-scoped admin - Zero Trust'; value = $appScopedAssignments }
+        @{ source = 'Private Access apps'; target = 'Broad segments - at-risk (25395)'; value = $broadSegments.Count },
+        @{ source = 'Private Access apps'; target = 'Segmentation manual review (25395)'; value = $segmentationManualReview.Count },
+        @{ source = 'Private Access apps'; target = 'Population mismatch - manual review (25396)'; value = $unmatchedAuthenticationApps.Count },
+        @{ source = 'Private Access apps'; target = 'Least-privilege segments (25395)'; value = $segmentationClean.Count },
+        @{ source = 'Least-privilege segments (25395)'; target = 'Password-only - at-risk (25396)'; value = $passwordOnly },
+        @{ source = 'Least-privilege segments (25395)'; target = 'Authentication manual review (25396)'; value = $authenticationManualReview },
+        @{ source = 'Least-privilege segments (25395)'; target = 'Strong auth - Zero Trust (25396)'; value = $strongAuth },
+        @{ source = 'Application Administrator assignments'; target = 'Tenant-wide admin - at-risk (25384)'; value = $tenantWideAssignments },
+        @{ source = 'Application Administrator assignments'; target = 'App-scoped admin - Zero Trust (25384)'; value = $appScopedAssignments }
     )
 
     Add-ZtTenantInfo -Name $tenantInfoName -Value @{
