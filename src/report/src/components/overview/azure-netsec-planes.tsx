@@ -179,7 +179,7 @@ export function AzureNetSecPlanes() {
                                     <div className="grid w-full grid-cols-[1rem_minmax(0,1fr)_5rem_2rem] items-center gap-3 text-left">
                                         <span className="w-4 shrink-0 text-xs font-mono text-muted-foreground">{plane.id}</span>
                                         <span className="min-w-0 text-sm font-medium">{plane.name}</span>
-                                        <Badge variant={getStatusBadgeVariant(plane.result.status)} className="justify-self-end">{getStatusLabel(plane.result.status)}</Badge>
+                                        <Badge variant={getStatusBadgeVariant(plane.result.status)} className="w-16 justify-center justify-self-end">{getStatusLabel(plane.result.status)}</Badge>
                                         <span className="text-right text-xs tabular-nums text-muted-foreground">{plane.result.total === 0 ? "N/A" : `${plane.result.passed}/${plane.result.total}`}</span>
                                     </div>
                                 </AccordionTrigger>
