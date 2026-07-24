@@ -477,10 +477,14 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
     $params = @{
-        TestId = '25395'
-        Title  = 'Entra Private Access Application segments are defined to enforce least-privilege access'
-        Status = $passed
-        Result = $testResultMarkdown
+        TestId     = '25395'
+        Title      = 'Entra Private Access Application segments are defined to enforce least-privilege access'
+        Status     = $passed
+        Result     = $testResultMarkdown
+        ResultData = @{
+            TotalApps    = $apps.Count
+            Applications = @($appResults | Select-Object AppId, Status)
+        }
     }
 
     # Add CustomStatus if status is 'Investigate'

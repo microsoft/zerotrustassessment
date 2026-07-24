@@ -326,10 +326,14 @@ function Test-Assessment-25396 {
     #endregion Report Generation
 
     $params = @{
-        TestId = '25396'
-        Title  = 'Conditional Access policies enforce strong authentication for private apps'
-        Status = $passed
-        Result = $testResultMarkdown
+        TestId     = '25396'
+        Title      = 'Conditional Access policies enforce strong authentication for private apps'
+        Status     = $passed
+        Result     = $testResultMarkdown
+        ResultData = @{
+            TotalApps    = $totalApps
+            Applications = @($allAppDetails | Select-Object AppId, Status)
+        }
     }
 
     if ($unprotectedApps -eq 0 -and $manualReviewApps -gt 0) {

@@ -46,6 +46,10 @@ function Add-ZtTestResultDetail {
 		[Parameter(Mandatory = $false)]
 		[string] $Result,
 
+		# Optional structured data used by report visualizations that cannot be derived safely from markdown.
+		[Parameter(Mandatory = $false)]
+		$ResultData,
+
 		# Collection of Graph objects to display in the test results report.
 		# This will be inserted into the contents of Result parameter if the result contains a placeholder %TestResult%.
 		[Object[]] $GraphObjects,
@@ -226,6 +230,7 @@ function Add-ZtTestResultDetail {
 		TestMinimumLicense     = $testMeta.MinimumLicense
 		TestDescription        = $Description
 		TestResult             = $Result
+		TestData               = $ResultData
 		TestSkipped            = $SkippedBecause
 		SkippedReason          = $SkippedReason
 	}
