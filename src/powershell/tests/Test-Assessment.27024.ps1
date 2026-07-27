@@ -112,7 +112,6 @@ resources
         }
     }
 
-    $passedItems = @($policies | Where-Object { $_.IsCompliant })
     $failedItems = @($policies | Where-Object { -not $_.IsCompliant })
     $passed = $failedItems.Count -eq 0
 
@@ -125,7 +124,7 @@ resources
     #endregion Assessment Logic
 
     #region Report Generation
-    $portalWafBrowseLink = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Cdn%2Fprofiles'
+    $portalWafBrowseLink = 'https://portal.azure.com/#browse/Microsoft.Network%2FfrontdoorWebApplicationFirewallPolicies'
     $portalResourceBaseLink = 'https://portal.azure.com/#resource'
     $portalSubscriptionBaseLink = 'https://portal.azure.com/#resource/subscriptions'
     $reportTitle = 'Azure Front Door WAF policies'
@@ -140,14 +139,14 @@ resources
         $rulesetVersionDisplay = if ($policy.HttpDdosRulesetVersion) { $policy.HttpDdosRulesetVersion } else { 'N/A' }
         $statusDisplay = if ($policy.IsCompliant) { '✅ Pass' } else { '❌ Fail' }
 
-        $tableRows += "| $policyLink | $subscriptionLink | $($policy.SkuName) | $enabledStateDisplay | $wafModeDisplay | $httpDdosRulesetDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
+        $tableRows += "| $policyLink | $subscriptionLink | $enabledStateDisplay | $wafModeDisplay | $httpDdosRulesetDisplay | $rulesetVersionDisplay | $statusDisplay |`n"
     }
 
     $formatTemplate = @'
 ## [{0}]({1})
 
-| Policy name | Subscription name | SKU | Enabled state | WAF mode | HTTP DDoS ruleset | Ruleset version | Status |
-| :---------- | :---------------- | :-- | :------------ | :------- | :---------------- | :-------------- | :----- |
+| Policy name | Subscription name | Enabled state | WAF mode | HTTP DDoS ruleset | Ruleset version | Status |
+| :---------- | :---------------- | :------------ | :------- | :---------------- | :-------------- | :----- |
 {2}
 '@
 
