@@ -88,7 +88,7 @@ function Test-Assessment-41033 {
     try {
         $quarantineTagMap = @{}
         Get-QuarantinePolicy -ErrorAction Stop | ForEach-Object {
-            $canSelfRelease = $_.EndUserQuarantinePermissions -match 'PermissionToRelease:\s+True'
+            $canSelfRelease = $_.EndUserQuarantinePermissions.PermissionToRelease -eq $true
             $quarantineTagMap[$_.Name] = $canSelfRelease -and $_.ESNEnabled -ne $true
         }
     }
