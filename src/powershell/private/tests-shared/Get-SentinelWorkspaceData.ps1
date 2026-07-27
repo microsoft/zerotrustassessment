@@ -121,6 +121,7 @@ resources
 
         $sentinelOnboarded = $false
         $permissionError   = $false
+        $onboardingError   = $false
         try {
             $sentinelPath = "$($workspace.workspaceId)/providers/Microsoft.SecurityInsights/onboardingStates/default?api-version=2024-03-01"
             $response = Invoke-ZtAzureRequest -Path $sentinelPath -FullResponse -ErrorAction Stop
@@ -134,11 +135,13 @@ resources
                 }
                 default {
                     Write-PSFMessage "Sentinel onboarding check for workspace '$($workspace.workspaceName)' returned unexpected status $($response.StatusCode)." -Tag Test -Level Warning
+                    $onboardingError = $true
                 }
             }
         }
         catch {
             Write-PSFMessage "Error checking Sentinel onboarding for workspace '$($workspace.workspaceName)': $_" -Tag Test -Level Warning
+            $onboardingError = $true
         }
 
         $results += [PSCustomObject]@{
@@ -149,6 +152,7 @@ resources
             WorkspaceId       = $workspace.workspaceId
             SentinelOnboarded = $sentinelOnboarded
             PermissionError   = $permissionError
+            OnboardingError   = $onboardingError
         }
     }
 

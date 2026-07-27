@@ -80,18 +80,19 @@ function Test-Assessment-41209 {
     }
 
     $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $forbiddenWorkspaces       = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardingErrorWorkspaces = @($allWorkspaces | Where-Object { $_.OnboardingError })
+    $onboardedWorkspaces       = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
-            # Auth errors on the Q3 onboarding check mean we cannot confirm whether those workspaces
-            # have Sentinel onboarded; a passing workspace may exist among the inaccessible ones.
+        if ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
+            # Either 401/403 (PermissionError) or 5xx/exception (OnboardingError) on the Q3 check —
+            # cannot confirm whether those workspaces have Sentinel onboarded; state is unknown.
             $params = @{
                 TestId       = '41209'
                 Title        = 'User and Entity Behavior Analytics (UEBA) is enabled in Microsoft Sentinel'
                 Status       = $false
-                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                Result       = '⚠️ One or more Log Analytics workspaces returned an error or insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
@@ -161,12 +162,19 @@ function Test-Assessment-41209 {
         else {
             switch ([int]$uebaResponse.StatusCode) {
                 200 {
-                    $uebaSetting = $uebaResponse.Content | ConvertFrom-Json
-                    $uebaPresent = $true
-                    $dataSources = @($uebaSetting.properties.dataSources | Where-Object { $_ })
-                    $onboardDateTime = $uebaSetting.properties.onboardDateTime
-                    # Pass when at least one supported data source is configured; Investigate when empty.
-                    $rowStatus = if ($dataSources.Count -gt 0) { 'Pass' } else { 'Investigate' }
+                    try {
+                        $uebaSetting = $uebaResponse.Content | ConvertFrom-Json -ErrorAction Stop
+                        $uebaPresent = $true
+                        $dataSources = @($uebaSetting.properties.dataSources | Where-Object { $_ })
+                        $onboardDateTime = $uebaSetting.properties.onboardDateTime
+                        # Pass when at least one supported data source is configured; Investigate when empty.
+                        $rowStatus = if ($dataSources.Count -gt 0) { 'Pass' } else { 'Investigate' }
+                    }
+                    catch {
+                        # Malformed or empty response body — cannot parse UEBA setting; retain unknown state.
+                        Write-PSFMessage "Failed to parse UEBA setting response for workspace '$($workspace.WorkspaceName)': $_" -Tag Test -Level Warning
+                        $rowStatus = 'Investigate'
+                    }
                 }
                 404 {
                     # UEBA has never been enabled on this workspace — definitively off.
@@ -189,9 +197,15 @@ function Test-Assessment-41209 {
         if ($null -ne $entityAnalyticsResponse) {
             switch ([int]$entityAnalyticsResponse.StatusCode) {
                 200 {
-                    $eaSetting              = $entityAnalyticsResponse.Content | ConvertFrom-Json
-                    $entityAnalyticsPresent = $true
-                    $entityProviders        = @($eaSetting.properties.entityProviders | Where-Object { $_ })
+                    try {
+                        $eaSetting              = $entityAnalyticsResponse.Content | ConvertFrom-Json -ErrorAction Stop
+                        $entityAnalyticsPresent = $true
+                        $entityProviders        = @($eaSetting.properties.entityProviders | Where-Object { $_ })
+                    }
+                    catch {
+                        # Malformed or empty response body — EntityAnalytics state stays $null (unknown).
+                        Write-PSFMessage "Failed to parse EntityAnalytics setting response for workspace '$($workspace.WorkspaceName)': $_" -Tag Test -Level Warning
+                    }
                 }
                 404 {
                     # Spec: entityProviders were never explicitly set — definitively not configured.
