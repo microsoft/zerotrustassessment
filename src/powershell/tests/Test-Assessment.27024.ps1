@@ -1,6 +1,14 @@
 <#
 .SYNOPSIS
     Validates that the HTTP DDoS protection rule set is enabled in Azure Front Door WAF.
+
+.DESCRIPTION
+    This test queries Azure Resource Graph for Azure Front Door Premium WAF policies that are attached to an Azure Front Door and evaluates whether the Microsoft_HTTPDDoSRuleSet is configured and has at least one of its rules enabled.
+
+.NOTES
+    Test ID: 27024
+    Category: Azure Network Security
+    Required API: Azure Resource Graph - FrontDoorWebApplicationFirewallPolicies
 #>
 
 function Test-Assessment-27024 {
