@@ -187,7 +187,7 @@ function Test-Assessment-41047 {
         if ($controlProfiles.Count -eq 0) {
             # No pinned control profiles found → Investigate (no evidence).
             Write-PSFMessage "Test-Assessment-41047: INVESTIGATE — no pinned Secure Score control profiles found" -Tag Test -Level VeryVerbose
-            Add-ZtTestResultDetail -TestId '41047' -Title $testTitle -Status $false -CustomStatus 'Investigate' -Result "⚠️ None of the expected Microsoft Defender Antivirus Secure Score controls (scid_2010, scid_5090, scid_6090) were found. Verify that Defender for Endpoint Secure Score data is flowing for this tenant."
+            Add-ZtTestResultDetail -TestId '41047' -Title $testTitle -Status $false -CustomStatus 'Investigate' -Result "⚠️ The Secure Score control could not be located; verify Defender for Endpoint Secure Score data is flowing."
             return
         }
 
