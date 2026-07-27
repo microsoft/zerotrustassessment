@@ -88,7 +88,7 @@ function Test-Assessment-41033 {
     try {
         $quarantineTagMap = @{}
         Get-QuarantinePolicy -ErrorAction Stop | ForEach-Object {
-            $canSelfRelease = (([int]$_.EndUserQuarantinePermissionsValue -band 32) -ne 0)
+            $canSelfRelease = $_.EndUserQuarantinePermissions -match 'PermissionToRelease:\s+True'
             $quarantineTagMap[$_.Name] = $canSelfRelease -and $_.ESNEnabled -ne $true
         }
     }
@@ -107,6 +107,18 @@ function Test-Assessment-41033 {
             Title        = 'Anti-phishing policies in Microsoft Defender for Office 365 are configured with impersonation and spoof protection'
             Status       = $false
             Result       = '⚠️ `Get-AntiPhishPolicy` returned zero rows. The default policy always exists; verify Exchange Online connectivity and re-run.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    if (-not ($policies | Where-Object { $_.IsDefault -eq $true })) {
+        $params = @{
+            TestId       = '41033'
+            Title        = 'Anti-phishing policies in Microsoft Defender for Office 365 are configured with impersonation and spoof protection'
+            Status       = $false
+            Result       = '⚠️ `Get-AntiPhishPolicy` did not return the default policy. Verify Exchange Online connectivity and re-run.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -208,7 +220,7 @@ function Test-Assessment-41033 {
                 }
             }
 
-            # Quarantine tag self-release — require both PermissionToRelease (bit 32) and no end-user notification.
+            # Quarantine tag self-release — require PermissionToRelease and no end-user notification.
             # When quarantine policy data is unavailable, custom tags cannot be safely evaluated.
             foreach ($tp in @('TargetedUserQuarantineTag', 'TargetedDomainQuarantineTag', 'MailboxIntelligenceQuarantineTag', 'SpoofQuarantineTag')) {
                 $val = $policy.$tp
@@ -349,7 +361,7 @@ function Test-Assessment-41033 {
     else {
         $passed             = $true
         $aggregation        = 'at least one compliant policy applies, default policy meets required subset, no orphaned rules'
-        $testResultMarkdown = "✅ Anti-phishing policies are configured with spoof intelligence, DMARC honoring, mailbox intelligence, and impersonation protection for users and domains; impersonation and spoof verdicts are quarantined with end-user notification.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Anti-phishing policies are configured with spoof intelligence, DMARC honoring, mailbox intelligence, and impersonation protection for users and domains; impersonation and spoof verdicts are quarantined without unapproved self-release.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
