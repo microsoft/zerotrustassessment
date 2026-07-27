@@ -163,6 +163,7 @@ function Test-Assessment-41114 {
         }
 
         $enabledTeamsRule = $null
+        $hasExceptions = $false
         if ($q2rError) {
             if (-not $anyFail) {
                 $anyInvestigate = $true
