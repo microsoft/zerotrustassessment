@@ -206,19 +206,18 @@ function Test-Assessment-41114 {
     # least Built-in Protection, so an empty result should not silently become a Fail verdict.
     $q3PolicyAnomaly = $null -eq $safeLinksPolicies -or $safeLinksPolicies.Count -eq 0
 
-    if ($q3rError -or $q3PolicyAnomaly) {
-        # Cannot determine which Safe Links rules or policies are active — Investigate.
+    if ($q3PolicyAnomaly) {
+        # No Safe Links policies were retrieved, so no effective policy state is known.
         $anyInvestigate = $true
         $controlRows.Add([PSCustomObject]@{
             Setting        = "[Safe Links for Teams]($q3PortalLink)"
             Policy         = ''
             AppliedViaRule = ''
             Enabled        = '⚠️ Unknown'
-            Status         = '⚠️ Investigate — could not retrieve Safe Links rules or policies'
+            Status         = '⚠️ Investigate — could not retrieve Safe Links policies'
         })
     }
     else {
-        $enabledSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -eq 'Enabled' })
         # Built-in Protection covers recipients not matched by an enabled custom rule, so it is
         # always effective and must be reported alongside enabled-rule-referenced policies.
         $builtInSafeLinksPolicy = $safeLinksPolicies | Where-Object { $_.IsBuiltInProtection -eq $true } | Select-Object -First 1
@@ -245,33 +244,47 @@ function Test-Assessment-41114 {
             })
         }
 
-        foreach ($rule in $enabledSafeLinksRules) {
-            $policyIdentity = $rule.SafeLinksPolicy
-            $policy         = $safeLinksPolicyByIdentity[$policyIdentity]
+        if ($q3rError) {
+            # Built-in state is known, but custom/preset policy assignments cannot be evaluated.
+            $anyInvestigate = $true
+            $controlRows.Add([PSCustomObject]@{
+                Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                Policy         = ''
+                AppliedViaRule = ''
+                Enabled        = '⚠️ Unknown'
+                Status         = '⚠️ Investigate — could not retrieve Safe Links rules'
+            })
+        }
+        else {
+            $enabledSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -eq 'Enabled' })
+            foreach ($rule in $enabledSafeLinksRules) {
+                $policyIdentity = $rule.SafeLinksPolicy
+                $policy         = $safeLinksPolicyByIdentity[$policyIdentity]
 
-            if ($null -eq $policy) {
-                $anyInvestigate = $true
+                if ($null -eq $policy) {
+                    $anyInvestigate = $true
+                    $controlRows.Add([PSCustomObject]@{
+                        Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                        Policy         = $policyIdentity
+                        AppliedViaRule = $rule.Name
+                        Enabled        = '⚠️ Unknown'
+                        Status         = '⚠️ Investigate — referenced policy not found'
+                    })
+                    continue
+                }
+
+                $teamsUnknown = $null -eq $policy.EnableSafeLinksForTeams
+                $teamsEnabled = -not $teamsUnknown -and $policy.EnableSafeLinksForTeams -eq $true
+                if ($teamsUnknown) { $anyInvestigate = $true } elseif (-not $teamsEnabled) { $anyFail = $true }
+
                 $controlRows.Add([PSCustomObject]@{
                     Setting        = "[Safe Links for Teams]($q3PortalLink)"
                     Policy         = $policyIdentity
                     AppliedViaRule = $rule.Name
-                    Enabled        = '⚠️ Unknown'
-                    Status         = '⚠️ Investigate — referenced policy not found'
+                    Enabled        = if ($teamsUnknown) { '⚠️ Unknown' } elseif ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
+                    Status         = if ($teamsUnknown) { '⚠️ Investigate' } elseif ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
                 })
-                continue
             }
-
-            $teamsUnknown = $null -eq $policy.EnableSafeLinksForTeams
-            $teamsEnabled = -not $teamsUnknown -and $policy.EnableSafeLinksForTeams -eq $true
-            if ($teamsUnknown) { $anyInvestigate = $true } elseif (-not $teamsEnabled) { $anyFail = $true }
-
-            $controlRows.Add([PSCustomObject]@{
-                Setting        = "[Safe Links for Teams]($q3PortalLink)"
-                Policy         = $policyIdentity
-                AppliedViaRule = $rule.Name
-                Enabled        = if ($teamsUnknown) { '⚠️ Unknown' } elseif ($teamsEnabled) { '✅ Yes' } else { '❌ No' }
-                Status         = if ($teamsUnknown) { '⚠️ Investigate' } elseif ($teamsEnabled) { '✅ Pass' } else { '❌ Fail' }
-            })
         }
     }
 
