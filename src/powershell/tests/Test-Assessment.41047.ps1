@@ -86,11 +86,11 @@ function Test-Assessment-41047 {
             $assignments = @($policy.assignments)
 
             $avPolicies += [PSCustomObject]@{
-                PolicyId        = $policy.id
-                PolicyName      = $policy.name
-                AvSettings      = $avSettingsFound -join ', '
-                HasAssignments  = $true   # guaranteed by $filter=assignments/any()
-                AssignedGroups  = "$($assignments.Count) group(s)"
+                PolicyId       = $policy.id
+                PolicyName     = $policy.name
+                AvSettings     = $avSettingsFound -join ', '
+                HasAssignments = $true   # guaranteed by $filter=assignments/any()
+                Assignments    = $assignments   # raw for group name resolution in report
             }
         }
     }
@@ -182,10 +182,6 @@ function Test-Assessment-41047 {
         # Pass: at least one assigned active-mode AV policy confirmed.
         $passed = $true
     }
-    elseif (-not $runSecureScore) {
-        # Q1 ran and found no assigned AV policy; Secure Score not queried — Fail.
-        $passed = $false
-    }
     else {
         # Secure Score path evaluation.
         if ($controlProfiles.Count -eq 0) {
@@ -255,14 +251,17 @@ function Test-Assessment-41047 {
     # Build report table based on which evaluation path succeeded.
     if ($avPolicies.Count -gt 0) {
         # Q1 path table.
+
         $displayPolicies = @($avPolicies | Select-Object -First $maxDisplay)
         $isTruncated     = $avPolicies.Count -gt $maxDisplay
 
         $tableRows = ''
         foreach ($row in $displayPolicies) {
-            $nameMd    = Get-SafeMarkdown -Text $row.PolicyName
+            $nameMd = Get-SafeMarkdown -Text $row.PolicyName
             $avMd      = Get-SafeMarkdown -Text $row.AvSettings
-            $tableRows += "| $nameMd | $avMd | ✅ Assigned | $($row.AssignedGroups) | Pass |`n"
+            $groupsMd  = Get-SafeMarkdown -Text (Get-ZtAssignmentText -assignments $row.Assignments)
+
+            $tableRows += "| $nameMd | $avMd | ✅ Assigned | $groupsMd | ✅ Pass |`n"
         }
         if ($isTruncated) {
             $tableRows += "| ... | ... | ... | ... | ... |`n"
@@ -297,7 +296,10 @@ $tableRows
             $maxScore   = if ($null -ne $ctrl.maxScore) { $ctrl.maxScore } else { '—' }
             $implStatus = if ($scoreEntry -and $scoreEntry.implementationStatus) { $scoreEntry.implementationStatus } else { '—' }
             $lastMod    = if ($ctrl.lastModifiedDateTime) { Get-FormattedDate -DateString $ctrl.lastModifiedDateTime } else { '—' }
-            $ignored    = if ($latestUpd -and $latestUpd.state -eq 'ignored') { '⚠️ Yes' } else { '✅ No' }
+            $ignored    = if ($latestUpd -and $latestUpd.state -eq 'ignored') {
+                $comment = if ($latestUpd.comment) { ' — ' + (Get-SafeMarkdown -Text $latestUpd.comment) } else { '' }
+                "⚠️ Yes$comment"
+            } else { '✅ No' }
 
             $rowResult  = switch ($ctrlStatuses[$ctrl.id]) {
                 'Pass'        { '✅ Pass' }
