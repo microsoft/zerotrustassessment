@@ -173,7 +173,8 @@ function Test-Assessment-41209 {
                     catch {
                         # Malformed or empty response body — cannot parse UEBA setting; retain unknown state.
                         Write-PSFMessage "Failed to parse UEBA setting response for workspace '$($workspace.WorkspaceName)': $_" -Tag Test -Level Warning
-                        $rowStatus = 'Investigate'
+                        $uebaPresent = $null
+                        $rowStatus   = 'Investigate'
                     }
                 }
                 404 {
@@ -205,6 +206,7 @@ function Test-Assessment-41209 {
                     catch {
                         # Malformed or empty response body — EntityAnalytics state stays $null (unknown).
                         Write-PSFMessage "Failed to parse EntityAnalytics setting response for workspace '$($workspace.WorkspaceName)': $_" -Tag Test -Level Warning
+                        $entityAnalyticsPresent = $null
                     }
                 }
                 404 {
@@ -235,14 +237,15 @@ function Test-Assessment-41209 {
     $failItems        = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Fail' })
     $investigateItems = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Investigate' })
 
-    # Overall result: Fail takes priority over Investigate; Pass only when every workspace passes.
-    $passed       = $failItems.Count -eq 0 -and $investigateItems.Count -eq 0
+    # Overall result: Fail takes priority over Investigate; Pass only when every workspace passes
+    # and no workspace had an unresolvable Q3 onboarding error (incomplete scan cannot report clean).
+    $passed       = $failItems.Count -eq 0 -and $investigateItems.Count -eq 0 -and $onboardingErrorWorkspaces.Count -eq 0
     $customStatus = $null
 
     if ($failItems.Count -gt 0) {
         $testResultMarkdown = "❌ UEBA is not enabled in the Sentinel workspace.`n`n%TestResult%"
     }
-    elseif ($investigateItems.Count -gt 0) {
+    elseif ($investigateItems.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ The UEBA setting returned an unexpected response, or UEBA is enabled but no supported data sources are configured.`n`n%TestResult%"
     }
