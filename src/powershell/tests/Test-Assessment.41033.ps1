@@ -82,13 +82,14 @@ function Test-Assessment-41033 {
     }
 
     Write-ZtProgress -Activity $activity -Status 'Querying quarantine policies'
-    # $quarantineTagMap: tag name → $true when PermissionToRelease (bit 32) is set (recipients can self-release)
+    # $quarantineTagMap: tag name → $true when recipients can self-release without notification
     # Falls back to $null on error; assessment then uses built-in tag name list as a fallback
     $quarantineTagMap = $null
     try {
         $quarantineTagMap = @{}
         Get-QuarantinePolicy -ErrorAction Stop | ForEach-Object {
-            $quarantineTagMap[$_.Name] = (([int]$_.EndUserQuarantinePermissionsValue -band 32) -ne 0)
+            $canSelfRelease = (([int]$_.EndUserQuarantinePermissionsValue -band 32) -ne 0)
+            $quarantineTagMap[$_.Name] = $canSelfRelease -and $_.ESNEnabled -ne $true
         }
     }
     catch {
@@ -112,8 +113,9 @@ function Test-Assessment-41033 {
         return
     }
 
-    # Known built-in tags that grant PermissionToRelease; used as fallback when quarantine policy data is unavailable
-    $builtInSelfReleaseTags = @('DefaultFullAccessPolicy', 'DefaultFullAccessWithNotificationPolicy')
+    # Known built-in tags that permit self-release without notification; used when policy data is unavailable
+    $builtInSelfReleaseTags = @('DefaultFullAccessPolicy')
+    $builtInQuarantineTags  = @('AdminOnlyAccessPolicy', 'DefaultFullAccessPolicy', 'DefaultFullAccessWithNotificationPolicy')
 
     $enabledRules   = @($rules | Where-Object { $_.State -eq 'Enabled' })
     $allPolicyNames = @($policies | Select-Object -ExpandProperty Identity)
@@ -133,6 +135,7 @@ function Test-Assessment-41033 {
         $isBuiltIn = $policy.IsBuiltInProtection -eq $true
         $isDefault = $policy.IsDefault -eq $true
         $reasons   = [System.Collections.Generic.List[string]]::new()
+        $unverifiedCustomQuarantineTags = [System.Collections.Generic.List[string]]::new()
 
         if (-not $isBuiltIn) {
             $userCount   = if ($policy.TargetedUsersToProtect)   { @($policy.TargetedUsersToProtect).Count }   else { 0 }
@@ -140,6 +143,9 @@ function Test-Assessment-41033 {
 
             # Impersonation checks — custom policies only; default policy is evaluated against the minimum subset only
             if (-not $isDefault) {
+                if ($policy.Enabled -ne $true) {
+                    [void]$reasons.Add('Fail (policy disabled)')
+                }
                 if ($policy.EnableTargetedUserProtection -ne $true -or $userCount -eq 0) {
                     [void]$reasons.Add('Fail (targeted users empty)')
                 }
@@ -160,7 +166,7 @@ function Test-Assessment-41033 {
                 }
             }
 
-            # Core checks (default and custom)
+            # Required subset for default and custom policies
             if ($policy.EnableMailboxIntelligence -ne $true -or $policy.EnableMailboxIntelligenceProtection -ne $true) {
                 [void]$reasons.Add('Fail (mailbox intelligence off)')
             }
@@ -173,20 +179,22 @@ function Test-Assessment-41033 {
             if (-not $isDefault -and $policy.AuthenticationFailAction -ne 'Quarantine') {
                 [void]$reasons.Add('Fail (auth-fail delivered)')
             }
-            if ($policy.EnableUnauthenticatedSender -ne $true) {
-                [void]$reasons.Add('Fail (unauthenticated sender indicator off)')
-            }
-            if ($policy.EnableViaTag -ne $true) {
-                [void]$reasons.Add('Fail (via tag off)')
-            }
-            if ($policy.EnableFirstContactSafetyTips -ne $true) {
-                [void]$reasons.Add('Fail (first contact safety tips off)')
-            }
-            if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcQuarantineAction -ne 'Quarantine') {
-                [void]$reasons.Add('Fail (DMARC quarantine action not quarantine)')
-            }
-            if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcRejectAction -ne 'Quarantine') {
-                [void]$reasons.Add('Fail (DMARC reject action not quarantine)')
+            if (-not $isDefault) {
+                if ($policy.EnableUnauthenticatedSender -ne $true) {
+                    [void]$reasons.Add('Fail (unauthenticated sender indicator off)')
+                }
+                if ($policy.EnableViaTag -ne $true) {
+                    [void]$reasons.Add('Fail (via tag off)')
+                }
+                if ($policy.EnableFirstContactSafetyTips -ne $true) {
+                    [void]$reasons.Add('Fail (first contact safety tips off)')
+                }
+                if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcQuarantineAction -ne 'Quarantine') {
+                    [void]$reasons.Add('Fail (DMARC quarantine action not quarantine)')
+                }
+                if ($policy.HonorDmarcPolicy -eq $true -and $policy.DmarcRejectAction -ne 'Reject') {
+                    [void]$reasons.Add('Fail (DMARC reject action not reject)')
+                }
             }
 
             # Per-verdict action checks — only when the feature is enabled; name the offending property
@@ -200,8 +208,8 @@ function Test-Assessment-41033 {
                 }
             }
 
-            # Quarantine tag self-release — check PermissionToRelease bit (decimal 32) from collected policy data;
-            # fall back to built-in tag names when Get-QuarantinePolicy data is unavailable
+            # Quarantine tag self-release — require both PermissionToRelease (bit 32) and no end-user notification.
+            # When quarantine policy data is unavailable, custom tags cannot be safely evaluated.
             foreach ($tp in @('TargetedUserQuarantineTag', 'TargetedDomainQuarantineTag', 'MailboxIntelligenceQuarantineTag', 'SpoofQuarantineTag')) {
                 $val = $policy.$tp
                 if (-not [string]::IsNullOrEmpty($val)) {
@@ -213,6 +221,15 @@ function Test-Assessment-41033 {
                     if ($allowsSelfRelease) {
                         [void]$reasons.Add("Fail (self-release quarantine tag: $tp)")
                     }
+                    elseif ($null -eq $quarantineTagMap -and $val -notin $builtInQuarantineTags) {
+                        [void]$unverifiedCustomQuarantineTags.Add($tp)
+                    }
+                }
+            }
+
+            if (($reasons | Where-Object { $_ -like 'Fail *' }).Count -eq 0) {
+                foreach ($tagProperty in $unverifiedCustomQuarantineTags) {
+                    [void]$reasons.Add("Investigate (quarantine policy unavailable for custom tag: $tagProperty)")
                 }
             }
 
@@ -332,7 +349,7 @@ function Test-Assessment-41033 {
     else {
         $passed             = $true
         $aggregation        = 'at least one compliant policy applies, default policy meets required subset, no orphaned rules'
-        $testResultMarkdown = "✅ Anti-phishing policies are configured with spoof intelligence, DMARC honoring, mailbox intelligence, and impersonation protection for users and domains; high-confidence phishing is quarantined to admin-only release.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Anti-phishing policies are configured with spoof intelligence, DMARC honoring, mailbox intelligence, and impersonation protection for users and domains; impersonation and spoof verdicts are quarantined with end-user notification.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
