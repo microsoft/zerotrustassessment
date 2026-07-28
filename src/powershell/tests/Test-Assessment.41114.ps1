@@ -164,6 +164,7 @@ function Test-Assessment-41114 {
 
         $enabledTeamsRule = $null
         $hasExceptions = $false
+        $exceptionProperties = @()
         if ($q2rError) {
             if (-not $anyFail) {
                 $anyInvestigate = $true
@@ -174,14 +175,21 @@ function Test-Assessment-41114 {
             $teamsProtectionRule = $teamsProtectionPolicyRule | Select-Object -First 1
             if ($teamsProtectionRule.State -eq 'Enabled') {
                 $enabledTeamsRule = $teamsProtectionRule
-                $hasExceptions = $teamsProtectionRule.ExceptIfSentTo -or
-                    $teamsProtectionRule.ExceptIfSentToMemberOf -or
-                    $teamsProtectionRule.ExceptIfRecipientDomainIs
+                if ($teamsProtectionRule.ExceptIfSentTo) {
+                    $exceptionProperties += 'ExceptIfSentTo'
+                }
+                if ($teamsProtectionRule.ExceptIfSentToMemberOf) {
+                    $exceptionProperties += 'ExceptIfSentToMemberOf'
+                }
+                if ($teamsProtectionRule.ExceptIfRecipientDomainIs) {
+                    $exceptionProperties += 'ExceptIfRecipientDomainIs'
+                }
+                $hasExceptions = $exceptionProperties.Count -gt 0
             }
 
             if ($hasExceptions -and -not $anyFail) {
                 $anyInvestigate = $true
-                $zapStatus = "⚠️ Investigate — exceptions exist and they reduce ZAP coverage"
+                $zapStatus = "⚠️ Investigate — $($exceptionProperties -join ', ') exceptions reduce ZAP coverage"
             }
         }
 
@@ -257,6 +265,18 @@ function Test-Assessment-41114 {
             })
         }
         else {
+            $ambiguousSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -notin @('Enabled', 'Disabled') })
+            foreach ($rule in $ambiguousSafeLinksRules) {
+                $anyInvestigate = $true
+                $controlRows.Add([PSCustomObject]@{
+                    Setting        = "[Safe Links for Teams]($q3PortalLink)"
+                    Policy         = $rule.SafeLinksPolicy
+                    AppliedViaRule = $rule.Name
+                    Enabled        = '⚠️ Unknown'
+                    Status         = '⚠️ Investigate — Safe Links rule state is ambiguous'
+                })
+            }
+
             $enabledSafeLinksRules = @($safeLinksRules | Where-Object { $_.State -eq 'Enabled' })
             foreach ($rule in $enabledSafeLinksRules) {
                 $policyIdentity = $rule.SafeLinksPolicy
