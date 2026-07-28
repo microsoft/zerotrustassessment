@@ -316,13 +316,13 @@
     "message": "UPDATED"
   },
   "hero.tagline": {
-    "message": "AI pillar now available in the Zero Trust framework"
+    "message": "New pillars and a redesigned Assessment Overview"
   },
   "hero.title": {
     "message": "Accelerate Your Zero Trust Journey"
   },
   "hero.subtitle": {
-    "message": "A comprehensive framework from Microsoft to help organizations adopt a Zero Trust strategy and deploy security solutions end-to-end — now with a new AI pillar for securing agents and AI resources."
+    "message": "A comprehensive framework from Microsoft to help organizations adopt a Zero Trust strategy and deploy security solutions end-to-end."
   },
   "hero.cta.workshop": {
     "message": "Launch Workshop"
@@ -334,10 +334,31 @@
     "message": "What's New"
   },
   "ai.title": {
-    "message": "Introducing the AI Pillar in Zero Trust"
+    "message": "More ways to plan and assess your Zero Trust journey"
   },
   "ai.description": {
-    "message": "As organizations adopt AI agents and MCP servers, the Zero Trust framework now includes a dedicated AI Resources pillar with AI controls — ensuring your AI workloads are governed with the same rigor as every other part of your environment."
+    "message": "The latest Workshop and Assessment releases expand pillar coverage and make it easier to understand your current security posture."
+  },
+  "updates.workshop.name": {
+    "message": "Zero Trust Workshop"
+  },
+  "updates.workshop.title": {
+    "message": "Plan with the new DevSecOps pillar"
+  },
+  "updates.workshop.description": {
+    "message": "Bring application security and development practices into your Zero Trust roadmap with dedicated DevSecOps guidance."
+  },
+  "updates.assessment.name": {
+    "message": "Zero Trust Assessment"
+  },
+  "updates.assessment.title": {
+    "message": "Expanded assessment coverage"
+  },
+  "updates.assessment.description": {
+    "message": "Assess three additional pillars and explore your results in a newly revamped Overview page."
+  },
+  "updates.assessment.overview": {
+    "message": "Revamped Overview Page"
   },
   "ai.pillarSubtitle": {
     "message": "Now featuring auto-generated summaries and expanded data & network posture checks."
@@ -364,10 +385,13 @@
     "message": "Infrastructure"
   },
   "pillar.secops": {
-    "message": "SecOps"
+    "message": "Security Operations"
   },
   "pillar.ai": {
     "message": "AI"
+  },
+  "pillar.devsecops": {
+    "message": "DevSecOps"
   },
   "pillar.ai.tooltip": {
     "message": "AI pillar in Workshop"
@@ -385,10 +409,13 @@
     "message": "Zero Trust Workshop"
   },
   "products.workshop.description": {
-    "message": "A new web application to plan your Zero Trust deployment across all seven pillars — Identity, Devices, Data, Network, Infrastructure, Security Operations, and AI. Prioritize tasks in a First-Then structure and generate automated summaries and implementation plans."
+    "message": "Plan your Zero Trust deployment across eight pillars, now including DevSecOps. Prioritize tasks in a First-Then-Next structure and generate automated summaries and implementation plans."
   },
   "products.workshop.tag.pillars": {
-    "message": "7 Pillars"
+    "message": "8 Pillars"
+  },
+  "products.workshop.tag.devsecops": {
+    "message": "New DevSecOps Pillar"
   },
   "products.workshop.tag.ai": {
     "message": "AI Pillar"
@@ -409,7 +436,22 @@
     "message": "Zero Trust Assessment"
   },
   "products.assessment.description": {
-    "message": "Connect to your Microsoft Entra tenant and get an automated assessment of your Zero Trust posture. Analyze configurations across Identity, Devices, Data, and Network pillars with actionable insights and visual dashboards."
+    "message": "Connect to your Microsoft Entra tenant and get an automated assessment across seven Zero Trust pillars, now including Infrastructure, Security Operations, and AI. See actionable insights in the newly revamped Overview page."
+  },
+  "products.assessment.tag.pillars": {
+    "message": "7 Pillars"
+  },
+  "products.assessment.tag.infrastructure": {
+    "message": "Infrastructure"
+  },
+  "products.assessment.tag.secops": {
+    "message": "Security Operations"
+  },
+  "products.assessment.tag.ai": {
+    "message": "AI"
+  },
+  "products.assessment.tag.overview": {
+    "message": "Summary + Pillar-Specific Views"
   },
   "products.assessment.tag.identity": {
     "message": "Identity"

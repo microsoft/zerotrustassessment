@@ -18,16 +18,18 @@ const SLIDES = [
     href: "https://aka.ms/zerotrust",
   },
   {
-    img: "/img/zt-workshop-screenshot.png",
-    alt: "Zero Trust Workshop tool — plan across all seven pillars",
+    img: "/img/zt-workshop-screenshot2.png",
+    alt: "Zero Trust Workshop tool — plan across all eight pillars",
     caption: "Zero Trust Workshop",
     href: "https://zerotrust.microsoft.com/",
+    contain: true,
   },
   {
-    img: "/img/zt-assessment-screenshot.png",
+    img: "/img/zt-assessment-screenshot2.png",
     alt: "Zero Trust Assessment dashboard — tenant overview and scores",
     caption: "Zero Trust Assessment",
     href: "https://learn.microsoft.com/security/zero-trust/assessment/get-started",
+    contain: true,
   },
 ];
 
@@ -79,7 +81,9 @@ function HeroCarousel() {
             <div className={styles.carouselSlide} key={i}>
               <button
                 type="button"
-                className={styles.carouselSlideLink}
+                className={`${styles.carouselSlideLink} ${
+                  slide.contain ? styles.carouselSlideLinkContain : ""
+                }`}
                 onClick={() =>
                   document
                     .getElementById("products")
@@ -137,7 +141,7 @@ function HeroSection() {
             <Translate id="badge.new">NEW</Translate>
           </span>
           <Translate id="hero.tagline">
-            AI pillar now available in the Zero Trust framework
+            New pillars and a redesigned Assessment Overview
           </Translate>
         </div>
 
@@ -149,9 +153,9 @@ function HeroSection() {
 
         <p className={styles.heroSubtitle}>
           <Translate id="hero.subtitle">
-            A comprehensive framework from Microsoft to help organizations adopt
-            a Zero Trust strategy and deploy security solutions end-to-end —
-            now with a new AI pillar for securing agents and AI resources.
+            A comprehensive framework from Microsoft to help organizations
+            adopt a Zero Trust strategy and deploy security solutions
+            end-to-end.
           </Translate>
         </p>
 
@@ -176,8 +180,8 @@ function HeroSection() {
   );
 }
 
-/* ─── Section 2: AI Pillar Spotlight ─────────────────────── */
-function AiSpotlight() {
+/* ─── Section 2: Latest Updates ──────────────────────────── */
+function LatestUpdates() {
   return (
     <section className={styles.aiSpotlight}>
       <div className={styles.aiSpotlightInner}>
@@ -187,76 +191,75 @@ function AiSpotlight() {
 
         <h2 className={styles.aiSpotlightTitle}>
           <Translate id="ai.title">
-            Introducing the AI Pillar in Zero Trust
+            More ways to plan and assess your Zero Trust journey
           </Translate>
         </h2>
 
         <p className={styles.aiSpotlightDesc}>
           <Translate id="ai.description">
-            As organizations adopt AI agents and MCP servers, the Zero Trust
-            framework now includes a dedicated AI Resources pillar with AI
-            controls — ensuring your AI workloads are governed with the same
-            rigor as every other part of your environment.
+            The latest Workshop and Assessment releases expand pillar coverage
+            and make it easier to understand your current security posture.
           </Translate>
         </p>
 
-        <div className={styles.pillarRow}>
-          <span className={styles.pillarItem}>
-            <Translate id="pillar.identity">Identity</Translate>
-          </span>
-          <span className={styles.pillarItem}>
-            <Translate id="pillar.devices">Devices</Translate>
-          </span>
-          <span
-            className={`${styles.pillarItem} ${styles.pillarNew}`}
-            title={translate({
-              id: "pillar.data.tooltip",
-              message: "New automated assessment checks",
-            })}
-          >
-            <Translate id="pillar.data">Data</Translate>
-            <span className={styles.pillarNewTag}>
-              <Translate id="badge.updated">UPDATED</Translate>
+        <div className={styles.releaseGrid}>
+          <div className={styles.releaseItem}>
+            <div className={styles.releaseProduct}>
+              <Translate id="updates.workshop.name">
+                Zero Trust Workshop
+              </Translate>
+            </div>
+            <h3 className={styles.releaseTitle}>
+              <Translate id="updates.workshop.title">
+                Plan with the new DevSecOps pillar
+              </Translate>
+            </h3>
+            <p className={styles.releaseDesc}>
+              <Translate id="updates.workshop.description">
+                Bring application security and development practices into your
+                Zero Trust roadmap with dedicated DevSecOps guidance.
+              </Translate>
+            </p>
+            <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+              <Translate id="pillar.devsecops">DevSecOps</Translate>
             </span>
-          </span>
-          <span
-            className={`${styles.pillarItem} ${styles.pillarNew}`}
-            title={translate({
-              id: "pillar.network.tooltip",
-              message: "New automated assessment checks",
-            })}
-          >
-            <Translate id="pillar.network">Network</Translate>
-            <span className={styles.pillarNewTag}>
-              <Translate id="badge.updated">UPDATED</Translate>
-            </span>
-          </span>
-          <span className={styles.pillarItem}>
-            <Translate id="pillar.infrastructure">Infrastructure</Translate>
-          </span>
-          <span className={styles.pillarItem}>
-            <Translate id="pillar.secops">SecOps</Translate>
-          </span>
-          <span
-            className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
-            title={translate({
-              id: "pillar.ai.tooltip",
-              message: "AI pillar in Workshop",
-            })}
-          >
-            <Translate id="pillar.ai">AI</Translate>
-            <span className={styles.pillarNewTag}>
-              <Translate id="badge.new">NEW</Translate>
-            </span>
-          </span>
+          </div>
+
+          <div className={styles.releaseItem}>
+            <div className={styles.releaseProduct}>
+              <Translate id="updates.assessment.name">
+                Zero Trust Assessment
+              </Translate>
+            </div>
+            <h3 className={styles.releaseTitle}>
+              <Translate id="updates.assessment.title">
+                Expanded assessment coverage
+              </Translate>
+            </h3>
+            <p className={styles.releaseDesc}>
+              <Translate id="updates.assessment.description">
+                Assess three additional pillars and explore your results in a
+                newly revamped Overview page.
+              </Translate>
+            </p>
+            <div className={styles.pillarRow}>
+              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+                <Translate id="pillar.infrastructure">Infrastructure</Translate>
+              </span>
+              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+                <Translate id="pillar.secops">Security Operations</Translate>
+              </span>
+              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+                <Translate id="pillar.ai">AI</Translate>
+              </span>
+              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+                <Translate id="updates.assessment.overview">
+                  Revamped Overview Page
+                </Translate>
+              </span>
+            </div>
+          </div>
         </div>
-
-        <p className={styles.pillarSubtitle}>
-          <Translate id="ai.pillarSubtitle">
-            Now featuring auto-generated summaries and expanded data & network
-            posture checks.
-          </Translate>
-        </p>
       </div>
     </section>
   );
@@ -264,8 +267,8 @@ function AiSpotlight() {
 
 /* ─── Section 3: Two Product Cards ───────────────────────── */
 function ProductShowcase() {
-  const workshopImg = useBaseUrl("/img/zt-workshop-screenshot.png");
-  const assessmentImg = useBaseUrl("/img/zt-assessment-screenshot.png");
+  const workshopImg = useBaseUrl("/img/zt-workshop-screenshot2.png");
+  const assessmentImg = useBaseUrl("/img/zt-assessment-screenshot2.png");
   return (
     <section id="products" className={styles.products}>
       <div className={styles.productsInner}>
@@ -304,27 +307,26 @@ function ProductShowcase() {
               </h3>
               <p className={styles.productDesc}>
                 <Translate id="products.workshop.description">
-                  A new web application to plan your Zero Trust deployment
-                  across all seven pillars — Identity, Devices, Data, Network,
-                  Infrastructure, Security Operations, and AI. Prioritize tasks
-                  in a First-Then-Next structure and generate automated summaries and
-                  implementation plans.
+                  Plan your Zero Trust deployment across eight pillars, now
+                  including DevSecOps. Prioritize tasks in a First-Then-Next
+                  structure and generate automated summaries and implementation
+                  plans.
                 </Translate>
               </p>
               <div className={styles.productTags}>
                 <span className={styles.productTag}>
                   <Translate id="products.workshop.tag.pillars">
-                    7 Pillars
+                    8 Pillars
                   </Translate>
                 </span>
                 <span
                   className={`${styles.productTag} ${styles.productTagNew}`}
                 >
-                  <Translate id="products.workshop.tag.ai">AI Pillar</Translate>
+                  <Translate id="products.workshop.tag.devsecops">
+                    New DevSecOps Pillar
+                  </Translate>
                 </span>
-                <span
-                  className={`${styles.productTag} ${styles.productTagNew}`}
-                >
+                <span className={styles.productTag}>
                   <Translate id="products.workshop.tag.summaries">
                     Auto Summaries
                   </Translate>
@@ -370,37 +372,39 @@ function ProductShowcase() {
               <p className={styles.productDesc}>
                 <Translate id="products.assessment.description">
                   Connect to your Microsoft Entra tenant and get an automated
-                  assessment of your Zero Trust posture. Analyze configurations
-                  across Identity, Devices, Data, and Network pillars with
-                  actionable insights and visual dashboards.
+                  assessment across seven Zero Trust pillars, now including
+                  Infrastructure, Security Operations, and AI. See actionable
+                  insights in the newly revamped Overview page.
                 </Translate>
               </p>
               <div className={styles.productTags}>
                 <span className={styles.productTag}>
-                  <Translate id="products.assessment.tag.identity">
-                    Identity
-                  </Translate>
-                </span>
-                <span className={styles.productTag}>
-                  <Translate id="products.assessment.tag.devices">
-                    Devices
+                  <Translate id="products.assessment.tag.pillars">
+                    7 Pillars
                   </Translate>
                 </span>
                 <span
                   className={`${styles.productTag} ${styles.productTagNew}`}
                 >
-                  <Translate id="products.assessment.tag.data">Data</Translate>
+                  <Translate id="products.assessment.tag.infrastructure">
+                    Infrastructure
+                  </Translate>
                 </span>
                 <span
                   className={`${styles.productTag} ${styles.productTagNew}`}
                 >
-                  <Translate id="products.assessment.tag.network">
-                    Network
+                  <Translate id="products.assessment.tag.secops">
+                    Security Operations
                   </Translate>
                 </span>
+                <span
+                  className={`${styles.productTag} ${styles.productTagNew}`}
+                >
+                  <Translate id="products.assessment.tag.ai">AI</Translate>
+                </span>
                 <span className={styles.productTag}>
-                  <Translate id="products.assessment.tag.checks">
-                    Automated Checks
+                  <Translate id="products.assessment.tag.overview">
+                    Summary + Pillar-Specific Views
                   </Translate>
                 </span>
               </div>
@@ -547,11 +551,11 @@ export default function Home() {
       description={translate({
         id: "home.layout.description",
         message:
-          "Plan your Zero Trust deployment with the Workshop tool and measure your posture with the automated Assessment — now featuring a new AI pillar.",
+          "Plan with the new DevSecOps pillar in the Zero Trust Workshop and assess Infrastructure, Security Operations, and AI in the updated Assessment.",
       })}
     >
       <HeroSection />
-      <AiSpotlight />
+      <LatestUpdates />
       <ProductShowcase />
       <HowItWorks />
       <GetStarted />
