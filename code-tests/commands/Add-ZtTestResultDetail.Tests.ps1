@@ -3,17 +3,9 @@ Describe "Add-ZtTestResultDetail" {
         $here = $PSScriptRoot
         $srcRoot = Join-Path $here "../../src/powershell"
 
-        function global:Get-ZtTestStatus {
-            param()
-        }
-
-        function global:Write-ZtProgress {
-            param()
-        }
-
-        function global:Write-PSFMessage {
-            param()
-        }
+        if (-not (Get-Command Get-ZtTestStatus -ErrorAction SilentlyContinue)) { function Get-ZtTestStatus { param($Status, $SkippedBecause, $CustomStatus) } }
+        if (-not (Get-Command Write-ZtProgress -ErrorAction SilentlyContinue)) { function Write-ZtProgress { param($Activity, $Status) } }
+        if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) { function Write-PSFMessage { param($Level, $Message, $Tag) } }
 
         . (Join-Path $srcRoot "private/core/Add-ZtTestResultDetail.ps1")
     }
