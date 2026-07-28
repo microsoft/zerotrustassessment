@@ -60,8 +60,13 @@ const Steps = [
                                 </a>
                             </li>
                             <li>
-                                <a href="docs/category/ai" title="AI Pillar Info">
-                                    Artificial Intelligence (New)
+                                <a href="docs/videos/AIPillar" title="AI Pillar Info">
+                                    Artificial Intelligence
+                                </a>
+                            </li>
+                            <li>
+                                <a href="docs/videos/DevSecOpsPillar" title="DevSecOps Pillar Info">
+                                    DevSecOps (New)
                                 </a>
                             </li>
                         </ul>

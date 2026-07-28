@@ -13,7 +13,8 @@ Workshops are available for the following pillars:
 - Network
 - Infrastructure
 - Security Operations
-- Artificial Intelligence (New)
+- Artificial Intelligence
+- DevSecOps (New)
 
 Customers can choose to schedule all the workshops or just a subset of them depending on their priorities and resource availability. While the workshops are modular, customers are encouraged to start with Identity first, then Devices, followed by Data, Network, Infrastructure, Security Operations, and AI.
 
@@ -48,9 +49,9 @@ Recommendations for the customer stakeholders that should attend each of the pil
 |---|---|---|
 | • Identity and Access Management (IAM) team <br/> • Network Operations team <br/>  • Security Operations team <br/> • Devices/Endpoint team <br/> • Applications / workloads stakeholders <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Infrastructure Security team <br/> • Security Operations team <br/> • Endpoint Security team <br/> • Compliance and Policy team <br/> • Application Development team <br/> • Network Administration team <br/> • CISO (if possible) <br/> • IT Director (if possible)| • Security Team Decision Makers (IT Manager, SecOps Manager, etc.) <br/> • Security Team Specialists (Security Architect, Security Analyst, IR Manager, Security Engineer IT Admin, etc.) <br/> • CISO (if possible) <br/> • IT Director (if possible)|
 
-|AI|
-|---|
-| • Identity Security Architect (Identity Architect, IAM Architect) <br/> • Security Administrator (Security Admin, IT Security Admin) <br/> • Data Governance / Compliance Officer (Compliance Officer, DGO) <br/> • SOC Lead / SecOps Manager (SOC Manager, SecOps Lead) <br/> • AI Platform / Development Lead (AI Platform Engineer, Agent Development Lead, ML Platform Lead) <br/> • CISO / Security Leadership (if possible)|
+|AI|DevSecOps|
+|---|---|
+| • Identity Security Architect (Identity Architect, IAM Architect) <br/> • Security Administrator (Security Admin, IT Security Admin) <br/> • Data Governance / Compliance Officer (Compliance Officer, DGO) <br/> • SOC Lead / SecOps Manager (SOC Manager, SecOps Lead) <br/> • AI Platform / Development Lead (AI Platform Engineer, Agent Development Lead, ML Platform Lead) <br/> • CISO / Security Leadership (if possible)| • DevSecOps/Platform Engineering team <br/> • Application or Product Security team <br/> • GitHub/Azure DevOps Administrators <br/> • CI/CD and Release Engineering team <br/> • Software Development Leadership <br/> • Cloud and Infrastructure Security team <br/> • IAM team <br/> • CISO / Security Leadership (if possible)|
 
 ## Engagement Model
 
@@ -65,12 +66,12 @@ Recommendations for the customer stakeholders that should attend each of the pil
 Below are the estimated delivery times for each section of the pillar workshops:
 |Identity|Devices|Data|
 |---|---|---|
-| • Application Access, AuthN, and AuthZ Controls: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Identity Governance: 1.5 hours <br/> • Operations: 1 hour <hr /> **• Total: 5 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect You Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours**|
+| • Application Access, AuthN, and AuthZ Controls: 1.5 hours <br/> • Users and Groups: 1 hour <br/> • Identity Governance: 1.5 hours <br/> • Operations: 1 hour <hr /> **• Total: 5 hours** | • Windows: 1-4 hours <br/> • Mobile Application Management (MAM): 15-45 minutes <br/> • iOS and Android MDM: 0.5-1 hour <br/> • Operations: 15 minutes <hr /> **• Total: 3-6 hours** | • Know and Protect Your Data: 2 hours <br/> • Manage Data Access: 1 hour <br/> • Protect Critical Data Assets: 1 hour <hr /> **• Total: 4 hours**|
 
 |Network|Infrastructure|Security Operations|
 |---|---|---|
 | • Modernize VPN and protect legacy Apps: 1 hour <br/> • Secure Access to all internet resources: 1 hour <br/> • Network and Application Protection & Control: 2 hours <hr /> **• Total: 4 hours** | • Governance & Compliance: 0.5-1 hour <br/> • Servers: 1 hour <br/> • Containers: 1 hour <br/> • Storage: 0.5-1 hour <br/> • Databases: 0.5-1 hour <br/> • APIs: 0.5 hour <br/> • Infrastructure Services: 0.5 hour <hr /> **• Total: 4-6 hours** | • MDI: 0.5 hour <br/> • MDO: 0.5 hour <br/> • MDE: 1 hour <br/> • MDA: 0.5 hour <br/> • Sentinel & XDR: 1 hour <hr /> **• Total: 3.5 hours**|
 
-|AI|
-|---|
-| • Map and Assess AI Risk: 1 hour <br/> • Register all agents: 1 hour <br/> • Secure AI Authentication and Access: 0.5 hour <br/> • Secure AI Network Access: 1 hour <br/> • Secure AI Data Access: 1.5 hours <br/> • Build Agents Securely: 0.5 hour <br/> • Security Detection and Response for AI: 0.5 hour <hr /> **• Total: 6 hours** |
+|AI|DevSecOps|
+|---|---|
+| • Map and Assess AI Risk: 1 hour <br/> • Register all agents: 1 hour <br/> • Secure AI Authentication and Access: 0.5 hour <br/> • Secure AI Network Access: 1 hour <br/> • Secure AI Data Access: 1.5 hours <br/> • Build Agents Securely: 0.5 hour <br/> • Security Detection and Response for AI: 0.5 hour <hr /> **• Total: 6 hours** | • DevOps Identity and Access: 0.5 hour <br/> • Source Code Security: 1 hour <br/> • Supply Chain and Dependency Security: 1 hour <br/> • CI/CD Pipeline Security: 1 hour <br/> • Infrastructure as Code and Container Security: 1 hour <br/> • DevOps Posture and Governance: 1.5 hours <hr /> **• Total: 6 hours**|
