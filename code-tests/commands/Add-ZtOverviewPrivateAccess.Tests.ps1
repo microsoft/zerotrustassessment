@@ -3,9 +3,7 @@ Describe "Add-ZtOverviewPrivateAccess" {
         $here = $PSScriptRoot
         $srcRoot = Join-Path $here "../../src/powershell"
 
-        function global:Add-ZtTenantInfo {
-            param()
-        }
+        if (-not (Get-Command Add-ZtTenantInfo -ErrorAction SilentlyContinue)) { function Add-ZtTenantInfo { param($Name, $Value) } }
 
         . (Join-Path $srcRoot "private/tenantinfo/Add-ZtOverviewPrivateAccess.ps1")
     }
