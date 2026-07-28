@@ -483,7 +483,9 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
         Result     = $testResultMarkdown
         ResultData = @{
             TotalApps    = $apps.Count
-            Applications = @($appResults | Select-Object AppId, Status)
+            Applications = @(
+                $appResults | Select-Object AppId, @{ Name = 'Status'; Expression = { if ($_.Status -like 'Fail*') { 'Fail' } elseif ($_.Status -like 'Investigate*') { 'Manual Review' } else { $_.Status } } }
+            )
         }
     }
 
