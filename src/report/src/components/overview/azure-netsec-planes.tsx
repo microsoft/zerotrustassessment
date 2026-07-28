@@ -168,7 +168,7 @@ export function AzureNetSecPlanes() {
                             {applicablePlanes.length === 0
                                 ? "No applicable plane results"
                                 : allPlanesPass
-                                    ? "All applicable defense planes passing"
+                                    ? "All applicable defense planes pass"
                                     : `${failingPlanes.length} of ${applicablePlanes.length} applicable defense planes have issues`}
                         </Badge>
                     </div>
