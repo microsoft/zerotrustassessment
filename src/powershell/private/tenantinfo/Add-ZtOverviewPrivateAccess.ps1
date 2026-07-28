@@ -25,9 +25,9 @@ function Add-ZtOverviewPrivateAccess {
         return
     }
 
-    $populationMismatch = $segmentationTotal -ne $authenticationTotal
-    $unmatchedAuthenticationApps = @($authenticationApps | Where-Object { $_.AppId -notin $segmentationApps.AppId })
-
+    $unmatchedAuthenticationApps = @($authenticationApps | Where-Object { $_.AppId -and $_.AppId -notin $segmentationApps.AppId })
+    $unmatchedSegmentationApps = @($segmentationApps | Where-Object { $_.AppId -and $_.AppId -notin $authenticationApps.AppId })
+    $populationMismatch = ($unmatchedAuthenticationApps.Count + $unmatchedSegmentationApps.Count) -gt 0
     $authenticationByAppId = @{}
     foreach ($app in $authenticationApps) {
         if ($app.AppId) {
