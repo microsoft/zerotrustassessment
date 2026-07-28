@@ -36,7 +36,7 @@ Describe "Add-ZtTestResultDetail" {
 
         Add-ZtTestResultDetail -TestId '27021' -Title 'Test title' -Description 'Description' -Status $true -Result 'Result' -ResultData $resultData
 
-        $script:__ZtSession.TestResultDetail.Value['27021'].TestData.Applications[0].AppId | Should Be 'app-1'
-        $script:__ZtSession.TestResultDetail.Value['27021'].TestData.Applications[0].Status | Should Be 'Pass'
+        $script:__ZtSession.TestResultDetail.Value['27021'].TestData.Applications[0].AppId | Should -Be 'app-1'
+        $script:__ZtSession.TestResultDetail.Value['27021'].TestData.Applications[0].Status | Should -Be 'Pass'
     }
 }
