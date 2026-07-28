@@ -42,8 +42,13 @@ function Test-Assessment-41047 {
     $activity  = 'Checking Microsoft Defender Antivirus active mode configuration'
     $testTitle = 'Microsoft Defender Antivirus is set to active mode on all eligible endpoints'
 
-    # AV-related settingDefinitionId keywords to scan for in Intune Settings Catalog policies.
-    $avKeywords = @('allowrealtimemonitoring', 'allowonaccessprotection', 'disableantispyware', 'antivirus')
+    # All three Defender real-time protection settings must be present and enabled
+    # (choiceSettingValue ending in '_1') for a policy to enforce active mode.
+    $requiredSettings = @(
+        'device_vendor_msft_policy_config_defender_allowrealtimemonitoring',
+        'device_vendor_msft_policy_config_defender_allowonaccessprotection',
+        'device_vendor_msft_policy_config_defender_allowbehaviormonitoring'
+    )
 
     # --- Q1: Intune Settings Catalog (preferred path) ---
     $q1Fallback   = $false   # true when Q1 returns 401/403 → fall through to Q2/Q3
@@ -67,20 +72,22 @@ function Test-Assessment-41047 {
                 continue
             }
 
-            # Check whether any setting's settingDefinitionId contains an AV keyword.
-            $avSettingsFound = @()
+            # A policy enforces active mode only when all three required settings are present
+            # and each has a choice value ending in '_1' (enabled).
+            $enabledSettings = @()
             foreach ($setting in $policySettings) {
                 $defId = $setting.settingInstance.settingDefinitionId
                 if ([string]::IsNullOrWhiteSpace($defId)) { continue }
                 $defIdLower = $defId.ToLower()
-                foreach ($kw in $avKeywords) {
-                    if ($defIdLower.Contains($kw)) {
-                        $avSettingsFound += $defId
-                        break
+                if ($requiredSettings -contains $defIdLower) {
+                    $choiceValue = $setting.settingInstance.choiceSettingValue.value
+                    if ($choiceValue -and $choiceValue.EndsWith('_1')) {
+                        $enabledSettings += $defIdLower
                     }
                 }
             }
-            if ($avSettingsFound.Count -eq 0) { continue }
+            # Skip policies that do not have all three required settings enabled.
+            if ($enabledSettings.Count -lt $requiredSettings.Count) { continue }
 
             # Assignments are already embedded from the Q1 expand — no separate call needed.
             $assignments = @($policy.assignments)
@@ -88,7 +95,7 @@ function Test-Assessment-41047 {
             $avPolicies += [PSCustomObject]@{
                 PolicyId       = $policy.id
                 PolicyName     = $policy.name
-                AvSettings     = $avSettingsFound -join ', '
+                AvSettings     = $enabledSettings -join ', '
                 HasAssignments = $true   # guaranteed by $filter=assignments/any()
                 Assignments    = $assignments   # raw for group name resolution in report
             }
