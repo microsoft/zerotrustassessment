@@ -14,6 +14,7 @@ class ZtTest : System.Attribute
 	[string]$SfiPillar
 	[ValidateSet('Workforce','External')][string[]]$TenantType
 	[int]$TestId
+	[int[]]$DependsOn
 	[string]$Title
 	[ValidateSet('Low','Medium','High')][string]$UserImpact
 

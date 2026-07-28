@@ -221,6 +221,12 @@ function Test-Assessment-25376 {
         Title  = 'Microsoft 365 traffic is actively flowing through Global Secure Access'
         Status = $passed
         Result = $testResultMarkdown
+        Data   = @{
+            totalDeviceCount = $totalDeviceCount
+            activeDeviceCount = $activeDeviceCount
+            totalTransactionCount = $m365TotalCount
+            profileEnabled = $profileEnabled
+        }
     }
 
     Add-ZtTestResultDetail @params

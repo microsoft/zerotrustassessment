@@ -130,6 +130,9 @@
 		$_.Pillar -contains 'Data' -or
 		@($_.Service).Where({ $_ -in $mainThreadServices })
 	}, 'Split')
+	# Composite tests consume completed child results from the shared assessment session.
+	# Keep them out of worker runspaces and execute them after all parallel children finish.
+	$dependentTests, $parallelTests = $parallelTests.Where({ @($_.DependsOn).Count -gt 0 }, 'Split')
 
 	[dateTime] $startTime = [datetime]::Now
 	$workflow = $null
@@ -147,6 +150,10 @@
 				Write-PSFMessage -Level Debug -Message "Test $_ was not processed before timeout was reached."
 				Add-ZtTestResultDetail -SkippedBecause TimeoutReached -TestId $_
 			}
+		}
+
+		foreach ($test in $dependentTests) {
+			$null = Invoke-ZtTest -Test $test -Database $Database -LogsPath $LogsPath -TestTimeout $TestTimeout
 		}
 	}
 	finally {

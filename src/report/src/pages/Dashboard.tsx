@@ -39,6 +39,7 @@ import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
+import { M365ProtectionCircuitSankey } from "@/components/overview/m365-protection-circuit-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
@@ -1469,6 +1470,26 @@ export default function Dashboard() {
 
                 </div>
             </div>
+
+            {reportData.TenantInfo?.OverviewM365ProtectionCircuit?.nodes && (
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                <Card>
+                    <CardHeader className="space-y-0 pb-2 flex-row">
+                        <ShieldCheck className="pr-2 size-8" />
+                        <div>
+                            <CardTitle className="text-2xl tabular-nums">Microsoft 365 protection circuit</CardTitle>
+                            <CardDescription className="mt-1">Global Secure Access acquisition and compliant network enforcement</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="h-80">
+                        <M365ProtectionCircuitSankey data={reportData.TenantInfo.OverviewM365ProtectionCircuit.nodes} />
+                    </CardContent>
+                    <CardFooter className="text-sm text-muted-foreground">
+                        {reportData.TenantInfo.OverviewM365ProtectionCircuit.description}
+                    </CardFooter>
+                </Card>
+            </div>
+            )}
 
             {/* Network - SWG Defense Layers Section */}
             {hasSwgData() && (

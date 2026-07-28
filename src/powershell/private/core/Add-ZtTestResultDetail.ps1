@@ -93,6 +93,9 @@ function Add-ZtTestResultDetail {
 		[ValidateSet('Investigate','Error')]
 		[string] $CustomStatus,
 
+		# Structured assessment data that other checks or tenant-info providers can consume.
+		[hashtable] $Data,
+
 		[ValidateSet('Graph', 'Azure', 'AipService', 'ExchangeOnline', 'SecurityCompliance', 'SharePointOnline')]
 		[string[]] $NotConnectedService,
 
@@ -230,6 +233,10 @@ function Add-ZtTestResultDetail {
 		TestResult             = $Result
 		TestSkipped            = $SkippedBecause
 		SkippedReason          = $SkippedReason
+	}
+
+	if ($Data) {
+		$testInfo.TestData = $Data
 	}
 
 	if ($testMeta.CompatibleLicense) {
