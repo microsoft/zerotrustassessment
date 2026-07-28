@@ -51,6 +51,11 @@ function Test-Assessment-41047 {
     )
 
     # --- Q1: Intune Settings Catalog (preferred path) ---
+    # TODO(Q4): Spec PR #998 adds a Defender for Endpoint runtime signal as the preferred path.
+    #   Q4: GET https://api.securitycenter.microsoft.com/api/deviceavinfo?$filter=avMode eq '1' or avMode eq '2'
+    #   Requires: new Invoke-ZtMdeRequest helper, Machine.Read.All scope in Connect-ZtAssessment,
+    #   token issued for https://api.securitycenter.microsoft.com, and a per-device output table.
+    #   Evaluation order becomes: Q4 (runtime) → Q1 (policy intent) → Q2/Q3 (Secure Score).
     $q1Fallback   = $false   # true when Q1 returns 401/403 → fall through to Q2/Q3
     $q1QueryError = $null    # non-401/403 failure on the list call
     $avPolicies   = @()      # matching policies with active-mode AV settings + assignment
@@ -115,7 +120,6 @@ function Test-Assessment-41047 {
 
     # --- Q2: Secure Score control profiles (fallback / supplemental) ---
     # Only run Q2+Q3 when Q1 found no assigned AV policy or Q1 was unavailable.
-    $pinnedControlIds = @('scid_2010', 'scid_5090', 'scid_6090')
     $controlProfiles  = @()
     $q2QueryError     = $null
 
@@ -124,8 +128,8 @@ function Test-Assessment-41047 {
     if ($runSecureScore) {
         Write-ZtProgress -Activity $activity -Status 'Reading Secure Score control profiles (Q2)'
         try {
-            # Spec references v1.0; using beta per project convention (riskAmbiguityLog #1).
-            $controlProfiles = @(Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -ApiVersion beta -Filter "service eq 'MDATP' and (id eq 'scid_2010' or id eq 'scid_5090' or id eq 'scid_6090')" -ErrorAction Stop)
+            # scid_* ids are provider-generated and must not be hardcoded — discover at runtime by service.
+            $controlProfiles = @(Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -ApiVersion beta -Filter "service eq 'MDATP'" -ErrorAction Stop)
         }
         catch {
             $statusCode = Get-ZtHttpStatusCode -ErrorRecord $_
@@ -194,7 +198,7 @@ function Test-Assessment-41047 {
         if ($controlProfiles.Count -eq 0) {
             # No pinned control profiles found → Investigate (no evidence).
             Write-PSFMessage "Test-Assessment-41047: INVESTIGATE — no pinned Secure Score control profiles found" -Tag Test -Level VeryVerbose
-            Add-ZtTestResultDetail -TestId '41047' -Title $testTitle -Status $false -CustomStatus 'Investigate' -Result "⚠️ The Secure Score control could not be located; verify Defender for Endpoint Secure Score data is flowing."
+            Add-ZtTestResultDetail -TestId '41047' -Title $testTitle -Status $false -CustomStatus 'Investigate' -Result "⚠️ Antivirus mode could not be determined from device runtime data, an assigned Intune policy, or Secure Score; verify Defender for Endpoint enrollment and that antivirus evidence is flowing."
             return
         }
 
@@ -252,7 +256,7 @@ function Test-Assessment-41047 {
         $testResultMarkdown = "⚠️ One or more Microsoft Defender Antivirus Secure Score controls are marked as ignored. Review the ignore justification and confirm each control is intentionally excluded.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ Microsoft Defender Antivirus is disabled or in passive mode on one or more eligible endpoints.`n`n%TestResult%"
+        $testResultMarkdown = "❌ Microsoft Defender Antivirus is in passive or disabled mode on one or more eligible endpoints.`n`n%TestResult%"
     }
 
     # Build report table based on which evaluation path succeeded.
