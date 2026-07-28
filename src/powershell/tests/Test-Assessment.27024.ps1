@@ -50,7 +50,6 @@ resources
     PolicyId = id,
     SubscriptionName,
     SubscriptionId = subscriptionId,
-    SkuName = tostring(sku.name),
     EnabledState = tostring(properties.policySettings.enabledState),
     WafMode = tostring(properties.policySettings.mode),
     ManagedRuleSets = properties.managedRules.managedRuleSets
@@ -83,7 +82,7 @@ resources
         if ($hasHttpDdosRuleSet) {
             # Unlisted rules retain their default enabled state, so both documented rules must be explicitly disabled.
             foreach ($ruleGroupOverride in @($httpDdosRuleSet[0].ruleGroupOverrides)) {
-                $ruleOverrides += @($ruleGroupOverride.rules | Where-Object { $null -ne $_ })
+                $ruleOverrides += @(@($ruleGroupOverride.rules) | Where-Object { $null -ne $_ })
             }
         }
 
@@ -111,7 +110,6 @@ resources
             PolicyId                 = $policy.PolicyId
             SubscriptionName         = $policy.SubscriptionName
             SubscriptionId           = $policy.SubscriptionId
-            SkuName                  = $policy.SkuName
             EnabledState             = $policy.EnabledState
             WafMode                  = $policy.WafMode
             HttpDdosRulesetState     = $httpDdosRulesetState
