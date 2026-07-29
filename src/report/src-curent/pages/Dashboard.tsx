@@ -35,8 +35,6 @@ import {
 } from "@/components/ui/tooltip"
 // import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
-import { CaSankey } from "@/components/overview/ca-sankey";
-import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { Separator } from "@/components/ui/separator";

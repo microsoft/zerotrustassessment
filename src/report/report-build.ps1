@@ -14,8 +14,7 @@ function Build-TemplateVariant {
         [string]$Variant,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet('build', 'build:current')]
-        [string]$BuildScript,
+        [string]$BuildCommand,
 
         [Parameter(Mandatory = $true)]
         [string]$BuildOutput,
@@ -25,7 +24,7 @@ function Build-TemplateVariant {
     )
 
     Write-Host "Building $Variant report template"
-    npm run $BuildScript
+    Invoke-Expression $BuildCommand
 
     if ($LASTEXITCODE -ne 0) {
         throw "Build failed for template variant '$Variant'."
@@ -39,9 +38,9 @@ Write-Host "Building report"
 $assetPath = "../powershell/assets"
 
 if ($Template -eq 'Default' -or $Template -eq 'Both') {
-    Build-TemplateVariant -Variant 'default' -BuildScript 'build:current' -BuildOutput './dist/index.current.html' -Destination "$assetPath/ReportTemplate.html"
+    Build-TemplateVariant -Variant 'default' -BuildCommand 'vite build --config vite.config.current.ts' -BuildOutput './dist/index.current.html' -Destination "$assetPath/ReportTemplate.html"
 }
 
 if ($Template -eq 'Classic' -or $Template -eq 'Both') {
-    Build-TemplateVariant -Variant 'classic' -BuildScript 'build' -BuildOutput './dist/index.html' -Destination "$assetPath/ReportTemplate.classic.html"
+    Build-TemplateVariant -Variant 'classic' -BuildCommand 'tsc -b && vite build' -BuildOutput './dist/index.html' -Destination "$assetPath/ReportTemplate.classic.html"
 }

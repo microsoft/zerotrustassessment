@@ -20,9 +20,22 @@ Run all the following commands inside the `src/report` directory.
 
 ## Building & updating PowerShell
 
+### Using npm shortcuts (recommended)
+
+- Run `npm run build:current` to build the default/new template and auto-copy to `../powershell/assets/ReportTemplate.html`.
+- Run `npm run build` to build the classic template and auto-copy to `../powershell/assets/ReportTemplate.classic.html`.
+- Run `npm run build:templates` to build both templates and auto-copy both to assets.
+
+The built files are now automatically copied to the PowerShell assets folder, so no manual copy step is needed.
+
+### Using PowerShell directly (alternative)
+
 - Run `pwsh -File ./report-build.ps1 -Template Both` to build once and update both template assets.
 - Optional: run `pwsh -File ./report-build.ps1 -Template Default` to update only `ReportTemplate.html`.
 - Optional: run `pwsh -File ./report-build.ps1 -Template Classic` to update only `ReportTemplate.classic.html`.
+
+### Build details
+
 - The default/new build uses `vite.config.current.ts` and `index.current.html` (from `src-curent`).
 - The classic build uses `vite.config.ts` and `index.html` (from `src`).
 - Then do the usual Import-Module .\ZeroTrustAssessment.psm1 to update the PowerShell module
