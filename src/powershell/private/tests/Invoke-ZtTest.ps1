@@ -168,18 +168,13 @@
 			}
 		}
 		catch {
-			Write-PSFMessage -Level Warning -Message "Error executing test '{0}': {1}" -StringValues $Test.TestID, $_.Exception.Message -Target $Test -ErrorRecord $_
+			$safeError = New-ZtSafeErrorRecord -ErrorRecord $_
+			Write-PSFMessage -Level Warning -Message "Error executing test '{0}': {1}" -StringValues $Test.TestID, $safeError.Exception.Message -Target $Test -ErrorRecord $safeError
 			$result.Success = $false
-			$result.Error = $_
-			$message = @(
-				'❌  Test {0} failed due to an unexpected error.' -f $Test.TestID
-				' - **Error Message**: {0}.' -f $_.Exception.Message
-				'```'
-				'{0}' -f ($_ | Get-Error | Out-String)
-				'```'
-			) -join "`r`n"
+			$result.Error = $safeError
+			$message = Format-ZtTestErrorDetail -Test $Test -ErrorRecord $_
 			Add-ZtTestResultDetail -TestId $Test.TestID -Title $Test.Title -Status $false -Result $message -CustomStatus 'Error'
-			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $result.DisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($_.Exception.Message)"
+			Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $result.DisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($safeError.Exception.Message)"
 		}
 		finally {
 			$result.End = Get-Date

@@ -51,15 +51,21 @@ function Get-ZtAssessmentResults {
 			NetworkTotal   = @($TestResults).Where{ $_.TestPillar -eq 'Network' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 			DataPassed     = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -eq 'Passed' }.Count
 			DataTotal      = @($TestResults).Where{ $_.TestPillar -eq 'Data' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+			InfrastructurePassed = @($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -eq 'Passed' }.Count
+			InfrastructureTotal  = @($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+			SecOpsPassed         = @($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -eq 'Passed' }.Count
+			SecOpsTotal          = @($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
+			AIPassed             = @($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -eq 'Passed' }.Count
+			AITotal              = @($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count
 		}
 
-		if($PreviewEnabled){
-			$summary | Add-Member -NotePropertyName 'InfrastructurePassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -eq 'Passed' }.Count)
-			$summary | Add-Member -NotePropertyName 'InfrastructureTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'Infrastructure' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
-			$summary | Add-Member -NotePropertyName 'SecOpsPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -eq 'Passed' }.Count)
-			$summary | Add-Member -NotePropertyName 'SecOpsTotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'SecOps' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
-			$summary | Add-Member -NotePropertyName 'AIPassed' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -eq 'Passed' }.Count)
-			$summary | Add-Member -NotePropertyName 'AITotal' -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq 'AI' -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+		# Future preview-only pillars can be added here and included only when -Preview is enabled.
+		$previewPillars = @()
+		if ($PreviewEnabled -and $previewPillars.Count -gt 0) {
+			foreach ($previewPillar in $previewPillars) {
+				$summary | Add-Member -NotePropertyName ("{0}Passed" -f $previewPillar) -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq $previewPillar -and $_.TestStatus -eq 'Passed' }.Count)
+				$summary | Add-Member -NotePropertyName ("{0}Total" -f $previewPillar) -NotePropertyValue (@($TestResults).Where{ $_.TestPillar -eq $previewPillar -and $_.TestStatus -notin 'Skipped', 'Planned' }.Count)
+			}
 		}
 
 		return $summary
@@ -88,7 +94,8 @@ function Get-ZtAssessmentResults {
 	# are always available, avoiding runspace scope issues.
 	#   - Specific pillar (e.g. -Pillar AI): set TestPillar to exactly the requested pillar.
 	#   - -Pillar All + preview enabled: keep full array (test appears on every tagged page).
-	#   - -Pillar All + preview disabled: strip 'AI' so the AI preview page stays empty.
+	#   - -Pillar All + preview disabled: strip only preview-only pillars.
+	$previewPillars = @()
 	$_reqPillar   = $script:__ZtSession.RequestedPillar
 	$_previewOn   = $script:__ZtSession.PreviewEnabled
 	$_isAllPillar = (-not $_reqPillar -or $_reqPillar -eq 'All')
@@ -96,8 +103,8 @@ function Get-ZtAssessmentResults {
 		if ($test.TestPillar -isnot [array]) { continue }
 		if (-not $_isAllPillar) {
 			$test.TestPillar = $_reqPillar
-		} elseif (-not $_previewOn) {
-			$test.TestPillar = $test.TestPillar | Where-Object { $_ -ne 'AI' }
+		} elseif (-not $_previewOn -and $previewPillars.Count -gt 0) {
+			$test.TestPillar = $test.TestPillar | Where-Object { $_ -notin $previewPillars }
 		}
 	}
 

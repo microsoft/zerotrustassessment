@@ -177,6 +177,8 @@ function Add-ZtTestResultDetail {
 		$Result = $Result -replace "%TestResult%", $graphResultMarkdown
 	}
 
+	$Result = Protect-ZtReportText -Text $Result
+
 	# Check if the docs team have provided a title for the test and use it if available
 
 	$docsTitle = $Title # Default to the title provided in the parameter

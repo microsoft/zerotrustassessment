@@ -38,6 +38,7 @@ import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -1302,6 +1303,28 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent>
                         <SwgDefenseLayers />
+                    </CardContent>
+                </Card>
+            </div>
+            )}
+
+            {/* Network - Azure Network Security Defense Planes Section */}
+            {hasAzureNetSecData() && (
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                <Card>
+                    <CardHeader className="space-y-0 pb-2 flex-row">
+                        <ShieldCheck className="pr-2 size-8" />
+                        <div>
+                            <CardTitle className="text-2xl tabular-nums">
+                                Azure network security
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                Defense plane posture — availability, inbound, and outbound protection.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <AzureNetSecPlanes />
                     </CardContent>
                 </Card>
             </div>
