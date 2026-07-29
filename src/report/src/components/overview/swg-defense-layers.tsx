@@ -286,7 +286,7 @@ export function SwgDefenseLayers() {
                                             </span>
                                             <Badge
                                                 variant={getStatusBadgeVariant(result.status)}
-                                                className="mr-2"
+                                                className="mr-2 w-16 justify-center"
                                             >
                                                 {getStatusLabel(result.status)}
                                             </Badge>
