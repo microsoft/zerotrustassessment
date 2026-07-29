@@ -27,7 +27,8 @@ function Add-ZtOverviewPrivateAccess {
 
     $unmatchedAuthenticationApps = @($authenticationApps | Where-Object { $_.AppId -and $_.AppId -notin $segmentationApps.AppId })
     $unmatchedSegmentationApps = @($segmentationApps | Where-Object { $_.AppId -and $_.AppId -notin $authenticationApps.AppId })
-    $populationMismatch = ($unmatchedAuthenticationApps.Count + $unmatchedSegmentationApps.Count) -gt 0
+    $populationMismatch = $segmentationTotal -ne $authenticationTotal -or
+        ($unmatchedAuthenticationApps.Count + $unmatchedSegmentationApps.Count) -gt 0
     $authenticationByAppId = @{}
     foreach ($app in $authenticationApps) {
         if ($app.AppId) {
@@ -55,7 +56,6 @@ function Add-ZtOverviewPrivateAccess {
     $nodes = @(
         @{ source = 'Private Access apps'; target = 'Broad segments - at-risk (25395)'; value = $broadSegments.Count },
         @{ source = 'Private Access apps'; target = 'Segmentation manual review (25395)'; value = $segmentationManualReview.Count },
-        @{ source = 'Private Access apps'; target = 'Population mismatch - manual review (25396)'; value = ($unmatchedAuthenticationApps.Count + $unmatchedSegmentationApps.Count) },
         @{ source = 'Private Access apps'; target = 'Least-privilege segments (25395)'; value = $segmentationClean.Count },
         @{ source = 'Least-privilege segments (25395)'; target = 'Password-only - at-risk (25396)'; value = $passwordOnly },
         @{ source = 'Least-privilege segments (25395)'; target = 'Authentication manual review (25396)'; value = $authenticationManualReview },
