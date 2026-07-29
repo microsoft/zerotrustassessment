@@ -1,21 +1,27 @@
 function Add-ZtOverviewM365ProtectionCircuit {
     [CmdletBinding()]
-    param()
+    param(
+        $TestResults = $script:__ZtSession.TestResultDetail.Value.Values
+    )
 
     $tenantInfoName = 'OverviewM365ProtectionCircuit'
-    $circuitResult = Get-ZtTestResultDetail -TestId '27022'
-    if (-not $circuitResult -or -not $circuitResult.TestData) {
+    $acquisitionResult = @($TestResults | Where-Object { $_.TestId -eq '25376' } | Select-Object -First 1)
+    $enforcementResult = @($TestResults | Where-Object { $_.TestId -eq '25379' } | Select-Object -First 1)
+    if (-not $acquisitionResult -or -not $enforcementResult) {
         Add-ZtTenantInfo -Name $tenantInfoName -Value $null
         return
     }
 
-    $data = $circuitResult.TestData
-    $acquisitionStatus = $data.acquisitionStatus
-    $enforcementStatus = $data.enforcementStatus
-    $countsAvailable = [bool]$data.countsAvailable
-    $total = if ($countsAvailable) { [int]$data.totalDeviceCount } else { 100 }
+    $acquisitionStatus = $acquisitionResult.TestStatus
+    $enforcementStatus = $enforcementResult.TestStatus
+    $acquisitionData = $acquisitionResult.TestData
+    $totalDeviceCount = if ($acquisitionData) { [int]$acquisitionData.totalDeviceCount } else { 0 }
+    $activeDeviceCount = if ($acquisitionData) { [int]$acquisitionData.activeDeviceCount } else { 0 }
+    $profileEnabled = if ($acquisitionData) { [bool]$acquisitionData.profileEnabled } else { $false }
+    $countsAvailable = $totalDeviceCount -gt 0 -and $activeDeviceCount -ge 0 -and $activeDeviceCount -le $totalDeviceCount
+    $total = if ($countsAvailable) { $totalDeviceCount } else { 100 }
     $acquired = if ($countsAvailable) {
-        if ($data.profileEnabled) { [int]$data.activeDeviceCount } else { 0 }
+        if ($profileEnabled) { $activeDeviceCount } else { 0 }
     }
     elseif ($acquisitionStatus -eq 'Passed') { 100 } else { 0 }
 
@@ -50,7 +56,14 @@ function Add-ZtOverviewM365ProtectionCircuit {
         "Microsoft 365 traffic acquisition is sized from $total observed devices; compliant network enforcement is a tenant-wide gate over the acquired band."
     }
     else {
-        'Device counts are unavailable, so this flow uses a normalized all-or-nothing width of 100.'
+        'Device counts are unavailable, so this flow uses a normalized all-or-nothing width of 100; proportional widths are unavailable.'
     }
-    Add-ZtTenantInfo -Name $tenantInfoName -Value @{ description = $description; nodes = $nodes; totalDevices = $total }
+    Add-ZtTenantInfo -Name $tenantInfoName -Value @{
+        description        = $description
+        nodes              = $nodes
+        totalDevices       = $total
+        countsAvailable    = $countsAvailable
+        acquisitionStatus  = $acquisitionStatus
+        enforcementStatus  = $enforcementStatus
+    }
 }
