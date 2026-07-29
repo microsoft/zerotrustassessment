@@ -49,24 +49,8 @@ export default function Dashboard() {
         return `${(passedNum / totalNum) * 100}%`;
     };
 
-    const getTenantOverviewMetric = (keys: string[]): number | null => {
-        const tenantOverview = reportData.TenantInfo?.TenantOverview as Record<string, unknown> | undefined | null;
-
-        if (!tenantOverview) {
-            return null;
-        }
-
-        for (const key of keys) {
-            const value = tenantOverview[key];
-            const numberValue = typeof value === 'number' ? value : Number(value);
-
-            if (!Number.isNaN(numberValue) && Number.isFinite(numberValue)) {
-                return numberValue;
-            }
-        }
-
-        return null;
-    };
+    const formatOptionalMetric = (value: number | null | undefined): string =>
+        value === null || value === undefined ? '—' : formatNumber(value);
 
     const deviceOverview = reportData.TenantInfo?.DeviceOverview;
     const desktopNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.DesktopDevicesSummary?.nodes || [];
@@ -320,10 +304,7 @@ export default function Dashboard() {
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            {(() => {
-                                                const value = getTenantOverviewMetric(['AgentCount', 'AgentsCount', 'TotalAgentCount']);
-                                                return value === null ? '—' : formatNumber(value);
-                                            })()}
+                                            {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.TotalAgents)}
                                         </span>
                                     </div>
                                 </div>
@@ -342,17 +323,14 @@ export default function Dashboard() {
                                                         <Info className="size-3.5 shrink-0 opacity-70" />
                                                     </span>
                                                     <span className="text-lg font-medium">
-                                                        {(() => {
-                                                            const value = getTenantOverviewMetric(['AgentActiveUserCount', 'ActiveAgentUserCount', 'AgentUsersActiveCount']);
-                                                            return value === null ? '—' : formatNumber(value);
-                                                        })()}
+                                                        {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.ActiveUsers)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs">Active agent users</p>
+                                        <p className="text-xs">Unique users interacting with agents in the last 30 days</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>

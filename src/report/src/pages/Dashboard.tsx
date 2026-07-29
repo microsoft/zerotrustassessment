@@ -51,6 +51,9 @@ export default function Dashboard() {
         return `${(passedNum / totalNum) * 100}%`;
     };
 
+    const formatOptionalMetric = (value: number | null | undefined): string =>
+        value === null || value === undefined ? '—' : formatNumber(value);
+
     const deviceOverview = reportData.TenantInfo?.DeviceOverview;
     const desktopNodes = deviceOverview?.DesktopDevicesSummary?.nodes || [];
     const mobileNodes = deviceOverview?.MobileSummary?.nodes || [];
@@ -266,7 +269,7 @@ export default function Dashboard() {
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            —
+                                            {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.TotalAgents)}
                                         </span>
                                     </div>
                                 </div>
@@ -280,14 +283,14 @@ export default function Dashboard() {
                                                         <Info className="size-3.5 shrink-0 opacity-70" />
                                                     </span>
                                                     <span className="text-lg font-medium">
-                                                        —
+                                                        {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.ActiveUsers)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs">Active agent users</p>
+                                        <p className="text-xs">Unique users interacting with agents in the last 30 days</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
