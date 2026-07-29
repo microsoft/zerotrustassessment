@@ -27,29 +27,29 @@ function Add-ZtOverviewM365ProtectionCircuit {
 
     $nodes = @()
     if ($acquisitionStatus -eq 'Passed') {
-        $nodes += @{ source = 'Total M365 traffic'; target = 'Unprotected - not acquired (25376)'; value = $total - $acquired }
-        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquired via Global Secure Access (25376)'; value = $acquired }
+        $nodes += @{ source = 'Total M365 traffic'; target = 'Unprotected - not acquired'; value = $total - $acquired }
+        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquired via Global Secure Access'; value = $acquired }
         if ($enforcementStatus -eq 'Passed') {
-            $nodes += @{ source = 'Acquired via Global Secure Access (25376)'; target = 'Enforced - compliant network (25379)'; value = $acquired }
+            $nodes += @{ source = 'Acquired via Global Secure Access'; target = 'Enforced - compliant network'; value = $acquired }
         }
         elseif ($enforcementStatus -eq 'Investigate') {
-            $nodes += @{ source = 'Acquired via Global Secure Access (25376)'; target = 'Acquired, enforcement needs review (25379)'; value = $acquired }
+            $nodes += @{ source = 'Acquired via Global Secure Access'; target = 'Acquired, enforcement needs review'; value = $acquired }
         }
         elseif ($enforcementStatus -eq 'Skipped') {
-            $nodes += @{ source = 'Acquired via Global Secure Access (25376)'; target = 'Enforcement not applicable (25379)'; value = $acquired }
+            $nodes += @{ source = 'Acquired via Global Secure Access'; target = 'Enforcement not applicable'; value = $acquired }
         }
         else {
-            $nodes += @{ source = 'Acquired via Global Secure Access (25376)'; target = 'Acquired but not enforced (25379)'; value = $acquired }
+            $nodes += @{ source = 'Acquired via Global Secure Access'; target = 'Acquired but not enforced'; value = $acquired }
         }
     }
     elseif ($acquisitionStatus -eq 'Investigate') {
-        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquisition needs review (25376)'; value = $total }
+        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquisition needs review'; value = $total }
     }
     elseif ($acquisitionStatus -eq 'Skipped') {
-        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquisition not applicable (25376)'; value = $total }
+        $nodes += @{ source = 'Total M365 traffic'; target = 'Acquisition not applicable'; value = $total }
     }
     else {
-        $nodes += @{ source = 'Total M365 traffic'; target = 'Unprotected - not acquired (25376)'; value = $total }
+        $nodes += @{ source = 'Total M365 traffic'; target = 'Unprotected - not acquired'; value = $total }
     }
 
     $description = if ($countsAvailable) {
