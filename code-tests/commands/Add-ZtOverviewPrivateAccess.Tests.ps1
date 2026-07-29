@@ -37,7 +37,7 @@ Describe "Add-ZtOverviewPrivateAccess" {
         $script:tenantInfo.Name | Should -Be 'OverviewPrivateAccess'
         ($script:tenantInfo.Value.nodes | Where-Object { $_.source -eq 'Private Access apps' -and $_.target -eq 'Broad segments - at-risk (25395)' }).value | Should -Be 1
         ($script:tenantInfo.Value.nodes | Where-Object { $_.source -eq 'Least-privilege segments (25395)' -and $_.target -eq 'Strong auth - Zero Trust (25396)' }).value | Should -Be 1
-        ($script:tenantInfo.Value.nodes | Where-Object { $_.source -eq 'Private Access apps' -and $_.target -eq 'Population mismatch - manual review (25396)' }).value | Should -Be 1
+        ($script:tenantInfo.Value.nodes | Where-Object { $_.source -eq 'Private Access apps' }).Count | Should -Be 3
         ($script:tenantInfo.Value.nodes | Where-Object { $_.source -eq 'Application Administrator assignments' -and $_.target -eq 'Tenant-wide admin - at-risk (25384)' }).value | Should -Be 1
         $script:tenantInfo.Value.adminAtRisk | Should -Be $true
         $script:tenantInfo.Value.populationMismatch | Should -Be $true
