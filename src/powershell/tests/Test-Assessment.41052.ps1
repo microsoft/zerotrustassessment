@@ -146,7 +146,7 @@ function Test-Assessment-41052 {
     $portalUrl = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/applicationcontrol'
     $tableRows = @($policyResults | Select-Object -First 10 | ForEach-Object {
         $lastModified = if ($_.LastModified) { Get-FormattedDate -DateString $_.LastModified } else { '—' }
-        "| $(Get-SafeMarkdown $_.Name) | $($_.TemplateFamily) | $($_.Mode) | $($_.AssignmentCount) | $lastModified | $($_.Status) |"
+        "| $((Get-SafeMarkdown $_.Name) -replace '\|', '\\|') | $($_.TemplateFamily) | $($_.Mode) | $($_.AssignmentCount) | $lastModified | $($_.Status) |"
     })
     if ($policyResults.Count -gt 10) {
         $tableRows += "| ... | | | | | $($policyResults.Count) total policies |"
