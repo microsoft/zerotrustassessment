@@ -61,11 +61,19 @@ resources
     catch {
         Write-PSFMessage "Azure Resource Graph query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         # Spec: this check never returns Skipped from the function body; an ARG error is Investigate.
+        # Distinguish deterministic auth failures (401/403) from transient errors — rerunning will not
+        # fix missing Azure Resource Graph or Microsoft.SecurityCopilot/capacities/read access.
+        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
+        $result = if ($httpStatus -in @(401, 403)) {
+            '⚠️ Azure Resource Graph returned an authorization error while querying Security Copilot capacities. Verify that the account used has at least Reader access (granting Microsoft.SecurityCopilot/capacities/read and Azure Resource Graph read) on the subscriptions being evaluated.'
+        } else {
+            '⚠️ Azure Resource Graph returned an unexpected error while querying Security Copilot capacities. This is likely a transient issue; re-run the assessment.'
+        }
         $params = @{
             TestId       = '41215'
             Title        = 'Microsoft Security Copilot capacity (Security Compute Units) is provisioned in the tenant'
             Status       = $false
-            Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying Security Copilot capacities. This is likely a transient issue; re-run the assessment.'
+            Result       = $result
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -103,8 +111,9 @@ resources
             # Prefer subscription display name; fall back to raw subscriptionId when the join returns nothing
             $subscriptionDisplay = if (-not [string]::IsNullOrWhiteSpace($item.subscriptionName)) { Get-SafeMarkdown $item.subscriptionName } else { $item.subscriptionId }
             $provisioningStateDisplay = switch ($item.provisioningState) {
-                'Succeeded' { '✅ Succeeded' }
-                default     { "⚠️ $($item.provisioningState)" }
+                'Succeeded'                         { '✅ Succeeded' }
+                { [string]::IsNullOrEmpty($_) }     { '⚠️ Unknown' }
+                default                             { "⚠️ $($item.provisioningState)" }
             }
             $tableRows += "| $nameLink | $(Get-SafeMarkdown $item.resourceGroup) | $($item.location) | $subscriptionDisplay | $provisioningStateDisplay |`n"
         }

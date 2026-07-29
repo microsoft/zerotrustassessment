@@ -17,6 +17,9 @@ Describe 'Test-Assessment-41215' {
         if (-not (Get-Command Get-SafeMarkdown -ErrorAction SilentlyContinue)) {
             function global:Get-SafeMarkdown { param($Text) return $Text }
         }
+        if (-not (Get-Command Get-ZtHttpStatusCode -ErrorAction SilentlyContinue)) {
+            function global:Get-ZtHttpStatusCode { param($ErrorRecord) return $null }
+        }
         if (-not (Get-Command Add-ZtTestResultDetail -ErrorAction SilentlyContinue)) {
             function global:Add-ZtTestResultDetail {
                 param(
@@ -182,6 +185,7 @@ Describe 'Test-Assessment-41215' {
     Context 'When Azure Resource Graph returns an error' {
         It 'Should investigate and return exactly one result' {
             Mock Invoke-ZtAzureResourceGraphRequest { throw '503 Service Unavailable' }
+            Mock Get-ZtHttpStatusCode { return 503 }
 
             { Test-Assessment-41215 } | Should -Not -Throw
 
@@ -192,6 +196,20 @@ Describe 'Test-Assessment-41215' {
             $script:capturedSkippedBecause | Should -BeNullOrEmpty
             $script:capturedResult | Should -Match 'unexpected error'
             $script:capturedResult | Should -Match 're-run the assessment'
+        }
+
+        It 'Should advise verifying Reader access for authorization errors' {
+            Mock Invoke-ZtAzureResourceGraphRequest { throw '403 Forbidden' }
+            Mock Get-ZtHttpStatusCode { return 403 }
+
+            { Test-Assessment-41215 } | Should -Not -Throw
+
+            Should -Invoke Add-ZtTestResultDetail -Times 1 -Exactly
+            $script:capturedStatus | Should -BeFalse
+            $script:capturedCustomStatus | Should -Be 'Investigate'
+            $script:capturedResult | Should -Match 'authorization error'
+            $script:capturedResult | Should -Match 'Reader'
+            $script:capturedResult | Should -Not -Match 're-run the assessment'
         }
     }
 }
