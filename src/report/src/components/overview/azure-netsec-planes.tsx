@@ -72,13 +72,14 @@ function getStatusLabel(status: PlaneStatus): string {
     }
 }
 
-function getStatusFill(status: PlaneStatus): string {
-    switch (status) {
-        case "pass": return "#22C55E";
-        case "partial": return "#EAB308";
-        case "fail": return "#EF4444";
-        default: return "#9CA3AF";
-    }
+function getPlaneFill(status: PlaneStatus, tests: Test[]): string {
+    if (status === "na") return "#9CA3AF";
+    if (status === "pass") return "#22C55E";
+
+    const failed = tests.filter((test) => test.TestStatus === "Failed" || test.TestStatus === "Error").length;
+    const failureRate = tests.length > 0 ? failed / tests.length : 0;
+
+    return failureRate >= 0.8 ? "#EF4444" : "#EAB308";
 }
 
 function getTestStatusIcon(testStatus: string) {
@@ -145,7 +146,7 @@ export function AzureNetSecPlanes() {
                             const isHovered = hoveredPlane === plane.id;
                             const percentage = plane.result.total > 0 ? Math.round((plane.result.passed / plane.result.total) * 100) : 0;
                             const labelY = 210 - plane.ry + (plane.id === 1 ? 30 : 25);
-                            const fill = getStatusFill(plane.result.status);
+                            const fill = getPlaneFill(plane.result.status, plane.tests);
 
                             return (
                                 <g key={plane.id} className="cursor-pointer" opacity={hoveredPlane !== null && !isHovered ? 0.65 : 1} onMouseEnter={() => setHoveredPlane(plane.id)} onMouseLeave={() => setHoveredPlane(null)}>
