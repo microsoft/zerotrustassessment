@@ -97,10 +97,10 @@ Describe "Invoke-ZtTenantInfo" {
 	It "Should call Add-ZtDeviceOverview even when Intune is unavailable" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
 
-		Assert-MockCalled Add-ZtDeviceOverview -Times 1 -Exactly
-		Assert-MockCalled Add-ZtDeviceWindowsEnrollment -Times 0 -Exactly
-		Assert-MockCalled Add-ZtDeviceEnrollmentRestriction -Times 0 -Exactly
-		Assert-MockCalled Add-ZTDeviceCompliancePolicies -Times 0 -Exactly
-		Assert-MockCalled Add-ZTDeviceAppProtectionPolicies -Times 0 -Exactly
+		Should -Invoke Add-ZtDeviceOverview -Times 1 -Exactly
+		Should -Invoke Add-ZtDeviceWindowsEnrollment -Times 0 -Exactly
+		Should -Invoke Add-ZtDeviceEnrollmentRestriction -Times 0 -Exactly
+		Should -Invoke Add-ZTDeviceCompliancePolicies -Times 0 -Exactly
+		Should -Invoke Add-ZTDeviceAppProtectionPolicies -Times 0 -Exactly
 	}
 }

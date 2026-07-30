@@ -67,12 +67,19 @@ order by operatingSystem, trustType, isCompliant
     $registeredNoncompliant = ($windowsRows | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
     $macCompliant = ($macRows | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
     $macNoncompliant = ($macRows | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
-    foreach ($name in 'windowsTotal','macTotal','windowsEntraJoined','windowsHybridJoined','windowsEntraRegistered','entraJoinedCompliant','hybridJoinedCompliant','registeredCompliant','entraJoinedNoncompliant','hybridJoinedNoncompliant','registeredNoncompliant','macCompliant','macNoncompliant') {
-        $value = Get-Variable -Name $name -ValueOnly
-        if ($null -eq $value) {
-            Set-Variable -Name $name -Value 0
-        }
-    }
+    if ($null -eq $windowsTotal) { $windowsTotal = 0 }
+    if ($null -eq $macTotal) { $macTotal = 0 }
+    if ($null -eq $windowsEntraJoined) { $windowsEntraJoined = 0 }
+    if ($null -eq $windowsHybridJoined) { $windowsHybridJoined = 0 }
+    if ($null -eq $windowsEntraRegistered) { $windowsEntraRegistered = 0 }
+    if ($null -eq $entraJoinedCompliant) { $entraJoinedCompliant = 0 }
+    if ($null -eq $hybridJoinedCompliant) { $hybridJoinedCompliant = 0 }
+    if ($null -eq $registeredCompliant) { $registeredCompliant = 0 }
+    if ($null -eq $entraJoinedNoncompliant) { $entraJoinedNoncompliant = 0 }
+    if ($null -eq $hybridJoinedNoncompliant) { $hybridJoinedNoncompliant = 0 }
+    if ($null -eq $registeredNoncompliant) { $registeredNoncompliant = 0 }
+    if ($null -eq $macCompliant) { $macCompliant = 0 }
+    if ($null -eq $macNoncompliant) { $macNoncompliant = 0 }
 
     $entraJoinedUnmanaged = $windowsEntraJoined - ($entraJoinedCompliant + $entraJoinedNoncompliant)
     $hybridJoinedUnmanaged = $windowsHybridJoined - ($hybridJoinedCompliant + $hybridJoinedNoncompliant)

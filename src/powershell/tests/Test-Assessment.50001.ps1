@@ -47,6 +47,7 @@
 function Test-Assessment-50001 {
     [ZtTest(
         Category = 'Microsoft Defender for Cloud',
+        ImplementationCost = 'Medium',
         MinimumLicense = ('N/A'),
         Pillar = 'Infrastructure',
         RiskLevel = 'High',
@@ -54,7 +55,8 @@ function Test-Assessment-50001 {
         SfiPillar = 'Protect tenants and isolate production systems',
         TenantType = ('Workforce'),
         TestId = 50001,
-        Title = 'Microsoft Defender for Cloud Recommendations'
+        Title = 'Microsoft Defender for Cloud Recommendations',
+        UserImpact = 'Medium'
     )]
     [CmdletBinding()]
     param()

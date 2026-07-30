@@ -1,22 +1,22 @@
 Describe "Add-ZtDeviceOverview" {
-	function Assert-ValidSankeyLinks {
-		param(
-			$Nodes,
-			[string] $Because
-		)
-
-		foreach ($node in @($Nodes)) {
-			$node.source | Should -Not -BeNullOrEmpty -Because $Because
-			$node.target | Should -Not -BeNullOrEmpty -Because $Because
-			$node.source | Should -Not -Be $node.target -Because $Because
-			$node.value | Should -Not -BeNullOrEmpty -Because $Because
-			$node.value | Should -BeGreaterThan 0 -Because $Because
-		}
-	}
-
 	BeforeAll {
 		$here = $PSScriptRoot
 		$srcRoot = Join-Path $here "../../src/powershell"
+
+		function Assert-ValidSankeyLinks {
+			param(
+				$Nodes,
+				[string] $Because
+			)
+
+			foreach ($node in @($Nodes)) {
+				$node.source | Should -Not -BeNullOrEmpty -Because $Because
+				$node.target | Should -Not -BeNullOrEmpty -Because $Because
+				$node.source | Should -Not -Be $node.target -Because $Because
+				$node.value | Should -Not -BeNullOrEmpty -Because $Because
+				$node.value | Should -BeGreaterThan 0 -Because $Because
+			}
+		}
 
 		if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
 			function global:Write-PSFMessage {
@@ -78,6 +78,27 @@ Describe "Add-ZtDeviceOverview" {
 		Mock Invoke-DatabaseQuery { @() }
 	}
 
+	It "Should summarize all devices across operating systems" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem' -and $Sql -notmatch 'group by operatingSystem, trustType' -and $Sql -notmatch 'group by operatingSystem, isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'Android'; count = 4 }
+				[pscustomobject]@{ operatingSystem = 'IPhone'; count = 2 }
+				[pscustomobject]@{ operatingSystem = 'Linux'; count = 1 }
+				[pscustomobject]@{ operatingSystem = 'MacMDM'; count = 3 }
+				[pscustomobject]@{ operatingSystem = 'Windows'; count = 6 }
+			)
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.windowsCount | Should -Be 6
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.macOSCount | Should -Be 3
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.iosCount | Should -Be 2
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.androidCount | Should -Be 4
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.linuxCount | Should -Be 1
+		$script:tenantInfo.Value.DeviceSummary.totalDevices | Should -Be 16
+	}
+
 	It "Should sum Windows desktop devices across trust types and compliance, deriving unmanaged via subtraction" {
 		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem, trustType' } -MockWith {
 			@(
@@ -89,27 +110,6 @@ Describe "Add-ZtDeviceOverview" {
 				[pscustomobject]@{ operatingSystem = 'MacMDM';  trustType = 'AzureAd';   isCompliant = $true;  count = 5 }
 				[pscustomobject]@{ operatingSystem = 'MacMDM';  trustType = 'Workplace'; isCompliant = $true;  count = 3 }
 			)
-		}
-
-		It "Should summarize all devices across operating systems" {
-			Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem' -and $Sql -notmatch 'group by operatingSystem, trustType' -and $Sql -notmatch 'group by operatingSystem, isCompliant' } -MockWith {
-				@(
-					[pscustomobject]@{ operatingSystem = 'Android'; count = 4 }
-					[pscustomobject]@{ operatingSystem = 'IPhone'; count = 2 }
-					[pscustomobject]@{ operatingSystem = 'Linux'; count = 1 }
-					[pscustomobject]@{ operatingSystem = 'MacMDM'; count = 3 }
-					[pscustomobject]@{ operatingSystem = 'Windows'; count = 6 }
-				)
-			}
-
-			Add-ZtDeviceOverview -Database 'test'
-
-			$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.windowsCount | Should -Be 6
-			$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.macOSCount | Should -Be 3
-			$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.iosCount | Should -Be 2
-			$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.androidCount | Should -Be 4
-			$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.linuxCount | Should -Be 1
-			$script:tenantInfo.Value.DeviceSummary.totalDevices | Should -Be 16
 		}
 
 		Add-ZtDeviceOverview -Database 'test'
