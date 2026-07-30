@@ -17,9 +17,6 @@ Describe 'Test-Assessment-41215' {
         if (-not (Get-Command Get-SafeMarkdown -ErrorAction SilentlyContinue)) {
             function global:Get-SafeMarkdown { param($Text) return $Text }
         }
-        if (-not (Get-Command Get-ZtHttpStatusCode -ErrorAction SilentlyContinue)) {
-            function global:Get-ZtHttpStatusCode { param($ErrorRecord) return $null }
-        }
         if (-not (Get-Command Add-ZtTestResultDetail -ErrorAction SilentlyContinue)) {
             function global:Add-ZtTestResultDetail {
                 param(
@@ -184,8 +181,7 @@ Describe 'Test-Assessment-41215' {
 
     Context 'When Azure Resource Graph returns an error' {
         It 'Should investigate and return exactly one result' {
-            Mock Invoke-ZtAzureResourceGraphRequest { throw '503 Service Unavailable' }
-            Mock Get-ZtHttpStatusCode { return 503 }
+            Mock Invoke-ZtAzureResourceGraphRequest { throw 'Azure REST request failed with status 503: Service Unavailable' }
 
             { Test-Assessment-41215 } | Should -Not -Throw
 
@@ -199,8 +195,7 @@ Describe 'Test-Assessment-41215' {
         }
 
         It 'Should advise verifying Reader access for authorization errors' {
-            Mock Invoke-ZtAzureResourceGraphRequest { throw '403 Forbidden' }
-            Mock Get-ZtHttpStatusCode { return 403 }
+            Mock Invoke-ZtAzureResourceGraphRequest { throw 'Azure REST request failed with status 403: Forbidden' }
 
             { Test-Assessment-41215 } | Should -Not -Throw
 

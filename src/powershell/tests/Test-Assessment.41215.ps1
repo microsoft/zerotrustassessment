@@ -63,7 +63,12 @@ resources
         # Spec: this check never returns Skipped from the function body; an ARG error is Investigate.
         # Distinguish deterministic auth failures (401/403) from transient errors — rerunning will not
         # fix missing Azure Resource Graph or Microsoft.SecurityCopilot/capacities/read access.
-        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
+        # Invoke-ZtAzureResourceGraphRequest throws "Azure REST request failed with status <code>: ..."
+        # which Get-ZtHttpStatusCode does not recognise (Graph-only format), so parse directly.
+        $httpStatus = $null
+        if ($_.Exception.Message -match 'with status (\d+):') {
+            $httpStatus = [int]$Matches[1]
+        }
         $result = if ($httpStatus -in @(401, 403)) {
             '⚠️ Azure Resource Graph returned an authorization error while querying Security Copilot capacities. Verify that the account used has at least Reader access (granting Microsoft.SecurityCopilot/capacities/read and Azure Resource Graph read) on the subscriptions being evaluated.'
         } else {
