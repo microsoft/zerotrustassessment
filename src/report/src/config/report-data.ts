@@ -16,6 +16,7 @@ export interface ZeroTrustAssessmentReport {
 }
 
 export interface TenantInfo {
+  AgentOwnershipDistribution?: AgentOwnershipDistribution | null;
   OverviewCaMfaAllUsers?: SankeyData | null;
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
@@ -26,6 +27,13 @@ export interface TenantInfo {
   ConfigDeviceAppProtectionPolicies?: ConfigDeviceAppProtectionPolicies[] | null;
   DeviceOverview?: DeviceOverview | null;
   TenantOverview?: TenantOverview | null;
+}
+
+export interface AgentOwnershipDistribution {
+  ownerAndSponsor: number;
+  ownerOnly: number;
+  sponsorOnly: number;
+  neither: number;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -967,6 +975,12 @@ export const reportData: ZeroTrustAssessmentReport = {
         "corporateCount": 20,
         "personalCount": 10
       }
+    },
+    "AgentOwnershipDistribution": {
+      "ownerAndSponsor": 62,
+      "ownerOnly": 41,
+      "sponsorOnly": 21,
+      "neither": 124
     },
     "TenantOverview": {
       "UserCount": 71000,
