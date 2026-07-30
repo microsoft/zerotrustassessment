@@ -76,6 +76,7 @@ function Test-Assessment-41052 {
             Write-PSFMessage "Failed to retrieve assignments for App Control policy '$($policy.name)': $_" -Tag Test -Level Warning
             $policyResults += [pscustomobject]@{
                 Name = $policy.name; TemplateFamily = $policy.templateReference.templateFamily; Mode = 'Unknown'
+                PolicyId = $policy.id; Technologies = $policy.technologies; TemplateId = $policy.templateReference.templateId; Platforms = $policy.platforms
                 AssignmentState = 'Unknown'; AssignmentCount = $null; LastModified = $policy.lastModifiedDateTime; Status = 'Investigate'
             }
             continue
@@ -95,6 +96,7 @@ function Test-Assessment-41052 {
             $assignmentCount = $assignments.Count
             $policyResults += [pscustomobject]@{
                 Name = $policy.name; TemplateFamily = $policy.templateReference.templateFamily; Mode = 'Unknown'
+                PolicyId = $policy.id; Technologies = $policy.technologies; TemplateId = $policy.templateReference.templateId; Platforms = $policy.platforms
                 AssignmentState = if ($assignmentCount -gt 0) { 'Assigned' } else { 'Unassigned' }; AssignmentCount = $assignmentCount; LastModified = $policy.lastModifiedDateTime
                 Status = if ($assignmentCount -gt 0) { 'Investigate' } else { 'Fail' }
             }
@@ -214,6 +216,7 @@ function Test-Assessment-41052 {
 
         $policyResults += [pscustomobject]@{
             Name = $policy.name; TemplateFamily = $policy.templateReference.templateFamily; Mode = $mode
+            PolicyId = $policy.id; Technologies = $policy.technologies; TemplateId = $policy.templateReference.templateId; Platforms = $policy.platforms
             AssignmentState = if ($assignmentCount -gt 0) { 'Assigned' } else { 'Unassigned' }; AssignmentCount = $assignmentCount; LastModified = $policy.lastModifiedDateTime; Status = $status
         }
     }
@@ -245,7 +248,10 @@ function Test-Assessment-41052 {
     $portalUrl = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/appControl'
     $tableRows = @($policyResults | Select-Object -First 10 | ForEach-Object {
         $lastModified = if ($_.LastModified) { Get-FormattedDate -DateString $_.LastModified } else { '—' }
-        "| $((Get-SafeMarkdown $_.Name) -replace '\|', '\\|') | $($_.TemplateFamily) | $($_.Mode) | $($_.AssignmentState) | $($_.AssignmentCount) | $lastModified | $($_.Status) |"
+        $policyName = (Get-SafeMarkdown $_.Name) -replace '\|', '\\|'
+        $encodedTechnologies = ([string]$_.Technologies) -replace ',', '%2C'
+        $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($_.PolicyId)/technology/$encodedTechnologies/templateId/$($_.TemplateId)/platformName/$($_.Platforms)"
+        "| [$policyName]($policyLink) | $($_.TemplateFamily) | $($_.Mode) | $($_.AssignmentState) | $($_.AssignmentCount) | $lastModified | $($_.Status) |"
     })
     if ($policyResults.Count -gt 10) {
         $tableRows += "| ... | | | | | | $($policyResults.Count) total policies |"
