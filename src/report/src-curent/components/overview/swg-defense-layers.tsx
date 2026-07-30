@@ -175,7 +175,7 @@ export function SwgDefenseLayers() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-col lg:flex-row gap-6 items-center">
+            <div className="flex flex-col lg:flex-row gap-6 items-center lg:items-start">
                 <div className="flex-shrink-0">
                     <svg
                         width="420"
@@ -256,7 +256,7 @@ export function SwgDefenseLayers() {
                 </div>
 
                 {/* Layer detail accordion */}
-                <div className="flex-1 w-full min-w-0">
+                <div className="flex-1 w-full min-w-0 lg:pt-8">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-3">
                             {allNotExecuted ? (

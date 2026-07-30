@@ -93,6 +93,7 @@ function getTestStatusIcon(testStatus: string) {
 
 export function AzureNetSecPlanes() {
     const [hoveredPlane, setHoveredPlane] = useState<number | null>(null);
+    const centerY = 220;
     const {
         av, ag, fd, out,
         inbPassed, inbFailed, inbInvestigate, inbApplicableTotal, inbStatus,
@@ -115,7 +116,7 @@ export function AzureNetSecPlanes() {
     }, []);
 
     const planes = [
-        { id: 1, name: "Availability protection", summary: "Azure DDoS Protection", result: av, tests: av.tests, rx: 190, ry: 190 },
+        { id: 1, name: "Availability protection", summary: "Azure DDoS Protection", result: av, tests: av.tests, rx: 195, ry: 195 },
         { id: 2, name: "Inbound application protection", summary: "Application Gateway WAF and Front Door WAF", result: { passed: inbPassed, failed: inbFailed, investigate: inbInvestigate, applicableTotal: inbApplicableTotal, status: inbStatus }, tests: [...ag.tests, ...fd.tests], rx: 140, ry: 140 },
         { id: 3, name: "Outbound and east-west protection", summary: "Azure Firewall", result: out, tests: out.tests, rx: 88, ry: 88 },
     ];
@@ -125,18 +126,18 @@ export function AzureNetSecPlanes() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-center">
+            <div className="flex flex-col items-center gap-6 lg:flex-row lg:items-start">
                 <div className="flex-shrink-0">
                     <svg width="420" height="440" viewBox="0 0 420 440" className="max-w-full h-auto" aria-label="Azure network security defense planes">
                         {planes.map((plane) => {
                             const isHovered = hoveredPlane === plane.id;
                             const percentage = plane.result.applicableTotal > 0 ? Math.round((plane.result.passed / plane.result.applicableTotal) * 100) : 0;
-                            const labelY = 210 - plane.ry + (plane.id === 1 ? 30 : 25);
+                            const labelY = centerY - plane.ry + (plane.id === 1 ? 30 : 25);
                             const fill = getPlaneFill(plane.result.status);
 
                             return (
                                 <g key={plane.id} className="cursor-pointer" opacity={hoveredPlane !== null && !isHovered ? 0.65 : 1} onMouseEnter={() => setHoveredPlane(plane.id)} onMouseLeave={() => setHoveredPlane(null)}>
-                                    <ellipse cx="210" cy="210" rx={plane.rx} ry={plane.ry} fill={fill} stroke={isHovered ? "#ffffff" : "rgba(255,255,255,0.35)"} strokeWidth={isHovered ? 3 : 1.5} />
+                                    <ellipse cx="210" cy={centerY} rx={plane.rx} ry={plane.ry} fill={fill} stroke={isHovered ? "#ffffff" : "rgba(255,255,255,0.35)"} strokeWidth={isHovered ? 3 : 1.5} />
                                     <text x="210" y={labelY} textAnchor="middle" fill="#ffffff" fontSize={plane.id === 1 ? 14 : 12} fontWeight="600">
                                         {plane.name}
                                     </text>
@@ -149,7 +150,7 @@ export function AzureNetSecPlanes() {
                     </svg>
                 </div>
 
-                <div className="w-full min-w-0 flex-1">
+                <div className="w-full min-w-0 flex-1 lg:pt-8">
                     <div className="mb-3 flex items-center gap-2">
                         <Badge variant={applicablePlanes.length === 0 ? "secondary" : allPlanesPass ? "success" : "destructive"}>
                             {applicablePlanes.length === 0
@@ -162,7 +163,7 @@ export function AzureNetSecPlanes() {
                     <Accordion type="multiple" className="w-full">
                         {planes.map((plane) => (
                             <AccordionItem key={plane.id} value={`plane-${plane.id}`} className="mb-1 rounded-md border px-3">
-                                <AccordionTrigger className="py-3 hover:no-underline">
+                                <AccordionTrigger className="py-2 hover:no-underline">
                                     <div className="grid w-full grid-cols-[1rem_minmax(0,1fr)_5rem_2rem] items-center gap-3 text-left">
                                         <span className="w-4 shrink-0 text-xs font-mono text-muted-foreground">{plane.id}</span>
                                         <span className="min-w-0 text-sm font-medium">{plane.name}</span>
