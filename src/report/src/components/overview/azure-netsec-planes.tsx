@@ -23,20 +23,20 @@ type PlaneStatus = "pass" | "partial" | "fail" | "na";
 
 interface GroupResult {
     passed: number;
-    total: number;
+    failed: number;
+    investigate: number;
+    applicableTotal: number;
     status: PlaneStatus;
     tests: Test[];
 }
 
 // ─── Helper functions ─────────────────────────────────────────────────────────
 
-function calcStatus(passed: number, failed: number, investigate: number, total: number): PlaneStatus {
-    if (total === 0) return "na";
-    if (failed > 0) return "fail";
+function calcStatus(passed: number, failed: number, investigate: number, applicableTotal: number): PlaneStatus {
+    if (applicableTotal === 0) return "na";
+    if (failed > 0) return passed > 0 ? "partial" : "fail";
     if (investigate > 0) return "partial";
-    if (passed === total) return "pass";
-    if (passed === 0) return "na";
-    return "partial";
+    return passed === applicableTotal ? "pass" : "partial";
 }
 
 function computeGroup(specIds: string[]): GroupResult {
@@ -44,8 +44,9 @@ function computeGroup(specIds: string[]): GroupResult {
     const passed = tests.filter((test) => test.TestStatus === "Passed").length;
     const failed = tests.filter((test) => test.TestStatus === "Failed" || test.TestStatus === "Error").length;
     const investigate = tests.filter((test) => test.TestStatus === "Investigate").length;
+    const applicableTotal = passed + failed + investigate;
 
-    return { passed, total: tests.length, status: calcStatus(passed, failed, investigate, tests.length), tests };
+    return { passed, failed, investigate, applicableTotal, status: calcStatus(passed, failed, investigate, applicableTotal), tests };
 }
 
 // ─── Guard for conditional rendering in Dashboard.tsx ─────────────────────────
@@ -72,14 +73,13 @@ function getStatusLabel(status: PlaneStatus): string {
     }
 }
 
-function getPlaneFill(status: PlaneStatus, tests: Test[]): string {
-    if (status === "na") return "#9CA3AF";
-    if (status === "pass") return "#22C55E";
-
-    const failed = tests.filter((test) => test.TestStatus === "Failed" || test.TestStatus === "Error").length;
-    const failureRate = tests.length > 0 ? failed / tests.length : 0;
-
-    return failureRate >= 0.8 ? "#EF4444" : "#EAB308";
+function getPlaneFill(status: PlaneStatus): string {
+    switch (status) {
+        case "pass": return "#22C55E";
+        case "partial": return "#EAB308";
+        case "fail": return "#EF4444";
+        default: return "#9CA3AF";
+    }
 }
 
 function getTestStatusIcon(testStatus: string) {
@@ -105,7 +105,7 @@ export function AzureNetSecPlanes() {
     const [hoveredPlane, setHoveredPlane] = useState<number | null>(null);
     const {
         av, ag, fd, out,
-        inbPassed, inbTotal, inbStatus,
+        inbPassed, inbFailed, inbInvestigate, inbApplicableTotal, inbStatus,
     } = useMemo(() => {
         const av  = computeGroup(AVAILABILITY_IDS);
         const ag  = computeGroup(APPGW_WAF_IDS);
@@ -113,24 +113,20 @@ export function AzureNetSecPlanes() {
         const out = computeGroup(OUTBOUND_IDS);
 
         const inbPassed = ag.passed + fd.passed;
-        const inbTotal  = ag.total  + fd.total;
-        const inbFailed = [...ag.tests, ...fd.tests].filter(
-            (test) => test.TestStatus === "Failed" || test.TestStatus === "Error"
-        ).length;
-        const inbInvestigate = [...ag.tests, ...fd.tests].filter(
-            (test) => test.TestStatus === "Investigate"
-        ).length;
-        const inbStatus = calcStatus(inbPassed, inbFailed, inbInvestigate, inbTotal);
+        const inbFailed = ag.failed + fd.failed;
+        const inbInvestigate = ag.investigate + fd.investigate;
+        const inbApplicableTotal = ag.applicableTotal + fd.applicableTotal;
+        const inbStatus = calcStatus(inbPassed, inbFailed, inbInvestigate, inbApplicableTotal);
 
         return {
             av, ag, fd, out,
-            inbPassed, inbTotal, inbStatus,
+            inbPassed, inbFailed, inbInvestigate, inbApplicableTotal, inbStatus,
         };
     }, []);
 
     const planes = [
         { id: 1, name: "Availability protection", summary: "Azure DDoS Protection", result: av, tests: av.tests, rx: 190, ry: 190 },
-        { id: 2, name: "Inbound application protection", summary: "Application Gateway WAF and Front Door WAF", result: { passed: inbPassed, total: inbTotal, status: inbStatus }, tests: [...ag.tests, ...fd.tests], rx: 140, ry: 140 },
+        { id: 2, name: "Inbound application protection", summary: "Application Gateway WAF and Front Door WAF", result: { passed: inbPassed, failed: inbFailed, investigate: inbInvestigate, applicableTotal: inbApplicableTotal, status: inbStatus }, tests: [...ag.tests, ...fd.tests], rx: 140, ry: 140 },
         { id: 3, name: "Outbound and east-west protection", summary: "Azure Firewall", result: out, tests: out.tests, rx: 88, ry: 88 },
     ];
     const applicablePlanes = planes.filter((plane) => plane.result.status !== "na");
@@ -144,9 +140,9 @@ export function AzureNetSecPlanes() {
                     <svg width="420" height="420" viewBox="0 0 420 420" className="h-auto max-w-full" aria-label="Azure network security defense planes">
                         {planes.map((plane) => {
                             const isHovered = hoveredPlane === plane.id;
-                            const percentage = plane.result.total > 0 ? Math.round((plane.result.passed / plane.result.total) * 100) : 0;
+                            const percentage = plane.result.applicableTotal > 0 ? Math.round((plane.result.passed / plane.result.applicableTotal) * 100) : 0;
                             const labelY = 210 - plane.ry + (plane.id === 1 ? 30 : 25);
-                            const fill = getPlaneFill(plane.result.status, plane.tests);
+                            const fill = getPlaneFill(plane.result.status);
 
                             return (
                                 <g key={plane.id} className="cursor-pointer" opacity={hoveredPlane !== null && !isHovered ? 0.65 : 1} onMouseEnter={() => setHoveredPlane(plane.id)} onMouseLeave={() => setHoveredPlane(null)}>
@@ -155,7 +151,7 @@ export function AzureNetSecPlanes() {
                                         {plane.name}
                                     </text>
                                     <text x="210" y={labelY + 18} textAnchor="middle" fill="#ffffff" fontSize="12">
-                                        {plane.result.total === 0 ? "No applicable results" : `${plane.result.passed}/${plane.result.total} passing (${percentage}%)`}
+                                        {plane.result.applicableTotal === 0 ? "No applicable results" : `${plane.result.passed}/${plane.result.applicableTotal} passing (${percentage}%)`}
                                     </text>
                                 </g>
                             );
@@ -181,7 +177,7 @@ export function AzureNetSecPlanes() {
                                         <span className="w-4 shrink-0 text-xs font-mono text-muted-foreground">{plane.id}</span>
                                         <span className="min-w-0 text-sm font-medium">{plane.name}</span>
                                         <Badge variant={getStatusBadgeVariant(plane.result.status)} className="w-16 justify-center justify-self-end">{getStatusLabel(plane.result.status)}</Badge>
-                                        <span className="text-right text-xs tabular-nums text-muted-foreground">{plane.result.total === 0 ? "N/A" : `${plane.result.passed}/${plane.result.total}`}</span>
+                                        <span className="text-right text-xs tabular-nums text-muted-foreground">{plane.result.applicableTotal === 0 ? "N/A" : `${plane.result.passed}/${plane.result.applicableTotal}`}</span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
