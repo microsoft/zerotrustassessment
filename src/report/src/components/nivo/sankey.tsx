@@ -31,6 +31,13 @@ type SankeyInputData = {
     links: SankeyLink[];
 };
 
+const isNonEmptyNodeId = (nodeId: string): boolean => typeof nodeId === 'string' && nodeId.trim().length > 0;
+
+const isRenderableLinkTopology = (link: SankeyLink): boolean =>
+    isNonEmptyNodeId(link.source) &&
+    isNonEmptyNodeId(link.target) &&
+    link.source !== link.target;
+
 // A Sankey link with a missing (null / non-numeric) value should not break the whole
 // graph when the rest of the links are valid. For an intermediate node the inbound flow
 // equals its outbound flow, so we reconstruct a missing link's value from the sum of the
@@ -41,7 +48,9 @@ type SankeyInputData = {
 const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: string; value: number }[] => {
     const toNumber = (value: number | null): number => (value == null ? NaN : Number(value));
 
-    return links.map(link => {
+    return links
+        .filter(isRenderableLinkTopology)
+        .map(link => {
         const numericValue = toNumber(link.value);
         if (Number.isFinite(numericValue)) {
             return { source: link.source, target: link.target, value: numericValue };
@@ -60,7 +69,7 @@ const reconstructLinkValues = (links: SankeyLink[]): { source: string; target: s
 };
 
 export const ZtResponsiveSankey = ({ isDark, data }: { isDark:boolean, data: SankeyInputData }) => {
-    const validNodeIds = new Set(data.nodes.map(node => node.id));
+    const validNodeIds = new Set(data.nodes.map(node => node.id).filter(isNonEmptyNodeId));
     const sanitizedLinks = reconstructLinkValues(data.links)
         .filter(link =>
             validNodeIds.has(link.source) &&
