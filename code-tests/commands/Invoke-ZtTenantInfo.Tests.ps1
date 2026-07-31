@@ -10,6 +10,12 @@ Describe "Invoke-ZtTenantInfo" {
 			}
 		}
 
+		if (-not (Get-Command Add-ZtAgentOverview -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtAgentOverview {
+				param()
+			}
+		}
+
 		if (-not (Get-Command Add-ZtOverviewCaMfa -ErrorAction SilentlyContinue)) {
 			function global:Add-ZtOverviewCaMfa {
 				param($Database)
@@ -75,6 +81,7 @@ Describe "Invoke-ZtTenantInfo" {
 
 	BeforeEach {
 		Mock Add-ZtTenantOverview {}
+		Mock Add-ZtAgentOverview {}
 		Mock Add-ZtOverviewCaMfa {}
 		Mock Add-ZtOverviewCaDevicesAllUsers {}
 		Mock Add-ZtOverviewAuthMethodsAllUsers {}

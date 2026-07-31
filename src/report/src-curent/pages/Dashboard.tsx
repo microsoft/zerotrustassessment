@@ -37,6 +37,7 @@ import {
 import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -49,24 +50,8 @@ export default function Dashboard() {
         return `${(passedNum / totalNum) * 100}%`;
     };
 
-    const getTenantOverviewMetric = (keys: string[]): number | null => {
-        const tenantOverview = reportData.TenantInfo?.TenantOverview as Record<string, unknown> | undefined | null;
-
-        if (!tenantOverview) {
-            return null;
-        }
-
-        for (const key of keys) {
-            const value = tenantOverview[key];
-            const numberValue = typeof value === 'number' ? value : Number(value);
-
-            if (!Number.isNaN(numberValue) && Number.isFinite(numberValue)) {
-                return numberValue;
-            }
-        }
-
-        return null;
-    };
+    const formatOptionalMetric = (value: number | null | undefined): string =>
+        value === null || value === undefined ? '—' : formatNumber(value);
 
     const deviceOverview = reportData.TenantInfo?.DeviceOverview;
     const desktopNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.DesktopDevicesSummary?.nodes || [];
@@ -320,10 +305,7 @@ export default function Dashboard() {
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            {(() => {
-                                                const value = getTenantOverviewMetric(['AgentCount', 'AgentsCount', 'TotalAgentCount']);
-                                                return value === null ? '—' : formatNumber(value);
-                                            })()}
+                                            {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.TotalAgents)}
                                         </span>
                                     </div>
                                 </div>
@@ -342,17 +324,14 @@ export default function Dashboard() {
                                                         <Info className="size-3.5 shrink-0 opacity-70" />
                                                     </span>
                                                     <span className="text-lg font-medium">
-                                                        {(() => {
-                                                            const value = getTenantOverviewMetric(['AgentActiveUserCount', 'ActiveAgentUserCount', 'AgentUsersActiveCount']);
-                                                            return value === null ? '—' : formatNumber(value);
-                                                        })()}
+                                                        {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.ActiveUsers)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs">Active agent users</p>
+                                        <p className="text-xs">Unique users interacting with agents in the last 30 days</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
@@ -1360,26 +1339,46 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Network - SWG Defense Layers Section */}
-            {hasSwgData() && (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-stretch mt-[26px]">
-                <Card>
-                    <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
-                        <ShieldCheck className="pr-2 size-8" />
-                        <div>
-                            <CardTitle className="text-2xl tabular-nums">
-                                SWG defense-in-depth
-                            </CardTitle>
-                            <CardDescription className="mt-1">
-                                Secure Web Gateway defense layers — internet traffic inspection posture
-                            </CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <SwgDefenseLayers />
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Network security posture charts */}
+            {(hasSwgData() || hasAzureNetSecData()) && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                    {hasSwgData() && (
+                        <Card className="h-full">
+                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
+                                <ShieldCheck className="pr-2 size-8" />
+                                <div>
+                                    <CardTitle className="text-2xl tabular-nums">
+                                        SWG defense-in-depth
+                                    </CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Secure Web Gateway defense layers — internet traffic inspection posture
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <SwgDefenseLayers />
+                            </CardContent>
+                        </Card>
+                    )}
+                    {hasAzureNetSecData() && (
+                        <Card className="h-full">
+                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
+                                <ShieldCheck className="pr-2 size-8" />
+                                <div>
+                                    <CardTitle className="text-2xl tabular-nums">
+                                        Azure network security
+                                    </CardTitle>
+                                    <CardDescription className="mt-1">
+                                        Defense plane posture — availability, inbound, and outbound protection.
+                                    </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <AzureNetSecPlanes />
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
             )}
         </TooltipProvider>
     )

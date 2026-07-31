@@ -26,6 +26,7 @@ export interface TenantInfo {
   ConfigDeviceAppProtectionPolicies?: ConfigDeviceAppProtectionPolicies[] | null;
   DeviceOverview?: DeviceOverview | null;
   TenantOverview?: TenantOverview | null;
+  AgentOverview?: AgentOverview | null;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -147,6 +148,10 @@ export interface TenantOverview {
   ApplicationCount: number;
   DeviceCount: number;
   ManagedDeviceCount: number;
+}
+export interface AgentOverview {
+  TotalAgents: number | null;
+  ActiveUsers: number | null;
 }
 export interface DeviceOverview {
   DeviceSummary: DeviceSummary | null;
