@@ -1,10 +1,16 @@
-import { Bot } from "lucide-react"
+import { useState } from "react"
+import { Bot, ChevronDown } from "lucide-react"
 import { Cell, Label, Pie, PieChart } from "recharts"
 
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { formatNumber } from "@/lib/format-utils"
-import type { AgentOwnershipDistribution as AgentOwnershipDistributionData } from "@/config/report-data"
+import { cn } from "@/lib/utils"
+import type {
+  AgentOwnershipBucket,
+  AgentOwnershipDistribution as AgentOwnershipDistributionData,
+} from "@/config/report-data"
 
 const ownershipConfig = {
   ownerAndSponsor: {
@@ -30,6 +36,7 @@ interface AgentOwnershipDistributionProps {
 }
 
 export function AgentOwnershipDistribution({ data }: AgentOwnershipDistributionProps) {
+  const [selectedBucket, setSelectedBucket] = useState<AgentOwnershipBucket | null>(null)
   const chartData = [
     { key: "ownerAndSponsor", name: ownershipConfig.ownerAndSponsor.label, value: data.ownerAndSponsor, fill: ownershipConfig.ownerAndSponsor.color },
     { key: "ownerOnly", name: ownershipConfig.ownerOnly.label, value: data.ownerOnly, fill: ownershipConfig.ownerOnly.color },
@@ -37,6 +44,11 @@ export function AgentOwnershipDistribution({ data }: AgentOwnershipDistributionP
     { key: "neither", name: ownershipConfig.neither.label, value: data.neither, fill: ownershipConfig.neither.color },
   ]
   const total = chartData.reduce((sum, item) => sum + item.value, 0)
+
+  const toggleBucket = (bucket: AgentOwnershipBucket) => {
+    if (!data.agents) return
+    setSelectedBucket((current) => current === bucket ? null : bucket)
+  }
 
   return (
     <Card className="flex h-full min-h-[410px] flex-col">
@@ -64,7 +76,13 @@ export function AgentOwnershipDistribution({ data }: AgentOwnershipDistributionP
                   strokeWidth={2}
                 >
                   {chartData.map((item) => (
-                    <Cell key={item.key} fill={item.fill} />
+                    <Cell
+                      key={item.key}
+                      fill={item.fill}
+                      className={data.agents ? "cursor-pointer outline-none" : undefined}
+                      opacity={selectedBucket && selectedBucket !== item.key ? 0.45 : 1}
+                      onClick={() => toggleBucket(item.key as AgentOwnershipBucket)}
+                    />
                   ))}
                   <Label
                     content={({ viewBox }) => {
@@ -87,13 +105,43 @@ export function AgentOwnershipDistribution({ data }: AgentOwnershipDistributionP
 
             <div className="mt-auto border-t px-5 py-4">
               <div className="grid gap-2.5">
-                {chartData.map((item) => (
-                  <div key={item.key} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-2 text-xs">
-                    <span className="size-2.5 rounded-[3px]" style={{ backgroundColor: item.fill }} aria-hidden="true" />
-                    <span className="truncate text-muted-foreground" title={item.name}>{item.name}</span>
-                    <span className="font-medium tabular-nums">{formatNumber(item.value)}</span>
-                  </div>
-                ))}
+                {chartData.map((item) => {
+                  const isSelected = selectedBucket === item.key
+                  const agents = data.agents?.[item.key as AgentOwnershipBucket]
+
+                  return (
+                    <div key={item.key}>
+                      <button
+                        type="button"
+                        disabled={!data.agents}
+                        aria-expanded={isSelected}
+                        onClick={() => toggleBucket(item.key as AgentOwnershipBucket)}
+                        className={cn(
+                          "grid w-full grid-cols-[12px_minmax(0,1fr)_auto_16px] items-center gap-2 rounded-sm text-left text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                          data.agents && "hover:text-foreground",
+                        )}
+                      >
+                        <span className="size-2.5 rounded-[3px]" style={{ backgroundColor: item.fill }} aria-hidden="true" />
+                        <span className="truncate text-muted-foreground" title={item.name}>{item.name}</span>
+                        <span className="font-medium tabular-nums">{formatNumber(item.value)}</span>
+                        <ChevronDown className={cn("size-3.5 transition-transform", isSelected && "rotate-180", !data.agents && "invisible")} />
+                      </button>
+
+                      {isSelected && agents && (
+                        <ul className="ml-5 mt-2 max-h-40 space-y-1 overflow-y-auto border-l pl-3 pr-1 text-xs">
+                          {agents.map((agent, index) => (
+                            <li key={`${agent.displayName}-${index}`} className="flex min-h-7 items-center justify-between gap-3 border-b py-1 last:border-0">
+                              <span className="min-w-0 truncate" title={agent.displayName || "Unnamed agent"}>
+                                {agent.displayName || "Unnamed agent"}
+                              </span>
+                              {!agent.accountEnabled && <Badge variant="secondary" className="shrink-0">Disabled</Badge>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </>

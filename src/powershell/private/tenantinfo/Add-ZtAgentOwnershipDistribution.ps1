@@ -17,6 +17,8 @@ function Add-ZtAgentOwnershipDistribution {
         $sql = @"
 select
     ai.id,
+    ai.displayName,
+    ai.accountEnabled,
     to_json(ai.sponsors) as sponsorsJson,
     case
         when sp.owners is null then 0
@@ -45,9 +47,11 @@ order by ai.id
         }
 
         [PSCustomObject]@{
-            Id       = $_.id
-            HasOwner = [int]$_.ownerCount -ge 1
-            Sponsors = $sponsors
+            Id             = $_.id
+            DisplayName    = $_.displayName
+            AccountEnabled = $_.accountEnabled
+            HasOwner       = [int]$_.ownerCount -ge 1
+            Sponsors       = $sponsors
         }
     })
 
@@ -91,6 +95,12 @@ order by ai.id
     $ownerOnly = 0
     $sponsorOnly = 0
     $neither = 0
+    $agentsByBucket = @{
+        ownerAndSponsor = [System.Collections.Generic.List[object]]::new()
+        ownerOnly       = [System.Collections.Generic.List[object]]::new()
+        sponsorOnly     = [System.Collections.Generic.List[object]]::new()
+        neither         = [System.Collections.Generic.List[object]]::new()
+    }
 
     foreach ($agentIdentity in $agentIdentities) {
         $hasSponsor = $false
@@ -112,18 +122,27 @@ order by ai.id
             }
         }
 
-        if ($agentIdentity.HasOwner -and $hasSponsor) {
+        $bucket = if ($agentIdentity.HasOwner -and $hasSponsor) {
             $ownerAndSponsor++
+            'ownerAndSponsor'
         }
         elseif ($agentIdentity.HasOwner) {
             $ownerOnly++
+            'ownerOnly'
         }
         elseif ($hasSponsor) {
             $sponsorOnly++
+            'sponsorOnly'
         }
         else {
             $neither++
+            'neither'
         }
+
+        $agentsByBucket[$bucket].Add([PSCustomObject]@{
+                displayName    = $agentIdentity.DisplayName
+                accountEnabled = $agentIdentity.AccountEnabled
+            })
     }
 
     $distribution = [PSCustomObject]@{
@@ -131,6 +150,12 @@ order by ai.id
         ownerOnly       = $ownerOnly
         sponsorOnly     = $sponsorOnly
         neither         = $neither
+        agents           = [PSCustomObject]@{
+            ownerAndSponsor = @($agentsByBucket.ownerAndSponsor | Sort-Object displayName)
+            ownerOnly       = @($agentsByBucket.ownerOnly | Sort-Object displayName)
+            sponsorOnly     = @($agentsByBucket.sponsorOnly | Sort-Object displayName)
+            neither         = @($agentsByBucket.neither | Sort-Object displayName)
+        }
     }
 
     Add-ZtTenantInfo -Name $tenantInfoName -Value $distribution

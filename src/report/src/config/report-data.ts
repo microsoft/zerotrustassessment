@@ -34,6 +34,14 @@ export interface AgentOwnershipDistribution {
   ownerOnly: number;
   sponsorOnly: number;
   neither: number;
+  agents?: Record<AgentOwnershipBucket, AgentOwnershipEntry[]>;
+}
+
+export type AgentOwnershipBucket = "ownerAndSponsor" | "ownerOnly" | "sponsorOnly" | "neither";
+
+export interface AgentOwnershipEntry {
+  displayName: string;
+  accountEnabled: boolean;
 }
 
 export interface ConfigWindowsEnrollment {
