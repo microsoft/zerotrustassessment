@@ -95,19 +95,19 @@ function Test-Assessment-41210 {
         return
     }
 
-    $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces       = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces       = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardingErrorWorkspaces = @($allWorkspaces | Where-Object { $_.OnboardingError })
+    $onboardedWorkspaces       = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
-            # Auth errors mean we cannot confirm whether those workspaces have Sentinel onboarded;
-            # we cannot rule out a passing workspace exists among the inaccessible ones.
+        if ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
+            # Auth errors (PermissionError) or transient errors (OnboardingError) — state unknown.
             $params = @{
                 TestId       = '41210'
                 Title        = 'Microsoft Threat Intelligence feeds are integrated into Microsoft Sentinel'
                 Status       = $false
-                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                Result       = '⚠️ One or more Log Analytics workspaces returned an error or insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
@@ -269,12 +269,12 @@ function Test-Assessment-41210 {
     $passed       = ($passedItems.Count + $passNoConnectorItems.Count) -gt 0
     $customStatus = $null
 
-    if ($passed -and $forbiddenWorkspaces.Count -gt 0) {
-        # Incomplete scan: some workspaces couldn't be checked — a clean Pass cannot be confirmed.
+    if ($passed -and ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
+        # Incomplete scan: permission or transient errors mean some workspaces weren't checked.
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Microsoft Threat Intelligence appears integrated in at least one Sentinel workspace, but one or more workspaces could not be evaluated due to insufficient permissions — the overall state cannot be confirmed. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Microsoft Threat Intelligence appears integrated in at least one Sentinel workspace, but one or more workspaces could not be evaluated due to insufficient permissions or a transient error — the overall state cannot be confirmed. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.`n`n%TestResult%"
     }
-    elseif (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0)) {
+    elseif (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ One or more Sentinel workspaces require manual review: a TI connector is configured but no indicators have been ingested, or an API call returned an unexpected response. Verify Microsoft Sentinel Reader access on each affected workspace and re-run the assessment.`n`n%TestResult%"
     }
