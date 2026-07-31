@@ -35,4 +35,8 @@ function Invoke-ZtTenantInfo {
             Add-ZTDeviceAppProtectionPolicies
         }
     }
+
+    if ($Pillar -in ('All', 'AI')) {
+        Add-ZtAgentOwnershipDistribution -Database $Database
+    }
 }

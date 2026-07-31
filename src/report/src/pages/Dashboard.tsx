@@ -41,10 +41,16 @@ import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sank
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
+import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
 export default function Dashboard() {
+    const agentOwnership = reportData.TenantInfo?.AgentOwnershipDistribution;
+    const totalAgents = agentOwnership
+        ? agentOwnership.ownerAndSponsor + agentOwnership.ownerOnly + agentOwnership.sponsorOnly + agentOwnership.neither
+        : null;
+
     // Helper function to calculate percentage with proper number coercion
     const calculatePercentage = (passed: any, total: any): string => {
         const passedNum = Number(passed) || 0;
@@ -220,7 +226,7 @@ export default function Dashboard() {
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            —
+                                            {totalAgents === null ? '—' : formatNumber(totalAgents)}
                                         </span>
                                     </div>
                                 </div>
@@ -1470,6 +1476,13 @@ export default function Dashboard() {
 
                 </div>
             </div>
+
+            {/* AI overview */}
+            {reportData.TenantInfo?.AgentOwnershipDistribution && (
+                <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
+                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
+                </div>
+            )}
 
             {/* Network - SWG Defense Layers Section */}
             {hasSwgData() && (
