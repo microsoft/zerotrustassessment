@@ -136,14 +136,14 @@ function HeroSection() {
   return (
     <header className={styles.hero}>
       <div className={styles.heroInner}>
-        <div className={styles.heroTagline}>
+        <a className={styles.heroTagline} href="#whats-new">
           <span className={styles.newBadge}>
             <Translate id="badge.new">NEW</Translate>
           </span>
           <Translate id="hero.tagline">
             New pillars and a redesigned Assessment Overview
           </Translate>
-        </div>
+        </a>
 
         <h1 className={styles.heroTitle}>
           <Translate id="hero.title">
@@ -160,17 +160,28 @@ function HeroSection() {
         </p>
 
         <div className={styles.heroCtas}>
-          <Link
-            className={styles.ctaPrimary}
-            href="https://zerotrust.microsoft.com/"
-          >
-            <Translate id="hero.cta.workshop">Launch Workshop</Translate> →
-          </Link>
+          <div className={styles.heroPrimaryCtas}>
+            <Link
+              className={styles.ctaPrimary}
+              href="https://zerotrust.microsoft.com/"
+            >
+              <Translate id="hero.cta.workshop">Launch Workshop</Translate> →
+            </Link>
+            <Link
+              className={styles.ctaPrimary}
+              href="https://learn.microsoft.com/security/zero-trust/assessment/get-started"
+            >
+              <Translate id="hero.cta.assessment">Run Assessment</Translate> →
+            </Link>
+          </div>
           <Link
             className={styles.ctaSecondary}
-            href="https://learn.microsoft.com/security/zero-trust/assessment/get-started"
+            href="https://microsoft.github.io/zerotrustassessment/demo/#/"
           >
-            <Translate id="hero.cta.assessment">Run Assessment</Translate> →
+            <Translate id="hero.cta.assessmentDemo">
+              View Assessment Demo
+            </Translate>{" "}
+            →
           </Link>
         </div>
 
@@ -183,7 +194,7 @@ function HeroSection() {
 /* ─── Section 2: Latest Updates ──────────────────────────── */
 function LatestUpdates() {
   return (
-    <section className={styles.aiSpotlight}>
+    <section id="whats-new" className={styles.aiSpotlight}>
       <div className={styles.aiSpotlightInner}>
         <div className={styles.aiPill}>
           <Translate id="ai.pill">What&apos;s New</Translate>
@@ -220,9 +231,12 @@ function LatestUpdates() {
                 Zero Trust roadmap with dedicated DevSecOps guidance.
               </Translate>
             </p>
-            <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+            <Link
+              className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
+              href="https://zerotrust.microsoft.com/"
+            >
               <Translate id="pillar.devsecops">DevSecOps</Translate>
-            </span>
+            </Link>
           </div>
 
           <div className={styles.releaseItem}>
@@ -243,20 +257,32 @@ function LatestUpdates() {
               </Translate>
             </p>
             <div className={styles.pillarRow}>
-              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+              <Link
+                className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
+                href="https://microsoft.github.io/zerotrustassessment/demo/#/infrastructure"
+              >
                 <Translate id="pillar.infrastructure">Infrastructure</Translate>
-              </span>
-              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+              </Link>
+              <Link
+                className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
+                href="https://microsoft.github.io/zerotrustassessment/demo/#/secops"
+              >
                 <Translate id="pillar.secops">Security Operations</Translate>
-              </span>
-              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+              </Link>
+              <Link
+                className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
+                href="https://microsoft.github.io/zerotrustassessment/demo/#/ai"
+              >
                 <Translate id="pillar.ai">AI</Translate>
-              </span>
-              <span className={`${styles.pillarItem} ${styles.pillarHighlighted}`}>
+              </Link>
+              <Link
+                className={`${styles.pillarItem} ${styles.pillarHighlighted}`}
+                href="https://microsoft.github.io/zerotrustassessment/demo/"
+              >
                 <Translate id="updates.assessment.overview">
                   Revamped Overview Page
                 </Translate>
-              </span>
+              </Link>
             </div>
           </div>
         </div>

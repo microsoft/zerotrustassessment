@@ -32,6 +32,16 @@
   letter-spacing: 0.02em;
   margin-bottom: 1.5rem;
   color: #c8e6ff;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.heroTagline:hover,
+.heroTagline:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  text-decoration: none;
 }
 
 .newBadge {
@@ -64,10 +74,18 @@
 
 .heroCtas {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.heroPrimaryCtas {
+  display: flex;
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 3rem;
 }
 
 .ctaPrimary {
@@ -313,6 +331,7 @@
 }
 
 .pillarItem {
+  display: inline-block;
   padding: 0.55rem 1rem;
   border-radius: 8px;
   background: #e8eef4;
@@ -334,10 +353,15 @@
   background: linear-gradient(135deg, #ff6b35, #e05520);
   color: #fff;
   animation: pillarGlow 2.5s ease-in-out infinite;
+  cursor: pointer;
+  text-decoration: none;
 }
 
-.pillarHighlighted:hover {
+.pillarHighlighted:hover,
+.pillarHighlighted:focus-visible {
   box-shadow: 0 4px 20px rgba(255, 107, 53, 0.45);
+  color: #fff;
+  text-decoration: none;
 }
 
 .pillarNew {
@@ -865,8 +889,12 @@
   }
 
   .heroCtas {
+    width: 100%;
+  }
+
+  .heroPrimaryCtas {
     flex-direction: column;
-    align-items: center;
+    width: 100%;
   }
 
   .ctaPrimary,
