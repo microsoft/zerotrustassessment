@@ -127,7 +127,7 @@ export function AzureNetSecPlanes() {
     const planes = [
         { id: 1, name: "Availability protection", summary: "Azure DDoS Protection", result: av, tests: av.tests, rx: 190, ry: 190 },
         { id: 2, name: "Inbound application protection", summary: "Application Gateway WAF and Front Door WAF", result: { passed: inbPassed, failed: inbFailed, investigate: inbInvestigate, applicableTotal: inbApplicableTotal, status: inbStatus }, tests: [...ag.tests, ...fd.tests], rx: 140, ry: 140 },
-        { id: 3, name: "Outbound and east-west protection", summary: "Azure Firewall", result: out, tests: out.tests, rx: 88, ry: 88 },
+        { id: 3, name: "Outbound and east-west network protection", summary: "Azure Firewall", result: out, tests: out.tests, rx: 88, ry: 88 },
     ];
     const applicablePlanes = planes.filter((plane) => plane.result.status !== "na");
     const failingPlanes = applicablePlanes.filter((plane) => plane.result.status === "fail" || plane.result.status === "partial");
