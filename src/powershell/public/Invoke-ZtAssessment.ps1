@@ -64,10 +64,10 @@ where the module's signing certificate is trusted by policy).
 WARNING: Some tests may fail or return incomplete results if CLM restrictions are truly in effect.
 
 .PARAMETER Pillar
-The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests. Infrastructure, SecOps, and AI pillars require the -Preview switch.
+The Zero Trust pillar to assess. Valid values are 'All', 'Identity', 'Devices', 'Network', 'Data', 'Infrastructure', 'SecOps', or 'AI'. Defaults to 'All' which runs all tests.
 
 .PARAMETER Preview
-When specified, enables running preview pillars (Infrastructure, SecOps, AI) that are not publicly available yet.
+When specified, enables running preview-only pillars and features.
 
 .EXAMPLE
 Invoke-ZtAssessment
@@ -259,12 +259,14 @@ $titleLine
 		return
 	}
 
-	# Validate preview pillar requirements
-	$previewPillars = @('Infrastructure', 'SecOps', 'AI')
+	# Validate preview pillar requirements.
+	# Current released pillars run by default. Add future preview-only pillars to
+	# $previewPillars to gate them behind the -Preview switch.
+	$previewPillars = @()
 	if ($Pillar -in $previewPillars -and -not $Preview) {
 		Write-Host
 		Write-Host "❌ " -NoNewline -ForegroundColor Red
-		Write-Host "The '$Pillar' pillar is currently in preview and requires the " -NoNewline -ForegroundColor Red
+		Write-Host "The '$Pillar' pillar requires the " -NoNewline -ForegroundColor Red
 		Write-Host "-Preview" -NoNewline -ForegroundColor Yellow
 		Write-Host " switch." -ForegroundColor Red
 		Write-Host
@@ -575,15 +577,23 @@ $titleLine
 	Update-ZtProgressState -Stage 'html' -StageNumber 6 -StageName 'Generating HTML Report' -ClearWorkers -TotalItems 0
 	Write-ZtProgress -Activity "Creating html report"
 	$htmlReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport.html"
+	$htmlClassicReportPath = Join-Path -Path $Path -ChildPath "ZeroTrustAssessmentReport-classic.html"
+
 	$output = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path
 	$output | Set-PSFFileContent -Path $htmlReportPath -Encoding UTF8NoBom
+
+	$classicTemplatePath = Join-Path -Path $script:ModuleRoot -ChildPath 'assets/ReportTemplate.classic.html'
+	$classicOutput = Get-HtmlReport -AssessmentResults $assessmentResultsJson -Path $Path -TemplatePath $classicTemplatePath
+	$classicOutput | Set-PSFFileContent -Path $htmlClassicReportPath -Encoding UTF8NoBom
 
 	# Signal completion to the progress dashboard
 	Update-ZtProgressState -Stage 'done' -StageNumber 6 -StageName 'Assessment Complete' -ClearWorkers -TotalItems 0
 
 	#region Post Processing
 	Write-Host
-	Write-Host "🛡️ Zero Trust Assessment report generated at $htmlReportPath" -ForegroundColor Green
+	Write-Host "🛡️ Zero Trust Assessment reports generated:" -ForegroundColor Green
+	Write-Host "  - default: $htmlReportPath" -ForegroundColor Green
+	Write-Host "  - classic: $htmlClassicReportPath" -ForegroundColor Green
 	Show-ZtiSecurityWarning -ExportPath $exportPath
 	Write-Host "▶▶▶ ✨ Your feedback matters! Help us improve 👉 https://aka.ms/ztassess/feedback ◀◀◀" -ForegroundColor Yellow
 	Write-Host

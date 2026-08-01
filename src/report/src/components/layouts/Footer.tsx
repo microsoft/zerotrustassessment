@@ -4,20 +4,29 @@ import { reportData } from "@/config/report-data";
 // import { ModeToggle } from "../mode-toggle";
 
 export function Footer() {
-    // Format the assessment date
-    const formatDate = (dateString: string) => {
+    // Format the assessment date and time
+    const formatDateTime = (dateString: string) => {
         try {
-            return new Date(dateString).toLocaleDateString('en-US', {
+            const date = new Date(dateString);
+            const dateStr = date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
+            const timeStr = date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            return `${dateStr}, ${timeStr} UTC`;
         } catch {
             return 'Invalid Date';
         }
     };
 
-    const assessmentDate = reportData.ExecutedAt ? formatDate(reportData.ExecutedAt) : 'Not Available';
+    const assessmentDateTime = reportData.ExecutedAt ? formatDateTime(reportData.ExecutedAt) : 'Not Available';
+    const moduleVersion = reportData.CurrentVersion || 'Unknown';
 
     return (
         <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -120,7 +129,9 @@ export function Footer() {
                             Terms
                         </a>
                         <span>•</span>
-                        <span>{assessmentDate}</span>
+                        <span>v{moduleVersion} (classic)</span>
+                        <span>•</span>
+                        <span>{assessmentDateTime}</span>
                     </div>
 
                     {/* Theme Toggle (Hidden but available for future use) */}

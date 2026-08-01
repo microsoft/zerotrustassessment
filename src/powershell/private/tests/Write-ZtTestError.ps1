@@ -33,17 +33,12 @@
 		$ErrorRecord
 	)
 	process {
-		Write-PSFMessage -Level Warning -Message "Error executing test '{0}': {1}" -StringValues $Test.TestID, $ErrorRecord.Exception.Message -Target $Test -ErrorRecord $ErrorRecord
+		$safeError = New-ZtSafeErrorRecord -ErrorRecord $ErrorRecord
+		Write-PSFMessage -Level Warning -Message "Error executing test '{0}': {1}" -StringValues $Test.TestID, $safeError.Exception.Message -Target $Test -ErrorRecord $safeError
 		$Result.Success = $false
-		$Result.Error = $ErrorRecord
-		$message = @(
-			'❌  Test {0} failed due to an unexpected error.' -f $Test.TestID
-			' - **Error Message**: {0}.' -f $ErrorRecord.Exception.Message
-			'```'
-			'{0}' -f ($ErrorRecord | Get-Error | Out-String)
-			'```'
-		) -join "`r`n"
+		$Result.Error = $safeError
+		$message = Format-ZtTestErrorDetail -Test $Test -ErrorRecord $ErrorRecord
 		Add-ZtTestResultDetail -TestId $Test.TestID -Title $Test.Title -Status $false -Result $message -CustomStatus 'Error'
-		Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $Result.DisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($ErrorRecord.Exception.Message)"
+		Update-ZtProgressState -WorkerId $Test.TestID -WorkerName $Result.DisplayName -WorkerStatus 'Error' -WorkerDetail "Error: $($safeError.Exception.Message)"
 	}
 }
