@@ -8,16 +8,16 @@
 
 function Test-Assessment-24550 {
     [ZtTest(
-        Category = 'Devices',
-        ImplementationCost = 'Low',
-        CompatibleLicense = ('INTUNE_A'),
-        Pillar = 'Devices',
-        RiskLevel = 'High',
-        SfiPillar = 'Protect engineering systems',
-        TenantType = ('Workforce'),
-        TestId = 24550,
-        Title = 'Data on Windows is protected by BitLocker encryption',
-        UserImpact = 'Low'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	CompatibleLicense = ('INTUNE_A'),
+    	Pillar = 'Devices',
+    	RiskLevel = 'High',
+    	SfiPillar = 'Protect identities and secrets',
+    	TenantType = ('Workforce'),
+    	TestId = 24550,
+    	Title = 'Data on Windows is protected by BitLocker encryption',
+    	UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param(

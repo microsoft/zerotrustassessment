@@ -16,8 +16,8 @@
 
 function Test-Assessment-21835 {
     [ZtTest(
-    	Category = 'Privileged access',
-    	ImplementationCost = 'Medium',
+    	Category = 'Application management',
+    	ImplementationCost = 'High',
     	MinimumLicense = ('P1'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
