@@ -76,11 +76,14 @@ order by ai.displayName
                 -ErrorAction Stop
 
             foreach ($countResult in $groupCountResults) {
+                $gid = $countResult.Argument
                 if (-not $countResult.Success) {
-                    throw "Microsoft Graph returned status $($countResult.Status) for sponsor group $($countResult.Argument)."
+                    $groupHasMembers[$gid] = $false
+                    Write-PSFMessage "Failed to get transitive member count for sponsor group $gid (status $($countResult.Status))." -Tag Test -Level Warning
+                    continue
                 }
 
-                $groupHasMembers[$countResult.Argument] = [int]($countResult.Result | Select-Object -First 1) -gt 0
+                $groupHasMembers[$gid] = ([int]($countResult.Result | Select-Object -First 1) -gt 0)
             }
         }
         catch {
