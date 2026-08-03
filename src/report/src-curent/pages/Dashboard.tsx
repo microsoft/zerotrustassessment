@@ -39,6 +39,7 @@ import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
+import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -1340,10 +1341,17 @@ export default function Dashboard() {
                 </div>
             </div>
 
+<<<<<<< HEAD
             {/* Private Access Zero Trust posture */}
             {hasPrivateAccessData() && (
                 <div className="mt-[26px]">
                     <PrivateAccessSankey />
+=======
+            {/* AI overview */}
+            {reportData.TenantInfo?.AgentOwnershipDistribution && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
                 </div>
             )}
 

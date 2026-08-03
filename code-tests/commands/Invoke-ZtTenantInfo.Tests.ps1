@@ -16,6 +16,12 @@ Describe "Invoke-ZtTenantInfo" {
 			}
 		}
 
+		if (-not (Get-Command Add-ZtAgentOwnershipDistribution -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtAgentOwnershipDistribution {
+				param($Database)
+			}
+		}
+
 		if (-not (Get-Command Add-ZtOverviewCaMfa -ErrorAction SilentlyContinue)) {
 			function global:Add-ZtOverviewCaMfa {
 				param($Database)
@@ -88,6 +94,7 @@ Describe "Invoke-ZtTenantInfo" {
 	BeforeEach {
 		Mock Add-ZtTenantOverview {}
 		Mock Add-ZtAgentOverview {}
+		Mock Add-ZtAgentOwnershipDistribution {}
 		Mock Add-ZtOverviewCaMfa {}
 		Mock Add-ZtOverviewCaDevicesAllUsers {}
 		Mock Add-ZtOverviewAuthMethodsAllUsers {}
@@ -111,6 +118,7 @@ Describe "Invoke-ZtTenantInfo" {
 		Should -Invoke Add-ZTDeviceAppProtectionPolicies -Times 0 -Exactly
 	}
 
+<<<<<<< HEAD
 	It "Should build the Private Access overview for the Network pillar" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Network'
 
@@ -127,5 +135,19 @@ Describe "Invoke-ZtTenantInfo" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
 
 		Should -Invoke Add-ZtOverviewPrivateAccess -Times 0 -Exactly
+=======
+	It "Should collect agent ownership distribution for AI assessments" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'AI'
+
+		Should -Invoke Add-ZtAgentOwnershipDistribution -Times 1 -Exactly -ParameterFilter {
+			$Database -eq 'test'
+		}
+	}
+
+	It "Should not collect agent ownership distribution for unrelated pillar-only assessments" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
+
+		Should -Invoke Add-ZtAgentOwnershipDistribution -Times 0 -Exactly
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
 	}
 }
