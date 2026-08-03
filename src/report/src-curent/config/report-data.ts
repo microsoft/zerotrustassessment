@@ -20,6 +20,7 @@ export interface TenantInfo {
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
   OverviewAuthMethodsAllUsers?: SankeyData | null;
+  OverviewPrivateAccess?: PrivateAccessSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
   ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
@@ -134,6 +135,11 @@ export interface SankeyData {
   entrareigstered?: number;
   entrahybridjoined?: number;
   entrajoined?: number;
+}
+
+export interface PrivateAccessSankeyData extends SankeyData {
+  adminAtRisk: boolean;
+  populationMismatch: boolean;
 }
 export interface SankeyDataNode {
   value: number | null;

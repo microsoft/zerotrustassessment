@@ -37,8 +37,6 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
-import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
-import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { PrivateAccessSankey } from "@/components/overview/private-access-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";

@@ -36,6 +36,7 @@ import {
 // import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
+import { PrivateAccessSankey } from "@/components/overview/private-access-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
@@ -1338,6 +1339,56 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* Private Access Zero Trust posture */}
+            {reportData.TenantInfo?.OverviewPrivateAccess?.nodes && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4">
+                    <Card className="h-full">
+                        <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
+                            <ShieldCheck className="pr-2 size-8" />
+                            <div>
+                                <CardTitle className="text-2xl tabular-nums">
+                                    Private Access Zero Trust posture
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                    Segmentation and strong authentication are app-denominated; administration is a separate assignment band.
+                                </CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    apps: {
+                                        label: "Applications",
+                                        color: "hsl(var(--chart-1))",
+                                    },
+                                }}
+                                className="h-[420px] w-full"
+                            >
+                                <PrivateAccessSankey
+                                    data={reportData.TenantInfo.OverviewPrivateAccess.nodes}
+                                    adminAtRisk={reportData.TenantInfo.OverviewPrivateAccess.adminAtRisk}
+                                />
+                            </ChartContainer>
+                        </CardContent>
+                        <CardFooter className="flex-col items-start gap-1">
+                            <CardDescription>
+                                {reportData.TenantInfo.OverviewPrivateAccess.description}
+                            </CardDescription>
+                            {reportData.TenantInfo.OverviewPrivateAccess.adminAtRisk && (
+                                <CardDescription className="text-amber-700 dark:text-amber-400">
+                                    Tenant-wide Application Administrator assignments can weaken segmentation and authentication for every Private Access app.
+                                </CardDescription>
+                            )}
+                            {reportData.TenantInfo.OverviewPrivateAccess.populationMismatch && (
+                                <CardDescription className="text-amber-700 dark:text-amber-400">
+                                    Segmentation and authentication checks reported different Private Access app populations; unmatched apps require review.
+                                </CardDescription>
+                            )}
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
 
             {/* Network security posture charts */}
             {(hasSwgData() || hasAzureNetSecData()) && (
