@@ -385,6 +385,12 @@ function Test-Assessment-25384 {
     $testResultMarkdown = $mdInfo
     #endregion Report Generation
 
+    # Publish the administration band for the Private Access overview funnel (27021)
+    Add-ZtTestData -Name 'PrivateAccessAdministration' -Value ([PSCustomObject]@{
+        TenantWide = $tenantWideAssignments.Count
+        Scoped     = $scopedAssignments.Count
+    })
+
     $params = @{
         TestId = '25384'
         Title  = 'Application admin rights are constrained to specific Private Access apps, not tenant-wide'

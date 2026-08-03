@@ -18,6 +18,7 @@ function Clear-ZtModuleVariable {
     $script:__ZtSession.AzureCache.Value.Clear()
     $script:__ZtSession.GraphBaseUri = $null
     $script:__ZtSession.TestResultDetail.Value.Clear()
+    $script:__ZtSession.TestData.Value.Clear()
     $script:__ZtSession.TestStatistics.Value.Clear()
     $script:__ZtSession.TenantInfo.Value.Clear()
     $script:__ZtSession.ProgressState.Value.Clear()

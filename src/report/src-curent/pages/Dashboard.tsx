@@ -37,6 +37,7 @@ import {
 import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
@@ -1338,6 +1339,13 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* Private Access Zero Trust posture */}
+            {hasPrivateAccessData() && (
+                <div className="mt-[26px]">
+                    <PrivateAccessSankey />
+                </div>
+            )}
 
             {/* Network security posture charts */}
             {(hasSwgData() || hasAzureNetSecData()) && (

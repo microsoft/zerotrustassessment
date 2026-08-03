@@ -38,6 +38,7 @@ import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
@@ -1288,6 +1289,13 @@ export default function Dashboard() {
 
                 </div>
             </div>
+
+            {/* Network - Private Access Zero Trust posture */}
+            {hasPrivateAccessData() && (
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                <PrivateAccessSankey />
+            </div>
+            )}
 
             {/* Network - SWG Defense Layers Section */}
             {hasSwgData() && (
