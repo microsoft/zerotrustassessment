@@ -18,6 +18,10 @@ function Invoke-ZtTenantInfo {
     Add-ZtTenantOverview # Always run (shown on dashboard)
     Add-ZtAgentOverview # Always run (shown on dashboard)
 
+    if ($Pillar -in ('All', 'AI')) {
+        Add-ZtAgentOwnershipDistribution -Database $Database
+    }
+
     # Only run if Pillar is All or Identity
     if ($Pillar -in ('All', 'Identity')) {
         Add-ZtOverviewCaMfa -Database $Database
