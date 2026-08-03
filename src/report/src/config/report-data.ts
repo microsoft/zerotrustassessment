@@ -42,7 +42,7 @@ export interface AgentOwnershipDistribution {
 export type AgentOwnershipBucket = "ownerAndSponsor" | "ownerOnly" | "sponsorOnly" | "neither";
 
 export interface AgentOwnershipEntry {
-  displayName: string;
+  displayName: string | null;
   accountEnabled: boolean;
 }
 
