@@ -386,9 +386,12 @@ function Test-Assessment-25384 {
     #endregion Report Generation
 
     # Publish the administration band for the Private Access overview funnel (27021)
+    # Scoped assignments held by groups, service principals or guests still fail this check,
+    # so they must not be reported as constrained administration.
     Add-ZtTestData -Name 'PrivateAccessAdministration' -Value ([PSCustomObject]@{
-        TenantWide = $tenantWideAssignments.Count
-        Scoped     = $scopedAssignments.Count
+        TenantWide   = $tenantWideAssignments.Count
+        Scoped       = $scopedAssignments.Count
+        ScopedAtRisk = @($problematicAssignments | Where-Object { $_.DirectoryScopeId -ne '/' }).Count
     })
 
     $params = @{

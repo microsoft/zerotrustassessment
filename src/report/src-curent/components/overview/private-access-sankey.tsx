@@ -30,6 +30,8 @@ export function PrivateAccessSankey() {
     const atRisk = "hsl(0, 72%, 51%)";
     const review = "hsl(43, 96%, 56%)";
     const zeroTrust = "hsl(142, 71%, 45%)";
+    // Gray marks a gate that produced no verdict, so its width is unknown rather than zero
+    const unavailable = "hsl(220, 9%, 65%)";
 
     return (
         <Card className="h-full">
@@ -52,13 +54,16 @@ export function PrivateAccessSankey() {
                             { id: "Private Access apps", nodeColor: "hsl(217, 91%, 60%)" },
                             { id: "Broad segments - at-risk", nodeColor: atRisk },
                             { id: "Segmentation manual review", nodeColor: review },
+                            { id: "Segmentation unavailable", nodeColor: unavailable },
                             { id: "Least-privilege segments", nodeColor: zeroTrust },
                             { id: "Password-only - at-risk", nodeColor: atRisk },
                             { id: "Authentication manual review", nodeColor: review },
+                            { id: "Authentication unavailable", nodeColor: unavailable },
                             // Tenant-wide admin makes the terminal Zero Trust set only conditionally trustworthy
                             { id: "Strong auth - Zero Trust", nodeColor: privateAccess.adminAtRisk ? "hsl(28, 89%, 52%)" : zeroTrust },
                             { id: "Application Administrator assignments", nodeColor: "hsl(220, 9%, 46%)" },
                             { id: "Tenant-wide admin - at-risk", nodeColor: atRisk },
+                            { id: "App-scoped admin - at-risk", nodeColor: atRisk },
                             { id: "App-scoped admin - Zero Trust", nodeColor: zeroTrust },
                         ],
                         links: privateAccess.nodes,
@@ -69,7 +74,12 @@ export function PrivateAccessSankey() {
                 <CardDescription>{privateAccess.description}</CardDescription>
                 {privateAccess.adminAtRisk && (
                     <CardDescription className="text-amber-700 dark:text-amber-400">
-                        Tenant-wide Application Administrator assignments can weaken segmentation and authentication for every Private Access app.
+                        Over-privileged Application Administrator assignments can weaken segmentation and authentication for every Private Access app.
+                    </CardDescription>
+                )}
+                {privateAccess.degraded && (
+                    <CardDescription className="text-amber-700 dark:text-amber-400">
+                        One or more Private Access checks produced no result, so the gray flows are unknown rather than zero.
                     </CardDescription>
                 )}
                 {privateAccess.populationMismatch && (
