@@ -119,6 +119,7 @@ Describe "Invoke-ZtTenantInfo" {
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	It "Should build the Private Access overview for the Network pillar" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Network'
 
@@ -136,6 +137,8 @@ Describe "Invoke-ZtTenantInfo" {
 
 		Should -Invoke Add-ZtOverviewPrivateAccess -Times 0 -Exactly
 =======
+=======
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
 	It "Should collect agent ownership distribution for AI assessments" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'AI'
 
@@ -148,6 +151,9 @@ Describe "Invoke-ZtTenantInfo" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
 
 		Should -Invoke Add-ZtAgentOwnershipDistribution -Times 0 -Exactly
+<<<<<<< HEAD
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
+=======
 >>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
 	}
 }
