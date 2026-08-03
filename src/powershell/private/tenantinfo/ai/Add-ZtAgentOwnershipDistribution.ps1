@@ -15,11 +15,20 @@ function Add-ZtAgentOwnershipDistribution {
 
     try {
         $rows = @(Invoke-DatabaseQuery -Database $Database -Sql @"
+with agent_owners as (
+    select
+        id,
+        owners
+    from main.ServicePrincipal
+    where "@odata.type" = '#microsoft.graph.agentIdentity'
+)
 select
-    ai.id,
+    coalesce(ai.id, sp.id) as id,
     ai.displayName,
     ai.accountEnabled,
     to_json(ai.sponsors) as sponsorsJson,
+    ai.id is not null as hasSponsorSnapshot,
+    sp.id is not null as hasOwnerSnapshot,
     case
         when sp.owners is null then 0
         when json_type(sp.owners) = 'ARRAY' then coalesce(json_array_length(sp.owners), 0)
@@ -27,8 +36,8 @@ select
         else 0
     end as ownerCount
 from main.AgentIdentity ai
-left join main.ServicePrincipal sp on ai.id = sp.id
-order by ai.displayName
+full outer join agent_owners sp on ai.id = sp.id
+order by coalesce(ai.displayName, '')
 "@)
     }
     catch {
@@ -37,7 +46,18 @@ order by ai.displayName
         return
     }
 
-    $agentIdentities = @($rows | ForEach-Object {
+    $snapshotMismatches = @($rows | Where-Object {
+        -not ($_.hasSponsorSnapshot -and $_.hasOwnerSnapshot)
+    })
+    $matchedRows = @($rows | Where-Object {
+        $_.hasSponsorSnapshot -and $_.hasOwnerSnapshot
+    })
+
+    if ($snapshotMismatches.Count -gt 0) {
+        Write-PSFMessage "$($snapshotMismatches.Count) agent identities were excluded because the owner and sponsor snapshots did not match." -Tag Test -Level Warning
+    }
+
+    $agentIdentities = @($matchedRows | ForEach-Object {
         $sponsors = if ($_.sponsorsJson -and $_.sponsorsJson -ne 'null') {
             @($_.sponsorsJson | ConvertFrom-Json)
         }
@@ -67,23 +87,40 @@ order by ai.displayName
     $groupHasMembers = @{}
     if ($uniqueGroupIds.Count -gt 0) {
         try {
-            $groupCountResults = Invoke-ZtGraphBatchRequest `
+            $groupCountResults = @(Invoke-ZtGraphBatchRequest `
                 -Path 'groups/{0}/transitiveMembers/$count' `
                 -ArgumentList $uniqueGroupIds `
                 -Header @{ 'ConsistencyLevel' = 'eventual' } `
                 -NoPaging `
                 -Matched `
-                -ErrorAction Stop
+                -ErrorAction Stop)
 
-            foreach ($countResult in $groupCountResults) {
-                $gid = $countResult.Argument
+            $expectedGroupIds = @{}
+            foreach ($groupId in $uniqueGroupIds) {
+                $expectedGroupIds[[string]$groupId] = $true
+            }
+            $groupResolutionFailed = $false
+
+            foreach ($countResult in @($groupCountResults)) {
                 if (-not $countResult.Success) {
-                    $groupHasMembers[$gid] = $false
-                    Write-PSFMessage "Failed to get transitive member count for sponsor group $gid (status $($countResult.Status))." -Tag Test -Level Warning
+                    $groupResolutionFailed = $true
+                    Write-PSFMessage "Failed to resolve a sponsor group member count (status $($countResult.Status))." -Tag Test -Level Warning
                     continue
                 }
 
-                $groupHasMembers[$gid] = ([int]($countResult.Result | Select-Object -First 1) -gt 0)
+                $groupId = [string]$countResult.Argument
+                if (-not $expectedGroupIds.ContainsKey($groupId) -or $groupHasMembers.ContainsKey($groupId)) {
+                    $groupResolutionFailed = $true
+                    continue
+                }
+
+                $groupHasMembers[$groupId] = ([int]($countResult.Result | Select-Object -First 1) -gt 0)
+            }
+
+            if ($groupResolutionFailed -or $groupHasMembers.Count -ne $uniqueGroupIds.Count) {
+                Write-PSFMessage 'Agent ownership distribution was omitted because one or more sponsor groups could not be resolved.' -Tag Test -Level Warning
+                Add-ZtTenantInfo -Name $tenantInfoName -Value $null
+                return
             }
         }
         catch {
@@ -144,7 +181,7 @@ order by ai.displayName
         ownerOnly       = $agentsByBucket.ownerOnly.Count
         sponsorOnly     = $agentsByBucket.sponsorOnly.Count
         neither         = $agentsByBucket.neither.Count
-        skippedCount    = 0
+        skippedCount    = $snapshotMismatches.Count
         agents           = [PSCustomObject]@{
             ownerAndSponsor = @($agentsByBucket.ownerAndSponsor | Sort-Object displayName)
             ownerOnly       = @($agentsByBucket.ownerOnly | Sort-Object displayName)
