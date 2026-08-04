@@ -129,7 +129,7 @@ export function Footer() {
                             Terms
                         </a>
                         <span>•</span>
-                        <span>v{moduleVersion}</span>
+                        <span>v{moduleVersion} (classic)</span>
                         <span>•</span>
                         <span>{assessmentDateTime}</span>
                     </div>

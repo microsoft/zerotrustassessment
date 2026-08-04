@@ -1,4 +1,3 @@
-﻿
 <#
 .SYNOPSIS
     Add Device overview information to tenant info.
@@ -10,36 +9,41 @@ function Add-ZtDeviceOverview {
         $Database
     )
 
-    function Get-DeviceOwnership {
-        [CmdletBinding()]
-        param(
-            $Database
-        )
-        $sql = @"
-select deviceOwnership, count(*) count
+    Write-ZtProgress -Activity 'Getting device overview' -Status 'Processing'
+
+    $deviceSummaryRows = Invoke-DatabaseQuery -Database $Database -Sql @"
+select operatingSystem, count(*) count
 from Device
-where accountEnabled and "isManaged"
-group by deviceOwnership
-order by deviceOwnership
+group by operatingSystem
+order by operatingSystem
 "@
 
-        $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    $windowsCount = ($deviceSummaryRows | Where-Object { $_.operatingSystem -eq 'Windows' } | Measure-Object -Property count -Sum).Sum
+    $macOSCount = ($deviceSummaryRows | Where-Object { $_.operatingSystem -in @('MacMDM', 'macOS') } | Measure-Object -Property count -Sum).Sum
+    $iosCount = ($deviceSummaryRows | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone', 'iPadOS') } | Measure-Object -Property count -Sum).Sum
+    $androidCount = ($deviceSummaryRows | Where-Object { $_.operatingSystem -like 'Android*' } | Measure-Object -Property count -Sum).Sum
+    $linuxCount = ($deviceSummaryRows | Where-Object { $_.operatingSystem -eq 'Linux' } | Measure-Object -Property count -Sum).Sum
+    $discoveredDeviceTotal = ($deviceSummaryRows | Measure-Object -Property count -Sum).Sum
+    if ($null -eq $windowsCount) { $windowsCount = 0 }
+    if ($null -eq $macOSCount) { $macOSCount = 0 }
+    if ($null -eq $iosCount) { $iosCount = 0 }
+    if ($null -eq $androidCount) { $androidCount = 0 }
+    if ($null -eq $linuxCount) { $linuxCount = 0 }
+    if ($null -eq $discoveredDeviceTotal) { $discoveredDeviceTotal = 0 }
 
-        $corporate = ($results | Where-Object { $_.deviceOwnership -eq 'Company' } | Select-Object -ExpandProperty count) ?? 0
-        $personal = ($results | Where-Object { $_.deviceOwnership -eq 'Personal' } | Select-Object -ExpandProperty count) ?? 0
-
-        @{
-            "corporateCount" = $corporate
-            "personalCount"  = $personal
+    $deviceSummary = [PSCustomObject]@{
+        description = 'All devices by operating system.'
+        deviceOperatingSystemSummary = [PSCustomObject]@{
+            windowsCount = $windowsCount
+            macOSCount   = $macOSCount
+            iosCount     = $iosCount
+            androidCount = $androidCount
+            linuxCount   = $linuxCount
         }
+        totalDevices = $discoveredDeviceTotal
     }
 
-    function Get-DesktopDevicesSummary {
-        [CmdletBinding()]
-        param(
-            $Database
-        )
-        $sql = @"
+    $desktopRows = Invoke-DatabaseQuery -Database $Database -Sql @"
 select operatingSystem, trustType, isCompliant, count(*) count
 from Device
 where operatingSystem in ('Windows', 'MacMDM') and trustType is not null
@@ -47,321 +51,161 @@ group by operatingSystem, trustType, isCompliant
 order by operatingSystem, trustType, isCompliant
 "@
 
-        # Example output:
-        # operatingSystem trustType   isCompliant   cnt
-        # Windows         AzureAd     false          19
-        # Windows         AzureAd     true           83
-        # Windows         ServerAd    false         455
-        # Windows         Workplace   true           12
-        # Windows         Workplace   false          34
-        # MacMDM          AzureAd     false           2
-        # MacMDM          AzureAd     true            5
-        # MacMDM          Workplace   true            3
+    $windowsRows = @($desktopRows | Where-Object { $_.operatingSystem -eq 'Windows' })
+    $macRows = @($desktopRows | Where-Object { $_.operatingSystem -eq 'MacMDM' })
 
-        $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    $windowsTotal = ($windowsRows | Measure-Object -Property count -Sum).Sum
+    $macTotal = ($macRows | Measure-Object -Property count -Sum).Sum
+    $windowsEntraJoined = ($windowsRows | Where-Object { $_.trustType -eq 'AzureAd' } | Measure-Object -Property count -Sum).Sum
+    $windowsHybridJoined = ($windowsRows | Where-Object { $_.trustType -eq 'ServerAd' } | Measure-Object -Property count -Sum).Sum
+    $windowsEntraRegistered = ($windowsRows | Where-Object { $_.trustType -eq 'Workplace' } | Measure-Object -Property count -Sum).Sum
+    $entraJoinedCompliant = ($windowsRows | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $hybridJoinedCompliant = ($windowsRows | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $registeredCompliant = ($windowsRows | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $entraJoinedNoncompliant = ($windowsRows | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+    $hybridJoinedNoncompliant = ($windowsRows | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+    $registeredNoncompliant = ($windowsRows | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+    $macCompliant = ($macRows | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $macNoncompliant = ($macRows | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum
+    if ($null -eq $windowsTotal) { $windowsTotal = 0 }
+    if ($null -eq $macTotal) { $macTotal = 0 }
+    if ($null -eq $windowsEntraJoined) { $windowsEntraJoined = 0 }
+    if ($null -eq $windowsHybridJoined) { $windowsHybridJoined = 0 }
+    if ($null -eq $windowsEntraRegistered) { $windowsEntraRegistered = 0 }
+    if ($null -eq $entraJoinedCompliant) { $entraJoinedCompliant = 0 }
+    if ($null -eq $hybridJoinedCompliant) { $hybridJoinedCompliant = 0 }
+    if ($null -eq $registeredCompliant) { $registeredCompliant = 0 }
+    if ($null -eq $entraJoinedNoncompliant) { $entraJoinedNoncompliant = 0 }
+    if ($null -eq $hybridJoinedNoncompliant) { $hybridJoinedNoncompliant = 0 }
+    if ($null -eq $registeredNoncompliant) { $registeredNoncompliant = 0 }
+    if ($null -eq $macCompliant) { $macCompliant = 0 }
+    if ($null -eq $macNoncompliant) { $macNoncompliant = 0 }
 
-        # Get Windows devices
-        $windowsResults = $results | Where-Object { $_.operatingSystem -eq 'Windows' }
-        $windowsTotal = ($windowsResults | Measure-Object -Property count -Sum).Sum ?? 0
+    $entraJoinedUnmanaged = $windowsEntraJoined - ($entraJoinedCompliant + $entraJoinedNoncompliant)
+    $hybridJoinedUnmanaged = $windowsHybridJoined - ($hybridJoinedCompliant + $hybridJoinedNoncompliant)
+    $registeredUnmanaged = $windowsEntraRegistered - ($registeredCompliant + $registeredNoncompliant)
+    $macUnmanaged = $macTotal - ($macCompliant + $macNoncompliant)
 
-        # Get macOS devices
-        $macOSResults = $results | Where-Object { $_.operatingSystem -eq 'MacMDM' }
-        $macOSTotal = ($macOSResults | Measure-Object -Property count -Sum).Sum ?? 0
-
-        # macOS compliance (goes directly to compliance status)
-        $macOSCompliant = ($macOSResults | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $macOSNoncompliant = ($macOSResults | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $macOSUnmanaged = $macOSTotal - ($macOSCompliant + $macOSNoncompliant)
-
-        # Windows join types
-        $windowsEntraJoined = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' } | Measure-Object -Property count -Sum).Sum ?? 0
-        $windowsHybridJoined = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' } | Measure-Object -Property count -Sum).Sum ?? 0
-        $windowsEntraRegistered = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' } | Measure-Object -Property count -Sum).Sum ?? 0
-
-        # Windows compliance by join type
-        $entraJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $hybridJoinedCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $registeredCompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-
-        # Windows non-compliant counts
-        $entraJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'AzureAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $hybridJoinedNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'ServerAd' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $registeredNoncompliant = ($windowsResults | Where-Object { $_.trustType -eq 'Workplace' -and $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-
-        # Windows unmanaged where isCompliant is null
-        $entraJoinedUnmanaged = $windowsEntraJoined - ($entraJoinedCompliant + $entraJoinedNoncompliant)
-        $hybridJoinedUnmanaged = $windowsHybridJoined - ($hybridJoinedCompliant + $hybridJoinedNoncompliant)
-        $registeredUnmanaged = $windowsEntraRegistered - ($registeredCompliant + $registeredNoncompliant)
-
-        $nodes = @(
-            # Level 1: Desktop devices to OS
-            @{
-                "source" = "Desktop devices"
-                "target" = "Windows"
-                "value"  = $windowsTotal
-            },
-            @{
-                "source" = "Desktop devices"
-                "target" = "macOS"
-                "value"  = $macOSTotal
-            },
-            # Level 2: Windows to join types
-            @{
-                "source" = "Windows"
-                "target" = "Entra joined"
-                "value"  = $windowsEntraJoined
-            },
-            @{
-                "source" = "Windows"
-                "target" = "Entra registered"
-                "value"  = $windowsEntraRegistered
-            },
-            @{
-                "source" = "Windows"
-                "target" = "Entra hybrid joined"
-                "value"  = $windowsHybridJoined
-            },
-            # Level 3: Windows join types to compliance
-            @{
-                "source" = "Entra joined"
-                "target" = "Compliant"
-                "value"  = $entraJoinedCompliant
-            },
-            @{
-                "source" = "Entra joined"
-                "target" = "Non-compliant"
-                "value"  = $entraJoinedNoncompliant
-            },
-            @{
-                "source" = "Entra joined"
-                "target" = "Unmanaged"
-                "value"  = $entraJoinedUnmanaged
-            },
-            @{
-                "source" = "Entra hybrid joined"
-                "target" = "Compliant"
-                "value"  = $hybridJoinedCompliant
-            },
-            @{
-                "source" = "Entra hybrid joined"
-                "target" = "Non-compliant"
-                "value"  = $hybridJoinedNoncompliant
-            },
-            @{
-                "source" = "Entra hybrid joined"
-                "target" = "Unmanaged"
-                "value"  = $hybridJoinedUnmanaged
-            },
-            @{
-                "source" = "Entra registered"
-                "target" = "Compliant"
-                "value"  = $registeredCompliant
-            },
-            @{
-                "source" = "Entra registered"
-                "target" = "Non-compliant"
-                "value"  = $registeredNoncompliant
-            },
-            @{
-                "source" = "Entra registered"
-                "target" = "Unmanaged"
-                "value"  = $registeredUnmanaged
-            },
-
-            # Level 2: macOS directly to compliance (no join types)
-            @{
-                "source" = "macOS"
-                "target" = "Compliant"
-                "value"  = $macOSCompliant
-            },
-            @{
-                "source" = "macOS"
-                "target" = "Non-compliant"
-                "value"  = $macOSNoncompliant
-            },
-            @{
-                "source" = "macOS"
-                "target" = "Unmanaged"
-                "value"  = $macOSUnmanaged
-            }
-        )
-
-        @{
-            "description"       = "Desktop devices (Windows and macOS) by join type and compliance status."
-            "nodes"             = $nodes
-            "totalDevices"      = $windowsTotal + $macOSTotal
-            "entrajoined"       = $windowsEntraJoined
-            "entrahybridjoined" = $windowsHybridJoined
-            "entrareigstered"   = $windowsEntraRegistered
+    $desktopNodes = [System.Collections.Generic.List[object]]::new()
+    foreach ($link in @(
+        @{ source = 'Desktop devices'; target = 'Windows'; value = $windowsTotal },
+        @{ source = 'Desktop devices'; target = 'macOS'; value = $macTotal },
+        @{ source = 'Windows'; target = 'Entra joined'; value = $windowsEntraJoined },
+        @{ source = 'Windows'; target = 'Entra registered'; value = $windowsEntraRegistered },
+        @{ source = 'Windows'; target = 'Entra hybrid joined'; value = $windowsHybridJoined },
+        @{ source = 'Entra joined'; target = 'Compliant'; value = $entraJoinedCompliant },
+        @{ source = 'Entra joined'; target = 'Non-compliant'; value = $entraJoinedNoncompliant },
+        @{ source = 'Entra joined'; target = 'Unmanaged'; value = $entraJoinedUnmanaged },
+        @{ source = 'Entra hybrid joined'; target = 'Compliant'; value = $hybridJoinedCompliant },
+        @{ source = 'Entra hybrid joined'; target = 'Non-compliant'; value = $hybridJoinedNoncompliant },
+        @{ source = 'Entra hybrid joined'; target = 'Unmanaged'; value = $hybridJoinedUnmanaged },
+        @{ source = 'Entra registered'; target = 'Compliant'; value = $registeredCompliant },
+        @{ source = 'Entra registered'; target = 'Non-compliant'; value = $registeredNoncompliant },
+        @{ source = 'Entra registered'; target = 'Unmanaged'; value = $registeredUnmanaged },
+        @{ source = 'macOS'; target = 'Compliant'; value = $macCompliant },
+        @{ source = 'macOS'; target = 'Non-compliant'; value = $macNoncompliant },
+        @{ source = 'macOS'; target = 'Unmanaged'; value = $macUnmanaged }
+    )) {
+        if ($link.value -gt 0) {
+            $desktopNodes.Add([PSCustomObject]$link)
         }
     }
 
-    function Get-MobileSummary {
-        [CmdletBinding()]
-        param(
-            $Database
-        )
-        $sql = @"
-select operatingSystem, deviceOwnership, isCompliant, count(*) count
+    $desktopDevicesSummary = [PSCustomObject]@{
+        description       = 'Desktop devices (Windows and macOS) by join type and compliance status.'
+        nodes             = $desktopNodes
+        totalDevices      = $windowsTotal + $macTotal
+        entrajoined       = $windowsEntraJoined
+        entrahybridjoined = $windowsHybridJoined
+        entrareigstered   = $windowsEntraRegistered
+    }
+
+    $mobileRows = Invoke-DatabaseQuery -Database $Database -Sql @"
+select operatingSystem, isCompliant, count(*) count
 from Device
-where operatingSystem != 'Windows' and isCompliant is not null
-group by operatingSystem, deviceOwnership, isCompliant
-order by operatingSystem, deviceOwnership, isCompliant
+where operatingSystem like 'Android%' or operatingSystem in ('iOS', 'IPhone', 'iPadOS')
+group by operatingSystem, isCompliant
+order by operatingSystem, isCompliant
 "@
 
-        # Example output:
-        # operatingSystem       deviceOwnership     isCompliant   cnt
-        # Android               Company             false          19
-        # Android               Company             true           83
-        # AndroidEnterprise     Personal            false         455
-        # AndroidForWork        Company             true           12
-        # IPhone                Company             false          34
-        # iOS                   Company             true           56
+    $androidRows = @($mobileRows | Where-Object { $_.operatingSystem -like 'Android*' })
+    $iosRows = @($mobileRows | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone', 'iPadOS') })
+    $androidTotal = ($androidRows | Measure-Object -Property count -Sum).Sum
+    $iosTotal = ($iosRows | Measure-Object -Property count -Sum).Sum
+    $androidCompliant = ($androidRows | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $iosCompliant = ($iosRows | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    if ($null -eq $androidTotal) { $androidTotal = 0 }
+    if ($null -eq $iosTotal) { $iosTotal = 0 }
+    if ($null -eq $androidCompliant) { $androidCompliant = 0 }
+    if ($null -eq $iosCompliant) { $iosCompliant = 0 }
+    $androidNoncompliant = [Math]::Max(0, $androidTotal - $androidCompliant)
+    $iosNoncompliant = [Math]::Max(0, $iosTotal - $iosCompliant)
 
-        $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
-
-        # Get Android devices
-        $androidCompanyDevices = $results | Where-Object { $_.operatingSystem -like 'Android*' -and $_.deviceOwnership -eq 'Company' }
-        $androidPersonalDevices = $results | Where-Object { $_.operatingSystem -like 'Android*' -and $_.deviceOwnership -eq 'Personal' }
-
-        # Get iOS devices
-        $iosCompanyDevices = $results | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone') -and $_.deviceOwnership -eq 'Company' }
-        $iosPersonalDevices = $results | Where-Object { $_.operatingSystem -in @('iOS', 'IPhone') -and $_.deviceOwnership -eq 'Personal' }
-
-        $androidCompany = ($androidCompanyDevices | Measure-Object -Property count -Sum).Sum ?? 0
-        $androidPersonal = ($androidPersonalDevices | Measure-Object -Property count -Sum).Sum ?? 0
-
-        $iosCompany = ($iosCompanyDevices | Measure-Object -Property count -Sum).Sum ?? 0
-        $iosPersonal = ($iosPersonalDevices | Measure-Object -Property count -Sum).Sum ?? 0
-
-        $androidCompanyCompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $androidPersonalCompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $iosCompanyCompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-        $iosPersonalCompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum ?? 0
-
-        $androidCompanyNoncompliant = ($androidCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $androidPersonalNoncompliant = ($androidPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $iosCompanyNoncompliant = ($iosCompanyDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-        $iosPersonalNoncompliant = ($iosPersonalDevices | Where-Object { $_.isCompliant -eq $false } | Measure-Object -Property count -Sum).Sum ?? 0
-
-        $androidTotal = $androidCompany + $androidPersonal
-        $iosTotal = $iosCompany + $iosPersonal
-
-        $nodes = @(
-            # Level 1: Mobile devices to platforms
-            @{
-                "source" = "Mobile devices"
-                "target" = "Android"
-                "value"  = $androidTotal
-            },
-            @{
-                "source" = "Mobile devices"
-                "target" = "iOS"
-                "value"  = $iosTotal
-            },
-            # Level 2: Platforms to ownership types
-            @{
-                "source" = "Android"
-                "target" = "Android (Company)"
-                "value"  = $androidCompany
-            },
-            @{
-                "source" = "Android"
-                "target" = "Android (Personal)"
-                "value"  = $androidPersonal
-            },
-            @{
-                "source" = "iOS"
-                "target" = "iOS (Company)"
-                "value"  = $iosCompany
-            },
-            @{
-                "source" = "iOS"
-                "target" = "iOS (Personal)"
-                "value"  = $iosPersonal
-            },
-            # Level 3: Ownership types to compliance status
-            @{
-                "source" = "Android (Company)"
-                "target" = "Compliant"
-                "value"  = $androidCompanyCompliant
-            },
-            @{
-                "source" = "Android (Company)"
-                "target" = "Non-compliant"
-                "value"  = $androidCompanyNoncompliant
-            },
-            @{
-                "source" = "Android (Personal)"
-                "target" = "Compliant"
-                "value"  = $androidPersonalCompliant
-            },
-            @{
-                "source" = "Android (Personal)"
-                "target" = "Non-compliant"
-                "value"  = $androidPersonalNoncompliant
-            },
-            @{
-                "source" = "iOS (Company)"
-                "target" = "Compliant"
-                "value"  = $iosCompanyCompliant
-            },
-            @{
-                "source" = "iOS (Company)"
-                "target" = "Non-compliant"
-                "value"  = $iosCompanyNoncompliant
-            },
-            @{
-                "source" = "iOS (Personal)"
-                "target" = "Compliant"
-                "value"  = $iosPersonalCompliant
-            },
-            @{
-                "source" = "iOS (Personal)"
-                "target" = "Non-compliant"
-                "value"  = $iosPersonalNoncompliant
-            }
-        )
-
-        @{
-            "description"  = "Mobile devices by compliance status."
-            "nodes"        = $nodes
-            "totalDevices" = ($results | Measure-Object -Property count -Sum).Sum ?? 0
+    $mobileNodes = [System.Collections.Generic.List[object]]::new()
+    foreach ($link in @(
+        @{ source = 'Mobile devices'; target = 'Android'; value = $androidTotal },
+        @{ source = 'Mobile devices'; target = 'iOS'; value = $iosTotal },
+        @{ source = 'Android'; target = 'Compliant'; value = $androidCompliant },
+        @{ source = 'Android'; target = 'Non-compliant'; value = $androidNoncompliant },
+        @{ source = 'iOS'; target = 'Compliant'; value = $iosCompliant },
+        @{ source = 'iOS'; target = 'Non-compliant'; value = $iosNoncompliant }
+    )) {
+        if ($link.value -gt 0) {
+            $mobileNodes.Add([PSCustomObject]$link)
         }
     }
 
-    $activity = "Getting mobile device summary"
-    Write-ZtProgress -Activity $activity -Status "Processing"
-
-    $desktopDevicesSummary = Get-DesktopDevicesSummary -Database $Database
-    $deviceOwnership = Get-DeviceOwnership -Database $Database
-    $mobileSummary = Get-MobileSummary -Database $Database
-
-    if (Get-ZtLicense Intune) {
-        Write-PSFMessage "Intune license found. Using Intune API for device details." -Level Debug -Tag License
-        $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
-        $deviceCompliance = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/deviceCompliancePolicyDeviceStateSummary' -ApiVersion 'beta'
-
-        # Append Desktop, Mobile and Total count
-        $managedDevicesDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
-        $managedDevicesMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
-        $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
-
-        if ($totalCount -gt 0) {
-            $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDevicesDesktopCount
-            $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedDevicesMobileCount
-            $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $totalCount
-        }
-        else {
-            $managedDevices = $null
-        }
+    $mobileSummary = [PSCustomObject]@{
+        description  = 'Mobile devices by platform and compliance status.'
+        nodes        = $mobileNodes
+        totalDevices = $androidTotal + $iosTotal
     }
-    else {
-        Write-PSFMessage "Intune license not found. Using Entra device data for device details." -Level Debug -Tag License
 
-        # Derive device counts from Entra device data in the database
-        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
-        $osSummarySql = @"
+    $ownershipRows = Invoke-DatabaseQuery -Database $Database -Sql @"
+select deviceOwnership, count(*) count
+from Device
+where accountEnabled and "isManaged"
+group by deviceOwnership
+order by deviceOwnership
+"@
+    $corporate = ($ownershipRows | Where-Object { $_.deviceOwnership -eq 'Company' } | Select-Object -ExpandProperty count)
+    $personal = ($ownershipRows | Where-Object { $_.deviceOwnership -eq 'Personal' } | Select-Object -ExpandProperty count)
+    if ($null -eq $corporate) { $corporate = 0 }
+    if ($null -eq $personal) { $personal = 0 }
+    $deviceOwnership = [PSCustomObject]@{
+        corporateCount = $corporate
+        personalCount  = $personal
+    }
+
+    $complianceRows = Invoke-DatabaseQuery -Database $Database -Sql @"
+select isCompliant, count(*) count
+from Device
+group by isCompliant
+order by isCompliant
+"@
+    $compliantCount = ($complianceRows | Where-Object { $_.isCompliant -eq $true } | Measure-Object -Property count -Sum).Sum
+    $totalComplianceCount = ($complianceRows | Measure-Object -Property count -Sum).Sum
+    if ($null -eq $compliantCount) { $compliantCount = 0 }
+    if ($null -eq $totalComplianceCount) { $totalComplianceCount = 0 }
+    $nonCompliantCount = [Math]::Max(0, $totalComplianceCount - $compliantCount)
+    if (($compliantCount + $nonCompliantCount) -le 0 -and $discoveredDeviceTotal -gt 0) {
+        $nonCompliantCount = $discoveredDeviceTotal
+    }
+    $deviceCompliance = [PSCustomObject]@{
+        '@odata.context'         = $null
+        id                       = $null
+        inGracePeriodCount       = 0
+        configManagerCount       = 0
+        unknownDeviceCount       = 0
+        notApplicableDeviceCount = 0
+        compliantDeviceCount     = $compliantCount
+        remediatedDeviceCount    = 0
+        nonCompliantDeviceCount  = $nonCompliantCount
+        errorDeviceCount         = 0
+        conflictDeviceCount      = 0
+    }
+
+    $managedSummaryRow = Invoke-DatabaseQuery -Database $Database -Sql @"
 select
     sum(case when operatingSystem = 'Windows' then 1 else 0 end) as windowsCount,
     sum(case when operatingSystem in ('MacMDM', 'macOS') then 1 else 0 end) as macOSCount,
@@ -372,64 +216,59 @@ select
 from Device
 where accountEnabled and "isManaged"
 "@
-        $osSummary = Invoke-DatabaseQuery -Database $Database -Sql $osSummarySql
 
-        $windowsCount = $osSummary.windowsCount -as [int] ?? 0
-        $macOSCount = $osSummary.macOSCount -as [int] ?? 0
-        $iOSCount = $osSummary.iOSCount -as [int] ?? 0
-        $androidCount = $osSummary.androidCount -as [int] ?? 0
-        $linuxCount = $osSummary.linuxCount -as [int] ?? 0
+    $fallbackWindows = $managedSummaryRow.windowsCount -as [int]
+    $fallbackMacOS = $managedSummaryRow.macOSCount -as [int]
+    $fallbackIOS = $managedSummaryRow.iOSCount -as [int]
+    $fallbackAndroid = $managedSummaryRow.androidCount -as [int]
+    $fallbackLinux = $managedSummaryRow.linuxCount -as [int]
+    if ($null -eq $fallbackWindows) { $fallbackWindows = 0 }
+    if ($null -eq $fallbackMacOS) { $fallbackMacOS = 0 }
+    if ($null -eq $fallbackIOS) { $fallbackIOS = 0 }
+    if ($null -eq $fallbackAndroid) { $fallbackAndroid = 0 }
+    if ($null -eq $fallbackLinux) { $fallbackLinux = 0 }
+    $fallbackManagedDevices = [PSCustomObject]@{
+        deviceOperatingSystemSummary = [PSCustomObject]@{
+            windowsCount = $fallbackWindows
+            macOSCount   = $fallbackMacOS
+            iosCount     = $fallbackIOS
+            androidCount = $fallbackAndroid
+            linuxCount   = $fallbackLinux
+        }
+        enrolledDeviceCount = $fallbackWindows + $fallbackMacOS + $fallbackIOS + $fallbackAndroid
+        desktopCount        = $fallbackWindows + $fallbackMacOS
+        mobileCount         = $fallbackIOS + $fallbackAndroid
+        totalCount          = $fallbackWindows + $fallbackMacOS + $fallbackIOS + $fallbackAndroid
+    }
 
-        $managedDevicesDesktopCount = $windowsCount + $macOSCount
-        $managedDevicesMobileCount = $iOSCount + $androidCount
-        $totalCount = $managedDevicesDesktopCount + $managedDevicesMobileCount
-
-        if ($totalCount -gt 0) {
-            # Note: enrolledDeviceCount is set to desktop + mobile count (not raw count(*)) to approximate
-            # Intune enrollment semantics. This excludes Linux and other unrendered OS types.
-            $managedDevices = [PSCustomObject]@{
-                deviceOperatingSystemSummary = [PSCustomObject]@{
-                    windowsCount = $windowsCount
-                    macOSCount   = $macOSCount
-                    iosCount     = $iOSCount
-                    androidCount = $androidCount
-                    linuxCount   = $linuxCount
-                }
-                enrolledDeviceCount = $totalCount
-                desktopCount        = $managedDevicesDesktopCount
-                mobileCount         = $managedDevicesMobileCount
-                totalCount          = $totalCount
+    if (Get-ZtLicense Intune) {
+        Write-PSFMessage 'Intune license found. Using Intune API for device details.' -Level Debug -Tag License
+        try {
+            $managedDevices = Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDeviceOverview' -ApiVersion 'beta'
+            $managedDesktopCount = $managedDevices.deviceOperatingSystemSummary.windowsCount + $managedDevices.deviceOperatingSystemSummary.macOSCount
+            $managedMobileCount = $managedDevices.deviceOperatingSystemSummary.iOSCount + $managedDevices.deviceOperatingSystemSummary.androidCount
+            $managedTotalCount = $managedDesktopCount + $managedMobileCount
+            if ($managedTotalCount -gt 0) {
+                $managedDevices | Add-Member -MemberType NoteProperty -Name desktopCount -Value $managedDesktopCount -Force
+                $managedDevices | Add-Member -MemberType NoteProperty -Name mobileCount -Value $managedMobileCount -Force
+                $managedDevices | Add-Member -MemberType NoteProperty -Name totalCount -Value $managedTotalCount -Force
+            }
+            else {
+                $managedDevices = $fallbackManagedDevices
             }
         }
-        else {
-            $managedDevices = $null
+        catch {
+            Write-PSFMessage 'Failed to retrieve Intune managed device overview. Falling back to Entra device data.' -Level Warning -Tag License
+            $managedDevices = $fallbackManagedDevices
         }
-
-        # Derive compliance summary from Entra device data
-        # Filter on isManaged to match Get-DeviceOwnership and avoid inflating counts with unmanaged/stale devices
-        $complianceSql = @"
-select
-    sum(case when isCompliant = true then 1 else 0 end) as compliantDeviceCount,
-    sum(case when isCompliant = false then 1 else 0 end) as nonCompliantDeviceCount
-from Device
-where accountEnabled and "isManaged"
-"@
-        $complianceSummary = Invoke-DatabaseQuery -Database $Database -Sql $complianceSql
-        # Provide all DeviceCompliance interface properties with 0 defaults for compatibility
-        $deviceCompliance = [PSCustomObject]@{
-            compliantDeviceCount    = $complianceSummary.compliantDeviceCount -as [int] ?? 0
-            nonCompliantDeviceCount = $complianceSummary.nonCompliantDeviceCount -as [int] ?? 0
-            inGracePeriodCount      = 0
-            configManagerCount      = 0
-            unknownDeviceCount      = 0
-            notApplicableDeviceCount = 0
-            remediatedDeviceCount   = 0
-            errorDeviceCount        = 0
-            conflictDeviceCount     = 0
-        }
+    }
+    else {
+        Write-PSFMessage 'Intune license not found. Using Entra device data for device details.' -Level Debug -Tag License
+        $managedDevices = $fallbackManagedDevices
     }
 
     $deviceOverview = [PSCustomObject]@{
+        DeviceSummary         = $deviceSummary
         DesktopDevicesSummary = $desktopDevicesSummary
         ManagedDevices        = $managedDevices
         MobileSummary         = $mobileSummary
@@ -437,7 +276,7 @@ where accountEnabled and "isManaged"
         DeviceOwnership       = $deviceOwnership
     }
 
-    Add-ZtTenantInfo -Name "DeviceOverview" -Value $deviceOverview
+    Add-ZtTenantInfo -Name 'DeviceOverview' -Value $deviceOverview
 
-    Write-ZtProgress -Activity $activity -Status "Completed"
+    Write-ZtProgress -Activity 'Getting device overview' -Status 'Completed'
 }

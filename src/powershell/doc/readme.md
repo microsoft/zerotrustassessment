@@ -183,12 +183,16 @@ If you are only interested in the Devices (Intune) pillar (which takes less than
 Invoke-ZtAssessment -Pillar Devices
 ```
 
-The results are created in the current working folder `.\ZeroTrustReport\ZeroTrustAssessmentReport.html`. After the
-assessment completes, the report is automatically opened in the default browser.
+The results are created in the current working folder as two files:
+
+- `.\ZeroTrustReport\ZeroTrustAssessmentReport.html` (default/new report, opened by default)
+- `.\ZeroTrustReport\ZeroTrustAssessmentReport-classic.html` (classic report)
+
+After the assessment completes, the default/new report is automatically opened in the default browser.
 
 You can use the `-Path` parameter to provide a custom location to
-store the assessment report. For example, the following command produces the report in the folder
-`C:\MyAssessment01\ZeroTrustAssessmentReport.html`
+store the assessment reports. For example, the following command produces reports in the folder
+`C:\MyAssessment01\` as `ZeroTrustAssessmentReport.html` and `ZeroTrustAssessmentReport-classic.html`.
 
 ```powershell
 Invoke-ZtAssessment -Path C:\MyAssessment01

@@ -1,0 +1,11 @@
+Azure Front Door Web Application Firewall (WAF) offers the Microsoft HTTP DDoS ruleset, a managed rule set that provides automated layer 7 protection against volumetric HTTP-based attacks at Microsoft's global edge network. Threat actors increasingly bypass network-layer DDoS defenses by generating HTTP floods, slowloris-style connection exhaustion, and high-frequency requests from distributed botnets that resemble legitimate traffic just enough to defeat static IP allow/block lists and fixed-threshold rate limiting rules. The HTTP DDoS ruleset closes this gap by continuously baselining normal request volume for each Azure Front Door profile and learning both a global profile-level threshold and a per-client-IP threshold; once a profile-wide surge indicates an attack, the ruleset throttles the specific IP addresses driving the anomaly without requiring administrators to pre-configure static limits. The ruleset's two rules — 500100, which detects anomalous request rates across the profile, and 500110, which applies stricter thresholds to traffic that Microsoft Threat Intelligence classifies as bot activity — are evaluated before any custom rules or other managed rule sets, so volumetric abuse is throttled at the edge before it can exhaust origin compute, database connections, or application threads. Without this ruleset enabled, an attacker can sustain a high-rate HTTP flood or coordinated bot swarm against an Azure Front Door-fronted application until backend capacity is exhausted, denying service to legitimate users, because the fixed-threshold controls available elsewhere in the WAF policy do not adapt to attack conditions in real time.
+
+**Remediation action**
+
+- [HTTP DDoS Ruleset (Preview) - Front Door WAF](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/http-ddos-ruleset)
+- [What is Azure Web Application Firewall on Azure Front Door?](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview)
+- [Create a Web Application Firewall policy for Azure Front Door using the Azure portal](https://learn.microsoft.com/en-us/azure/web-application-firewall/afds/waf-front-door-create-portal)
+- [Azure DDoS Protection overview](https://learn.microsoft.com/en-us/azure/ddos-protection/ddos-protection-overview)
+
+<!--- Results --->
+%TestResult%

@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig, Briefcase, Monitor } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig } from "lucide-react";
 
 import {
     Bar,
@@ -37,10 +37,15 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
+<<<<<<< HEAD
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { M365ProtectionCircuitSankey } from "@/components/overview/m365-protection-circuit-sankey";
+=======
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
+import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -52,6 +57,57 @@ export default function Dashboard() {
         if (totalNum === 0) return '0%';
         return `${(passedNum / totalNum) * 100}%`;
     };
+
+    const formatOptionalMetric = (value: number | null | undefined): string =>
+        value === null || value === undefined ? '—' : formatNumber(value);
+
+    const deviceOverview = reportData.TenantInfo?.DeviceOverview;
+    const desktopNodes = deviceOverview?.DesktopDevicesSummary?.nodes || [];
+    const mobileNodes = deviceOverview?.MobileSummary?.nodes || [];
+    const osSummary: any = deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary || deviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+
+    const getFlow = (
+        nodes: { source: string; target: string; value: number | null }[],
+        sourceMatcher: (source: string) => boolean,
+        targetMatcher: (target: string) => boolean,
+    ) =>
+        nodes
+            .filter((link) => sourceMatcher(link.source) && targetMatcher(link.target))
+            .reduce((sum, link) => sum + (Number(link.value) || 0), 0);
+
+    const hasAllDeviceOsData = (() => {
+        const windows = Number(osSummary?.windowsCount) || 0;
+        const macOS = Number(osSummary?.macOSCount) || 0;
+        const ios = Number(osSummary?.iosCount ?? osSummary?.iOSCount) || 0;
+        const android = Number(osSummary?.androidCount) || 0;
+        const linux = Number(osSummary?.linuxCount) || 0;
+
+        return windows + macOS + ios + android + linux > 0;
+    })();
+
+    const windowsDeviceCount = hasAllDeviceOsData
+        ? (Number(osSummary?.windowsCount) || 0)
+        : getFlow(desktopNodes, (s) => s === "Desktop devices", (t) => t === "Windows");
+    const macOSDeviceCount = hasAllDeviceOsData
+        ? (Number(osSummary?.macOSCount) || 0)
+        : getFlow(desktopNodes, (s) => s === "Desktop devices", (t) => t === "macOS");
+    const iosDeviceCount = hasAllDeviceOsData
+        ? (Number(osSummary?.iosCount ?? osSummary?.iOSCount) || 0)
+        : getFlow(mobileNodes, (s) => s === "Mobile devices", (t) => t === "iOS");
+    const androidDeviceCount = hasAllDeviceOsData
+        ? (Number(osSummary?.androidCount) || 0)
+        : getFlow(mobileNodes, (s) => s === "Mobile devices", (t) => t === "Android");
+    const linuxDeviceCount = hasAllDeviceOsData
+        ? (Number(osSummary?.linuxCount) || 0)
+        : 0;
+    const discoveredDeviceTotal = windowsDeviceCount + macOSDeviceCount + iosDeviceCount + androidDeviceCount + linuxDeviceCount;
+    const deviceCompliance = deviceOverview?.DeviceCompliance;
+    const rawCompliantDeviceCount = Number(deviceCompliance?.compliantDeviceCount) || 0;
+    const rawNonCompliantDeviceCount = Number(deviceCompliance?.nonCompliantDeviceCount) || 0;
+    const hasComplianceTotals = rawCompliantDeviceCount + rawNonCompliantDeviceCount > 0;
+    const compliantDeviceCount = hasComplianceTotals ? rawCompliantDeviceCount : 0;
+    const nonCompliantDeviceCount = hasComplianceTotals ? rawNonCompliantDeviceCount : discoveredDeviceTotal;
+    const totalComplianceDeviceCount = compliantDeviceCount + nonCompliantDeviceCount;
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -220,7 +276,7 @@ export default function Dashboard() {
                                             Total agents
                                         </span>
                                         <span className="text-lg font-medium">
-                                            —
+                                            {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.TotalAgents)}
                                         </span>
                                     </div>
                                 </div>
@@ -234,14 +290,14 @@ export default function Dashboard() {
                                                         <Info className="size-3.5 shrink-0 opacity-70" />
                                                     </span>
                                                     <span className="text-lg font-medium">
-                                                        —
+                                                        {formatOptionalMetric(reportData.TenantInfo?.AgentOverview?.ActiveUsers)}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs">Active agent users</p>
+                                        <p className="text-xs">Unique users interacting with agents in the last 30 days</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>
@@ -1002,7 +1058,7 @@ export default function Dashboard() {
 
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                     {/* Device summary chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices ? (
+                    {reportData.TenantInfo?.DeviceOverview ? (
                         <Card className="w-full">
                             <CardHeader className="space-y-0 pb-2 flex-row">
                                 <MonitorSmartphone className="pr-2 size-8" />
@@ -1024,38 +1080,46 @@ export default function Dashboard() {
                                             top: 0,
                                             bottom: 10,
                                         }}
-                                        data={[
+                                        data={(() => {
+                                            const windowsCount = windowsDeviceCount;
+                                            const macOSCount = macOSDeviceCount;
+                                            const iosCount = iosDeviceCount;
+                                            const androidCount = androidDeviceCount;
+                                            const linuxCount = linuxDeviceCount;
+
+                                            return [
                                             {
                                                 dataKey: "Windows",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.windowsCount || 0}`,
+                                                value: windowsCount,
+                                                label: `${windowsCount}`,
                                                 fill: "hsl(var(--chart-1))",
                                             },
                                             {
                                                 dataKey: "macOS",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.macOSCount || 0}`,
+                                                value: macOSCount,
+                                                label: `${macOSCount}`,
                                                 fill: "hsl(var(--chart-2))",
                                             },
                                             {
-                                                dataKey: "iOS/iPadOS",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.iosCount || 0}`,
+                                                dataKey: "iOS",
+                                                value: iosCount,
+                                                label: `${iosCount}`,
                                                 fill: "hsl(var(--chart-3))",
                                             },
                                             {
                                                 dataKey: "Android",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.androidCount || 0}`,
+                                                value: androidCount,
+                                                label: `${androidCount}`,
                                                 fill: "hsl(var(--chart-5))",
                                             },
                                             {
                                                 dataKey: "Linux",
-                                                value: reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0,
-                                                label: `${reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.deviceOperatingSystemSummary?.linuxCount || 0}`,
+                                                value: linuxCount,
+                                                label: `${linuxCount}`,
                                                 fill: "hsl(var(--chart-4))",
                                             },
-                                        ]}
+                                        ];
+                                        })()}
                                         layout="vertical"
                                         barSize={32}
                                         barGap={2}
@@ -1090,8 +1154,12 @@ export default function Dashboard() {
                                     <div className="grid flex-1 auto-rows-min gap-0.5">
                                         <div className="text-xs text-muted-foreground">Desktops</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.desktopCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
+                                            {(() => {
+                                                const desktops = windowsDeviceCount + macOSDeviceCount + linuxDeviceCount;
+                                                const mobiles = iosDeviceCount + androidDeviceCount;
+                                                const total = desktops + mobiles;
+                                                return total > 0 ? Math.round((desktops / total) * 100) : 0;
+                                            })()}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 %
                                             </span>
@@ -1101,8 +1169,12 @@ export default function Dashboard() {
                                     <div className="grid flex-1 auto-rows-min gap-0.5">
                                         <div className="text-xs text-muted-foreground">Mobiles</div>
                                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {Math.round(((reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.mobileCount || 0) /
-                                                (reportData.TenantInfo?.DeviceOverview?.ManagedDevices?.totalCount || 1)) * 100)}
+                                            {(() => {
+                                                const desktops = windowsDeviceCount + macOSDeviceCount + linuxDeviceCount;
+                                                const mobiles = iosDeviceCount + androidDeviceCount;
+                                                const total = desktops + mobiles;
+                                                return total > 0 ? Math.round((mobiles / total) * 100) : 0;
+                                            })()}
                                             <span className="text-sm font-normal text-muted-foreground">
                                                 %
                                             </span>
@@ -1114,10 +1186,7 @@ export default function Dashboard() {
                     ) : null}
 
                     {/* Device compliance chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices &&
-                        reportData.TenantInfo?.DeviceOverview?.DeviceCompliance &&
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0) +
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0) > 0 && (
+                    {reportData.TenantInfo?.DeviceOverview?.DeviceCompliance && (
                             <Card className="w-full">
                                 <CardHeader className="space-y-0 pb-2 flex-row">
                                     <CircleCheckBig className="pr-2 size-8" />
@@ -1126,47 +1195,63 @@ export default function Dashboard() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex pb-2 h-[250px]">
-                                    <ChartContainer
-                                        config={{
-                                            compliant: {
-                                                label: "Compliant",
-                                                color: "hsl(142, 76%, 36%)",
-                                            },
-                                            nonCompliant: {
-                                                label: "Non-compliant",
-                                                color: "hsl(0, 84%, 60%)",
-                                            },
-                                        }}
-                                        className="mx-auto aspect-square w-full max-h-full"
-                                    >
-                                        <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                            <Pie
-                                                data={[
-                                                    {
-                                                        name: "Compliant",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0,
-                                                        fill: "var(--color-compliant)",
+                                    {(() => {
+                                        const compliant = compliantDeviceCount;
+                                        const nonCompliant = nonCompliantDeviceCount;
+                                        const total = totalComplianceDeviceCount;
+
+                                        if (total <= 0) {
+                                            return (
+                                                <div className="flex h-[250px] w-full items-center justify-center text-sm text-muted-foreground">
+                                                    No compliance data available.
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <ChartContainer
+                                                config={{
+                                                    compliant: {
+                                                        label: "Compliant",
+                                                        color: "hsl(142, 76%, 36%)",
                                                     },
-                                                    {
-                                                        name: "Non-compliant",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0,
-                                                        fill: "var(--color-nonCompliant)",
+                                                    nonCompliant: {
+                                                        label: "Non-compliant",
+                                                        color: "hsl(0, 84%, 60%)",
                                                     },
-                                                ]}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={50}
-                                                outerRadius={100}
-                                                paddingAngle={2}
-                                                dataKey="value"
-                                                cornerRadius={5}
+                                                }}
+                                                className="mx-auto aspect-square w-full max-h-full"
                                             >
-                                                <Cell fill="var(--color-compliant)" />
-                                                <Cell fill="var(--color-nonCompliant)" />
-                                            </Pie>
-                                            <ChartTooltip content={<ChartTooltipContent />} />
-                                        </PieChart>
-                                    </ChartContainer>
+                                                <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                                                    <Pie
+                                                        data={[
+                                                            {
+                                                                name: "Compliant",
+                                                                value: compliant,
+                                                                fill: "var(--color-compliant)",
+                                                            },
+                                                            {
+                                                                name: "Non-compliant",
+                                                                value: nonCompliant,
+                                                                fill: "var(--color-nonCompliant)",
+                                                            },
+                                                        ]}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={50}
+                                                        outerRadius={100}
+                                                        paddingAngle={2}
+                                                        dataKey="value"
+                                                        cornerRadius={5}
+                                                    >
+                                                        <Cell fill="var(--color-compliant)" />
+                                                        <Cell fill="var(--color-nonCompliant)" />
+                                                    </Pie>
+                                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                                </PieChart>
+                                            </ChartContainer>
+                                        );
+                                    })()}
                                 </CardContent>
                                 <CardFooter className="flex flex-row border-t p-4">
                                     <div className="flex w-full items-center gap-2">
@@ -1177,9 +1262,8 @@ export default function Dashboard() {
                                             </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                                 {(() => {
-                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
-                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
-                                                    const total = compliant + nonCompliant;
+                                                    const compliant = compliantDeviceCount;
+                                                    const total = totalComplianceDeviceCount;
                                                     return total > 0 ? Math.round((compliant / total) * 100) : 0;
                                                 })()}
                                                 <span className="text-sm font-normal text-muted-foreground">
@@ -1195,9 +1279,8 @@ export default function Dashboard() {
                                             </div>
                                             <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                                                 {(() => {
-                                                    const compliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.compliantDeviceCount || 0;
-                                                    const nonCompliant = reportData.TenantInfo?.DeviceOverview?.DeviceCompliance?.nonCompliantDeviceCount || 0;
-                                                    const total = compliant + nonCompliant;
+                                                    const nonCompliant = nonCompliantDeviceCount;
+                                                    const total = totalComplianceDeviceCount;
                                                     return total > 0 ? Math.round((nonCompliant / total) * 100) : 0;
                                                 })()}
                                                 <span className="text-sm font-normal text-muted-foreground">
@@ -1210,267 +1293,10 @@ export default function Dashboard() {
                             </Card>
                         )}
 
-                    {/* Corporate vs Personal chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.ManagedDevices &&
-                        reportData.TenantInfo?.DeviceOverview?.DeviceOwnership &&
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0) +
-                        (reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0) > 0 && (
-                            <Card className="w-full">
-                                <CardHeader className="space-y-0 pb-2 flex-row">
-                                    <Briefcase className="pr-2 size-8" />
-                                    <CardTitle className="text-2xl tabular-nums ">
-                                        Device ownership
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="flex pb-2 h-[250px]">
-                                    <ChartContainer
-                                        config={{
-                                            corporate: {
-                                                label: "Corporate",
-                                                color: "hsl(217, 91%, 60%)",
-                                            },
-                                            personal: {
-                                                label: "Personal",
-                                                color: "hsl(280, 85%, 60%)",
-                                            },
-                                        }}
-                                        className="mx-auto aspect-square w-full max-h-full"
-                                    >
-                                        <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                            <Pie
-                                                data={[
-                                                    {
-                                                        name: "Corporate",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0,
-                                                        fill: "var(--color-corporate)",
-                                                    },
-                                                    {
-                                                        name: "Personal",
-                                                        value: reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0,
-                                                        fill: "var(--color-personal)",
-                                                    },
-                                                ]}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={50}
-                                                outerRadius={100}
-                                                paddingAngle={2}
-                                                dataKey="value"
-                                                cornerRadius={5}
-                                            >
-                                                <Cell fill="var(--color-corporate)" />
-                                                <Cell fill="var(--color-personal)" />
-                                            </Pie>
-                                            <ChartTooltip content={<ChartTooltipContent />} />
-                                        </PieChart>
-                                    </ChartContainer>
-                                </CardContent>
-                                <CardFooter className="flex flex-row border-t p-4">
-                                    <div className="flex w-full items-center gap-2">
-                                        <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
-                                                Corporate
-                                            </div>
-                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {(() => {
-                                                    const corporate = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0;
-                                                    const personal = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0;
-                                                    const total = corporate + personal;
-                                                    return total > 0 ? Math.round((corporate / total) * 100) : 0;
-                                                })()}
-                                                <span className="text-sm font-normal text-muted-foreground">
-                                                    %
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                        <div className="grid flex-1 auto-rows-min gap-0.5">
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                <div className="w-3 h-3 rounded-sm bg-purple-500"></div>
-                                                Personal
-                                            </div>
-                                            <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                {(() => {
-                                                    const corporate = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.corporateCount || 0;
-                                                    const personal = reportData.TenantInfo?.DeviceOverview?.DeviceOwnership?.personalCount || 0;
-                                                    const total = corporate + personal;
-                                                    return total > 0 ? Math.round((personal / total) * 100) : 0;
-                                                })()}
-                                                <span className="text-sm font-normal text-muted-foreground">
-                                                    %
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardFooter>
-                            </Card>
-                        )}
-
-                                            {/* Desktop devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes && reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes.length > 0 && (
-                        <Card className="w-full lg:col-span-3">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <Monitor className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    Desktop devices
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ChartContainer
-                                    config={{
-                                        steps: {
-                                            label: "Steps",
-                                            color: "hsl(var(--chart-1))",
-                                        },
-                                    }}
-                                    className="h-[350px] w-full"
-                                >
-                                    {reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes ? (
-                                        <DesktopDevicesSankey data={reportData.TenantInfo.DeviceOverview.DesktopDevicesSummary.nodes} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                            No data available
-                                        </div>
-                                    )}
-                                </ChartContainer>
-                            </CardContent>
-                            <CardFooter className="flex flex-row border-t p-4">
-                                <div className="flex w-full items-center gap-2">
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra joined</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
-                                                const entraJoined = nodes.find(n => n.target === "Entra joined")?.value || 0;
-                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
-                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
-                                                const total = windowsDevices + macOSDevices;
-                                                return Math.round((entraJoined / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra hybrid joined</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
-                                                const entraHybrid = nodes.find(n => n.target === "Entra hybrid joined")?.value || 0;
-                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
-                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
-                                                const total = windowsDevices + macOSDevices;
-                                                return Math.round((entraHybrid / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Entra registered</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.DesktopDevicesSummary?.nodes || [];
-                                                const entraRegistered = nodes.find(n => n.target === "Entra registered")?.value || 0;
-                                                const windowsDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "Windows")?.value || 0;
-                                                const macOSDevices = nodes.find(n => n.source === "Desktop devices" && n.target === "macOS")?.value || 0;
-                                                const total = windowsDevices + macOSDevices;
-                                                return Math.round((entraRegistered / (total || 1)) * 100);
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    )}
-
-                    {/* Mobile devices chart */}
-                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes && reportData.TenantInfo?.DeviceOverview?.ManagedDevices && (
-                        <Card className="w-full lg:col-span-3">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <MonitorSmartphone className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">
-                                    Mobile devices
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ChartContainer
-                                    config={{
-                                        steps: {
-                                            label: "Steps",
-                                            color: "hsl(var(--chart-1))",
-                                        },
-                                    }}
-                                    className="h-[350px] w-full"
-                                >
-                                    {reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes ? (
-                                        <MobileSankey data={reportData.TenantInfo.DeviceOverview.MobileSummary.nodes} />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-32 text-muted-foreground">
-                                            No data available
-                                        </div>
-                                    )}
-                                </ChartContainer>
-                            </CardContent>
-                            <CardFooter className="flex flex-row border-t p-4">
-                                <div className="flex w-full items-center gap-2">
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Android compliant</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
-                                                const androidCompliant = nodes.filter(n => n.source?.includes("Android") && n.target === "Compliant").reduce((sum, n) => sum + (n.value || 0), 0);
-                                                const androidTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "Android")?.value || 0;
-                                                return androidTotal > 0 ? Math.round((androidCompliant / androidTotal) * 100) : 0;
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">iOS compliant</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
-                                                const iosCompliant = nodes.filter(n => n.source?.includes("iOS") && n.target === "Compliant").reduce((sum, n) => sum + (n.value || 0), 0);
-                                                const iosTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "iOS")?.value || 0;
-                                                return iosTotal > 0 ? Math.round((iosCompliant / iosTotal) * 100) : 0;
-                                            })()}
-                                            <span className="text-sm font-normal text-muted-foreground">
-                                                %
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                    <div className="grid flex-1 auto-rows-min gap-0.5">
-                                        <div className="text-xs text-muted-foreground">Total devices</div>
-                                        <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                            {(() => {
-                                                const nodes = reportData.TenantInfo?.DeviceOverview?.MobileSummary?.nodes || [];
-                                                const androidTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "Android")?.value || 0;
-                                                const iosTotal = nodes.find(n => n.source === "Mobile devices" && n.target === "iOS")?.value || 0;
-                                                return androidTotal + iosTotal;
-                                            })()}
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    )}
-
                 </div>
             </div>
 
+<<<<<<< HEAD
             {reportData.TenantInfo?.OverviewM365ProtectionCircuit?.nodes && (
             <div className="flex max-w-7xl flex-col gap-6 mt-6">
                 <Card>
@@ -1489,6 +1315,13 @@ export default function Dashboard() {
                     </CardFooter>
                 </Card>
             </div>
+=======
+            {/* AI overview */}
+            {reportData.TenantInfo?.AgentOwnershipDistribution && (
+                <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
+                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
+                </div>
+>>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
             )}
 
             {/* Network - SWG Defense Layers Section */}
@@ -1508,6 +1341,28 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent>
                         <SwgDefenseLayers />
+                    </CardContent>
+                </Card>
+            </div>
+            )}
+
+            {/* Network - Azure Network Security Defense Planes Section */}
+            {hasAzureNetSecData() && (
+            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                <Card>
+                    <CardHeader className="space-y-0 pb-2 flex-row">
+                        <ShieldCheck className="pr-2 size-8" />
+                        <div>
+                            <CardTitle className="text-2xl tabular-nums">
+                                Azure network security
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                Defense plane posture — availability, inbound, and outbound protection.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <AzureNetSecPlanes />
                     </CardContent>
                 </Card>
             </div>

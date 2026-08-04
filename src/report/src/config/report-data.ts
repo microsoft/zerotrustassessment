@@ -16,6 +16,7 @@ export interface ZeroTrustAssessmentReport {
 }
 
 export interface TenantInfo {
+  AgentOwnershipDistribution?: AgentOwnershipDistribution | null;
   OverviewCaMfaAllUsers?: SankeyData | null;
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
@@ -27,6 +28,23 @@ export interface TenantInfo {
   ConfigDeviceAppProtectionPolicies?: ConfigDeviceAppProtectionPolicies[] | null;
   DeviceOverview?: DeviceOverview | null;
   TenantOverview?: TenantOverview | null;
+  AgentOverview?: AgentOverview | null;
+}
+
+export interface AgentOwnershipDistribution {
+  ownerAndSponsor: number;
+  ownerOnly: number;
+  sponsorOnly: number;
+  neither: number;
+  skippedCount?: number;
+  agents?: Record<AgentOwnershipBucket, AgentOwnershipEntry[]>;
+}
+
+export type AgentOwnershipBucket = "ownerAndSponsor" | "ownerOnly" | "sponsorOnly" | "neither";
+
+export interface AgentOwnershipEntry {
+  displayName: string | null;
+  accountEnabled: boolean;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -149,12 +167,23 @@ export interface TenantOverview {
   DeviceCount: number;
   ManagedDeviceCount: number;
 }
+export interface AgentOverview {
+  TotalAgents: number | null;
+  ActiveUsers: number | null;
+}
 export interface DeviceOverview {
+  DeviceSummary: DeviceSummary | null;
   DesktopDevicesSummary: SankeyData | null;
   MobileSummary: SankeyData | null;
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
   DeviceOwnership: DeviceOwnership | null;
+}
+
+export interface DeviceSummary {
+  description: string;
+  totalDevices: number | null;
+  deviceOperatingSystemSummary: DeviceOperatingSystemSummary;
 }
 
 export interface DeviceOwnership {
@@ -273,6 +302,28 @@ export const reportData: ZeroTrustAssessmentReport = {
     }
   ],
   "TenantInfo": {
+    "AgentOwnershipDistribution": {
+      "ownerAndSponsor": 2,
+      "ownerOnly": 1,
+      "sponsorOnly": 1,
+      "neither": 1,
+      "skippedCount": 1,
+      "agents": {
+        "ownerAndSponsor": [
+          { "displayName": "Research assistant", "accountEnabled": true },
+          { "displayName": "Support copilot", "accountEnabled": true }
+        ],
+        "ownerOnly": [
+          { "displayName": "Red-team agent", "accountEnabled": false }
+        ],
+        "sponsorOnly": [
+          { "displayName": "Procurement assistant", "accountEnabled": true }
+        ],
+        "neither": [
+          { "displayName": "Legacy automation agent", "accountEnabled": false }
+        ]
+      }
+    },
     "ConfigWindowsEnrollment": [
       {
         "Type": "MDM",
@@ -744,6 +795,7 @@ export const reportData: ZeroTrustAssessmentReport = {
       }
     ],
     "DeviceOverview": {
+      "DeviceSummary": null,
       "DesktopDevicesSummary": {
         "nodes": [
           {

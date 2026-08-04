@@ -211,7 +211,7 @@ export function SwgDefenseLayers() {
                                     onMouseEnter={() => setHoveredLayer(i)}
                                     onMouseLeave={() => setHoveredLayer(null)}
                                     className="cursor-pointer"
-                                    opacity={hoveredLayer !== null && hoveredLayer !== i ? 0.65 : 1}
+                                    opacity={hoveredLayer !== null && hoveredLayer !== i ? 65 / 100 : 1}
                                 >
                                     <ellipse
                                         cx={centerX}
@@ -286,7 +286,7 @@ export function SwgDefenseLayers() {
                                             </span>
                                             <Badge
                                                 variant={getStatusBadgeVariant(result.status)}
-                                                className="mr-2"
+                                                className="mr-2 w-16 justify-center"
                                             >
                                                 {getStatusLabel(result.status)}
                                             </Badge>
