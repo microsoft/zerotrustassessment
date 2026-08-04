@@ -66,7 +66,7 @@ function Test-Assessment-41080 {
         $targetApps = @($policy.conditions.applications.includeApplications | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $sessionControl = $policy.sessionControls.cloudAppSecurity
         $isEnabled = $null -ne $sessionControl -and $sessionControl.isEnabled -eq $true
-        $isMatchingPolicy = $isEnabled -and $targetApps.Count -gt 0
+        $isMatchingPolicy = $isEnabled -and $targetApps.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($sessionControl.cloudAppSecurityType)
 
         $knownTargets = @($targetApps | Where-Object { $_ -in @('All', 'Office365', 'MicrosoftAdminPortals') } | ForEach-Object {
             switch ($_) {
