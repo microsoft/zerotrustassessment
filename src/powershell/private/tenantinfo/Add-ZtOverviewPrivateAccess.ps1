@@ -130,22 +130,22 @@ function Add-ZtOverviewPrivateAccess {
     $allGateStatuses = @($segmentationGate, $authenticationGate, $administrationGate)
     $degraded = $allGateStatuses -contains 'Unavailable'
 
-    $overallStatus = if ($allGateStatuses -contains 'Failed') {
-        'Failed'
-    }
-    # An unavailable gate cannot be asserted to pass, so the overall result stays short of Passed
-    elseif (($allGateStatuses -contains 'Investigate') -or $degraded) {
-        'Investigate'
-    }
-    else {
-        'Passed'
-    }
-
     $populationMismatch = $false
     if ($bothPopulationsComplete) {
         $populationMismatch =
             @($segmentationByAppId.Keys | Where-Object { -not $authenticationByAppId.ContainsKey($_) }).Count -gt 0 -or
             @($authenticationByAppId.Keys | Where-Object { -not $segmentationByAppId.ContainsKey($_) }).Count -gt 0
+    }
+
+    $overallStatus = if ($allGateStatuses -contains 'Failed') {
+        'Failed'
+    }
+    # An unavailable gate cannot be asserted to pass, so the overall result stays short of Passed
+    elseif (($allGateStatuses -contains 'Investigate') -or $degraded -or $populationMismatch) {
+        'Investigate'
+    }
+    else {
+        'Passed'
     }
 
     $nodes = @(
@@ -160,6 +160,7 @@ function Add-ZtOverviewPrivateAccess {
         @{ source = 'Application Administrator assignments'; target = 'Tenant-wide admin - at-risk'; value = $tenantWideAdmin }
         @{ source = 'Application Administrator assignments'; target = 'App-scoped admin - at-risk'; value = $scopedAdminAtRisk }
         @{ source = 'Application Administrator assignments'; target = 'App-scoped admin - Zero Trust'; value = $scopedAdminZeroTrust }
+        @{ source = 'Application Administrator assignments'; target = 'Administration unavailable'; value = [int](-not $administrationAvailable) }
     )
 
     $description = "$($population.Count) Private Access application(s) evaluated. $strongAuth reached the Zero Trust set by clearing both least-privilege segmentation and strong authentication."

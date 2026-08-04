@@ -132,6 +132,7 @@ Describe "Add-ZtOverviewPrivateAccess" {
 			Add-ZtOverviewPrivateAccess
 
 			$script:tenantInfo.populationMismatch | Should -BeTrue
+			$script:tenantInfo.overallStatus | Should -Be 'Investigate'
 		}
 
 		It "Flags a mismatch when the gates evaluated different apps but equal counts" {
@@ -145,6 +146,7 @@ Describe "Add-ZtOverviewPrivateAccess" {
 			Add-ZtOverviewPrivateAccess
 
 			$script:tenantInfo.populationMismatch | Should -BeTrue
+			$script:tenantInfo.overallStatus | Should -Be 'Investigate'
 		}
 
 		It "Keeps authentication-only Quick Access apps in the population" {
@@ -185,6 +187,14 @@ Describe "Add-ZtOverviewPrivateAccess" {
 
 			$script:tenantInfo.adminAtRisk | Should -BeFalse
 			Get-ZtSankeyValue $script:tenantInfo.nodes 'Application Administrator assignments' 'App-scoped admin - Zero Trust' | Should -Be 4
+		}
+
+		It "Reports an unavailable flow when the administration child produced no result" {
+			Mock Get-ZtTestResultStatus -ParameterFilter { $TestId -eq '25384' } -MockWith { $null }
+
+			Add-ZtOverviewPrivateAccess
+
+			Get-ZtSankeyValue $script:tenantInfo.nodes 'Application Administrator assignments' 'Administration unavailable' | Should -Be 1
 		}
 	}
 

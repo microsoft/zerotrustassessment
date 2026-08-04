@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { ZtResponsiveSankey } from "@/components/nivo/sankey";
 import { ThemeProviderContext } from "@/contexts/ThemeContext";
 import { reportData } from "@/config/report-data";
+import { Badge } from "@/components/ui/badge";
 import {
     Card,
     CardContent,
@@ -11,6 +12,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+
+function getVerdictBadgeVariant(status?: string): "success" | "destructive" | "warning" | "secondary" {
+    switch (status) {
+        case "Passed": return "success";
+        case "Failed": return "destructive";
+        case "Investigate": return "warning";
+        default: return "secondary";
+    }
+}
 
 /** Returns true when the Private Access checks produced funnel data. */
 export function hasPrivateAccessData(): boolean {
@@ -46,29 +56,48 @@ export function PrivateAccessSankey() {
                     </CardDescription>
                 </div>
             </CardHeader>
-            <CardContent className="h-[420px] w-full">
-                <ZtResponsiveSankey
-                    isDark={isDark}
-                    data={{
-                        nodes: [
-                            { id: "Private Access apps", nodeColor: "hsl(217, 91%, 60%)" },
-                            { id: "Broad segments - at-risk", nodeColor: atRisk },
-                            { id: "Segmentation manual review", nodeColor: review },
-                            { id: "Segmentation unavailable", nodeColor: unavailable },
-                            { id: "Least-privilege segments", nodeColor: zeroTrust },
-                            { id: "Password-only - at-risk", nodeColor: atRisk },
-                            { id: "Authentication manual review", nodeColor: review },
-                            { id: "Authentication unavailable", nodeColor: unavailable },
-                            // Tenant-wide admin makes the terminal Zero Trust set only conditionally trustworthy
-                            { id: "Strong auth - Zero Trust", nodeColor: privateAccess.adminAtRisk ? "hsl(28, 89%, 52%)" : zeroTrust },
-                            { id: "Application Administrator assignments", nodeColor: "hsl(220, 9%, 46%)" },
-                            { id: "Tenant-wide admin - at-risk", nodeColor: atRisk },
-                            { id: "App-scoped admin - at-risk", nodeColor: atRisk },
-                            { id: "App-scoped admin - Zero Trust", nodeColor: zeroTrust },
-                        ],
-                        links: privateAccess.nodes,
-                    }}
-                />
+            <CardContent className="w-full">
+                {(privateAccess.overallStatus || privateAccess.gates?.length) && (
+                    <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" aria-label="Private Access gate verdicts">
+                        <div className="flex items-center gap-2 font-medium">
+                            <span>Overall</span>
+                            <Badge variant={getVerdictBadgeVariant(privateAccess.overallStatus)}>
+                                {privateAccess.overallStatus ?? "Unavailable"}
+                            </Badge>
+                        </div>
+                        {privateAccess.gates?.map((gate) => (
+                            <div key={gate.testId} className="flex items-center gap-2">
+                                <span>{gate.name}</span>
+                                <Badge variant={getVerdictBadgeVariant(gate.status)}>{gate.status}</Badge>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div className="h-[420px]">
+                    <ZtResponsiveSankey
+                        isDark={isDark}
+                        data={{
+                            nodes: [
+                                { id: "Private Access apps", nodeColor: "hsl(217, 91%, 60%)" },
+                                { id: "Broad segments - at-risk", nodeColor: atRisk },
+                                { id: "Segmentation manual review", nodeColor: review },
+                                { id: "Segmentation unavailable", nodeColor: unavailable },
+                                { id: "Least-privilege segments", nodeColor: zeroTrust },
+                                { id: "Password-only - at-risk", nodeColor: atRisk },
+                                { id: "Authentication manual review", nodeColor: review },
+                                { id: "Authentication unavailable", nodeColor: unavailable },
+                                // Tenant-wide admin makes the terminal Zero Trust set only conditionally trustworthy
+                                { id: "Strong auth - Zero Trust", nodeColor: privateAccess.adminAtRisk ? "hsl(28, 89%, 52%)" : zeroTrust },
+                                { id: "Application Administrator assignments", nodeColor: "hsl(220, 9%, 46%)" },
+                                { id: "Tenant-wide admin - at-risk", nodeColor: atRisk },
+                                { id: "App-scoped admin - at-risk", nodeColor: atRisk },
+                                { id: "App-scoped admin - Zero Trust", nodeColor: zeroTrust },
+                                { id: "Administration unavailable", nodeColor: unavailable },
+                            ],
+                            links: privateAccess.nodes,
+                        }}
+                    />
+                </div>
             </CardContent>
             <CardFooter className="flex-col items-start gap-1">
                 <CardDescription>{privateAccess.description}</CardDescription>
