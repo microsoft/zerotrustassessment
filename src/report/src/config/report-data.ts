@@ -22,6 +22,7 @@ export interface TenantInfo {
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
   OverviewAuthMethodsAllUsers?: SankeyData | null;
   OverviewM365ProtectionCircuit?: SankeyData | null;
+  OverviewPrivateAccess?: PrivateAccessSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
   ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
@@ -152,6 +153,23 @@ export interface SankeyData {
   entrareigstered?: number;
   entrahybridjoined?: number;
   entrajoined?: number;
+}
+
+export interface PrivateAccessSankeyData extends SankeyData {
+  adminAtRisk: boolean;
+  populationMismatch: boolean;
+  gates?: PrivateAccessGate[];
+  overallStatus?: string;
+  degraded?: boolean;
+  applicationCount?: number;
+  tenantWideAdmin?: number;
+  scopedAdminAtRisk?: number;
+}
+
+export interface PrivateAccessGate {
+  testId: string;
+  name: string;
+  status: string;
 }
 export interface SankeyDataNode {
   value: number | null;

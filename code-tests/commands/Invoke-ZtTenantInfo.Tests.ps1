@@ -82,6 +82,18 @@ Describe "Invoke-ZtTenantInfo" {
 			}
 		}
 
+		if (-not (Get-Command Add-ZtOverviewPrivateAccess -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtOverviewPrivateAccess {
+				param()
+			}
+		}
+
+		if (-not (Get-Command Add-ZtOverviewM365ProtectionCircuit -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtOverviewM365ProtectionCircuit {
+				param()
+			}
+		}
+
 		. (Join-Path $srcRoot "private/tenantinfo/Invoke-ZtTenantInfo.ps1")
 	}
 
@@ -99,6 +111,8 @@ Describe "Invoke-ZtTenantInfo" {
 		Mock Add-ZtDeviceEnrollmentRestriction {}
 		Mock Add-ZTDeviceCompliancePolicies {}
 		Mock Add-ZTDeviceAppProtectionPolicies {}
+		Mock Add-ZtOverviewPrivateAccess {}
+		Mock Add-ZtOverviewM365ProtectionCircuit {}
 	}
 
 	It "Should call Add-ZtDeviceOverview even when Intune is unavailable" {
@@ -109,6 +123,24 @@ Describe "Invoke-ZtTenantInfo" {
 		Should -Invoke Add-ZtDeviceEnrollmentRestriction -Times 0 -Exactly
 		Should -Invoke Add-ZTDeviceCompliancePolicies -Times 0 -Exactly
 		Should -Invoke Add-ZTDeviceAppProtectionPolicies -Times 0 -Exactly
+	}
+
+	It "Should build the Private Access overview for the Network pillar" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Network'
+
+		Should -Invoke Add-ZtOverviewPrivateAccess -Times 1 -Exactly
+	}
+
+	It "Should build the Private Access overview for the All pillar" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'All'
+
+		Should -Invoke Add-ZtOverviewPrivateAccess -Times 1 -Exactly
+	}
+
+	It "Should not build the Private Access overview for unrelated pillars" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
+
+		Should -Invoke Add-ZtOverviewPrivateAccess -Times 0 -Exactly
 	}
 
 	It "Should collect agent ownership distribution for AI assessments" {
