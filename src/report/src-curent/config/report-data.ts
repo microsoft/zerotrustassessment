@@ -21,6 +21,7 @@ export interface TenantInfo {
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
   OverviewAuthMethodsAllUsers?: SankeyData | null;
+  OverviewM365ProtectionCircuit?: SankeyData | null;
   OverviewPrivateAccess?: PrivateAccessSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
