@@ -30,6 +30,10 @@ function Invoke-ZtTenantInfo {
         Add-ZtOverviewAuthMethodsPrivilegedUsers -Database $Database
     }
 
+    if ($Pillar -in ('All', 'Network')) {
+        Add-ZtOverviewPrivateAccess
+    }
+
     if ($Pillar -in ('All', 'Devices')) {
         $IntunePlan = Get-ZtLicenseInformation -Product Intune
         Add-ZtDeviceOverview -Database $Database
