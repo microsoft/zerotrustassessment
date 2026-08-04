@@ -1341,23 +1341,17 @@ export default function Dashboard() {
                 </div>
             </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             {/* Private Access Zero Trust posture */}
             {hasPrivateAccessData() && (
                 <div className="mt-[26px]">
                     <PrivateAccessSankey />
-=======
-=======
->>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
+                </div>
+            )}
+
             {/* AI overview */}
             {reportData.TenantInfo?.AgentOwnershipDistribution && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                     <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
-<<<<<<< HEAD
->>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
-=======
->>>>>>> f8cdec0aa317661c73d56fa9e55b39632a848f16
                 </div>
             )}
 
