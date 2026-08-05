@@ -66,7 +66,7 @@ function Test-Assessment-41080 {
         $targetApps = @($policy.conditions.applications.includeApplications | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $sessionControl = $policy.sessionControls.cloudAppSecurity
         $isEnabled = $null -ne $sessionControl -and $sessionControl.isEnabled -eq $true
-        $isMatchingPolicy = $isEnabled -and $targetApps.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($sessionControl.cloudAppSecurityType)
+        $isMatchingPolicy = $isEnabled -and $targetApps.Count -gt 0
 
         $knownTargets = @($targetApps | Where-Object { $_ -in @('All', 'Office365', 'MicrosoftAdminPortals') } | ForEach-Object {
             switch ($_) {
@@ -127,7 +127,7 @@ function Test-Assessment-41080 {
     $portalUrl = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade'
     $policyUrlTemplate = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/{0}'
     $maxDisplay = 10
-    $displayPolicies = @($policyResults | Sort-Object -Property @{ Expression = { -not $_.Matches } }, PolicyDisplayName | Select-Object -First $maxDisplay)
+    $displayPolicies = @($matchingPolicies | Sort-Object -Property PolicyDisplayName | Select-Object -First $maxDisplay)
 
     $tableRows = ''
     foreach ($policy in $displayPolicies) {
@@ -143,11 +143,11 @@ function Test-Assessment-41080 {
         $tableRows += "| $policyName | $($policy.State) | $targetApps | $securityType | $isEnabled | $status |`n"
     }
 
-    if ($policyResults.Count -eq 0) {
-        $tableRows = "| No enabled policies found | — | — | — | False | ❌ Fail |`n"
+    if ($displayPolicies.Count -eq 0) {
+        $tableRows = "| No matching policies found | — | — | — | — | ❌ Fail |`n"
     }
-    elseif ($policyResults.Count -gt $maxDisplay) {
-        $remaining = $policyResults.Count - $maxDisplay
+    elseif ($matchingPolicies.Count -gt $maxDisplay) {
+        $remaining = $matchingPolicies.Count - $maxDisplay
         $tableRows += "`n... and $remaining more. [Microsoft Entra > Conditional Access > Policies]($portalUrl)`n"
     }
 
