@@ -67,13 +67,14 @@ function Test-Assessment-41212 {
         return
     }
 
-    $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces       = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces       = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardingErrorWorkspaces = @($allWorkspaces | Where-Object { $_.OnboardingError })
+    $onboardedWorkspaces       = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
-            # Auth errors mean we cannot confirm whether those workspaces have Sentinel onboarded;
+        if ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
+            # Auth errors or onboarding-state failures mean we cannot confirm whether those workspaces have Sentinel onboarded;
             # we cannot rule out a passing workspace exists among the inaccessible ones.
             $params = @{
                 TestId       = '41212'
@@ -195,7 +196,7 @@ function Test-Assessment-41212 {
     $passed       = $passedItems.Count -gt 0
     $customStatus = $null
 
-    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0)) {
+    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ Hunting capability could not be confirmed — one or more workspaces had insufficient permissions on the Sentinel onboarding check, or the saved hunting queries or bookmarks API returned an unexpected response. Re-run after verifying Microsoft Sentinel Reader access on each affected workspace.`n`n%TestResult%"
     }
@@ -210,7 +211,9 @@ function Test-Assessment-41212 {
 
     #region Report Generation
 
-    $portalSentinelLink = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel'
+    $azContext          = Get-AzContext -ErrorAction SilentlyContinue
+    $portalHost         = if ($azContext -and $azContext.Environment.Name -eq 'AzureUSGovernment') { 'https://portal.azure.us' } else { 'https://portal.azure.com' }
+    $portalSentinelLink = "$portalHost/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel"
     $tableTitle         = 'Hunting queries and bookmarks per workspace'
 
     $formatTemplate = @'
@@ -234,9 +237,9 @@ function Test-Assessment-41212 {
     }
 
     foreach ($result in $displayResults) {
-        $subLink         = "https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)"
+        $subLink         = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
         $sentinelId      = "/subscriptions/$($result.SubscriptionId)/resourcegroups/$($result.ResourceGroup)/providers/microsoft.securityinsightsarg/sentinel/$($result.WorkspaceName)"
-        $huntingLink     = "https://portal.azure.com/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/Hunting/id/$($sentinelId -replace '/', '%2F')"
+        $huntingLink     = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/Hunting/id/$($sentinelId -replace '/', '%2F')"
         $subMd           = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd     = "[$(Get-SafeMarkdown $result.WorkspaceName)]($huntingLink)"
         $huntingCountMd  = if ($null -eq $result.HuntingQueryCount) { '—' } else { $result.HuntingQueryCount }
