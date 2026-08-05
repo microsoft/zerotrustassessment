@@ -129,18 +129,21 @@ Describe "Invoke-ZtTenantInfo" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Network'
 
 		Should -Invoke Add-ZtOverviewPrivateAccess -Times 1 -Exactly
+		Should -Invoke Add-ZtOverviewM365ProtectionCircuit -Times 1 -Exactly
 	}
 
 	It "Should build the Private Access overview for the All pillar" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'All'
 
 		Should -Invoke Add-ZtOverviewPrivateAccess -Times 1 -Exactly
+		Should -Invoke Add-ZtOverviewM365ProtectionCircuit -Times 1 -Exactly
 	}
 
 	It "Should not build the Private Access overview for unrelated pillars" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
 
 		Should -Invoke Add-ZtOverviewPrivateAccess -Times 0 -Exactly
+		Should -Invoke Add-ZtOverviewM365ProtectionCircuit -Times 0 -Exactly
 	}
 
 	It "Should collect agent ownership distribution for AI assessments" {

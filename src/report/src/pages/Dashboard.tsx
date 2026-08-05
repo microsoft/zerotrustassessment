@@ -1309,8 +1309,8 @@ export default function Dashboard() {
                                 <CardDescription className="mt-1">Global Secure Access acquisition and compliant network enforcement</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="h-80">
-                            <M365ProtectionCircuitSankey data={reportData.TenantInfo.OverviewM365ProtectionCircuit.nodes} />
+                        <CardContent className="w-full">
+                            <M365ProtectionCircuitSankey data={reportData.TenantInfo.OverviewM365ProtectionCircuit} />
                         </CardContent>
                         <CardFooter className="text-sm text-muted-foreground">
                             {reportData.TenantInfo.OverviewM365ProtectionCircuit.description}

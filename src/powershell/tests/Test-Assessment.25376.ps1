@@ -216,17 +216,19 @@ function Test-Assessment-25376 {
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
+    # Sizes the acquisition axis of the Microsoft 365 protection circuit dashboard
+    Add-ZtTestData -Name 'M365TrafficAcquisition' -Value ([PSCustomObject]@{
+        TotalDeviceCount      = $totalDeviceCount
+        ActiveDeviceCount     = $activeDeviceCount
+        TotalTransactionCount = $m365TotalCount
+        ProfileEnabled        = $profileEnabled
+    })
+
     $params = @{
         TestId = '25376'
         Title  = 'Microsoft 365 traffic is actively flowing through Global Secure Access'
         Status = $passed
         Result = $testResultMarkdown
-        Data   = @{
-            totalDeviceCount = $totalDeviceCount
-            activeDeviceCount = $activeDeviceCount
-            totalTransactionCount = $m365TotalCount
-            profileEnabled = $profileEnabled
-        }
     }
 
     Add-ZtTestResultDetail @params
