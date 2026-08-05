@@ -63,6 +63,49 @@ function Initialize-Dependencies {
 
     Write-Verbose -Message "=== Initialize-Dependencies.ps1 Starting ==="
 
+    #region Resolve architecture-specific native DuckDB library on Linux
+    Write-Host
+    Write-Host -Object 'Resolving DuckDB database dependencies...' -ForegroundColor Green
+    if ($IsLinux) {
+        $libDir = Join-Path -Path $PSScriptRoot -ChildPath 'lib'
+        $targetLib = Join-Path -Path $libDir -ChildPath 'libduckdb.so'
+        $arch = [System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture
+        switch ($arch) {
+            'X64'   { $archDir = Join-Path -Path $libDir -ChildPath 'linux-x64' }
+            'Arm64' { $archDir = Join-Path -Path $libDir -ChildPath 'linux-arm64' }
+            default { $archDir = $null }
+        }
+
+        if ($archDir -and (Test-Path -Path (Join-Path -Path $archDir -ChildPath 'libduckdb.so'))) {
+            $archLib = Join-Path -Path $archDir -ChildPath 'libduckdb.so'
+            Write-Verbose -Message "Copying architecture-specific libduckdb.so ($arch) to lib/"
+            Copy-Item -Path $archLib -Destination $targetLib -Force
+        }
+        else {
+            Write-Host -Object "  ⚠️ No DuckDB native library found for architecture: $arch. Database features may not work." -ForegroundColor Yellow
+            Write-Warning -Message "No architecture-specific libduckdb.so found for $arch. DuckDB may fail to load."
+        }
+    }
+
+    # Report DuckDB binding version
+    $duckDbBindingsDll = Join-Path -Path $PSScriptRoot -ChildPath 'lib' -AdditionalChildPath 'DuckDB.NET.Bindings.dll'
+    if (Test-Path -Path $duckDbBindingsDll) {
+        try {
+            $duckDbVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($duckDbBindingsDll).ProductVersion
+            if (-not $duckDbVersion) { $duckDbVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($duckDbBindingsDll).FileVersion }
+            # Strip metadata like +Branch.main.Sha.xxx to show only the semver portion
+            if ($duckDbVersion -and $duckDbVersion -match '^[\d]+\.[\d]+\.[\d]+') { $duckDbVersion = $Matches[0] }
+            Write-Host -Object "  ✅ DuckDB.NET.Bindings found (v$duckDbVersion)." -ForegroundColor Green
+        }
+        catch {
+            Write-Host -Object '  ✅ DuckDB.NET.Bindings found.' -ForegroundColor Green
+        }
+    }
+    else {
+        Write-Host -Object '  ⚠️ DuckDB.NET.Bindings.dll not found. Database features may not work.' -ForegroundColor Yellow
+    }
+    #endregion
+
     #region Prepend $Env:PSModulePath with ~\AppData|.cache\ZeroTrustAssessment\Modules
     Write-Verbose -Message ("Setting $Env:PSModulePath to include the {0} for module dependencies..." -f $RequiredModulesPath)
     if (-not (Test-Path -Path $RequiredModulesPath -PathType Container))

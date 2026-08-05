@@ -407,3 +407,6 @@ ZeroTrustReport
 /src/powershell/export
 ZeroTrustReport
 /code-tests/TestResults
+
+# Runtime-generated: copied from arch-specific subdir by Initialize-Dependencies.ps1
+/src/powershell/lib/libduckdb.so
