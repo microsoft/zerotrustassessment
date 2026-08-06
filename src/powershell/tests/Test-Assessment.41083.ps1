@@ -63,8 +63,8 @@ function Test-Assessment-41083 {
     $enabledPolicies = @($enabledPolicies)
 
     $policyResults = foreach ($policy in $enabledPolicies) {
-        $signInRiskLevels = @($policy.conditions.signInRiskLevels)
-        $userRiskLevels = @($policy.conditions.userRiskLevels)
+        $signInRiskLevels = @($policy.conditions.signInRiskLevels | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $userRiskLevels   = @($policy.conditions.userRiskLevels   | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $hasRiskCondition = ($signInRiskLevels -contains 'high') -or ($userRiskLevels -contains 'high')
 
         $authenticationStrength = $policy.grantControls.authenticationStrength
