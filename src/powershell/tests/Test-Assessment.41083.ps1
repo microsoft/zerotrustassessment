@@ -108,26 +108,27 @@ function Test-Assessment-41083 {
     $maxDisplay = 10
     $displayPolicies = @($riskPolicies | Sort-Object -Property PolicyDisplayName | Select-Object -First $maxDisplay)
 
-    $tableRows = ''
-    foreach ($policy in $displayPolicies) {
-        $policyName = "[$(Get-SafeMarkdown -Text $policy.PolicyDisplayName)]($($policyUrlTemplate -f $policy.PolicyId))"
-        $signInRisk = Get-SafeMarkdown -Text $policy.SignInRiskLevels
-        $userRisk = Get-SafeMarkdown -Text $policy.UserRiskLevels
-        $authStrength = Get-SafeMarkdown -Text $policy.AuthenticationStrength
-        $builtInControls = Get-SafeMarkdown -Text $policy.BuiltInControls
-        $status = if ($policy.Matches) { '✅ Pass' } else { '❌ Fail' }
-        $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $builtInControls | $status |`n"
-    }
-
     if ($displayPolicies.Count -eq 0) {
-        $tableRows = "| No enabled policy uses a risk condition | — | — | — | — | — | ❌ Fail |`n"
+        $mdInfo = "`n`n## [Microsoft Entra > Conditional Access > Policies]($portalUrl)`n"
     }
-    elseif ($riskPolicies.Count -gt $maxDisplay) {
-        $remaining = $riskPolicies.Count - $maxDisplay
-        $tableRows += "`n... and $remaining more. [Microsoft Entra > Conditional Access > Policies]($portalUrl)`n"
-    }
+    else {
+        $tableRows = ''
+        foreach ($policy in $displayPolicies) {
+            $policyName = "[$(Get-SafeMarkdown -Text $policy.PolicyDisplayName)]($($policyUrlTemplate -f $policy.PolicyId))"
+            $signInRisk = Get-SafeMarkdown -Text $policy.SignInRiskLevels
+            $userRisk = Get-SafeMarkdown -Text $policy.UserRiskLevels
+            $authStrength = Get-SafeMarkdown -Text $policy.AuthenticationStrength
+            $builtInControls = Get-SafeMarkdown -Text $policy.BuiltInControls
+            $status = if ($policy.Matches) { '✅ Pass' } else { '❌ Fail' }
+            $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $builtInControls | $status |`n"
+        }
 
-    $formatTemplate = @'
+        if ($riskPolicies.Count -gt $maxDisplay) {
+            $remaining = $riskPolicies.Count - $maxDisplay
+            $tableRows += "`n... and $remaining more. [Microsoft Entra > Conditional Access > Policies]($portalUrl)`n"
+        }
+
+        $formatTemplate = @'
 
 
 ## [Microsoft Entra > Conditional Access > Policies]({0})
@@ -137,7 +138,9 @@ function Test-Assessment-41083 {
 {1}
 '@
 
-    $mdInfo = $formatTemplate -f $portalUrl, $tableRows
+        $mdInfo = $formatTemplate -f $portalUrl, $tableRows
+    }
+
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
