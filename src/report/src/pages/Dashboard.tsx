@@ -37,6 +37,7 @@ import { reportData } from "@/config/report-data";
 import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
+import { M365ProtectionCircuitSankey } from "@/components/overview/m365-protection-circuit-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
@@ -1295,6 +1296,26 @@ export default function Dashboard() {
             {hasPrivateAccessData() && (
                 <div className="flex max-w-7xl flex-col gap-6 mt-6">
                     <PrivateAccessSankey />
+                </div>
+            )}
+
+            {reportData.TenantInfo?.OverviewM365ProtectionCircuit?.nodes && (
+                <div className="flex max-w-7xl flex-col gap-6 mt-6">
+                    <Card>
+                        <CardHeader className="space-y-0 pb-2 flex-row">
+                            <ShieldCheck className="pr-2 size-8" />
+                            <div>
+                                <CardTitle className="text-2xl tabular-nums">Microsoft 365 protection circuit</CardTitle>
+                                <CardDescription className="mt-1">Global Secure Access acquisition and compliant network enforcement</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="w-full">
+                            <M365ProtectionCircuitSankey data={reportData.TenantInfo.OverviewM365ProtectionCircuit} />
+                        </CardContent>
+                        <CardFooter className="text-sm text-muted-foreground">
+                            {reportData.TenantInfo.OverviewM365ProtectionCircuit.description}
+                        </CardFooter>
+                    </Card>
                 </div>
             )}
 

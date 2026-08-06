@@ -45,4 +45,8 @@ function Invoke-ZtTenantInfo {
             Add-ZTDeviceAppProtectionPolicies
         }
     }
+
+    if ($Pillar -in ('All', 'Network')) {
+        Add-ZtOverviewM365ProtectionCircuit
+    }
 }
