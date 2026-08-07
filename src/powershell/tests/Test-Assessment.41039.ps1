@@ -144,13 +144,13 @@ function Test-Assessment-41039 {
         }
         else {
             foreach ($rule in ($malwareRules | Where-Object { $_.State -eq 'Enabled' })) {
-                $policy = $malwarePolicyByIdentity[[string]$rule.MalwareFilterPolicy]
+                $policy = $malwarePolicyByIdentity[$rule.MalwareFilterPolicy]
                 if ($null -eq $policy) {
                     $hasInvestigate = $true
                     $malwarePolicyRows += [PSCustomObject]@{
-                        PolicyIdentity = [string]$rule.MalwareFilterPolicy
+                        PolicyIdentity = $rule.MalwareFilterPolicy
                         IsDefault      = $false
-                        RuleName       = [string]$rule.Name
+                        RuleName       = $rule.Name
                         ZapEnabled     = $null
                         Result         = 'Investigate'
                         StatusDetail   = 'referenced policy not found'
@@ -174,7 +174,7 @@ function Test-Assessment-41039 {
                 $malwarePolicyRows += [PSCustomObject]@{
                     PolicyIdentity = $policy.Identity
                     IsDefault      = $false
-                    RuleName       = [string]$rule.Name
+                    RuleName       = $rule.Name
                     ZapEnabled     = if ($propertyKnown) { $propertyEnabled } else { $null }
                     Result         = $result
                     StatusDetail   = if ($propertyKnown) { $null } else { 'ZapEnabled value is unavailable' }
@@ -247,13 +247,13 @@ function Test-Assessment-41039 {
         }
         else {
             foreach ($rule in ($spamRules | Where-Object { $_.State -eq 'Enabled' })) {
-                $policy = $spamPolicyByIdentity[[string]$rule.HostedContentFilterPolicy]
+                $policy = $spamPolicyByIdentity[$rule.HostedContentFilterPolicy]
                 if ($null -eq $policy) {
                     $hasInvestigate = $true
                     $spamPolicyRows += [PSCustomObject]@{
-                        PolicyIdentity  = [string]$rule.HostedContentFilterPolicy
+                        PolicyIdentity  = $rule.HostedContentFilterPolicy
                         IsDefault       = $false
-                        RuleName        = [string]$rule.Name
+                        RuleName        = $rule.Name
                         PhishZapEnabled = $null
                         SpamZapEnabled  = $null
                         Result          = 'Investigate'
@@ -280,7 +280,7 @@ function Test-Assessment-41039 {
                 $spamPolicyRows += [PSCustomObject]@{
                     PolicyIdentity  = $policy.Identity
                     IsDefault       = $false
-                    RuleName        = [string]$rule.Name
+                    RuleName        = $rule.Name
                     PhishZapEnabled = if ($phishZapKnown) { $phishZapEnabled } else { $null }
                     SpamZapEnabled  = if ($spamZapKnown) { $spamZapEnabled } else { $null }
                     Result          = $result
