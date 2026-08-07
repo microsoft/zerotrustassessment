@@ -45,7 +45,7 @@ function Test-Assessment-41036 {
 
     # Q1: Enumerate simulations launched in the last 365 days.
     Write-ZtProgress -Activity $activity -Status 'Querying attack simulations in the last 12 months'
-    $simulations      = $null
+    $simulations      = @()
     $simulationsError = $null
     try {
         $simulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion v1.0 `
@@ -93,21 +93,16 @@ function Test-Assessment-41036 {
     if ($simulationsError) {
         $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $simulationsError
         if ($httpStatus -in 401, 403) {
-            $params = @{
-                TestId       = '41036'
-                Title        = $testTitle
-                Status       = $false
-                Result       = "⚠️ Microsoft Graph returned HTTP $httpStatus when querying attack simulations. Ensure the ``AttackSimulation.Read.All`` permission has been consented and re-run.`n`n%TestResult%"
-                CustomStatus = 'Investigate'
-            }
-            Add-ZtTestResultDetail @params
-            return
+            $q1ErrorMessage = "Microsoft Graph returned HTTP $httpStatus when querying attack simulations. Ensure the **AttackSimulation.Read.All** permission has been consented and re-run."
+        }
+        else {
+            $q1ErrorMessage = "Microsoft Graph returned an unexpected error while querying attack simulations. Ensure the assessment account has **AttackSimulation.Read.All** permission and re-run."
         }
         $params = @{
             TestId       = '41036'
             Title        = $testTitle
             Status       = $false
-            Result       = "⚠️ Microsoft Graph returned an unexpected error while querying attack simulations. Ensure the assessment account has ``AttackSimulation.Read.All`` permission and re-run.`n`n**Error:** ``$simulationsError```n`n%TestResult%"
+            Result       = "⚠️ $q1ErrorMessage`n`n%TestResult%"
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -118,8 +113,27 @@ function Test-Assessment-41036 {
     # functional. Zero results on both the filtered and unfiltered calls indicates the tenant is
     # not licensed for MDO P2 or Attack Simulation Training is not provisioned.
     if ($simulations.Count -eq 0) {
-        $probeIsEmpty = ($null -ne $probeError) -or ($probeSimulations.Count -eq 0)
-        if ($probeIsEmpty) {
+        if ($null -ne $probeError) {
+            $probeStatus = Get-ZtHttpStatusCode -ErrorRecord $probeError
+            if ($probeStatus -in 401, 403) {
+                # Auth error on probe — spec treats authorization error as "not licensed"; Skip.
+                Add-ZtTestResultDetail -SkippedBecause NotApplicable `
+                    -Result 'The Attack Simulation Training API returned an authorization error. Microsoft Defender for Office 365 Plan 2 (THREAT_INTELLIGENCE) is likely not licensed or Attack Simulation Training is not yet provisioned for this tenant.'
+                return
+            }
+            # Transient or unexpected probe error — cannot determine license status; return Investigate.
+            $params = @{
+                TestId       = '41036'
+                Title        = $testTitle
+                Status       = $false
+                Result       = "⚠️ The filtered simulation query returned no results and a follow-up probe also failed unexpectedly (HTTP $probeStatus). Re-run the assessment; if the issue persists verify **AttackSimulation.Read.All** is consented.`n`n%TestResult%"
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
+            return
+        }
+        if ($probeSimulations.Count -eq 0) {
+            # Both filtered and unfiltered queries returned empty — likely not licensed for MDO P2.
             Add-ZtTestResultDetail -SkippedBecause NotApplicable `
                 -Result 'The Attack Simulation Training API returned no simulations. Microsoft Defender for Office 365 Plan 2 (THREAT_INTELLIGENCE) is likely not licensed or Attack Simulation Training is not yet provisioned for this tenant.'
             return
@@ -136,6 +150,8 @@ function Test-Assessment-41036 {
     })
 
     # Determine whether all returned simulations are in non-operational states.
+    # Spec lists draft, scheduled, failed, canceled; 'excluded' is added as it is also a
+    # terminal non-operational simulationStatus value per the Graph resource type definition.
     $nonOperationalStatuses = @('draft', 'scheduled', 'failed', 'canceled', 'excluded')
     $hasOperationalSimulation = ($simulations | Where-Object { $_.status -notin $nonOperationalStatuses } | Measure-Object).Count -gt 0
     $allNonOperational = $simulations.Count -gt 0 -and -not $hasOperationalSimulation
@@ -153,7 +169,7 @@ function Test-Assessment-41036 {
         $passed       = $false
         $customStatus = 'Investigate'
         $automationNote = if ($automationsError) {
-            "Simulation automations could not be queried; verify ``AttackSimulation.Read.All`` is consented."
+            "Simulation automations could not be queried; verify **AttackSimulation.Read.All** is consented."
         }
         else {
             "No active simulation automation was found; confirm an ongoing simulation program is configured."
@@ -163,7 +179,7 @@ function Test-Assessment-41036 {
     elseif ($allNonOperational) {
         $passed       = $false
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Simulations exist but are all in ``draft``, ``scheduled``, ``failed``, or ``canceled`` status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Simulations exist but are all in **draft**, **scheduled**, **failed**, or **canceled** status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
     }
     else {
         $passed             = $false
@@ -206,16 +222,22 @@ function Test-Assessment-41036 {
         $preTableLines = "Showing $maxDisplay of $totalCount simulations. [View all in Microsoft 365 Defender > Email & collaboration > Attack simulation training]($portalUrl)`n`n"
     }
 
-    $formatTemplate = @'
+    # Only render the table when there is at least one simulation to show.
+    if ($totalCount -gt 0) {
+        $formatTemplate = @'
 {0}
 ## [Attack simulation training]({2})
 
-| Display Name | Attack Technique | Attack Type | Delivery Platform | Status | Launch Date | Completion Date | Automated |
+| Display name | Attack technique | Attack type | Delivery platform | Status | Launch date | Completion date | Automated |
 | :----------- | :--------------- | :---------- | :---------------- | :----- | :---------- | :-------------- | :-------- |
 {1}
 '@
+        $mdInfo = $formatTemplate -f $preTableLines, $tableRows, $portalUrl
+    }
+    else {
+        $mdInfo = ''
+    }
 
-    $mdInfo             = $formatTemplate -f $preTableLines, $tableRows, $portalUrl
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
