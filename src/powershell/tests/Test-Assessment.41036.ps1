@@ -48,7 +48,7 @@ function Test-Assessment-41036 {
     $simulations      = @()
     $simulationsError = $null
     try {
-        $simulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion v1.0 `
+        $simulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion beta `
             -Filter "launchDateTime ge $windowStart" -ErrorAction Stop)
     }
     catch {
@@ -63,7 +63,7 @@ function Test-Assessment-41036 {
     if (-not $simulationsError -and $simulations.Count -eq 0) {
         Write-ZtProgress -Activity $activity -Status 'Probing attack simulation API for any simulations'
         try {
-            $probeSimulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion v1.0 `
+            $probeSimulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion beta `
                 -Top 1 -DisablePaging -ErrorAction Stop)
         }
         catch {
@@ -77,7 +77,7 @@ function Test-Assessment-41036 {
     $automations      = $null
     $automationsError = $null
     try {
-        $automations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulationAutomations' -ApiVersion v1.0 -ErrorAction Stop)
+        $automations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulationAutomations' -ApiVersion beta -ErrorAction Stop)
     }
     catch {
         $automationsError = $_
@@ -179,7 +179,7 @@ function Test-Assessment-41036 {
     elseif ($allNonOperational) {
         $passed       = $false
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Simulations exist but are all in **draft**, **scheduled**, **failed**, or **canceled** status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Simulations exist but are all in **draft**, **scheduled**, **failed**, or **cancelled** status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
     }
     else {
         $passed             = $false
