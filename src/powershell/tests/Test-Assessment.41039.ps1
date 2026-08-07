@@ -403,10 +403,11 @@ No in-scope anti-spam policy rows could be resolved; verify the default policy a
 '@
     }
 
+    $threatPolicyPortalLink = 'https://security.microsoft.com/threatpolicies'
     $threatPolicyLink = ''
     if ($sortedMalwareRows.Count -gt $maxDisplay -or $sortedSpamRows.Count -gt $maxDisplay) {
         $threatPolicyLink = @'
-[Microsoft 365 Defender > Policies & rules > Threat policies](https://security.microsoft.com/threatpolicy)
+[Microsoft 365 Defender > Policies & rules > Threat policies]($threatPolicyPortalLink)
 '@
     }
 
