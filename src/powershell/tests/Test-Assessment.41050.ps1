@@ -206,8 +206,10 @@ function Test-Assessment-41050 {
     #region Report Generation
     $totalCount = $evaluationResults.Count
     $countLine = "Total ASR controls evaluated: $totalCount"
+    $asrPoliciesLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/asr'
+    $asrDefenderLink = 'https://security.microsoft.com/asr'
 
-    $portalLinks = '[Microsoft Intune ASR Policies](https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/asr) | [Defender XDR > Endpoints > Attack surface reduction](https://security.microsoft.com/asr)'
+    $portalLinks = "[Microsoft Intune ASR Policies]($asrPoliciesLink) | [Defender XDR > Endpoints > Attack surface reduction]($asrDefenderLink)"
 
     $tableRows = ''
     foreach ($result in $evaluationResults) {
