@@ -3,6 +3,21 @@ Describe "Add-ZtDeviceOverview" {
 		$here = $PSScriptRoot
 		$srcRoot = Join-Path $here "../../src/powershell"
 
+		function Assert-ValidSankeyLinks {
+			param(
+				$Nodes,
+				[string] $Because
+			)
+
+			foreach ($node in @($Nodes)) {
+				$node.source | Should -Not -BeNullOrEmpty -Because $Because
+				$node.target | Should -Not -BeNullOrEmpty -Because $Because
+				$node.source | Should -Not -Be $node.target -Because $Because
+				$node.value | Should -Not -BeNullOrEmpty -Because $Because
+				$node.value | Should -BeGreaterThan 0 -Because $Because
+			}
+		}
+
 		if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
 			function global:Write-PSFMessage {
 				param($Level, $Message, $Tag)
@@ -21,9 +36,21 @@ Describe "Add-ZtDeviceOverview" {
 			}
 		}
 
+		if (-not (Get-Command Add-ZtTenantInfo -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtTenantInfo {
+				param($Name, $Value)
+			}
+		}
+
 		if (-not (Get-Command Invoke-ZtGraphRequest -ErrorAction SilentlyContinue)) {
 			function global:Invoke-ZtGraphRequest {
 				param($RelativeUri, $ApiVersion)
+			}
+		}
+
+		if (-not (Get-Command Invoke-DatabaseQuery -ErrorAction SilentlyContinue)) {
+			function global:Invoke-DatabaseQuery {
+				param($Database, $Sql)
 			}
 		}
 
@@ -49,6 +76,27 @@ Describe "Add-ZtDeviceOverview" {
 		# Default: every query returns no rows. Individual tests override the
 		# specific queries they care about via -ParameterFilter.
 		Mock Invoke-DatabaseQuery { @() }
+	}
+
+	It "Should summarize all devices across operating systems" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem' -and $Sql -notmatch 'group by operatingSystem, trustType' -and $Sql -notmatch 'group by operatingSystem, isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'Android'; count = 4 }
+				[pscustomobject]@{ operatingSystem = 'IPhone'; count = 2 }
+				[pscustomobject]@{ operatingSystem = 'Linux'; count = 1 }
+				[pscustomobject]@{ operatingSystem = 'MacMDM'; count = 3 }
+				[pscustomobject]@{ operatingSystem = 'Windows'; count = 6 }
+			)
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.windowsCount | Should -Be 6
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.macOSCount | Should -Be 3
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.iosCount | Should -Be 2
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.androidCount | Should -Be 4
+		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.linuxCount | Should -Be 1
+		$script:tenantInfo.Value.DeviceSummary.totalDevices | Should -Be 16
 	}
 
 	It "Should sum Windows desktop devices across trust types and compliance, deriving unmanaged via subtraction" {
@@ -83,19 +131,45 @@ Describe "Add-ZtDeviceOverview" {
 
 		# macOS flows directly to compliance (no join-type split)
 		($nodes | Where-Object { $_.source -eq 'macOS' -and $_.target -eq 'Compliant' }).value | Should -Be 8
-		($nodes | Where-Object { $_.source -eq 'macOS' -and $_.target -eq 'Non-compliant' }).value | Should -Be 0
+		($nodes | Where-Object { $_.source -eq 'macOS' -and $_.target -eq 'Non-compliant' }) | Should -BeNullOrEmpty
+		Assert-ValidSankeyLinks -Nodes $nodes -Because "desktop exports should never reintroduce malformed sankey links"
 	}
 
-	It "Should collapse Android/iOS variants and split mobile devices by ownership and compliance" {
-		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem, deviceOwnership' } -MockWith {
+	It "Should omit zero-value desktop sankey links while preserving real unmanaged paths" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem, trustType' } -MockWith {
 			@(
-				[pscustomobject]@{ operatingSystem = 'Android';           deviceOwnership = 'Company';  isCompliant = $true;  count = 10 }
-				[pscustomobject]@{ operatingSystem = 'Android';           deviceOwnership = 'Company';  isCompliant = $false; count = 2 }
-				[pscustomobject]@{ operatingSystem = 'AndroidEnterprise'; deviceOwnership = 'Company';  isCompliant = $true;  count = 3 }
-				[pscustomobject]@{ operatingSystem = 'Android';           deviceOwnership = 'Personal'; isCompliant = $true;  count = 7 }
-				[pscustomobject]@{ operatingSystem = 'iOS';               deviceOwnership = 'Company';  isCompliant = $true;  count = 20 }
-				[pscustomobject]@{ operatingSystem = 'IPhone';            deviceOwnership = 'Company';  isCompliant = $false; count = 1 }
-				[pscustomobject]@{ operatingSystem = 'iOS';               deviceOwnership = 'Personal'; isCompliant = $true;  count = 4 }
+				[pscustomobject]@{ operatingSystem = 'Windows'; trustType = 'AzureAd';   isCompliant = $null;  count = 2 }
+				[pscustomobject]@{ operatingSystem = 'Windows'; trustType = 'Workplace'; isCompliant = $null;  count = 10 }
+			)
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$nodes = $script:tenantInfo.Value.DesktopDevicesSummary.nodes
+
+		($nodes | Where-Object { $_.source -eq 'Desktop devices' -and $_.target -eq 'Windows' }).value | Should -Be 12
+		($nodes | Where-Object { $_.source -eq 'Windows' -and $_.target -eq 'Entra joined' }).value | Should -Be 2
+		($nodes | Where-Object { $_.source -eq 'Windows' -and $_.target -eq 'Entra registered' }).value | Should -Be 10
+		($nodes | Where-Object { $_.source -eq 'Entra joined' -and $_.target -eq 'Unmanaged' }).value | Should -Be 2
+		($nodes | Where-Object { $_.source -eq 'Entra registered' -and $_.target -eq 'Unmanaged' }).value | Should -Be 10
+
+		($nodes | Where-Object { $_.target -eq 'macOS' }) | Should -BeNullOrEmpty
+		($nodes | Where-Object { $_.target -eq 'Entra hybrid joined' }) | Should -BeNullOrEmpty
+		($nodes | Where-Object { $_.target -eq 'Compliant' }) | Should -BeNullOrEmpty
+		($nodes | Where-Object { $_.target -eq 'Non-compliant' }) | Should -BeNullOrEmpty
+		Assert-ValidSankeyLinks -Nodes $nodes -Because "sparse desktop exports should stay safe for the sankey renderer"
+	}
+
+	It "Should collapse Android/iOS variants and split mobile devices by platform compliance" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem, isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'Android';           isCompliant = $true;  count = 10 }
+				[pscustomobject]@{ operatingSystem = 'Android';           isCompliant = $false; count = 2 }
+				[pscustomobject]@{ operatingSystem = 'AndroidEnterprise'; isCompliant = $true;  count = 3 }
+				[pscustomobject]@{ operatingSystem = 'Android';           isCompliant = $null;  count = 7 }
+				[pscustomobject]@{ operatingSystem = 'iOS';               isCompliant = $true;  count = 20 }
+				[pscustomobject]@{ operatingSystem = 'IPhone';            isCompliant = $false; count = 1 }
+				[pscustomobject]@{ operatingSystem = 'iPadOS';            isCompliant = $true;  count = 4 }
 			)
 		}
 
@@ -106,16 +180,32 @@ Describe "Add-ZtDeviceOverview" {
 		($nodes | Where-Object { $_.source -eq 'Mobile devices' -and $_.target -eq 'Android' }).value | Should -Be 22
 		($nodes | Where-Object { $_.source -eq 'Mobile devices' -and $_.target -eq 'iOS' }).value | Should -Be 25
 
-		# Android variants (Android + AndroidEnterprise) collapse into "Android"
-		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Android (Company)' }).value | Should -Be 15
-		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Android (Personal)' }).value | Should -Be 7
-		($nodes | Where-Object { $_.source -eq 'Android (Company)' -and $_.target -eq 'Compliant' }).value | Should -Be 13
-		($nodes | Where-Object { $_.source -eq 'Android (Company)' -and $_.target -eq 'Non-compliant' }).value | Should -Be 2
+		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Compliant' }).value | Should -Be 13
+		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Non-compliant' }).value | Should -Be 9
+		($nodes | Where-Object { $_.source -eq 'iOS' -and $_.target -eq 'Compliant' }).value | Should -Be 24
+		($nodes | Where-Object { $_.source -eq 'iOS' -and $_.target -eq 'Non-compliant' }).value | Should -Be 1
+		Assert-ValidSankeyLinks -Nodes $nodes -Because "mobile exports should never reintroduce malformed sankey links"
+	}
 
-		# iOS + IPhone collapse into "iOS"
-		($nodes | Where-Object { $_.source -eq 'iOS' -and $_.target -eq 'iOS (Company)' }).value | Should -Be 21
-		($nodes | Where-Object { $_.source -eq 'iOS (Company)' -and $_.target -eq 'Compliant' }).value | Should -Be 20
-		($nodes | Where-Object { $_.source -eq 'iOS (Company)' -and $_.target -eq 'Non-compliant' }).value | Should -Be 1
+	It "Should omit zero-value mobile sankey links while preserving real ownership paths" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem, isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'Android'; isCompliant = $true;  count = 4 }
+				[pscustomobject]@{ operatingSystem = 'iOS';     isCompliant = $false; count = 3 }
+			)
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$nodes = $script:tenantInfo.Value.MobileSummary.nodes
+
+		($nodes | Where-Object { $_.source -eq 'Mobile devices' -and $_.target -eq 'Android' }).value | Should -Be 4
+		($nodes | Where-Object { $_.source -eq 'Mobile devices' -and $_.target -eq 'iOS' }).value | Should -Be 3
+		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Compliant' }).value | Should -Be 4
+		($nodes | Where-Object { $_.source -eq 'Android' -and $_.target -eq 'Non-compliant' }) | Should -BeNullOrEmpty
+		($nodes | Where-Object { $_.source -eq 'iOS' -and $_.target -eq 'Non-compliant' }).value | Should -Be 3
+		($nodes | Where-Object { $_.source -eq 'iOS' -and $_.target -eq 'Compliant' }) | Should -BeNullOrEmpty
+		Assert-ValidSankeyLinks -Nodes $nodes -Because "sparse mobile exports should stay safe for the sankey renderer"
 	}
 
 	It "Should report corporate and personal device ownership counts" {
@@ -132,20 +222,40 @@ Describe "Add-ZtDeviceOverview" {
 		$script:tenantInfo.Value.DeviceOwnership.personalCount | Should -Be 50
 	}
 
-	It "Should emit zero (never null) for every Sankey value when device queries return no rows (issue 1310)" {
+	It "Should omit empty desktop and mobile sankey links when device queries return no rows (issue 1310)" {
 		# All queries fall through to the default empty mock from BeforeEach.
 		Add-ZtDeviceOverview -Database 'test'
 
 		$desktopNodes = $script:tenantInfo.Value.DesktopDevicesSummary.nodes
 		$mobileNodes = $script:tenantInfo.Value.MobileSummary.nodes
 
-		foreach ($node in @($desktopNodes) + @($mobileNodes)) {
-			$node.value | Should -Not -BeNullOrEmpty -Because "Sankey link $($node.source) -> $($node.target) must have a numeric value"
-			$node.value | Should -BeGreaterOrEqual 0
-		}
+		@($desktopNodes).Count | Should -Be 0
+		@($mobileNodes).Count | Should -Be 0
+
+		$script:tenantInfo.Value.ManagedDevices | Should -Not -BeNullOrEmpty
+		$script:tenantInfo.Value.ManagedDevices.totalCount | Should -Be 0
 
 		$script:tenantInfo.Value.DeviceOwnership.corporateCount | Should -Be 0
 		$script:tenantInfo.Value.DeviceOwnership.personalCount | Should -Be 0
+	}
+
+	It "Should default compliance to 0 compliant and all discovered devices non-compliant when compliance rollups are empty" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem' -and $Sql -notmatch 'group by isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'MacMDM'; count = 2 }
+				[pscustomobject]@{ operatingSystem = 'Windows'; count = 4 }
+			)
+		}
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by isCompliant' } -MockWith {
+			@()
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Value.ManagedDevices | Should -Not -BeNullOrEmpty
+		$script:tenantInfo.Value.ManagedDevices.totalCount | Should -Be 0
+		$script:tenantInfo.Value.DeviceCompliance.compliantDeviceCount | Should -Be 0
+		$script:tenantInfo.Value.DeviceCompliance.nonCompliantDeviceCount | Should -Be 6
 	}
 
 	It "Should populate ManagedDevices from the Intune API when an Intune license is present" {
@@ -170,5 +280,34 @@ Describe "Add-ZtDeviceOverview" {
 		$managed.desktopCount | Should -Be 12
 		$managed.mobileCount | Should -Be 8
 		$managed.totalCount | Should -Be 20
+	}
+
+	It "Should fall back to database-derived managed devices when the Intune overview request fails" {
+		Mock Get-ZtLicense { $true }
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'deviceManagement/managedDeviceOverview' } -MockWith {
+			throw 'Graph request failed'
+		}
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'where accountEnabled and "isManaged"' } -MockWith {
+			[pscustomobject]@{
+				windowsCount = 4
+				macOSCount = 1
+				iOSCount = 2
+				androidCount = 3
+				linuxCount = 0
+				totalCount = 10
+			}
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Name | Should -Be 'DeviceOverview'
+		$managed = $script:tenantInfo.Value.ManagedDevices
+		$managed.deviceOperatingSystemSummary.windowsCount | Should -Be 4
+		$managed.deviceOperatingSystemSummary.macOSCount | Should -Be 1
+		$managed.deviceOperatingSystemSummary.iosCount | Should -Be 2
+		$managed.deviceOperatingSystemSummary.androidCount | Should -Be 3
+		$managed.desktopCount | Should -Be 5
+		$managed.mobileCount | Should -Be 5
+		$managed.totalCount | Should -Be 10
 	}
 }
