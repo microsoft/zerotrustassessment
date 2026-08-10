@@ -62,6 +62,10 @@ function Test-Assessment-41083 {
     #region Assessment Logic
     $enabledPolicies = @($enabledPolicies)
 
+    # Built-in 'Phishing-resistant MFA' authentication strength.
+    $phishingResistantStrengthId = '00000000-0000-0000-0000-000000000004'
+    $phishingResistantMethods = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor')
+
     $policyResults = foreach ($policy in $enabledPolicies) {
         $signInRiskLevels = @($policy.conditions.signInRiskLevels | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $userRiskLevels   = @($policy.conditions.userRiskLevels   | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -69,8 +73,40 @@ function Test-Assessment-41083 {
 
         $authenticationStrength = $policy.grantControls.authenticationStrength
         $hasAuthenticationStrength = $null -ne $authenticationStrength -and -not [string]::IsNullOrWhiteSpace($authenticationStrength.id)
+        $isPhishingResistant = $false
+
+        if ($hasAuthenticationStrength) {
+            if ($authenticationStrength.id -eq $phishingResistantStrengthId) {
+                $isPhishingResistant = $true
+            }
+            else {
+                $allowedCombinations = @($authenticationStrength.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+                if ($allowedCombinations.Count -eq 0) {
+                    # allowedCombinations is not always expanded on the Conditional Access policy response.
+                    try {
+                        $strengthDetail = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/authenticationStrength/policies/$($authenticationStrength.id)" -ApiVersion beta -ErrorAction Stop
+                        $allowedCombinations = @($strengthDetail.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                    }
+                    catch {
+                        Write-PSFMessage "Failed to retrieve authentication strength $($authenticationStrength.id): $_" -Tag Test -Level Warning
+                    }
+                }
+
+                $nonResistantCombinations = @($allowedCombinations | Where-Object { $phishingResistantMethods -notcontains $_ })
+                $isPhishingResistant = $allowedCombinations.Count -gt 0 -and $nonResistantCombinations.Count -eq 0
+            }
+        }
+
+        $strengthName = 'None'
+        if ($hasAuthenticationStrength) {
+            $strengthName = if ([string]::IsNullOrWhiteSpace($authenticationStrength.displayName)) { $authenticationStrength.id } else { $authenticationStrength.displayName }
+        }
 
         $builtInControls = @($policy.grantControls.builtInControls | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+        # With an OR operator alongside other controls the grant can be satisfied without the strength.
+        $strengthAlwaysRequired = $builtInControls.Count -eq 0 -or $policy.grantControls.operator -eq 'AND'
 
         [PSCustomObject]@{
             PolicyDisplayName      = $policy.displayName
@@ -78,27 +114,31 @@ function Test-Assessment-41083 {
             State                  = $policy.state
             SignInRiskLevels       = if ($signInRiskLevels.Count -gt 0) { $signInRiskLevels -join ', ' } else { 'None' }
             UserRiskLevels         = if ($userRiskLevels.Count -gt 0) { $userRiskLevels -join ', ' } else { 'None' }
-            AuthenticationStrength = if ($hasAuthenticationStrength) { $authenticationStrength.displayName } else { 'None' }
+            AuthenticationStrength = $strengthName
+            PhishingResistant      = if ($isPhishingResistant) { 'Yes' } else { 'No' }
             BuiltInControls        = if ($builtInControls.Count -gt 0) { $builtInControls -join ', ' } else { 'None' }
+            RequiresMfaControl     = $builtInControls -contains 'mfa'
             HasRiskCondition       = $hasRiskCondition
-            Matches                = $hasRiskCondition -and $hasAuthenticationStrength
+            IsPhishingResistant    = $isPhishingResistant
+            Matches                = $hasRiskCondition -and $isPhishingResistant -and $strengthAlwaysRequired
         }
     }
 
     $policyResults = @($policyResults)
     $riskPolicies = @($policyResults | Where-Object HasRiskCondition)
     $matchingPolicies = @($riskPolicies | Where-Object Matches)
+    $mfaOnlyRiskPolicies = @($riskPolicies | Where-Object { -not $_.IsPhishingResistant -and $_.RequiresMfaControl })
 
     $passed = $false
     if ($matchingPolicies.Count -gt 0) {
         $passed = $true
-        $testResultMarkdown = "✅ At least one enabled Conditional Access policy combines an identity risk condition with an authentication strength grant control, so a step-up challenge raised by a risky in-session action is enforced.`n`n%TestResult%"
+        $testResultMarkdown = "✅ At least one enabled Conditional Access policy combines an identity risk condition with a phishing-resistant authentication strength grant control, so a step-up challenge raised by a risky in-session action is enforced.`n`n%TestResult%"
     }
-    elseif ($riskPolicies.Count -gt 0) {
-        $testResultMarkdown = "❌ Enabled Conditional Access policies use an identity risk condition but grant access with multifactor authentication only. Upgrade them to a phishing-resistant authentication strength.`n`n%TestResult%"
+    elseif ($mfaOnlyRiskPolicies.Count -gt 0) {
+        $testResultMarkdown = "❌ Enabled Conditional Access policies use an identity risk condition but grant access with the multifactor authentication built-in control instead of a phishing-resistant authentication strength. Upgrade them to the built-in Phishing-resistant MFA strength, or to a custom strength whose allowed combinations only use FIDO2, certificate-based authentication (multifactor), or Windows Hello for Business.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "❌ No enabled Conditional Access policy combines a risk condition with an authentication-strength grant control.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No enabled Conditional Access policy combines an identity risk condition with a phishing-resistant authentication strength grant control.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -118,9 +158,10 @@ function Test-Assessment-41083 {
             $signInRisk = Get-SafeMarkdown -Text $policy.SignInRiskLevels
             $userRisk = Get-SafeMarkdown -Text $policy.UserRiskLevels
             $authStrength = Get-SafeMarkdown -Text $policy.AuthenticationStrength
+            $phishingResistant = Get-SafeMarkdown -Text $policy.PhishingResistant
             $builtInControls = Get-SafeMarkdown -Text $policy.BuiltInControls
             $status = if ($policy.Matches) { '✅ Pass' } else { '❌ Fail' }
-            $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $builtInControls | $status |`n"
+            $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $phishingResistant | $builtInControls | $status |`n"
         }
 
         if ($riskPolicies.Count -gt $maxDisplay) {
@@ -133,8 +174,8 @@ function Test-Assessment-41083 {
 
 ## [Microsoft Entra > Conditional Access > Policies]({0})
 
-| Policy display name | State | Sign-in risk levels | User risk levels | Authentication strength | Built-in controls | Status |
-| :------------------ | :---- | :------------------ | :--------------- | :---------------------- | :---------------- | :----- |
+| Policy display name | State | Sign-in risk levels | User risk levels | Authentication strength | Phishing-resistant | Built-in controls | Status |
+| :------------------ | :---- | :------------------ | :--------------- | :---------------------- | :----------------- | :---------------- | :----- |
 {1}
 '@
 
