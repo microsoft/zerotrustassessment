@@ -87,6 +87,14 @@ function Test-Assessment-41039 {
 
     if ($malwarePolicyUnavailable) {
         $hasInvestigate = $true
+        $malwarePolicyRows += [PSCustomObject]@{
+            PolicyIdentity = '—'
+            IsDefault      = $false
+            RuleName       = $null
+            ZapEnabled     = $null
+            Result         = 'Investigate'
+            StatusDetail   = 'could not retrieve anti-malware policies'
+        }
     }
     else {
         $malwarePolicyByIdentity = @{}
@@ -185,6 +193,15 @@ function Test-Assessment-41039 {
 
     if ($spamPolicyUnavailable) {
         $hasInvestigate = $true
+        $spamPolicyRows += [PSCustomObject]@{
+            PolicyIdentity  = '—'
+            IsDefault       = $false
+            RuleName        = $null
+            PhishZapEnabled = $null
+            SpamZapEnabled  = $null
+            Result          = 'Investigate'
+            StatusDetail    = 'could not retrieve anti-spam policies'
+        }
     }
     else {
         $spamPolicyByIdentity = @{}
@@ -339,10 +356,7 @@ function Test-Assessment-41039 {
         $malwareTableRows += "| ... | ... | ... | ... |`n"
     }
 
-    $malwarePolicyDetails = if ($malwarePolicyUnavailable) {
-        'Unable to query anti-malware policies.'
-    }
-    elseif ($sortedMalwareRows.Count -gt 0) {
+    $malwarePolicyDetails = if ($sortedMalwareRows.Count -gt 0) {
         @"
 | Policy identity | Applied via Rule | ZAP for malware | Status |
 | :-------------- | :--------------- | :-------------- | :----- |
@@ -387,10 +401,7 @@ No in-scope anti-malware policy rows could be resolved; verify the default polic
         $spamTableRows += "| ... | ... | ... | ... | ... |`n"
     }
 
-    $spamPolicyDetails = if ($spamPolicyUnavailable) {
-        'Unable to query anti-spam policies.'
-    }
-    elseif ($sortedSpamRows.Count -gt 0) {
+    $spamPolicyDetails = if ($sortedSpamRows.Count -gt 0) {
         @"
 | Policy identity | Applied via Rule | ZAP for phishing | ZAP for spam | Status |
 | :-------------- | :--------------- | :--------------- | :----------- | :----- |
@@ -403,11 +414,10 @@ No in-scope anti-spam policy rows could be resolved; verify the default policy a
 '@
     }
 
-    $threatPolicyPortalLink = 'https://security.microsoft.com/threatpolicies'
     $threatPolicyLink = ''
     if ($sortedMalwareRows.Count -gt $maxDisplay -or $sortedSpamRows.Count -gt $maxDisplay) {
         $threatPolicyLink = @'
-[Microsoft 365 Defender > Policies & rules > Threat policies]($threatPolicyPortalLink)
+[Microsoft 365 Defender > Policies & rules > Threat policies](https://security.microsoft.com/threatpolicy)
 '@
     }
 
@@ -423,12 +433,7 @@ No in-scope anti-spam policy rows could be resolved; verify the default policy a
 {2}
 '@
 
-    $mdInfo = if ($malwarePolicyUnavailable -and $spamPolicyUnavailable) {
-        ''
-    }
-    else {
-        $formatTemplate -f $malwarePolicyDetails, $spamPolicyDetails, $threatPolicyLink
-    }
+    $mdInfo = $formatTemplate -f $malwarePolicyDetails, $spamPolicyDetails, $threatPolicyLink
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
