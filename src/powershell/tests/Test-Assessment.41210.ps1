@@ -143,13 +143,22 @@ function Test-Assessment-41210 {
 
         try {
             $rawMetrics = @(Invoke-ZtAzureRequest -Path $tiMetricsPath -ErrorAction Stop)
-            $metricsByWorkspace[$workspace.WorkspaceId]   = $rawMetrics
-            $metricsOkByWorkspace[$workspace.WorkspaceId] = $true
+            # A non-empty response must contain properties.sourceMetrics; absence is an unexpected shape.
+            $schemaOk = ($rawMetrics.Count -eq 0) -or ($null -ne $rawMetrics[0].properties -and $null -ne $rawMetrics[0].properties.sourceMetrics)
+            if ($schemaOk) {
+                $metricsByWorkspace[$workspace.WorkspaceId]   = $rawMetrics
+                $metricsOkByWorkspace[$workspace.WorkspaceId] = $true
+            }
+            else {
+                $metricsByWorkspace[$workspace.WorkspaceId]   = $null
+                $metricsOkByWorkspace[$workspace.WorkspaceId] = $false
+                Write-PSFMessage "Unexpected response shape from threat intelligence metrics API for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': properties.sourceMetrics is absent or null." -Tag Test -Level Warning
+            }
         }
         catch {
             $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
-            if ($httpStatus -eq 404) {
-                # ARM returns 404 with "No metrics data available" when zero indicators exist — treat as zero count.
+            if ($httpStatus -eq 404 -and $_.Exception.Message -match 'No metrics data available') {
+                # Spec: only this specific 404 means zero indicators — other 404s are unexpected shapes.
                 $metricsByWorkspace[$workspace.WorkspaceId]   = @()
                 $metricsOkByWorkspace[$workspace.WorkspaceId] = $true
             }
@@ -269,7 +278,7 @@ function Test-Assessment-41210 {
     $passed       = ($passedItems.Count + $passNoConnectorItems.Count) -gt 0
     $customStatus = $null
 
-    if ($passed -and ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
+    if ($passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
         # Incomplete scan: permission or transient errors mean some workspaces weren't checked.
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ Microsoft Threat Intelligence appears integrated in at least one Sentinel workspace, but one or more workspaces could not be evaluated due to insufficient permissions or a transient error — the overall state cannot be confirmed. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.`n`n%TestResult%"
