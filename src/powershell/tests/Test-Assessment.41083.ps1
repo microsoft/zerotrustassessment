@@ -57,11 +57,33 @@ function Test-Assessment-41083 {
         Add-ZtTestResultDetail @params
         return
     }
+
+    $enabledPolicies = @($enabledPolicies)
+
+    Write-ZtProgress -Activity $activity -Status 'Resolving referenced authentication strengths'
+
+    # The strength is returned inline with each policy, but allowedCombinations is not always expanded.
+    $strengthCombinations = @{}
+    foreach ($policy in $enabledPolicies) {
+        $strength = $policy.grantControls.authenticationStrength
+        if ($null -eq $strength -or [string]::IsNullOrWhiteSpace($strength.id) -or $strengthCombinations.ContainsKey($strength.id)) { continue }
+
+        $allowedCombinations = @($strength.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($allowedCombinations.Count -eq 0) {
+            try {
+                $strengthDetail = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/authenticationStrength/policies/$($strength.id)" -ApiVersion beta -ErrorAction Stop
+                $allowedCombinations = @($strengthDetail.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            }
+            catch {
+                Write-PSFMessage "Failed to retrieve authentication strength $($strength.id): $_" -Tag Test -Level Warning
+            }
+        }
+
+        $strengthCombinations[$strength.id] = $allowedCombinations
+    }
     #endregion Data Collection
 
     #region Assessment Logic
-    $enabledPolicies = @($enabledPolicies)
-
     # Built-in 'Phishing-resistant MFA' authentication strength.
     $phishingResistantStrengthId = '00000000-0000-0000-0000-000000000004'
     $phishingResistantMethods = @('windowsHelloForBusiness', 'fido2', 'x509CertificateMultiFactor')
@@ -80,19 +102,7 @@ function Test-Assessment-41083 {
                 $isPhishingResistant = $true
             }
             else {
-                $allowedCombinations = @($authenticationStrength.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-
-                if ($allowedCombinations.Count -eq 0) {
-                    # allowedCombinations is not always expanded on the Conditional Access policy response.
-                    try {
-                        $strengthDetail = Invoke-ZtGraphRequest -RelativeUri "identity/conditionalAccess/authenticationStrength/policies/$($authenticationStrength.id)" -ApiVersion beta -ErrorAction Stop
-                        $allowedCombinations = @($strengthDetail.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-                    }
-                    catch {
-                        Write-PSFMessage "Failed to retrieve authentication strength $($authenticationStrength.id): $_" -Tag Test -Level Warning
-                    }
-                }
-
+                $allowedCombinations = @($strengthCombinations[$authenticationStrength.id])
                 $nonResistantCombinations = @($allowedCombinations | Where-Object { $phishingResistantMethods -notcontains $_ })
                 $isPhishingResistant = $allowedCombinations.Count -gt 0 -and $nonResistantCombinations.Count -eq 0
             }
