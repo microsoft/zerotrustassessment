@@ -31,9 +31,9 @@ function Test-Assessment-41040 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity    = 'Checking Tenant Allow/Block List hygiene'
-    $allEntries  = @()
-    $queryErrors = @()
+    $activity        = 'Checking Tenant Allow/Block List hygiene'
+    $allEntries      = @()
+    $failedListTypes = @()
 
     # Q1a: Enumerate Sender entries.
     Write-ZtProgress -Activity $activity -Status 'Querying Sender entries'
@@ -48,7 +48,7 @@ function Test-Assessment-41040 {
     }
     catch {
         Write-PSFMessage "Failed to query Sender TABL entries: $_" -Tag Test -Level Warning
-        $queryErrors += 'Sender'
+        $failedListTypes += 'Sender'
     }
 
     # Q1b: Enumerate URL entries.
@@ -66,7 +66,7 @@ function Test-Assessment-41040 {
     }
     catch {
         Write-PSFMessage "Failed to query URL TABL entries: $_" -Tag Test -Level Warning
-        $queryErrors += 'Url'
+        $failedListTypes += 'Url'
     }
 
     # Q1c: Enumerate file hash entries.
@@ -82,7 +82,7 @@ function Test-Assessment-41040 {
     }
     catch {
         Write-PSFMessage "Failed to query FileHash TABL entries: $_" -Tag Test -Level Warning
-        $queryErrors += 'FileHash'
+        $failedListTypes += 'FileHash'
     }
 
     # Q1d: Enumerate IP entries.
@@ -98,18 +98,18 @@ function Test-Assessment-41040 {
     }
     catch {
         Write-PSFMessage "Failed to query IP TABL entries: $_" -Tag Test -Level Warning
-        $queryErrors += 'IP'
+        $failedListTypes += 'IP'
     }
     #endregion Data Collection
 
     #region Assessment Logic
 
-    if ($queryErrors.Count -eq 4) {
+    if ($failedListTypes.Count -eq 4) {
         $params = @{
             TestId       = '41040'
             Title        = 'Tenant Allow/Block List entries are scoped, time-bounded, and free of broad allow rules'
             Status       = $false
-            Result       = '⚠️ All four Tenant Allow/Block List queries failed. Verify the assessment account has Security Reader or View-Only Configuration access via Exchange Online RBAC and that the ExchangeOnline connection is active.'
+            Result       = '⚠️ All four Tenant Allow/Block List queries failed (Sender, Url, FileHash, and IP). Verify the assessment account has Security Reader or View-Only Configuration access via Exchange Online RBAC and that the ExchangeOnline connection is active.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -131,33 +131,9 @@ function Test-Assessment-41040 {
     })
 
     $classifiedEntries = foreach ($entry in $adminControlledAllow) {
-        $expirationValue = $entry.ExpirationDate
-        $expirationText = [string]$expirationValue
-        $isUnbounded = [string]::IsNullOrWhiteSpace($expirationText)
-        $expirationDate = $null
-        if (-not $isUnbounded) {
-            if ($expirationValue -is [datetime]) {
-                $expirationDate = $expirationValue
-            }
-            else {
-                $parsedExpirationDate = [datetime]::MinValue
-                if ([datetime]::TryParse($expirationText, [ref]$parsedExpirationDate)) {
-                    $expirationDate = $parsedExpirationDate
-                }
-            }
-        }
-
-        $lastModifiedDate = $null
-        $lastModifiedValue = $entry.LastModifiedDateTime
-        if ($lastModifiedValue -is [datetime]) {
-            $lastModifiedDate = $lastModifiedValue
-        }
-        else {
-            $parsedLastModifiedDate = [datetime]::MinValue
-            if ([datetime]::TryParse([string]$lastModifiedValue, [ref]$parsedLastModifiedDate)) {
-                $lastModifiedDate = $parsedLastModifiedDate
-            }
-        }
+        $expirationDate  = $entry.ExpirationDate
+        $lastModifiedDate = $entry.LastModifiedDateTime
+        $isUnbounded     = $null -eq $expirationDate
 
         $hasNotes = -not [string]::IsNullOrWhiteSpace([string]$entry.Notes)
         $isActive = $isUnbounded -or ($null -ne $expirationDate -and $expirationDate -gt $now)
@@ -204,17 +180,20 @@ function Test-Assessment-41040 {
 
     $passed       = $false
     $customStatus = $null
+    $partialDataCaveat = if ($failedListTypes.Count -gt 0) {
+        " Results reflect partial data only (failed: $($failedListTypes -join ', ')). Verify permissions and re-run."
+    } else { '' }
 
-    if ($queryErrors.Count -gt 0) {
-        $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ One or more list-type queries failed ($($queryErrors -join ', ')); results below reflect partial data only. Verify permissions and re-run.`n`n%TestResult%"
-    }
-    elseif ($unboundedWithoutNotesCount -gt 0) {
-        $testResultMarkdown = "❌ One or more admin-controlled allow entries are unbounded and have no documented business justification in the Notes field. Each is a permanent filter bypass with no recorded reason for its existence. A threat actor who reuses an allowed sender, registers a lookalike under an allowed domain, or replays an allowed file hash will bypass Microsoft's spam, bulk, and phishing verdicts for as long as the entry remains.`n`n%TestResult%"
+    if ($unboundedWithoutNotesCount -gt 0) {
+        $testResultMarkdown = "❌ One or more admin-controlled allow entries are unbounded and have no documented business justification in the Notes field. Each is a permanent filter bypass with no recorded reason for its existence. A threat actor who reuses an allowed sender, registers a lookalike under an allowed domain, or replays an allowed file hash will bypass Microsoft's spam, bulk, and phishing verdicts for as long as the entry remains.$partialDataCaveat`n`n%TestResult%"
     }
     elseif ($staleAdminControlledCount -gt 0 -or $unboundedAdminControlledCount -gt 0) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Unbounded allow entries exist but all have populated Notes, or stale entries (not modified in more than 90 days) exist. The customer is using the Tenant Allow/Block List responsibly but should confirm that each unbounded entry's business justification is still current and prune any entries that no longer apply.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unbounded allow entries exist but all have populated Notes, or stale entries (not modified in more than 90 days) exist. The customer is using the Tenant Allow/Block List responsibly but should confirm that each unbounded entry's business justification is still current and prune any entries that no longer apply.$partialDataCaveat`n`n%TestResult%"
+    }
+    elseif ($failedListTypes.Count -gt 0) {
+        $customStatus       = 'Investigate'
+        $testResultMarkdown = "⚠️ One or more Tenant Allow/Block List queries failed; results reflect partial data only (failed: $($failedListTypes -join ', ')). Verify permissions and re-run.`n`n%TestResult%"
     }
     else {
         $passed             = $true
@@ -227,7 +206,7 @@ function Test-Assessment-41040 {
     $maxDisplay    = 10
 
     $unboundedRatioDisplay = if ($null -eq $unboundedRatio) { '—' } else { "$unboundedRatio%" }
-    $partialDataNote       = if ($queryErrors.Count -gt 0) { " — ⚠️ partial data (failed: $($queryErrors -join ', '))" } else { '' }
+    $partialDataNote       = if ($failedListTypes.Count -gt 0) { " — ⚠️ partial data (failed: $($failedListTypes -join ', '))" } else { '' }
 
     $driftRows  = "| Unbounded admin-controlled allow entries | $unboundedAdminControlledCount | 0 |`n"
     $driftRows += "| Unbounded entries lacking documented justification | $unboundedWithoutNotesCount | 0 |`n"
@@ -245,7 +224,7 @@ function Test-Assessment-41040 {
 | :----- | ----: | :----- |
 $driftRows
 
-AdvancedDelivery and Submission entries, plus spoofed-sender allows governed separately through Get-TenantAllowBlockListSpoofItems, are represented by the excluded count above and never affect the verdict.
+Excluded entries (AdvancedDelivery, Submission) are represented by the excluded count row above and never affect the verdict.
 "@
 
     $actionSection = ''
