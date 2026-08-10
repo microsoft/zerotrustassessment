@@ -84,7 +84,14 @@ function Test-Assessment-41050 {
 
     foreach ($queryError in @($controlProfileError, $secureScoreError) | Where-Object { $null -ne $_ }) {
         if ((Get-ZtHttpStatusCode -ErrorRecord $queryError) -in (401, 403)) {
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Microsoft Graph returned HTTP 401 or 403; grant SecurityEvents.Read.All and assign Security Reader or Security Administrator for delegated runs.'
+            $params = @{
+                TestId       = '41050'
+                Title        = 'Attack surface reduction (ASR) rules are enabled in block mode'
+                Status       = $false
+                Result       = '⚠️ Microsoft Graph returned HTTP 401 or 403. Verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
             return
         }
     }
