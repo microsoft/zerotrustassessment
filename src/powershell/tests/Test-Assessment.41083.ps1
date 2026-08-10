@@ -64,9 +64,11 @@ function Test-Assessment-41083 {
 
     # The strength is returned inline with each policy, but allowedCombinations is not always expanded.
     $strengthCombinations = @{}
+    $unresolvedStrengths = @{}
     foreach ($policy in $enabledPolicies) {
         $strength = $policy.grantControls.authenticationStrength
-        if ($null -eq $strength -or [string]::IsNullOrWhiteSpace($strength.id) -or $strengthCombinations.ContainsKey($strength.id)) { continue }
+        if ($null -eq $strength -or [string]::IsNullOrWhiteSpace($strength.id)) { continue }
+        if ($strengthCombinations.ContainsKey($strength.id) -or $unresolvedStrengths.ContainsKey($strength.id)) { continue }
 
         $allowedCombinations = @($strength.allowedCombinations | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         if ($allowedCombinations.Count -eq 0) {
@@ -76,6 +78,16 @@ function Test-Assessment-41083 {
             }
             catch {
                 Write-PSFMessage "Failed to retrieve authentication strength $($strength.id): $_" -Tag Test -Level Warning
+                # A failed lookup must not be cached as a successfully resolved empty strength.
+                $unresolvedStrengths[$strength.id] = $true
+                continue
+            }
+
+            # Every strength defines at least one combination, so an empty response is unresolved data.
+            if ($allowedCombinations.Count -eq 0) {
+                Write-PSFMessage "Authentication strength $($strength.id) returned no allowed combinations." -Tag Test -Level Warning
+                $unresolvedStrengths[$strength.id] = $true
+                continue
             }
         }
 
@@ -96,10 +108,14 @@ function Test-Assessment-41083 {
         $authenticationStrength = $policy.grantControls.authenticationStrength
         $hasAuthenticationStrength = $null -ne $authenticationStrength -and -not [string]::IsNullOrWhiteSpace($authenticationStrength.id)
         $isPhishingResistant = $false
+        $isStrengthUnresolved = $false
 
         if ($hasAuthenticationStrength) {
             if ($authenticationStrength.id -eq $phishingResistantStrengthId) {
                 $isPhishingResistant = $true
+            }
+            elseif ($unresolvedStrengths.ContainsKey($authenticationStrength.id)) {
+                $isStrengthUnresolved = $true
             }
             else {
                 $allowedCombinations = @($strengthCombinations[$authenticationStrength.id])
@@ -115,8 +131,17 @@ function Test-Assessment-41083 {
 
         $builtInControls = @($policy.grantControls.builtInControls | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 
-        # With an OR operator alongside other controls the grant can be satisfied without the strength.
-        $strengthAlwaysRequired = $builtInControls.Count -eq 0 -or $policy.grantControls.operator -eq 'AND'
+        # Every grant control collection shares the same operator, so an OR alongside any of them
+        # lets the grant be satisfied without the authentication strength.
+        $alternativeGrantControls = @(
+            @(
+                $policy.grantControls.builtInControls
+                $policy.grantControls.customAuthenticationFactors
+                $policy.grantControls.termsOfUse
+            ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        )
+
+        $strengthAlwaysRequired = $alternativeGrantControls.Count -eq 0 -or $policy.grantControls.operator -eq 'AND'
 
         [PSCustomObject]@{
             PolicyDisplayName      = $policy.displayName
@@ -125,11 +150,12 @@ function Test-Assessment-41083 {
             SignInRiskLevels       = if ($signInRiskLevels.Count -gt 0) { $signInRiskLevels -join ', ' } else { 'None' }
             UserRiskLevels         = if ($userRiskLevels.Count -gt 0) { $userRiskLevels -join ', ' } else { 'None' }
             AuthenticationStrength = $strengthName
-            PhishingResistant      = if ($isPhishingResistant) { 'Yes' } else { 'No' }
+            PhishingResistant      = if ($isStrengthUnresolved) { 'Unknown' } elseif ($isPhishingResistant) { 'Yes' } else { 'No' }
             BuiltInControls        = if ($builtInControls.Count -gt 0) { $builtInControls -join ', ' } else { 'None' }
             RequiresMfaControl     = $builtInControls -contains 'mfa'
             HasRiskCondition       = $hasRiskCondition
             IsPhishingResistant    = $isPhishingResistant
+            IsStrengthUnresolved   = $isStrengthUnresolved
             Matches                = $hasRiskCondition -and $isPhishingResistant -and $strengthAlwaysRequired
         }
     }
@@ -138,11 +164,17 @@ function Test-Assessment-41083 {
     $riskPolicies = @($policyResults | Where-Object HasRiskCondition)
     $matchingPolicies = @($riskPolicies | Where-Object Matches)
     $mfaOnlyRiskPolicies = @($riskPolicies | Where-Object { -not $_.IsPhishingResistant -and $_.RequiresMfaControl })
+    $unresolvedRiskPolicies = @($riskPolicies | Where-Object IsStrengthUnresolved)
 
     $passed = $false
+    $customStatus = $null
     if ($matchingPolicies.Count -gt 0) {
         $passed = $true
         $testResultMarkdown = "✅ At least one enabled Conditional Access policy combines an identity risk condition with a phishing-resistant authentication strength grant control, so a step-up challenge raised by a risky in-session action is enforced.`n`n%TestResult%"
+    }
+    elseif ($unresolvedRiskPolicies.Count -gt 0) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ The allowed combinations of the custom authentication strength referenced by at least one identity risk policy could not be retrieved from Microsoft Graph, so the assessment cannot confirm whether step-up authentication is phishing-resistant. Verify connectivity and permissions, then re-run the assessment.`n`n%TestResult%"
     }
     elseif ($mfaOnlyRiskPolicies.Count -gt 0) {
         $testResultMarkdown = "❌ Enabled Conditional Access policies use an identity risk condition but grant access with the multifactor authentication built-in control instead of a phishing-resistant authentication strength. Upgrade them to the built-in Phishing-resistant MFA strength, or to a custom strength whose allowed combinations only use FIDO2, certificate-based authentication (multifactor), or Windows Hello for Business.`n`n%TestResult%"
@@ -170,7 +202,7 @@ function Test-Assessment-41083 {
             $authStrength = Get-SafeMarkdown -Text $policy.AuthenticationStrength
             $phishingResistant = Get-SafeMarkdown -Text $policy.PhishingResistant
             $builtInControls = Get-SafeMarkdown -Text $policy.BuiltInControls
-            $status = if ($policy.Matches) { '✅ Pass' } else { '❌ Fail' }
+            $status = if ($policy.Matches) { '✅ Pass' } elseif ($policy.IsStrengthUnresolved) { '⚠️ Unknown' } else { '❌ Fail' }
             $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $phishingResistant | $builtInControls | $status |`n"
         }
 
@@ -201,5 +233,6 @@ function Test-Assessment-41083 {
         Status = $passed
         Result = $testResultMarkdown
     }
+    if ($null -ne $customStatus) { $params.CustomStatus = $customStatus }
     Add-ZtTestResultDetail @params
 }
