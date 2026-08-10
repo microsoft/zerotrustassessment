@@ -205,12 +205,15 @@ function Test-Assessment-41040 {
     $tablPortalUrl = 'https://security.microsoft.com/tenantAllowBlockList'
     $maxDisplay    = 10
 
+    $unboundedCountDisplay = if ($unboundedAdminControlledCount -gt 0) { "⚠️ $unboundedAdminControlledCount" } else { '0' }
+    $undocumentedCountDisplay = if ($unboundedWithoutNotesCount -gt 0) { "❌ $unboundedWithoutNotesCount" } else { '0' }
+    $staleCountDisplay = if ($staleAdminControlledCount -gt 0) { "⚠️ $staleAdminControlledCount" } else { '0' }
     $unboundedRatioDisplay = if ($null -eq $unboundedRatio) { '—' } else { "$unboundedRatio%" }
-    $partialDataNote       = if ($failedListTypes.Count -gt 0) { " — ⚠️ partial data (failed: $($failedListTypes -join ', '))" } else { '' }
+    $partialDataNote = if ($failedListTypes.Count -gt 0) { " — ⚠️ partial data (failed: $($failedListTypes -join ', '))" } else { '' }
 
-    $driftRows  = "| Unbounded admin-controlled allow entries | $unboundedAdminControlledCount | 0 |`n"
-    $driftRows += "| Unbounded entries lacking documented justification | $unboundedWithoutNotesCount | 0 |`n"
-    $driftRows += "| Stale allow entries (last modified >90 days) | $staleAdminControlledCount | 0 |`n"
+    $driftRows  = "| Unbounded admin-controlled allow entries | $unboundedCountDisplay | 0 |`n"
+    $driftRows += "| Unbounded entries lacking documented justification | $undocumentedCountDisplay | 0 |`n"
+    $driftRows += "| Stale allow entries (last modified >90 days) | $staleCountDisplay | 0 |`n"
     $driftRows += "| Unbounded ratio | $unboundedRatioDisplay | <5% (informational) |`n"
     $driftRows += "| Total allow entries (all categories) | $totalAllowCount | — |`n"
     $driftRows += "| Total block entries (not evaluated) | $totalBlockCount | — |`n"
