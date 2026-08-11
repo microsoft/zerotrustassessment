@@ -257,7 +257,7 @@ function Test-Assessment-41203 {
     foreach ($result in $displayResults) {
         $subLink       = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
         $sentinelId    = "/subscriptions/$($result.SubscriptionId)/resourcegroups/$($result.ResourceGroup)/providers/microsoft.securityinsightsarg/sentinel/$($result.WorkspaceName)"
-        $connectorLink = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/dataConnectors/id/$($sentinelId -replace '/', '%2F')"
+        $connectorLink = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/DataConnectors/id/$($sentinelId -replace '/', '%2F')"
         $subMd         = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd   = "[$(Get-SafeMarkdown $result.WorkspaceName)]($connectorLink)"
         $definitionsMd = if ($null -eq $result.CustomDefinitionCount) { '—' } else { $result.CustomDefinitionCount }
