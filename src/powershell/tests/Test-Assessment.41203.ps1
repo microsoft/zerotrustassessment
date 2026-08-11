@@ -155,7 +155,7 @@ function Test-Assessment-41203 {
         else {
             # Definition publishers let a connector that omits connectorUiConfig.publisher still be classified.
             $definitionPublishers = @{}
-            foreach ($definition in @($rawDefinitions)) {
+            foreach ($definition in $rawDefinitions) {
                 $definitionPublishers[$definition.name] = $definition.properties.connectorUiConfig.publisher
             }
 
