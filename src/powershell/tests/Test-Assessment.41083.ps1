@@ -156,6 +156,7 @@ function Test-Assessment-41083 {
             HasRiskCondition       = $hasRiskCondition
             IsPhishingResistant    = $isPhishingResistant
             IsStrengthUnresolved   = $isStrengthUnresolved
+            StrengthAlwaysRequired = $strengthAlwaysRequired
             Matches                = $hasRiskCondition -and $isPhishingResistant -and $strengthAlwaysRequired
         }
     }
@@ -164,7 +165,8 @@ function Test-Assessment-41083 {
     $riskPolicies = @($policyResults | Where-Object HasRiskCondition)
     $matchingPolicies = @($riskPolicies | Where-Object Matches)
     $mfaOnlyRiskPolicies = @($riskPolicies | Where-Object { -not $_.IsPhishingResistant -and $_.RequiresMfaControl })
-    $unresolvedRiskPolicies = @($riskPolicies | Where-Object IsStrengthUnresolved)
+    # An unresolved strength only matters when no alternative grant control already satisfies the policy.
+    $unresolvedRiskPolicies = @($riskPolicies | Where-Object { $_.IsStrengthUnresolved -and $_.StrengthAlwaysRequired })
 
     $passed = $false
     $customStatus = $null
@@ -202,7 +204,7 @@ function Test-Assessment-41083 {
             $authStrength = Get-SafeMarkdown -Text $policy.AuthenticationStrength
             $phishingResistant = Get-SafeMarkdown -Text $policy.PhishingResistant
             $builtInControls = Get-SafeMarkdown -Text $policy.BuiltInControls
-            $status = if ($policy.Matches) { '✅ Pass' } elseif ($policy.IsStrengthUnresolved) { '⚠️ Unknown' } else { '❌ Fail' }
+            $status = if ($policy.Matches) { '✅ Pass' } elseif ($policy.IsStrengthUnresolved -and $policy.StrengthAlwaysRequired) { '⚠️ Unknown' } else { '❌ Fail' }
             $tableRows += "| $policyName | $($policy.State) | $signInRisk | $userRisk | $authStrength | $phishingResistant | $builtInControls | $status |`n"
         }
 
