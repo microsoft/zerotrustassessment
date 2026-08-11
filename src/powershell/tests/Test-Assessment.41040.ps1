@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Tenant Allow/Block List entries are scoped, time-bounded, and free of broad allow rules.
+    Tenant Allow/Block List allow entries are reviewed for expiration, justification, and staleness.
 
 .NOTES
     Test ID: 41040
@@ -22,7 +22,7 @@ function Test-Assessment-41040 {
         SfiPillar = 'Protect tenants and isolate production systems',
         TenantType = ('Workforce'),
         TestId = 41040,
-        Title = 'Tenant Allow/Block List entries are scoped, time-bounded, and free of broad allow rules',
+        Title = 'Tenant Allow/Block List allow entries are reviewed for expiration, justification, and staleness',
         UserImpact = 'Low'
     )]
     [CmdletBinding()]
@@ -107,7 +107,7 @@ function Test-Assessment-41040 {
     if ($failedListTypes.Count -eq 4) {
         $params = @{
             TestId       = '41040'
-            Title        = 'Tenant Allow/Block List entries are scoped, time-bounded, and free of broad allow rules'
+            Title        = 'Tenant Allow/Block List allow entries are reviewed for expiration, justification, and staleness'
             Status       = $false
             Result       = '⚠️ All four Tenant Allow/Block List queries failed (Sender, Url, FileHash, and IP). Verify the assessment account has Security Reader or View-Only Configuration access via Exchange Online RBAC and that the ExchangeOnline connection is active.'
             CustomStatus = 'Investigate'
@@ -302,7 +302,7 @@ $inventoryLink
 
     $params = @{
         TestId = '41040'
-        Title  = 'Tenant Allow/Block List entries are scoped, time-bounded, and free of broad allow rules'
+        Title  = 'Tenant Allow/Block List allow entries are reviewed for expiration, justification, and staleness'
         Status = $passed
         Result = $testResultMarkdown
     }
