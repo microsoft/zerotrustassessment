@@ -77,19 +77,21 @@ function Test-Assessment-41203 {
         return
     }
 
-    $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces  = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces  = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    # An onboarding check that failed unexpectedly is unresolved data, not a confirmed 'not onboarded'.
+    $unresolvedWorkspaces = @($checkableWorkspaces | Where-Object { $_.OnboardingError })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
+        if ($forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
             # Auth errors mean we cannot confirm whether those workspaces have Sentinel onboarded;
             # a passing workspace may exist among the inaccessible ones.
             $params = @{
                 TestId       = '41203'
                 Title        = $testTitle
                 Status       = $false
-                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions or an unexpected error when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
@@ -111,7 +113,8 @@ function Test-Assessment-41203 {
         Write-ZtProgress -Activity $activity -Status "Fetching data connectors for workspace '$($workspace.WorkspaceName)' in '$($workspace.SubscriptionName)'"
 
         try {
-            $connectorsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=2024-09-01" -ErrorAction Stop)
+            # api-version 2024-09-01 rejects the GenericUI/APIPolling kinds; only the preview version returns them.
+            $connectorsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=2021-03-01-preview" -ErrorAction Stop)
         }
         catch {
             $connectorsByWorkspace[$workspace.WorkspaceId] = $null
@@ -145,14 +148,14 @@ function Test-Assessment-41203 {
         $customDefinitions  = @()
         $rowStatus          = 'Fail'
 
-        if ($null -eq $rawConnectors -or $null -eq $rawDefinitions) {
+        if ($null -eq $rawConnectors) {
             # API error for this workspace — cannot determine connector state.
             $rowStatus = 'Investigate'
         }
         else {
             # Definition publishers let a connector that omits connectorUiConfig.publisher still be classified.
             $definitionPublishers = @{}
-            foreach ($definition in $rawDefinitions) {
+            foreach ($definition in @($rawDefinitions)) {
                 $definitionPublishers[$definition.name] = $definition.properties.connectorUiConfig.publisher
             }
 
@@ -182,6 +185,10 @@ function Test-Assessment-41203 {
                 # Codeless connectors exist but the API response carries no publisher to classify them by.
                 'Investigate'
             }
+            elseif ($null -eq $rawDefinitions) {
+                # Definitions only matter once a custom connector has not already been confirmed.
+                'Investigate'
+            }
             else {
                 'Fail'
             }
@@ -207,7 +214,7 @@ function Test-Assessment-41203 {
     $passed       = $passedItems.Count -gt 0
     $customStatus = $null
 
-    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0)) {
+    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0)) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ The codeless connector inventory could not be classified as customer-authored versus partner-authored from the API response.`n`n%TestResult%"
     }
