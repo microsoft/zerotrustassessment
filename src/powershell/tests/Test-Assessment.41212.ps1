@@ -196,9 +196,9 @@ function Test-Assessment-41212 {
     $passed       = $passedItems.Count -gt 0
     $customStatus = $null
 
-    if ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
+    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0)) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Hunting capability could not be confirmed for all workspaces — one or more workspaces had insufficient permissions on the Sentinel onboarding check, or the saved hunting queries or bookmarks API returned an unexpected response. Re-run after verifying Microsoft Sentinel Reader access on each affected workspace.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Hunting capability could not be confirmed — one or more workspaces had insufficient permissions on the Sentinel onboarding check, or the saved hunting queries or bookmarks API returned an unexpected response. Re-run after verifying Microsoft Sentinel Reader access on each affected workspace.`n`n%TestResult%"
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Hunting capability is operationalized in the Sentinel workspace.`n`n%TestResult%"
