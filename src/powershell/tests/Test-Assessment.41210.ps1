@@ -144,7 +144,8 @@ function Test-Assessment-41210 {
         try {
             $rawMetrics = @(Invoke-ZtAzureRequest -Path $tiMetricsPath -ErrorAction Stop)
             # A non-empty response must contain properties.sourceMetrics; absence is an unexpected shape.
-            $schemaOk = ($rawMetrics.Count -eq 0) -or ($null -ne $rawMetrics[0].properties -and $null -ne $rawMetrics[0].properties.sourceMetrics)
+            # Reject the entire response if any item is missing the documented structure.
+            $schemaOk = ($rawMetrics.Count -eq 0) -or (($rawMetrics | Where-Object { $null -eq $_.properties -or $null -eq $_.properties.sourceMetrics }).Count -eq 0)
             if ($schemaOk) {
                 $metricsByWorkspace[$workspace.WorkspaceId]   = $rawMetrics
                 $metricsOkByWorkspace[$workspace.WorkspaceId] = $true
