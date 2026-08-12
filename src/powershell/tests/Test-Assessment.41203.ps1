@@ -14,7 +14,7 @@ function Test-Assessment-41203 {
     [ZtTest(
         Category = 'Security information and event management',
         ImplementationCost = 'High',
-        MinimumLicense = ('Consumption-based: Microsoft Sentinel'),
+        CompatibleLicense = ('Consumption-based: Microsoft Sentinel'),
         Pillar = 'SecOps',
         RiskLevel = 'Low',
         Service = ('Azure'),
@@ -33,6 +33,12 @@ function Test-Assessment-41203 {
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking custom data connectors in Microsoft Sentinel workspaces'
+    $azContext = Get-AzContext -ErrorAction SilentlyContinue
+    $tenantId = if ($azContext) { [string]$azContext.Tenant.Id } else { $null }
+    $customerPublisher = if ($tenantId) { Get-ZtTenantName -TenantId $tenantId } else { $null }
+    if ($customerPublisher -eq $tenantId) {
+        $customerPublisher = $null
+    }
 
     # Q1 + Q2 + onboarding check via shared helper.
     # Returns 'Forbidden'        on ARG 401/403 (Investigate).
@@ -136,7 +142,7 @@ function Test-Assessment-41203 {
 
     # Codeless / custom-builder connector kinds per KnownDataConnectorKind.
     $codelessKinds = @('GenericUI', 'APIPolling')
-    # Publishers that identify a first-party connector rather than a customer-authored one.
+    # A non-Microsoft publisher is not sufficient evidence of customer authorship because it may be a partner.
     $builtInPublishers = @('Microsoft', 'Microsoft Corporation')
 
     $workspaceResults = foreach ($workspace in $onboardedWorkspaces) {
@@ -159,7 +165,9 @@ function Test-Assessment-41203 {
                 $definitionPublishers[$definition.name] = $definition.properties.connectorUiConfig.publisher
             }
 
-            $customDefinitions = @($rawDefinitions | Where-Object { $_.properties.connectorUiConfig.publisher -and $builtInPublishers -notcontains $_.properties.connectorUiConfig.publisher })
+            $customDefinitions = @($rawDefinitions | Where-Object {
+                $customerPublisher -and $_.properties.connectorUiConfig.publisher -eq $customerPublisher
+            })
 
             $codelessConnectors = foreach ($connector in @($rawConnectors | Where-Object { $codelessKinds -contains $_.kind })) {
                 $publisher = $connector.properties.connectorUiConfig.publisher
@@ -172,21 +180,22 @@ function Test-Assessment-41203 {
                     Title          = if ($connector.properties.connectorUiConfig.title) { $connector.properties.connectorUiConfig.title } else { $connector.name }
                     Publisher      = $publisher
                     DefinitionName = $definitionName
-                    IsCustom       = -not [string]::IsNullOrWhiteSpace($publisher) -and $builtInPublishers -notcontains $publisher
+                    IsCustom       = $customerPublisher -and $publisher -eq $customerPublisher
+                    IsUnresolved   = [string]::IsNullOrWhiteSpace($publisher) -or ($builtInPublishers -notcontains $publisher -and $publisher -ne $customerPublisher)
                 }
             }
             $codelessConnectors = @($codelessConnectors)
             $customConnectors   = @($codelessConnectors | Where-Object IsCustom)
 
-            $rowStatus = if ($customConnectors.Count -ge 1) {
-                'Pass'
-            }
-            elseif (@($codelessConnectors | Where-Object { [string]::IsNullOrWhiteSpace($_.Publisher) }).Count -gt 0) {
-                # Codeless connectors exist but the API response carries no publisher to classify them by.
+            $rowStatus = if ($null -eq $rawDefinitions) {
+                # Q2 errors make the workspace unresolved even when Q1 contains an apparent custom connector.
                 'Investigate'
             }
-            elseif ($null -eq $rawDefinitions) {
-                # Definitions only matter once a custom connector has not already been confirmed.
+            elseif ($customConnectors.Count -ge 1) {
+                'Pass'
+            }
+            elseif (@($codelessConnectors | Where-Object IsUnresolved).Count -gt 0) {
+                # Missing or third-party publisher data cannot establish customer authorship.
                 'Investigate'
             }
             else {
@@ -208,13 +217,29 @@ function Test-Assessment-41203 {
     }
     $workspaceResults = @($workspaceResults)
 
+    $unresolvedWorkspaceResults = foreach ($workspace in @($forbiddenWorkspaces) + @($unresolvedWorkspaces)) {
+        [PSCustomObject]@{
+            SubscriptionName      = $workspace.SubscriptionName
+            SubscriptionId        = $workspace.SubscriptionId
+            WorkspaceName         = $workspace.WorkspaceName
+            ResourceGroup         = $workspace.ResourceGroup
+            WorkspaceId           = $workspace.WorkspaceId
+            CodelessConnectors    = @()
+            CustomConnectorCount  = 0
+            CustomDefinitionCount = $null
+            RowStatus             = 'Investigate'
+        }
+    }
+    $workspaceResults = @($workspaceResults) + @($unresolvedWorkspaceResults)
+
     $passedItems      = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Pass' })
     $investigateItems = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Investigate' })
 
-    $passed       = $passedItems.Count -gt 0
+    $hasUnresolved = $investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0
+    $passed       = -not $hasUnresolved -and $passedItems.Count -gt 0
     $customStatus = $null
 
-    if (-not $passed -and ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0)) {
+    if ($hasUnresolved) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ The codeless connector inventory could not be classified as customer-authored versus partner-authored from the API response.`n`n%TestResult%"
     }
@@ -229,7 +254,6 @@ function Test-Assessment-41203 {
 
     #region Report Generation
 
-    $azContext          = Get-AzContext -ErrorAction SilentlyContinue
     $portalHost         = if ($azContext -and $azContext.Environment.Name -eq 'AzureUSGovernment') { 'https://portal.azure.us' } else { 'https://portal.azure.com' }
     $portalSentinelLink = "$portalHost/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel"
     $tableTitle         = 'Custom data connectors per Sentinel workspace'
