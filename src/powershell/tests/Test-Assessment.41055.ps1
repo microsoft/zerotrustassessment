@@ -49,7 +49,7 @@ function Test-Assessment-41055 {
 
     $mdatpControlProfiles = @()
     try {
-        $controlProfileFilter = "service eq 'MDATP' and (id eq 'scid_2012' or id eq 'scid_91' or id eq 'scid_92' or id eq 'scid_89' or id eq 'scid_90' or id eq 'scid_5093')"
+        $controlProfileFilter = "service eq 'MDATP' and (id eq 'scid_2012' or id eq 'scid_91' or id eq 'scid_92' or id eq 'scid_89' or id eq 'scid_90' or id eq 'scid_5093' or id eq 'scid_6093')"
         $mdatpControlProfiles = @(Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -Filter $controlProfileFilter -ApiVersion beta -ErrorAction Stop)
     }
     catch {
