@@ -33,44 +33,39 @@ function Test-Assessment-41036 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     # The Attack Simulation Training Graph API is published as Global-only.
-    # National cloud (GCC High, DoD) tenants are silently skipped.
+    # National cloud (GCC High, DoD) tenants are skipped.
     if ((Get-MgContext).Environment -ne 'Global') {
         Write-PSFMessage 'The Attack Simulation Training Graph API is not available outside the Global cloud — skipping.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable `
+            -Result 'The Attack Simulation Training Graph API is only available in the Global cloud. This check is skipped for national cloud tenants (GCC High, DoD, and other sovereign environments).'
         return
     }
 
     $activity    = 'Checking Attack Simulation Training configuration'
     $testTitle   = 'Attack Simulation Training is configured and a baseline simulation has been run in the last 12 months'
-    $windowStart = (Get-Date).AddDays(-365).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $cutoffDate  = (Get-Date).ToUniversalTime().AddDays(-365)
 
-    # Q1: Enumerate simulations launched in the last 365 days.
-    Write-ZtProgress -Activity $activity -Status 'Querying attack simulations in the last 12 months'
-    $simulations      = @()
+    # Q1: Enumerate all attack simulations and filter in memory.
+    # Note: the beta API does not reliably support $filter on launchDateTime — fetching
+    # all simulations and applying the 365-day window in memory avoids silent empty results.
+    # -DisablePaging issues a single request; items are unwrapped from the .value property.
+    Write-ZtProgress -Activity $activity -Status 'Querying attack simulations'
+    $allSimulations   = @()
     $simulationsError = $null
     try {
-        $simulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion beta `
-            -Filter "launchDateTime ge $windowStart" -ErrorAction Stop)
+        $rawSimulations = Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion beta -DisablePaging -ErrorAction Stop
+        # Guard against $null response or missing .value to avoid @($null) producing a single-null-element array.
+        $allSimulations = if ($null -ne $rawSimulations -and $null -ne $rawSimulations.value) { @($rawSimulations.value) } else { @() }
     }
     catch {
         $simulationsError = $_
-        Write-PSFMessage "Failed to query attack simulations (filtered): $_" -Tag Test -Level Warning
+        Write-PSFMessage "Failed to query attack simulations: $_" -Tag Test -Level Warning
     }
 
-    # If the filtered query succeeded but returned zero results, probe without a filter to
-    # distinguish "no simulations in the window" from "MDO P2 not licensed".
-    $probeSimulations = $null
-    $probeError       = $null
-    if (-not $simulationsError -and $simulations.Count -eq 0) {
-        Write-ZtProgress -Activity $activity -Status 'Probing attack simulation API for any simulations'
-        try {
-            $probeSimulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -ApiVersion beta `
-                -Top 1 -DisablePaging -ErrorAction Stop)
-        }
-        catch {
-            $probeError = $_
-            Write-PSFMessage "Probe query for attack simulations failed: $_" -Tag Test -Level Warning
-        }
-    }
+    # Restrict the working set to simulations launched within the 365-day assessment window.
+    $simulations = @($allSimulations | Where-Object {
+        $null -ne $_.launchDateTime -and [datetime]$_.launchDateTime -ge $cutoffDate
+    })
 
     # Q2: Enumerate simulation automations to verify an ongoing program.
     Write-ZtProgress -Activity $activity -Status 'Querying simulation automations'
@@ -90,98 +85,54 @@ function Test-Assessment-41036 {
     $customStatus = $null
 
     # Handle Q1 error.
+    # Per spec: authorization errors (HTTP 401/403) signal MDO P2 is not licensed → Skip.
+    # Any other error means the state cannot be determined → Investigate.
     if ($simulationsError) {
         $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $simulationsError
         if ($httpStatus -in 401, 403) {
-            $q1ErrorMessage = "Microsoft Graph returned HTTP $httpStatus when querying attack simulations. Ensure the **AttackSimulation.Read.All** permission has been consented and re-run."
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable `
+                -Result "The Attack Simulation Training API returned an authorization error (HTTP $httpStatus). Microsoft Defender for Office 365 Plan 2 (THREAT_INTELLIGENCE) is likely not licensed for this tenant."
         }
         else {
-            $q1ErrorMessage = "Microsoft Graph returned an unexpected error while querying attack simulations. Ensure the assessment account has **AttackSimulation.Read.All** permission and re-run."
-        }
-        $params = @{
-            TestId       = '41036'
-            Title        = $testTitle
-            Status       = $false
-            Result       = "⚠️ $q1ErrorMessage`n`n%TestResult%"
-            CustomStatus = 'Investigate'
-        }
-        Add-ZtTestResultDetail @params
-        return
-    }
-
-    # If the filtered query returned zero results, use the probe to determine whether the API is
-    # functional. Zero results on both the filtered and unfiltered calls indicates the tenant is
-    # not licensed for MDO P2 or Attack Simulation Training is not provisioned.
-    if ($simulations.Count -eq 0) {
-        if ($null -ne $probeError) {
-            $probeStatus = Get-ZtHttpStatusCode -ErrorRecord $probeError
-            if ($probeStatus -in 401, 403) {
-                # Auth error on probe — spec treats authorization error as "not licensed"; Skip.
-                Add-ZtTestResultDetail -SkippedBecause NotApplicable `
-                    -Result 'The Attack Simulation Training API returned an authorization error. Microsoft Defender for Office 365 Plan 2 (THREAT_INTELLIGENCE) is likely not licensed or Attack Simulation Training is not yet provisioned for this tenant.'
-                return
-            }
-            # Transient or unexpected probe error — cannot determine license status; return Investigate.
             $params = @{
                 TestId       = '41036'
                 Title        = $testTitle
                 Status       = $false
-                Result       = "⚠️ The filtered simulation query returned no results and a follow-up probe also failed unexpectedly (HTTP $probeStatus). Re-run the assessment; if the issue persists verify **AttackSimulation.Read.All** is consented.`n`n%TestResult%"
+                Result       = "⚠️ Microsoft Graph returned an unexpected error (HTTP $httpStatus) while querying attack simulations. Ensure the assessment account has **AttackSimulation.Read.All** permission and re-run."
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
-            return
         }
-        if ($probeSimulations.Count -eq 0) {
-            # Both filtered and unfiltered queries returned empty — likely not licensed for MDO P2.
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable `
-                -Result 'The Attack Simulation Training API returned no simulations. Microsoft Defender for Office 365 Plan 2 (THREAT_INTELLIGENCE) is likely not licensed or Attack Simulation Training is not yet provisioned for this tenant.'
-            return
-        }
-        # Probe returned data — the API is reachable but no simulations were launched in the last 12 months.
+        return
     }
 
     # Identify simulations that completed successfully within the 365-day window.
-    $cutoffDate = (Get-Date).AddDays(-365)
     $succeededInWindow = @($simulations | Where-Object {
         $_.status -eq 'succeeded' -and
         $null -ne $_.completionDateTime -and
         [datetime]$_.completionDateTime -ge $cutoffDate
     })
 
-    # Determine whether all returned simulations are in non-operational states.
-    # Spec lists draft, scheduled, failed, canceled; 'excluded' is added as it is also a
-    # terminal non-operational simulationStatus value per the Graph resource type definition.
-    $nonOperationalStatuses = @('draft', 'scheduled', 'failed', 'canceled', 'excluded')
-    $hasOperationalSimulation = ($simulations | Where-Object { $_.status -notin $nonOperationalStatuses } | Measure-Object).Count -gt 0
-    $allNonOperational = $simulations.Count -gt 0 -and -not $hasOperationalSimulation
-
     # Check whether at least one simulation automation is active.
     $hasActiveAutomation = (-not $automationsError) -and
         (($automations | Where-Object { $_.status -eq 'active' } | Measure-Object).Count -gt 0)
 
+    # Evaluate in precedence order: Pass → Investigate → Fail.
+    # Per spec (PR #1073): an empty authorized result is never Skipped — Skip is reserved for
+    # auth errors only. A licensed tenant with zero simulations in the window must Fail.
     if ($succeededInWindow.Count -gt 0 -and $hasActiveAutomation) {
         $passed             = $true
         $testResultMarkdown = "✅ At least one Attack Simulation Training campaign has completed in the last 12 months and a simulation automation is active.`n`n%TestResult%"
     }
-    elseif ($succeededInWindow.Count -gt 0) {
-        # Completed simulation exists but no active automation found.
+    elseif ($simulations.Count -gt 0) {
+        # Simulations exist in the window but Pass not met — either a baseline succeeded but no
+        # active automation, or no simulation succeeded and all are in non-operational statuses.
         $passed       = $false
         $customStatus = 'Investigate'
-        $automationNote = if ($automationsError) {
-            "Simulation automations could not be queried; verify **AttackSimulation.Read.All** is consented."
-        }
-        else {
-            "No active simulation automation was found; confirm an ongoing simulation program is configured."
-        }
-        $testResultMarkdown = "⚠️ A completed Attack Simulation Training campaign exists in the last 12 months but no active simulation automation was found. $automationNote Review [Attack simulation training](https://security.microsoft.com/attacksimulator) to confirm the program is ongoing.`n`n%TestResult%"
-    }
-    elseif ($allNonOperational) {
-        $passed       = $false
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Simulations exist but are all in **draft**, **scheduled**, **failed**, or **cancelled** status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Simulations exist but an active program could not be confirmed — either a baseline simulation succeeded but no simulation automation is **active**, or no simulation succeeded and all are in **draft**, **scheduled**, **failed**, or **canceled** status; manual review is required to confirm whether the program is operating. Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n%TestResult%"
     }
     else {
+        # Authorized call returned zero simulations in the 365-day window.
         $passed             = $false
         $testResultMarkdown = "❌ No Attack Simulation Training campaign has completed in the last 12 months; user susceptibility to phishing is unmeasured.`n`n%TestResult%"
     }
@@ -207,8 +158,8 @@ function Test-Assessment-41036 {
         $typeMd         = Get-SafeMarkdown -Text $sim.attackType
         $platformMd     = Get-SafeMarkdown -Text $sim.payloadDeliveryPlatform
         $statusMd       = Get-SafeMarkdown -Text $sim.status
-        $launchDateMd   = if ($sim.launchDateTime)      { Get-FormattedDate -DateString $sim.launchDateTime }      else { '—' }
-        $completeDateMd = if ($sim.completionDateTime)  { Get-FormattedDate -DateString $sim.completionDateTime }  else { '—' }
+        $launchDateMd   = if ($sim.launchDateTime)      { Get-FormattedDate -DateString ([datetime]$sim.launchDateTime).ToString('o') }      else { '—' }
+        $completeDateMd = if ($sim.completionDateTime)  { Get-FormattedDate -DateString ([datetime]$sim.completionDateTime).ToString('o') }  else { '—' }
         $automatedMd    = if ($sim.isAutomated -eq $true) { 'Yes' } else { 'No' }
         $tableRows += "| $nameMd | $techniqueMd | $typeMd | $platformMd | $statusMd | $launchDateMd | $completeDateMd | $automatedMd |`n"
     }
