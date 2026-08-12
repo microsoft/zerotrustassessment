@@ -14,7 +14,7 @@ function Test-Assessment-41203 {
     [ZtTest(
         Category = 'Security information and event management',
         ImplementationCost = 'High',
-        CompatibleLicense = ('Consumption-based: Microsoft Sentinel'),
+        MinimumLicense = ('Consumption-based: Microsoft Sentinel'),
         Pillar = 'SecOps',
         RiskLevel = 'Low',
         Service = ('Azure'),
