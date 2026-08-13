@@ -44,8 +44,8 @@ function Test-Assessment-41217 {
     # Q1 + Q2 + onboarding check via shared helper.
     # Returns 'Forbidden'        on ARG 401/403 (Investigate).
     # Returns $null              on unexpected ARG failure (Investigate).
-    # Returns 'NoSubscriptions'  when no enabled subscriptions are accessible (Skip).
-    # Returns 'NoWorkspaces'     when no Log Analytics workspaces exist in scope (Skip).
+    # Returns 'NoSubscriptions'  when no enabled subscriptions are accessible (Investigate).
+    # Returns 'NoWorkspaces'     when no Log Analytics workspaces exist in scope (Investigate).
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
 
     if ($null -eq $allWorkspaces) {
@@ -73,14 +73,26 @@ function Test-Assessment-41217 {
     }
 
     if ($allWorkspaces -eq 'NoSubscriptions') {
-        Write-PSFMessage 'No enabled subscriptions found — skipping Sentinel table-plan check.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        $params = @{
+            TestId       = '41217'
+            Title        = 'Security tables are provisioned on the appropriate Log Analytics storage plan (Analytics, Basic, or Auxiliary)'
+            Status       = $false
+            Result       = '⚠️ The check could not evaluate any table — no Sentinel-onboarded workspace was found, no detection-critical table was present, a plan value was indeterminate, or a query failed.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
     if ($allWorkspaces -eq 'NoWorkspaces') {
-        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Sentinel table-plan check.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        $params = @{
+            TestId       = '41217'
+            Title        = 'Security tables are provisioned on the appropriate Log Analytics storage plan (Analytics, Basic, or Auxiliary)'
+            Status       = $false
+            Result       = '⚠️ The check could not evaluate any table — no Sentinel-onboarded workspace was found, no detection-critical table was present, a plan value was indeterminate, or a query failed.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -101,8 +113,14 @@ function Test-Assessment-41217 {
             Add-ZtTestResultDetail @params
         }
         else {
-            Write-PSFMessage 'No Sentinel-onboarded workspaces found — skipping Sentinel table-plan check.' -Tag Test -Level VeryVerbose
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+            $params = @{
+                TestId       = '41217'
+                Title        = 'Security tables are provisioned on the appropriate Log Analytics storage plan (Analytics, Basic, or Auxiliary)'
+                Status       = $false
+                Result       = '⚠️ The check could not evaluate any table — no Sentinel-onboarded workspace was found, no detection-critical table was present, a plan value was indeterminate, or a query failed.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
         }
         return
     }
@@ -156,7 +174,13 @@ function Test-Assessment-41217 {
                 if ($tableName -in $detectionCriticalTables) {
                     $classification = 'Detection-critical'
                     $expectedPlan   = 'Analytics'
-                    $rowStatus      = if ($actualPlan -eq 'Analytics') { 'Pass' } else { 'Fail' }
+                    # Indeterminate plan (null or unrecognized) must not become a false Fail.
+                    if ($null -eq $actualPlan -or $actualPlan -notin @('Analytics', 'Basic', 'Auxiliary')) {
+                        $rowStatus = 'Investigate'
+                    }
+                    else {
+                        $rowStatus = if ($actualPlan -eq 'Analytics') { 'Pass' } else { 'Fail' }
+                    }
                 }
                 elseif ($tableName -in $highVolumeTables) {
                     $classification = 'High-volume'
@@ -182,16 +206,42 @@ function Test-Assessment-41217 {
             }
         }
 
+        # Add N/A rows for detection-critical tables absent from this workspace (spec: mark N/A, exclude from roll-up).
+        if (-not $wsHasApiError) {
+            $presentTableNames = @($rawTables | Select-Object -ExpandProperty name)
+            foreach ($criticalName in $detectionCriticalTables) {
+                if ($criticalName -notin $presentTableNames) {
+                    [void]$allTableRows.Add([PSCustomObject]@{
+                        SubscriptionName = $workspace.SubscriptionName
+                        SubscriptionId   = $workspace.SubscriptionId
+                        WorkspaceName    = $workspace.WorkspaceName
+                        WorkspaceId      = $workspace.WorkspaceId
+                        ResourceGroup    = $workspace.ResourceGroup
+                        TableName        = $criticalName
+                        Classification   = 'Detection-critical'
+                        ExpectedPlan     = 'Analytics'
+                        ActualPlan       = '—'
+                        RowStatus        = 'NA'
+                    })
+                }
+            }
+        }
+
         # Workspace-level aggregation per spec: Fail > Investigate > Pass.
         # Q3 API error is always Investigate regardless of individual table results.
-        $wsFail        = @($allTableRows | Where-Object { $_.WorkspaceId -eq $workspace.WorkspaceId -and $_.RowStatus -eq 'Fail' })
-        $wsInvestigate = @($allTableRows | Where-Object { $_.WorkspaceId -eq $workspace.WorkspaceId -and $_.RowStatus -eq 'Investigate' })
+        $wsFail              = @($allTableRows | Where-Object { $_.WorkspaceId -eq $workspace.WorkspaceId -and $_.RowStatus -eq 'Fail' })
+        $wsInvestigate       = @($allTableRows | Where-Object { $_.WorkspaceId -eq $workspace.WorkspaceId -and $_.RowStatus -eq 'Investigate' })
+        # Non-NA critical rows: absent (NA) tables are excluded from the aggregation roll-up.
+        $wsCriticalEvaluated = @($allTableRows | Where-Object { $_.WorkspaceId -eq $workspace.WorkspaceId -and $_.Classification -eq 'Detection-critical' -and $_.RowStatus -ne 'NA' })
 
         $wsStatus = if ($wsHasApiError) {
             'Investigate'
         }
         elseif ($wsFail.Count -gt 0) {
             'Fail'
+        }
+        elseif ($wsCriticalEvaluated.Count -eq 0) {
+            'Investigate'  # every detection-critical table was absent — nothing to evaluate
         }
         elseif ($wsInvestigate.Count -gt 0) {
             'Investigate'
@@ -201,13 +251,14 @@ function Test-Assessment-41217 {
         }
 
         [void]$workspaceResults.Add([PSCustomObject]@{
-            SubscriptionName = $workspace.SubscriptionName
-            SubscriptionId   = $workspace.SubscriptionId
-            WorkspaceName    = $workspace.WorkspaceName
-            WorkspaceId      = $workspace.WorkspaceId
-            ResourceGroup    = $workspace.ResourceGroup
-            ApiError         = $wsHasApiError
-            RowStatus        = $wsStatus
+            SubscriptionName    = $workspace.SubscriptionName
+            SubscriptionId      = $workspace.SubscriptionId
+            WorkspaceName       = $workspace.WorkspaceName
+            WorkspaceId         = $workspace.WorkspaceId
+            ResourceGroup       = $workspace.ResourceGroup
+            ApiError            = $wsHasApiError
+            NoEvaluatedCritical = ($wsCriticalEvaluated.Count -eq 0 -and -not $wsHasApiError)
+            RowStatus           = $wsStatus
         })
     }
 
@@ -225,18 +276,20 @@ function Test-Assessment-41217 {
         $testResultMarkdown = "❌ One or more detection-critical tables are on Basic or Auxiliary, which prevents scheduled analytics rules from running against them.`n`n%TestResult%"
     }
     elseif ($tenantInvestigateWs.Count -gt 0) {
-        $customStatus          = 'Investigate'
-        $apiErrorWorkspaces     = @($workspaceResults | Where-Object { $_.ApiError })
-        $costOptimizeWorkspaces = @($workspaceResults | Where-Object { -not $_.ApiError -and $_.RowStatus -eq 'Investigate' })
-        if ($apiErrorWorkspaces.Count -gt 0 -and $costOptimizeWorkspaces.Count -gt 0) {
-            # Both Q3 API errors and high-volume cost-optimization Investigate conditions coexist.
-            $testResultMarkdown = "⚠️ A high-volume table is on Analytics where Basic or Auxiliary may significantly reduce ingest cost without losing required detection capability. Additionally, table plan data could not be read from one or more workspaces — verify Log Analytics Reader access and re-run the assessment.`n`n%TestResult%"
-        }
-        elseif ($apiErrorWorkspaces.Count -gt 0) {
-            $testResultMarkdown = "⚠️ Table plan data could not be read from one or more Sentinel workspaces. Verify Log Analytics Reader access and re-run the assessment.`n`n%TestResult%"
+        $customStatus = 'Investigate'
+        # Evaluability issues: API errors, no detection-critical tables evaluated, or indeterminate plan values.
+        $hasEvaluabilityIssue = (
+            @($workspaceResults | Where-Object { $_.ApiError }).Count -gt 0 -or
+            @($workspaceResults | Where-Object { $_.NoEvaluatedCritical }).Count -gt 0 -or
+            @($allTableRows | Where-Object { $_.Classification -eq 'Detection-critical' -and $_.RowStatus -eq 'Investigate' }).Count -gt 0
+        )
+        $hasCostOptimize = @($allTableRows | Where-Object { $_.Classification -eq 'High-volume' -and $_.RowStatus -eq 'Investigate' }).Count -gt 0
+
+        if ($hasCostOptimize -and -not $hasEvaluabilityIssue) {
+            $testResultMarkdown = "⚠️ A high-volume table is on Analytics where Basic or Auxiliary may significantly reduce ingest cost without losing required detection capability.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "⚠️ A high-volume table is on Analytics where Basic or Auxiliary may significantly reduce ingest cost without losing required detection capability.`n`n%TestResult%"
+            $testResultMarkdown = "⚠️ The check could not evaluate any table — no Sentinel-onboarded workspace was found, no detection-critical table was present, a plan value was indeterminate, or a query failed.`n`n%TestResult%"
         }
     }
     else {
@@ -263,7 +316,7 @@ function Test-Assessment-41217 {
 {2}
 '@
 
-    $statusPriority  = @{ Fail = 0; Investigate = 1; Pass = 2 }
+    $statusPriority  = @{ Fail = 0; Investigate = 1; Pass = 2; NA = 3 }
     $wsSortedResults = @($workspaceResults | Sort-Object { $statusPriority[$_.RowStatus] }, SubscriptionName, WorkspaceName)
 
     $wsTableRows = ''
@@ -313,6 +366,7 @@ function Test-Assessment-41217 {
             'Pass'        { '✅ Pass' }
             'Fail'        { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
+            'NA'          { 'N/A' }
         }
         $tableDetailRows += "| $subMd | $wsMd | $($row.TableName) | $($row.Classification) | $($row.ExpectedPlan) | $($row.ActualPlan) | $rowStatusDisplay |`n"
     }
