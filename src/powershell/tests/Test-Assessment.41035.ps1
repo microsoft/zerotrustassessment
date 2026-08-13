@@ -220,19 +220,14 @@ function Test-Assessment-41035 {
 
     $tableRows  = ''
     $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
-        $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
     $tableRows += "| ReportJunkAddresses | $(& $formatAddresses $policy.ReportJunkAddresses) | non-empty (custom SOC mailbox) | $junkResult |`n"
     $tableRows += "| ReportNotJunkAddresses | $(& $formatAddresses $policy.ReportNotJunkAddresses) | non-empty (custom SOC mailbox) | $notJunkResult |`n"
     $tableRows += "| ReportPhishAddresses | $(& $formatAddresses $policy.ReportPhishAddresses) | non-empty (custom SOC mailbox) | $phishResult |`n"
     $tableRows += "| EnableThirdPartyAddress | $tpEnabledDisp | True (if using non-Microsoft reporter) | $tpResult |`n"
-        $tableRows += "| EnableThirdPartyAddress | $tpEnabledDisp | True (if using non-Microsoft reporter) | $tpResult |`n"
     $tableRows += "| ThirdPartyReportAddresses | $(& $formatAddresses $policy.ThirdPartyReportAddresses) | non-empty (if using non-Microsoft reporter) | $tpAddrResult |`n"
     $tableRows += "| ReportChatMessageEnabled | $(& $formatBool $policy.ReportChatMessageEnabled) | True (MDO P2 + Teams policy required) | $chatResult |`n"
     $tableRows += "| PostSubmitMessageEnabled | $(& $formatBool $policy.PostSubmitMessageEnabled) | True (user feedback after submission) | $postResult |`n"
-        $tableRows += "| ReportChatMessageEnabled | $(& $formatBool $policy.ReportChatMessageEnabled) | True (MDO P2 + Teams policy required) | $chatResult |`n"
-        $tableRows += "| PostSubmitMessageEnabled | $(& $formatBool $policy.PostSubmitMessageEnabled) | True (user feedback after submission) | $postResult |`n"
     $tableRows += "| Report submission rule State | $ruleStateName | Enabled | $ruleStateResult |`n"
-        $tableRows += "| Report submission rule State | $ruleStateName | Enabled | $ruleStateResult |`n"
     $tableRows += "| Report submission rule SentTo | $ruleSentTo | (SOC mailbox address) | $ruleSentToResult |`n"
 
     # Q2 Graph API reachability note (informational — does not affect verdict)
