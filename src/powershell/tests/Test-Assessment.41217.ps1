@@ -84,12 +84,13 @@ function Test-Assessment-41217 {
         return
     }
 
-    $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces       = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces       = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $onboardingErrorWorkspaces = @($allWorkspaces | Where-Object { $_.OnboardingError })
+    $onboardedWorkspaces       = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
+        if ($forbiddenWorkspaces.Count -gt 0 -or $onboardingErrorWorkspaces.Count -gt 0) {
             $params = @{
                 TestId       = '41217'
                 Title        = 'Security tables are provisioned on the appropriate Log Analytics storage plan (Analytics, Basic, or Auxiliary)'
