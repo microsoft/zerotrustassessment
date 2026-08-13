@@ -265,6 +265,22 @@ function Test-Assessment-41217 {
     $workspaceResults = @($workspaceResults)
     $allTableRows     = @($allTableRows)
 
+    # Add Investigate entries for workspaces whose onboarding state could not be determined.
+    # These never reach Q3 but must appear in the roll-up so a confirmed-pass workspace
+    # cannot mask an unknown workspace.
+    foreach ($ws in (@($forbiddenWorkspaces) + @($onboardingErrorWorkspaces))) {
+        $workspaceResults += [PSCustomObject]@{
+            SubscriptionName    = $ws.SubscriptionName
+            SubscriptionId      = $ws.SubscriptionId
+            WorkspaceName       = $ws.WorkspaceName
+            WorkspaceId         = $ws.WorkspaceId
+            ResourceGroup       = $ws.ResourceGroup
+            ApiError            = $false
+            NoEvaluatedCritical = $false
+            RowStatus           = 'Investigate'
+        }
+    }
+
     # Tenant-level roll-up: Fail > Investigate > Pass.
     $tenantFailWs        = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Fail' })
     $tenantInvestigateWs = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Investigate' })
