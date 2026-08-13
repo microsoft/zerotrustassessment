@@ -212,11 +212,11 @@ function Test-Assessment-41035 {
     $chatResult = if ($policy.ReportChatMessageEnabled -eq $true) { '✅ Pass' } else { '❌ Fail' }
     $postResult = if ($policy.PostSubmitMessageEnabled -eq $true) { '✅ Pass' } else { '⚠️ Investigate' }
 
-    # Rule state and SentTo — Investigate when customMailboxComplete but rule does not deliver
-    $ruleStateName    = if ($null -eq $rule) { '—' } else { "``$($rule.State)``" }
-    $ruleStateResult  = if ($customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($null -eq $rule) { '❌ Fail' } elseif ($rule.State -eq 'Enabled') { '✅ Pass' } else { '⚠️ Investigate' }
-    $ruleSentTo       = if ($null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '—' } else { Get-SafeMarkdown -Text $rule.SentTo }
-    $ruleSentToResult = if ($ruleDelivers) { '✅ Pass' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    # Rule state and SentTo — only applicable when the custom mailbox address lists are fully configured.
+    $ruleStateName    = if (-not $customMailboxComplete -or $null -eq $rule) { '—' } else { "``$($rule.State)``" }
+    $ruleStateResult  = if (-not $customMailboxComplete) { '—' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($rule.State -eq 'Enabled') { '✅ Pass' } else { '⚠️ Investigate' }
+    $ruleSentTo       = if (-not $customMailboxComplete -or $null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '—' } else { Get-SafeMarkdown -Text $rule.SentTo }
+    $ruleSentToResult = if (-not $customMailboxComplete) { '—' } elseif ($ruleDelivers) { '✅ Pass' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } else { '⚠️ Investigate' }
 
     $tableRows  = ''
     $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
