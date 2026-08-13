@@ -34,8 +34,6 @@ function Test-Assessment-41035 {
     Write-ZtProgress -Activity $activity -Status 'Retrieving report submission policy'
 
     # Q1a: Retrieve the singleton report submission policy from Exchange Online.
-    # Note: EnableThirdPartyAddress and ThirdPartyReportAddresses are included here despite being absent
-    # from the spec's Select-Object list — they are required by the evaluation logic and output table.
     $policyList = $null
     try {
         $policyList = @(Get-ReportSubmissionPolicy -ErrorAction Stop |
@@ -47,11 +45,11 @@ function Test-Assessment-41035 {
                           ReportJunkAddresses,
                           ReportNotJunkAddresses,
                           ReportPhishAddresses,
-                          EnableReportTypeReportFromBuiltInButton,
                           EnableThirdPartyAddress,
                           ThirdPartyReportAddresses,
                           ReportChatMessageEnabled,
                           ReportChatMessageToCustomizedAddressEnabled,
+                          PhishingReviewResultMessage,
                           PostSubmitMessageEnabled)
     }
     catch {
@@ -67,13 +65,15 @@ function Test-Assessment-41035 {
         return
     }
 
-    # Spec: Get-ReportSubmissionPolicy is tenant-singleton and should always exist.
+    # Spec: In an unconfigured tenant the policy object does not exist at all — it is created only when
+    # user-reported settings are explicitly configured. An empty result means the effective defaults
+    # cannot be confirmed from PowerShell.
     if ($policyList.Count -eq 0) {
         $params = @{
             TestId       = '41035'
             Title        = 'User reporting for phishing and spam is enabled and routed to a reviewed mailbox'
             Status       = $false
-            Result       = '⚠️ **Get-ReportSubmissionPolicy** returned no results. The policy is tenant-singleton and should always exist; an empty result indicates a permission or connectivity issue — verify access and re-run.'
+            Result       = '⚠️ **Get-ReportSubmissionPolicy** returned no results. In an unconfigured tenant the policy object is not created until user-reported settings are explicitly saved — the effective defaults cannot be confirmed from PowerShell. Verify the configuration in the [Defender portal > User reported settings](https://security.microsoft.com/securitysettings/userSubmission) and re-run after saving the settings.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -102,11 +102,7 @@ function Test-Assessment-41035 {
     Write-ZtProgress -Activity $activity -Status 'Probing email threat submission API (informational)'
     $graphApiReachable = $false
     try {
-        $null = Invoke-ZtGraphRequest -RelativeUri 'security/threatSubmission/emailThreats' `
-            -ApiVersion beta `
-            -Top 1 `
-            -DisablePaging `
-            -ErrorAction Stop
+        $null = Invoke-ZtGraphRequest -RelativeUri 'security/threatSubmission/emailThreats' -ApiVersion beta -Top 1 -DisablePaging -ErrorAction Stop
         $graphApiReachable = $true
     }
     catch {
@@ -115,147 +111,136 @@ function Test-Assessment-41035 {
     #endregion Data Collection
 
     #region Assessment Logic
-    $portalUrl = 'https://security.microsoft.com/securitysettings/userSubmission'
+    $settingsUrl = 'https://security.microsoft.com/securitysettings/userSubmission'
+    $portalUrl   = 'https://security.microsoft.com/userSubmissionsReportMessage'
 
-    # Built-in Report button state.
-    # Spec/Challenges: null is observed in some tenants. Treat null as "default on" (don't Fail),
-    # but flag as Investigate so operators can confirm in the Defender portal.
-    $builtInButtonValue = $policy.EnableReportTypeReportFromBuiltInButton
-    $builtInButtonNull  = $null -eq $builtInButtonValue
-    $builtInButtonOff   = (-not $builtInButtonNull) -and ($builtInButtonValue -eq $false)
-
-    # Routing destinations
+    # Routing destinations per spec
+    # microsoftRoute: EnableReportToMicrosoft = True; requires no rule.
     $microsoftRoute = ($policy.EnableReportToMicrosoft -eq $true)
 
     $junkCount    = ($policy.ReportJunkAddresses    | Measure-Object).Count
     $notJunkCount = ($policy.ReportNotJunkAddresses | Measure-Object).Count
     $phishCount   = ($policy.ReportPhishAddresses   | Measure-Object).Count
 
-    $customMailboxFull    = ($junkCount -gt 0) -and ($notJunkCount -gt 0) -and ($phishCount -gt 0)
-    $customMailboxPartial = (($junkCount + $notJunkCount + $phishCount) -gt 0) -and (-not $customMailboxFull)
+    # customMailboxComplete: all three address lists non-empty.
+    $customMailboxComplete = ($junkCount -gt 0) -and ($notJunkCount -gt 0) -and ($phishCount -gt 0)
+    $customMailboxPartial  = (($junkCount + $notJunkCount + $phishCount) -gt 0) -and (-not $customMailboxComplete)
+
+    # customMailboxRoute: complete addresses AND rule exists AND State=Enabled AND SentTo populated.
+    $ruleDelivers       = ($null -ne $rule) -and ($rule.State -eq 'Enabled') -and (-not [string]::IsNullOrWhiteSpace($rule.SentTo))
+    $customMailboxRoute = $customMailboxComplete -and $ruleDelivers
+
+    # Spec Investigate: addresses complete but rule absent/disabled/no SentTo.
+    $customMailboxRuleProblem = $customMailboxComplete -and (-not $ruleDelivers)
 
     $thirdPartyCount = ($policy.ThirdPartyReportAddresses | Measure-Object).Count
     $thirdPartyRoute = ($policy.EnableThirdPartyAddress -eq $true) -and ($thirdPartyCount -gt 0)
 
-    $anyActionableRoute = $microsoftRoute -or $customMailboxFull -or $thirdPartyRoute
+    # Spec evaluation order: Pass → Investigate → Fail
+    $anyRoute = $microsoftRoute -or $customMailboxRoute -or $thirdPartyRoute
 
-    # Rule state: a Disabled rule blocks the custom-mailbox route even when policy parameters look correct.
-    $ruleDisabled = ($null -ne $rule) -and ($rule.State -eq 'Disabled')
-
-    # Collect fail and investigate reasons independently; verdict = Fail > Investigate > Pass.
-    $failReasons        = [System.Collections.Generic.List[string]]::new()
-    $investigateReasons = [System.Collections.Generic.List[string]]::new()
-
-    if ($builtInButtonOff) {
-        $failReasons.Add('built-in report button is disabled (EnableReportTypeReportFromBuiltInButton = False)')
-    }
-    if ($builtInButtonNull) {
-        $investigateReasons.Add('EnableReportTypeReportFromBuiltInButton is null — verify built-in button state in the Defender portal')
-    }
-    if ($customMailboxPartial) {
-        $investigateReasons.Add('custom reporting mailbox is partially configured (only some of ReportJunkAddresses / ReportNotJunkAddresses / ReportPhishAddresses are populated)')
-    }
-    if ($ruleDisabled) {
-        $investigateReasons.Add("report submission rule '$($rule.Name)' is Disabled — routing is broken even when policy parameters appear correct")
-    }
-    # No actionable route AND no partial attempt → definitive Fail (not Investigate).
-    # Partial mailbox is handled above as Investigate; only zero-address-lists AND MS off AND no third-party → Fail.
-    if (-not $anyActionableRoute -and -not $customMailboxPartial -and -not $builtInButtonOff) {
-        $failReasons.Add('no actionable reporting destination is configured (EnableReportToMicrosoft is False, no custom mailbox, no third-party reporter)')
-    }
-
-    # Aggregate verdict
     $passed       = $false
     $customStatus = $null
 
-    if ($failReasons.Count -gt 0) {
-        $passed = $false
-        $reasonText = $failReasons -join '; '
-        if ($builtInButtonOff) {
-            $testResultMarkdown = "❌ The built-in Outlook Report button is disabled (**EnableReportTypeReportFromBuiltInButton = False**). End users have no built-in mechanism to report phishing or spam — the SOC has no visibility into what reaches inboxes after every automated filter has passed the message. Enable the Report button in [Microsoft 365 Defender > User reported settings]($portalUrl).`n`n> **Note:** If your organization uses a third-party reporting add-in (such as KnowBe4 PAB or Cofense Reporter), end users may still have a reporting mechanism even though this check fails. Verify whether a non-Microsoft reporter is deployed before treating this as a gap.`n`n%TestResult%"
-        }
-        else {
-            $testResultMarkdown = "❌ The Report button is on but reports are sent nowhere actionable — **EnableReportToMicrosoft** is not True, no fully-configured custom SOC mailbox exists, and no third-party reporter is set. The SOC has no visibility into user-reported messages and Microsoft re-evaluation is not in the loop.`n`n> **Note:** If your organization uses a third-party reporting add-in (such as KnowBe4 PAB or Cofense Reporter), this check may incorrectly fail. Verify whether a non-Microsoft reporter is deployed before treating this as a gap.`n`n%TestResult%"
-        }
+    if ($anyRoute) {
+        $passed = $true
+        $testResultMarkdown = "✅ User reporting in Outlook is enabled and user-reported messages reach Microsoft, a monitored SOC mailbox, or a configured non-Microsoft reporter.`n`n%TestResult%"
     }
-    elseif ($investigateReasons.Count -gt 0) {
+    elseif ($customMailboxPartial -or $customMailboxRuleProblem) {
         $passed       = $false
         $customStatus = 'Investigate'
-        $reasonText   = ($investigateReasons | ForEach-Object { "- $_" }) -join "`n"
-        $testResultMarkdown = "⚠️ Manual review is required in [Microsoft 365 Defender > User reported settings]($portalUrl):`n`n$reasonText`n`n%TestResult%"
+        $investigateDetails = [System.Collections.Generic.List[string]]::new()
+        if ($customMailboxPartial) {
+            $investigateDetails.Add('custom reporting mailbox is partially configured — only some of `ReportJunkAddresses`, `ReportNotJunkAddresses`, `ReportPhishAddresses` are populated; all three must be set')
+        }
+        if ($customMailboxRuleProblem) {
+            if ($null -eq $rule) {
+                $investigateDetails.Add('all three custom-mailbox address lists are populated but no report submission rule exists — nothing delivers messages to the SOC mailbox')
+            }
+            elseif ($rule.State -eq 'Disabled') {
+                $investigateDetails.Add("report submission rule '**$($rule.Name)**' is **Disabled** — routing is broken even when policy address lists appear correct")
+            }
+            else {
+                $investigateDetails.Add("report submission rule '**$($rule.Name)**' has no `SentTo` address — nothing delivers messages to the SOC mailbox")
+            }
+        }
+        $reasonText = ($investigateDetails | ForEach-Object { "- $_" }) -join "`n"
+        $testResultMarkdown = "⚠️ The customized mailbox is partially configured, or the report submission rule is absent or disabled; verify the configuration in the Defender portal.`n`n$reasonText`n`n%TestResult%"
     }
     else {
-        $passed = $true
-        $testResultMarkdown = "✅ The Outlook Report button is on and user-reported messages reach at least one actionable destination — Microsoft (re-evaluation and global anti-phishing model training), a monitored SOC mailbox, or a configured non-Microsoft reporter.`n`n%TestResult%"
+        $passed = $false
+        $testResultMarkdown = "❌ Reports are sent nowhere actionable; the SOC has no visibility into what end users are reporting and Microsoft re-evaluation is not in the loop.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
 
-    # Helper: format an address list for display (show up to 3 addresses, then count)
+    #format an address list for display (show up to 3 addresses, then count)
     $formatAddresses = {
         param([object]$Addresses)
         $list = @($Addresses | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        if ($list.Count -eq 0) { return '*(none)*' }
+        if ($list.Count -eq 0) { return '—' }
         $display = ($list | Select-Object -First 3 | ForEach-Object { Get-SafeMarkdown -Text $_ }) -join ', '
         if ($list.Count -gt 3) { $display += " *(+$($list.Count - 3) more)*" }
         return $display
     }
 
-    # Helper: Boolean/null display
+    #Boolean/null display
     $formatBool = {
         param([object]$Value)
-        if ($null -eq $Value) { return '`null`' }
-        return "``$($Value.ToString().ToLower())``"
+        if ($null -eq $Value) { return '—' }
+        return $Value.ToString()
     }
 
     # Determine per-row result icons
-    # Button
-    $btnResult = if ($builtInButtonNull) { '⚠️ Investigate' } elseif ($builtInButtonOff) { '❌ Fail' } else { '✅ Pass' }
 
     # Microsoft route
     $msResult = if ($microsoftRoute) { '✅ Pass' } else { '❌ Fail' }
 
     # Custom mailbox address lists
-    $junkResult    = if ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '—' }
-    $notJunkResult = if ($notJunkCount -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '—' }
-    $phishResult   = if ($phishCount   -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '—' }
+    $junkResult    = if ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '❌ Fail' }
+    $notJunkResult = if ($notJunkCount -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '❌ Fail' }
+    $phishResult   = if ($phishCount   -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } else { '❌ Fail' }
 
     # Third-party reporter
-    $tpEnabled      = $policy.EnableThirdPartyAddress
-    $tpEnabledDisp  = & $formatBool $tpEnabled
-    $tpResult       = if ($thirdPartyRoute) { '✅ Pass' } elseif ($tpEnabled -eq $true -and $thirdPartyCount -eq 0) { '⚠️ Investigate' } else { '—' }
-    $tpAddrResult   = if ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '—' }
+    $tpEnabled     = $policy.EnableThirdPartyAddress
+    $tpEnabledDisp = & $formatBool $tpEnabled
+    $tpResult      = if ($thirdPartyRoute) { '✅ Pass' } elseif ($tpEnabled -eq $true -and $thirdPartyCount -eq 0) { '⚠️ Investigate' } else { '❌ Fail' }
+    $tpAddrResult  = if ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '❌ Fail' }
 
     # Chat and post-submit
-    $chatResult     = if ($policy.ReportChatMessageEnabled -eq $true) { '✅ Pass' } else { '—' }
-    $postResult     = if ($policy.PostSubmitMessageEnabled -eq $true) { '✅ Pass' } else { '⚠️ Investigate' }
+    $chatResult = if ($policy.ReportChatMessageEnabled -eq $true) { '✅ Pass' } else { '❌ Fail' }
+    $postResult = if ($policy.PostSubmitMessageEnabled -eq $true) { '✅ Pass' } else { '⚠️ Investigate' }
 
-    # Rule state and SentTo
-    $ruleStateName   = if ($null -eq $rule) { '*(no rule)*' } else { "``$($rule.State)``" }
-    $ruleStateResult = if ($ruleDisabled) { '⚠️ Investigate' } elseif ($null -eq $rule) { '—' } else { '✅ Pass' }
-    $ruleSentTo      = if ($null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '*(none)*' } else { Get-SafeMarkdown -Text $rule.SentTo }
-    $ruleSentToResult = if ($null -ne $rule -and -not [string]::IsNullOrWhiteSpace($rule.SentTo)) { '✅ Pass' } else { '—' }
+    # Rule state and SentTo — Investigate when customMailboxComplete but rule does not deliver
+    $ruleStateName    = if ($null -eq $rule) { '—' } else { "``$($rule.State)``" }
+    $ruleStateResult  = if ($customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($null -eq $rule) { '❌ Fail' } elseif ($rule.State -eq 'Enabled') { '✅ Pass' } else { '⚠️ Investigate' }
+    $ruleSentTo       = if ($null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '—' } else { Get-SafeMarkdown -Text $rule.SentTo }
+    $ruleSentToResult = if ($ruleDelivers) { '✅ Pass' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
 
     $tableRows  = ''
-    $tableRows += "| ``EnableReportTypeReportFromBuiltInButton`` | $(& $formatBool $builtInButtonValue) | ``true`` (built-in Outlook Report button) | $btnResult |`n"
-    $tableRows += "| ``EnableReportToMicrosoft`` | $(& $formatBool $policy.EnableReportToMicrosoft) | ``true`` (re-evaluation + model training) | $msResult |`n"
-    $tableRows += "| ``ReportJunkAddresses`` | $(& $formatAddresses $policy.ReportJunkAddresses) | non-empty (custom SOC mailbox) | $junkResult |`n"
-    $tableRows += "| ``ReportNotJunkAddresses`` | $(& $formatAddresses $policy.ReportNotJunkAddresses) | non-empty (custom SOC mailbox) | $notJunkResult |`n"
-    $tableRows += "| ``ReportPhishAddresses`` | $(& $formatAddresses $policy.ReportPhishAddresses) | non-empty (custom SOC mailbox) | $phishResult |`n"
-    $tableRows += "| ``EnableThirdPartyAddress`` | $tpEnabledDisp | ``true`` (if using non-Microsoft reporter) | $tpResult |`n"
-    $tableRows += "| ``ThirdPartyReportAddresses`` | $(& $formatAddresses $policy.ThirdPartyReportAddresses) | non-empty (if using non-Microsoft reporter) | $tpAddrResult |`n"
-    $tableRows += "| ``ReportChatMessageEnabled`` | $(& $formatBool $policy.ReportChatMessageEnabled) | ``true`` (MDO P2 + Teams policy required) | $chatResult |`n"
-    $tableRows += "| ``PostSubmitMessageEnabled`` | $(& $formatBool $policy.PostSubmitMessageEnabled) | ``true`` (user feedback after submission) | $postResult |`n"
-    $tableRows += "| Report submission rule ``State`` | $ruleStateName | ``Enabled`` | $ruleStateResult |`n"
-    $tableRows += "| Report submission rule ``SentTo`` | $ruleSentTo | *(SOC mailbox address)* | $ruleSentToResult |`n"
+    $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
+        $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
+    $tableRows += "| ReportJunkAddresses | $(& $formatAddresses $policy.ReportJunkAddresses) | non-empty (custom SOC mailbox) | $junkResult |`n"
+    $tableRows += "| ReportNotJunkAddresses | $(& $formatAddresses $policy.ReportNotJunkAddresses) | non-empty (custom SOC mailbox) | $notJunkResult |`n"
+    $tableRows += "| ReportPhishAddresses | $(& $formatAddresses $policy.ReportPhishAddresses) | non-empty (custom SOC mailbox) | $phishResult |`n"
+    $tableRows += "| EnableThirdPartyAddress | $tpEnabledDisp | True (if using non-Microsoft reporter) | $tpResult |`n"
+        $tableRows += "| EnableThirdPartyAddress | $tpEnabledDisp | True (if using non-Microsoft reporter) | $tpResult |`n"
+    $tableRows += "| ThirdPartyReportAddresses | $(& $formatAddresses $policy.ThirdPartyReportAddresses) | non-empty (if using non-Microsoft reporter) | $tpAddrResult |`n"
+    $tableRows += "| ReportChatMessageEnabled | $(& $formatBool $policy.ReportChatMessageEnabled) | True (MDO P2 + Teams policy required) | $chatResult |`n"
+    $tableRows += "| PostSubmitMessageEnabled | $(& $formatBool $policy.PostSubmitMessageEnabled) | True (user feedback after submission) | $postResult |`n"
+        $tableRows += "| ReportChatMessageEnabled | $(& $formatBool $policy.ReportChatMessageEnabled) | True (MDO P2 + Teams policy required) | $chatResult |`n"
+        $tableRows += "| PostSubmitMessageEnabled | $(& $formatBool $policy.PostSubmitMessageEnabled) | True (user feedback after submission) | $postResult |`n"
+    $tableRows += "| Report submission rule State | $ruleStateName | Enabled | $ruleStateResult |`n"
+        $tableRows += "| Report submission rule State | $ruleStateName | Enabled | $ruleStateResult |`n"
+    $tableRows += "| Report submission rule SentTo | $ruleSentTo | (SOC mailbox address) | $ruleSentToResult |`n"
 
     # Q2 Graph API reachability note (informational — does not affect verdict)
     $graphNote = if ($graphApiReachable) {
-        '> ✅ The Microsoft Graph email threat submission API (`/beta/security/threatSubmission/emailThreats`) is reachable — SOC tooling can enumerate user-submitted messages programmatically using the `ThreatSubmission.Read.All` permission.'
+        '> ✅ The Microsoft Graph email threat submission API (/beta/security/threatSubmission/emailThreats) is reachable — SOC tooling can enumerate user-submitted messages programmatically using the ThreatSubmission.Read.All permission.'
     }
     else {
-        '> ⚠️ The Microsoft Graph email threat submission API (`/beta/security/threatSubmission/emailThreats`) could not be reached. This does not affect the check verdict, but SOC tooling that ingests the submission queue via Graph will need the `ThreatSubmission.Read.All` permission granted.'
+    '> ⚠️ The Microsoft Graph email threat submission API (/beta/security/threatSubmission/emailThreats) could not be reached. This does not affect the check verdict, but SOC tooling that ingests the submission queue via Graph will need the ThreatSubmission.Read.All permission granted.'
     }
 
     $formatTemplate = @'

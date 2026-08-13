@@ -51,6 +51,7 @@
         'SecurityIdentitiesSensors.Read.All'
         'SecurityIncident.Read.All'
         'ThreatHunting.Read.All'
+        'ThreatSubmission.Read.All'
         'UserAuthenticationMethod.Read.All'
     )
 
