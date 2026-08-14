@@ -33,6 +33,7 @@ function Test-Assessment-25412 {
 
     # Define constants
     [int]$BASELINE_PROFILE_PRIORITY = 65000
+    [string]$THREAT_INTELLIGENCE_POLICY_LINK_TYPE = '#microsoft.graph.networkaccess.threatIntelligencePolicyLink'
 
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -60,7 +61,7 @@ function Test-Assessment-25412 {
     # Q2: Get all filtering profiles with expanded policies
     Write-ZtProgress -Activity $activity -Status 'Getting filtering profiles'
     try {
-        $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{ '$select' = 'id,name,description,state,version,priority'; '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version))' } -ApiVersion beta -ErrorAction Stop
+        $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{ '$select' = 'id,name,description,state,version,priority'; '$expand' = 'policies($expand=policy)' } -ApiVersion beta -ErrorAction Stop
         Write-PSFMessage "Found $($filteringProfiles.Count) filtering profiles" -Level Verbose
     }
     catch {
@@ -89,14 +90,17 @@ function Test-Assessment-25412 {
     $investigateMessage = "⚠️ Unable to determine threat intelligence filtering status due to an API or access error. Re-run the assessment after verifying Microsoft Graph access and retrying the check.`n`n%TestResult%"
     $failMessage = "❌ No enabled threat intelligence policy link is enforced through the baseline profile or a security profile assigned by a Conditional Access policy.`n`n%TestResult%"
 
-    # Step 1: Verify settings.defaultAction equals 'allow' (blocks threats)
-    $defaultActionValid = $false
+    # Step 1: Verify at least one threat intelligence policy exists.
     $hasRequiredQueryError = ($null -ne $q1Error) -or ($null -ne $q2Error)
-
-    if ($threatIntelPolicies -and $threatIntelPolicies.Count -gt 0) {
-        # At least one policy must have settings.defaultAction = allow.
-        $defaultActionValid = @($threatIntelPolicies | Where-Object { $_.settings.defaultAction -eq 'allow' }).Count -gt 0
+    $threatIntelPolicyIds = [System.Collections.Generic.HashSet[string]]::new()
+    if ($threatIntelPolicies) {
+        foreach ($threatIntelPolicy in $threatIntelPolicies) {
+            if ($threatIntelPolicy.id) {
+                [void]$threatIntelPolicyIds.Add($threatIntelPolicy.id)
+            }
+        }
     }
+    $hasThreatIntelPolicies = $threatIntelPolicyIds.Count -gt 0
 
     # Q1/Q2 failures are always investigate because they block prerequisite evaluation.
     if ($hasRequiredQueryError) {
@@ -104,8 +108,8 @@ function Test-Assessment-25412 {
         $customStatus = 'Investigate'
         $testResultMarkdown = $investigateMessage
     }
-    # If defaultAction is not 'allow', test fails regardless of profile linkage.
-    elseif (-not $defaultActionValid) {
+    # If no threat intelligence policies exist, test fails regardless of profile linkage.
+    elseif (-not $hasThreatIntelPolicies) {
         $passed = $false
         $testResultMarkdown = $failMessage
     }
@@ -116,7 +120,8 @@ function Test-Assessment-25412 {
 
         if ($baselineProfile) {
             $tiPolicyLinks = @($baselineProfile.policies | Where-Object {
-                $_.policy.'@odata.type' -eq '#microsoft.graph.networkaccess.threatIntelligencePolicy'
+                $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
             })
 
             $enabledTiLinks = @($tiPolicyLinks | Where-Object { $_.state -eq 'enabled' })
@@ -152,7 +157,8 @@ function Test-Assessment-25412 {
                 if ($linkedProfile) {
                     # Check if this profile is enabled and has an enabled threat intelligence policy link
                     $tiLinks = @($linkedProfile.policies | Where-Object {
-                        $_.policy.'@odata.type' -eq '#microsoft.graph.networkaccess.threatIntelligencePolicy'
+                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
                     })
                     $enabledTiLinks = @($tiLinks | Where-Object { $_.state -eq 'enabled' })
 
@@ -195,7 +201,8 @@ function Test-Assessment-25412 {
             $baselineNameWithLink = "[$baselineName]($baselineProfileLink)"
 
             $tiPolicyLinks = @($baselineProfile.policies | Where-Object {
-                $_.policy.'@odata.type' -eq '#microsoft.graph.networkaccess.threatIntelligencePolicy'
+                $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
             })
             $enabledTiLinks = @($tiPolicyLinks | Where-Object { $_.state -eq 'enabled' })
 
@@ -277,7 +284,8 @@ Unable to retrieve Conditional Access policies from Microsoft Graph, so Conditio
                 # Check if profile has TI policy
                 $profileHasTI = if ($linkedProfile) {
                     @($linkedProfile.policies | Where-Object {
-                        $_.policy.'@odata.type' -eq '#microsoft.graph.networkaccess.threatIntelligencePolicy'
+                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
                     }).Count -gt 0
                 }
                 else {
@@ -286,7 +294,8 @@ Unable to retrieve Conditional Access policies from Microsoft Graph, so Conditio
 
                 $profileTiLinks = if ($linkedProfile) {
                     @($linkedProfile.policies | Where-Object {
-                        $_.policy.'@odata.type' -eq '#microsoft.graph.networkaccess.threatIntelligencePolicy'
+                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
                     })
                 }
                 else {
