@@ -281,17 +281,6 @@ Unable to retrieve Conditional Access policies from Microsoft Graph, so Conditio
                     'N/A'
                 }
 
-                # Check if profile has TI policy
-                $profileHasTI = if ($linkedProfile) {
-                    @($linkedProfile.policies | Where-Object {
-                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
-                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
-                    }).Count -gt 0
-                }
-                else {
-                    $false
-                }
-
                 $profileTiLinks = if ($linkedProfile) {
                     @($linkedProfile.policies | Where-Object {
                         $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
@@ -313,7 +302,7 @@ Unable to retrieve Conditional Access policies from Microsoft Graph, so Conditio
                     'N/A'
                 }
 
-                $profileHasTIDisplay = if ($profileHasTI) { '✅ Yes' } else { '❌ No' }
+                $profileHasTIDisplay = if ($profileTiLinks.Count -gt 0) { '✅ Yes' } else { '❌ No' }
 
                 $caPolicyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$caPolicyId"
 
