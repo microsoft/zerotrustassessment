@@ -51,6 +51,7 @@ function Test-Assessment-27028 {
 
     try {
         $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{
+            '$filter' = "priority eq $baselineProfilePriority"
             '$select' = 'id,name,state,priority'
             '$expand' = 'policies($select=id,state;$expand=policy($select=id,name,version))'
         } -ApiVersion beta -ErrorAction Stop
@@ -70,13 +71,11 @@ function Test-Assessment-27028 {
     $enabledPolicyNames = @()
 
     if ($httpStatusCode -eq 404) {
-        # Global Secure Access isn't provisioned in this tenant.
+        # The filtering profile resource is unavailable, so the required enforcement path is absent: same outcome as an empty result.
         Write-PSFMessage 'Global Secure Access filtering profiles are not available in this tenant.' -Tag Test -Level Verbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
     }
 
-    if ($errorMsg) {
+    if ($errorMsg -and $httpStatusCode -ne 404) {
         $customStatus = 'Investigate'
         $testResultMarkdown = if ($httpStatusCode -in 401, 403) {
             '⚠️ Unable to read the Global Secure Access baseline profile due to insufficient permissions. Grant the **NetworkAccess.Read.All** Microsoft Graph permission and assign the **Global Secure Access Administrator** or **Security Reader** role, then rerun the assessment.'
@@ -112,10 +111,10 @@ function Test-Assessment-27028 {
     #region Report Generation
     $mdInfo = ''
 
-    if (-not $errorMsg) {
+    if (-not $customStatus) {
         $baselineStateDisplay = if ($baselineState -eq 'enabled') { '✅ Enabled' } else { "❌ $baselineState" }
         $policyNamesDisplay = if ($enabledPolicyNames.Count -gt 0) {
-            ($enabledPolicyNames | Sort-Object | ForEach-Object { Get-SafeMarkdown $_ }) -join ', '
+            ($enabledPolicyNames | Sort-Object -Unique | ForEach-Object { Get-SafeMarkdown $_ }) -join ', '
         }
         else {
             'None'
