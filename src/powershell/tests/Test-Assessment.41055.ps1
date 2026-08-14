@@ -5,8 +5,8 @@
 .DESCRIPTION
     Evaluates the pinned Microsoft Defender Antivirus Secure Score controls by joining control
     profiles to the latest Microsoft Secure Score snapshot and comparing each achieved score with
-    its maximum score. Controls without applicable devices and ignored controls are excluded from
-    the roll-up.
+    its maximum score. Controls with missing profiles, controls without applicable devices, and
+    ignored controls are excluded from the roll-up.
 
 .NOTES
     Test ID: 41055
@@ -152,10 +152,13 @@ function Test-Assessment-41055 {
             catch { }
         }
 
+        $statusReason = $null
         $status = if ($null -eq $controlProfile) {
-            'Investigate'
+            $statusReason = 'profile not found'
+            'N/A'
         }
         elseif ($null -eq $matchingScore) {
+            $statusReason = 'no applicable devices'
             'N/A'
         }
         elseif ($isIgnored) {
@@ -188,6 +191,7 @@ function Test-Assessment-41055 {
             State                 = $controlState
             LastModifiedDateTime  = if ($null -ne $controlProfile) { $controlProfile.lastModifiedDateTime } else { $null }
             Status                = $status
+            StatusReason          = $statusReason
         }
     }
 
@@ -218,7 +222,7 @@ function Test-Assessment-41055 {
             'Pass' { '✅ Pass' }
             'Fail' { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
-            'N/A' { 'N/A (no applicable devices)' }
+            'N/A' { "N/A ($($result.StatusReason))" }
             default { 'Skipped' }
         }
         $lastModified = if ($result.LastModifiedDateTime) { Get-FormattedDate -DateString $result.LastModifiedDateTime } else { 'N/A' }
