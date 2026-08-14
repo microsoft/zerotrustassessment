@@ -103,7 +103,7 @@ function Test-Assessment-41050 {
         }
     }
 
-    if ($controlProfileError -or $secureScoreError -or $null -eq $latestSecureScore -or $controlProfileById.Count -eq 0) {
+    if ($controlProfileError -or $secureScoreError -or $null -eq $latestSecureScore) {
         $params = @{
             TestId       = '41050'
             Title        = 'Attack surface reduction (ASR) rules are enabled in block mode'
@@ -125,7 +125,7 @@ function Test-Assessment-41050 {
     $evaluationResults = @()
     foreach ($controlId in $asrControlIds) {
         $controlProfile = if ($controlProfileById.ContainsKey($controlId)) { $controlProfileById[$controlId] } else { $null }
-        $matchingScore = if ($controlScoreByName.ContainsKey($controlId)) { $controlScoreByName[$controlId] } else { $null }
+        $matchingScore = if ($null -ne $controlProfile -and $controlScoreByName.ContainsKey($controlId)) { $controlScoreByName[$controlId] } else { $null }
 
         $score = if ($null -ne $matchingScore -and $null -ne $matchingScore.score) { $matchingScore.score } else { $null }
         $maxScore = if ($null -ne $controlProfile -and $null -ne $controlProfile.maxScore) { $controlProfile.maxScore } else { $null }
@@ -156,10 +156,13 @@ function Test-Assessment-41050 {
             catch { }
         }
 
+        $notApplicableReason = $null
         $status = if ($null -eq $controlProfile) {
-            'Investigate'
+            $notApplicableReason = 'profile not found'
+            'N/A'
         }
         elseif ($null -eq $matchingScore) {
+            $notApplicableReason = 'no applicable devices'
             'N/A'
         }
         elseif ($isIgnored) {
@@ -191,6 +194,7 @@ function Test-Assessment-41050 {
             ImplementationStatus  = if ($null -ne $matchingScore -and -not [string]::IsNullOrWhiteSpace($matchingScore.implementationStatus)) { $matchingScore.implementationStatus } else { 'N/A' }
             LastModifiedDateTime  = if ($null -ne $controlProfile) { $controlProfile.lastModifiedDateTime } else { $null }
             Status                = $status
+            NotApplicableReason   = $notApplicableReason
         }
     }
 
@@ -224,7 +228,7 @@ function Test-Assessment-41050 {
             'Pass' { '✅ Pass' }
             'Fail' { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
-            'N/A' { 'N/A (no applicable devices)' }
+            'N/A' { "N/A ($($result.NotApplicableReason))" }
             default { 'Skipped' }
         }
         $lastModified = if ($result.LastModifiedDateTime) { Get-FormattedDate -DateString $result.LastModifiedDateTime } else { 'N/A' }
