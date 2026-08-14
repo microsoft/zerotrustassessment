@@ -43,6 +43,7 @@ function Test-Assessment-25412 {
     $threatIntelPolicies = $null
     $filteringProfiles = $null
     $caPolicies = $null
+    $q3Evaluated = $false
     $q1Error = $null
     $q2Error = $null
     $q3Error = $null
@@ -58,27 +59,16 @@ function Test-Assessment-25412 {
         Write-PSFMessage "Failed to get threat intelligence policies: $_" -Tag Test -Level Warning
     }
 
-    # Q2: Get all filtering profiles with expanded policies
-    Write-ZtProgress -Activity $activity -Status 'Getting filtering profiles'
-    try {
-        $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{ '$select' = 'id,name,description,state,version,priority'; '$expand' = 'policies($expand=policy)' } -ApiVersion beta -ErrorAction Stop
-        Write-PSFMessage "Found $($filteringProfiles.Count) filtering profiles" -Level Verbose
-    }
-    catch {
-        $q2Error = $_
-        Write-PSFMessage "Failed to get filtering profiles: $_" -Tag Test -Level Warning
-    }
-
-    # Q3: Get Conditional Access policies only when filtering profiles were retrieved.
-    if ($filteringProfiles -and $filteringProfiles.Count -gt 0) {
-        Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
+    # Q2 depends on Q1: only query filtering profiles when TI policies exist.
+    if (-not $q1Error -and $threatIntelPolicies -and $threatIntelPolicies.Count -gt 0) {
+        Write-ZtProgress -Activity $activity -Status 'Getting filtering profiles'
         try {
-            $caPolicies = Get-ZtConditionalAccessPolicy -ErrorAction Stop
-            Write-PSFMessage "Found $($caPolicies.Count) Conditional Access policies" -Level Verbose
+            $filteringProfiles = Invoke-ZtGraphRequest -RelativeUri 'networkAccess/filteringProfiles' -QueryParameters @{ '$select' = 'id,name,description,state,version,priority'; '$expand' = 'policies($expand=policy)' } -ApiVersion beta -ErrorAction Stop
+            Write-PSFMessage "Found $($filteringProfiles.Count) filtering profiles" -Level Verbose
         }
         catch {
-            $q3Error = $_
-            Write-PSFMessage "Failed to get Conditional Access policies: $_" -Tag Test -Level Warning
+            $q2Error = $_
+            Write-PSFMessage "Failed to get filtering profiles: $_" -Tag Test -Level Warning
         }
     }
     #endregion Data Collection
@@ -89,6 +79,8 @@ function Test-Assessment-25412 {
     $testResultMarkdown = ''
     $investigateMessage = "⚠️ Unable to determine threat intelligence filtering status due to an API or access error. Re-run the assessment after verifying Microsoft Graph access and retrying the check.`n`n%TestResult%"
     $failMessage = "❌ No enabled threat intelligence policy link is enforced through the baseline profile or a security profile assigned by a Conditional Access policy.`n`n%TestResult%"
+    $baselineProfileEvidence = $null
+    $caPolicyEvidence = @()
 
     # Step 1: Verify at least one threat intelligence policy exists.
     $hasRequiredQueryError = ($null -ne $q1Error) -or ($null -ne $q2Error)
@@ -119,57 +111,116 @@ function Test-Assessment-25412 {
         $baselineHasTI = $false
 
         if ($baselineProfile) {
-            $tiPolicyLinks = @($baselineProfile.policies | Where-Object {
+            $baselineTiPolicyLinks = @($baselineProfile.policies | Where-Object {
                 $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
                 $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
             })
+            $baselineEnabledTiLinks = @($baselineTiPolicyLinks | Where-Object { $_.state -eq 'enabled' })
+            $baselinePolicyLinkState = if ($baselineEnabledTiLinks.Count -gt 0) {
+                'enabled'
+            }
+            elseif ($baselineTiPolicyLinks.Count -gt 0) {
+                if ($baselineTiPolicyLinks[0].state) { $baselineTiPolicyLinks[0].state } else { 'N/A' }
+            }
+            else {
+                'N/A'
+            }
 
-            $enabledTiLinks = @($tiPolicyLinks | Where-Object { $_.state -eq 'enabled' })
-            $baselineHasTI = $enabledTiLinks.Count -gt 0 -and $baselineProfile.state -eq 'enabled'
+            $baselineProfileEvidence = [PSCustomObject]@{
+                Profile        = $baselineProfile
+                TiPolicyLinks  = $baselineTiPolicyLinks
+                EnabledTiLinks = $baselineEnabledTiLinks
+                HasTI          = $baselineTiPolicyLinks.Count -gt 0
+                PolicyLinkState= $baselinePolicyLinkState
+            }
+            $baselineHasTI = $baselineProfileEvidence.EnabledTiLinks.Count -gt 0 -and $baselineProfile.state -eq 'enabled'
         }
 
-        if ($baselineHasTI) {
+        # Step 3: Decide whether Conditional Access fallback evaluation is required.
+        $requiresConditionalAccessEvaluation = -not $baselineHasTI
+
+        if (-not $requiresConditionalAccessEvaluation) {
             # Baseline has enabled TI policy link - Pass
             $passed = $true
         }
-        elseif ($q3Error) {
-            # Q3 is only required when baseline is not effective.
-            $passed = $false
-            $customStatus = 'Investigate'
-            $testResultMarkdown = $investigateMessage
-        }
         else {
-            # Step 3: Check CA policies for GSA session controls
+            # Step 4: Baseline is not effective, so evaluate Conditional Access fallback.
+            $q3Evaluated = $true
+            Write-ZtProgress -Activity $activity -Status 'Getting Conditional Access policies'
+            try {
+                $caPolicies = Get-ZtConditionalAccessPolicy -ErrorAction Stop
+                Write-PSFMessage "Found $($caPolicies.Count) Conditional Access policies" -Level Verbose
+            }
+            catch {
+                $q3Error = $_
+                Write-PSFMessage "Failed to get Conditional Access policies: $_" -Tag Test -Level Warning
+            }
+
+            if ($q3Error) {
+                $passed = $false
+                $customStatus = 'Investigate'
+                $testResultMarkdown = $investigateMessage
+            }
+
             $enabledCAPoliciesWithGSA = @()
-            if ($caPolicies) {
+            if (-not $q3Error -and $caPolicies) {
                 $enabledCAPoliciesWithGSA = @($caPolicies | Where-Object {
                     $_.state -eq 'enabled' -and
                     $_.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true
                 })
             }
 
-            # Step 4: Cross-reference profileIds with filtering profiles
+            # Step 5: Cross-reference profileIds with filtering profiles; collect full evidence for reporting.
             $foundValidProfile = $false
-            foreach ($caPolicy in $enabledCAPoliciesWithGSA) {
-                $profileId = $caPolicy.sessionControls.globalSecureAccessFilteringProfile.profileId
-                $linkedProfile = $filteringProfiles | Where-Object { $_.id -eq $profileId }
+            if (-not $q3Error) {
+                foreach ($caPolicy in $enabledCAPoliciesWithGSA) {
+                    $profileId = $caPolicy.sessionControls.globalSecureAccessFilteringProfile.profileId
+                    $linkedProfile = $filteringProfiles | Where-Object { $_.id -eq $profileId }
+                    $profileTiLinks = @()
+                    $enabledProfileTiLinks = @()
+                    $profilePolicyLinkState = 'N/A'
+                    $profileHasTI = $false
+                    $profileIsEffective = $false
 
-                if ($linkedProfile) {
-                    # Check if this profile is enabled and has an enabled threat intelligence policy link
-                    $tiLinks = @($linkedProfile.policies | Where-Object {
-                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
-                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
-                    })
-                    $enabledTiLinks = @($tiLinks | Where-Object { $_.state -eq 'enabled' })
+                    if ($linkedProfile) {
+                        $profileTiLinks = @($linkedProfile.policies | Where-Object {
+                            $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
+                            $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
+                        })
+                        $enabledProfileTiLinks = @($profileTiLinks | Where-Object { $_.state -eq 'enabled' })
+                        $profileHasTI = $profileTiLinks.Count -gt 0
+                        $profilePolicyLinkState = if ($enabledProfileTiLinks.Count -gt 0) {
+                            'enabled'
+                        }
+                        elseif ($profileTiLinks.Count -gt 0) {
+                            if ($profileTiLinks[0].state) { $profileTiLinks[0].state } else { 'N/A' }
+                        }
+                        else {
+                            'N/A'
+                        }
+                        $profileIsEffective = $linkedProfile.state -eq 'enabled' -and $enabledProfileTiLinks.Count -gt 0
 
-                    if ($linkedProfile.state -eq 'enabled' -and $enabledTiLinks.Count -gt 0) {
-                        $foundValidProfile = $true
-                        break
+                        if ($profileIsEffective -and -not $foundValidProfile) {
+                            $foundValidProfile = $true
+                        }
+                    }
+
+                    $caPolicyEvidence += [PSCustomObject]@{
+                        CAPolicy             = $caPolicy
+                        ProfileId            = $profileId
+                        LinkedProfile        = $linkedProfile
+                        ProfileTiLinks       = $profileTiLinks
+                        EnabledProfileTiLinks= $enabledProfileTiLinks
+                        ProfileHasTI         = $profileHasTI
+                        PolicyLinkState      = $profilePolicyLinkState
+                        IsEffective          = $profileIsEffective
                     }
                 }
             }
 
-            $passed = $foundValidProfile
+            if (-not $q3Error) {
+                $passed = $foundValidProfile
+            }
         }
 
         if ($passed) {
@@ -189,29 +240,25 @@ function Test-Assessment-25412 {
     $table2Link = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/FilteringPolicyProfiles.ReactView'
     $threatPolicyLink = 'https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/ThreatIntelligencePolicy.ReactView'
 
-    if (-not $q1Error -and -not $q2Error) {
-        $baselineProfile = $filteringProfiles | Where-Object { $_.priority -eq $BASELINE_PROFILE_PRIORITY }
-
-        if ($baselineProfile) {
+    if ($hasThreatIntelPolicies -and -not $q1Error -and -not $q2Error) {
+        if ($baselineProfileEvidence) {
+            $baselineProfile = $baselineProfileEvidence.Profile
             $baselineName = Get-SafeMarkdown $baselineProfile.name
             $baselineId = $baselineProfile.id
-            $baselineState = $baselineProfile.state
+            $baselineStateDisplay = if ($baselineProfile.state -in @('enabled', 'disabled')) {
+                '{0} {1}' -f (Get-ZtPassFail -Condition ($baselineProfile.state -eq 'enabled')), (Get-FormattedPolicyState -PolicyState $baselineProfile.state)
+            }
+            else {
+                'N/A'
+            }
             $baselineTitle = [System.Uri]::EscapeDataString("Edit $($baselineProfile.name)")
             $baselineProfileLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$baselineId/title/$baselineTitle/defaultMenuItemId/Basics"
             $baselineNameWithLink = "[$baselineName]($baselineProfileLink)"
 
-            $tiPolicyLinks = @($baselineProfile.policies | Where-Object {
-                $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
-                $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
-            })
-            $enabledTiLinks = @($tiPolicyLinks | Where-Object { $_.state -eq 'enabled' })
-
-            $hasTI = $tiPolicyLinks.Count -gt 0
-            $policyLinkState = if ($enabledTiLinks.Count -gt 0) {
-                'enabled'
-            }
-            elseif ($tiPolicyLinks.Count -gt 0) {
-                if ($tiPolicyLinks[0].state) { $tiPolicyLinks[0].state } else { 'N/A' }
+            $hasTI = $baselineProfileEvidence.HasTI
+            $policyLinkState = $baselineProfileEvidence.PolicyLinkState
+            $policyLinkStateDisplay = if ($policyLinkState -in @('enabled', 'disabled')) {
+                '{0} {1}' -f (Get-ZtPassFail -Condition ($policyLinkState -eq 'enabled')), (Get-FormattedPolicyState -PolicyState $policyLinkState)
             }
             else {
                 'N/A'
@@ -221,19 +268,19 @@ function Test-Assessment-25412 {
 
             $table2Template = @'
 
-## [{0}]({1})
+### [{0}]({1})
 
 | Profile Name | [Has Threat Intelligence Policy]({6}) | Policy Link State | Profile State |
 | :----------- | :----------------------------- | :---------------- | :------------ |
 | {2} | {3} | {4} | {5} |
 '@
 
-            $table2 = $table2Template -f $table2Title, $table2Link, $baselineNameWithLink, $hasTIDisplay, $policyLinkState, $baselineState, $threatPolicyLink
+            $table2 = $table2Template -f $table2Title, $table2Link, $baselineNameWithLink, $hasTIDisplay, $policyLinkStateDisplay, $baselineStateDisplay, $threatPolicyLink
         }
         else {
             $table2 = @"
 
-## [$table2Title]($table2Link)
+### [$table2Title]($table2Link)
 
 No baseline profile found.
 "@
@@ -241,95 +288,79 @@ No baseline profile found.
 
         $mdInfo += $table2
 
-        # Table 3: Conditional Access Policies with Global Secure Access Session Control
-        $table3Title = 'Conditional Access Policies with Global Secure Access Session Control'
-        $table3Link = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
+        # Table 3 is only shown when Q3 was needed and evaluated.
+        if ($q3Evaluated) {
+            $table3Title = 'Conditional Access Policies with Global Secure Access Session Control'
+            $table3Link = 'https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Policies'
 
-        $enabledCAPoliciesWithGSA = @()
-        if ($caPolicies) {
-            $enabledCAPoliciesWithGSA = @($caPolicies | Where-Object {
-                $_.state -eq 'enabled' -and
-                $_.sessionControls.globalSecureAccessFilteringProfile.isEnabled -eq $true
-            })
-        }
+            if ($q3Error) {
+                $table3 = @"
 
-        if ($q3Error) {
-            $table3 = @"
-
-## [$table3Title]($table3Link)
+### [$table3Title]($table3Link)
 
 Unable to retrieve Conditional Access policies from Microsoft Graph, so Conditional Access enforcement could not be evaluated.
 "@
-        }
-        elseif ($enabledCAPoliciesWithGSA.Count -gt 0) {
-            $table3Rows = foreach ($caPolicy in $enabledCAPoliciesWithGSA) {
-                $caPolicyName = Get-SafeMarkdown $caPolicy.displayName
-                $caPolicyId = $caPolicy.id
-                $caPolicyState = $caPolicy.state
-                $profileId = $caPolicy.sessionControls.globalSecureAccessFilteringProfile.profileId
-
-                # Find the linked profile
-                $linkedProfile = $filteringProfiles | Where-Object { $_.id -eq $profileId }
-                $profileName = if ($linkedProfile) { Get-SafeMarkdown $linkedProfile.name } else { 'N/A' }
-                $profileState = if ($linkedProfile -and $linkedProfile.state) { $linkedProfile.state } else { 'N/A' }
-                $profileNameWithLink = if ($linkedProfile) {
-                    $profileTitle = [System.Uri]::EscapeDataString("Edit $($linkedProfile.name)")
-                    $profileLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$profileId/title/$profileTitle/defaultMenuItemId/Basics"
-                    "[$profileName]($profileLink)"
-                }
-                else {
-                    'N/A'
-                }
-
-                $profileTiLinks = if ($linkedProfile) {
-                    @($linkedProfile.policies | Where-Object {
-                        $_.'@odata.type' -eq $THREAT_INTELLIGENCE_POLICY_LINK_TYPE -and
-                        $_.policy.id -and $threatIntelPolicyIds.Contains($_.policy.id)
-                    })
-                }
-                else {
-                    @()
-                }
-
-                $enabledProfileTiLinks = @($profileTiLinks | Where-Object { $_.state -eq 'enabled' })
-                $policyLinkState = if ($enabledProfileTiLinks.Count -gt 0) {
-                    'enabled'
-                }
-                elseif ($profileTiLinks.Count -gt 0) {
-                    if ($profileTiLinks[0].state) { $profileTiLinks[0].state } else { 'N/A' }
-                }
-                else {
-                    'N/A'
-                }
-
-                $profileHasTIDisplay = if ($profileTiLinks.Count -gt 0) { '✅ Yes' } else { '❌ No' }
-
-                $caPolicyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$caPolicyId"
-
-                "| [$caPolicyName]($caPolicyLink) | $caPolicyState | $profileNameWithLink | $profileState | $profileHasTIDisplay | $policyLinkState |"
             }
+            elseif ($caPolicyEvidence.Count -gt 0) {
+                $table3Rows = foreach ($evidence in $caPolicyEvidence) {
+                    $caPolicy = $evidence.CAPolicy
+                    $caPolicyName = Get-SafeMarkdown $caPolicy.displayName
+                    $caPolicyId = $caPolicy.id
+                    $caPolicyStateDisplay = '✅ Enabled'
+                    $profileId = $evidence.ProfileId
+                    $linkedProfile = $evidence.LinkedProfile
+                    $profileName = if ($linkedProfile) { Get-SafeMarkdown $linkedProfile.name } else { 'N/A' }
+                    $profileStateDisplay = if ($linkedProfile -and $linkedProfile.state -in @('enabled', 'disabled')) {
+                        '{0} {1}' -f (Get-ZtPassFail -Condition ($linkedProfile.state -eq 'enabled')), (Get-FormattedPolicyState -PolicyState $linkedProfile.state)
+                    }
+                    else {
+                        'N/A'
+                    }
+                    $profileNameWithLink = if ($linkedProfile) {
+                        $profileTitle = [System.Uri]::EscapeDataString("Edit $($linkedProfile.name)")
+                        $profileLink = "https://entra.microsoft.com/#view/Microsoft_Azure_Network_Access/EditProfileMenuBlade.MenuView/~/basics/profileId/$profileId/title/$profileTitle/defaultMenuItemId/Basics"
+                        "[$profileName]($profileLink)"
+                    }
+                    else {
+                        'N/A'
+                    }
 
-            $table3Template = @'
+                    $policyLinkState = $evidence.PolicyLinkState
+                    $policyLinkStateDisplay = if ($policyLinkState -in @('enabled', 'disabled')) {
+                        '{0} {1}' -f (Get-ZtPassFail -Condition ($policyLinkState -eq 'enabled')), (Get-FormattedPolicyState -PolicyState $policyLinkState)
+                    }
+                    else {
+                        'N/A'
+                    }
+                    $profileHasTIDisplay = if ($evidence.ProfileHasTI) { '✅ Yes' } else { '❌ No' }
 
-## [{0}]({1})
+                    $caPolicyLink = "https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/PolicyBlade/policyId/$caPolicyId"
+
+                    "| [$caPolicyName]($caPolicyLink) | $caPolicyStateDisplay | $profileNameWithLink | $profileStateDisplay | $profileHasTIDisplay | $policyLinkStateDisplay |"
+                }
+
+                $table3Template = @'
+
+### [{0}]({1})
 
 | CA Policy Name | CA Policy State | Profile Name | Profile State | [Profile Has TI Policy]({3}) | Policy Link State |
 | :------------- | :-------------- | :----------- | :------------ | :-------------------- | :---------------- |
 {2}
 '@
 
-            $table3 = $table3Template -f $table3Title, $table3Link, ($table3Rows -join "`n"), $threatPolicyLink
-        }
-        else {
-            $table3 = @"
+                $table3 = $table3Template -f $table3Title, $table3Link, ($table3Rows -join "`n"), $threatPolicyLink
+            }
+            else {
+                $table3 = @"
 
-## [$table3Title]($table3Link)
+### [$table3Title]($table3Link)
 
 No Conditional Access policies with Global Secure Access session control found.
 "@
-        }
+            }
 
-        $mdInfo += $table3
+            $mdInfo += $table3
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
