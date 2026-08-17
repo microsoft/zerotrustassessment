@@ -196,10 +196,15 @@ function Test-Assessment-41055 {
     }
 
     $failedItems = @($evaluationResults | Where-Object Status -eq 'Fail')
+    $investigateItems = @($evaluationResults | Where-Object Status -eq 'Investigate')
     $passedItems = @($evaluationResults | Where-Object Status -eq 'Pass')
 
     if ($failedItems.Count -gt 0) {
         $testResultMarkdown = "❌ One or more of real-time, behavioral, or heuristic scanning is disabled.`n`n%TestResult%"
+    }
+    elseif ($investigateItems.Count -gt 0) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ One or more Microsoft Defender Antivirus Secure Score controls could not be evaluated.`n`n%TestResult%"
     }
     elseif ($passedItems.Count -gt 0) {
         $passed = $true
