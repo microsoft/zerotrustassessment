@@ -97,17 +97,6 @@ function Test-Assessment-41035 {
         $rule = $null
     }
 
-    # Q2: Reachability probe for the Microsoft Graph email threat submission API.
-    # Per spec, this is informational only; the check must not depend on Q2 succeeding.
-    Write-ZtProgress -Activity $activity -Status 'Probing email threat submission API (informational)'
-    $graphApiReachable = $false
-    try {
-        $null = Invoke-ZtGraphRequest -RelativeUri 'security/threatSubmission/emailThreats' -ApiVersion beta -Top 1 -DisablePaging -ErrorAction Stop
-        $graphApiReachable = $true
-    }
-    catch {
-        Write-PSFMessage "Email threat submission API probe failed (non-blocking): $_" -Tag Test -Level Warning
-    }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -230,24 +219,15 @@ function Test-Assessment-41035 {
     $tableRows += "| Report submission rule State | $ruleStateName | Enabled | $ruleStateResult |`n"
     $tableRows += "| Report submission rule SentTo | $ruleSentTo | (SOC mailbox address) | $ruleSentToResult |`n"
 
-    # Q2 Graph API reachability note (informational — does not affect verdict)
-    $graphNote = if ($graphApiReachable) {
-        '> ✅ The Microsoft Graph email threat submission API (/beta/security/threatSubmission/emailThreats) is reachable — SOC tooling can enumerate user-submitted messages programmatically using the ThreatSubmission.Read.All permission.'
-    }
-    else {
-    '> ⚠️ The Microsoft Graph email threat submission API (/beta/security/threatSubmission/emailThreats) could not be reached. This does not affect the check verdict, but SOC tooling that ingests the submission queue via Graph will need the ThreatSubmission.Read.All permission granted.'
-    }
-
     $formatTemplate = @'
 ## [User reported settings]({0})
 
 | Setting | Value | Recommended | Result |
 | :------ | :---- | :---------- | :----- |
 {1}
-{2}
 '@
 
-    $mdInfo             = $formatTemplate -f $portalUrl, $tableRows, $graphNote
+    $mdInfo             = $formatTemplate -f $portalUrl, $tableRows
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
