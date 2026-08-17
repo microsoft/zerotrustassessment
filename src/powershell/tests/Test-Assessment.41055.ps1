@@ -99,7 +99,7 @@ function Test-Assessment-41055 {
         }
     }
 
-    if ($controlProfileError -or $secureScoreError -or $null -eq $latestSecureScore -or $controlProfileById.Count -eq 0) {
+    if ($controlProfileError -or $secureScoreError -or $null -eq $latestSecureScore) {
         $params = @{
             TestId       = '41055'
             Title        = 'Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus'
