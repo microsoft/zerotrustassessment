@@ -112,7 +112,23 @@ function Test-Assessment-41201 {
         $dataConnectorsPath = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=$dataConnectorsApiVersion"
 
         try {
-            $connectorsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path $dataConnectorsPath -ErrorAction Stop)
+            $workspaceConnectors = @()
+            $nextPath = $dataConnectorsPath
+
+            do {
+                $response = Invoke-ZtAzureRequest -Path $nextPath -ErrorAction Stop
+
+                if ($null -ne $response -and $response.PSObject.Properties['value']) {
+                    $workspaceConnectors += @($response.value)
+                    $nextPath = $response.nextLink
+                }
+                else {
+                    $workspaceConnectors += @($response)
+                    $nextPath = $null
+                }
+            } while ($nextPath)
+
+            $connectorsByWorkspace[$workspace.WorkspaceId] = @($workspaceConnectors)
         }
         catch {
             $connectorsByWorkspace[$workspace.WorkspaceId] = $null
