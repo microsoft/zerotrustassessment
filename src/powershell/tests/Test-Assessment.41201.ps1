@@ -235,14 +235,14 @@ function Test-Assessment-41201 {
     }
 
     foreach ($result in $displayResults) {
-        $subLink        = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
-        $sentinelId     = "/subscriptions/$($result.SubscriptionId)/resourcegroups/$($result.ResourceGroup)/providers/microsoft.securityinsightsarg/sentinel/$($result.WorkspaceName)"
-        $connectorsLink = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/DataConnectors/id/$($sentinelId -replace '/', '%2F')"
-        $subMd          = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
-        $workspaceMd    = "[$(Get-SafeMarkdown $result.WorkspaceName)]($connectorsLink)"
-        $allKindsMd     = if ($result.ConnectorKinds) { Get-SafeMarkdown -Text $result.ConnectorKinds } else { '—' }
-        $kindsMd        = if ($result.FirstPartyKinds) { Get-SafeMarkdown -Text $result.FirstPartyKinds } else { '—' }
-        $statusDisplay  = switch ($result.RowStatus) {
+        $subLink            = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $encodedWorkspaceId = [System.Uri]::EscapeDataString($result.WorkspaceId)
+        $connectorsLink     = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/DataConnectors/id/$encodedWorkspaceId"
+        $subMd              = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
+        $workspaceMd        = "[$(Get-SafeMarkdown $result.WorkspaceName)]($connectorsLink)"
+        $allKindsMd         = if ($result.ConnectorKinds) { Get-SafeMarkdown -Text $result.ConnectorKinds } else { '—' }
+        $kindsMd            = if ($result.FirstPartyKinds) { Get-SafeMarkdown -Text $result.FirstPartyKinds } else { '—' }
+        $statusDisplay      = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
             'Fail'        { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
