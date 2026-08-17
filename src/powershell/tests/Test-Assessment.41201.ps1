@@ -104,11 +104,12 @@ function Test-Assessment-41201 {
     }
 
     # Q1 (spec): List every data connector for each Sentinel-onboarded workspace.
+    $dataConnectorsApiVersion = '2024-09-01'
     $connectorsByWorkspace = @{}
 
     foreach ($workspace in $onboardedWorkspaces) {
         Write-ZtProgress -Activity $activity -Status "Fetching data connectors for workspace '$($workspace.WorkspaceName)' in '$($workspace.SubscriptionName)'"
-        $dataConnectorsPath = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=2024-09-01"
+        $dataConnectorsPath = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=$dataConnectorsApiVersion"
 
         try {
             $connectorsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path $dataConnectorsPath -ErrorAction Stop)
