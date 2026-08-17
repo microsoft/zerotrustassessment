@@ -218,7 +218,7 @@ function Test-Assessment-41055 {
 
     #region Report Generation
     $totalCount = $evaluationResults.Count
-    $countLine = "Total Microsoft Defender Antivirus controls evaluated: $totalCount"
+    $countLine = "Total pinned Microsoft Defender Antivirus controls: $totalCount"
     $secureScoreLink = '[Microsoft Secure Score](https://security.microsoft.com/securescore)'
 
     $tableRows = ''
