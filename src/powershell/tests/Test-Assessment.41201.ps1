@@ -240,7 +240,7 @@ function Test-Assessment-41201 {
         $connectorsLink     = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/DataConnectors/id/$encodedWorkspaceId"
         $subMd              = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd        = "[$(Get-SafeMarkdown $result.WorkspaceName)]($connectorsLink)"
-        $allKindsMd         = if ($result.ConnectorKinds) { Get-SafeMarkdown -Text $result.ConnectorKinds } else { '—' }
+        $allKindsMd         = if ($result.ConnectorKinds) { "[$(Get-SafeMarkdown -Text $result.ConnectorKinds)]($connectorsLink)" } else { "[Configure connector]($connectorsLink)" }
         $kindsMd            = if ($result.FirstPartyKinds) { Get-SafeMarkdown -Text $result.FirstPartyKinds } else { '—' }
         $statusDisplay      = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
