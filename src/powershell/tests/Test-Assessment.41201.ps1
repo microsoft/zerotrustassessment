@@ -112,23 +112,7 @@ function Test-Assessment-41201 {
         $dataConnectorsPath = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectors?api-version=$dataConnectorsApiVersion"
 
         try {
-            $workspaceConnectors = @()
-            $nextPath = $dataConnectorsPath
-
-            do {
-                $response = Invoke-ZtAzureRequest -Path $nextPath -ErrorAction Stop
-
-                if ($null -ne $response -and $response.PSObject.Properties['value']) {
-                    $workspaceConnectors += @($response.value)
-                    $nextPath = $response.nextLink
-                }
-                else {
-                    $workspaceConnectors += @($response)
-                    $nextPath = $null
-                }
-            } while ($nextPath)
-
-            $connectorsByWorkspace[$workspace.WorkspaceId] = @($workspaceConnectors)
+            $connectorsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path $dataConnectorsPath -ErrorAction Stop)
         }
         catch {
             $connectorsByWorkspace[$workspace.WorkspaceId] = $null
@@ -154,13 +138,15 @@ function Test-Assessment-41201 {
     $workspaceResults = foreach ($workspace in $onboardedWorkspaces) {
         $rawConnectors = $connectorsByWorkspace[$workspace.WorkspaceId]
 
-        $totalConnectors   = 0
+        $totalConnectors   = $null
         $kindBreakdown     = ''
         $firstPartyPresent = @()
         $rowStatus         = 'Fail'
+        $statusDetails     = ''
 
         if ($null -eq $rawConnectors) {
-            $rowStatus = 'Investigate'
+            $rowStatus     = 'Investigate'
+            $statusDetails = 'The data-connectors API request failed.'
         }
         else {
             $totalConnectors   = $rawConnectors.Count
@@ -181,28 +167,49 @@ function Test-Assessment-41201 {
             ConnectorKinds   = $kindBreakdown
             FirstPartyKinds  = ($firstPartyPresent -join ', ')
             RowStatus        = $rowStatus
+            StatusDetails    = $statusDetails
         }
     }
     $workspaceResults = @($workspaceResults)
 
+    $unresolvedWorkspaceResults = foreach ($workspace in @($forbiddenWorkspaces) + @($unresolvedWorkspaces)) {
+        $statusDetails = if ($workspace.PermissionError) {
+            'Insufficient permissions to check the Sentinel onboarding state.'
+        }
+        else {
+            'The Sentinel onboarding state could not be determined due to an unexpected error.'
+        }
+
+        [PSCustomObject]@{
+            SubscriptionName = $workspace.SubscriptionName
+            SubscriptionId   = $workspace.SubscriptionId
+            WorkspaceName    = $workspace.WorkspaceName
+            ResourceGroup    = $workspace.ResourceGroup
+            WorkspaceId      = $workspace.WorkspaceId
+            TotalConnectors  = $null
+            ConnectorKinds   = ''
+            FirstPartyKinds  = ''
+            RowStatus        = 'Investigate'
+            StatusDetails    = $statusDetails
+        }
+    }
+    $workspaceResults = @($workspaceResults) + @($unresolvedWorkspaceResults)
+
     $investigateItems = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Investigate' })
     $failedItems      = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Fail' })
 
-    # Pass only when every onboarded workspace has at least one Microsoft first-party connector and
-    # no workspace was left unevaluated due to an API error or insufficient permissions.
-    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0 -and
-                    $forbiddenWorkspaces.Count -eq 0 -and $unresolvedWorkspaces.Count -eq 0
+    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0
     $customStatus = $null
 
-    if ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
+    if ($failedItems.Count -gt 0) {
+        $testResultMarkdown = "❌ At least one Sentinel workspace has no Microsoft first-party data connectors configured.`n`n%TestResult%"
+    }
+    elseif ($investigateItems.Count -gt 0) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ The data-connectors API returned an unexpected response for one or more workspaces, or one or more workspaces could not be checked due to insufficient permissions. Note that connectors configured exclusively via diagnostic settings are not returned by this API and require a separate check. Re-run after verifying Microsoft Sentinel Reader access on each affected workspace.`n`n%TestResult%"
     }
-    elseif ($passed) {
-        $testResultMarkdown = "✅ At least one Microsoft first-party data connector is configured in the Sentinel workspace.`n`n%TestResult%"
-    }
     else {
-        $testResultMarkdown = "❌ No Microsoft first-party data connectors are configured in the Sentinel workspace.`n`n%TestResult%"
+        $testResultMarkdown = "✅ At least one Microsoft first-party data connector is configured in the Sentinel workspace.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -240,14 +247,15 @@ function Test-Assessment-41201 {
         $connectorsLink     = "$portalHost/#view/Microsoft_Azure_Security_Insights/MainMenuBlade/~/DataConnectors/id/$encodedWorkspaceId"
         $subMd              = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd        = "[$(Get-SafeMarkdown $result.WorkspaceName)]($connectorsLink)"
-        $allKindsMd         = if ($result.ConnectorKinds) { "[$(Get-SafeMarkdown -Text $result.ConnectorKinds)]($connectorsLink)" } else { "[Configure connector]($connectorsLink)" }
+        $totalConnectorsMd  = if ($null -eq $result.TotalConnectors) { '—' } else { $result.TotalConnectors }
+        $allKindsMd         = if ($result.ConnectorKinds) { "[$(Get-SafeMarkdown -Text $result.ConnectorKinds)]($connectorsLink)" } elseif ($result.RowStatus -eq 'Investigate') { '—' } else { "[Configure connector]($connectorsLink)" }
         $kindsMd            = if ($result.FirstPartyKinds) { Get-SafeMarkdown -Text $result.FirstPartyKinds } else { '—' }
         $statusDisplay      = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
             'Fail'        { '❌ Fail' }
-            'Investigate' { '⚠️ Investigate' }
+            'Investigate' { "⚠️ Investigate: $(Get-SafeMarkdown -Text $result.StatusDetails)" }
         }
-        $tableRows += "| $subMd | $workspaceMd | $($result.TotalConnectors) | $allKindsMd | $kindsMd | $statusDisplay |`n"
+        $tableRows += "| $subMd | $workspaceMd | $totalConnectorsMd | $allKindsMd | $kindsMd | $statusDisplay |`n"
     }
 
     if ($hasMoreItems) {
