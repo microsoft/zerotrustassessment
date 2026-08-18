@@ -54,7 +54,7 @@ function Test-Assessment-41219 {
         if ($decidingPlan) { $decidingPlanName = $decidingPlan.servicePlanName }
     }
     catch {
-        Write-PSFMessage "Q5 subscribedSkus query failed: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Q5 subscribedSkus query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         $params = @{
             TestId       = '41219'
             Title        = 'Microsoft Graph identity and device APIs are queryable so analysts (with Security Copilot) can review identities and devices during investigation'
@@ -73,12 +73,12 @@ function Test-Assessment-41219 {
     $q1Error      = $null
     $q1HttpStatus = $null
     try {
-        $q1Devices = @(Invoke-ZtGraphRequest -RelativeUri 'devices' -Select 'id,displayName,operatingSystem,trustType,isCompliant,isManaged' -Top 1 -ApiVersion beta -ErrorAction Stop)
+        $q1Devices = @((Invoke-ZtGraphRequest -RelativeUri 'devices' -Select 'id,displayName,operatingSystem,trustType,isCompliant,isManaged' -Top 1 -DisablePaging -ApiVersion beta -ErrorAction Stop).value)
     }
     catch {
         $q1Error      = $_
         $q1HttpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
-        Write-PSFMessage "Q1 Entra devices query failed: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Q1 Entra devices query failed: $($_.Exception.Message)" -Tag Test -Level Warning
     }
 
     # Q2: Verify the Microsoft Entra users data plane is reachable.
@@ -87,12 +87,12 @@ function Test-Assessment-41219 {
     $q2Error      = $null
     $q2HttpStatus = $null
     try {
-        $q2Users = @(Invoke-ZtGraphRequest -RelativeUri 'users' -Select 'id,userPrincipalName,accountEnabled,assignedLicenses' -Top 1 -ApiVersion beta -ErrorAction Stop)
+        $q2Users = @((Invoke-ZtGraphRequest -RelativeUri 'users' -Select 'id,userPrincipalName,accountEnabled,assignedLicenses' -Top 1 -DisablePaging -ApiVersion beta -ErrorAction Stop).value)
     }
     catch {
         $q2Error      = $_
         $q2HttpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
-        Write-PSFMessage "Q2 Entra users query failed: $_" -Tag Test -Level Warning
+        Write-PSFMessage "Q2 Entra users query failed: $($_.Exception.Message)" -Tag Test -Level Warning
     }
 
     # Q3: Verify the Intune managed device data plane (excluded as N/A when Intune is not licensed per Q5).
@@ -103,12 +103,12 @@ function Test-Assessment-41219 {
     if (-not $q3Excluded) {
         Write-ZtProgress -Activity $activity -Status 'Verifying Intune managed device data plane (Q3)'
         try {
-            $q3Devices = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Select 'id,deviceName,operatingSystem,complianceState,lastSyncDateTime' -Top 1 -ApiVersion beta -ErrorAction Stop)
+            $q3Devices = @((Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/managedDevices' -Select 'id,deviceName,operatingSystem,complianceState,lastSyncDateTime' -Top 1 -DisablePaging -ApiVersion beta -ErrorAction Stop).value)
         }
         catch {
             $q3Error      = $_
             $q3HttpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
-            Write-PSFMessage "Q3 Intune managed devices query failed: $_" -Tag Test -Level Warning
+            Write-PSFMessage "Q3 Intune managed devices query failed: $($_.Exception.Message)" -Tag Test -Level Warning
         }
     }
 
