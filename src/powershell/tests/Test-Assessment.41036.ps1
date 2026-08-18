@@ -104,7 +104,7 @@ function Test-Assessment-41036 {
             try { $completionParsed = [datetime]$sim.completionDateTime; $completionInWindow = $completionParsed -ge $cutoffDate -and $completionParsed -le $now } catch {}
         }
 
-        if ($sim.status -eq 'succeeded' -and $null -eq $completionParsed -and ($null -eq $launchParsed -or $launchParsed -ge $extendedCutoff)) {
+        if ($sim.status -eq 'succeeded' -and $null -eq $completionParsed) {
             $hasSucceededMissingCompletion = $true
         }
 
@@ -135,8 +135,8 @@ function Test-Assessment-41036 {
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     elseif ($simulationsError -or $automationsError) {
-        # Any query error (auth/permission, 404, unsupported cloud, throttling, service error, or
-        # an unusable response) → Investigate immediately. Never Skip, never Fail for errors.
+        # Any query error (auth/permission, 404, throttling, service error, or unusable response)
+        # → Investigate immediately. Never Skip, never Fail for errors.
         $errorParts = @()
         if ($simulationsError) {
             $q1Status = Get-ZtHttpStatusCode -ErrorRecord $simulationsError
@@ -162,13 +162,16 @@ function Test-Assessment-41036 {
     }
     elseif ($hasSucceededMissingCompletion) {
         $customStatus       = 'Investigate'
-        $reason             = "A **succeeded** simulation was found but its ``completionDateTime`` was missing or unparseable — recency could not be confirmed."
+        $reason             = "A **succeeded** simulation was missing a usable **completionDateTime** — recency could not be confirmed."
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     elseif ($hasActivityInWindow) {
         $customStatus     = 'Investigate'
         $observedStatuses = ($classifiedSims | Where-Object { $_.ZtSignal -ne 'Out of window' } | ForEach-Object { $_.Sim.status } | Select-Object -Unique | Sort-Object) -join ', '
-        $reason             = "Simulations exist in the last 12 months but none reached **succeeded** in the window. Observed statuses: **$observedStatuses**."
+        $reason = "Simulations exist in the last 12 months but none reached **succeeded** in the window. Observed statuses: **$observedStatuses**."
+        if ($hasSucceededMissingCompletion) {
+            $reason += ' Additionally, a **succeeded** simulation was missing a usable **completionDateTime** — recency could not be confirmed.'
+        }
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     else {
