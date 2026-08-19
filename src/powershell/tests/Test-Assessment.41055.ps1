@@ -1,35 +1,35 @@
 <#
 .SYNOPSIS
-    Attack surface reduction (ASR) rules are enabled in block mode.
+    Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus.
 
 .DESCRIPTION
-    Attack surface reduction rules block high-risk behaviors commonly reused by malware and
-    human-operated attacks. This check evaluates the pinned ASR Secure Score control set
-    (scid_2500 through scid_2518) by joining control profiles to the latest Microsoft Secure Score
-    snapshot and comparing each available score with its maximum score.
+    Evaluates the pinned Microsoft Defender Antivirus Secure Score controls by joining control
+    profiles to the latest Microsoft Secure Score snapshot and comparing each achieved score with
+    its maximum score. Controls with missing profiles, controls without applicable devices, and
+    ignored controls are excluded from the roll-up.
 
 .NOTES
-    Test ID: 41050
-    Workshop Task ID: SECOPS-050
+    Test ID: 41055
+    Workshop Task ID: SECOPS-055
     Category: Endpoint threat protection
     Pillar: SecOps
     Required Module: Microsoft.Graph.Authentication
     Required Connection: Microsoft Graph
 #>
 
-function Test-Assessment-41050 {
+function Test-Assessment-41055 {
     [ZtTest(
         Category = 'Endpoint threat protection',
-        CompatibleLicense = ('WINDEFATP'),
-        ImplementationCost = 'Medium',
+        CompatibleLicense = ('WINDEFATP', 'MDE_LITE'),
+        ImplementationCost = 'Low',
         Pillar = 'SecOps',
         RiskLevel = 'High',
         Service = ('Graph'),
         SfiPillar = 'Monitor and detect cyberthreats',
         TenantType = ('Workforce'),
-        TestId = 41050,
-        Title = 'Attack surface reduction (ASR) rules are enabled in block mode',
-        UserImpact = 'Medium'
+        TestId = 41055,
+        Title = 'Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus',
+        UserImpact = 'Low'
     )]
     [CmdletBinding()]
     param()
@@ -37,24 +37,20 @@ function Test-Assessment-41050 {
     #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
-    $activity = 'Checking ASR block-mode controls in Microsoft Secure Score'
-
-    $asrControlIds = @(
-        'scid_2500', 'scid_2501', 'scid_2502', 'scid_2503', 'scid_2504',
-        'scid_2505', 'scid_2506', 'scid_2507', 'scid_2508', 'scid_2509',
-        'scid_2510', 'scid_2511', 'scid_2512', 'scid_2513', 'scid_2514',
-        'scid_2515', 'scid_2516', 'scid_2517', 'scid_2518'
+    $activity = 'Checking Microsoft Defender Antivirus protection controls in Microsoft Secure Score'
+    $defenderAntivirusControlIds = @(
+        'scid_2012', 'scid_91', 'scid_92', 'scid_89', 'scid_90', 'scid_5093', 'scid_6093'
     )
-
     $controlProfileError = $null
     $secureScoreError = $null
 
-    # Q1: Read all MDATP Secure Score control profiles, then intersect client-side with pinned IDs.
+    # Q1: Read MDATP Secure Score control profiles, then intersect client-side with pinned IDs.
     Write-ZtProgress -Activity $activity -Status 'Getting MDATP Secure Score control profiles'
 
     $mdatpControlProfiles = @()
     try {
-        $mdatpControlProfiles = @(Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -Filter "service eq 'MDATP'" -ApiVersion beta -ErrorAction Stop)
+        $controlProfileFilter = "service eq 'MDATP' and (id eq 'scid_2012' or id eq 'scid_91' or id eq 'scid_92' or id eq 'scid_89' or id eq 'scid_90' or id eq 'scid_5093' or id eq 'scid_6093')"
+        $mdatpControlProfiles = @(Invoke-ZtGraphRequest -RelativeUri 'security/secureScoreControlProfiles' -Filter $controlProfileFilter -ApiVersion beta -ErrorAction Stop)
     }
     catch {
         $controlProfileError = $_
@@ -85,8 +81,8 @@ function Test-Assessment-41050 {
     foreach ($queryError in @($controlProfileError, $secureScoreError) | Where-Object { $null -ne $_ }) {
         if ((Get-ZtHttpStatusCode -ErrorRecord $queryError) -in (401, 403)) {
             $params = @{
-                TestId       = '41050'
-                Title        = 'Attack surface reduction (ASR) rules are enabled in block mode'
+                TestId       = '41055'
+                Title        = 'Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus'
                 Status       = $false
                 Result       = '⚠️ Microsoft Graph returned HTTP 401 or 403. Verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.'
                 CustomStatus = 'Investigate'
@@ -97,7 +93,7 @@ function Test-Assessment-41050 {
     }
 
     $controlProfileById = @{}
-    foreach ($controlProfile in @($mdatpControlProfiles | Where-Object { $asrControlIds -contains $_.id })) {
+    foreach ($controlProfile in @($mdatpControlProfiles | Where-Object { $defenderAntivirusControlIds -contains $_.id })) {
         if ($null -ne $controlProfile.id -and -not $controlProfileById.ContainsKey($controlProfile.id)) {
             $controlProfileById[$controlProfile.id] = $controlProfile
         }
@@ -105,10 +101,10 @@ function Test-Assessment-41050 {
 
     if ($controlProfileError -or $secureScoreError -or $null -eq $latestSecureScore) {
         $params = @{
-            TestId       = '41050'
-            Title        = 'Attack surface reduction (ASR) rules are enabled in block mode'
+            TestId       = '41055'
+            Title        = 'Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus'
             Status       = $false
-            Result       = '⚠️ ASR Secure Score data was not found; verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.'
+            Result       = '⚠️ No Microsoft Defender Antivirus Secure Score control could be evaluated; verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -123,19 +119,19 @@ function Test-Assessment-41050 {
     }
 
     $evaluationResults = @()
-    foreach ($controlId in $asrControlIds) {
+    foreach ($controlId in $defenderAntivirusControlIds) {
         $controlProfile = if ($controlProfileById.ContainsKey($controlId)) { $controlProfileById[$controlId] } else { $null }
-        $matchingScore = if ($null -ne $controlProfile -and $controlScoreByName.ContainsKey($controlId)) { $controlScoreByName[$controlId] } else { $null }
-
-        $score = if ($null -ne $matchingScore -and $null -ne $matchingScore.score) { $matchingScore.score } else { $null }
-        $maxScore = if ($null -ne $controlProfile -and $null -ne $controlProfile.maxScore) { $controlProfile.maxScore } else { $null }
+        $matchingScore = if ($controlScoreByName.ContainsKey($controlId)) { $controlScoreByName[$controlId] } else { $null }
 
         $latestStateUpdate = @()
         if ($null -ne $controlProfile) {
             $latestStateUpdate = @($controlProfile.controlStateUpdates | Sort-Object { if ($_.updatedDateTime) { [datetime]$_.updatedDateTime } else { [datetime]::MinValue } } -Descending | Select-Object -First 1)
         }
+        $controlState = if ($latestStateUpdate.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($latestStateUpdate[0].state)) { $latestStateUpdate[0].state } else { 'N/A' }
         $isIgnored = $latestStateUpdate.Count -gt 0 -and $latestStateUpdate[0].state -eq 'ignored'
 
+        $score = if ($null -ne $matchingScore -and $null -ne $matchingScore.score) { $matchingScore.score } else { $null }
+        $maxScore = if ($null -ne $controlProfile -and $null -ne $controlProfile.maxScore) { $controlProfile.maxScore } else { $null }
         $scoreValue = $null
         $scoreIsNumeric = $false
         if ($null -ne $score) {
@@ -156,13 +152,13 @@ function Test-Assessment-41050 {
             catch { }
         }
 
-        $notApplicableReason = $null
+        $statusReason = $null
         $status = if ($null -eq $controlProfile) {
-            $notApplicableReason = 'profile not found'
+            $statusReason = 'profile not found'
             'N/A'
         }
         elseif ($null -eq $matchingScore) {
-            $notApplicableReason = 'no applicable devices'
+            $statusReason = 'no applicable devices'
             'N/A'
         }
         elseif ($isIgnored) {
@@ -178,7 +174,7 @@ function Test-Assessment-41050 {
             'Fail'
         }
 
-        $ruleName = if ($null -ne $controlProfile -and -not [string]::IsNullOrWhiteSpace($controlProfile.title)) {
+        $controlTitle = if ($null -ne $controlProfile -and -not [string]::IsNullOrWhiteSpace($controlProfile.title)) {
             $controlProfile.title
         }
         else {
@@ -186,41 +182,44 @@ function Test-Assessment-41050 {
         }
 
         $evaluationResults += [PSCustomObject]@{
-            AsrRuleId             = $controlId
-            AsrRuleName           = $ruleName
+            ControlId             = $controlId
+            ControlTitle          = $controlTitle
             ActionUrl             = if ($null -ne $controlProfile) { $controlProfile.actionUrl } else { $null }
             Score                 = if ($null -ne $score) { $score } else { 'N/A' }
             MaxScore              = if ($null -ne $maxScore) { $maxScore } else { 'N/A' }
             ImplementationStatus  = if ($null -ne $matchingScore -and -not [string]::IsNullOrWhiteSpace($matchingScore.implementationStatus)) { $matchingScore.implementationStatus } else { 'N/A' }
+            State                 = $controlState
             LastModifiedDateTime  = if ($null -ne $controlProfile) { $controlProfile.lastModifiedDateTime } else { $null }
             Status                = $status
-            NotApplicableReason   = $notApplicableReason
+            StatusReason          = $statusReason
         }
     }
 
     $failedItems = @($evaluationResults | Where-Object Status -eq 'Fail')
+    $investigateItems = @($evaluationResults | Where-Object Status -eq 'Investigate')
     $passedItems = @($evaluationResults | Where-Object Status -eq 'Pass')
 
     if ($failedItems.Count -gt 0) {
-        $testResultMarkdown = "❌ One or more attack surface reduction rules are in audit / disabled mode (below their target score).`n`n%TestResult%"
+        $testResultMarkdown = "❌ One or more of real-time, behavioral, or heuristic scanning is disabled.`n`n%TestResult%"
+    }
+    elseif ($investigateItems.Count -gt 0) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ One or more Microsoft Defender Antivirus Secure Score controls could not be evaluated.`n`n%TestResult%"
     }
     elseif ($passedItems.Count -gt 0) {
         $passed = $true
-        $testResultMarkdown = "✅ All applicable attack surface reduction rules are deployed in block mode.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Real-time, behavioral, and heuristic protection on Microsoft Defender Antivirus are enabled.`n`n%TestResult%"
     }
     else {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ ASR Secure Score data was not found; verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ No Microsoft Defender Antivirus Secure Score control could be evaluated; verify SecurityEvents.Read.All is granted, Secure Score data is flowing, and at least one MDE device is onboarded.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $totalCount = $evaluationResults.Count
-    $countLine = "Total ASR controls evaluated: $totalCount"
-    $asrPoliciesLink = 'https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/SecurityManagementMenu/~/asr'
-    $asrDefenderLink = 'https://security.microsoft.com/asr'
-
-    $portalLinks = "[Microsoft Intune ASR Policies]($asrPoliciesLink) | [Defender XDR > Endpoints > Attack surface reduction]($asrDefenderLink)"
+    $countLine = "Total pinned Microsoft Defender Antivirus controls: $totalCount"
+    $secureScoreLink = '[Microsoft Secure Score](https://security.microsoft.com/securescore)'
 
     $tableRows = ''
     foreach ($result in $evaluationResults) {
@@ -228,39 +227,42 @@ function Test-Assessment-41050 {
             'Pass' { '✅ Pass' }
             'Fail' { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
-            'N/A' { "N/A ($($result.NotApplicableReason))" }
+            'N/A' { "N/A ($($result.StatusReason))" }
             default { 'Skipped' }
         }
         $lastModified = if ($result.LastModifiedDateTime) { Get-FormattedDate -DateString $result.LastModifiedDateTime } else { 'N/A' }
-        $safeRuleName = Get-SafeMarkdown -Text $result.AsrRuleName
-        $ruleDisplay = if (-not [string]::IsNullOrWhiteSpace($result.ActionUrl)) {
-            "[$safeRuleName]($($result.ActionUrl)) ($($result.AsrRuleId))"
+        $safeControlTitle = Get-SafeMarkdown -Text $result.ControlTitle
+        $controlDisplay = if (-not [string]::IsNullOrWhiteSpace($result.ActionUrl)) {
+            "[$safeControlTitle]($($result.ActionUrl)) ($($result.ControlId))"
         }
-        elseif ($result.AsrRuleName -ne $result.AsrRuleId) {
-            "$safeRuleName ($($result.AsrRuleId))"
+        elseif ($result.ControlTitle -ne $result.ControlId) {
+            "$safeControlTitle ($($result.ControlId))"
         }
         else {
-            $safeRuleName
+            $safeControlTitle
         }
-        $tableRows += "| $ruleDisplay | $($result.Score) | $($result.MaxScore) | $($result.ImplementationStatus) | $lastModified | $statusDisplay |`n"
+        $tableRows += "| $controlDisplay | $($result.Score) | $($result.MaxScore) | $($result.ImplementationStatus) | $($result.State) | $lastModified | $statusDisplay |`n"
     }
 
-    $mdInfo = @"
-$countLine
-
-$portalLinks
-
-| ASR rule (id) | Score | Max score | Implementation status | Last modified | Status |
-| :------------ | ----: | --------: | :-------------------- | :------------ | :----- |
+    $controlTable = @"
+| Control title (id) | Score | Max score | Implementation status | State | Last modified | Status |
+| :----------------- | ----: | --------: | :-------------------- | :---- | :------------ | :----- |
 $tableRows
 "@
+    $formatTemplate = @'
+{0}
 
+{1}
+
+{2}
+'@
+    $mdInfo = $formatTemplate -f $countLine, $secureScoreLink, $controlTable
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
     $params = @{
-        TestId = '41050'
-        Title  = 'Attack surface reduction (ASR) rules are enabled in block mode'
+        TestId = '41055'
+        Title  = 'Real-time, behavioral, and heuristic protection are enabled on Microsoft Defender Antivirus'
         Status = $passed
         Result = $testResultMarkdown
     }

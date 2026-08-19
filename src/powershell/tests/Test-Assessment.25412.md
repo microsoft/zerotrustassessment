@@ -1,0 +1,11 @@
+Without threat intelligence filtering enabled in Global Secure Access, internet traffic from users and devices remains unprotected against connections to malicious destinations. Threat actors can leverage this gap to establish initial access through phishing sites that harvest credentials or deliver malware payloads. Once malware executes on a compromised endpoint, it can communicate with command-and-control (C2) infrastructure to receive instructions, download additional tools, or exfiltrate sensitive data. Microsoft defines high severity threats as domains or URLs associated with active malware distribution, phishing campaigns, C2 infrastructure, and other indicators identified by Microsoft and third-party threat intelligence feeds with high confidence. The threat intelligence policy in Global Secure Access blocks traffic based on domain and URL indicators from these feeds in real-time. When this protection is not enabled, threat actors maintain unrestricted network communication paths, enabling persistence mechanisms to survive detection and lateral movement to additional systems. The baseline security profile provides tenant-wide protection without requiring Conditional Access policy configuration, while custom security profiles enable context-aware enforcement through Conditional Access integration.
+
+**Remediation action**
+
+- [Configure threat intelligence filtering in Global Secure Access to block connections to destinations on the threat intelligence feed](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-threat-intelligence)
+- [Understand security profiles, how filtering policies are grouped into them, and how policy priority is processed](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-internet-access#security-profiles)
+- [Link a security profile to a Conditional Access policy using the Global Secure Access session control](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-session#use-global-secure-access-security-profile)
+- [Link a security policy to the baseline profile for tenant-wide protection without Conditional Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-apply-security-policies-remote-network)
+
+<!--- Results --->
+%TestResult%
