@@ -1299,29 +1299,35 @@ export default function Dashboard() {
             )}
 
             {/* Network overview */}
-            {(hasSwgData() || hasPrivateAccessData()) && (
-                <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
-                    {hasSwgData() && (
-                        <Card className="h-full">
-                            <CardHeader className="flex-row space-y-0 pb-2">
-                                <ShieldCheck className="size-8 pr-2" />
-                                <div>
-                                    <CardTitle className="text-2xl tabular-nums">
-                                        SWG defense-in-depth
-                                    </CardTitle>
-                                    <CardDescription className="mt-1">
-                                        Secure Web Gateway defense layers — internet traffic inspection posture
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <SwgDefenseLayers />
-                            </CardContent>
-                        </Card>
-                    )}
-                    {hasPrivateAccessData() && <PrivateAccessSankey />}
-                </div>
-            )}
+            {(() => {
+                const swg = hasSwgData();
+                const privateAccess = hasPrivateAccessData();
+                if (!swg && !privateAccess) return null;
+
+                return (
+                    <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+                        {swg && (
+                            <Card className="h-full">
+                                <CardHeader className="flex-row space-y-0 pb-2">
+                                    <ShieldCheck className="size-8 pr-2" />
+                                    <div>
+                                        <CardTitle className="text-2xl tabular-nums">
+                                            SWG defense-in-depth
+                                        </CardTitle>
+                                        <CardDescription className="mt-1">
+                                            Secure Web Gateway defense layers — internet traffic inspection posture
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <SwgDefenseLayers />
+                                </CardContent>
+                            </Card>
+                        )}
+                        {privateAccess && <PrivateAccessSankey />}
+                    </div>
+                );
+            })()}
 
             {/* Network - Azure Network Security Defense Planes Section */}
             {hasAzureNetSecData() && (
