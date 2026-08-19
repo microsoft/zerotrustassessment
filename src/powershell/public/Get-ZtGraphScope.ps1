@@ -20,6 +20,7 @@
     # Default read-only scopes required for the assessment.
     $scopes = @( #IMPORTANT: Read note above before adding any new scopes.
         'Application.Read.All'
+        'AttackSimulation.Read.All'
         'AuditLog.Read.All'
         'CopilotPackages.Read.All'
         'CrossTenantInformation.ReadBasic.All'
