@@ -328,9 +328,11 @@ function Test-Assessment-41202 {
     $connectorTableRows   = ''
     $workspaceSummaryRows = ''
     $maxDisplay           = 10
+    $connectorRowCount    = 0
     $summaryRowCount      = 0
     $statusPriority       = @{ Investigate = 0; Pass = 1 }
     $sortedResults        = @($workspaceResults | Sort-Object { $statusPriority[$_.RowStatus] }, SubscriptionName, WorkspaceName)
+    $totalConnectorCount  = ($workspaceResults | ForEach-Object { $_.ConnectorRows.Count } | Measure-Object -Sum).Sum
 
     foreach ($wsResult in $sortedResults) {
         $subLink       = "$portalHost/#resource/subscriptions/$($wsResult.SubscriptionId)"
@@ -339,20 +341,25 @@ function Test-Assessment-41202 {
         $subMd         = "[$(Get-SafeMarkdown $wsResult.SubscriptionName)]($subLink)"
         $workspaceMd   = "[$(Get-SafeMarkdown $wsResult.WorkspaceName)]($connectorLink)"
 
-        # Connector table: one row per connector; placeholder row when Q1 failed or zero connectors.
-        if ($wsResult.ConnectorRows.Count -eq 0) {
-            $wsStatusDisplay    = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
-            $connectorTableRows += "| $subMd | $workspaceMd | — | — | — | — | $wsStatusDisplay |`n"
-        }
-        else {
-            foreach ($row in $wsResult.ConnectorRows) {
-                $rowStatusDisplay = switch ($row.ConnectorStatus) {
-                    'Pass'        { '✅ Pass' }
-                    'Investigate' { '⚠️ Investigate' }
-                    default       { 'n/a' }
+        # Connector table: one row per connector up to $maxDisplay; placeholder when Q1 failed or zero connectors.
+        if ($connectorRowCount -lt $maxDisplay) {
+            if ($wsResult.ConnectorRows.Count -eq 0) {
+                $wsStatusDisplay    = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
+                $connectorTableRows += "| $subMd | $workspaceMd | — | — | — | — | $wsStatusDisplay |`n"
+                $connectorRowCount++
+            }
+            else {
+                foreach ($row in $wsResult.ConnectorRows) {
+                    if ($connectorRowCount -ge $maxDisplay) { break }
+                    $rowStatusDisplay = switch ($row.ConnectorStatus) {
+                        'Pass'        { '✅ Pass' }
+                        'Investigate' { '⚠️ Investigate' }
+                        default       { 'n/a' }
+                    }
+                    $publisherMd        = if ($row.Publisher -eq '—') { '—' } else { Get-SafeMarkdown $row.Publisher }
+                    $connectorTableRows += "| $subMd | $workspaceMd | $(Get-SafeMarkdown $row.ConnectorName) | $($row.Kind) | $publisherMd | $($row.Classification) | $rowStatusDisplay |`n"
+                    $connectorRowCount++
                 }
-                $publisherMd        = if ($row.Publisher -eq '—') { '—' } else { Get-SafeMarkdown $row.Publisher }
-                $connectorTableRows += "| $subMd | $workspaceMd | $(Get-SafeMarkdown $row.ConnectorName) | $($row.Kind) | $publisherMd | $($row.Classification) | $rowStatusDisplay |`n"
             }
         }
 
@@ -362,6 +369,11 @@ function Test-Assessment-41202 {
             $workspaceSummaryRows += "| $subMd | $workspaceMd | $($wsResult.ThirdPartyCount) | $($wsResult.FirstPartyCount) | $($wsResult.CustomCount) | $($wsResult.UnclassifiableCount) | $wsStatusDisplay |`n"
             $summaryRowCount++
         }
+    }
+
+    if ($totalConnectorCount -gt $maxDisplay) {
+        $connectorTableRows += "| ... | ... | ... | ... | ... | ... | ... |`n"
+        $connectorTableRows += "`nShowing $connectorRowCount of $totalConnectorCount connectors. [View all data connectors in Microsoft Sentinel]($portalSentinelLink)`n"
     }
 
     if ($workspaceResults.Count -gt $maxDisplay) {
