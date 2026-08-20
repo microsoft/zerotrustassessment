@@ -370,7 +370,7 @@ function Test-Assessment-41217 {
 {0}
 '@
 
-    # No cap — spec requires one row per evaluated table; 28 rows/workspace possible, exceeding any small cap.
+    # No cap — the spec requires one row per evaluated table across every workspace.
     $classOrder  = @{ 'Detection-critical' = 0; 'High-volume' = 1 }
     $sortedRows  = @($allTableRows | Sort-Object {
         $statusPriority[$_.RowStatus]
