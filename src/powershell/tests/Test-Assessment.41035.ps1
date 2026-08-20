@@ -106,23 +106,38 @@ function Test-Assessment-41035 {
     # microsoftRoute: EnableReportToMicrosoft = True; requires no rule.
     $microsoftRoute = ($policy.EnableReportToMicrosoft -eq $true)
 
+    # Custom mailbox route flags (set to True by the Defender portal when a reporting mailbox is configured).
+    $junkFlagSet    = ($policy.ReportJunkToCustomizedAddress    -eq $true)
+    $notJunkFlagSet = ($policy.ReportNotJunkToCustomizedAddress -eq $true)
+    $phishFlagSet   = ($policy.ReportPhishToCustomizedAddress   -eq $true)
+
     $junkCount    = ($policy.ReportJunkAddresses    | Measure-Object).Count
     $notJunkCount = ($policy.ReportNotJunkAddresses | Measure-Object).Count
     $phishCount   = ($policy.ReportPhishAddresses   | Measure-Object).Count
 
-    # customMailboxComplete: all three address lists non-empty.
-    $customMailboxComplete = ($junkCount -gt 0) -and ($notJunkCount -gt 0) -and ($phishCount -gt 0)
-    $customMailboxPartial  = (($junkCount + $notJunkCount + $phishCount) -gt 0) -and (-not $customMailboxComplete)
+    # customMailboxComplete: all three routing flags True AND all three address lists non-empty.
+    $customMailboxComplete = $junkFlagSet -and $notJunkFlagSet -and $phishFlagSet -and
+                             ($junkCount -gt 0) -and ($notJunkCount -gt 0) -and ($phishCount -gt 0)
+    $customMailboxPartial  = ($junkFlagSet -or $notJunkFlagSet -or $phishFlagSet -or
+                              ($junkCount -gt 0) -or ($notJunkCount -gt 0) -or ($phishCount -gt 0)) -and
+                             (-not $customMailboxComplete)
 
-    # customMailboxRoute: complete addresses AND rule exists AND State=Enabled AND SentTo populated.
-    $ruleDelivers       = ($null -ne $rule) -and ($rule.State -eq 'Enabled') -and (-not [string]::IsNullOrWhiteSpace($rule.SentTo))
-    $customMailboxRoute = $customMailboxComplete -and $ruleDelivers
+    # ruleActionable: a rule exists with State=Enabled and SentTo populated.
+    # Shared requirement for both the custom-mailbox and non-Microsoft-tool routes.
+    $ruleActionable = ($null -ne $rule) -and ($rule.State -eq 'Enabled') -and (-not [string]::IsNullOrWhiteSpace($rule.SentTo))
 
-    # Spec Investigate: addresses complete but rule absent/disabled/no SentTo.
-    $customMailboxRuleProblem = $customMailboxComplete -and (-not $ruleDelivers)
+    # customMailboxRoute: complete flags+addresses AND rule actionable.
+    $customMailboxRoute = $customMailboxComplete -and $ruleActionable
 
-    $thirdPartyCount = ($policy.ThirdPartyReportAddresses | Measure-Object).Count
-    $thirdPartyRoute = ($policy.EnableThirdPartyAddress -eq $true) -and ($thirdPartyCount -gt 0)
+    # Spec Investigate: flags+addresses complete but rule absent/disabled/no SentTo.
+    $customMailboxRuleProblem = $customMailboxComplete -and (-not $ruleActionable)
+
+    $thirdPartyCount       = ($policy.ThirdPartyReportAddresses | Measure-Object).Count
+    $thirdPartyConfigured  = ($policy.EnableThirdPartyAddress -eq $true) -and ($thirdPartyCount -gt 0)
+    # thirdPartyRoute also requires a report submission rule — without it, TP reports are not delivered
+    # to the reporting mailbox or surfaced on the Submissions page (verified against a live tenant).
+    $thirdPartyRoute       = $thirdPartyConfigured -and $ruleActionable
+    $thirdPartyRuleProblem = $thirdPartyConfigured -and (-not $ruleActionable)
 
     # Spec evaluation order: Pass → Investigate → Fail
     $anyRoute = $microsoftRoute -or $customMailboxRoute -or $thirdPartyRoute
@@ -134,30 +149,41 @@ function Test-Assessment-41035 {
         $passed = $true
         $testResultMarkdown = "✅ User reporting in Outlook is enabled and user-reported messages reach Microsoft, a monitored SOC mailbox, or a configured non-Microsoft reporter.`n`n%TestResult%"
     }
-    elseif ($customMailboxPartial -or $customMailboxRuleProblem) {
+    elseif ($customMailboxPartial -or $customMailboxRuleProblem -or $thirdPartyRuleProblem) {
         $passed       = $false
         $customStatus = 'Investigate'
         $investigateDetails = [System.Collections.Generic.List[string]]::new()
         if ($customMailboxPartial) {
-            $investigateDetails.Add('custom reporting mailbox is partially configured — only some of **ReportJunkAddresses**, **ReportNotJunkAddresses**, **ReportPhishAddresses** are populated; all three must be set')
+            $investigateDetails.Add('custom reporting mailbox is partially configured — only some of **ReportJunkToCustomizedAddress**/**ReportNotJunkToCustomizedAddress**/**ReportPhishToCustomizedAddress** routing flags or **ReportJunkAddresses**/**ReportNotJunkAddresses**/**ReportPhishAddresses** address lists are set; all six must be configured')
         }
         if ($customMailboxRuleProblem) {
             if ($null -eq $rule) {
-                $investigateDetails.Add('all three custom-mailbox address lists are populated but no report submission rule exists — nothing delivers messages to the SOC mailbox')
+                $investigateDetails.Add('all three custom-mailbox flags and address lists are configured but no report submission rule exists — nothing delivers messages to the SOC mailbox')
             }
             elseif ($rule.State -eq 'Disabled') {
-                $investigateDetails.Add("report submission rule '**$($rule.Name)**' is **Disabled** — routing is broken even when policy address lists appear correct")
+                $investigateDetails.Add("report submission rule '**$($rule.Name)**' is **Disabled** — routing is broken even when policy flags and address lists appear correct")
             }
             else {
                 $investigateDetails.Add("report submission rule '**$($rule.Name)**' has no **SentTo** address — nothing delivers messages to the SOC mailbox")
             }
         }
+        if ($thirdPartyRuleProblem) {
+            if ($null -eq $rule) {
+                $investigateDetails.Add('**EnableThirdPartyAddress** and **ThirdPartyReportAddresses** are configured but no report submission rule exists — nothing delivers non-Microsoft reporter messages to the reporting mailbox')
+            }
+            elseif ($rule.State -eq 'Disabled') {
+                $investigateDetails.Add("report submission rule '**$($rule.Name)**' is **Disabled** — the non-Microsoft reporter route is broken even though **EnableThirdPartyAddress** and **ThirdPartyReportAddresses** are set")
+            }
+            else {
+                $investigateDetails.Add("report submission rule '**$($rule.Name)**' has no **SentTo** address — nothing delivers non-Microsoft reporter messages to the reporting mailbox")
+            }
+        }
         $reasonText = ($investigateDetails | ForEach-Object { "- $_" }) -join "`n"
-        $testResultMarkdown = "⚠️ The customized mailbox is partially configured, or the report submission rule is absent or disabled; verify the configuration in the Defender portal.`n`n$reasonText`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ The customized mailbox is partially configured, the report submission rule is absent or disabled, or the non-Microsoft reporter route is incomplete; verify the configuration in the Defender portal.`n`n$reasonText`n`n%TestResult%"
     }
     else {
         $passed = $false
-        $testResultMarkdown = "❌ Reports are sent nowhere actionable; the SOC has no visibility into what end users are reporting and Microsoft re-evaluation is not in the loop.`n`n%TestResult%"
+        $testResultMarkdown = "❌ Reports are sent nowhere actionable; the SOC has no visibility into what end users are reporting and Microsoft re-evaluation is not in the loop.`n`n> **Note:** If your organization uses a non-Microsoft reporting button (such as KnowBe4 PAB or Cofense Reporter) that does not integrate with Exchange Online's report submission policy, this result may be a false positive — verify whether a third-party reporter is in use before remediating.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -185,35 +211,44 @@ function Test-Assessment-41035 {
     # Microsoft route
     $msResult = if ($microsoftRoute) { '✅ Pass' } else { '❌ Fail' }
 
-    # When overall Pass is achieved without the custom mailbox (e.g. via Microsoft or third-party route),
-    # empty custom-mailbox address rows are N/A — showing ❌ would mislead operators into thinking
-    # something is broken when another route is the active one.
+    # Custom mailbox: N/A only when overall Pass and custom mailbox completely unconfigured (not attempted).
     $customMailboxNA = $anyRoute -and (-not $customMailboxComplete) -and (-not $customMailboxPartial)
 
-    # Custom mailbox address lists
-    $junkResult    = if ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } elseif ($customMailboxNA) { '—' } else { '❌ Fail' }
-    $notJunkResult = if ($notJunkCount -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } elseif ($customMailboxNA) { '—' } else { '❌ Fail' }
-    $phishResult   = if ($phishCount   -gt 0) { '✅ Pass' } elseif ($customMailboxPartial) { '⚠️ Investigate' } elseif ($customMailboxNA) { '—' } else { '❌ Fail' }
+    # Flag rows — route-aware: Pass when flag set, Investigate when absent in an attempted route, N/A when not attempted, Fail otherwise.
+    $junkFlagResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkFlagSet)    { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    $notJunkFlagResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($notJunkFlagSet) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    $phishFlagResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($phishFlagSet)   { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
 
-    # Third-party reporter — N/A when not configured at all and another route provides Pass.
-    $tpEnabled     = $policy.EnableThirdPartyAddress
-    $tpEnabledDisp = & $formatBool $tpEnabled
-    $thirdPartyNA  = $anyRoute -and ($tpEnabled -ne $true) -and ($thirdPartyCount -eq 0)
-    $tpResult      = if ($thirdPartyRoute) { '✅ Pass' } elseif ($thirdPartyNA) { '—' } elseif ($tpEnabled -eq $true -and $thirdPartyCount -eq 0) { '⚠️ Investigate' } else { '❌ Fail' }
-    $tpAddrResult  = if ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($thirdPartyNA) { '—' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '❌ Fail' }
+    # Custom mailbox address lists — same route-aware logic as the flag rows.
+    $junkResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    $notJunkResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($notJunkCount -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    $phishResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($phishCount   -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
 
-    # Chat and post-submit
-    $chatResult = if ($policy.ReportChatMessageEnabled -eq $true) { '✅ Pass' } else { '❌ Fail' }
-    $postResult = if ($policy.PostSubmitMessageEnabled -eq $true) { '✅ Pass' } else { '⚠️ Investigate' }
+    # Third-party reporter — N/A only when not attempted at all (neither flag nor addresses set) and another route passes.
+    $tpEnabled           = $policy.EnableThirdPartyAddress
+    $tpEnabledDisp       = & $formatBool $tpEnabled
+    $thirdPartyAttempted = ($tpEnabled -eq $true) -or ($thirdPartyCount -gt 0)
+    $thirdPartyNA        = $anyRoute -and (-not $thirdPartyAttempted)
+    $tpResult     = if ($thirdPartyRoute) { '✅ Pass' } elseif ($thirdPartyNA) { 'N/A' } elseif ($thirdPartyRuleProblem) { '⚠️ Investigate' } elseif ($tpEnabled -eq $true -and $thirdPartyCount -eq 0) { '⚠️ Investigate' } else { '❌ Fail' }
+    $tpAddrResult = if ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($thirdPartyNA) { 'N/A' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '❌ Fail' }
 
-    # Rule state and SentTo — only applicable when the custom mailbox address lists are fully configured.
-    $ruleStateName    = if (-not $customMailboxComplete -or $null -eq $rule) { '—' } else { "``$($rule.State)``" }
-    $ruleStateResult  = if (-not $customMailboxComplete) { '—' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($rule.State -eq 'Enabled') { '✅ Pass' } else { '⚠️ Investigate' }
-    $ruleSentTo       = if (-not $customMailboxComplete -or $null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '—' } else { Get-SafeMarkdown -Text $rule.SentTo }
-    $ruleSentToResult = if (-not $customMailboxComplete) { '—' } elseif ($ruleDelivers) { '✅ Pass' } elseif ($customMailboxRuleProblem) { '⚠️ Investigate' } else { '⚠️ Investigate' }
+    # Chat and post-submit — informational only; do not participate in the Pass/Fail/Investigate verdict.
+    $chatResult = 'ℹ️ Informational'
+    $postResult = 'ℹ️ Informational'
+
+    # Rule state and SentTo — applicable when custom mailbox is fully configured OR non-Microsoft reporter
+    # is configured; without the rule, neither route delivers to the reporting mailbox.
+    $ruleIsRelevant   = $customMailboxComplete -or $thirdPartyConfigured
+    $ruleStateName    = if (-not $ruleIsRelevant -or $null -eq $rule) { '—' } else { "``$($rule.State)``" }
+    $ruleStateResult  = if (-not $ruleIsRelevant) { 'N/A' } elseif (-not $ruleActionable) { '⚠️ Investigate' } else { '✅ Pass' }
+    $ruleSentTo       = if (-not $ruleIsRelevant -or $null -eq $rule -or [string]::IsNullOrWhiteSpace($rule.SentTo)) { '—' } else { Get-SafeMarkdown -Text $rule.SentTo }
+    $ruleSentToResult = if (-not $ruleIsRelevant) { 'N/A' } elseif ($ruleActionable) { '✅ Pass' } else { '⚠️ Investigate' }
 
     $tableRows  = ''
     $tableRows += "| EnableReportToMicrosoft | $(& $formatBool $policy.EnableReportToMicrosoft) | True (re-evaluation + model training) | $msResult |`n"
+    $tableRows += "| ReportJunkToCustomizedAddress | $(& $formatBool $policy.ReportJunkToCustomizedAddress) | True (custom SOC mailbox route) | $junkFlagResult |`n"
+    $tableRows += "| ReportNotJunkToCustomizedAddress | $(& $formatBool $policy.ReportNotJunkToCustomizedAddress) | True (custom SOC mailbox route) | $notJunkFlagResult |`n"
+    $tableRows += "| ReportPhishToCustomizedAddress | $(& $formatBool $policy.ReportPhishToCustomizedAddress) | True (custom SOC mailbox route) | $phishFlagResult |`n"
     $tableRows += "| ReportJunkAddresses | $(& $formatAddresses $policy.ReportJunkAddresses) | non-empty (custom SOC mailbox) | $junkResult |`n"
     $tableRows += "| ReportNotJunkAddresses | $(& $formatAddresses $policy.ReportNotJunkAddresses) | non-empty (custom SOC mailbox) | $notJunkResult |`n"
     $tableRows += "| ReportPhishAddresses | $(& $formatAddresses $policy.ReportPhishAddresses) | non-empty (custom SOC mailbox) | $phishResult |`n"
