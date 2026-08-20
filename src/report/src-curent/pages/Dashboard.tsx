@@ -36,7 +36,6 @@ import {
 // import { Separator } from "@/components/ui/separator"
 import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
-import { M365ProtectionCircuitSankey } from "@/components/overview/m365-protection-circuit-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
@@ -1342,31 +1341,6 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Private Access Zero Trust posture */}
-            {hasPrivateAccessData() && (
-                <div className="mt-[26px]">
-                    <PrivateAccessSankey />
-                </div>
-            )}
-
-            {reportData.TenantInfo?.OverviewM365ProtectionCircuit?.nodes && (
-                <Card className="mt-[26px]">
-                    <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
-                        <ShieldCheck className="pr-2 size-8" />
-                        <div>
-                            <CardTitle className="text-2xl tabular-nums">Microsoft 365 protection circuit</CardTitle>
-                            <CardDescription className="mt-1">Global Secure Access acquisition and compliant network enforcement</CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="w-full">
-                        <M365ProtectionCircuitSankey data={reportData.TenantInfo.OverviewM365ProtectionCircuit} />
-                    </CardContent>
-                    <CardFooter className="text-sm text-muted-foreground">
-                        {reportData.TenantInfo.OverviewM365ProtectionCircuit.description}
-                    </CardFooter>
-                </Card>
-            )}
-
             {/* AI overview */}
             {reportData.TenantInfo?.AgentOwnershipDistribution && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
@@ -1374,8 +1348,8 @@ export default function Dashboard() {
                 </div>
             )}
 
-            {/* Network security posture charts */}
-            {(hasSwgData() || hasAzureNetSecData()) && (
+            {/* Network overview */}
+            {(hasSwgData() || hasPrivateAccessData()) && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                     {hasSwgData() && (
                         <Card className="h-full">
@@ -1395,25 +1369,27 @@ export default function Dashboard() {
                             </CardContent>
                         </Card>
                     )}
-                    {hasAzureNetSecData() && (
-                        <Card className="h-full">
-                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
-                                <ShieldCheck className="pr-2 size-8" />
-                                <div>
-                                    <CardTitle className="text-2xl tabular-nums">
-                                        Azure network security
-                                    </CardTitle>
-                                    <CardDescription className="mt-1">
-                                        Defense plane posture — availability, inbound, and outbound protection.
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <AzureNetSecPlanes />
-                            </CardContent>
-                        </Card>
-                    )}
+                    {hasPrivateAccessData() && <PrivateAccessSankey />}
                 </div>
+            )}
+
+            {hasAzureNetSecData() && (
+                <Card className="mt-[26px]">
+                    <CardHeader className="flex-row space-y-0 pb-3 pt-3">
+                        <ShieldCheck className="size-8 pr-2" />
+                        <div>
+                            <CardTitle className="text-2xl tabular-nums">
+                                Azure network security
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                Defense plane posture — availability, inbound, and outbound protection.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <AzureNetSecPlanes />
+                    </CardContent>
+                </Card>
             )}
         </TooltipProvider>
     )
