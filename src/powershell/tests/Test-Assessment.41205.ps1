@@ -110,6 +110,12 @@ function Test-Assessment-41205 {
     # share the Q1 enumeration and Q2 detail requests.
     $dcrStateBySubscription = @{}
 
+    # Hashtable keys are case-insensitive, matching the spec's case-insensitive workspace comparison.
+    $knownWorkspaceIds = @{}
+    foreach ($workspace in $allWorkspaces) {
+        $knownWorkspaceIds[$workspace.WorkspaceId] = $true
+    }
+
     foreach ($workspace in $onboardedWorkspaces) {
         $subId = $workspace.SubscriptionId
         if ($dcrStateBySubscription.ContainsKey($subId)) {
@@ -130,6 +136,7 @@ function Test-Assessment-41205 {
 
         $fullDcrs = @()
         $hasDetailErrors = $false
+        $hasUnresolvedDestinations = $false
         foreach ($dcr in $listedDcrs) {
             try {
                 if ([string]::IsNullOrWhiteSpace($dcr.id)) {
@@ -137,7 +144,15 @@ function Test-Assessment-41205 {
                 }
 
                 Write-ZtProgress -Activity $activity -Status "Fetching data collection rule '$($dcr.name)' (Q2)"
-                $fullDcrs += @(Invoke-ZtAzureRequest -Path "$($dcr.id)?api-version=2022-06-01" -ErrorAction Stop)
+                $fullDcr = Invoke-ZtAzureRequest -Path "$($dcr.id)?api-version=2022-06-01" -ErrorAction Stop
+                $fullDcrs += @($fullDcr)
+
+                # A destination pointing at a workspace outside the enumerated inventory cannot be resolved.
+                if (@($fullDcr.properties.destinations.logAnalytics | Where-Object {
+                            $_.workspaceResourceId -and -not $knownWorkspaceIds.ContainsKey($_.workspaceResourceId)
+                        }).Count -gt 0) {
+                    $hasUnresolvedDestinations = $true
+                }
             }
             catch {
                 $hasDetailErrors = $true
@@ -146,8 +161,9 @@ function Test-Assessment-41205 {
         }
 
         $dcrStateBySubscription[$subId] = [PSCustomObject]@{
-            Rules           = $fullDcrs
-            HasDetailErrors = $hasDetailErrors
+            Rules                     = $fullDcrs
+            HasDetailErrors           = $hasDetailErrors
+            HasUnresolvedDestinations = $hasUnresolvedDestinations
         }
     }
 
@@ -158,7 +174,7 @@ function Test-Assessment-41205 {
     $workspaceResults = foreach ($workspace in $onboardedWorkspaces) {
         $dcrState = $dcrStateBySubscription[$workspace.SubscriptionId]
 
-        $dcrCount   = 0
+        $dcrCount   = $null
         $dcrDetails = @()
         $rowStatus  = 'Fail'
 
@@ -184,22 +200,30 @@ function Test-Assessment-41205 {
                         ForEach-Object { $_.Name })
                 }
 
-                $dataFlows = @($dcr.properties.dataFlows)
+                $flowNumber = 0
+                $dataFlowTransforms = @(foreach ($dataFlow in @($dcr.properties.dataFlows)) {
+                    $flowNumber++
+                    if ([string]::IsNullOrWhiteSpace($dataFlow.transformKql)) {
+                        "⚠️ Flow ${flowNumber}: not configured"
+                    }
+                    else {
+                        "✅ Flow ${flowNumber}: configured"
+                    }
+                })
 
                 [PSCustomObject]@{
-                    Name                     = $dcr.name
-                    ResourceId               = $dcr.id
-                    DataSourceTypes          = $dataSourceTypes
-                    DataFlowCount            = $dataFlows.Count
-                    TransformedDataFlowCount = @($dataFlows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.transformKql) }).Count
+                    Name               = $dcr.name
+                    ResourceId         = $dcr.id
+                    DataSourceTypes    = $dataSourceTypes
+                    DataFlowTransforms = $dataFlowTransforms
                 }
             })
 
-            $rowStatus = if ($dcrCount -ge 1) {
-                'Pass'
-            }
-            elseif ($dcrState.HasDetailErrors) {
+            $rowStatus = if ($dcrState.HasDetailErrors -or $dcrState.HasUnresolvedDestinations) {
                 'Investigate'
+            }
+            elseif ($dcrCount -ge 1) {
+                'Pass'
             }
             else {
                 'Fail'
@@ -219,17 +243,33 @@ function Test-Assessment-41205 {
     }
     $workspaceResults = @($workspaceResults)
 
+    # Workspaces whose Sentinel onboarding state could not be confirmed are reported as
+    # Investigate rows so they remain visible in the table alongside checked workspaces.
+    $unresolvedWorkspaceResults = foreach ($workspace in @($forbiddenWorkspaces) + @($unresolvedWorkspaces)) {
+        [PSCustomObject]@{
+            SubscriptionName    = $workspace.SubscriptionName
+            SubscriptionId      = $workspace.SubscriptionId
+            WorkspaceName       = $workspace.WorkspaceName
+            ResourceGroup       = $workspace.ResourceGroup
+            WorkspaceId         = $workspace.WorkspaceId
+            DcrCount            = $null
+            DataCollectionRules = @()
+            RowStatus           = 'Investigate'
+        }
+    }
+    $workspaceResults = @($workspaceResults) + @($unresolvedWorkspaceResults)
+
     $investigateItems = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Investigate' })
     $failedItems      = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Fail' })
 
     # Pass only when every onboarded workspace is targeted by at least one DCR and no workspace
     # state is unknown (API failure or insufficient permissions).
-    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0 -and $forbiddenWorkspaces.Count -eq 0 -and $unresolvedWorkspaces.Count -eq 0
+    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0
     $customStatus = $null
 
-    if ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
+    if ($investigateItems.Count -gt 0) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Data collection rules are present but reference workspaces that cannot be resolved, or one or more workspaces could not be checked due to insufficient permissions. Re-run after verifying Monitoring Reader access on each affected subscription.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Data collection rules are present but reference workspaces that cannot be resolved.`n`n%TestResult%"
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Data collection rules control ingestion into the Sentinel workspace.`n`n%TestResult%"
@@ -268,32 +308,33 @@ function Test-Assessment-41205 {
     }
 
     foreach ($result in $displayResults) {
-        $subLink     = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
-        $subMd       = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
-        $workspaceMd = "[$(Get-SafeMarkdown $result.WorkspaceName)]($portalHost/#resource$($result.WorkspaceId)/overview)"
+        $subLink       = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $subMd         = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
+        $workspaceMd   = "[$(Get-SafeMarkdown $result.WorkspaceName)]($portalHost/#resource$($result.WorkspaceId)/overview)"
+        $countMd       = if ($null -eq $result.DcrCount) { '—' } else { $result.DcrCount }
+        $statusDisplay = switch ($result.RowStatus) {
+            'Pass'        { '✅ Pass' }
+            'Fail'        { '❌ Fail' }
+            'Investigate' { '⚠️ Investigate' }
+        }
 
         if ($result.DataCollectionRules.Count -gt 0) {
             # One row per matching rule — preserves the data-source-to-transform association.
             foreach ($dcr in $result.DataCollectionRules) {
-                $dcrMd     = "[$(Get-SafeMarkdown $dcr.Name)]($portalHost/#resource$($dcr.ResourceId)/overview)"
-                $sourcesMd = if ($dcr.DataSourceTypes.Count -gt 0) { ($dcr.DataSourceTypes | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
-                $transformMd = if ($dcr.DataFlowCount -eq 0) {
+                $dcrMd       = "[$(Get-SafeMarkdown $dcr.Name)]($portalHost/#resource$($dcr.ResourceId)/overview)"
+                $sourcesMd   = if ($dcr.DataSourceTypes.Count -gt 0) { ($dcr.DataSourceTypes | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
+                $transformMd = if ($dcr.DataFlowTransforms.Count -eq 0) {
                     '⚠️ No data flows'
                 }
-                elseif ($dcr.TransformedDataFlowCount -eq $dcr.DataFlowCount) {
-                    "✅ $($dcr.TransformedDataFlowCount) of $($dcr.DataFlowCount) configured"
-                }
                 else {
-                    "⚠️ $($dcr.TransformedDataFlowCount) of $($dcr.DataFlowCount) configured"
+                    $dcr.DataFlowTransforms -join ', '
                 }
-                $tableRows += "| $subMd | $workspaceMd | $($result.DcrCount) | $dcrMd | $sourcesMd | $transformMd | ✅ Pass |`n"
+                $tableRows += "| $subMd | $workspaceMd | $countMd | $dcrMd | $sourcesMd | $transformMd | $statusDisplay |`n"
             }
         }
         else {
-            # No matching DCR (Fail) or API error (Investigate) — single placeholder row.
-            $placeholderStatus = if ($result.RowStatus -eq 'Investigate') { '⚠️ Investigate' } else { '❌ Fail' }
-            $countMd           = if ($result.RowStatus -eq 'Investigate') { '—' } else { $result.DcrCount }
-            $tableRows += "| $subMd | $workspaceMd | $countMd | — | — | — | $placeholderStatus |`n"
+            # No matching DCR (Fail) or unresolved state (Investigate) — one placeholder row so the workspace appears in the table.
+            $tableRows += "| $subMd | $workspaceMd | $countMd | — | — | — | $statusDisplay |`n"
         }
     }
 
