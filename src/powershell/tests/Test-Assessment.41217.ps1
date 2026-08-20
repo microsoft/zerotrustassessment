@@ -185,7 +185,13 @@ function Test-Assessment-41217 {
                 elseif ($tableName -in $highVolumeTables) {
                     $classification = 'High-volume'
                     $expectedPlan   = 'Basic or Auxiliary'
-                    $rowStatus      = if ($actualPlan -eq 'Analytics') { 'Investigate' } else { 'Pass' }
+                    # Same indeterminate guard as detection-critical: null/unrecognized must not become a false Pass.
+                    if ($null -eq $actualPlan -or $actualPlan -notin @('Analytics', 'Basic', 'Auxiliary')) {
+                        $rowStatus = 'Investigate'
+                    }
+                    else {
+                        $rowStatus = if ($actualPlan -eq 'Analytics') { 'Investigate' } else { 'Pass' }
+                    }
                 }
                 else {
                     continue  # Not in either list — not evaluated.
@@ -293,13 +299,15 @@ function Test-Assessment-41217 {
     }
     elseif ($tenantInvestigateWs.Count -gt 0) {
         $customStatus = 'Investigate'
-        # Evaluability issues: API errors, no detection-critical tables evaluated, or indeterminate plan values.
+        # Evaluability issues: API errors, no detection-critical tables evaluated, indeterminate plan values on either classification.
         $hasEvaluabilityIssue = (
             @($workspaceResults | Where-Object { $_.ApiError }).Count -gt 0 -or
             @($workspaceResults | Where-Object { $_.NoEvaluatedCritical }).Count -gt 0 -or
-            @($allTableRows | Where-Object { $_.Classification -eq 'Detection-critical' -and $_.RowStatus -eq 'Investigate' }).Count -gt 0
+            @($allTableRows | Where-Object { $_.Classification -eq 'Detection-critical' -and $_.RowStatus -eq 'Investigate' }).Count -gt 0 -or
+            @($allTableRows | Where-Object { $_.Classification -eq 'High-volume' -and $_.RowStatus -eq 'Investigate' -and $_.ActualPlan -ne 'Analytics' }).Count -gt 0
         )
-        $hasCostOptimize = @($allTableRows | Where-Object { $_.Classification -eq 'High-volume' -and $_.RowStatus -eq 'Investigate' }).Count -gt 0
+        # Cost-optimisation: high-volume on Analytics with a valid recognized plan.
+        $hasCostOptimize = @($allTableRows | Where-Object { $_.Classification -eq 'High-volume' -and $_.RowStatus -eq 'Investigate' -and $_.ActualPlan -eq 'Analytics' }).Count -gt 0
 
         if ($hasCostOptimize -and -not $hasEvaluabilityIssue) {
             $testResultMarkdown = "⚠️ A high-volume table is on Analytics where Basic or Auxiliary may significantly reduce ingest cost without losing required detection capability.`n`n%TestResult%"
@@ -362,18 +370,14 @@ function Test-Assessment-41217 {
 {0}
 '@
 
-    $maxDisplay   = 25
-    # Sort: worst status first within each workspace, then by classification (critical first), then name.
-    $classOrder   = @{ 'Detection-critical' = 0; 'High-volume' = 1 }
-    $sortedRows   = @($allTableRows | Sort-Object {
+    # No cap — spec requires one row per evaluated table; 28 rows/workspace possible, exceeding any small cap.
+    $classOrder  = @{ 'Detection-critical' = 0; 'High-volume' = 1 }
+    $sortedRows  = @($allTableRows | Sort-Object {
         $statusPriority[$_.RowStatus]
     }, SubscriptionName, WorkspaceName, { $classOrder[$_.Classification] }, TableName)
 
-    $hasMoreItems = $sortedRows.Count -gt $maxDisplay
-    $displayRows  = if ($hasMoreItems) { @($sortedRows | Select-Object -First $maxDisplay) } else { $sortedRows }
-
     $tableDetailRows = ''
-    foreach ($row in $displayRows) {
+    foreach ($row in $sortedRows) {
         $subLink      = "$portalHost/#resource/subscriptions/$($row.SubscriptionId)"
         $wsTablesLink = "$portalHost/#resource$($row.WorkspaceId)/tables"
         $subMd        = "[$(Get-SafeMarkdown $row.SubscriptionName)]($subLink)"
@@ -385,11 +389,6 @@ function Test-Assessment-41217 {
             'NA'          { 'N/A' }
         }
         $tableDetailRows += "| $subMd | $wsMd | $($row.TableName) | $($row.Classification) | $($row.ExpectedPlan) | $($row.ActualPlan) | $rowStatusDisplay |`n"
-    }
-
-    if ($hasMoreItems) {
-        $remainingCount   = $sortedRows.Count - $maxDisplay
-        $tableDetailRows += "`n... and $remainingCount more. [View all tables in Microsoft Sentinel]($portalSentinelLink)`n"
     }
 
     if ($allTableRows.Count -eq 0) {
