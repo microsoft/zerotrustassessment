@@ -269,7 +269,7 @@ function Test-Assessment-41205 {
 
     if ($investigateItems.Count -gt 0) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Data collection rules are present but reference workspaces that cannot be resolved.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unable to determine whether data collection rules control ingestion for one or more Sentinel workspaces due to permission or API errors.`n`n%TestResult%"
     }
     elseif ($passed) {
         $testResultMarkdown = "✅ Data collection rules control ingestion into the Sentinel workspace.`n`n%TestResult%"
