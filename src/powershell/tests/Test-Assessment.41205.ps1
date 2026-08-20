@@ -219,11 +219,12 @@ function Test-Assessment-41205 {
                 }
             })
 
-            $rowStatus = if ($dcrState.HasDetailErrors -or $dcrState.HasUnresolvedDestinations) {
-                'Investigate'
-            }
-            elseif ($dcrCount -ge 1) {
+            # A confirmed match is proof per spec, so uncertainty about other rules cannot override it.
+            $rowStatus = if ($dcrCount -ge 1) {
                 'Pass'
+            }
+            elseif ($dcrState.HasDetailErrors -or $dcrState.HasUnresolvedDestinations) {
+                'Investigate'
             }
             else {
                 'Fail'
