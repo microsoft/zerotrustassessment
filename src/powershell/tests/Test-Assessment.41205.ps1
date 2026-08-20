@@ -31,6 +31,8 @@ function Test-Assessment-41205 {
     [CmdletBinding()]
     param()
 
+    $testTitle = 'Data collection rules (DCRs) are used to control ingestion into Microsoft Sentinel workspaces'
+
     #region Data Collection
 
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
@@ -46,7 +48,7 @@ function Test-Assessment-41205 {
     if ($null -eq $allWorkspaces) {
         $params = @{
             TestId       = '41205'
-            Title        = 'Data collection rules (DCRs) are used to control ingestion into Microsoft Sentinel workspaces'
+            Title        = $testTitle
             Status       = $false
             Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying subscriptions or Log Analytics workspaces. This is likely a transient issue, please re-run the assessment.'
             CustomStatus = 'Investigate'
@@ -58,7 +60,7 @@ function Test-Assessment-41205 {
     if ($allWorkspaces -eq 'Forbidden') {
         $params = @{
             TestId       = '41205'
-            Title        = 'Data collection rules (DCRs) are used to control ingestion into Microsoft Sentinel workspaces'
+            Title        = $testTitle
             Status       = $false
             Result       = '⚠️ Azure Resource Graph returned insufficient permissions when querying subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
             CustomStatus = 'Investigate'
@@ -79,18 +81,19 @@ function Test-Assessment-41205 {
         return
     }
 
-    $checkableWorkspaces = @($allWorkspaces | Where-Object { -not $_.PermissionError })
-    $forbiddenWorkspaces = @($allWorkspaces | Where-Object { $_.PermissionError })
-    $onboardedWorkspaces = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
+    $checkableWorkspaces  = @($allWorkspaces | Where-Object { -not $_.PermissionError })
+    $forbiddenWorkspaces  = @($allWorkspaces | Where-Object { $_.PermissionError })
+    $unresolvedWorkspaces = @($checkableWorkspaces | Where-Object { $_.OnboardingError })
+    $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        if ($forbiddenWorkspaces.Count -gt 0) {
-            # Auth errors mean we cannot confirm whether those workspaces have Sentinel onboarded.
+        if ($forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
+            # Errors mean we cannot confirm whether those workspaces have Sentinel onboarded.
             $params = @{
                 TestId       = '41205'
-                Title        = 'Data collection rules (DCRs) are used to control ingestion into Microsoft Sentinel workspaces'
+                Title        = $testTitle
                 Status       = $false
-                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                Result       = '⚠️ One or more Log Analytics workspaces returned insufficient permissions or an unexpected error when checking Sentinel onboarding state. No Sentinel-onboarded workspace was confirmed among accessible workspaces — the overall state cannot be determined. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
@@ -103,27 +106,48 @@ function Test-Assessment-41205 {
         return
     }
 
-    # Q1 (spec): List every data collection rule in the subscription. The list-by-subscription
-    # response already contains the full rule definition (dataSources, destinations, dataFlows),
-    # so the per-rule GET (spec Q2) is not required. Results are cached per subscription to
-    # minimise ARM round-trips when several workspaces share a subscription.
-    $dcrsBySubscription = @{}
+    # Cache completed DCR definitions per subscription so workspaces in the same subscription
+    # share the Q1 enumeration and Q2 detail requests.
+    $dcrStateBySubscription = @{}
 
     foreach ($workspace in $onboardedWorkspaces) {
         $subId = $workspace.SubscriptionId
-        if ($dcrsBySubscription.ContainsKey($subId)) {
+        if ($dcrStateBySubscription.ContainsKey($subId)) {
             continue
         }
 
-        Write-ZtProgress -Activity $activity -Status "Fetching data collection rules for subscription '$($workspace.SubscriptionName)'"
+        Write-ZtProgress -Activity $activity -Status "Listing data collection rules for subscription '$($workspace.SubscriptionName)' (Q1)"
         $dcrPath = "/subscriptions/$subId/providers/Microsoft.Insights/dataCollectionRules?api-version=2022-06-01"
 
         try {
-            $dcrsBySubscription[$subId] = @(Invoke-ZtAzureRequest -Path $dcrPath -ErrorAction Stop)
+            $listedDcrs = @(Invoke-ZtAzureRequest -Path $dcrPath -ErrorAction Stop)
         }
         catch {
-            $dcrsBySubscription[$subId] = $null
-            Write-PSFMessage "Error querying data collection rules for subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
+            $dcrStateBySubscription[$subId] = $null
+            Write-PSFMessage "Error listing data collection rules for subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
+            continue
+        }
+
+        $fullDcrs = @()
+        $hasDetailErrors = $false
+        foreach ($dcr in $listedDcrs) {
+            try {
+                if ([string]::IsNullOrWhiteSpace($dcr.id)) {
+                    throw "Data collection rule '$($dcr.name)' did not include a resource ID."
+                }
+
+                Write-ZtProgress -Activity $activity -Status "Fetching data collection rule '$($dcr.name)' (Q2)"
+                $fullDcrs += @(Invoke-ZtAzureRequest -Path "$($dcr.id)?api-version=2022-06-01" -ErrorAction Stop)
+            }
+            catch {
+                $hasDetailErrors = $true
+                Write-PSFMessage "Error fetching data collection rule '$($dcr.name)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
+            }
+        }
+
+        $dcrStateBySubscription[$subId] = [PSCustomObject]@{
+            Rules           = $fullDcrs
+            HasDetailErrors = $hasDetailErrors
         }
     }
 
@@ -132,20 +156,20 @@ function Test-Assessment-41205 {
     #region Assessment Logic
 
     $workspaceResults = foreach ($workspace in $onboardedWorkspaces) {
-        $rawDcrs = $dcrsBySubscription[$workspace.SubscriptionId]
+        $dcrState = $dcrStateBySubscription[$workspace.SubscriptionId]
 
         $dcrCount   = 0
         $dcrDetails = @()
         $rowStatus  = 'Fail'
 
-        if ($null -eq $rawDcrs) {
-            # DCR API call failed — cannot determine ingestion control for this workspace.
+        if ($null -eq $dcrState) {
+            # DCR enumeration failed — cannot determine ingestion control for this workspace.
             $rowStatus = 'Investigate'
         }
         else {
             # A DCR targets the workspace when any Log Analytics destination references the
             # workspace resource ID (case-insensitive) per spec evaluation logic.
-            $matchedDcrs = @($rawDcrs | Where-Object {
+            $matchedDcrs = @($dcrState.Rules | Where-Object {
                 @($_.properties.destinations.logAnalytics | Where-Object { $_.workspaceResourceId -ieq $workspace.WorkspaceId }).Count -gt 0
             })
 
@@ -160,14 +184,26 @@ function Test-Assessment-41205 {
                         ForEach-Object { $_.Name })
                 }
 
+                $dataFlows = @($dcr.properties.dataFlows)
+
                 [PSCustomObject]@{
-                    Name            = $dcr.name
-                    DataSourceTypes = $dataSourceTypes
-                    HasTransformKql = @($dcr.properties.dataFlows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.transformKql) }).Count -gt 0
+                    Name                     = $dcr.name
+                    ResourceId               = $dcr.id
+                    DataSourceTypes          = $dataSourceTypes
+                    DataFlowCount            = $dataFlows.Count
+                    TransformedDataFlowCount = @($dataFlows | Where-Object { -not [string]::IsNullOrWhiteSpace($_.transformKql) }).Count
                 }
             })
 
-            $rowStatus = if ($dcrCount -ge 1) { 'Pass' } else { 'Fail' }
+            $rowStatus = if ($dcrCount -ge 1) {
+                'Pass'
+            }
+            elseif ($dcrState.HasDetailErrors) {
+                'Investigate'
+            }
+            else {
+                'Fail'
+            }
         }
 
         [PSCustomObject]@{
@@ -188,10 +224,10 @@ function Test-Assessment-41205 {
 
     # Pass only when every onboarded workspace is targeted by at least one DCR and no workspace
     # state is unknown (API failure or insufficient permissions).
-    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0 -and $forbiddenWorkspaces.Count -eq 0
+    $passed       = $failedItems.Count -eq 0 -and $investigateItems.Count -eq 0 -and $forbiddenWorkspaces.Count -eq 0 -and $unresolvedWorkspaces.Count -eq 0
     $customStatus = $null
 
-    if ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0) {
+    if ($investigateItems.Count -gt 0 -or $forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
         $customStatus       = 'Investigate'
         $testResultMarkdown = "⚠️ Data collection rules are present but reference workspaces that cannot be resolved, or one or more workspaces could not be checked due to insufficient permissions. Re-run after verifying Monitoring Reader access on each affected subscription.`n`n%TestResult%"
     }
@@ -239,9 +275,18 @@ function Test-Assessment-41205 {
         if ($result.DataCollectionRules.Count -gt 0) {
             # One row per matching rule — preserves the data-source-to-transform association.
             foreach ($dcr in $result.DataCollectionRules) {
-                $sourcesMd   = if ($dcr.DataSourceTypes.Count -gt 0) { ($dcr.DataSourceTypes | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
-                $transformMd = if ($dcr.HasTransformKql) { '✅ Configured' } else { '⚠️ None' }
-                $tableRows += "| $subMd | $workspaceMd | $($result.DcrCount) | $(Get-SafeMarkdown $dcr.Name) | $sourcesMd | $transformMd | ✅ Pass |`n"
+                $dcrMd     = "[$(Get-SafeMarkdown $dcr.Name)]($portalHost/#resource$($dcr.ResourceId)/overview)"
+                $sourcesMd = if ($dcr.DataSourceTypes.Count -gt 0) { ($dcr.DataSourceTypes | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
+                $transformMd = if ($dcr.DataFlowCount -eq 0) {
+                    '⚠️ No data flows'
+                }
+                elseif ($dcr.TransformedDataFlowCount -eq $dcr.DataFlowCount) {
+                    "✅ $($dcr.TransformedDataFlowCount) of $($dcr.DataFlowCount) configured"
+                }
+                else {
+                    "⚠️ $($dcr.TransformedDataFlowCount) of $($dcr.DataFlowCount) configured"
+                }
+                $tableRows += "| $subMd | $workspaceMd | $($result.DcrCount) | $dcrMd | $sourcesMd | $transformMd | ✅ Pass |`n"
             }
         }
         else {
@@ -264,7 +309,7 @@ function Test-Assessment-41205 {
 
     $params = @{
         TestId = '41205'
-        Title  = 'Data collection rules (DCRs) are used to control ingestion into Microsoft Sentinel workspaces'
+        Title  = $testTitle
         Status = $passed
         Result = $testResultMarkdown
     }
