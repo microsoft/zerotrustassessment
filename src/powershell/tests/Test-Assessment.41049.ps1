@@ -70,19 +70,20 @@ function Test-Assessment-41049 {
             $assignments = @(Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies/$($policy.id)/assignments" -ApiVersion beta -ErrorAction Stop)
 
             # Flatten nested children: top-level items are {id, settingInstance} wrappers;
-            # children inside choiceSettingValue/groupSettingCollectionValue are bare settingInstance
-            # objects and must be re-wrapped so $findSetting can resolve settingDefinitionId uniformly.
+            # children inside choiceSettingValue are bare settingInstance objects;
+            # groupSettingCollectionValue items are GroupSettingValue wrappers whose .children hold the nested settingInstances.
             $flattenedSettings = [System.Collections.Generic.List[object]]::new()
             $visitSettingInstances = {
                 param($instances)
                 foreach ($instance in @($instances)) {
                     if ($null -eq $instance) { continue }
                     [void]$flattenedSettings.Add($instance)
-                    $bareChildren = @($instance.settingInstance.choiceSettingValue.children) +
-                                    @($instance.settingInstance.groupSettingCollectionValue)
-                    $wrapped = @($bareChildren | Where-Object { $null -ne $_ } | ForEach-Object {
-                        [PSCustomObject]@{ settingInstance = $_ }
-                    })
+                    $childInstances = @($instance.settingInstance.choiceSettingValue.children | Where-Object { $_ })
+                    foreach ($gsv in @($instance.settingInstance.groupSettingCollectionValue | Where-Object { $_ })) {
+                        $childInstances += @($gsv.children | Where-Object { $_ })
+                    }
+                    $childInstances += @($instance.settingInstance.groupSettingValue.children | Where-Object { $_ })
+                    $wrapped = @($childInstances | ForEach-Object { [PSCustomObject]@{ settingInstance = $_ } })
                     if ($wrapped.Count -gt 0) { & $visitSettingInstances $wrapped }
                 }
             }
@@ -267,8 +268,8 @@ function Test-Assessment-41049 {
 
     #region Assessment Logic
 
-    # Handle query errors - return early if any query failed
-    $hasQueryError = ($null -ne $settingsCatalogError) -or ($null -ne $legacyEppError)
+    # Q1 error is only fatal when Q2 also failed to recover any data.
+    $hasQueryError = ($evaluationResults.Count -eq 0) -and (($null -ne $settingsCatalogError) -or ($null -ne $legacyEppError))
 
     if ($hasQueryError) {
         Add-ZtTestResultDetail @investigateParams
