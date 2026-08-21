@@ -31,18 +31,46 @@ function Test-Assessment-41204 {
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
     $activity = 'Checking retention settings in Microsoft Sentinel workspaces'
 
-    # Sentinel workspace discovery and onboarding checks are provided by the shared helper.
+    # Q1 + Q2 + onboarding check via shared helper.
+    # Returns 'Forbidden'        on ARG 401/403 (Investigate).
+    # Returns $null              on unexpected ARG failure (Investigate).
+    # Returns 'NoSubscriptions'  when no enabled subscriptions are accessible (Skip).
+    # Returns 'NoWorkspaces'     when no Log Analytics workspaces exist in scope (Skip).
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
 
-    if ($null -eq $allWorkspaces -or $allWorkspaces -in @('Forbidden', 'NoSubscriptions', 'NoWorkspaces')) {
+    if ($null -eq $allWorkspaces) {
         $params = @{
             TestId       = '41204'
             Title        = 'Interactive and long-term retention duration meets the security baseline on every Microsoft Sentinel workspace'
             Status       = $false
-            Result       = '⚠️ A workspace-discovery, onboarding, Q1, or Q2 call returned an authorization failure, throttling, service error, or malformed response; or a Sentinel-onboarded workspace exists but none of the security-relevant tables is present to evaluate.'
+            Result       = '⚠️ Azure Resource Graph returned an unexpected error while querying subscriptions or Log Analytics workspaces. This is likely a transient issue, please re-run the assessment.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
+        return
+    }
+
+    if ($allWorkspaces -eq 'Forbidden') {
+        $params = @{
+            TestId       = '41204'
+            Title        = 'Interactive and long-term retention duration meets the security baseline on every Microsoft Sentinel workspace'
+            Status       = $false
+            Result       = '⚠️ Azure Resource Graph returned insufficient permissions when querying subscriptions or workspaces. Ensure you have at least Reader access to the Azure subscriptions being tested.'
+            CustomStatus = 'Investigate'
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
+    if ($allWorkspaces -eq 'NoSubscriptions') {
+        Write-PSFMessage 'No enabled subscriptions found — skipping Microsoft Sentinel retention check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
+    if ($allWorkspaces -eq 'NoWorkspaces') {
+        Write-PSFMessage 'No Log Analytics workspaces found across accessible subscriptions — skipping Microsoft Sentinel retention check.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
         return
     }
 
@@ -52,14 +80,20 @@ function Test-Assessment-41204 {
     $unresolvedWorkspaces = @($checkableWorkspaces | Where-Object { $_.OnboardingError })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        $params = @{
-            TestId       = '41204'
-            Title        = 'Interactive and long-term retention duration meets the security baseline on every Microsoft Sentinel workspace'
-            Status       = $false
-            Result       = '⚠️ A workspace-discovery, onboarding, Q1, or Q2 call returned an authorization failure, throttling, service error, or malformed response; or a Sentinel-onboarded workspace exists but none of the security-relevant tables is present to evaluate.'
-            CustomStatus = 'Investigate'
+        if ($forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
+            $params = @{
+                TestId       = '41204'
+                Title        = 'Interactive and long-term retention duration meets the security baseline on every Microsoft Sentinel workspace'
+                Status       = $false
+                Result       = '⚠️ A workspace-discovery or onboarding call returned an authorization failure, throttling, service error, or malformed response, so no Sentinel-onboarded workspace could be evaluated.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
         }
-        Add-ZtTestResultDetail @params
+        else {
+            Write-PSFMessage 'No Sentinel-onboarded workspaces found — skipping Microsoft Sentinel retention check.' -Tag Test -Level VeryVerbose
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        }
         return
     }
 
