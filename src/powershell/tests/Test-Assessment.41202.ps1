@@ -37,15 +37,12 @@ function Test-Assessment-41202 {
     $tenantId = if ($azContext) { [string]$azContext.Tenant.Id } else { $null }
     # Identify the customer's publisher name so customer-authored codeless connectors (scope of 41203) are excluded from third-party classification.
     $customerPublisher = if ($tenantId) { Get-ZtTenantName -TenantId $tenantId } else { $null }
-    if ($customerPublisher -eq $tenantId) {
-        $customerPublisher = $null
-    }
 
     # D1 + D2: workspace discovery and Sentinel onboarding check via shared helper.
     # Returns 'Forbidden'        on ARG 401/403 — Investigate.
     # Returns $null              on unexpected ARG failure — Investigate.
-    # Returns 'NoSubscriptions'  when no enabled subscriptions accessible — Skip.
-    # Returns 'NoWorkspaces'     when no Log Analytics workspaces found — Skip.
+    # Returns 'NoSubscriptions'  when no enabled subscriptions accessible — Skipped.
+    # Returns 'NoWorkspaces'     when no Log Analytics workspaces found — Skipped.
     # Returns array              per-workspace results; PermissionError/OnboardingError mark inaccessible workspaces.
     $allWorkspaces = Get-SentinelWorkspaceData -Activity $activity
 
@@ -91,15 +88,21 @@ function Test-Assessment-41202 {
     $onboardedWorkspaces  = @($checkableWorkspaces | Where-Object { $_.SentinelOnboarded })
 
     if ($onboardedWorkspaces.Count -eq 0) {
-        # Spec: return Investigate (not Skipped) when no Sentinel-onboarded workspace can be evaluated.
-        $params = @{
-            TestId       = '41202'
-            Title        = $testTitle
-            Status       = $false
-            Result       = '⚠️ No Sentinel-onboarded workspace could be evaluated in any accessible subscription. Confirm that Microsoft Sentinel is deployed on at least one Log Analytics workspace and that Microsoft Sentinel Reader is granted on all workspaces.'
-            CustomStatus = 'Investigate'
+        if ($forbiddenWorkspaces.Count -gt 0 -or $unresolvedWorkspaces.Count -gt 0) {
+            # Some scopes had permission or onboarding errors — cannot confirm Sentinel is absent.
+            $params = @{
+                TestId       = '41202'
+                Title        = $testTitle
+                Status       = $false
+                Result       = '⚠️ No Sentinel-onboarded workspace was confirmed among accessible workspaces, and one or more workspaces returned an error or insufficient permissions. Ensure Microsoft Sentinel Reader is granted on all workspaces and re-run the assessment.'
+                CustomStatus = 'Investigate'
+            }
+            Add-ZtTestResultDetail @params
+        } else {
+            # Enumeration succeeded everywhere; no Sentinel-onboarded workspace exists — not applicable.
+            Write-PSFMessage 'No Sentinel-onboarded workspaces found — skipping Sentinel third-party data connectors check.' -Tag Test -Level VeryVerbose
+            Add-ZtTestResultDetail -SkippedBecause NotApplicable
         }
-        Add-ZtTestResultDetail @params
         return
     }
 
@@ -121,14 +124,21 @@ function Test-Assessment-41202 {
             Write-PSFMessage "Q1 error querying data connectors for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
         }
 
-        try {
-            # Q2: definitions expose publisher for Codeless Connector Framework entries; fallback only.
-            $q2Path = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectorDefinitions?api-version=2024-09-01"
-            $definitionsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path $q2Path -ErrorAction Stop)
-        }
-        catch {
-            $definitionsByWorkspace[$workspace.WorkspaceId] = $null
-            Write-PSFMessage "Q2 error querying connector definitions for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
+        # Q2 fallback: only when a codeless Q1 connector has a null/empty publisher.
+        $needsQ2 = $null -ne $connectorsByWorkspace[$workspace.WorkspaceId] -and
+                   @($connectorsByWorkspace[$workspace.WorkspaceId] | Where-Object {
+                       $_.kind -in @('GenericUI', 'APIPolling', 'RestApiPoller') -and
+                       [string]::IsNullOrWhiteSpace($_.properties.connectorUiConfig.publisher)
+                   }).Count -gt 0
+        if ($needsQ2) {
+            try {
+                $q2Path = "$($workspace.WorkspaceId)/providers/Microsoft.SecurityInsights/dataConnectorDefinitions?api-version=2024-09-01"
+                $definitionsByWorkspace[$workspace.WorkspaceId] = @(Invoke-ZtAzureRequest -Path $q2Path -ErrorAction Stop)
+            }
+            catch {
+                $definitionsByWorkspace[$workspace.WorkspaceId] = $null
+                Write-PSFMessage "Q2 error querying connector definitions for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
+            }
         }
     }
 
@@ -217,6 +227,12 @@ function Test-Assessment-41202 {
                     elseif ($microsoftPublishers -contains $publisher) {
                         $classification = 'Microsoft first-party'
                         $connStatus     = 'n/a'
+                    }
+                    elseif (-not $customerPublisher) {
+                        # Customer identity unresolvable — cannot confirm connector is not customer-authored.
+                        $classification    = 'Unclassifiable'
+                        $connStatus        = 'Investigate'
+                        $hasUnclassifiable = $true
                     }
                     else {
                         # Non-Microsoft, non-customer publisher — third-party.
@@ -327,12 +343,8 @@ function Test-Assessment-41202 {
 
     $connectorTableRows   = ''
     $workspaceSummaryRows = ''
-    $maxDisplay           = 10
-    $connectorRowCount    = 0
-    $summaryRowCount      = 0
     $statusPriority       = @{ Investigate = 0; Pass = 1 }
     $sortedResults        = @($workspaceResults | Sort-Object { $statusPriority[$_.RowStatus] }, SubscriptionName, WorkspaceName)
-    $totalConnectorCount  = ($workspaceResults | ForEach-Object { $_.ConnectorRows.Count } | Measure-Object -Sum).Sum
 
     foreach ($wsResult in $sortedResults) {
         $subLink       = "$portalHost/#resource/subscriptions/$($wsResult.SubscriptionId)"
@@ -341,44 +353,25 @@ function Test-Assessment-41202 {
         $subMd         = "[$(Get-SafeMarkdown $wsResult.SubscriptionName)]($subLink)"
         $workspaceMd   = "[$(Get-SafeMarkdown $wsResult.WorkspaceName)]($connectorLink)"
 
-        # Connector table: one row per connector up to $maxDisplay; placeholder when Q1 failed or zero connectors.
-        if ($connectorRowCount -lt $maxDisplay) {
-            if ($wsResult.ConnectorRows.Count -eq 0) {
-                $wsStatusDisplay    = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
-                $connectorTableRows += "| $subMd | $workspaceMd | — | — | — | — | $wsStatusDisplay |`n"
-                $connectorRowCount++
-            }
-            else {
-                foreach ($row in $wsResult.ConnectorRows) {
-                    if ($connectorRowCount -ge $maxDisplay) { break }
-                    $rowStatusDisplay = switch ($row.ConnectorStatus) {
-                        'Pass'        { '✅ Pass' }
-                        'Investigate' { '⚠️ Investigate' }
-                        default       { 'n/a' }
-                    }
-                    $publisherMd        = if ($row.Publisher -eq '—') { '—' } else { Get-SafeMarkdown $row.Publisher }
-                    $connectorTableRows += "| $subMd | $workspaceMd | $(Get-SafeMarkdown $row.ConnectorName) | $($row.Kind) | $publisherMd | $($row.Classification) | $rowStatusDisplay |`n"
-                    $connectorRowCount++
+        # Connector table: one row per connector; placeholder when Q1 failed or zero connectors.
+        if ($wsResult.ConnectorRows.Count -eq 0) {
+            $wsStatusDisplay    = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
+            $connectorTableRows += "| $subMd | $workspaceMd | — | — | — | — | $wsStatusDisplay |`n"
+        }
+        else {
+            foreach ($row in $wsResult.ConnectorRows) {
+                $rowStatusDisplay = switch ($row.ConnectorStatus) {
+                    'Pass'        { '✅ Pass' }
+                    'Investigate' { '⚠️ Investigate' }
+                    default       { 'n/a' }
                 }
+                $publisherMd        = if ($row.Publisher -eq '—') { '—' } else { Get-SafeMarkdown $row.Publisher }
+                $connectorTableRows += "| $subMd | $workspaceMd | $(Get-SafeMarkdown $row.ConnectorName) | $($row.Kind) | $publisherMd | $($row.Classification) | $rowStatusDisplay |`n"
             }
         }
 
-        # Workspace summary row — capped at $maxDisplay to match peer pattern.
-        if ($summaryRowCount -lt $maxDisplay) {
-            $wsStatusDisplay      = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
-            $workspaceSummaryRows += "| $subMd | $workspaceMd | $($wsResult.ThirdPartyCount) | $($wsResult.FirstPartyCount) | $($wsResult.CustomCount) | $($wsResult.UnclassifiableCount) | $wsStatusDisplay |`n"
-            $summaryRowCount++
-        }
-    }
-
-    if ($totalConnectorCount -gt $maxDisplay) {
-        $connectorTableRows += "| ... | ... | ... | ... | ... | ... | ... |`n"
-        $connectorTableRows += "`nShowing $connectorRowCount of $totalConnectorCount connectors. [View all data connectors in Microsoft Sentinel]($portalSentinelLink)`n"
-    }
-
-    if ($workspaceResults.Count -gt $maxDisplay) {
-        $remaining             = $workspaceResults.Count - $maxDisplay
-        $workspaceSummaryRows += "`n... and $remaining more. [View all in Microsoft Sentinel]($portalSentinelLink)`n"
+        $wsStatusDisplay      = if ($wsResult.RowStatus -eq 'Pass') { '✅ Pass' } else { '⚠️ Investigate' }
+        $workspaceSummaryRows += "| $subMd | $workspaceMd | $($wsResult.ThirdPartyCount) | $($wsResult.FirstPartyCount) | $($wsResult.CustomCount) | $($wsResult.UnclassifiableCount) | $wsStatusDisplay |`n"
     }
 
     $mdInfo             = $formatTemplate -f 'Data connectors per Sentinel workspace', $portalSentinelLink, $connectorTableRows, $workspaceSummaryRows
