@@ -94,6 +94,7 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 > **Note:** To read Custom Security Attributes on service principals, the account running the assessment must also be assigned the **Attribute Assignment Reader** (or **Attribute Assignment Administrator**) Entra ID role. Without this role, Custom Security Attribute values will be returned as null.
 
 - Application.Read.All
+- AttackSimulation.Read.All
 - AuditLog.Read.All
 - CopilotPackages.Read.All
 - CrossTenantInformation.ReadBasic.All
