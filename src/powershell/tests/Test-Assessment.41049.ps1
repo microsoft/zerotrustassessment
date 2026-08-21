@@ -271,12 +271,14 @@ function Test-Assessment-41049 {
     $hasQueryError = ($evaluationResults.Count -eq 0) -and (($null -ne $settingsCatalogError) -or ($null -ne $legacyEppError))
 
     if ($hasQueryError) {
-        Add-ZtTestResultDetail `
-            -TestId '41049' `
-            -Title 'The Microsoft Defender Antivirus user interface is hidden from end users' `
-            -Status $false `
-            -CustomStatus 'Investigate' `
-            -Result '⚠️ Unable to determine DisableVirusUI status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.'
+        $params = @{
+            TestId       = '41049'
+            Title        = 'The Microsoft Defender Antivirus user interface is hidden from end users'
+            Status       = $false
+            CustomStatus = 'Investigate'
+            Result       = '⚠️ Unable to determine DisableVirusUI status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.'
+        }
+        Add-ZtTestResultDetail @params
         return
     }
 
@@ -297,11 +299,11 @@ function Test-Assessment-41049 {
         $investigateResults = @($primaryResults | Where-Object { $_.Status -eq 'Investigate' })
 
         if ($failResults.Count -gt 0) {
-            $testResultMarkdown = "❌ The Defender Antivirus UI is not hidden — `DisableVirusUI` is disabled, or enabled only in an unassigned policy.`n`n%TestResult%"
+            $testResultMarkdown = "❌ The Defender Antivirus UI is not hidden — ``DisableVirusUI`` is disabled, or enabled only in an unassigned policy.`n`n%TestResult%"
         }
         elseif ($investigateResults.Count -gt 0) {
             $customStatus = 'Investigate'
-            $testResultMarkdown = "⚠️ Could not determine `DisableVirusUI` state: no matching control on either surface, empty result set, uninterpretable value, or Graph 401/403/404.`n`n%TestResult%"
+            $testResultMarkdown = "⚠️ Could not determine ``DisableVirusUI`` state: no matching control on either surface, empty result set, uninterpretable value, or Graph 401/403/404.`n`n%TestResult%"
         }
         else {
             $passResults = @($primaryResults | Where-Object { $_.Status -eq 'Pass' })
