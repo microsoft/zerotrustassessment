@@ -42,18 +42,13 @@ function Test-Assessment-41049 {
     $evaluationResults = @()
     $settingsCatalogError = $null
     $legacyEppError = $null
-    $investigateParams = @{
-        TestId       = '41049'
-        Title        = 'The Microsoft Defender Antivirus user interface is hidden from end users'
-        Status       = $false
-        Result       = '⚠️ Unable to determine DisableVirusUI status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.'
-        CustomStatus = 'Investigate'
-    }
+    $hasPolicyReadError = $false
 
     # Q1: List Settings Catalog configuration policies from Intune and check for Defender UI suppression settings.
     try {
         Write-ZtProgress -Activity $activity -Status 'Getting Settings Catalog policies'
         $settingsCatalogPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/configurationPolicies' -ApiVersion beta -ErrorAction Stop)
+        $settingsCatalogPolicies = @($settingsCatalogPolicies | Where-Object { $_.technologies -match '(?i)\bmdm\b' })
         Write-PSFMessage "Found $($settingsCatalogPolicies.Count) Settings Catalog policies" -Level Verbose
     }
     catch {
@@ -79,6 +74,9 @@ function Test-Assessment-41049 {
                     if ($null -eq $instance) { continue }
                     [void]$flattenedSettings.Add($instance)
                     $childInstances = @($instance.settingInstance.choiceSettingValue.children | Where-Object { $_ })
+                    foreach ($csv in @($instance.settingInstance.choiceSettingCollectionValue | Where-Object { $_ })) {
+                        $childInstances += @($csv.children | Where-Object { $_ })
+                    }
                     foreach ($gsv in @($instance.settingInstance.groupSettingCollectionValue | Where-Object { $_ })) {
                         $childInstances += @($gsv.children | Where-Object { $_ })
                     }
@@ -102,21 +100,21 @@ function Test-Assessment-41049 {
 
             # Extract all UI suppression controls for context
             $uiSuppressionControls = @(
-                @{ Name = 'Virus/AV UI'; Pattern = '(?i)_disablevirusui(?:_|$)'; IsPrimary = $true },
-                @{ Name = 'Account UI'; Pattern = '(?i)_disableaccountprotectionui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'App/browser UI'; Pattern = '(?i)_disableappbrowserui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Device security UI'; Pattern = '(?i)_disabledevicesecurityui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Family UI'; Pattern = '(?i)_disablefamilyui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Health UI'; Pattern = '(?i)_disablehealthui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Network UI'; Pattern = '(?i)_disablenetworkui(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Clear TPM button'; Pattern = '(?i)_disablecleartpmbutton(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'TPM firmware warning'; Pattern = '(?i)_disabletpmfirmwareupdatewarning(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Ransomware recovery UI'; Pattern = '(?i)_hideransomwaredatarecovery(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Secure Boot UI'; Pattern = '(?i)_hidesecureboot(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'TPM troubleshooting UI'; Pattern = '(?i)_hidetpmtroubleshooting(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Notification-area icon'; Pattern = '(?i)_hidewindowssecuritynotificationareacontrol(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'Noncritical notifications'; Pattern = '(?i)_disableenhancednotifications(?:_|$)'; IsPrimary = $false },
-                @{ Name = 'All notifications'; Pattern = '(?i)_disablenotifications(?:_|$)'; IsPrimary = $false }
+                @{ Name = 'Virus/AV UI'; Pattern = '(?i)_disablevirusui$'; IsPrimary = $true },
+                @{ Name = 'Account UI'; Pattern = '(?i)_disableaccountprotectionui$'; IsPrimary = $false },
+                @{ Name = 'App/browser UI'; Pattern = '(?i)_disableappbrowserui$'; IsPrimary = $false },
+                @{ Name = 'Device security UI'; Pattern = '(?i)_disabledevicesecurityui$'; IsPrimary = $false },
+                @{ Name = 'Family UI'; Pattern = '(?i)_disablefamilyui$'; IsPrimary = $false },
+                @{ Name = 'Health UI'; Pattern = '(?i)_disablehealthui$'; IsPrimary = $false },
+                @{ Name = 'Network UI'; Pattern = '(?i)_disablenetworkui$'; IsPrimary = $false },
+                @{ Name = 'Clear TPM button'; Pattern = '(?i)_disablecleartpmbutton$'; IsPrimary = $false },
+                @{ Name = 'TPM firmware warning'; Pattern = '(?i)_disabletpmfirmwareupdatewarning$'; IsPrimary = $false },
+                @{ Name = 'Ransomware recovery UI'; Pattern = '(?i)_hideransomwaredatarecovery$'; IsPrimary = $false },
+                @{ Name = 'Secure Boot UI'; Pattern = '(?i)_hidesecureboot$'; IsPrimary = $false },
+                @{ Name = 'TPM troubleshooting UI'; Pattern = '(?i)_hidetpmtroubleshooting$'; IsPrimary = $false },
+                @{ Name = 'Notification-area icon'; Pattern = '(?i)_hidewindowssecuritynotificationareacontrol$'; IsPrimary = $false },
+                @{ Name = 'Noncritical notifications'; Pattern = '(?i)_disableenhancednotifications$'; IsPrimary = $false },
+                @{ Name = 'All notifications'; Pattern = '(?i)_disablenotifications$'; IsPrimary = $false }
             )
 
             foreach ($control in $uiSuppressionControls) {
@@ -163,13 +161,14 @@ function Test-Assessment-41049 {
             }
         }
         catch {
-            Add-ZtTestResultDetail @investigateParams
-            return
+            Write-PSFMessage "Failed to read Settings Catalog policy '$($policy.name)': $_" -Tag Test -Level Warning
+            $hasPolicyReadError = $true
         }
     }
 
-    # Q2: Legacy windows10EndpointProtectionConfiguration (fallback if no Settings Catalog results)
-    if ($evaluationResults.Count -eq 0) {
+    # Q2: Legacy windows10EndpointProtectionConfiguration (fallback if Q1 found no primary DisableVirusUI result)
+    $q1HasPrimary = ($evaluationResults | Where-Object { $_.IsPrimary -eq $true }).Count -gt 0
+    if (-not $q1HasPrimary) {
         Write-ZtProgress -Activity $activity -Status 'Getting legacy endpoint protection configuration policies'
 
         try {
@@ -258,8 +257,8 @@ function Test-Assessment-41049 {
                 }
             }
             catch {
-                Add-ZtTestResultDetail @investigateParams
-                return
+                Write-PSFMessage "Failed to read EPP policy '$($policy.displayName)': $_" -Tag Test -Level Warning
+                $hasPolicyReadError = $true
             }
         }
     }
@@ -272,7 +271,12 @@ function Test-Assessment-41049 {
     $hasQueryError = ($evaluationResults.Count -eq 0) -and (($null -ne $settingsCatalogError) -or ($null -ne $legacyEppError))
 
     if ($hasQueryError) {
-        Add-ZtTestResultDetail @investigateParams
+        Add-ZtTestResultDetail `
+            -TestId '41049' `
+            -Title 'The Microsoft Defender Antivirus user interface is hidden from end users' `
+            -Status $false `
+            -CustomStatus 'Investigate' `
+            -Result '⚠️ Unable to determine DisableVirusUI status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.'
         return
     }
 
@@ -284,7 +288,8 @@ function Test-Assessment-41049 {
     if ($primaryResults.Count -eq 0) {
         # No DisableVirusUI control found on either surface
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ The `DisableVirusUI` state could not be determined on either the Settings Catalog or legacy endpoint protection surface; verify configuration in the Intune portal."
+        $suffix = if ($evaluationResults.Count -gt 0) { "`n`n%TestResult%" } else { '' }
+        $testResultMarkdown = "⚠️ The ``DisableVirusUI`` state could not be determined on either the Settings Catalog or legacy endpoint protection surface; verify configuration in the Intune portal.$suffix"
     }
     else {
         # Evaluate with precedence: Fail > Investigate > Pass
@@ -301,8 +306,15 @@ function Test-Assessment-41049 {
         else {
             $passResults = @($primaryResults | Where-Object { $_.Status -eq 'Pass' })
             if ($passResults.Count -gt 0) {
-                $passed = $true
-                $testResultMarkdown = "✅ The Microsoft Defender Antivirus (Virus & threat protection) UI is hidden from end users — an assigned policy enables `DisableVirusUI`.`n`n%TestResult%"
+                if ($null -ne $settingsCatalogError -or $hasPolicyReadError) {
+                    # Incomplete data — Pass cannot be confirmed when some policies could not be read.
+                    $customStatus = 'Investigate'
+                    $testResultMarkdown = "⚠️ A policy has the Defender Antivirus UI hidden, but not all Intune policies could be read. Verify in the Intune portal that ``DisableVirusUI`` is configured and assigned, then re-run the assessment.`n`n%TestResult%"
+                }
+                else {
+                    $passed = $true
+                    $testResultMarkdown = "✅ The Microsoft Defender Antivirus (Virus & threat protection) UI is hidden from end users — an assigned policy enables `DisableVirusUI`.`n`n%TestResult%"
+                }
             }
         }
     }
