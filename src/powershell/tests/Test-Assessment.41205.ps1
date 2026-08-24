@@ -360,6 +360,8 @@ function Test-Assessment-41205 {
         $dcrNameMd     = if ([string]::IsNullOrWhiteSpace($dcr.Name)) { 'Unknown rule' } else { Get-SafeMarkdown $dcr.Name }
         $dcrMd         = if ([string]::IsNullOrWhiteSpace($dcr.ResourceId)) { $dcrNameMd } else { "[$dcrNameMd]($portalHost/#resource$($dcr.ResourceId)/overview)" }
         $destinationMd = if ($dcr.MatchingDestinationNames.Count -gt 0) { ($dcr.MatchingDestinationNames | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
+        $routesMd      = if ($null -eq $dcr.RoutesToDestination) { '—' } elseif ($dcr.RoutesToDestination) { '✅ Yes' } else { '❌ No' }
+        $sourcesMd     = if ($dcr.DataSourceTypes.Count -gt 0) { ($dcr.DataSourceTypes | ForEach-Object { Get-SafeMarkdown $_ }) -join ', ' } else { '—' }
         $transformMd   = if (-not $dcr.RoutesToDestination) { '—' } elseif ($dcr.TransformPresent) { '✅ Yes' } else { '⚠️ No' }
         $reasonMd      = Get-SafeMarkdown $dcr.Reason
 
