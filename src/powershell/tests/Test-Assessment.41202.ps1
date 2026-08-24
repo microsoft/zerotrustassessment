@@ -37,6 +37,8 @@ function Test-Assessment-41202 {
     $tenantId = if ($azContext) { [string]$azContext.Tenant.Id } else { $null }
     # Identify the customer's publisher name so customer-authored codeless connectors (scope of 41203) are excluded from third-party classification.
     $customerPublisher = if ($tenantId) { Get-ZtTenantName -TenantId $tenantId } else { $null }
+    # Get-ZtTenantName falls back to the tenant GUID when the org-name lookup fails; treat that as unresolved.
+    if ($customerPublisher -eq $tenantId) { $customerPublisher = $null }
 
     # D1 + D2: workspace discovery and Sentinel onboarding check via shared helper.
     # Returns 'Forbidden'        on ARG 401/403 — Investigate.
