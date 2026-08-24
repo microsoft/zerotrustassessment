@@ -322,7 +322,9 @@ function Test-Assessment-41204 {
     #endregion Assessment Logic
 
     #region Report Generation
-    $portalSentinelLink = "https://portal.azure.com/#browse/microsoft.securityinsightsarg%2Fsentinel"
+    $azContext          = Get-AzContext
+    $portalHost         = if ($azContext -and $azContext.Environment.Name -eq 'AzureUSGovernment') { 'https://portal.azure.us' } else { 'https://portal.azure.com' }
+    $portalSentinelLink = "$portalHost/#browse/microsoft.securityinsightsarg%2Fsentinel"
     $workspaceTitle     = 'Retention summary per Microsoft Sentinel workspace'
     $tableTitle         = 'Retention details for security-relevant tables'
 
@@ -344,8 +346,8 @@ function Test-Assessment-41204 {
 
     $workspaceRows  = ''
     foreach ($result in $workspaceResults | Sort-Object SubscriptionName, WorkspaceName) {
-        $subLink           = "https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)"
-        $workspaceLink     = "https://portal.azure.com/#resource$($result.WorkspaceId)"
+        $subLink           = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $workspaceLink     = "$portalHost/#resource$($result.WorkspaceId)"
         $subMd             = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd       = "[$(Get-SafeMarkdown $result.WorkspaceName)]($workspaceLink)"
         $retentionMd       = if ($null -eq $result.RetentionInDays) { '—' } else { "$($result.RetentionInDays) days" }
@@ -368,8 +370,8 @@ function Test-Assessment-41204 {
     }
 
     foreach ($result in $displayResults) {
-        $subLink             = "https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)"
-        $workspaceLink       = "https://portal.azure.com/#resource$($result.WorkspaceId)"
+        $subLink             = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $workspaceLink       = "$portalHost/#resource$($result.WorkspaceId)"
         $subMd               = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subLink)"
         $workspaceMd         = "[$(Get-SafeMarkdown $result.WorkspaceName)]($workspaceLink)"
         $interactiveMd       = if ($null -eq $result.RetentionInDays) { '—' } else { "$($result.RetentionInDays) days" }
