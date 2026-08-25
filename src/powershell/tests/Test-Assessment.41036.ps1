@@ -53,11 +53,39 @@ function Test-Assessment-41036 {
     else {
         # Q1: Simulations ordered newest-first. Server-side $filter on launchDateTime is
         # unreliable (confirmed: returns empty even for a qualifying simulation on the beta
-        # endpoint). Auto-paging follows @odata.nextLink through the full history; in-memory
-        # classification then applies the 365-day window (upper-bounded by $now).
+        # endpoint). Fetch pages until the 395-day boundary covers the 365-day window plus
+        # the maximum 30-day simulation duration.
         Write-ZtProgress -Activity $activity -Status 'Querying attack simulations'
         try {
-            $allSimulations = @(Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -QueryParameters @{ '$orderby' = 'launchDateTime desc' } -Top 50 -ApiVersion beta -ErrorAction Stop)
+            $simulationPage = Invoke-ZtGraphRequest -RelativeUri 'security/attackSimulation/simulations' -QueryParameters @{ '$orderby' = 'launchDateTime desc' } -Top 50 -ApiVersion beta -DisablePaging -ErrorAction Stop
+            while ($simulationPage) {
+                $pageSimulations = @($simulationPage.value)
+                $allSimulations += $pageSimulations
+
+                $pageBoundaryReached = $false
+                if ($pageSimulations.Count -gt 0) {
+                    if ($pageSimulations[-1].launchDateTime) {
+                        try {
+                            $oldestLaunch = [datetime]$pageSimulations[-1].launchDateTime
+                            $pageBoundaryReached = $oldestLaunch -lt $cutoffDate.AddDays(-30)
+                        }
+                        catch {
+                            $pageBoundaryReached = $false
+                        }
+                    }
+                }
+
+                if ($pageBoundaryReached -or -not $simulationPage.'@odata.nextLink') {
+                    break
+                }
+
+                $nextPageUri = [uri]$simulationPage.'@odata.nextLink'
+                $nextPageRelativeUri = $nextPageUri.AbsolutePath.TrimStart('/') -replace '^beta/', ''
+                if ($nextPageUri.Query) {
+                    $nextPageRelativeUri += $nextPageUri.Query
+                }
+                $simulationPage = Invoke-ZtGraphRequest -RelativeUri $nextPageRelativeUri -ApiVersion beta -DisablePaging -ErrorAction Stop
+            }
         }
         catch {
             $simulationsError = $_
@@ -89,6 +117,7 @@ function Test-Assessment-41036 {
     # last 395 days ≈ 365-day window + the 30-day maximum simulation duration, or launchDateTime itself unusable).
     $classifiedSims                = [System.Collections.Generic.List[PSCustomObject]]::new()
     $hasSucceededMissingCompletion = $false
+    $hasUnparseableLaunchDate      = $false
     $extendedCutoff                = $cutoffDate.AddDays(-30)
 
     foreach ($sim in $allSimulations) {
@@ -96,16 +125,38 @@ function Test-Assessment-41036 {
         $completionInWindow = $false
         $launchParsed       = $null
         $completionParsed   = $null
+        $launchValid        = $false
+        $completionValid    = $false
 
         if ($sim.launchDateTime) {
-            try { $launchParsed = [datetime]$sim.launchDateTime; $launchInWindow = $launchParsed -ge $cutoffDate -and $launchParsed -le $now } catch {}
+            try {
+                $launchParsed   = [datetime]$sim.launchDateTime
+                $launchValid    = $true
+                $launchInWindow = $launchParsed -ge $cutoffDate -and $launchParsed -le $now
+            }
+            catch {
+                $hasUnparseableLaunchDate = $true
+                Write-PSFMessage "Could not parse launchDateTime '$($sim.launchDateTime)' for simulation '$($sim.displayName)'." -Tag Test -Level Warning
+            }
         }
         if ($sim.completionDateTime) {
-            try { $completionParsed = [datetime]$sim.completionDateTime; $completionInWindow = $completionParsed -ge $cutoffDate -and $completionParsed -le $now } catch {}
+            try {
+                $completionParsed   = [datetime]$sim.completionDateTime
+                $completionValid    = $true
+                $completionInWindow = $completionParsed -ge $cutoffDate -and $completionParsed -le $now
+            }
+            catch {
+                Write-PSFMessage "Could not parse completionDateTime '$($sim.completionDateTime)' for simulation '$($sim.displayName)'." -Tag Test -Level Warning
+            }
         }
 
-        if ($sim.status -eq 'succeeded' -and $null -eq $completionParsed) {
-            $hasSucceededMissingCompletion = $true
+        # Only flag a succeeded simulation with unusable completionDateTime as undecidable when its
+        # launchDateTime is within the extended 395-day cutoff (365 + max 30-day duration) or is itself
+        # unparseable. An arbitrarily old record cannot affect the 365-day baseline window.
+        if ($sim.status -eq 'succeeded' -and -not $completionValid) {
+            if (-not $launchValid -or ($launchParsed -ge $extendedCutoff)) {
+                $hasSucceededMissingCompletion = $true
+            }
         }
 
         $ztSignal = if ($sim.status -eq 'succeeded' -and $completionInWindow) { 'Baseline' }
@@ -113,9 +164,12 @@ function Test-Assessment-41036 {
                     else                                                        { 'Out of window' }
 
         $classifiedSims.Add([PSCustomObject]@{
-            Sim      = $sim
-            ZtSignal = $ztSignal
-            LaunchDt = if ($launchParsed) { $launchParsed } else { [datetime]::MinValue }
+            Sim             = $sim
+            ZtSignal        = $ztSignal
+            LaunchDt        = if ($launchValid)     { $launchParsed }     else { [datetime]::MinValue }
+            CompletionDt    = if ($completionValid) { $completionParsed } else { $null }
+            LaunchValid     = $launchValid
+            CompletionValid = $completionValid
         })
     }
 
@@ -135,7 +189,7 @@ function Test-Assessment-41036 {
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     elseif ($simulationsError -or $automationsError) {
-        # Any query error (auth/permission, 404, throttling, service error, or unusable response)
+        # Any query error (auth/permission, 404, throttling, or service error)
         # → Investigate immediately. Never Skip, never Fail for errors.
         $errorParts = @()
         if ($simulationsError) {
@@ -148,6 +202,11 @@ function Test-Assessment-41036 {
         }
         $customStatus       = 'Investigate'
         $reason             = "Query error: $($errorParts -join '; '). Ensure the assessment account has **AttackSimulation.Read.All** permission and re-run."
+        $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
+    }
+    elseif ($hasUnparseableLaunchDate) {
+        $customStatus       = 'Investigate'
+        $reason             = 'At least one simulation had an unparseable **launchDateTime** — recency could not be confirmed.'
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     # Precedence: Pass > Investigate > Fail.
@@ -191,6 +250,8 @@ function Test-Assessment-41036 {
         @{ Expression = 'LaunchDt'; Descending = $true }
     ))
 
+    # Baseline rows are never truncated — decisive evidence takes precedence over the 10-row display
+    # cap. When more than 10 baselines exist the output intentionally exceeds the stated limit.
     $baselineRows    = @($sortedClassified | Where-Object { $_.ZtSignal -eq 'Baseline' })
     $nonBaselineRows = @($sortedClassified | Where-Object { $_.ZtSignal -ne 'Baseline' })
     $remainingSlots  = [Math]::Max(0, $maxDisplay - $baselineRows.Count)
@@ -214,8 +275,8 @@ function Test-Assessment-41036 {
             $techniqueMd    = Get-SafeMarkdown -Text $sim.attackTechnique
             $typeMd         = Get-SafeMarkdown -Text $sim.attackType
             $platformMd     = Get-SafeMarkdown -Text $sim.payloadDeliveryPlatform
-            $launchDateMd   = if ($sim.launchDateTime)     { Get-FormattedDate -DateString ([datetime]$sim.launchDateTime).ToString('o') }     else { '—' }
-            $completeDateMd = if ($sim.completionDateTime) { Get-FormattedDate -DateString ([datetime]$sim.completionDateTime).ToString('o') } else { '—' }
+            $launchDateMd   = if ($entry.LaunchValid)     { Get-FormattedDate -DateString $entry.LaunchDt.ToString('o') }     else { '—' }
+            $completeDateMd = if ($entry.CompletionValid) { Get-FormattedDate -DateString $entry.CompletionDt.ToString('o') } else { '—' }
             $automatedMd    = if ($sim.isAutomated -eq $true) { 'Yes' } else { 'No' }
             $simTableRows  += "| $ztSignalMd | $simStatusMd | $nameMd | $techniqueMd | $typeMd | $platformMd | $launchDateMd | $completeDateMd | $automatedMd |`n"
         }
@@ -240,8 +301,16 @@ function Test-Assessment-41036 {
         foreach ($auto in $automations) {
             $autoNameMd   = Get-SafeMarkdown -Text $auto.displayName
             $autoStatusMd = Get-SafeMarkdown -Text $auto.status
-            $lastRunMd    = if ($auto.lastRunDateTime) { Get-FormattedDate -DateString ([datetime]$auto.lastRunDateTime).ToString('o') } else { '—' }
-            $nextRunMd    = if ($auto.nextRunDateTime) { Get-FormattedDate -DateString ([datetime]$auto.nextRunDateTime).ToString('o') } else { '—' }
+            $lastRunMd = '—'
+            if ($auto.lastRunDateTime) {
+                try { $lastRunMd = Get-FormattedDate -DateString ([datetime]$auto.lastRunDateTime).ToString('o') }
+                catch { Write-PSFMessage "Could not parse lastRunDateTime '$($auto.lastRunDateTime)' for automation '$($auto.displayName)'." -Tag Test -Level Warning }
+            }
+            $nextRunMd = '—'
+            if ($auto.nextRunDateTime) {
+                try { $nextRunMd = Get-FormattedDate -DateString ([datetime]$auto.nextRunDateTime).ToString('o') }
+                catch { Write-PSFMessage "Could not parse nextRunDateTime '$($auto.nextRunDateTime)' for automation '$($auto.displayName)'." -Tag Test -Level Warning }
+            }
             $autoTableRows += "| $autoNameMd | $autoStatusMd | $lastRunMd | $nextRunMd |`n"
         }
     }
