@@ -1,0 +1,9 @@
+Detection and incident response are bounded by data lifetime: an analytics rule, hunting query, or post-breach investigation can only see what is still in the workspace at the moment the query runs. Microsoft Sentinel separates retention into an interactive window (retentionInDays, the surface used by analytics rules, UEBA, and KQL hunting) and a total window (totalRetentionInDays, which adds Archive — accessible through search jobs and restore — on top of the interactive window). Threat-actor dwell time exceeds Sentinel's default 30-day interactive window in a meaningful share of intrusions: living-off-the-land persistence, valid-account abuse (, /), and supply-chain compromise commonly precede detection by months. Without an explicit retention configuration, evidence required to reconstruct the kill chain is silently dropped: incident responders cannot pivot from a freshly discovered indicator back into Entra sign-in logs, Defender alerts, or proxy logs from 90 or 180 days ago, breaking timeline reconstruction. Compliance regimes (PCI DSS, ISO 27001, HIPAA, SOC 2) also impose log-retention floors that the Sentinel default does not satisfy. This check evaluates retention duration only; the storage plane the data sits on (Analytics vs. Basic vs. Auxiliary) is evaluated by spec 41217, and the Microsoft Sentinel data lake long-term plane is evaluated by spec 41218.
+
+**Remediation action**
+
+- [Configure the default analytics retention period of a workspace](https://learn.microsoft.com/azure/azure-monitor/logs/data-retention-configure#configure-the-default-analytics-retention-period-of-analytics-tables)
+- [Configure table-level retention](https://learn.microsoft.com/azure/azure-monitor/logs/data-retention-configure#configure-table-level-retention)
+
+<!--- Results --->
+%TestResult%
