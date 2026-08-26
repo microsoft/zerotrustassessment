@@ -204,15 +204,15 @@ function Test-Assessment-41036 {
         $reason             = "Query error: $($errorParts -join '; '). Ensure the assessment account has **AttackSimulation.Read.All** permission and re-run."
         $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
-    elseif ($hasUnparseableLaunchDate) {
-        $customStatus       = 'Investigate'
-        $reason             = 'At least one simulation had an unparseable **launchDateTime** — recency could not be confirmed.'
-        $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
-    }
     # Precedence: Pass > Investigate > Fail.
     elseif ($hasBaseline -and $hasRunningAutomation) {
         $passed             = $true
         $testResultMarkdown = "✅ A baseline Attack Simulation Training campaign completed (**succeeded**) within the last 12 months and a simulation automation is configured and running.`n`n$summaryCounts`n`n%TestResult%"
+    }
+    elseif ($hasUnparseableLaunchDate) {
+        $customStatus       = 'Investigate'
+        $reason             = 'At least one simulation had an unparseable **launchDateTime** — recency could not be confirmed.'
+        $testResultMarkdown = "⚠️ A completed baseline and a running automation could not both be confirmed. $reason Review [Attack simulation training](https://security.microsoft.com/attacksimulator).`n`n$summaryCounts`n`n%TestResult%"
     }
     elseif ($hasBaseline) {
         $customStatus       = 'Investigate'
