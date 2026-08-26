@@ -214,10 +214,11 @@ function Test-Assessment-41035 {
     # Custom mailbox: N/A only when overall Pass and custom mailbox completely unconfigured (not attempted).
     $customMailboxNA = $anyRoute -and (-not $customMailboxComplete) -and (-not $customMailboxPartial)
 
-    # Flag rows — route-aware: Pass when flag set, Investigate when absent in an attempted route, N/A when not attempted, Fail otherwise.
-    $junkFlagResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkFlagSet)    { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
-    $notJunkFlagResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($notJunkFlagSet) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
-    $phishFlagResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($phishFlagSet)   { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    # Flag rows — route-aware: Pass only when the complete custom route passes, Investigate when
+    # the route was attempted but incomplete, N/A when the route was not attempted, Fail otherwise.
+    $junkFlagResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } else { '❌ Fail' }
+    $notJunkFlagResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } else { '❌ Fail' }
+    $phishFlagResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } else { '❌ Fail' }
 
     # Custom mailbox address lists — same route-aware logic as the flag rows.
     $junkResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
