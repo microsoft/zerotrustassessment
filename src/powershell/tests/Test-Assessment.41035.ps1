@@ -220,10 +220,11 @@ function Test-Assessment-41035 {
     $notJunkFlagResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } else { '❌ Fail' }
     $phishFlagResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } else { '❌ Fail' }
 
-    # Custom mailbox address lists — same route-aware logic as the flag rows.
-    $junkResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkCount    -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
-    $notJunkResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($notJunkCount -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
-    $phishResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxNA) { 'N/A' } elseif ($phishCount   -gt 0) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } else { '❌ Fail' }
+    # Custom mailbox address lists — same route-aware logic as the flag rows: an attempted but
+    # incomplete route reports Investigate before any individual address count is considered.
+    $junkResult    = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } elseif ($junkCount    -gt 0) { '✅ Pass' } else { '❌ Fail' }
+    $notJunkResult = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } elseif ($notJunkCount -gt 0) { '✅ Pass' } else { '❌ Fail' }
+    $phishResult   = if ($customMailboxRoute) { '✅ Pass' } elseif ($customMailboxPartial -or $customMailboxRuleProblem) { '⚠️ Investigate' } elseif ($customMailboxNA) { 'N/A' } elseif ($phishCount   -gt 0) { '✅ Pass' } else { '❌ Fail' }
 
     # Third-party reporter — N/A only when not attempted at all (neither flag nor addresses set) and another route passes.
     $tpEnabled           = $policy.EnableThirdPartyAddress
@@ -231,7 +232,8 @@ function Test-Assessment-41035 {
     $thirdPartyAttempted = ($tpEnabled -eq $true) -or ($thirdPartyCount -gt 0)
     $thirdPartyNA        = $anyRoute -and (-not $thirdPartyAttempted)
     $tpResult     = if ($thirdPartyRoute) { '✅ Pass' } elseif ($thirdPartyNA) { 'N/A' } elseif ($thirdPartyRuleProblem) { '⚠️ Investigate' } elseif ($tpEnabled -eq $true -and $thirdPartyCount -eq 0) { '⚠️ Investigate' } else { '❌ Fail' }
-    $tpAddrResult = if ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($thirdPartyNA) { 'N/A' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '❌ Fail' }
+    # Route-aware: an attempted but incomplete non-Microsoft route reports Investigate before the address count is considered.
+    $tpAddrResult = if ($thirdPartyRoute) { '✅ Pass' } elseif ($thirdPartyRuleProblem) { '⚠️ Investigate' } elseif ($thirdPartyNA) { 'N/A' } elseif ($thirdPartyCount -gt 0) { '✅ Pass' } elseif ($tpEnabled -eq $true) { '⚠️ Investigate' } else { '❌ Fail' }
 
     # Chat and post-submit — informational only; do not participate in the Pass/Fail/Investigate verdict.
     $chatResult = 'ℹ️ Informational'
