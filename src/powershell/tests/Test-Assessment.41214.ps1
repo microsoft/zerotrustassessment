@@ -94,69 +94,82 @@ function Test-Assessment-41214 {
                     $null -eq $_.properties.triggeringLogic -or
                     $null -eq $_.properties.actions
                 }).Count -gt 0
+            $actionRecords = @()
+            if (-not $malformedRule) {
+                foreach ($rule in $rules) {
+                    foreach ($action in @($rule.properties.actions | Where-Object { $_.actionType -eq 'RunPlaybook' })) {
+                        $actionRecords += [PSCustomObject]@{
+                            Rule     = $rule
+                            Action   = $action
+                            Outcome  = 'NotQueried'
+                            Response = $null
+                        }
+                    }
+                }
+            }
+
             $rulesByWorkspace[$workspace.WorkspaceId] = [PSCustomObject]@{
-                Rules      = $rules
-                QueryError = $malformedRule
+                TotalRuleCount = $rules.Count
+                ActionRecords  = $actionRecords
+                QueryError     = $malformedRule
             }
         }
         catch {
             $rulesByWorkspace[$workspace.WorkspaceId] = [PSCustomObject]@{
-                Rules      = @()
-                QueryError = $true
+                TotalRuleCount = 0
+                ActionRecords  = @()
+                QueryError     = $true
             }
             Write-PSFMessage "Error querying automation rules for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
         }
     }
 
-    # Q2 depends on Q1. Collect each distinct supported playbook response once; rule eligibility
-    # and all verdicts are calculated later in Assessment Logic.
-    $playbookResponses = @{}
-    $now               = [DateTimeOffset]::UtcNow
+    # Q2 depends on Q1. Compare tenants before querying each eligible playbook.
+    $now                = [DateTimeOffset]::UtcNow
+    $azContext          = Get-AzContext -ErrorAction SilentlyContinue
+    $assessmentTenantId = if ($azContext) { [string]$azContext.Tenant.Id } else { $null }
 
     foreach ($workspace in $onboardedWorkspaces) {
-        if ($rulesByWorkspace[$workspace.WorkspaceId].QueryError) {
+        $collectedWorkspace = $rulesByWorkspace[$workspace.WorkspaceId]
+        if ($collectedWorkspace.QueryError) {
             continue
         }
 
-        foreach ($rule in $rulesByWorkspace[$workspace.WorkspaceId].Rules) {
-            $runPlaybookActions = @($rule.properties.actions | Where-Object { $_.actionType -eq 'RunPlaybook' })
-            if ($runPlaybookActions.Count -eq 0 -or $rule.properties.triggeringLogic.isEnabled -ne $true) {
+        foreach ($actionRecord in $collectedWorkspace.ActionRecords) {
+            $rule       = $actionRecord.Rule
+            $action     = $actionRecord.Action
+            $expiration = $rule.properties.triggeringLogic.expirationTimeUtc
+            $ruleExpired = -not [string]::IsNullOrWhiteSpace([string]$expiration) -and [DateTimeOffset]$expiration -le $now
+
+            if ($rule.properties.triggeringLogic.isEnabled -ne $true -or $ruleExpired) {
                 continue
             }
 
-            $expiration = $rule.properties.triggeringLogic.expirationTimeUtc
-            if (-not [string]::IsNullOrWhiteSpace([string]$expiration)) {
-                $parsedExpiration = [DateTimeOffset]::MinValue
-                if (-not [DateTimeOffset]::TryParse([string]$expiration, [ref]$parsedExpiration) -or $parsedExpiration -le $now) {
-                    continue
-                }
+            $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
+            if ([string]::IsNullOrWhiteSpace($logicAppResourceId) -or $logicAppResourceId -notmatch '(?i)/providers/Microsoft\.Logic/workflows/') {
+                continue
             }
 
-            foreach ($action in $runPlaybookActions) {
-                $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
-                if ([string]::IsNullOrWhiteSpace($logicAppResourceId) -or $logicAppResourceId -notmatch '(?i)/providers/Microsoft\.Logic/workflows/') {
-                    continue
-                }
+            $playbookTenantId = [string]$action.actionConfiguration.tenantId
+            if ([string]::IsNullOrWhiteSpace($playbookTenantId) -or [string]::IsNullOrWhiteSpace($assessmentTenantId)) {
+                $actionRecord.Outcome = 'TenantUnavailable'
+                continue
+            }
 
-                $playbookKey = $logicAppResourceId.ToLowerInvariant()
-                if ($playbookResponses.ContainsKey($playbookKey)) {
-                    continue
-                }
+            if ($playbookTenantId -ne $assessmentTenantId) {
+                $actionRecord.Outcome = 'CrossTenant'
+                continue
+            }
 
-                Write-ZtProgress -Activity $activity -Status "Resolving playbook referenced by '$($rule.properties.displayName)'"
-                try {
-                    $playbookResponses[$playbookKey] = [PSCustomObject]@{
-                        Response     = Invoke-ZtAzureRequest -Path "$logicAppResourceId`?api-version=2019-05-01" -FullResponse -ErrorAction Stop
-                        RequestError = $false
-                    }
-                }
-                catch {
-                    $playbookResponses[$playbookKey] = [PSCustomObject]@{
-                        Response     = $null
-                        RequestError = $true
-                    }
-                    Write-PSFMessage "Error resolving playbook referenced by automation rule '$($rule.properties.displayName)': $_" -Tag Test -Level Warning
-                }
+            Write-ZtProgress -Activity $activity -Status "Resolving playbook referenced by '$($rule.properties.displayName)'"
+            try {
+                $q2Response = Invoke-ZtAzureRequest -Path "$logicAppResourceId`?api-version=2019-05-01" -FullResponse -ErrorAction Stop
+                $actionRecord.Outcome  = 'Response'
+                $actionRecord.Response = $q2Response
+            }
+            catch {
+                $actionRecord.Outcome = 'RequestFailed'
+                Write-PSFMessage "Error resolving playbook referenced by automation rule '$($rule.properties.displayName)': $_" -Tag Test -Level Warning
             }
         }
     }
@@ -169,8 +182,8 @@ function Test-Assessment-41214 {
     $actionResults    = @()
 
     foreach ($workspace in $onboardedWorkspaces) {
-        $collectedRules          = $rulesByWorkspace[$workspace.WorkspaceId]
-        $totalRuleCount          = $collectedRules.Rules.Count
+        $collectedWorkspace      = $rulesByWorkspace[$workspace.WorkspaceId]
+        $totalRuleCount          = $collectedWorkspace.TotalRuleCount
         $runPlaybookActionCount  = 0
         $eligibleActionCount     = 0
         $excludedActionCount     = 0
@@ -178,150 +191,149 @@ function Test-Assessment-41214 {
         $unhealthyActionCount    = 0
         $unresolvedActionCount   = 0
 
-        if (-not $collectedRules.QueryError) {
-            foreach ($rule in $collectedRules.Rules) {
-                $runPlaybookActions = @($rule.properties.actions | Where-Object { $_.actionType -eq 'RunPlaybook' })
-                $runPlaybookActionCount += $runPlaybookActions.Count
-                if ($runPlaybookActions.Count -eq 0) {
-                    continue
-                }
-
+        if (-not $collectedWorkspace.QueryError) {
+            $runPlaybookActionCount = $collectedWorkspace.ActionRecords.Count
+            foreach ($actionRecord in $collectedWorkspace.ActionRecords) {
+                $rule             = $actionRecord.Rule
+                $action           = $actionRecord.Action
                 $ruleEnabled      = $rule.properties.triggeringLogic.isEnabled -eq $true
                 $expiration        = $rule.properties.triggeringLogic.expirationTimeUtc
                 $expirationDisplay = 'Never'
                 $parsedExpiration  = [DateTimeOffset]::MinValue
-                $expirationValid   = $true
                 if (-not [string]::IsNullOrWhiteSpace([string]$expiration)) {
-                    $expirationValid = [DateTimeOffset]::TryParse([string]$expiration, [ref]$parsedExpiration)
-                    if ($expirationValid) {
-                        $expirationDisplay = $parsedExpiration.UtcDateTime.ToString('yyyy-MM-dd HH:mm:ssZ')
-                    }
+                    $parsedExpiration  = [DateTimeOffset]$expiration
+                    $expirationDisplay = $parsedExpiration.UtcDateTime.ToString('yyyy-MM-dd HH:mm:ssZ')
                 }
 
-                $ruleExpired = $expirationValid -and $parsedExpiration -ne [DateTimeOffset]::MinValue -and $parsedExpiration -le $now
+                $ruleExpired = $parsedExpiration -ne [DateTimeOffset]::MinValue -and $parsedExpiration -le $now
 
-                foreach ($action in $runPlaybookActions) {
-                    $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
-                    $tenantId          = [string]$action.actionConfiguration.tenantId
-                    $playbookName      = if ($logicAppResourceId) { ($logicAppResourceId -split '/')[-1] } else { 'Unavailable' }
-                    $playbookType      = if ($logicAppResourceId -match '(?i)/providers/Microsoft\.Logic/workflows/') { 'Consumption' } else { 'Unsupported' }
-                    $playbookState     = $null
-                    $playbookResolved  = $null
-                    $eligibility       = 'Eligible'
-                    $q2Result          = 'Not queried'
-                    $actionStatus      = 'Investigate'
-                    $actionReason      = ''
+                $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
+                $tenantId          = [string]$action.actionConfiguration.tenantId
+                $playbookName      = if ($logicAppResourceId) { ($logicAppResourceId -split '/')[-1] } else { 'Unavailable' }
+                $playbookType      = if ($logicAppResourceId -match '(?i)/providers/Microsoft\.Logic/workflows/') { 'Consumption' } else { 'Unsupported' }
+                $playbookState     = $null
+                $playbookResolved  = $null
+                $eligibility       = 'Eligible'
+                $q2Result          = 'Not queried'
+                $actionStatus      = 'Investigate'
+                $actionReason      = ''
 
-                    if (-not $ruleEnabled) {
-                        $eligibility  = 'Excluded'
-                        $actionStatus = 'Excluded'
-                        $actionReason = 'The automation rule is disabled.'
-                        $excludedActionCount++
-                    }
-                    elseif (-not $expirationValid) {
-                        $eligibility = 'Excluded'
-                        $actionReason = 'The automation rule expiration value was malformed.'
-                        $excludedActionCount++
+                if (-not $ruleEnabled) {
+                    $eligibility  = 'Excluded'
+                    $actionStatus = 'Excluded'
+                    $actionReason = 'The automation rule is disabled.'
+                    $excludedActionCount++
+                }
+                elseif ($ruleExpired) {
+                    $eligibility  = 'Excluded'
+                    $actionStatus = 'Excluded'
+                    $actionReason = 'The automation rule is expired.'
+                    $excludedActionCount++
+                }
+                elseif ([string]::IsNullOrWhiteSpace($logicAppResourceId)) {
+                    $eligibleActionCount++
+                    $actionReason = 'The RunPlaybook action did not contain a Logic App resource ID.'
+                    $unresolvedActionCount++
+                }
+                elseif ($playbookType -eq 'Unsupported') {
+                    $eligibleActionCount++
+                    $actionReason = 'The referenced playbook resource type is not supported by the documented workflow query.'
+                    $unresolvedActionCount++
+                }
+                else {
+                    $eligibleActionCount++
+                    if ($actionRecord.Outcome -eq 'CrossTenant') {
+                        $q2Result = 'Not called (cross-tenant)'
+                        $actionReason = 'The referenced playbook is cross-tenant and cannot be evaluated in the current Azure context.'
                         $unresolvedActionCount++
                     }
-                    elseif ($ruleExpired) {
-                        $eligibility  = 'Excluded'
-                        $actionStatus = 'Excluded'
-                        $actionReason = 'The automation rule is expired.'
-                        $excludedActionCount++
-                    }
-                    elseif ([string]::IsNullOrWhiteSpace($logicAppResourceId)) {
-                        $eligibleActionCount++
-                        $actionReason = 'The RunPlaybook action did not contain a Logic App resource ID.'
+                    elseif ($actionRecord.Outcome -eq 'TenantUnavailable') {
+                        $q2Result = 'Not called (tenant unavailable)'
+                        $actionReason = 'The playbook tenant or assessment context tenant could not be determined.'
                         $unresolvedActionCount++
                     }
-                    elseif ($playbookType -eq 'Unsupported') {
-                        $eligibleActionCount++
-                        $actionReason = 'The referenced playbook resource type is not supported by the documented workflow query.'
+                    elseif ($actionRecord.Outcome -eq 'RequestFailed' -or $null -eq $actionRecord.Response) {
+                        $q2Result = 'Request failed'
+                        $actionReason = 'The referenced Logic App could not be read.'
                         $unresolvedActionCount++
                     }
                     else {
-                        $eligibleActionCount++
-                        $playbookKey = $logicAppResourceId.ToLowerInvariant()
-                        $collectedPlaybook = $playbookResponses[$playbookKey]
-
-                        if ($null -eq $collectedPlaybook -or $collectedPlaybook.RequestError) {
-                            $q2Result = 'Request failed'
-                            $actionReason = 'The referenced Logic App could not be read.'
-                            $unresolvedActionCount++
-                        }
-                        else {
-                            $statusCode = [int]$collectedPlaybook.Response.StatusCode
-                            $q2Result   = "HTTP $statusCode"
-                            if ($statusCode -eq 200) {
-                                try {
-                                    $workflow = $collectedPlaybook.Response.Content | ConvertFrom-Json -Depth 100 -ErrorAction Stop
-                                    if ($null -eq $workflow.properties.state) {
-                                        throw 'The workflow response did not contain properties.state.'
-                                    }
-
-                                    $playbookName     = [string]$workflow.name
-                                    $playbookState    = [string]$workflow.properties.state
-                                    $playbookResolved = $true
-                                    if ($playbookState -eq 'Enabled') {
-                                        $actionStatus = 'Pass'
-                                        $actionReason = 'The rule is active and the referenced playbook is enabled.'
-                                        $healthyActionCount++
-                                    }
-                                    else {
-                                        $actionStatus = 'Fail'
-                                        $actionReason = 'The referenced playbook is not enabled.'
-                                        $unhealthyActionCount++
-                                    }
+                        $statusCode = [int]$actionRecord.Response.StatusCode
+                        $q2Result   = "HTTP $statusCode"
+                        if ($statusCode -eq 200) {
+                            try {
+                                $workflow = $actionRecord.Response.Content | ConvertFrom-Json -Depth 100 -ErrorAction Stop
+                                if ($null -eq $workflow.properties.state) {
+                                    throw 'The workflow response did not contain properties.state.'
                                 }
-                                catch {
-                                    $actionReason = 'The Logic App response was malformed.'
-                                    $unresolvedActionCount++
-                                }
-                            }
-                            elseif ($statusCode -eq 404) {
-                                $playbookResolved = $false
-                                $actionStatus     = 'Fail'
-                                $actionReason     = 'The referenced playbook was not found.'
-                                $unhealthyActionCount++
-                            }
-                            else {
-                                $actionReason = if ($statusCode -in @(401, 403)) {
-                                    'The referenced Logic App could not be read.'
+
+                                $playbookName     = [string]$workflow.name
+                                $playbookState    = [string]$workflow.properties.state
+                                $playbookResolved = $true
+                                if ($playbookState -eq 'Enabled') {
+                                    $actionStatus = 'Pass'
+                                    $actionReason = 'The rule is active and the referenced playbook is enabled.'
+                                    $healthyActionCount++
                                 }
                                 else {
-                                    "The Logic App request returned HTTP $statusCode."
+                                    $actionStatus = 'Fail'
+                                    $actionReason = 'The referenced playbook is not enabled.'
+                                    $unhealthyActionCount++
                                 }
+                            }
+                            catch {
+                                $actionReason = 'The Logic App response was malformed.'
                                 $unresolvedActionCount++
                             }
                         }
+                        elseif ($statusCode -eq 404) {
+                            $playbookResolved = $false
+                            $actionStatus     = 'Fail'
+                            $actionReason     = 'The referenced playbook was not found.'
+                            $unhealthyActionCount++
+                        }
+                        else {
+                            $actionReason = if ($statusCode -in @(401, 403)) {
+                                'The referenced Logic App could not be read.'
+                            }
+                            else {
+                                "The Logic App request returned HTTP $statusCode."
+                            }
+                            $unresolvedActionCount++
+                        }
                     }
+                }
 
-                    $actionResults += [PSCustomObject]@{
-                        SubscriptionName = $workspace.SubscriptionName
-                        SubscriptionId   = $workspace.SubscriptionId
-                        WorkspaceName    = $workspace.WorkspaceName
-                        WorkspaceId      = $workspace.WorkspaceId
-                        RuleName         = [string]$rule.properties.displayName
-                        RuleId           = [string]$rule.id
-                        RuleEnabled      = $ruleEnabled
-                        Expiration       = $expirationDisplay
-                        Eligibility      = $eligibility
-                        ActionOrder      = if ($null -ne $action.order) { [string]$action.order } else { '—' }
-                        PlaybookName     = $playbookName
-                        PlaybookId       = $logicAppResourceId
-                        PlaybookTenantId = $tenantId
-                        Q2Result         = $q2Result
-                        PlaybookState    = $playbookState
-                        PlaybookResolved = $playbookResolved
-                        RowStatus        = $actionStatus
-                        StatusDetails    = $actionReason
+                if ($actionStatus -eq 'Investigate' -and $q2Result -ne 'Not queried') {
+                    $q2Diagnostics = "Q2 result: $q2Result."
+                    if (-not [string]::IsNullOrWhiteSpace($tenantId)) {
+                        $q2Diagnostics = "Playbook tenant: $tenantId; $q2Diagnostics"
                     }
+                    $actionReason = "$actionReason $q2Diagnostics"
+                }
+
+                $actionResults += [PSCustomObject]@{
+                    SubscriptionName = $workspace.SubscriptionName
+                    SubscriptionId   = $workspace.SubscriptionId
+                    WorkspaceName    = $workspace.WorkspaceName
+                    WorkspaceId      = $workspace.WorkspaceId
+                    RuleName         = [string]$rule.properties.displayName
+                    RuleId           = [string]$rule.id
+                    RuleEnabled      = $ruleEnabled
+                    Expiration       = $expirationDisplay
+                    Eligibility      = $eligibility
+                    ActionOrder      = if ($null -ne $action.order) { [string]$action.order } else { '—' }
+                    PlaybookName     = $playbookName
+                    PlaybookId       = $logicAppResourceId
+                    PlaybookState    = $playbookState
+                    PlaybookResolved = $playbookResolved
+                    RowStatus        = $actionStatus
+                    StatusDetails    = $actionReason
                 }
             }
         }
 
-        $workspaceStatus = if ($collectedRules.QueryError) {
+        $workspaceStatus = if ($collectedWorkspace.QueryError) {
             'Investigate'
         }
         elseif ($unhealthyActionCount -gt 0) {
@@ -340,7 +352,7 @@ function Test-Assessment-41214 {
         $workspaceReason = switch ($workspaceStatus) {
             'Pass'        { 'Every eligible RunPlaybook action references an enabled playbook.' }
             'Fail'        { if ($eligibleActionCount -eq 0) { 'No enabled, non-expired automation rule references a playbook.' } else { 'One or more referenced playbooks are missing, disabled, or suspended.' } }
-            'Investigate' { if ($collectedRules.QueryError) { 'The automation rules request failed.' } else { 'One or more eligible actions could not be evaluated.' } }
+            'Investigate' { if ($collectedWorkspace.QueryError) { 'The automation rules request failed.' } else { 'One or more eligible actions could not be evaluated.' } }
         }
 
         $workspaceResults += [PSCustomObject]@{
@@ -398,12 +410,13 @@ function Test-Assessment-41214 {
 
     #region Report Generation
 
-    $portalSentinelLink = 'https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel'
+    $portalHost         = if ($azContext -and $azContext.Environment.Name -eq 'AzureUSGovernment') { 'https://portal.azure.us' } else { 'https://portal.azure.com' }
+    $portalSentinelLink = "$portalHost/#view/HubsExtension/BrowseResource/resourceType/microsoft.securityinsightsarg%2Fsentinel"
 
     $workspaceRows = ''
     foreach ($result in $workspaceResults | Sort-Object SubscriptionName, WorkspaceName) {
-        $subscriptionLink = "https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)"
-        $workspaceLink    = "https://portal.azure.com/#resource$($result.WorkspaceId)"
+        $subscriptionLink = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $workspaceLink    = "$portalHost/#resource$($result.WorkspaceId)"
         $subscriptionMd   = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subscriptionLink)"
         $workspaceMd      = "[$(Get-SafeMarkdown $result.WorkspaceName)]($workspaceLink)"
         $statusDisplay    = switch ($result.RowStatus) {
@@ -432,41 +445,45 @@ $workspaceRows
     }
 
     foreach ($result in $displayResults) {
-        $subscriptionLink = "https://portal.azure.com/#resource/subscriptions/$($result.SubscriptionId)"
-        $workspaceLink    = "https://portal.azure.com/#resource$($result.WorkspaceId)"
+        $subscriptionLink = "$portalHost/#resource/subscriptions/$($result.SubscriptionId)"
+        $workspaceLink    = "$portalHost/#resource$($result.WorkspaceId)"
         $subscriptionMd   = "[$(Get-SafeMarkdown $result.SubscriptionName)]($subscriptionLink)"
         $workspaceMd      = "[$(Get-SafeMarkdown $result.WorkspaceName)]($workspaceLink)"
         $ruleNameMd       = Get-SafeMarkdown $result.RuleName
         if ($result.RuleId) {
-            $ruleNameMd = "[$ruleNameMd](https://portal.azure.com/#resource$($result.RuleId))"
+            $ruleNameMd = "[$ruleNameMd]($portalHost/#resource$($result.RuleId))"
         }
         $playbookNameMd = Get-SafeMarkdown $result.PlaybookName
         if ($result.PlaybookId -and $result.PlaybookResolved -eq $true) {
-            $playbookNameMd = "[$playbookNameMd](https://portal.azure.com/#resource$($result.PlaybookId))"
+            $playbookNameMd = "[$playbookNameMd]($portalHost/#resource$($result.PlaybookId))"
         }
         $ruleEnabledMd = if ($result.RuleEnabled) { '✅ Yes' } else { '❌ No' }
-        $stateMd       = if ($result.PlaybookState) { $result.PlaybookState } else { '—' }
-        $tenantMd      = if ($result.PlaybookTenantId) { $result.PlaybookTenantId } else { '—' }
+        $stateMd       = switch ($result.PlaybookState) {
+            'Enabled'   { '✅ Enabled' }
+            'Disabled'  { '❌ Disabled' }
+            'Suspended' { '⚠️ Suspended' }
+            default     { '—' }
+        }
         $statusDisplay = switch ($result.RowStatus) {
             'Pass'        { '✅ Pass' }
             'Fail'        { '❌ Fail' }
             'Investigate' { '⚠️ Investigate' }
             'Excluded'    { 'Excluded' }
         }
-        $detailRows += "| $subscriptionMd | $workspaceMd | $ruleNameMd | $ruleEnabledMd | $($result.Expiration) | $($result.Eligibility) | $($result.ActionOrder) | $playbookNameMd | $tenantMd | $($result.Q2Result) | $stateMd | $statusDisplay | $($result.StatusDetails) |`n"
+        $detailRows += "| $subscriptionMd | $workspaceMd | $ruleNameMd | $ruleEnabledMd | $($result.Expiration) | $($result.Eligibility) | $($result.ActionOrder) | $playbookNameMd | $stateMd | $statusDisplay | $($result.StatusDetails) |`n"
     }
 
     if ($hasMoreItems) {
         $remainingCount = $actionResults.Count - $maxDisplay
-        $detailRows += "| … | … | $remainingCount more of $($actionResults.Count) total | … | … | … | … | … | … | … | … | … | [View all in Microsoft Sentinel]($portalSentinelLink) |`n"
+        $detailRows += "| … | … | $remainingCount more of $($actionResults.Count) total | … | … | … | … | … | … | … | [View all in Microsoft Sentinel]($portalSentinelLink) |`n"
     }
 
     if ($detailRows) {
         $detailSection = @"
 ## Playbook action details
 
-| Subscription | Workspace | Automation rule | Rule enabled | Expiration UTC | Eligibility | Action order | Playbook | Playbook tenant ID | Q2 result | Playbook state | Status | Reason |
-| :----------- | :-------- | :-------------- | :----------- | :------------- | :---------- | -----------: | :------- | :----------------- | :-------- | :------------- | :----- | :----- |
+| Subscription | Workspace | Automation rule | Rule enabled | Expiration UTC | Eligibility | Action order | Playbook | Playbook state | Status | Reason |
+| :----------- | :-------- | :-------------- | :----------- | :------------- | :---------- | -----------: | :------- | :------------- | :----- | :----- |
 $detailRows
 "@
     }
