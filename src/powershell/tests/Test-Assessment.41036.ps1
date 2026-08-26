@@ -112,13 +112,10 @@ function Test-Assessment-41036 {
     # Baseline       : status == 'succeeded' AND completionDateTime in [cutoffDate, now] (future completionDateTime excluded — running sims carry projected end dates).
     # Recent activity: launchDateTime OR completionDateTime in [cutoffDate, now] but not a baseline.
     # Out of window  : neither date falls in the window.
-    # A succeeded simulation with a missing/unparseable completionDateTime is undecidable for recency; only
-    # flag it when its launchDateTime could plausibly still complete inside the window (launch within the
-    # last 395 days ≈ 365-day window + the 30-day maximum simulation duration, or launchDateTime itself unusable).
+    # A succeeded simulation with a missing/unparseable completionDateTime is undecidable for recency.
     $classifiedSims                = [System.Collections.Generic.List[PSCustomObject]]::new()
     $hasSucceededMissingCompletion = $false
     $hasUnparseableLaunchDate      = $false
-    $extendedCutoff                = $cutoffDate.AddDays(-30)
 
     foreach ($sim in $allSimulations) {
         $launchInWindow     = $false
@@ -150,13 +147,8 @@ function Test-Assessment-41036 {
             }
         }
 
-        # Only flag a succeeded simulation with unusable completionDateTime as undecidable when its
-        # launchDateTime is within the extended 395-day cutoff (365 + max 30-day duration) or is itself
-        # unparseable. An arbitrarily old record cannot affect the 365-day baseline window.
         if ($sim.status -eq 'succeeded' -and -not $completionValid) {
-            if (-not $launchValid -or ($launchParsed -ge $extendedCutoff)) {
-                $hasSucceededMissingCompletion = $true
-            }
+            $hasSucceededMissingCompletion = $true
         }
 
         $ztSignal = if ($sim.status -eq 'succeeded' -and $completionInWindow) { 'Baseline' }
