@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Checks whether an assigned Intune Settings Catalog policy sets the Defender
-    `DisableLocalAdminMerge` control to Yes (`..._1`) so that only management-defined
+    DisableLocalAdminMerge control to Yes (..._1) so that only management-defined
     Defender Antivirus settings (such as exclusions) are used in the effective policy.
 
 .NOTES
@@ -80,11 +80,12 @@ function Test-Assessment-41119 {
     $controlId = 'device_vendor_msft_defender_configuration_disablelocaladminmerge'
 
     # Q1: List Settings Catalog configuration policies (beta), following @odata.nextLink automatically.
+    # $expand=assignments brings the assignment state inline (isAssigned is not returned by default).
     $rootError = $null
     $settingsCatalogPolicies = @()
     try {
         Write-ZtProgress -Activity $activity -Status 'Getting Settings Catalog policies'
-        $settingsCatalogPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/configurationPolicies' -ApiVersion beta -ErrorAction Stop)
+        $settingsCatalogPolicies = @(Invoke-ZtGraphRequest -RelativeUri 'deviceManagement/configurationPolicies?$expand=assignments' -ApiVersion beta -ErrorAction Stop)
         $settingsCatalogPolicies = @($settingsCatalogPolicies | Where-Object { $_.technologies -match '(?i)\bmdm\b' })
         Write-PSFMessage "Found $($settingsCatalogPolicies.Count) Settings Catalog policies" -Level Verbose
     }
@@ -144,30 +145,14 @@ function Test-Assessment-41119 {
             continue
         }
 
-        # Determine assignment: the list response carries isAssigned; assignment count is a fallback.
-        $assignmentCount = $null
-        try {
-            $assignments = @(Invoke-ZtGraphRequest -RelativeUri "deviceManagement/configurationPolicies/$($policy.id)/assignments" -ApiVersion beta -ErrorAction Stop)
-            $assignmentCount = $assignments.Count
-        }
-        catch {
-            Write-PSFMessage "Failed to read assignments for policy '$($policy.name)': $_" -Tag Test -Level Warning
-        }
-
+        # Assignment comes from the $expand=assignments projection on the list query;
+        # isAssigned is not returned by default, so the inline assignment count is the signal.
+        $assignmentCount = @($policy.assignments | Where-Object { $null -ne $_ }).Count
         $isAssigned = $null
         if ($null -ne $policy.isAssigned) { $isAssigned = [bool]$policy.isAssigned }
-        $assigned = $false
+        $assigned = ($isAssigned -eq $true) -or ($assignmentCount -ge 1)
         $assignmentInterpretable = $true
-        if ($isAssigned -eq $true -or ($null -ne $assignmentCount -and $assignmentCount -ge 1)) {
-            $assigned = $true
-        }
-        elseif ($isAssigned -eq $false -or ($null -ne $assignmentCount -and $assignmentCount -eq 0)) {
-            $assigned = $false
-        }
-        else {
-            $assignmentInterpretable = $false
-        }
-        $assignedText = if (-not $assignmentInterpretable) { 'Unknown' } elseif ($assigned) { 'Yes' } else { 'No' }
+        $assignedText = if ($assigned) { 'Yes' } else { 'No' }
 
         # Identify the control by exact, case-insensitive settingDefinitionId equality.
         $allInstances = @(Get-AllSettingInstances -SettingInstances @($settings.settingInstance))
@@ -206,16 +191,16 @@ function Test-Assessment-41119 {
         if ($normalizedState -eq 'Unknown') {
             $details = 'The setting value could not be interpreted as enabled or disabled.'
         }
-        elseif (-not $assignmentInterpretable) {
-            $details = 'The policy assignment state could not be determined.'
-        }
-        elseif ($normalizedState -eq 'Enabled' -and $assigned) {
-            $status = 'Pass'
-            $details = 'Disable local admin merge is set to yes on an assigned policy.'
-        }
         elseif ($normalizedState -eq 'Disabled') {
             $status = 'Fail'
             $details = 'Disable local admin merge is set to no.'
+        }
+        elseif (-not $assignmentInterpretable) {
+            $details = 'The policy assignment state could not be determined.'
+        }
+        elseif ($assigned) {
+            $status = 'Pass'
+            $details = 'Disable local admin merge is set to yes on an assigned policy.'
         }
         else {
             $status = 'Fail'
