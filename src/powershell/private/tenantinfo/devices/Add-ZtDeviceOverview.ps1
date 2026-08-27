@@ -268,7 +268,26 @@ where accountEnabled and "isManaged"
     }
 
     # Preserve null when Defender/TVM data is unavailable so the report can show no data.
-    $huntingQuery = "let OperationalControls = DeviceTvmSecureConfigurationAssessmentKB | where ConfigurationName in~ ('Turn on Microsoft Defender Antivirus', 'Turn on real-time protection') | distinct ConfigurationId; let ProtectedMdeDevices = DeviceTvmSecureConfigurationAssessment | where Timestamp > ago(7d) | join kind=inner OperationalControls on ConfigurationId | summarize arg_max(Timestamp, IsApplicable, IsCompliant) by DeviceId, ConfigurationId | where IsApplicable == true | summarize ApplicableControls=count(), InconclusiveOrNonCompliantControls=countif(IsCompliant == false or isnull(IsCompliant)) by DeviceId | where ApplicableControls > 0 and InconclusiveOrNonCompliantControls == 0 | project DeviceId; DeviceInfo | where Timestamp > ago(30d) | summarize arg_max(Timestamp, AadDeviceId) by DeviceId | where isnotempty(AadDeviceId) | join kind=leftsemi ProtectedMdeDevices on DeviceId | summarize by AadDeviceId=tolower(AadDeviceId) | summarize ProtectedDeviceCount=count()"
+    $huntingQuery = @'
+let OperationalControls = DeviceTvmSecureConfigurationAssessmentKB
+| where ConfigurationName in~ ('Turn on Microsoft Defender Antivirus', 'Turn on real-time protection')
+| distinct ConfigurationId;
+let ProtectedMdeDevices = DeviceTvmSecureConfigurationAssessment
+| where Timestamp > ago(7d)
+| join kind=inner OperationalControls on ConfigurationId
+| summarize arg_max(Timestamp, IsApplicable, IsCompliant) by DeviceId, ConfigurationId
+| where IsApplicable == true
+| summarize ApplicableControls=count(), InconclusiveOrNonCompliantControls=countif(IsCompliant == false or isnull(IsCompliant)) by DeviceId
+| where ApplicableControls > 0 and InconclusiveOrNonCompliantControls == 0
+| project DeviceId;
+DeviceInfo
+| where Timestamp > ago(30d)
+| summarize arg_max(Timestamp, AadDeviceId) by DeviceId
+| where isnotempty(AadDeviceId)
+| join kind=leftsemi ProtectedMdeDevices on DeviceId
+| summarize by AadDeviceId=tolower(AadDeviceId)
+| summarize ProtectedDeviceCount=count()
+'@
 
     $protectedDeviceCount = $null
     try {
