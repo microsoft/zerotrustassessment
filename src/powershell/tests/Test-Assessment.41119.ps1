@@ -91,14 +91,21 @@ function Test-Assessment-41119 {
 
     # A failure of the root list query (or any of its pages) is unrecoverable: return Investigate.
     if ($rootError) {
-        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $rootError
-        $statusText = if ($null -ne $statusCode) { "HTTP $statusCode" } else { 'a network or timeout error' }
+        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $rootError
+        Write-PSFMessage "Failed to query Settings Catalog policies (HTTP $httpStatus): $rootError" -Tag Test -Level Warning
+        $msg = if ($httpStatus -in @(401, 403)) {
+            '⚠️ **DeviceManagementConfiguration.Read.All** permission is required to read Intune configuration policies. Verify the permission is consented and the assessment identity has an Intune read role, then re-run the assessment.'
+        } elseif ($httpStatus -eq 404) {
+            '⚠️ The Intune configuration policies endpoint returned 404. Verify that Intune is provisioned in this tenant, then re-run the assessment.'
+        } else {
+            '⚠️ Microsoft Graph returned an unexpected error while querying Intune Settings Catalog configuration policies. Re-run after 5–10 minutes; file a support ticket if this persists.'
+        }
         $params = @{
             TestId       = '41119'
             Title        = $title
             Status       = $false
+            Result       = $msg
             CustomStatus = 'Investigate'
-            Result       = "⚠️ Intune Settings Catalog configuration policies could not be read from **GET /deviceManagement/configurationPolicies** ($statusText). Verify the **DeviceManagementConfiguration.Read.All** permission and Intune RBAC, then re-run the assessment."
         }
         Add-ZtTestResultDetail @params
         return
@@ -269,6 +276,8 @@ function Test-Assessment-41119 {
         'Investigate' = '⚠️ Investigate'
         'N/A'         = 'N/A'
     }
+    $totalCount = $evaluationResults.Count
+    $isTruncated = $totalCount -gt 10
     $tableRows = @($evaluationResults | Select-Object -First 10 | ForEach-Object {
         $policyName = (Get-SafeMarkdown -Text $_.PolicyName) -replace '\|', '\\|'
         $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($_.PolicyId)"
@@ -280,17 +289,20 @@ function Test-Assessment-41119 {
         "| [$policyName]($policyLink) | $($_.TemplateFamily) | $($_.Assigned) | $settingDefId | $rawValue | $($_.NormalizedState) | $detailsText | $displayStatus |"
     })
 
-    if ($evaluationResults.Count -gt 10) {
-        $omitted = $evaluationResults.Count - 10
-        $tableRows += "| ... | | | | | | $omitted of $($evaluationResults.Count) policies omitted | |"
+    if ($isTruncated) {
+        $tableRows += "| ... | ... | ... | ... | ... | ... | ... | ... |"
     }
 
     if ($tableRows.Count -gt 0) {
+        $countLine = ''
+        if ($isTruncated) {
+            $countLine = "Total policies: $totalCount (showing first 10)`n`n"
+        }
         $mdInfo = @"
 
 ## [Intune configuration profiles]($portalUrl)
 
-| Policy name | Template family | Assigned | Setting definition ID | Raw setting value | Normalized state | Details | Status |
+$countLine| Policy name | Template family | Assigned | Setting definition ID | Raw setting value | Normalized state | Details | Status |
 | :---------- | :-------------- | :------- | :-------------------- | :---------------- | :--------------- | :------ | :----- |
 $($tableRows -join "`n")
 "@
