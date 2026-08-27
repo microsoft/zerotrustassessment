@@ -122,7 +122,7 @@ function Test-Assessment-41051 {
 
     if ($queryError) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ No device control / removable storage policy could be found to evaluate, or the Intune configuration scope could not be read.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Unable to determine device control / removable storage policy status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.`n`n%TestResult%"
     }
     else {
         foreach ($snapshot in $policySnapshots) {
