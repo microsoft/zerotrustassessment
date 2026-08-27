@@ -45,7 +45,7 @@ function Test-Assessment-41214 {
             TestId       = '41214'
             Title        = 'At least one Microsoft Sentinel automation rule executes a playbook for automated threat response'
             Status       = $false
-            Result       = '⚠️ Automation rules or the referenced Logic App could not be read.'
+            Result       = '⚠️ Automation rules or the referenced playbook workflow could not be resolved or read.'
             CustomStatus = 'Investigate'
         }
         Add-ZtTestResultDetail @params
@@ -69,7 +69,7 @@ function Test-Assessment-41214 {
                 TestId       = '41214'
                 Title        = 'At least one Microsoft Sentinel automation rule executes a playbook for automated threat response'
                 Status       = $false
-                Result       = '⚠️ Automation rules or the referenced Logic App could not be read.'
+                Result       = '⚠️ Automation rules or the referenced playbook workflow could not be resolved or read.'
                 CustomStatus = 'Investigate'
             }
             Add-ZtTestResultDetail @params
@@ -94,16 +94,16 @@ function Test-Assessment-41214 {
                     $null -eq $_.properties.triggeringLogic -or
                     $null -eq $_.properties.actions
                 }).Count -gt 0
-            $actionRecords = @()
+            $actionRecords = [System.Collections.Generic.List[object]]::new()
             if (-not $malformedRule) {
                 foreach ($rule in $rules) {
                     foreach ($action in @($rule.properties.actions | Where-Object { $_.actionType -eq 'RunPlaybook' })) {
-                        $actionRecords += [PSCustomObject]@{
+                        $actionRecords.Add([PSCustomObject]@{
                             Rule     = $rule
                             Action   = $action
                             Outcome  = 'NotQueried'
                             Response = $null
-                        }
+                        })
                     }
                 }
             }
@@ -146,7 +146,7 @@ function Test-Assessment-41214 {
             }
 
             $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
-            if ([string]::IsNullOrWhiteSpace($logicAppResourceId) -or $logicAppResourceId -notmatch '(?i)/providers/Microsoft\.Logic/workflows/') {
+            if ([string]::IsNullOrWhiteSpace($logicAppResourceId)) {
                 continue
             }
 
@@ -161,9 +161,24 @@ function Test-Assessment-41214 {
                 continue
             }
 
+            $playbookApiVersion = if ($logicAppResourceId -match '(?i)/providers/Microsoft\.Logic/workflows/[^/]+/?$') {
+                '2019-05-01'
+            }
+            elseif ($logicAppResourceId -match '(?i)/providers/Microsoft\.Web/sites/[^/]+/workflows/[^/]+/?$') {
+                '2022-09-01'
+            }
+            elseif ($logicAppResourceId -match '(?i)/providers/Microsoft\.Web/sites/') {
+                $actionRecord.Outcome = 'WorkflowUnresolved'
+                continue
+            }
+            else {
+                $actionRecord.Outcome = 'Unsupported'
+                continue
+            }
+
             Write-ZtProgress -Activity $activity -Status "Resolving playbook referenced by '$($rule.properties.displayName)'"
             try {
-                $q2Response = Invoke-ZtAzureRequest -Path "$logicAppResourceId`?api-version=2019-05-01" -FullResponse -ErrorAction Stop
+                $q2Response = Invoke-ZtAzureRequest -Path "$logicAppResourceId`?api-version=$playbookApiVersion" -FullResponse -ErrorAction Stop
                 $actionRecord.Outcome  = 'Response'
                 $actionRecord.Response = $q2Response
             }
@@ -178,8 +193,8 @@ function Test-Assessment-41214 {
 
     #region Assessment Logic
 
-    $workspaceResults = @()
-    $actionResults    = @()
+    $workspaceResults = [System.Collections.Generic.List[object]]::new()
+    $actionResults    = [System.Collections.Generic.List[object]]::new()
 
     foreach ($workspace in $onboardedWorkspaces) {
         $collectedWorkspace      = $rulesByWorkspace[$workspace.WorkspaceId]
@@ -210,7 +225,15 @@ function Test-Assessment-41214 {
                 $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
                 $tenantId          = [string]$action.actionConfiguration.tenantId
                 $playbookName      = if ($logicAppResourceId) { ($logicAppResourceId -split '/')[-1] } else { 'Unavailable' }
-                $playbookType      = if ($logicAppResourceId -match '(?i)/providers/Microsoft\.Logic/workflows/') { 'Consumption' } else { 'Unsupported' }
+                $playbookType      = if ($logicAppResourceId -match '(?i)/providers/Microsoft\.Logic/workflows/') {
+                    'Consumption'
+                }
+                elseif ($logicAppResourceId -match '(?i)/providers/Microsoft\.Web/sites/') {
+                    'Standard'
+                }
+                else {
+                    'Unsupported'
+                }
                 $playbookState     = $null
                 $playbookResolved  = $null
                 $eligibility       = 'Eligible'
@@ -235,7 +258,12 @@ function Test-Assessment-41214 {
                     $actionReason = 'The RunPlaybook action did not contain a Logic App resource ID.'
                     $unresolvedActionCount++
                 }
-                elseif ($playbookType -eq 'Unsupported') {
+                elseif ($actionRecord.Outcome -eq 'WorkflowUnresolved') {
+                    $eligibleActionCount++
+                    $actionReason = 'The specific Standard workflow child could not be resolved from the playbook resource ID.'
+                    $unresolvedActionCount++
+                }
+                elseif ($playbookType -eq 'Unsupported' -or $actionRecord.Outcome -eq 'Unsupported') {
                     $eligibleActionCount++
                     $actionReason = 'The referenced playbook resource type is not supported by the documented workflow query.'
                     $unresolvedActionCount++
@@ -263,12 +291,18 @@ function Test-Assessment-41214 {
                         if ($statusCode -eq 200) {
                             try {
                                 $workflow = $actionRecord.Response.Content | ConvertFrom-Json -Depth 100 -ErrorAction Stop
-                                if ($null -eq $workflow.properties.state) {
-                                    throw 'The workflow response did not contain properties.state.'
+                                $playbookState = if ($playbookType -eq 'Standard') {
+                                    $workflow.properties.flowState
+                                }
+                                else {
+                                    $workflow.properties.state
+                                }
+                                if ($null -eq $playbookState) {
+                                    throw "The $playbookType workflow response did not contain its state property."
                                 }
 
-                                $playbookName     = [string]$workflow.name
-                                $playbookState    = [string]$workflow.properties.state
+                                $playbookName     = ([string]$workflow.name -split '/')[-1]
+                                $playbookState    = [string]$playbookState
                                 $playbookResolved = $true
                                 if ($playbookState -eq 'Enabled') {
                                     $actionStatus = 'Pass'
@@ -312,7 +346,7 @@ function Test-Assessment-41214 {
                     $actionReason = "$actionReason $q2Diagnostics"
                 }
 
-                $actionResults += [PSCustomObject]@{
+                $actionResults.Add([PSCustomObject]@{
                     SubscriptionName = $workspace.SubscriptionName
                     SubscriptionId   = $workspace.SubscriptionId
                     WorkspaceName    = $workspace.WorkspaceName
@@ -324,12 +358,13 @@ function Test-Assessment-41214 {
                     Eligibility      = $eligibility
                     ActionOrder      = if ($null -ne $action.order) { [string]$action.order } else { '—' }
                     PlaybookName     = $playbookName
+                    PlaybookType     = $playbookType
                     PlaybookId       = $logicAppResourceId
                     PlaybookState    = $playbookState
                     PlaybookResolved = $playbookResolved
                     RowStatus        = $actionStatus
                     StatusDetails    = $actionReason
-                }
+                })
             }
         }
 
@@ -355,7 +390,7 @@ function Test-Assessment-41214 {
             'Investigate' { if ($collectedWorkspace.QueryError) { 'The automation rules request failed.' } else { 'One or more eligible actions could not be evaluated.' } }
         }
 
-        $workspaceResults += [PSCustomObject]@{
+        $workspaceResults.Add([PSCustomObject]@{
             SubscriptionName     = $workspace.SubscriptionName
             SubscriptionId       = $workspace.SubscriptionId
             WorkspaceName        = $workspace.WorkspaceName
@@ -369,11 +404,11 @@ function Test-Assessment-41214 {
             UnresolvedActionCount = $unresolvedActionCount
             RowStatus            = $workspaceStatus
             StatusDetails        = $workspaceReason
-        }
+        })
     }
 
     foreach ($workspace in @($forbiddenWorkspaces) + @($unresolvedWorkspaces)) {
-        $workspaceResults += [PSCustomObject]@{
+        $workspaceResults.Add([PSCustomObject]@{
             SubscriptionName      = $workspace.SubscriptionName
             SubscriptionId        = $workspace.SubscriptionId
             WorkspaceName         = $workspace.WorkspaceName
@@ -387,7 +422,7 @@ function Test-Assessment-41214 {
             UnresolvedActionCount = 1
             RowStatus             = 'Investigate'
             StatusDetails         = 'The Microsoft Sentinel onboarding state could not be determined.'
-        }
+        })
     }
 
     $failedItems      = @($workspaceResults | Where-Object { $_.RowStatus -eq 'Fail' })
@@ -396,14 +431,14 @@ function Test-Assessment-41214 {
     $customStatus     = $null
 
     if ($failedItems.Count -gt 0) {
-        $testResultMarkdown = "❌ No automation rule executes a playbook, or a referenced playbook is missing, disabled, or suspended.`n`n%TestResult%"
+        $testResultMarkdown = "❌ No automation rule executes a playbook, or a referenced playbook workflow is missing, disabled, or suspended.`n`n%TestResult%"
     }
     elseif ($investigateItems.Count -gt 0) {
         $customStatus       = 'Investigate'
-        $testResultMarkdown = "⚠️ Automation rules or the referenced Logic App could not be read.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Automation rules or the referenced playbook workflow could not be resolved or read.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown = "✅ Microsoft Sentinel executes playbooks for automated threat response.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Microsoft Sentinel executes Consumption or Standard playbooks for automated threat response.`n`n%TestResult%"
     }
 
     #endregion Assessment Logic
@@ -470,20 +505,20 @@ $workspaceRows
             'Investigate' { '⚠️ Investigate' }
             'Excluded'    { 'Excluded' }
         }
-        $detailRows += "| $subscriptionMd | $workspaceMd | $ruleNameMd | $ruleEnabledMd | $($result.Expiration) | $($result.Eligibility) | $($result.ActionOrder) | $playbookNameMd | $stateMd | $statusDisplay | $($result.StatusDetails) |`n"
+        $detailRows += "| $subscriptionMd | $workspaceMd | $ruleNameMd | $ruleEnabledMd | $($result.Expiration) | $($result.Eligibility) | $($result.ActionOrder) | $playbookNameMd | $($result.PlaybookType) | $stateMd | $statusDisplay | $($result.StatusDetails) |`n"
     }
 
     if ($hasMoreItems) {
         $remainingCount = $actionResults.Count - $maxDisplay
-        $detailRows += "| … | … | $remainingCount more of $($actionResults.Count) total | … | … | … | … | … | … | … | [View all in Microsoft Sentinel]($portalSentinelLink) |`n"
+        $detailRows += "| … | … | $remainingCount more of $($actionResults.Count) total | … | … | … | … | … | … | … | … | [View all in Microsoft Sentinel]($portalSentinelLink) |`n"
     }
 
     if ($detailRows) {
         $detailSection = @"
 ## Playbook action details
 
-| Subscription | Workspace | Automation rule | Rule enabled | Expiration UTC | Eligibility | Action order | Playbook | Playbook state | Status | Reason |
-| :----------- | :-------- | :-------------- | :----------- | :------------- | :---------- | -----------: | :------- | :------------- | :----- | :----- |
+| Subscription | Workspace | Automation rule | Rule enabled | Expiration UTC | Eligibility | Action order | Playbook | Logic App type | Playbook state | Status | Reason |
+| :----------- | :-------- | :-------------- | :----------- | :------------- | :---------- | -----------: | :------- | :------------- | :------------- | :----- | :----- |
 $detailRows
 "@
     }
