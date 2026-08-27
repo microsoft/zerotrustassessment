@@ -122,7 +122,13 @@ function Test-Assessment-41051 {
 
     if ($queryError) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Unable to determine device control / removable storage policy status due to an API or access error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.`n`n%TestResult%"
+        $statusCode = Get-ZtHttpStatusCode -ErrorRecord $queryError
+        if ($statusCode -in 401, 403, 404) {
+            $testResultMarkdown = "⚠️ Microsoft Graph returned HTTP $statusCode while retrieving Intune configuration policies. Verify Intune licensing, RBAC, and DeviceManagementConfiguration.Read.All consent.`n`n%TestResult%"
+        }
+        else {
+            $testResultMarkdown = "⚠️ Intune configuration policies could not be retrieved due to a Microsoft Graph error. Re-run the assessment after verifying Intune licensing, DeviceManagementConfiguration.Read.All consent, and Microsoft Graph access.`n`n%TestResult%"
+        }
     }
     else {
         foreach ($snapshot in $policySnapshots) {
