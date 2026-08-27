@@ -151,7 +151,7 @@ function Test-Assessment-41035 {
         $passed = $true
         $testResultMarkdown = "✅ User reporting in Outlook is enabled and user-reported messages reach Microsoft, a monitored SOC mailbox, or a configured non-Microsoft reporter.`n`n%TestResult%"
     }
-    elseif ($customMailboxPartial -or $customMailboxRuleProblem -or $thirdPartyRuleProblem -or $thirdPartyPartial) {
+    elseif ($customMailboxPartial -or $customMailboxRuleProblem -or $thirdPartyRuleProblem) {
         $passed       = $false
         $customStatus = 'Investigate'
         $investigateDetails = [System.Collections.Generic.List[string]]::new()
@@ -179,9 +179,6 @@ function Test-Assessment-41035 {
             else {
                 $investigateDetails.Add("report submission rule '**$($rule.Name)**' has no **SentTo** address — nothing delivers non-Microsoft reporter messages to the reporting mailbox")
             }
-        }
-        if ($thirdPartyPartial) {
-            $investigateDetails.Add('non-Microsoft reporter route is partially configured — only one of **EnableThirdPartyAddress** / **ThirdPartyReportAddresses** is set; both must be configured')
         }
         $reasonText = ($investigateDetails | ForEach-Object { "- $_" }) -join "`n"
         $testResultMarkdown = "⚠️ The customized mailbox is partially configured, the report submission rule is absent or disabled, or the non-Microsoft reporter route is incomplete; verify the configuration in the Defender portal.`n`n$reasonText`n`n%TestResult%"
