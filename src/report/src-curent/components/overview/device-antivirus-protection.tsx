@@ -100,11 +100,11 @@ export function DeviceAntivirusProtectionCard() {
                         <TooltipProvider delayDuration={200}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="flex w-fit items-center gap-1 text-xs text-muted-foreground" tabIndex={0}>
+                                    <button type="button" className="flex w-fit items-center gap-1 text-xs text-muted-foreground">
                                         <div className="h-3 w-3 rounded-sm bg-red-500" />
                                         Unprotected
                                         <span className="sr-only">: {unprotectedDescription}</span>
-                                    </div>
+                                    </button>
                                 </TooltipTrigger>
                                 <TooltipContent>{unprotectedDescription}</TooltipContent>
                             </Tooltip>
