@@ -34,13 +34,7 @@ function Test-Assessment-41119 {
     [CmdletBinding()]
     param()
 
-    #region Data Collection
-
-    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
-
-    $activity = 'Checking Defender local admin merge configuration'
-    $title = 'Local modification of Microsoft Defender Antivirus policy is blocked'
-    $controlId = 'device_vendor_msft_defender_configuration_disablelocaladminmerge'
+    #region Helper Functions
 
     # Recursively collects every setting instance in a policy's settings tree, including
     # instances nested inside choiceSettingValue.children, choiceSettingCollectionValue,
@@ -74,6 +68,16 @@ function Test-Assessment-41119 {
         }
         return $result
     }
+
+    #endregion Helper Functions
+
+    #region Data Collection
+
+    Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
+
+    $activity = 'Checking Defender local admin merge configuration'
+    $title = 'Local modification of Microsoft Defender Antivirus policy is blocked'
+    $controlId = 'device_vendor_msft_defender_configuration_disablelocaladminmerge'
 
     # Q1: List Settings Catalog configuration policies (beta), following @odata.nextLink automatically.
     $rootError = $null
