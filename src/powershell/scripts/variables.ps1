@@ -15,6 +15,8 @@ $script:__ZtSession = @{
 	TestMeta     = @()
 	# A DCO dictionary is the same threadsafe dictionary across all runspaces, allowing parallelized checks to write results to the same store safely
 	TestResultDetail = Set-PSFDynamicContentObject -Name "ZtAssessment.TestResultDetails" -Dictionary -PassThru
+	# Structured data published by checks for composite dashboards (see Add-ZtTestData)
+	TestData = Set-PSFDynamicContentObject -Name "ZtAssessment.TestData" -Dictionary -PassThru
 	TestStatistics = Set-PSFDynamicContentObject -Name "ZtAssessment.TestStatistics" -Dictionary -PassThru
 	TenantInfo = Set-PSFDynamicContentObject -Name "ZtAssessment.TenantInfo" -Dictionary -PassThru
 	ProgressState = Set-PSFDynamicContentObject -Name "ZtAssessment.ProgressState" -Dictionary -PassThru

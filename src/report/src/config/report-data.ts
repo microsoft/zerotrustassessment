@@ -16,10 +16,13 @@ export interface ZeroTrustAssessmentReport {
 }
 
 export interface TenantInfo {
+  AgentOwnershipDistribution?: AgentOwnershipDistribution | null;
   OverviewCaMfaAllUsers?: SankeyData | null;
   OverviewCaDevicesAllUsers?: SankeyData | null;
   OverviewAuthMethodsPrivilegedUsers?: SankeyData | null;
   OverviewAuthMethodsAllUsers?: SankeyData | null;
+  OverviewM365ProtectionCircuit?: M365ProtectionCircuitSankeyData | null;
+  OverviewPrivateAccess?: PrivateAccessSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
   ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
@@ -27,6 +30,22 @@ export interface TenantInfo {
   DeviceOverview?: DeviceOverview | null;
   TenantOverview?: TenantOverview | null;
   AgentOverview?: AgentOverview | null;
+}
+
+export interface AgentOwnershipDistribution {
+  ownerAndSponsor: number;
+  ownerOnly: number;
+  sponsorOnly: number;
+  neither: number;
+  skippedCount?: number;
+  agents?: Record<AgentOwnershipBucket, AgentOwnershipEntry[]>;
+}
+
+export type AgentOwnershipBucket = "ownerAndSponsor" | "ownerOnly" | "sponsorOnly" | "neither";
+
+export interface AgentOwnershipEntry {
+  displayName: string | null;
+  accountEnabled: boolean;
 }
 
 export interface ConfigWindowsEnrollment {
@@ -134,6 +153,37 @@ export interface SankeyData {
   entrareigstered?: number;
   entrahybridjoined?: number;
   entrajoined?: number;
+}
+
+export interface PrivateAccessSankeyData extends SankeyData {
+  adminAtRisk: boolean;
+  populationMismatch: boolean;
+  gates?: PrivateAccessGate[];
+  overallStatus?: string;
+  degraded?: boolean;
+  applicationCount?: number;
+  tenantWideAdmin?: number;
+  scopedAdminAtRisk?: number;
+}
+
+export interface PrivateAccessGate {
+  testId: string;
+  name: string;
+  status: string;
+}
+
+export interface M365ProtectionCircuitSankeyData extends SankeyData {
+  gates?: CircuitStage[];
+  overallStatus?: string;
+  openStages?: string[];
+  degraded?: boolean;
+  countsAvailable?: boolean;
+}
+
+export interface CircuitStage {
+  testId: string;
+  name: string;
+  status: string;
 }
 export interface SankeyDataNode {
   value: number | null;
@@ -284,6 +334,28 @@ export const reportData: ZeroTrustAssessmentReport = {
     }
   ],
   "TenantInfo": {
+    "AgentOwnershipDistribution": {
+      "ownerAndSponsor": 2,
+      "ownerOnly": 1,
+      "sponsorOnly": 1,
+      "neither": 1,
+      "skippedCount": 1,
+      "agents": {
+        "ownerAndSponsor": [
+          { "displayName": "Research assistant", "accountEnabled": true },
+          { "displayName": "Support copilot", "accountEnabled": true }
+        ],
+        "ownerOnly": [
+          { "displayName": "Red-team agent", "accountEnabled": false }
+        ],
+        "sponsorOnly": [
+          { "displayName": "Procurement assistant", "accountEnabled": true }
+        ],
+        "neither": [
+          { "displayName": "Legacy automation agent", "accountEnabled": false }
+        ]
+      }
+    },
     "ConfigWindowsEnrollment": [
       {
         "Type": "MDM",
