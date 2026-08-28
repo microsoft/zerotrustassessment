@@ -41,6 +41,7 @@ import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
+import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -450,8 +451,9 @@ export default function Dashboard() {
                 </Card>
             </div>
 
+            <div className="flex flex-col">
             {/* Identity summary */}
-            <div className="mx-auto flex max-w-7xl flex-col gap-6 mt-6">
+            <div className="order-2 mx-auto flex w-full max-w-7xl flex-col gap-6 mt-6">
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
 
                     <div className="grid w-full gap-6 lg:col-span-1">
@@ -1046,7 +1048,7 @@ export default function Dashboard() {
             </div>
 
             {/* Devices Section */}
-            <div className="flex max-w-7xl flex-col gap-6 mt-6">
+            <div className="order-1 mx-auto flex w-full max-w-7xl flex-col gap-6 mt-6">
                 {/* <PageHeader>
                     <PageHeaderHeading>Devices</PageHeaderHeading>
                 </PageHeader> */}
@@ -1288,7 +1290,10 @@ export default function Dashboard() {
                             </Card>
                         )}
 
+                    <DeviceAntivirusProtectionCard />
+
                 </div>
+            </div>
             </div>
 
             {/* AI overview */}
