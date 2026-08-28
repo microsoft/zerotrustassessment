@@ -89,36 +89,67 @@ function Test-Assessment-41214 {
 
         try {
             $rules = @(Invoke-ZtAzureRequest -Path $automationRulesPath -ErrorAction Stop)
-            $malformedRule = @($rules | Where-Object {
-                    $null -eq $_.properties -or
-                    $null -eq $_.properties.triggeringLogic -or
-                    $null -eq $_.properties.actions
-                }).Count -gt 0
-            $actionRecords = [System.Collections.Generic.List[object]]::new()
-            if (-not $malformedRule) {
-                foreach ($rule in $rules) {
-                    foreach ($action in @($rule.properties.actions | Where-Object { $_.actionType -eq 'RunPlaybook' })) {
-                        $actionRecords.Add([PSCustomObject]@{
-                            Rule     = $rule
-                            Action   = $action
-                            Outcome  = 'NotQueried'
-                            Response = $null
-                        })
+            $malformedRuleCount = 0
+            $actionRecords      = [System.Collections.Generic.List[object]]::new()
+            foreach ($rule in $rules) {
+                $propertiesProperty = $rule.PSObject.Properties['properties']
+                $ruleProperties     = if ($null -ne $propertiesProperty) { $propertiesProperty.Value } else { $null }
+                $actionsProperty    = if ($null -ne $ruleProperties) { $ruleProperties.PSObject.Properties['actions'] } else { $null }
+                if ($null -eq $actionsProperty -or $null -eq $actionsProperty.Value) {
+                    $malformedRuleCount++
+                    continue
+                }
+
+                foreach ($action in @($actionsProperty.Value | Where-Object { $_.actionType -eq 'RunPlaybook' })) {
+                    $triggeringLogicProperty = $ruleProperties.PSObject.Properties['triggeringLogic']
+                    $triggeringLogic   = if ($null -ne $triggeringLogicProperty) { $triggeringLogicProperty.Value } else { $null }
+                    $enabledProperty   = if ($null -ne $triggeringLogic) { $triggeringLogic.PSObject.Properties['isEnabled'] } else { $null }
+                    $expirationProperty = if ($null -ne $triggeringLogic) { $triggeringLogic.PSObject.Properties['expirationTimeUtc'] } else { $null }
+                    $enabledValue      = if ($null -ne $enabledProperty) { $enabledProperty.Value } else { $null }
+                    $expiration        = if ($null -ne $expirationProperty) { $expirationProperty.Value } else { $null }
+                    $parsedExpiration  = [DateTimeOffset]::MinValue
+                    $expirationDisplay = 'Never'
+                    $eligibilityError  = $null
+
+                    if ($null -eq $triggeringLogic -or $enabledValue -isnot [bool]) {
+                        $eligibilityError = 'The automation rule response did not contain a valid enabled state.'
                     }
+                    elseif (-not [string]::IsNullOrWhiteSpace([string]$expiration)) {
+                        if ([DateTimeOffset]::TryParse([string]$expiration, [ref]$parsedExpiration)) {
+                            $expirationDisplay = $parsedExpiration.UtcDateTime.ToString('yyyy-MM-dd HH:mm:ssZ')
+                        }
+                        else {
+                            $expirationDisplay = 'Invalid'
+                            $eligibilityError  = 'The automation rule response contained an invalid expiration time.'
+                        }
+                    }
+
+                    $actionRecords.Add([PSCustomObject]@{
+                        Rule              = $rule
+                        Action            = $action
+                        RuleEnabled       = if ($enabledValue -is [bool]) { $enabledValue } else { $null }
+                        ParsedExpiration  = $parsedExpiration
+                        ExpirationDisplay = $expirationDisplay
+                        EligibilityError  = $eligibilityError
+                        Outcome           = 'NotQueried'
+                        Response          = $null
+                    })
                 }
             }
 
             $rulesByWorkspace[$workspace.WorkspaceId] = [PSCustomObject]@{
-                TotalRuleCount = $rules.Count
-                ActionRecords  = $actionRecords
-                QueryError     = $malformedRule
+                TotalRuleCount     = $rules.Count
+                MalformedRuleCount = $malformedRuleCount
+                ActionRecords      = $actionRecords
+                QueryError         = $false
             }
         }
         catch {
             $rulesByWorkspace[$workspace.WorkspaceId] = [PSCustomObject]@{
-                TotalRuleCount = 0
-                ActionRecords  = @()
-                QueryError     = $true
+                TotalRuleCount     = 0
+                MalformedRuleCount = 0
+                ActionRecords      = @()
+                QueryError         = $true
             }
             Write-PSFMessage "Error querying automation rules for workspace '$($workspace.WorkspaceName)' in subscription '$($workspace.SubscriptionName)': $_" -Tag Test -Level Warning
         }
@@ -136,12 +167,11 @@ function Test-Assessment-41214 {
         }
 
         foreach ($actionRecord in $collectedWorkspace.ActionRecords) {
-            $rule       = $actionRecord.Rule
-            $action     = $actionRecord.Action
-            $expiration = $rule.properties.triggeringLogic.expirationTimeUtc
-            $ruleExpired = -not [string]::IsNullOrWhiteSpace([string]$expiration) -and [DateTimeOffset]$expiration -le $now
+            $rule        = $actionRecord.Rule
+            $action      = $actionRecord.Action
+            $ruleExpired = $actionRecord.ParsedExpiration -ne [DateTimeOffset]::MinValue -and $actionRecord.ParsedExpiration -le $now
 
-            if ($rule.properties.triggeringLogic.isEnabled -ne $true -or $ruleExpired) {
+            if ($actionRecord.EligibilityError -or $actionRecord.RuleEnabled -ne $true -or $ruleExpired) {
                 continue
             }
 
@@ -204,23 +234,16 @@ function Test-Assessment-41214 {
         $excludedActionCount     = 0
         $healthyActionCount      = 0
         $unhealthyActionCount    = 0
-        $unresolvedActionCount   = 0
+        $unresolvedActionCount   = $collectedWorkspace.MalformedRuleCount
 
         if (-not $collectedWorkspace.QueryError) {
             $runPlaybookActionCount = $collectedWorkspace.ActionRecords.Count
             foreach ($actionRecord in $collectedWorkspace.ActionRecords) {
                 $rule             = $actionRecord.Rule
                 $action           = $actionRecord.Action
-                $ruleEnabled      = $rule.properties.triggeringLogic.isEnabled -eq $true
-                $expiration        = $rule.properties.triggeringLogic.expirationTimeUtc
-                $expirationDisplay = 'Never'
-                $parsedExpiration  = [DateTimeOffset]::MinValue
-                if (-not [string]::IsNullOrWhiteSpace([string]$expiration)) {
-                    $parsedExpiration  = [DateTimeOffset]$expiration
-                    $expirationDisplay = $parsedExpiration.UtcDateTime.ToString('yyyy-MM-dd HH:mm:ssZ')
-                }
-
-                $ruleExpired = $parsedExpiration -ne [DateTimeOffset]::MinValue -and $parsedExpiration -le $now
+                $ruleEnabled      = $actionRecord.RuleEnabled
+                $expirationDisplay = $actionRecord.ExpirationDisplay
+                $ruleExpired      = $actionRecord.ParsedExpiration -ne [DateTimeOffset]::MinValue -and $actionRecord.ParsedExpiration -le $now
 
                 $logicAppResourceId = [string]$action.actionConfiguration.logicAppResourceId
                 $tenantId          = [string]$action.actionConfiguration.tenantId
@@ -241,7 +264,12 @@ function Test-Assessment-41214 {
                 $actionStatus      = 'Investigate'
                 $actionReason      = ''
 
-                if (-not $ruleEnabled) {
+                if ($actionRecord.EligibilityError) {
+                    $eligibility  = 'Unreadable'
+                    $actionReason = $actionRecord.EligibilityError
+                    $unresolvedActionCount++
+                }
+                elseif (-not $ruleEnabled) {
                     $eligibility  = 'Excluded'
                     $actionStatus = 'Excluded'
                     $actionReason = 'The automation rule is disabled.'
@@ -291,17 +319,16 @@ function Test-Assessment-41214 {
                         if ($statusCode -eq 200) {
                             try {
                                 $workflow = $actionRecord.Response.Content | ConvertFrom-Json -Depth 100 -ErrorAction Stop
-                                $playbookState = if ($playbookType -eq 'Standard') {
-                                    $workflow.properties.flowState
-                                }
-                                else {
-                                    $workflow.properties.state
-                                }
-                                if ($null -eq $playbookState) {
-                                    throw "The $playbookType workflow response did not contain its state property."
+                                $workflowPropertiesProperty = if ($null -ne $workflow) { $workflow.PSObject.Properties['properties'] } else { $null }
+                                $workflowProperties = if ($null -ne $workflowPropertiesProperty) { $workflowPropertiesProperty.Value } else { $null }
+                                $statePropertyName = if ($playbookType -eq 'Standard') { 'flowState' } else { 'state' }
+                                $stateProperty = if ($null -ne $workflowProperties) { $workflowProperties.PSObject.Properties[$statePropertyName] } else { $null }
+                                $playbookState = if ($null -ne $stateProperty) { $stateProperty.Value } else { $null }
+                                $workflowNameProperty = if ($null -ne $workflow) { $workflow.PSObject.Properties['name'] } else { $null }
+                                if ($null -ne $workflowNameProperty -and -not [string]::IsNullOrWhiteSpace([string]$workflowNameProperty.Value)) {
+                                    $playbookName = ([string]$workflowNameProperty.Value -split '/')[-1]
                                 }
 
-                                $playbookName     = ([string]$workflow.name -split '/')[-1]
                                 $playbookState    = [string]$playbookState
                                 $playbookResolved = $true
                                 if ($playbookState -eq 'Enabled') {
@@ -492,7 +519,7 @@ $workspaceRows
         if ($result.PlaybookId -and $result.PlaybookResolved -eq $true) {
             $playbookNameMd = "[$playbookNameMd]($portalHost/#resource$($result.PlaybookId))"
         }
-        $ruleEnabledMd = if ($result.RuleEnabled) { '✅ Yes' } else { '❌ No' }
+        $ruleEnabledMd = if ($null -eq $result.RuleEnabled) { '—' } elseif ($result.RuleEnabled) { '✅ Yes' } else { '❌ No' }
         $stateMd       = switch ($result.PlaybookState) {
             'Enabled'   { '✅ Enabled' }
             'Disabled'  { '❌ Disabled' }
