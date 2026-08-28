@@ -291,9 +291,7 @@ DeviceInfo
 
     $protectedDeviceCount = $null
     try {
-        $huntingBody = @{ Query = $huntingQuery; Timespan = 'P30D' } | ConvertTo-Json -Compress
-        $huntingResult = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -ApiVersion 'v1.0' -Method POST -Body $huntingBody -ErrorAction Stop
-        $huntingRows = @($huntingResult.results)
+        $huntingResult = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -ApiVersion beta -Method POST -Body $huntingBody -ErrorAction Stop
         $hasProtectedDeviceCount = $huntingRows.Count -eq 1 -and
             $null -ne $huntingRows[0].PSObject.Properties['ProtectedDeviceCount']
         $parsedProtectedDeviceCount = 0L
