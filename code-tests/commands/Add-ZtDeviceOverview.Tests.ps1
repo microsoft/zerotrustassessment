@@ -163,6 +163,19 @@ Describe "Add-ZtDeviceOverview" {
 		}
 	}
 
+	It "Should continue without MDE coverage when Advanced Hunting fails" {
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			throw 'Advanced Hunting request failed'
+		}
+
+		{ Add-ZtDeviceOverview -Database 'test' } | Should -Not -Throw
+
+		$script:tenantInfo.Value.DeviceSummary.PSObject.Properties.Name | Should -Not -Contain 'mdeSensorInstalledOperatingSystemSummary'
+		Should -Invoke Write-PSFMessage -Exactly 1 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -like 'Failed to retrieve MDE sensor coverage from advanced hunting:*'
+		}
+	}
+
 	It "Should warn only when MDE coverage exceeds the platform total" {
 		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
 			[pscustomobject]@{

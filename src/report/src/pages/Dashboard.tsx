@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig, ArrowRight } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig } from "lucide-react";
 
 import {
     Bar,
@@ -1069,13 +1069,6 @@ export default function Dashboard() {
                                             {deviceOverview?.DeviceSummary?.description || "Total devices and Microsoft Defender for Endpoint sensor coverage by OS."}
                                         </CardDescription>
                                     </div>
-                                    <a
-                                        href="#/devices"
-                                        className="ml-auto inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                                    >
-                                        View all
-                                        <ArrowRight className="ml-1 size-4" />
-                                    </a>
                                 </div>
                             </CardHeader>
                             <CardContent className="flex h-[480px] flex-1 flex-col pb-2 pt-0">
