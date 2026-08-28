@@ -215,6 +215,7 @@ resources
     #region Assessment Logic
     $passed = $false
     $customStatus = $null
+    $nowUtc = (Get-Date).ToUniversalTime()
 
     # Pre-classify each subscription's budgets: which ones have a qualifying notification (enabled,
     # threshold <= 90, GreaterThan[OrEqualTo], with at least one email/role/group recipient) and what
@@ -224,6 +225,18 @@ resources
         $budgetInfos = @()
         foreach ($budget in $subscriptionData[$subscriptionId].Budgets) {
             $qualifyingThresholds = [System.Collections.Generic.List[double]]::new()
+
+            # A budget only alerts while now falls within its timePeriod; an expired or not-yet-started
+            # budget cannot fire, so its notifications must not qualify (spec Q2: "active" budgets).
+            $budgetActive = $true
+            $parsedBudgetDate = [datetime]::MinValue
+            if ($budget.properties.timePeriod.startDate -and [datetime]::TryParse([string]$budget.properties.timePeriod.startDate, [ref]$parsedBudgetDate)) {
+                if ($parsedBudgetDate.ToUniversalTime() -gt $nowUtc) { $budgetActive = $false }
+            }
+            if ($budget.properties.timePeriod.endDate -and [datetime]::TryParse([string]$budget.properties.timePeriod.endDate, [ref]$parsedBudgetDate)) {
+                if ($parsedBudgetDate.ToUniversalTime() -lt $nowUtc) { $budgetActive = $false }
+            }
+
             $notifications = $budget.properties.notifications
             $notificationEntries = if ($notifications) { @($notifications.PSObject.Properties) } else { @() }
             foreach ($notificationProperty in $notificationEntries) {
@@ -233,7 +246,7 @@ resources
                 $threshold = 0.0
                 $thresholdParsed = [double]::TryParse([string]$notification.threshold, [ref]$threshold)
                 $hasRecipient = (@($notification.contactEmails).Count -gt 0) -or (@($notification.contactRoles).Count -gt 0) -or (@($notification.contactGroups).Count -gt 0)
-                if ($enabled -and $operatorOk -and $thresholdParsed -and $threshold -le 90 -and $hasRecipient) {
+                if ($budgetActive -and $enabled -and $operatorOk -and $thresholdParsed -and $threshold -le 90 -and $hasRecipient) {
                     $qualifyingThresholds.Add($threshold)
                 }
             }
@@ -356,28 +369,36 @@ resources
         }
     }
 
-    $determinableResults = @($results | Where-Object { -not $_.Blocked })
-    $activeResults = @($determinableResults | Where-Object { $_.ProvisioningState -notin @('Deleting', 'Deleted') })
-    $capacitiesWithCost = @($activeResults | Where-Object { $_.TotalCost -gt 0 })
-    $passingCapacities = @($results | Where-Object { $_.RowResult -eq '✅ Pass' })
+    # Aggregate across every active (non-deleting) capacity with fail > investigate > pass precedence;
+    # pass only when every active capacity is monitored. A single passing capacity must not mask
+    # another capacity that is unmonitored (Fail) or unreadable / not yet consuming (Investigate).
+    $activeResults = @($results | Where-Object { $_.ProvisioningState -notin @('Deleting', 'Deleted') })
+    $failRows = @($activeResults | Where-Object { $_.RowResult -eq '❌ Fail' })
+    $passRows = @($activeResults | Where-Object { $_.RowResult -eq '✅ Pass' })
+    $investigateRows = @($activeResults | Where-Object { $_.RowResult -eq '⚠️ Investigate' })
+    $blockedRows = @($activeResults | Where-Object { $_.Blocked })
+    $noCostRows = @($activeResults | Where-Object { -not $_.Blocked -and $_.TotalCost -le 0 })
 
-    if ($determinableResults.Count -eq 0) {
-        # Every hosting subscription returned an authorization/query error; state cannot be determined.
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Cost Management usage or budgets could not be read for any subscription that hosts a Security Copilot capacity. Grant the assessing identity Cost Management Reader (or Reader) on those subscriptions, then re-run the assessment.`n`n%TestResult%"
+    if ($failRows.Count -gt 0) {
+        # Fail wins: at least one active capacity has consumption but no qualifying budget targets it.
+        $testResultMarkdown = "❌ One or more Security Copilot capacities have consumption flowing through Cost Management but no budget with qualifying notifications (enabled, threshold ≤ 90%, with an email, role, or action-group recipient) targeting the capacity, its resource group, or the subscription.`n`n%TestResult%"
     }
-    elseif ($capacitiesWithCost.Count -eq 0) {
-        # Capacity exists but Cost Management shows no billed consumption in the window.
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Security Copilot capacities exist but Cost Management shows no billed consumption in the last 30 days. Copilot may not have been adopted yet, or the tenant is auto-provisioned through Microsoft 365 E5 (no chargeable Azure resource). Validate enablement and consumption in the Security Copilot usage monitoring dashboard.`n`n%TestResult%"
-    }
-    elseif ($passingCapacities.Count -gt 0) {
+    elseif ($passRows.Count -gt 0 -and $investigateRows.Count -eq 0) {
+        # Every active capacity is monitored.
         $passed = $true
-        $testResultMarkdown = "✅ Microsoft Security Copilot SCU consumption is visible through Cost Management and at least one budget with notifications is in place against the capacity.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Microsoft Security Copilot SCU consumption is visible through Cost Management and every capacity is covered by a budget with notifications.`n`n%TestResult%"
+    }
+    elseif ($blockedRows.Count -gt 0 -and $passRows.Count -eq 0 -and $noCostRows.Count -eq 0) {
+        # No capacity could be evaluated because every hosting subscription returned a read/auth error.
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ Cost Management usage or budgets could not be read for the subscription(s) that host a Security Copilot capacity. Grant the assessing identity Cost Management Reader (or Reader) on those subscriptions, then re-run the assessment.`n`n%TestResult%"
     }
     else {
-        # Consumption is flowing but no qualifying budget targets the capacity.
-        $testResultMarkdown = "❌ Security Copilot SCU consumption is flowing through Cost Management, but no budget with qualifying notifications (enabled, threshold ≤ 90%, with an email, role, or action-group recipient) targets the capacity, its resource group, or the subscription.`n`n%TestResult%"
+        # Remaining cases are all Investigate: capacities with no billed consumption (Copilot not yet
+        # adopted, or the Microsoft 365 E5 inclusion path with no chargeable Azure resource), read
+        # errors on some subscriptions, or a pass/investigate mix that prevents confirming every capacity.
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "⚠️ One or more Security Copilot capacities could not be confirmed as monitored: Cost Management shows no billed consumption for them, or their usage or budgets could not be read. Validate enablement and consumption in the Security Copilot usage monitoring dashboard, and review the capacities marked Investigate below.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
