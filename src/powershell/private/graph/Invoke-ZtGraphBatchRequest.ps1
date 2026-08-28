@@ -630,7 +630,13 @@
 								$task.Result = @($data)
 							}
 							else {
-								$task.Result = $task.Result + @($data)
+								# Keep the common single-page result as an array, promoting only when paging would otherwise repeatedly copy it.
+								if ($task.Result -isnot [System.Collections.Generic.List[object]]) {
+									$list = [System.Collections.Generic.List[object]]::new()
+									$list.AddRange([object[]]$task.Result)
+									$task.Result = $list
+								}
+								$task.Result.AddRange([object[]]@($data))
 							}
 
 							# Only return matched result after completing the batching
@@ -643,7 +649,8 @@
 								Id         = "$($task.Id)"
 								Argument   = $task.Argument
 								Success    = $true
-								Result     = $task.Result
+								# Preserve the existing object[] result contract after multi-page accumulation.
+								Result     = if ($task.Result -is [System.Collections.Generic.List[object]]) { $task.Result.ToArray() } else { $task.Result }
 								Status     = $result.status
 							}
 							continue
