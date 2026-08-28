@@ -112,7 +112,7 @@ export function DeviceAntivirusProtectionCard() {
                         <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
                             {hasData ? formatNumber(unprotectedDeviceCount) : "—"}
                             <span className="text-sm font-normal text-muted-foreground">
-                                {hasData ? `${100 - protectedPercent}%` : ""}
+                                {hasData ? `${Math.round((unprotectedDeviceCount / totalDeviceCount) * 100)}%` : ""}
                             </span>
                         </div>
                     </div>
