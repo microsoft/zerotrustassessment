@@ -38,7 +38,9 @@ import { CaSankey } from "@/components/overview/ca-sankey";
 import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
+import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 
@@ -1289,27 +1291,43 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Network - SWG Defense Layers Section */}
-            {hasSwgData() && (
-            <div className="flex max-w-7xl flex-col gap-6 mt-6">
-                <Card>
-                    <CardHeader className="space-y-0 pb-2 flex-row">
-                        <ShieldCheck className="pr-2 size-8" />
-                        <div>
-                            <CardTitle className="text-2xl tabular-nums">
-                                SWG defense-in-depth
-                            </CardTitle>
-                            <CardDescription className="mt-1">
-                                Secure Web Gateway defense layers — internet traffic inspection posture
-                            </CardDescription>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <SwgDefenseLayers />
-                    </CardContent>
-                </Card>
-            </div>
+            {/* AI overview */}
+            {reportData.TenantInfo?.AgentOwnershipDistribution && (
+                <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
+                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
+                </div>
             )}
+
+            {/* Network overview */}
+            {(() => {
+                const swg = hasSwgData();
+                const privateAccess = hasPrivateAccessData();
+                if (!swg && !privateAccess) return null;
+
+                return (
+                    <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
+                        {swg && (
+                            <Card className="h-full">
+                                <CardHeader className="flex-row space-y-0 pb-2">
+                                    <ShieldCheck className="size-8 pr-2" />
+                                    <div>
+                                        <CardTitle className="text-2xl tabular-nums">
+                                            SWG defense-in-depth
+                                        </CardTitle>
+                                        <CardDescription className="mt-1">
+                                            Secure Web Gateway defense layers — internet traffic inspection posture
+                                        </CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <SwgDefenseLayers />
+                                </CardContent>
+                            </Card>
+                        )}
+                        {privateAccess && <PrivateAccessSankey />}
+                    </div>
+                );
+            })()}
 
             {/* Network - Azure Network Security Defense Planes Section */}
             {hasAzureNetSecData() && (

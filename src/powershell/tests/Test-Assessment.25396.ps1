@@ -325,6 +325,20 @@ function Test-Assessment-25396 {
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
 
+    # Publish the per-app authentication gate for the Private Access overview funnel (27021)
+    Add-ZtTestData -Name 'PrivateAccessAuthentication' -Value @(
+        foreach ($detail in $allAppDetails) {
+            [PSCustomObject]@{
+                AppId  = $detail.AppId
+                Status = switch ($detail.Status) {
+                    'Protected'   { 'Pass' }
+                    'Unprotected' { 'Fail' }
+                    default       { 'ManualReview' }
+                }
+            }
+        }
+    )
+
     $params = @{
         TestId = '25396'
         Title  = 'Conditional Access policies enforce strong authentication for private apps'

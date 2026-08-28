@@ -476,6 +476,21 @@ WHERE list_contains(tags, 'PrivateAccessNonWebApplication')
     # Replace the placeholder with detailed information
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
     #endregion Report Generation
+
+    # Publish the per-app segmentation gate for the Private Access overview funnel (27021)
+    Add-ZtTestData -Name 'PrivateAccessSegmentation' -Value @(
+        foreach ($r in $appResults) {
+            [PSCustomObject]@{
+                AppId  = $r.AppId
+                Status = switch -Wildcard ($r.Status) {
+                    'Fail*' { 'Fail' }
+                    'Pass'  { 'Pass' }
+                    default { 'ManualReview' }
+                }
+            }
+        }
+    )
+
     $params = @{
         TestId = '25395'
         Title  = 'Entra Private Access Application segments are defined to enforce least-privilege access'
