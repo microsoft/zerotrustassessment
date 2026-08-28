@@ -1,4 +1,4 @@
-import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig } from "lucide-react";
+import { MonitorSmartphone, Users, User, UserCog, Building2, ShieldCheck, Bot, Info, CircleCheckBig, ArrowRight } from "lucide-react";
 
 import {
     Bar,
@@ -43,6 +43,7 @@ import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azu
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
+import { buildDeviceCoverageRows } from "@/lib/device-coverage";
 
 export default function Dashboard() {
     // Helper function to calculate percentage with proper number coercion
@@ -60,6 +61,10 @@ export default function Dashboard() {
     const desktopNodes = deviceOverview?.DesktopDevicesSummary?.nodes || [];
     const mobileNodes = deviceOverview?.MobileSummary?.nodes || [];
     const osSummary: any = deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary || deviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+    const deviceCoverageRows = buildDeviceCoverageRows(
+        deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary,
+        deviceOverview?.DeviceSummary?.mdeSensorInstalledOperatingSystemSummary,
+    );
 
     const getFlow = (
         nodes: { source: string; target: string; value: number | null }[],
@@ -1054,95 +1059,79 @@ export default function Dashboard() {
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                     {/* Device summary chart */}
                     {reportData.TenantInfo?.DeviceOverview ? (
-                        <Card className="w-full">
-                            <CardHeader className="space-y-0 pb-2 flex-row">
-                                <MonitorSmartphone className="pr-2 size-8" />
-                                <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
+                        <Card className="flex h-full w-full flex-col">
+                            <CardHeader className="space-y-2 pb-3 pt-3">
+                                <div className="flex flex-row items-start gap-2">
+                                    <MonitorSmartphone className="size-8 shrink-0" />
+                                    <div className="flex flex-col gap-1">
+                                        <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
+                                        <CardDescription>
+                                            {deviceOverview?.DeviceSummary?.description || "Total devices and Microsoft Defender for Endpoint sensor coverage by OS."}
+                                        </CardDescription>
+                                    </div>
+                                    <a
+                                        href="#/devices"
+                                        className="ml-auto inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                                    >
+                                        View all
+                                        <ArrowRight className="ml-1 size-4" />
+                                    </a>
+                                </div>
                             </CardHeader>
-                            <CardContent className="flex pb-4 h-[250px]">
+                            <CardContent className="flex h-[480px] flex-1 flex-col pb-2 pt-0">
+                                {deviceCoverageRows ? (
+                                <>
                                 <ChartContainer
                                     config={{
-                                        value: {
-                                            label: "Devices",
-                                        },
+                                        covered: { label: "MDE sensor installed", color: "hsl(240, 40%, 45%)" },
+                                        notCovered: { label: "Not covered", color: "hsl(240, 45%, 80%)" },
                                     }}
-                                    className="h-[250px] w-full"
+                                    className="min-h-[250px] w-full flex-1"
                                 >
                                     <BarChart
-                                        margin={{
-                                            left: 12,
-                                            right: 0,
-                                            top: 0,
-                                            bottom: 10,
-                                        }}
-                                        data={(() => {
-                                            const windowsCount = windowsDeviceCount;
-                                            const macOSCount = macOSDeviceCount;
-                                            const iosCount = iosDeviceCount;
-                                            const androidCount = androidDeviceCount;
-                                            const linuxCount = linuxDeviceCount;
-
-                                            return [
-                                            {
-                                                dataKey: "Windows",
-                                                value: windowsCount,
-                                                label: `${windowsCount}`,
-                                                fill: "hsl(var(--chart-1))",
-                                            },
-                                            {
-                                                dataKey: "macOS",
-                                                value: macOSCount,
-                                                label: `${macOSCount}`,
-                                                fill: "hsl(var(--chart-2))",
-                                            },
-                                            {
-                                                dataKey: "iOS",
-                                                value: iosCount,
-                                                label: `${iosCount}`,
-                                                fill: "hsl(var(--chart-3))",
-                                            },
-                                            {
-                                                dataKey: "Android",
-                                                value: androidCount,
-                                                label: `${androidCount}`,
-                                                fill: "hsl(var(--chart-5))",
-                                            },
-                                            {
-                                                dataKey: "Linux",
-                                                value: linuxCount,
-                                                label: `${linuxCount}`,
-                                                fill: "hsl(var(--chart-4))",
-                                            },
-                                        ];
-                                        })()}
+                                        margin={{ left: 64, right: 64, top: 0, bottom: 0 }}
+                                        data={deviceCoverageRows}
                                         layout="vertical"
                                         barSize={32}
-                                        barGap={2}
+                                        barGap={36}
                                     >
-                                        <XAxis type="number" dataKey="value" hide />
+                                        <XAxis type="number" hide />
                                         <YAxis
-                                            dataKey="dataKey"
+                                            dataKey="os"
                                             type="category"
                                             tickLine={false}
-                                            tickMargin={4}
+                                            tickMargin={6}
                                             axisLine={false}
-                                            className=""
                                         />
-                                        <ChartTooltip
-                                            cursor={false}
-                                            content={<ChartTooltipContent/>}
-                                        />
-                                        <Bar dataKey="value" radius={5}>
+                                        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                        <Bar dataKey="covered" stackId="deviceCoverage" fill="var(--color-covered)" radius={[5, 0, 0, 5]} />
+                                        <Bar dataKey="notCovered" stackId="deviceCoverage" fill="var(--color-notCovered)" radius={[0, 5, 5, 0]}>
                                             <LabelList
-                                                position="insideLeft"
+                                                position="right"
                                                 dataKey="label"
-                                                fill="white"
                                                 offset={8}
                                                 fontSize={12}
+                                                fill="hsl(var(--foreground))"
                                             />
                                         </Bar>
                                     </BarChart>
                                 </ChartContainer>
+                                <div className="flex items-center justify-center gap-4 pt-1 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="size-2.5 rounded-full" style={{ backgroundColor: 'hsl(240, 40%, 45%)' }} />
+                                        MDE sensor installed
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="size-2.5 rounded-full" style={{ backgroundColor: 'hsl(240, 45%, 80%)' }} />
+                                        Not covered
+                                    </div>
+                                </div>
+                                </>
+                                ) : (
+                                    <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                                        No MDE coverage data available.
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="flex flex-row border-t p-4">
                                 <div className="flex w-full items-center gap-2">
