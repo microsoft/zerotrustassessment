@@ -1325,7 +1325,7 @@ export default function Dashboard() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <SwgDefenseLayers />
+                                    <SwgDefenseLayers stacked />
                                 </CardContent>
                             </Card>
                         )}
