@@ -42,8 +42,8 @@ function Test-Assessment-41216 {
     $activity = 'Checking Security Copilot SCU consumption monitoring'
     $capacityType = 'microsoft.securitycopilot/capacities'
 
-    # Q0: Discover Security Copilot capacity resources across all accessible subscriptions via Azure
-    # Resource Graph. This check is self-contained and does not depend on any other spec's output.
+    # Discovery: enumerate Security Copilot capacity resources across all accessible subscriptions via
+    # Azure Resource Graph. This check is self-contained and does not depend on any other spec's output.
     Write-ZtProgress -Activity $activity -Status 'Discovering Security Copilot capacities via Resource Graph'
 
     $argQuery = @"
