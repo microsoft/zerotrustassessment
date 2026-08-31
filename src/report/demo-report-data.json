@@ -527,7 +527,24 @@
       }
     ],
     "DeviceOverview": {
-      "DeviceSummary": null,
+      "DeviceSummary": {
+        "description": "Total devices and Microsoft Defender for Endpoint sensor coverage by OS.",
+        "totalDevices": 780,
+        "deviceOperatingSystemSummary": {
+          "windowsCount": 525,
+          "macOSCount": 75,
+          "iosCount": 75,
+          "androidCount": 105,
+          "linuxCount": 0
+        },
+        "mdeSensorInstalledOperatingSystemSummary": {
+          "windowsCount": 500,
+          "macOSCount": 60,
+          "iosCount": 2,
+          "androidCount": 10,
+          "linuxCount": 0
+        }
+      },
       "DesktopDevicesSummary": {
         "nodes": [
           {

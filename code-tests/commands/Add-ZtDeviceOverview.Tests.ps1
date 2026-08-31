@@ -44,7 +44,7 @@ Describe "Add-ZtDeviceOverview" {
 
 		if (-not (Get-Command Invoke-ZtGraphRequest -ErrorAction SilentlyContinue)) {
 			function global:Invoke-ZtGraphRequest {
-				param($RelativeUri, $ApiVersion)
+				param($RelativeUri, $ApiVersion, $Method, $Body, $ErrorAction)
 			}
 		}
 
@@ -97,6 +97,106 @@ Describe "Add-ZtDeviceOverview" {
 		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.androidCount | Should -Be 4
 		$script:tenantInfo.Value.DeviceSummary.deviceOperatingSystemSummary.linuxCount | Should -Be 1
 		$script:tenantInfo.Value.DeviceSummary.totalDevices | Should -Be 16
+	}
+
+	It "Should add MDE sensor coverage from one Advanced Hunting aggregate" {
+		Mock Invoke-DatabaseQuery -ParameterFilter { $Sql -match 'group by operatingSystem' -and $Sql -notmatch 'group by operatingSystem, trustType' -and $Sql -notmatch 'group by operatingSystem, isCompliant' } -MockWith {
+			@(
+				[pscustomobject]@{ operatingSystem = 'Windows'; count = 10 }
+				[pscustomobject]@{ operatingSystem = 'macOS'; count = 5 }
+				[pscustomobject]@{ operatingSystem = 'iOS'; count = 4 }
+				[pscustomobject]@{ operatingSystem = 'Android'; count = 3 }
+				[pscustomobject]@{ operatingSystem = 'Linux'; count = 2 }
+			)
+		}
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			[pscustomobject]@{
+				results = @(
+					[pscustomobject]@{ Platform = 'Windows'; MdeSensorInstalledCount = 8 }
+					[pscustomobject]@{ Platform = 'macOS'; MdeSensorInstalledCount = 4 }
+					[pscustomobject]@{ Platform = 'iOS/iPadOS'; MdeSensorInstalledCount = 2 }
+					[pscustomobject]@{ Platform = 'Android'; MdeSensorInstalledCount = 1 }
+					[pscustomobject]@{ Platform = 'Linux'; MdeSensorInstalledCount = 0 }
+				)
+			}
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$coverage = $script:tenantInfo.Value.DeviceSummary.mdeSensorInstalledOperatingSystemSummary
+		$coverage.windowsCount | Should -Be 8
+		$coverage.macOSCount | Should -Be 4
+		$coverage.iosCount | Should -Be 2
+		$coverage.androidCount | Should -Be 1
+		$coverage.linuxCount | Should -Be 0
+		Should -Invoke Invoke-ZtGraphRequest -Exactly 1 -ParameterFilter {
+			$RelativeUri -eq 'security/runHuntingQuery' -and
+			$ApiVersion -eq 'v1.0' -and
+			$Method -eq 'POST' -and
+			($Body | ConvertFrom-Json).Timespan -eq 'P30D'
+		}
+	}
+
+	It "Should omit MDE coverage when Advanced Hunting returns no result set" {
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			[pscustomobject]@{ results = $null }
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Value.DeviceSummary.PSObject.Properties.Name | Should -Not -Contain 'mdeSensorInstalledOperatingSystemSummary'
+		Should -Invoke Write-PSFMessage -Exactly 1 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -eq 'Advanced hunting returned no result set for MDE sensor coverage.'
+		}
+	}
+
+	It "Should omit MDE coverage when Advanced Hunting returns an empty result set" {
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			[pscustomobject]@{ results = @() }
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		$script:tenantInfo.Value.DeviceSummary.PSObject.Properties.Name | Should -Not -Contain 'mdeSensorInstalledOperatingSystemSummary'
+		Should -Invoke Write-PSFMessage -Exactly 1 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -eq 'Advanced hunting returned no result set for MDE sensor coverage.'
+		}
+	}
+
+	It "Should continue without MDE coverage when Advanced Hunting fails" {
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			throw 'Advanced Hunting request failed'
+		}
+
+		{ Add-ZtDeviceOverview -Database 'test' } | Should -Not -Throw
+
+		$script:tenantInfo.Value.DeviceSummary.PSObject.Properties.Name | Should -Not -Contain 'mdeSensorInstalledOperatingSystemSummary'
+		Should -Invoke Write-PSFMessage -Exactly 1 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -like 'Failed to retrieve MDE sensor coverage from advanced hunting:*'
+		}
+	}
+
+	It "Should warn only when MDE coverage exceeds the platform total" {
+		Mock Invoke-ZtGraphRequest -ParameterFilter { $RelativeUri -eq 'security/runHuntingQuery' } -MockWith {
+			[pscustomobject]@{
+				results = @(
+					[pscustomobject]@{ Platform = 'Windows'; MdeSensorInstalledCount = 1 }
+					[pscustomobject]@{ Platform = 'macOS'; MdeSensorInstalledCount = 0 }
+					[pscustomobject]@{ Platform = 'iOS/iPadOS'; MdeSensorInstalledCount = 0 }
+					[pscustomobject]@{ Platform = 'Android'; MdeSensorInstalledCount = 0 }
+					[pscustomobject]@{ Platform = 'Linux'; MdeSensorInstalledCount = 0 }
+				)
+			}
+		}
+
+		Add-ZtDeviceOverview -Database 'test'
+
+		Should -Invoke Write-PSFMessage -Exactly 1 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -like 'MDE sensor coverage is inconsistent for Windows:*'
+		}
+		Should -Invoke Write-PSFMessage -Exactly 0 -ParameterFilter {
+			$Level -eq 'Warning' -and $Message -like 'MDE sensor coverage is inconsistent for macOS:*'
+		}
 	}
 
 	It "Should sum Windows desktop devices across trust types and compliance, deriving unmanaged via subtraction" {
