@@ -43,6 +43,7 @@ import { AgentOwnershipDistribution } from "@/components/overview/agent-ownershi
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
+import { buildDeviceCoverageRows } from "@/lib/device-coverage";
 
 export default function Dashboard() {
     // Helper function to calculate percentage with proper number coercion
@@ -60,6 +61,10 @@ export default function Dashboard() {
     const desktopNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.DesktopDevicesSummary?.nodes || [];
     const mobileNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.MobileSummary?.nodes || [];
     const osSummary: any = deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary || deviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+    const deviceCoverageRows = buildDeviceCoverageRows(
+        deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary,
+        deviceOverview?.DeviceSummary?.mdeSensorInstalledOperatingSystemSummary,
+    );
 
     const getFlow = (
         nodes: { source: string; target: string; value: number | null }[],
@@ -856,6 +861,8 @@ export default function Dashboard() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 pt-0 flex flex-1 flex-col pb-2 h-[480px]">
+                                {deviceCoverageRows ? (
+                                <>
                                 <ChartContainer
                                     config={{
                                         covered: {
@@ -876,54 +883,7 @@ export default function Dashboard() {
                                             top: 0,
                                             bottom: 0,
                                         }}
-                                        data={(() => {
-                                            const finalizeCoverage = (total: number, coveredRaw: number, notCoveredRaw: number) => {
-                                                const safeTotal = Math.max(0, total || 0);
-                                                const safeCovered = Math.max(0, coveredRaw || 0);
-                                                const safeNotCovered = Math.max(0, notCoveredRaw || 0);
-                                                const known = safeCovered + safeNotCovered;
-                                                const adjustedNotCovered = known < safeTotal ? safeNotCovered + (safeTotal - known) : safeNotCovered;
-                                                const cappedCovered = Math.min(safeTotal, safeCovered);
-                                                const cappedNotCovered = Math.max(0, Math.min(safeTotal - cappedCovered, adjustedNotCovered));
-                                                const percent = safeTotal > 0 ? Math.round((cappedCovered / safeTotal) * 100) : 0;
-                                                return {
-                                                    covered: cappedCovered,
-                                                    notCovered: safeTotal - cappedCovered,
-                                                    percent,
-                                                };
-                                            };
-
-                                            const windowsTotal = windowsDeviceCount;
-                                            const windowsCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Compliant");
-                                            const windowsNotCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Non-compliant" || t === "Unmanaged");
-                                            const windows = finalizeCoverage(windowsTotal, windowsCoveredRaw, windowsNotCoveredRaw);
-
-                                            const macTotal = macOSDeviceCount;
-                                            const macCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Compliant");
-                                            const macNotCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Non-compliant" || t === "Unmanaged");
-                                            const mac = finalizeCoverage(macTotal, macCoveredRaw, macNotCoveredRaw);
-
-                                            const iosTotal = iosDeviceCount;
-                                            const iosCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Compliant");
-                                            const iosNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Non-compliant");
-                                            const ios = finalizeCoverage(iosTotal, iosCoveredRaw, iosNotCoveredRaw);
-
-                                            const androidTotal = androidDeviceCount;
-                                            const androidCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Compliant");
-                                            const androidNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Non-compliant");
-                                            const android = finalizeCoverage(androidTotal, androidCoveredRaw, androidNotCoveredRaw);
-
-                                            const linuxTotal = linuxDeviceCount;
-                                            const linux = finalizeCoverage(linuxTotal, 0, linuxTotal);
-
-                                            return [
-                                                { os: "Windows", total: windowsTotal, covered: windows.covered, notCovered: windows.notCovered, label: `${formatNumber(windows.covered)}/${formatNumber(windowsTotal)} (${windows.percent}%)` },
-                                                { os: "macOS", total: macTotal, covered: mac.covered, notCovered: mac.notCovered, label: `${formatNumber(mac.covered)}/${formatNumber(macTotal)} (${mac.percent}%)` },
-                                                { os: "iOS", total: iosTotal, covered: ios.covered, notCovered: ios.notCovered, label: `${formatNumber(ios.covered)}/${formatNumber(iosTotal)} (${ios.percent}%)` },
-                                                { os: "Android", total: androidTotal, covered: android.covered, notCovered: android.notCovered, label: `${formatNumber(android.covered)}/${formatNumber(androidTotal)} (${android.percent}%)` },
-                                                { os: "Linux", total: linuxTotal, covered: linux.covered, notCovered: linux.notCovered, label: `${formatNumber(linux.covered)}/${formatNumber(linuxTotal)} (${linux.percent}%)` },
-                                            ];
-                                        })()}
+                                        data={deviceCoverageRows}
                                         layout="vertical"
                                         barSize={32}
                                         barGap={36}
@@ -964,6 +924,12 @@ export default function Dashboard() {
                                         Not covered
                                     </div>
                                 </div>
+                                </>
+                                ) : (
+                                    <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                                        No MDE coverage data available.
+                                    </div>
+                                )}
                             </CardContent>
 
                             <CardFooter className="items-center flex flex-row border-t p-4">

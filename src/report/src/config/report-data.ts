@@ -221,6 +221,7 @@ export interface DeviceSummary {
   description: string;
   totalDevices: number | null;
   deviceOperatingSystemSummary: DeviceOperatingSystemSummary;
+  mdeSensorInstalledOperatingSystemSummary?: DeviceOperatingSystemSummary | null;
 }
 
 export interface DeviceOwnership {
