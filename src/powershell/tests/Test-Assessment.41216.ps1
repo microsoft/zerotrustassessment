@@ -4,9 +4,8 @@
 
 .DESCRIPTION
     Discovers Microsoft Security Copilot capacity resources via Azure Resource Graph, then for each
-    subscription that hosts a capacity confirms that Cost Management is billing the capacity (Query -
-    Usage) and that at least one Consumption budget with qualifying notifications targets the capacity,
-    its resource group, or the subscription.
+    subscription that hosts a capacity confirms that at least one Consumption budget with qualifying
+    notifications targets the capacity, its resource group, or the subscription.
 
 .NOTES
     Test ID: 41216
@@ -15,7 +14,6 @@
     Category: AI for security
     Required APIs:
         - Azure Resource Graph (management.azure.com) — capacity discovery
-        - Cost Management Query - Usage (Microsoft.CostManagement/query) — subscription scope
         - Consumption Budgets - List (Microsoft.Consumption/budgets) — subscription scope
 #>
 
@@ -92,107 +90,18 @@ resources
         return
     }
 
-    # Q1 + Q2: for each subscription that hosts a capacity, pull the last 30 days of Cost Management
-    # usage for the capacity resource type and the list of Consumption budgets.
-    $costFrom = (Get-Date).ToUniversalTime().AddDays(-30).ToString('yyyy-MM-ddTHH:mm:ssZ')
-    $costTo = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-
-    $costQueryBody = @{
-        type       = 'ActualCost'
-        timeframe  = 'Custom'
-        timePeriod = @{ from = $costFrom; to = $costTo }
-        dataset    = @{
-            granularity = 'Daily'
-            aggregation = @{ totalCost = @{ name = 'Cost'; function = 'Sum' } }
-            grouping    = @(
-                @{ type = 'Dimension'; name = 'ResourceId' }
-                @{ type = 'Dimension'; name = 'ResourceType' }
-            )
-            filter      = @{
-                dimensions = @{ name = 'ResourceType'; operator = 'In'; values = @($capacityType) }
-            }
-        }
-    } | ConvertTo-Json -Depth 10
-
+    # Q1: for each subscription that hosts a capacity, list the Consumption budgets.
     $subscriptionIds = @($capacities | Select-Object -ExpandProperty subscriptionId -Unique)
     $subscriptionData = @{}
 
     foreach ($subscriptionId in $subscriptionIds) {
         $subEntry = [PSCustomObject]@{
-            CostByResourceId = @{}   # lowercased resourceId -> aggregate
-            Budgets          = @()
-            Q1AuthError      = $false
-            Q1Failed         = $false
-            Q2AuthError      = $false
-            Q2Failed         = $false
+            Budgets         = @()
+            BudgetAuthError = $false
+            BudgetFailed    = $false
         }
 
-        # Q1: Cost Management Query - Usage (POST). Follow properties.nextLink until exhausted.
-        Write-ZtProgress -Activity $activity -Status "Querying Cost Management usage for subscription $subscriptionId"
-        $costPath = "/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/query?api-version=2025-03-01"
-        $nextUri = $null
-        $firstPage = $true
-        try {
-            do {
-                if ($firstPage) {
-                    $response = Invoke-ZtAzureRequest -Path $costPath -Method POST -Payload $costQueryBody -FullResponse
-                    $firstPage = $false
-                }
-                else {
-                    $response = Invoke-ZtAzureRequest -Uri $nextUri -Method POST -Payload $costQueryBody -FullResponse
-                }
-
-                if ($response.StatusCode -in @(401, 403)) {
-                    $subEntry.Q1AuthError = $true
-                    break
-                }
-                if ($response.StatusCode -ge 400) {
-                    $subEntry.Q1Failed = $true
-                    break
-                }
-
-                $parsed = $response.Content | ConvertFrom-Json -ErrorAction Stop
-                $columns = @($parsed.properties.columns)
-                $colIndex = @{}
-                for ($i = 0; $i -lt $columns.Count; $i++) { $colIndex[$columns[$i].name] = $i }
-
-                foreach ($row in @($parsed.properties.rows)) {
-                    $resourceId = [string]$row[$colIndex['ResourceId']]
-                    if ([string]::IsNullOrWhiteSpace($resourceId)) { continue }
-                    $cost = [double]$row[$colIndex['Cost']]
-                    $usageDate = if ($colIndex.ContainsKey('UsageDate')) { [string]$row[$colIndex['UsageDate']] } else { '' }
-                    $currency = if ($colIndex.ContainsKey('Currency')) { [string]$row[$colIndex['Currency']] } else { '' }
-
-                    $key = $resourceId.ToLowerInvariant()
-                    if (-not $subEntry.CostByResourceId.ContainsKey($key)) {
-                        $subEntry.CostByResourceId[$key] = [PSCustomObject]@{
-                            Total    = 0.0
-                            Peak     = 0.0
-                            Days     = [System.Collections.Generic.HashSet[string]]::new()
-                            Currency = $currency
-                        }
-                    }
-                    $aggregate = $subEntry.CostByResourceId[$key]
-                    $aggregate.Total += $cost
-                    if ($cost -gt $aggregate.Peak) { $aggregate.Peak = $cost }
-                    if ($cost -gt 0 -and $usageDate) { [void]$aggregate.Days.Add($usageDate) }
-                    if (-not $aggregate.Currency -and $currency) { $aggregate.Currency = $currency }
-                }
-
-                $nextUri = $parsed.properties.nextLink
-            } while ($nextUri)
-        }
-        catch {
-            Write-PSFMessage "Cost Management query failed for subscription '$subscriptionId': $($_.Exception.Message)" -Tag Test -Level Warning
-            if ($_.Exception.Message -match 'with status (\d+):' -and [int]$Matches[1] -in @(401, 403)) {
-                $subEntry.Q1AuthError = $true
-            }
-            else {
-                $subEntry.Q1Failed = $true
-            }
-        }
-
-        # Q2: Consumption Budgets - List (GET). Invoke-ZtAzureRequest auto-paginates and unwraps .value.
+        # Q1: Consumption Budgets - List (GET). Invoke-ZtAzureRequest auto-paginates and unwraps .value.
         Write-ZtProgress -Activity $activity -Status "Querying Consumption budgets for subscription $subscriptionId"
         $budgetsPath = "/subscriptions/$subscriptionId/providers/Microsoft.Consumption/budgets?api-version=2024-08-01"
         try {
@@ -201,10 +110,10 @@ resources
         catch {
             Write-PSFMessage "Consumption budgets query failed for subscription '$subscriptionId': $($_.Exception.Message)" -Tag Test -Level Warning
             if ($_.Exception.Message -match 'with status (\d+):' -and [int]$Matches[1] -in @(401, 403)) {
-                $subEntry.Q2AuthError = $true
+                $subEntry.BudgetAuthError = $true
             }
             else {
-                $subEntry.Q2Failed = $true
+                $subEntry.BudgetFailed = $true
             }
         }
 
@@ -291,38 +200,18 @@ resources
         $subEntry = $subscriptionData[$capacity.subscriptionId]
         $isDeleting = $capacity.provisioningState -in @('Deleting', 'Deleted')
 
-        $totalCost = $null
-        $currency = $null
-        $daysBilled = $null
-        $peakCost = $null
         $budgetName = $null
         $budgetAmount = $null
         $budgetUnit = $null
         $timeGrain = $null
         $thresholds = $null
 
-        $q1Blocked = $subEntry.Q1AuthError -or $subEntry.Q1Failed
-        $q2Blocked = $subEntry.Q2AuthError -or $subEntry.Q2Failed
-
-        if (-not $q1Blocked) {
-            $aggregate = $subEntry.CostByResourceId[$capacity.id.ToLowerInvariant()]
-            if ($aggregate) {
-                $totalCost = [math]::Round($aggregate.Total, 2)
-                $currency = $aggregate.Currency
-                $daysBilled = $aggregate.Days.Count
-                $peakCost = [math]::Round($aggregate.Peak, 2)
-            }
-            else {
-                $totalCost = 0.0
-                $daysBilled = 0
-                $peakCost = 0.0
-            }
-        }
+        $budgetBlocked = $subEntry.BudgetAuthError -or $subEntry.BudgetFailed
 
         # Find the first qualifying budget in the capacity's subscription that targets this capacity,
         # its resource group, the capacity type, or the whole subscription (unfiltered).
         $matchingBudget = $null
-        if (-not $q2Blocked) {
+        if (-not $budgetBlocked) {
             foreach ($budgetInfo in $subEntry.BudgetInfos) {
                 if ($budgetInfo.QualifyingThresholds.Count -eq 0) { continue }
                 $targetsCapacity = $budgetInfo.TargetsSubscription -or
@@ -341,11 +230,10 @@ resources
             $thresholds = ($matchingBudget.QualifyingThresholds | ForEach-Object { "$_%" }) -join ', '
         }
 
-        $hasCost = ($totalCost -gt 0)
         $rowResult =
-            if ($q1Blocked -or $q2Blocked) { '⚠️ Investigate' }
-            elseif (-not $hasCost) { if ($isDeleting) { '⚠️ Deleting' } else { '⚠️ Investigate' } }
+            if ($budgetBlocked) { '⚠️ Investigate' }
             elseif ($matchingBudget) { '✅ Pass' }
+            elseif ($isDeleting) { '⚠️ Deleting' }
             else { '❌ Fail' }
 
         [PSCustomObject]@{
@@ -355,50 +243,37 @@ resources
             SubscriptionId    = $capacity.subscriptionId
             SubscriptionName  = $capacity.subscriptionName
             ProvisioningState = $capacity.provisioningState
-            TotalCost         = $totalCost
-            Currency          = $currency
-            DaysBilled        = $daysBilled
-            PeakCost          = $peakCost
             BudgetName        = $budgetName
             BudgetAmount      = $budgetAmount
             BudgetUnit        = $budgetUnit
             TimeGrain         = $timeGrain
             Thresholds        = $thresholds
-            Blocked           = ($q1Blocked -or $q2Blocked)
+            Blocked           = $budgetBlocked
             RowResult         = $rowResult
         }
     }
 
     # Aggregate across every active (non-deleting) capacity with fail > investigate > pass precedence;
-    # pass only when every active capacity is monitored. A single passing capacity must not mask
-    # another capacity that is unmonitored (Fail) or unreadable / not yet consuming (Investigate).
+    # pass only when every active capacity is covered by a qualifying budget. A single passing capacity
+    # must not mask another that is unmonitored (Fail) or whose budgets could not be read (Investigate).
     $activeResults = @($results | Where-Object { $_.ProvisioningState -notin @('Deleting', 'Deleted') })
     $failRows = @($activeResults | Where-Object { $_.RowResult -eq '❌ Fail' })
     $passRows = @($activeResults | Where-Object { $_.RowResult -eq '✅ Pass' })
     $investigateRows = @($activeResults | Where-Object { $_.RowResult -eq '⚠️ Investigate' })
-    $blockedRows = @($activeResults | Where-Object { $_.Blocked })
-    $noCostRows = @($activeResults | Where-Object { -not $_.Blocked -and $_.TotalCost -le 0 })
 
     if ($failRows.Count -gt 0) {
-        # Fail wins: at least one active capacity has consumption but no qualifying budget targets it.
-        $testResultMarkdown = "❌ One or more Security Copilot capacities have consumption flowing through Cost Management but no budget with qualifying notifications (enabled, threshold ≤ 90%, with an email, role, or action-group recipient) targeting the capacity, its resource group, or the subscription.`n`n%TestResult%"
+        # Fail wins: at least one active capacity has no qualifying budget targeting it.
+        $testResultMarkdown = "❌ One or more Security Copilot capacities have no Cost Management budget with qualifying notifications (enabled, threshold ≤ 90%, with an email, role, or action-group recipient) targeting the capacity, its resource group, or the subscription.`n`n%TestResult%"
     }
     elseif ($passRows.Count -gt 0 -and $investigateRows.Count -eq 0) {
-        # Every active capacity is monitored.
+        # Every active capacity is covered by a qualifying budget.
         $passed = $true
-        $testResultMarkdown = "✅ Microsoft Security Copilot SCU consumption is visible through Cost Management and every capacity is covered by a budget with notifications.`n`n%TestResult%"
-    }
-    elseif ($blockedRows.Count -gt 0 -and $passRows.Count -eq 0 -and $noCostRows.Count -eq 0) {
-        # No capacity could be evaluated because every hosting subscription returned a read/auth error.
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ Cost Management usage or budgets could not be read for the subscription(s) that host a Security Copilot capacity. Grant the assessing identity Cost Management Reader (or Reader) on those subscriptions, then re-run the assessment.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Every Microsoft Security Copilot capacity is covered by a Cost Management budget with alert notifications, so SCU spend is monitored and alerted on before the cap.`n`n%TestResult%"
     }
     else {
-        # Remaining cases are all Investigate: capacities with no billed consumption (Copilot not yet
-        # adopted, or the Microsoft 365 E5 inclusion path with no chargeable Azure resource), read
-        # errors on some subscriptions, or a pass/investigate mix that prevents confirming every capacity.
+        # No fail and not all-pass: budgets could not be read for one or more hosting subscriptions.
         $customStatus = 'Investigate'
-        $testResultMarkdown = "⚠️ One or more Security Copilot capacities could not be confirmed as monitored: Cost Management shows no billed consumption for them, or their usage or budgets could not be read. Validate enablement and consumption in the Security Copilot usage monitoring dashboard, and review the capacities marked Investigate below.`n`n%TestResult%"
+        $testResultMarkdown = "⚠️ Cost Management budgets could not be read for the subscription(s) that host a Security Copilot capacity. Grant the assessing identity Cost Management Reader (or Reader) on those subscriptions, then re-run the assessment.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
@@ -410,23 +285,21 @@ resources
         $nameLink = "[$(Get-SafeMarkdown $item.Name)](https://portal.azure.com/#resource$($item.Id))"
         $subscriptionDisplay = if (-not [string]::IsNullOrWhiteSpace($item.SubscriptionName)) { Get-SafeMarkdown $item.SubscriptionName } else { $item.SubscriptionId }
 
-        $costDisplay = if ($null -eq $item.TotalCost) { '—' } elseif ($item.Currency) { '{0:N2} {1}' -f $item.TotalCost, $item.Currency } else { '{0:N2}' -f $item.TotalCost }
-        $trendDisplay = if ($null -eq $item.DaysBilled) { '—' } elseif ($item.DaysBilled -eq 0) { 'No billed days' } else { "$($item.DaysBilled) day(s), peak {0:N2}" -f $item.PeakCost }
         $budgetDisplay = if ($item.BudgetName) { Get-SafeMarkdown $item.BudgetName } else { '—' }
         $amountDisplay = if ($null -eq $item.BudgetAmount) { '—' } elseif ($item.BudgetUnit) { '{0:N2} {1}' -f $item.BudgetAmount, $item.BudgetUnit } else { '{0:N2}' -f $item.BudgetAmount }
         $timeGrainDisplay = if ($item.TimeGrain) { $item.TimeGrain } else { '—' }
         $thresholdDisplay = if ($item.Thresholds) { $item.Thresholds } else { '—' }
 
-        $tableRows += "| $nameLink | $subscriptionDisplay | $costDisplay | $trendDisplay | $budgetDisplay | $amountDisplay | $timeGrainDisplay | $thresholdDisplay | $($item.RowResult) |`n"
+        $tableRows += "| $nameLink | $subscriptionDisplay | $budgetDisplay | $amountDisplay | $timeGrainDisplay | $thresholdDisplay | $($item.RowResult) |`n"
     }
 
     $formatTemplate = @'
 
 
-## [Security Copilot capacity consumption and budgets]({0})
+## [Security Copilot capacity budgets]({0})
 
-| Capacity | Subscription | Cost (30d) | Daily trend | Budget | Amount | Time grain | Alert thresholds | Result |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Capacity | Subscription | Budget | Amount | Time grain | Alert thresholds | Result |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 {1}
 
 '@
