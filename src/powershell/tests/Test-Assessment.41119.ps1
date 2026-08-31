@@ -121,6 +121,20 @@ function Test-Assessment-41119 {
         $templateFamily = [string]$policy.templateReference.templateFamily
         if ([string]::IsNullOrWhiteSpace($templateFamily)) { $templateFamily = 'none' }
 
+        # PolicySummaryBlade deep link requires technology, templateId and platformName segments.
+        $technologies = [string]$policy.technologies
+        $templateId = [string]$policy.templateReference.templateId
+        $platforms = [string]$policy.platforms
+
+        # Assignment comes from the $expand=assignments projection on the list query;
+        # isAssigned is not returned by default, so the inline assignment array is the signal.
+        $assignmentCount = @($policy.assignments | Where-Object { $null -ne $_ }).Count
+        $isAssigned = $null
+        if ($null -ne $policy.isAssigned) { $isAssigned = [bool]$policy.isAssigned }
+        $assigned = ($isAssigned -eq $true) -or ($assignmentCount -ge 1)
+        $assignedText = if ($assigned) { 'Yes' } else { 'No' }
+        $assignmentTargetsText = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+
         # Read the policy settings (beta, auto-paged). An unreadable settings surface classifies
         # this policy as Investigate but does not stop evaluation of the remaining policies.
         try {
@@ -135,7 +149,11 @@ function Test-Assessment-41119 {
                 PolicyName          = $policy.name
                 PolicyId            = $policy.id
                 TemplateFamily      = $templateFamily
-                Assigned            = 'Unknown'
+                Technologies        = $technologies
+                TemplateId          = $templateId
+                Platforms           = $platforms
+                Assigned            = $assignedText
+                AssignmentTargets   = $assignmentTargetsText
                 SettingDefinitionId = 'N/A'
                 RawSettingValue     = 'N/A'
                 NormalizedState     = 'Unknown'
@@ -144,15 +162,6 @@ function Test-Assessment-41119 {
             }
             continue
         }
-
-        # Assignment comes from the $expand=assignments projection on the list query;
-        # isAssigned is not returned by default, so the inline assignment count is the signal.
-        $assignmentCount = @($policy.assignments | Where-Object { $null -ne $_ }).Count
-        $isAssigned = $null
-        if ($null -ne $policy.isAssigned) { $isAssigned = [bool]$policy.isAssigned }
-        $assigned = ($isAssigned -eq $true) -or ($assignmentCount -ge 1)
-        $assignmentInterpretable = $true
-        $assignedText = if ($assigned) { 'Yes' } else { 'No' }
 
         # Identify the control by exact, case-insensitive settingDefinitionId equality.
         $allInstances = @(Get-AllSettingInstances -SettingInstances @($settings.settingInstance))
@@ -166,7 +175,11 @@ function Test-Assessment-41119 {
                 PolicyName          = $policy.name
                 PolicyId            = $policy.id
                 TemplateFamily      = $templateFamily
+                Technologies        = $technologies
+                TemplateId          = $templateId
+                Platforms           = $platforms
                 Assigned            = $assignedText
+                AssignmentTargets   = $assignmentTargetsText
                 SettingDefinitionId = 'N/A'
                 RawSettingValue     = 'N/A'
                 NormalizedState     = 'N/A'
@@ -195,9 +208,6 @@ function Test-Assessment-41119 {
             $status = 'Fail'
             $details = 'Disable local admin merge is set to no.'
         }
-        elseif (-not $assignmentInterpretable) {
-            $details = 'The policy assignment state could not be determined.'
-        }
         elseif ($assigned) {
             $status = 'Pass'
             $details = 'Disable local admin merge is set to yes on an assigned policy.'
@@ -211,7 +221,11 @@ function Test-Assessment-41119 {
             PolicyName          = $policy.name
             PolicyId            = $policy.id
             TemplateFamily      = $templateFamily
+            Technologies        = $technologies
+            TemplateId          = $templateId
+            Platforms           = $platforms
             Assigned            = $assignedText
+            AssignmentTargets   = $assignmentTargetsText
             SettingDefinitionId = $matchingInstance.settingDefinitionId
             RawSettingValue     = $rawValue
             NormalizedState     = $normalizedState
@@ -269,17 +283,19 @@ function Test-Assessment-41119 {
     $isTruncated = $totalCount -gt 10
     $tableRows = @($evaluationResults | Select-Object -First 10 | ForEach-Object {
         $policyName = (Get-SafeMarkdown -Text $_.PolicyName) -replace '\|', '\\|'
-        $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($_.PolicyId)"
+        $encodedTechnologies = ([string]$_.Technologies) -replace ',', '%2C'
+        $policyLink = "https://intune.microsoft.com/#view/Microsoft_Intune_Workflows/PolicySummaryBlade/policyId/$($_.PolicyId)/technology/$encodedTechnologies/templateId/$($_.TemplateId)/platformName/$($_.Platforms)"
+        $assignmentTargets = (Get-SafeMarkdown -Text $_.AssignmentTargets) -replace '\|', '\\|'
         $settingDefId = (Get-SafeMarkdown -Text $_.SettingDefinitionId) -replace '\|', '\\|'
         $rawValue = (Get-SafeMarkdown -Text $_.RawSettingValue) -replace '\|', '\\|'
         $detailsText = (Get-SafeMarkdown -Text $_.Details) -replace '\|', '\\|'
         $displayStatus = $statusIcon[$_.Status]
         if (-not $displayStatus) { $displayStatus = $_.Status }
-        "| [$policyName]($policyLink) | $($_.TemplateFamily) | $($_.Assigned) | $settingDefId | $rawValue | $($_.NormalizedState) | $detailsText | $displayStatus |"
+        "| [$policyName]($policyLink) | $($_.TemplateFamily) | $($_.Assigned) | $assignmentTargets | $settingDefId | $rawValue | $($_.NormalizedState) | $detailsText | $displayStatus |"
     })
 
     if ($isTruncated) {
-        $tableRows += "| ... | ... | ... | ... | ... | ... | ... | ... |"
+        $tableRows += "| ... | ... | ... | ... | ... | ... | ... | ... | ... |"
     }
 
     if ($tableRows.Count -gt 0) {
@@ -291,8 +307,8 @@ function Test-Assessment-41119 {
 
 ## [Intune configuration profiles]($portalUrl)
 
-$countLine| Policy name | Template family | Assigned | Setting definition ID | Raw setting value | Normalized state | Details | Status |
-| :---------- | :-------------- | :------- | :-------------------- | :---------------- | :--------------- | :------ | :----- |
+$countLine| Policy name | Template family | Assigned | Assignment targets | Setting definition ID | Raw setting value | Normalized state | Details | Status |
+| :---------- | :-------------- | :------- | :----------------- | :-------------------- | :---------------- | :--------------- | :------ | :----- |
 $($tableRows -join "`n")
 "@
         $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
