@@ -79,6 +79,17 @@ function Test-Assessment-41119 {
     $title = 'Local modification of Microsoft Defender Antivirus policy is blocked'
     $controlId = 'device_vendor_msft_defender_configuration_disablelocaladminmerge'
 
+    # Maps assignment target @odata.type to a friendly type label shown in the report.
+    # Only the target type is displayed (no group name/id), so the check stays within
+    # DeviceManagementConfiguration.Read.All (name resolution would need Group.Read.All).
+    $assignmentTargetMap = @{
+        '#microsoft.graph.allDevicesAssignmentTarget'                     = 'allDevices'
+        '#microsoft.graph.allLicensedUsersAssignmentTarget'               = 'allLicensedUsers'
+        '#microsoft.graph.groupAssignmentTarget'                          = 'groupAssignment'
+        '#microsoft.graph.exclusionGroupAssignmentTarget'                 = 'exclusionGroupAssignment'
+        '#microsoft.graph.configurationManagerCollectionAssignmentTarget' = 'configurationManagerCollection'
+    }
+
     # Q1: List Settings Catalog configuration policies (beta), following @odata.nextLink automatically.
     # $expand=assignments brings the assignment state inline (isAssigned is not returned by default).
     $rootError = $null
@@ -133,7 +144,14 @@ function Test-Assessment-41119 {
         if ($null -ne $policy.isAssigned) { $isAssigned = [bool]$policy.isAssigned }
         $assigned = ($isAssigned -eq $true) -or ($assignmentCount -ge 1)
         $assignedText = if ($assigned) { 'Yes' } else { 'No' }
-        $assignmentTargetsText = Get-PolicyAssignmentTarget -Assignments $policy.assignments
+        # Show target type only; no groupId->name lookup (no Group.Read.All) and no ids in output.
+        $assignmentTargets = @($policy.assignments | Where-Object { $null -ne $_ } | ForEach-Object {
+            $targetType = [string]$_.target.'@odata.type'
+            if ($assignmentTargetMap.ContainsKey($targetType)) { $assignmentTargetMap[$targetType] }
+            elseif (-not [string]::IsNullOrWhiteSpace($targetType)) { ($targetType -replace '^#microsoft\.graph\.', '') -replace 'AssignmentTarget$', '' }
+            else { 'unknown' }
+        })
+        $assignmentTargetsText = if ($assignmentTargets.Count -gt 0) { ($assignmentTargets | Select-Object -Unique) -join ', ' } else { 'None' }
 
         # Read the policy settings (beta, auto-paged). An unreadable settings surface classifies
         # this policy as Investigate but does not stop evaluation of the remaining policies.
