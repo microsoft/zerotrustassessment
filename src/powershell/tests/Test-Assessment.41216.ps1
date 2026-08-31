@@ -160,25 +160,15 @@ resources
                 }
             }
 
-            # Flatten the filter (which may be a single dimensions block or an `and` of blocks) so a
-            # budget scoped by ResourceId, ResourceGroupName, or ResourceType can be matched to a capacity.
-            # A ResourceType filter of the capacity type is a superset of the spec's enumerated scopes:
-            # it targets every capacity in the subscription, so it counts as monitoring the capacity.
-            $resourceIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-            $resourceGroups = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-            $targetsCapacityType = $false
+            # Collect the budget's filter clauses. A budget with no filter is subscription-scoped
+            # (covers every resource, including the capacity). Otherwise the filter is a single
+            # `dimensions` clause or an `and` of clauses; Cost Management evaluates `and`
+            # conjunctively, so ALL clauses must match a capacity for the budget to apply.
             $filter = $budget.properties.filter
             $hasFilter = $null -ne $filter -and $filter.PSObject.Properties.Count -gt 0
-            $dimensionBlocks = @()
-            if ($filter.dimensions) { $dimensionBlocks += $filter.dimensions }
-            if ($filter.and) { foreach ($clause in $filter.and) { if ($clause.dimensions) { $dimensionBlocks += $clause.dimensions } } }
-            foreach ($dimension in $dimensionBlocks) {
-                switch ($dimension.name) {
-                    'ResourceId' { foreach ($value in @($dimension.values)) { [void]$resourceIds.Add([string]$value) } }
-                    'ResourceGroupName' { foreach ($value in @($dimension.values)) { [void]$resourceGroups.Add([string]$value) } }
-                    'ResourceType' { if (@($dimension.values) -contains $capacityType) { $targetsCapacityType = $true } }
-                }
-            }
+            $filterClauses = @()
+            if ($filter.dimensions) { $filterClauses += $filter.dimensions }
+            if ($filter.and) { foreach ($clause in $filter.and) { if ($clause.dimensions) { $filterClauses += $clause.dimensions } } }
 
             $budgetInfos += [PSCustomObject]@{
                 Name                 = $budget.name
@@ -187,9 +177,7 @@ resources
                 TimeGrain            = $budget.properties.timeGrain
                 QualifyingThresholds = @($qualifyingThresholds | Sort-Object -Unique)
                 TargetsSubscription  = -not $hasFilter
-                TargetsCapacityType  = $targetsCapacityType
-                ResourceIds          = $resourceIds
-                ResourceGroups       = $resourceGroups
+                FilterClauses        = $filterClauses
             }
         }
         $subscriptionData[$subscriptionId] | Add-Member -NotePropertyName BudgetInfos -NotePropertyValue $budgetInfos -Force
@@ -208,17 +196,29 @@ resources
 
         $budgetBlocked = $subEntry.BudgetAuthError -or $subEntry.BudgetFailed
 
-        # Find the first qualifying budget in the capacity's subscription that targets this capacity,
-        # its resource group, the capacity type, or the whole subscription (unfiltered).
+        # Find the first qualifying budget in the capacity's subscription that targets this capacity.
+        # A subscription-scoped (unfiltered) budget always covers it; a filtered budget covers it only
+        # when EVERY clause matches (AND). A clause on a dimension we cannot evaluate against the
+        # capacity (for example Tags) fails the match rather than being ignored, to avoid a false pass.
         $matchingBudget = $null
         if (-not $budgetBlocked) {
             foreach ($budgetInfo in $subEntry.BudgetInfos) {
                 if ($budgetInfo.QualifyingThresholds.Count -eq 0) { continue }
-                $targetsCapacity = $budgetInfo.TargetsSubscription -or
-                    $budgetInfo.TargetsCapacityType -or
-                    $budgetInfo.ResourceIds.Contains($capacity.id) -or
-                    $budgetInfo.ResourceGroups.Contains($capacity.resourceGroup)
-                if ($targetsCapacity) { $matchingBudget = $budgetInfo; break }
+
+                if ($budgetInfo.TargetsSubscription) { $matchingBudget = $budgetInfo; break }
+
+                $allClausesMatch = $true
+                foreach ($clause in $budgetInfo.FilterClauses) {
+                    $clauseValues = @($clause.values)
+                    $clauseMatch = switch ($clause.name) {
+                        'ResourceId'        { $clauseValues -contains $capacity.id }
+                        'ResourceGroupName' { $clauseValues -contains $capacity.resourceGroup }
+                        'ResourceType'      { $clauseValues -contains $capacityType }
+                        default             { $false }
+                    }
+                    if (-not $clauseMatch) { $allClausesMatch = $false; break }
+                }
+                if ($allClausesMatch) { $matchingBudget = $budgetInfo; break }
             }
         }
 
@@ -231,9 +231,9 @@ resources
         }
 
         $rowResult =
-            if ($budgetBlocked) { '⚠️ Investigate' }
+            if ($isDeleting) { '⚠️ Deleting' }
+            elseif ($budgetBlocked) { '⚠️ Investigate' }
             elseif ($matchingBudget) { '✅ Pass' }
-            elseif ($isDeleting) { '⚠️ Deleting' }
             else { '❌ Fail' }
 
         [PSCustomObject]@{
@@ -257,6 +257,14 @@ resources
     # pass only when every active capacity is covered by a qualifying budget. A single passing capacity
     # must not mask another that is unmonitored (Fail) or whose budgets could not be read (Investigate).
     $activeResults = @($results | Where-Object { $_.ProvisioningState -notin @('Deleting', 'Deleted') })
+
+    # Every discovered capacity is being torn down; there is no active capacity to assess.
+    if ($activeResults.Count -eq 0) {
+        Write-PSFMessage 'All discovered Security Copilot capacities are Deleting/Deleted — skipping.' -Tag Test -Level VeryVerbose
+        Add-ZtTestResultDetail -SkippedBecause NotApplicable
+        return
+    }
+
     $failRows = @($activeResults | Where-Object { $_.RowResult -eq '❌ Fail' })
     $passRows = @($activeResults | Where-Object { $_.RowResult -eq '✅ Pass' })
     $investigateRows = @($activeResults | Where-Object { $_.RowResult -eq '⚠️ Investigate' })
