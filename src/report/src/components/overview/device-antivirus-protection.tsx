@@ -10,7 +10,11 @@ import { formatNumber } from "@/lib/format-utils";
 
 const unprotectedDescription = "Not confirmed protected by recent Microsoft Defender runtime evidence.";
 
-export function DeviceAntivirusProtectionCard() {
+interface DeviceAntivirusProtectionCardProps {
+    fixedHeight?: boolean;
+}
+
+export function DeviceAntivirusProtectionCard({ fixedHeight = false }: DeviceAntivirusProtectionCardProps) {
     const rawTotalDeviceCount = reportData.TenantInfo?.TenantOverview?.DeviceCount;
     const rawProtectedDeviceCount = reportData.TenantInfo?.DeviceOverview?.DeviceAntivirusProtection?.protectedDeviceCount;
     const totalDeviceCount = Number(rawTotalDeviceCount);
@@ -28,7 +32,7 @@ export function DeviceAntivirusProtectionCard() {
     const protectedPercent = hasData ? Math.round((protectedDeviceCount / totalDeviceCount) * 100) : 0;
 
     return (
-        <Card className="flex h-[420px] w-full flex-col overflow-hidden">
+        <Card className={`flex w-full flex-col overflow-hidden ${fixedHeight ? "h-[420px]" : "h-full min-h-[420px]"}`}>
             <CardHeader className="space-y-0 pb-2 flex-row pt-3">
                 <ShieldCheck className="pr-2 size-8" />
                 <CardTitle className="text-2xl tabular-nums">Device antivirus protection</CardTitle>

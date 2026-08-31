@@ -353,7 +353,7 @@ export default function DevicesInsightsAccordion() {
                                         </CardFooter>
                                     </Card>
 
-                                    <DeviceAntivirusProtectionCard />
+                                    <DeviceAntivirusProtectionCard fixedHeight />
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2">
