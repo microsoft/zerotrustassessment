@@ -28,7 +28,7 @@ export function DeviceAntivirusProtectionCard() {
     const protectedPercent = hasData ? Math.round((protectedDeviceCount / totalDeviceCount) * 100) : 0;
 
     return (
-        <Card className="flex h-full min-h-[420px] w-full flex-col overflow-hidden">
+        <Card className="flex h-[420px] w-full flex-col overflow-hidden">
             <CardHeader className="space-y-0 pb-2 flex-row pt-3">
                 <ShieldCheck className="pr-2 size-8" />
                 <CardTitle className="text-2xl tabular-nums">Device antivirus protection</CardTitle>
