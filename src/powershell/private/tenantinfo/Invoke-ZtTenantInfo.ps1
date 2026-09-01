@@ -49,4 +49,8 @@ function Invoke-ZtTenantInfo {
     if ($Pillar -in ('All', 'Network')) {
         Add-ZtOverviewM365ProtectionCircuit
     }
+
+    if ($Pillar -in ('All', 'Data')) {
+        Add-ZtDlpWorkloadCoverage
+    }
 }

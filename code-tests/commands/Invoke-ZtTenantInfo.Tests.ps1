@@ -94,6 +94,12 @@ Describe "Invoke-ZtTenantInfo" {
 			}
 		}
 
+		if (-not (Get-Command Add-ZtDlpWorkloadCoverage -ErrorAction SilentlyContinue)) {
+			function global:Add-ZtDlpWorkloadCoverage {
+				param()
+			}
+		}
+
 		. (Join-Path $srcRoot "private/tenantinfo/Invoke-ZtTenantInfo.ps1")
 	}
 
@@ -113,6 +119,7 @@ Describe "Invoke-ZtTenantInfo" {
 		Mock Add-ZTDeviceAppProtectionPolicies {}
 		Mock Add-ZtOverviewPrivateAccess {}
 		Mock Add-ZtOverviewM365ProtectionCircuit {}
+		Mock Add-ZtDlpWorkloadCoverage {}
 	}
 
 	It "Should call Add-ZtDeviceOverview even when Intune is unavailable" {
@@ -158,5 +165,17 @@ Describe "Invoke-ZtTenantInfo" {
 		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Devices'
 
 		Should -Invoke Add-ZtAgentOwnershipDistribution -Times 0 -Exactly
+	}
+
+	It "Should collect DLP workload coverage for Data assessments" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Data'
+
+		Should -Invoke Add-ZtDlpWorkloadCoverage -Times 1 -Exactly
+	}
+
+	It "Should not collect DLP workload coverage for unrelated pillar-only assessments" {
+		Invoke-ZtTenantInfo -Database 'test' -Pillar 'Identity'
+
+		Should -Invoke Add-ZtDlpWorkloadCoverage -Times 0 -Exactly
 	}
 }
