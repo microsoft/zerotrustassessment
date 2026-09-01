@@ -63,6 +63,8 @@ function Test-Assessment-41008 {
 
     # Q2 – Retrieve the latest Secure Score snapshot; -DisablePaging avoids following @odata.nextLink to prior-day snapshots.
     $latestSecureScore = $null
+    $errorMsgQ2 = $null
+    $httpStatusQ2 = $null
 
     if ($null -ne $controlProfile) {
         Write-ZtProgress -Activity $activity -Status 'Retrieving latest Microsoft Secure Score'
@@ -71,7 +73,9 @@ function Test-Assessment-41008 {
             $latestSecureScore = $scoreResponse.value | Select-Object -First 1
         }
         catch {
-            Write-PSFMessage "Failed to retrieve Secure Score: $_" -Level Warning
+            $errorMsgQ2 = $_
+            $httpStatusQ2 = Get-ZtHttpStatusCode -ErrorRecord $_
+            Write-PSFMessage "Failed to retrieve Secure Score: $errorMsgQ2" -Level Warning
         }
     }
 
@@ -134,12 +138,22 @@ function Test-Assessment-41008 {
 
     # ── Investigate: Q2 returned no data at all ──
     if ($null -eq $latestSecureScore) {
+        if ($httpStatusQ2 -in @(401, 403)) {
+            $investigateReason = 'The **SecurityEvents.Read.All** permission is required to read the latest Secure Score snapshot. Verify the permission is consented and re-run the assessment.'
+        }
+        elseif ($null -ne $errorMsgQ2) {
+            $investigateReason = 'Microsoft Graph returned an unexpected error retrieving the latest Secure Score snapshot. Re-run the assessment in 5–10 minutes and open a support ticket if the error persists.'
+        }
+        else {
+            $investigateReason = 'The MDI LAPS control profile exists but the current Microsoft Secure Score snapshot could not be retrieved.'
+        }
+
         $customStatus = 'Investigate'
         $params = @{
             TestId       = '41008'
             Title        = 'Local administrator passwords on identity assets are protected and managed with Microsoft LAPS'
             Status       = $passed
-            Result       = '⚠️ The MDI LAPS control profile exists but the current Microsoft Secure Score snapshot could not be retrieved.'
+            Result       = "⚠️ $investigateReason"
             CustomStatus = $customStatus
         }
         Add-ZtTestResultDetail @params
@@ -209,13 +223,15 @@ function Test-Assessment-41008 {
 
     $tableRows = "| $titleMarkdown | $currentScore | $maxScore | $controlState | $defenderLinkMarkdown | $statusLabel |`n"
 
-    $mdTable = @"
+    $formatTemplate = @"
 
-$mdFailLink
+{0}
 | Recommendation title | Current score | Maximum score | Control state | Defender XDR Recommendation Link | Status |
 | :-------------------- | :-----------: | :-----------: | :------------ | :-------------------------------- | :----: |
-$tableRows
+{1}
 "@
+
+    $mdTable = $formatTemplate -f $mdFailLink, $tableRows
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdTable
 
