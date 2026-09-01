@@ -136,7 +136,7 @@ resources
             $qualifyingThresholds = [System.Collections.Generic.List[double]]::new()
 
             # A budget only alerts while now falls within its timePeriod; an expired or not-yet-started
-            # budget cannot fire, so its notifications must not qualify (spec Q2: "active" budgets).
+            # budget cannot fire, so its notifications must not qualify (spec Q1: "active" budget).
             $budgetActive = $true
             $parsedBudgetDate = [datetime]::MinValue
             if ($budget.properties.timePeriod.startDate -and [datetime]::TryParse([string]$budget.properties.timePeriod.startDate, [ref]$parsedBudgetDate)) {
@@ -162,13 +162,22 @@ resources
 
             # Collect the budget's filter clauses. A budget with no filter is subscription-scoped
             # (covers every resource, including the capacity). Otherwise the filter is a single
-            # `dimensions` clause or an `and` of clauses; Cost Management evaluates `and`
-            # conjunctively, so ALL clauses must match a capacity for the budget to apply.
+            # `dimensions`/`tags` clause or an `and` of clauses; Cost Management evaluates `and`
+            # conjunctively, so ALL clauses must match a capacity for the budget to apply. Tag clauses
+            # are unevaluable here because ARG discovery does not return resource tags, so a budget
+            # carrying any tag constraint cannot be proven to cover the capacity.
             $filter = $budget.properties.filter
             $hasFilter = $null -ne $filter -and $filter.PSObject.Properties.Count -gt 0
-            $filterClauses = @()
-            if ($filter.dimensions) { $filterClauses += $filter.dimensions }
-            if ($filter.and) { foreach ($clause in $filter.and) { if ($clause.dimensions) { $filterClauses += $clause.dimensions } } }
+            $dimensionClauses = @()
+            $hasUnevaluableClause = $false
+            if ($filter.dimensions) { $dimensionClauses += $filter.dimensions }
+            if ($filter.tags) { $hasUnevaluableClause = $true }
+            if ($filter.and) {
+                foreach ($clause in $filter.and) {
+                    if ($clause.dimensions) { $dimensionClauses += $clause.dimensions }
+                    if ($clause.tags) { $hasUnevaluableClause = $true }
+                }
+            }
 
             $budgetInfos += [PSCustomObject]@{
                 Name                 = $budget.name
@@ -177,7 +186,8 @@ resources
                 TimeGrain            = $budget.properties.timeGrain
                 QualifyingThresholds = @($qualifyingThresholds | Sort-Object -Unique)
                 TargetsSubscription  = -not $hasFilter
-                FilterClauses        = $filterClauses
+                DimensionClauses     = $dimensionClauses
+                HasUnevaluableClause = $hasUnevaluableClause
             }
         }
         $subscriptionData[$subscriptionId] | Add-Member -NotePropertyName BudgetInfos -NotePropertyValue $budgetInfos -Force
@@ -186,7 +196,6 @@ resources
     # Evaluate each discovered capacity.
     $results = foreach ($capacity in $capacities) {
         $subEntry = $subscriptionData[$capacity.subscriptionId]
-        $isDeleting = $capacity.provisioningState -in @('Deleting', 'Deleted')
 
         $budgetName = $null
         $budgetAmount = $null
@@ -207,8 +216,13 @@ resources
 
                 if ($budgetInfo.TargetsSubscription) { $matchingBudget = $budgetInfo; break }
 
+                # A filtered budget must carry no unevaluable (tag) clause, expose at least one
+                # evaluable dimension clause, and every dimension clause must include the capacity (AND).
+                if ($budgetInfo.HasUnevaluableClause) { continue }
+                if ($budgetInfo.DimensionClauses.Count -eq 0) { continue }
+
                 $allClausesMatch = $true
-                foreach ($clause in $budgetInfo.FilterClauses) {
+                foreach ($clause in $budgetInfo.DimensionClauses) {
                     $clauseValues = @($clause.values)
                     $clauseMatch = switch ($clause.name) {
                         'ResourceId'        { $clauseValues -contains $capacity.id }
@@ -231,8 +245,7 @@ resources
         }
 
         $rowResult =
-            if ($isDeleting) { '⚠️ Deleting' }
-            elseif ($budgetBlocked) { '⚠️ Investigate' }
+            if ($budgetBlocked) { '⚠️ Investigate' }
             elseif ($matchingBudget) { '✅ Pass' }
             else { '❌ Fail' }
 
@@ -253,30 +266,22 @@ resources
         }
     }
 
-    # Aggregate across every active (non-deleting) capacity with fail > investigate > pass precedence;
-    # pass only when every active capacity is covered by a qualifying budget. A single passing capacity
-    # must not mask another that is unmonitored (Fail) or whose budgets could not be read (Investigate).
-    $activeResults = @($results | Where-Object { $_.ProvisioningState -notin @('Deleting', 'Deleted') })
-
-    # Every discovered capacity is being torn down; there is no active capacity to assess.
-    if ($activeResults.Count -eq 0) {
-        Write-PSFMessage 'All discovered Security Copilot capacities are Deleting/Deleted — skipping.' -Tag Test -Level VeryVerbose
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
-
-    $failRows = @($activeResults | Where-Object { $_.RowResult -eq '❌ Fail' })
-    $passRows = @($activeResults | Where-Object { $_.RowResult -eq '✅ Pass' })
-    $investigateRows = @($activeResults | Where-Object { $_.RowResult -eq '⚠️ Investigate' })
+    # Aggregate across every discovered capacity with fail > investigate > pass precedence; pass only
+    # when every capacity is covered by a qualifying budget. A single passing capacity must not mask
+    # another that is unmonitored (Fail) or whose budgets could not be read (Investigate). The spec
+    # defines Skipped only when discovery returns no capacity, so every returned capacity is evaluated.
+    $failRows = @($results | Where-Object { $_.RowResult -eq '❌ Fail' })
+    $passRows = @($results | Where-Object { $_.RowResult -eq '✅ Pass' })
+    $investigateRows = @($results | Where-Object { $_.RowResult -eq '⚠️ Investigate' })
 
     if ($failRows.Count -gt 0) {
-        # Fail wins: at least one active capacity has no qualifying budget targeting it.
+        # Fail wins: at least one capacity has no qualifying budget targeting it.
         $testResultMarkdown = "❌ One or more Security Copilot capacities have no Cost Management budget with qualifying notifications (enabled, threshold ≤ 90%, with an email, role, or action-group recipient) targeting the capacity, its resource group, or the subscription.`n`n%TestResult%"
     }
     elseif ($passRows.Count -gt 0 -and $investigateRows.Count -eq 0) {
-        # Every active capacity is covered by a qualifying budget.
+        # Every capacity is covered by a qualifying budget.
         $passed = $true
-        $testResultMarkdown = "✅ Every Microsoft Security Copilot capacity is covered by a Cost Management budget with alert notifications, so SCU spend is monitored and alerted on before the cap.`n`n%TestResult%"
+        $testResultMarkdown = "✅ Every Microsoft Security Copilot (provisioned/overage) capacity is covered by a Cost Management budget with alert notifications, so SCU spend is monitored and alerted on before the cap.`n`n%TestResult%"
     }
     else {
         # No fail and not all-pass: budgets could not be read for one or more hosting subscriptions.
@@ -293,7 +298,7 @@ resources
         $nameLink = "[$(Get-SafeMarkdown $item.Name)](https://portal.azure.com/#resource$($item.Id))"
         $subscriptionDisplay = if (-not [string]::IsNullOrWhiteSpace($item.SubscriptionName)) { Get-SafeMarkdown $item.SubscriptionName } else { $item.SubscriptionId }
 
-        $budgetDisplay = if ($item.BudgetName) { Get-SafeMarkdown $item.BudgetName } else { '—' }
+        $budgetDisplay = if ($item.BudgetName) { Get-SafeMarkdown $item.BudgetName } elseif ($item.RowResult -eq '❌ Fail') { 'No qualifying budget' } else { '—' }
         $amountDisplay = if ($null -eq $item.BudgetAmount) { '—' } elseif ($item.BudgetUnit) { '{0:N2} {1}' -f $item.BudgetAmount, $item.BudgetUnit } else { '{0:N2}' -f $item.BudgetAmount }
         $timeGrainDisplay = if ($item.TimeGrain) { $item.TimeGrain } else { '—' }
         $thresholdDisplay = if ($item.Thresholds) { $item.Thresholds } else { '—' }
