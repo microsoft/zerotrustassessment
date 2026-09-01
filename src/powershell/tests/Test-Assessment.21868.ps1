@@ -41,12 +41,6 @@ function Test-Assessment-21868 {
     $allApp = Invoke-DatabaseQuery -Database $Database -Sql $sqlApp
     $allSP = Invoke-DatabaseQuery -Database $Database -Sql $sqlSP
 
-    $queryParameters = '$select=id,displayName,userPrincipalName'
-
-    # Initialize lists for guest owners only
-    $guestAppOwners = [System.Collections.Generic.List[object]]::new()
-    $guestSpOwners = [System.Collections.Generic.List[object]]::new()
-
     # Get all guest users first (more efficient than repeated queries)
     $sqlGuests = @"
 SELECT id, userPrincipalName, displayName
@@ -61,34 +55,13 @@ WHERE userType = 'Guest'
         [void]$guestUserIds.Add($guest.id)
     }
 
-    # Filter owners to only include guests
-    foreach ($app in $allApp) {
-        $owners = Invoke-ZtGraphRequest -RelativeUri "applications/$($app.id)/owners/microsoft.graph.user?$queryParameters" -ApiVersion 'v1.0'
-        if ($owners) {
-            foreach ($owner in $owners) {
-                $owner | Add-Member -MemberType NoteProperty -Name 'appDisplayName' -Value $app.displayName -Force -PassThru |
-                    Add-Member -MemberType NoteProperty -Name 'appObjectId' -Value $app.id -Force -PassThru |
-                        Add-Member -MemberType NoteProperty -Name 'appId' -Value $app.appId -Force
-                if ($guestUserIds.Contains($owner.id)) {
-                    $guestAppOwners.Add($owner)
-                }
-            }
-        }
-    }
+    Write-ZtProgress -Activity $activity -Status "Getting application owners"
+    $guestAppOwners = @(Get-GuestResourceOwner -Resources $allApp -ResourceType 'applications' -GuestUserIds $guestUserIds `
+            -DisplayNameProperty 'appDisplayName' -ObjectIdProperty 'appObjectId' -AppIdProperty 'appId')
 
-    foreach ($sp in $allSP) {
-        $owners = Invoke-ZtGraphRequest -RelativeUri "servicePrincipals/$($sp.id)/owners/microsoft.graph.user?$queryParameters" -ApiVersion 'v1.0'
-        if ($owners) {
-            foreach ($owner in $owners) {
-                $owner | Add-Member -MemberType NoteProperty -Name 'spDisplayName' -Value $sp.displayName -Force -PassThru |
-                    Add-Member -MemberType NoteProperty -Name 'spObjectId' -Value $sp.id -Force -PassThru |
-                        Add-Member -MemberType NoteProperty -Name 'spAppId' -Value $sp.appId -Force
-                if ($guestUserIds.Contains($owner.id)) {
-                    $guestSpOwners.Add($owner)
-                }
-            }
-        }
-    }
+    Write-ZtProgress -Activity $activity -Status "Getting service principal owners"
+    $guestSpOwners = @(Get-GuestResourceOwner -Resources $allSP -ResourceType 'servicePrincipals' -GuestUserIds $guestUserIds `
+            -DisplayNameProperty 'spDisplayName' -ObjectIdProperty 'spObjectId' -AppIdProperty 'spAppId')
 
     $hasGuestAppOwners = $guestAppOwners.Count -gt 0
     $hasGuestSpOwners = $guestSpOwners.Count -gt 0
@@ -178,4 +151,44 @@ WHERE userType = 'Guest'
     }
 
     Add-ZtTestResultDetail @params
+}
+
+function Get-GuestResourceOwner {
+    [CmdletBinding()]
+    param (
+        [object[]] $Resources,
+
+        [string] $ResourceType,
+
+        [System.Collections.Generic.HashSet[string]] $GuestUserIds,
+
+        [string] $DisplayNameProperty,
+
+        [string] $ObjectIdProperty,
+
+        [string] $AppIdProperty
+    )
+
+    $guestOwners = [System.Collections.Generic.List[object]]::new()
+    if (-not $Resources) { return $guestOwners }
+
+    $resourceById = @{}
+    foreach ($resource in $Resources) { $resourceById[$resource.id] = $resource }
+
+    $ownerPath = "$ResourceType/{0}/owners/microsoft.graph.user?`$select=id,displayName,userPrincipalName"
+    $ownerResults = Invoke-ZtGraphBatchRequest -Path $ownerPath -ArgumentList $Resources.id -Matched -ErrorAction SilentlyContinue
+
+    foreach ($result in $ownerResults) {
+        if (-not $result.Success) { continue }
+        $resource = $resourceById[$result.Argument]
+        foreach ($owner in $result.Result) {
+            if (-not $GuestUserIds.Contains($owner.id)) { continue }
+            $owner | Add-Member -NotePropertyName $DisplayNameProperty -NotePropertyValue $resource.displayName -Force
+            $owner | Add-Member -NotePropertyName $ObjectIdProperty -NotePropertyValue $resource.id -Force
+            $owner | Add-Member -NotePropertyName $AppIdProperty -NotePropertyValue $resource.appId -Force
+            $guestOwners.Add($owner)
+        }
+    }
+
+    return $guestOwners
 }
