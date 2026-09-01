@@ -3,7 +3,6 @@ import {
     CircleCheckBig,
     Monitor,
     MonitorSmartphone,
-    ShieldCheck,
 } from "lucide-react";
 import {
     Bar,
@@ -18,6 +17,7 @@ import {
 } from "recharts";
 
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
+import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,10 +72,6 @@ export default function DevicesInsightsAccordion() {
     const corporateCount = Number(deviceOverview?.DeviceOwnership?.corporateCount) || 0;
     const personalCount = Number(deviceOverview?.DeviceOwnership?.personalCount) || 0;
     const totalOwnershipCount = corporateCount + personalCount;
-
-    const protectedCount = 0;
-    const unprotectedCount = 0;
-    const totalProtectedCount = protectedCount + unprotectedCount;
 
     return (
         <Card>
@@ -357,68 +353,7 @@ export default function DevicesInsightsAccordion() {
                                         </CardFooter>
                                     </Card>
 
-                                    <Card className="flex h-[420px] flex-col overflow-hidden">
-                                        <CardHeader className="space-y-0 pb-2 flex-row pt-3">
-                                            <ShieldCheck className="pr-2 size-8" />
-                                            <CardTitle className="text-2xl tabular-nums">Device antivirus protection</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="flex flex-1 min-h-0 items-center justify-center pb-2 pt-0">
-                                            {totalProtectedCount <= 0 ? renderNoData() : (
-                                                <ChartContainer
-                                                    config={{
-                                                        protected: { label: "Protected", color: "hsl(142, 76%, 36%)" },
-                                                        unprotected: { label: "Unprotected", color: "hsl(0, 84%, 60%)" },
-                                                    }}
-                                                    className="mx-auto h-full w-full"
-                                                >
-                                                    <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                                        <Pie
-                                                            data={[
-                                                                { name: "Protected", value: protectedCount, fill: "var(--color-protected)" },
-                                                                { name: "Unprotected", value: unprotectedCount, fill: "var(--color-unprotected)" },
-                                                            ]}
-                                                            cx="50%"
-                                                            cy="50%"
-                                                            innerRadius={50}
-                                                            outerRadius={100}
-                                                            paddingAngle={2}
-                                                            dataKey="value"
-                                                            cornerRadius={5}
-                                                        >
-                                                            <Cell fill="var(--color-protected)" />
-                                                            <Cell fill="var(--color-unprotected)" />
-                                                        </Pie>
-                                                        <ChartTooltip content={<ChartTooltipContent />} />
-                                                    </PieChart>
-                                                </ChartContainer>
-                                            )}
-                                        </CardContent>
-                                        <CardFooter className="flex flex-row items-center border-t p-4">
-                                            <div className="flex w-full items-center gap-2">
-                                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <div className="h-3 w-3 rounded-sm bg-green-600" />
-                                                        Protected
-                                                    </div>
-                                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                        0
-                                                        <span className="text-sm font-normal text-muted-foreground">%</span>
-                                                    </div>
-                                                </div>
-                                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <div className="h-3 w-3 rounded-sm bg-red-500" />
-                                                        Unprotected
-                                                    </div>
-                                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                        0
-                                                        <span className="text-sm font-normal text-muted-foreground">%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
+                                    <DeviceAntivirusProtectionCard fixedHeight />
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2">

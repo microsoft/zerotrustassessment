@@ -40,6 +40,7 @@ import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
+import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 import { buildDeviceCoverageRows } from "@/lib/device-coverage";
@@ -499,9 +500,9 @@ export default function Dashboard() {
 
             {/* Identity summary */}
             <div className="flex flex-col gap-4 mt-[26px]">
-                <div className="grid gap-4 grid-cols-1 lg:grid-cols-4 items-stretch">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-6 items-stretch">
 
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                    <div className="order-2 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-6 items-stretch">
                         {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
@@ -834,7 +835,7 @@ export default function Dashboard() {
                         </CardContent>
                     </Card> */}
                     </div>
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                    <div className="order-1 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:col-span-6 items-stretch">
                         {reportData.TenantInfo?.DeviceOverview ? (
                         <Card
                             className="lmax-w-xs flex h-full flex-col" x-chunk="charts-01-chunk-0"
@@ -1105,6 +1106,8 @@ export default function Dashboard() {
                             </CardFooter>
                         </Card>
                         )}
+
+                        <DeviceAntivirusProtectionCard />
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >

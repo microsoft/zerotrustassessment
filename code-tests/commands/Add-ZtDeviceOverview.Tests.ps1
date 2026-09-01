@@ -42,6 +42,12 @@ Describe "Add-ZtDeviceOverview" {
 			}
 		}
 
+		if (-not (Get-Command Get-ZtHttpStatusCode -ErrorAction SilentlyContinue)) {
+			function global:Get-ZtHttpStatusCode {
+				param($ErrorRecord)
+			}
+		}
+
 		if (-not (Get-Command Invoke-ZtGraphRequest -ErrorAction SilentlyContinue)) {
 			function global:Invoke-ZtGraphRequest {
 				param($RelativeUri, $ApiVersion, $Method, $Body, $ErrorAction)

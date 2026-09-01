@@ -308,13 +308,72 @@ where accountEnabled and "isManaged"
         $managedDevices = $fallbackManagedDevices
     }
 
+    # Preserve null when Defender/TVM data is unavailable so the report can show no data.
+    $huntingQuery = @'
+let OperationalControls = DeviceTvmSecureConfigurationAssessmentKB
+| where ConfigurationName in~ ('Turn on Microsoft Defender Antivirus', 'Turn on real-time protection')
+| distinct ConfigurationId;
+let ProtectedMdeDevices = DeviceTvmSecureConfigurationAssessment
+| where Timestamp > ago(7d)
+| join kind=inner OperationalControls on ConfigurationId
+| summarize arg_max(Timestamp, IsApplicable, IsCompliant) by DeviceId, ConfigurationId
+| where IsApplicable == true
+| summarize ApplicableControls=count(), InconclusiveOrNonCompliantControls=countif(IsCompliant == false or isnull(IsCompliant)) by DeviceId
+| where ApplicableControls > 0 and InconclusiveOrNonCompliantControls == 0
+| project DeviceId;
+DeviceInfo
+| where Timestamp > ago(30d)
+| summarize arg_max(Timestamp, AadDeviceId) by DeviceId
+| where isnotempty(AadDeviceId)
+| join kind=leftsemi ProtectedMdeDevices on DeviceId
+| summarize by AadDeviceId=tolower(AadDeviceId)
+| summarize ProtectedDeviceCount=count()
+'@
+
+    $protectedDeviceCount = $null
+    try {
+        $huntingBody = @{ query = $huntingQuery; timespan = 'P30D' } | ConvertTo-Json -Compress
+        $huntingResult = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -ApiVersion beta -Method POST -Body $huntingBody -ErrorAction Stop
+        $huntingRows = @()
+        if ($null -ne $huntingResult -and $null -ne $huntingResult.results) {
+            $huntingRows = @($huntingResult.results)
+        }
+        $hasProtectedDeviceCount = $huntingRows.Count -eq 1 -and
+            $null -ne $huntingRows[0].PSObject.Properties['ProtectedDeviceCount']
+        $parsedProtectedDeviceCount = 0L
+
+        if (-not $hasProtectedDeviceCount -or
+            -not [long]::TryParse([string]$huntingRows[0].ProtectedDeviceCount, [ref]$parsedProtectedDeviceCount) -or
+            $parsedProtectedDeviceCount -lt 0) {
+            Write-PSFMessage "Advanced Hunting antivirus protection query returned an invalid result shape or count (row count: $($huntingRows.Count))." -Level Warning -Tag Devices
+        }
+        else {
+            $protectedDeviceCount = $parsedProtectedDeviceCount
+            if ($protectedDeviceCount -eq 0) {
+                Write-PSFMessage 'Advanced Hunting antivirus protection query returned zero protected devices. Verify that the tenant exposes the expected Defender Antivirus controls in DeviceTvmSecureConfigurationAssessmentKB.' -Level Warning -Tag Devices
+            }
+            else {
+                Write-PSFMessage "Advanced Hunting antivirus protection query completed with $protectedDeviceCount protected devices." -Level Debug -Tag Devices
+            }
+        }
+    }
+    catch {
+        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
+        Write-PSFMessage "Unable to retrieve Defender antivirus protection counts from Advanced Hunting (HTTP $httpStatus): $($_.Exception.Message)" -Level Warning -Tag Devices
+    }
+
+    $deviceAntivirusProtection = [PSCustomObject]@{
+        protectedDeviceCount = $protectedDeviceCount
+    }
+
     $deviceOverview = [PSCustomObject]@{
-        DeviceSummary         = $deviceSummary
-        DesktopDevicesSummary = $desktopDevicesSummary
-        ManagedDevices        = $managedDevices
-        MobileSummary         = $mobileSummary
-        DeviceCompliance      = $deviceCompliance
-        DeviceOwnership       = $deviceOwnership
+        DeviceSummary             = $deviceSummary
+        DesktopDevicesSummary     = $desktopDevicesSummary
+        ManagedDevices            = $managedDevices
+        MobileSummary             = $mobileSummary
+        DeviceCompliance          = $deviceCompliance
+        DeviceOwnership           = $deviceOwnership
+        DeviceAntivirusProtection = $deviceAntivirusProtection
     }
 
     Add-ZtTenantInfo -Name 'DeviceOverview' -Value $deviceOverview

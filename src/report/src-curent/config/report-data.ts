@@ -210,6 +210,11 @@ export interface DeviceOverview {
   ManagedDevices: ManagedDevices | null;
   DeviceCompliance: DeviceCompliance | null;
   DeviceOwnership: DeviceOwnership | null;
+  DeviceAntivirusProtection?: DeviceAntivirusProtection | null;
+}
+
+export interface DeviceAntivirusProtection {
+  protectedDeviceCount: number | null;
 }
 
 export interface DeviceSummary {
