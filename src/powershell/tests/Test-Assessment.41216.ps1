@@ -53,7 +53,7 @@ resources
     | where properties.state =~ 'Enabled'
     | project subscriptionId, subscriptionName = name
 ) on subscriptionId
-| project id, name, location, resourceGroup, subscriptionId, subscriptionName, provisioningState = tostring(properties.provisioningState)
+| project id, name, location, resourceGroup, subscriptionId, subscriptionName, tags, provisioningState = tostring(properties.provisioningState)
 "@
 
     $capacities = @()
@@ -163,19 +163,17 @@ resources
             # Collect the budget's filter clauses. A budget with no filter is subscription-scoped
             # (covers every resource, including the capacity). Otherwise the filter is a single
             # `dimensions`/`tags` clause or an `and` of clauses; Cost Management evaluates `and`
-            # conjunctively, so ALL clauses must match a capacity for the budget to apply. Tag clauses
-            # are unevaluable here because ARG discovery does not return resource tags, so a budget
-            # carrying any tag constraint cannot be proven to cover the capacity.
+            # conjunctively, so ALL clauses (dimension and tag) must match a capacity for the budget to
+            # apply. Each clause is kept with its kind so tags can be evaluated against the capacity tags.
             $filter = $budget.properties.filter
             $hasFilter = $null -ne $filter -and $filter.PSObject.Properties.Count -gt 0
-            $dimensionClauses = @()
-            $hasUnevaluableClause = $false
-            if ($filter.dimensions) { $dimensionClauses += $filter.dimensions }
-            if ($filter.tags) { $hasUnevaluableClause = $true }
+            $filterClauses = @()
+            if ($filter.dimensions) { $filterClauses += [PSCustomObject]@{ Kind = 'Dimension'; Clause = $filter.dimensions } }
+            if ($filter.tags) { $filterClauses += [PSCustomObject]@{ Kind = 'Tag'; Clause = $filter.tags } }
             if ($filter.and) {
                 foreach ($clause in $filter.and) {
-                    if ($clause.dimensions) { $dimensionClauses += $clause.dimensions }
-                    if ($clause.tags) { $hasUnevaluableClause = $true }
+                    if ($clause.dimensions) { $filterClauses += [PSCustomObject]@{ Kind = 'Dimension'; Clause = $clause.dimensions } }
+                    if ($clause.tags) { $filterClauses += [PSCustomObject]@{ Kind = 'Tag'; Clause = $clause.tags } }
                 }
             }
 
@@ -186,8 +184,7 @@ resources
                 TimeGrain            = $budget.properties.timeGrain
                 QualifyingThresholds = @($qualifyingThresholds | Sort-Object -Unique)
                 TargetsSubscription  = -not $hasFilter
-                DimensionClauses     = $dimensionClauses
-                HasUnevaluableClause = $hasUnevaluableClause
+                FilterClauses        = $filterClauses
             }
         }
         $subscriptionData[$subscriptionId] | Add-Member -NotePropertyName BudgetInfos -NotePropertyValue $budgetInfos -Force
@@ -207,8 +204,9 @@ resources
 
         # Find the first qualifying budget in the capacity's subscription that targets this capacity.
         # A subscription-scoped (unfiltered) budget always covers it; a filtered budget covers it only
-        # when EVERY clause matches (AND). A clause on a dimension we cannot evaluate against the
-        # capacity (for example Tags) fails the match rather than being ignored, to avoid a false pass.
+        # when EVERY clause matches (AND). Dimension clauses match on ResourceId/ResourceGroupName/
+        # ResourceType; tag clauses match when the capacity carries the tag with a listed value. A
+        # clause on a dimension we cannot evaluate fails the match rather than being ignored.
         $matchingBudget = $null
         if (-not $budgetBlocked) {
             foreach ($budgetInfo in $subEntry.BudgetInfos) {
@@ -216,19 +214,29 @@ resources
 
                 if ($budgetInfo.TargetsSubscription) { $matchingBudget = $budgetInfo; break }
 
-                # A filtered budget must carry no unevaluable (tag) clause, expose at least one
-                # evaluable dimension clause, and every dimension clause must include the capacity (AND).
-                if ($budgetInfo.HasUnevaluableClause) { continue }
-                if ($budgetInfo.DimensionClauses.Count -eq 0) { continue }
+                # A filtered budget must expose at least one clause and every clause must include the capacity.
+                if ($budgetInfo.FilterClauses.Count -eq 0) { continue }
 
                 $allClausesMatch = $true
-                foreach ($clause in $budgetInfo.DimensionClauses) {
+                foreach ($filterClause in $budgetInfo.FilterClauses) {
+                    $clause = $filterClause.Clause
                     $clauseValues = @($clause.values)
-                    $clauseMatch = switch ($clause.name) {
-                        'ResourceId'        { $clauseValues -contains $capacity.id }
-                        'ResourceGroupName' { $clauseValues -contains $capacity.resourceGroup }
-                        'ResourceType'      { $clauseValues -contains $capacityType }
-                        default             { $false }
+                    if ($filterClause.Kind -eq 'Tag') {
+                        # Tag key match is case-insensitive; value comparison via -contains is case-insensitive.
+                        $capacityTagValue = $null
+                        if ($capacity.tags) {
+                            $tagProperty = $capacity.tags.PSObject.Properties | Where-Object { $_.Name -ieq $clause.name } | Select-Object -First 1
+                            if ($tagProperty) { $capacityTagValue = [string]$tagProperty.Value }
+                        }
+                        $clauseMatch = $null -ne $capacityTagValue -and ($clauseValues -contains $capacityTagValue)
+                    }
+                    else {
+                        $clauseMatch = switch ($clause.name) {
+                            'ResourceId'        { $clauseValues -contains $capacity.id }
+                            'ResourceGroupName' { $clauseValues -contains $capacity.resourceGroup }
+                            'ResourceType'      { $clauseValues -contains $capacityType }
+                            default             { $false }
+                        }
                     }
                     if (-not $clauseMatch) { $allClausesMatch = $false; break }
                 }
