@@ -137,13 +137,27 @@ function Test-Assessment-41119 {
         $templateId = [string]$policy.templateReference.templateId
         $platforms = [string]$policy.platforms
 
-        # Assignment comes from the $expand=assignments projection on the list query;
-        # isAssigned is not returned by default, so the inline assignment array is the signal.
+        # Assignment comes from the $expand=assignments projection on the list query.
+        # Classify as Assigned / Unassigned / Unknown so conflicting or absent signals surface as
+        # Investigate rather than a false Pass/Fail (isAssigned is not returned by default).
+        $assignmentsPresent = $null -ne $policy.PSObject.Properties['assignments']
         $assignmentCount = @($policy.assignments | Where-Object { $null -ne $_ }).Count
         $isAssigned = $null
         if ($null -ne $policy.isAssigned) { $isAssigned = [bool]$policy.isAssigned }
-        $assigned = ($isAssigned -eq $true) -or ($assignmentCount -ge 1)
-        $assignedText = if ($assigned) { 'Yes' } else { 'No' }
+        if (-not $assignmentsPresent) {
+            $assignmentState = 'Unknown'
+        }
+        elseif ($null -ne $isAssigned -and $isAssigned -ne ($assignmentCount -ge 1)) {
+            # isAssigned flag conflicts with the inline assignments array.
+            $assignmentState = 'Unknown'
+        }
+        elseif ($assignmentCount -ge 1) {
+            $assignmentState = 'Assigned'
+        }
+        else {
+            $assignmentState = 'Unassigned'
+        }
+        $assignedText = switch ($assignmentState) { 'Assigned' { 'Yes' } 'Unassigned' { 'No' } default { 'Unknown' } }
         # Show target type only; no groupId->name lookup (no Group.Read.All) and no ids in output.
         $assignmentTargets = @($policy.assignments | Where-Object { $null -ne $_ } | ForEach-Object {
             $targetType = [string]$_.target.'@odata.type'
@@ -182,12 +196,13 @@ function Test-Assessment-41119 {
         }
 
         # Identify the control by exact, case-insensitive settingDefinitionId equality.
+        # Evaluate every matching instance (Graph can nest duplicates) and roll up within the policy.
         $allInstances = @(Get-AllSettingInstances -SettingInstances @($settings.settingInstance))
-        $matchingInstance = @($allInstances | Where-Object {
+        $matchingInstances = @($allInstances | Where-Object {
             [string]$_.settingDefinitionId -ieq $controlId
-        }) | Select-Object -First 1
+        })
 
-        if (-not $matchingInstance) {
+        if ($matchingInstances.Count -eq 0) {
             # A policy without the control instance is N/A and is excluded from the roll-up.
             $evaluationResults += [PSCustomObject]@{
                 PolicyName          = $policy.name
@@ -207,32 +222,40 @@ function Test-Assessment-41119 {
             continue
         }
 
-        $rawValue = [string]$matchingInstance.choiceSettingValue.value
-        $normalizedState = 'Unknown'
-        if ($rawValue -match '(?i)_disablelocaladminmerge_1$') {
-            $normalizedState = 'Enabled'
+        # Classify each matching instance, then roll up within the policy: Fail > Investigate > Pass.
+        $rawValues = [System.Collections.Generic.List[string]]::new()
+        $normalizedStates = [System.Collections.Generic.List[string]]::new()
+        $instanceStatuses = [System.Collections.Generic.List[string]]::new()
+        foreach ($mi in $matchingInstances) {
+            $v = [string]$mi.choiceSettingValue.value
+            $rawValues.Add($(if ([string]::IsNullOrWhiteSpace($v)) { 'N/A' } else { $v }))
+            $ns = if ($v -match '(?i)_disablelocaladminmerge_1$') { 'Enabled' }
+                elseif ($v -match '(?i)_disablelocaladminmerge_0$') { 'Disabled' }
+                else { 'Unknown' }
+            $normalizedStates.Add($ns)
+            if ($ns -eq 'Unknown') { $instanceStatuses.Add('Investigate') }
+            elseif ($ns -eq 'Disabled') { $instanceStatuses.Add('Fail') }
+            elseif ($assignmentState -eq 'Unknown') { $instanceStatuses.Add('Investigate') }
+            elseif ($assignmentState -eq 'Assigned') { $instanceStatuses.Add('Pass') }
+            else { $instanceStatuses.Add('Fail') }
         }
-        elseif ($rawValue -match '(?i)_disablelocaladminmerge_0$') {
-            $normalizedState = 'Disabled'
-        }
-        if ([string]::IsNullOrWhiteSpace($rawValue)) { $rawValue = 'N/A' }
 
-        $status = 'Investigate'
-        $details = ''
-        if ($normalizedState -eq 'Unknown') {
-            $details = 'The setting value could not be interpreted as enabled or disabled.'
-        }
-        elseif ($normalizedState -eq 'Disabled') {
-            $status = 'Fail'
-            $details = 'Disable local admin merge is set to no.'
-        }
-        elseif ($assigned) {
-            $status = 'Pass'
-            $details = 'Disable local admin merge is set to yes on an assigned policy.'
-        }
-        else {
-            $status = 'Fail'
-            $details = 'Disable local admin merge is set to yes but the policy is not assigned.'
+        $rawValue = (@($rawValues) | Select-Object -Unique) -join ', '
+        $normalizedState = (@($normalizedStates) | Select-Object -Unique) -join ', '
+        $status = if ($instanceStatuses -contains 'Fail') { 'Fail' }
+            elseif ($instanceStatuses -contains 'Investigate') { 'Investigate' }
+            else { 'Pass' }
+
+        $details = switch ($status) {
+            'Pass' { 'Disable local admin merge is set to yes on an assigned policy.' }
+            'Investigate' {
+                if ($normalizedStates -contains 'Unknown') { 'A disable local admin merge value could not be interpreted.' }
+                else { 'The policy assignment state could not be determined from the returned data.' }
+            }
+            default {
+                if ($normalizedStates -contains 'Disabled') { 'Disable local admin merge is set to no.' }
+                else { 'Disable local admin merge is set to yes but the policy is not assigned.' }
+            }
         }
 
         $evaluationResults += [PSCustomObject]@{
@@ -244,7 +267,7 @@ function Test-Assessment-41119 {
             Platforms           = $platforms
             Assigned            = $assignedText
             AssignmentTargets   = $assignmentTargetsText
-            SettingDefinitionId = $matchingInstance.settingDefinitionId
+            SettingDefinitionId = $matchingInstances[0].settingDefinitionId
             RawSettingValue     = $rawValue
             NormalizedState     = $normalizedState
             Details             = $details
@@ -313,13 +336,14 @@ function Test-Assessment-41119 {
     })
 
     if ($isTruncated) {
-        $tableRows += "| ... | ... | ... | ... | ... | ... | ... | ... | ... |"
+        $tableRows += "| ... $($totalCount - 10) omitted; $totalCount total ... | ... | ... | ... | ... | ... | ... | ... | ... |"
     }
 
     if ($tableRows.Count -gt 0) {
-        $countLine = ''
-        if ($isTruncated) {
-            $countLine = "Total policies: $totalCount (showing first 10)`n`n"
+        $countLine = if ($isTruncated) {
+            "Showing first 10 of $totalCount policies`n`n"
+        } else {
+            "Total policies: $totalCount`n`n"
         }
         $mdInfo = @"
 
