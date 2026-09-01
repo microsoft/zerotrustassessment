@@ -18,7 +18,45 @@ function Add-ZtOverviewSensitivityLabelProtection {
         $categories = foreach ($label in $enabledLabels) {
             $labelActions = @()
             if (-not [string]::IsNullOrWhiteSpace([string]$label.LabelActions)) {
-                $labelActions = @($label.LabelActions | ConvertFrom-Json -ErrorAction Stop)
+                $parsedLabelActions = $label.LabelActions | ConvertFrom-Json -NoEnumerate -ErrorAction Stop
+                if ($null -eq $parsedLabelActions) {
+                    throw 'Sensitivity label action schema is invalid.'
+                }
+                $labelActions = @($parsedLabelActions)
+
+                foreach ($action in $labelActions) {
+                    if (
+                        $null -eq $action -or
+                        $null -eq $action.PSObject.Properties['Type'] -or
+                        $action.Type -isnot [string] -or
+                        [string]::IsNullOrWhiteSpace([string]$action.Type)
+                    ) {
+                        throw 'Sensitivity label action schema is invalid.'
+                    }
+
+                    if ($action.Type -ieq 'encrypt') {
+                        if (
+                            $null -eq $action.PSObject.Properties['Settings'] -or
+                            $null -eq $action.Settings
+                        ) {
+                            throw 'Sensitivity label encryption action schema is invalid.'
+                        }
+
+                        foreach ($setting in @($action.Settings)) {
+                            if (
+                                $null -eq $setting -or
+                                $null -eq $setting.PSObject.Properties['Key'] -or
+                                $null -eq $setting.PSObject.Properties['Value'] -or
+                                $setting.Key -isnot [string] -or
+                                $setting.Value -isnot [string] -or
+                                [string]::IsNullOrWhiteSpace([string]$setting.Key) -or
+                                $null -eq $setting.Value
+                            ) {
+                                throw 'Sensitivity label encryption setting schema is invalid.'
+                            }
+                        }
+                    }
+                }
             }
 
             $encryptAction = @($labelActions | Where-Object { $_.Type -ieq 'encrypt' } | Select-Object -First 1)
