@@ -170,6 +170,20 @@ function Test-Assessment-41008 {
 
     $currentScore = $controlScoreEntry.score
 
+    # ── Investigate: incomplete score data would cause a false Pass ($null -eq $null) or false Fail ──
+    if ($null -eq $currentScore -or $null -eq $maxScore) {
+        $customStatus = 'Investigate'
+        $params = @{
+            TestId       = '41008'
+            Title        = 'Local administrator passwords on identity assets are protected and managed with Microsoft LAPS'
+            Status       = $passed
+            Result       = '⚠️ The MDI LAPS Secure Score control returned incomplete score data; re-run the assessment and investigate if the issue persists.'
+            CustomStatus = $customStatus
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
+
     # ── Evaluate Pass / Fail ──
     if ($currentScore -eq $maxScore) {
         $passed = $true
