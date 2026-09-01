@@ -41,6 +41,7 @@ import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
+import { DlpWorkloadCoverageCard } from "@/components/overview/dlp-workload-coverage";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 import { buildDeviceCoverageRows } from "@/lib/device-coverage";
@@ -108,6 +109,8 @@ export default function Dashboard() {
     const compliantDeviceCount = hasComplianceTotals ? rawCompliantDeviceCount : 0;
     const nonCompliantDeviceCount = hasComplianceTotals ? rawNonCompliantDeviceCount : discoveredDeviceTotal;
     const totalComplianceDeviceCount = compliantDeviceCount + nonCompliantDeviceCount;
+    const hasDlpWorkloadCoverage = reportData.TenantInfo != null
+        && Object.prototype.hasOwnProperty.call(reportData.TenantInfo, "DlpWorkloadCoverage");
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -1359,6 +1362,12 @@ export default function Dashboard() {
                         <AzureNetSecPlanes />
                     </CardContent>
                 </Card>
+            )}
+
+            {hasDlpWorkloadCoverage && (
+                <div className="mt-[26px] grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+                    <DlpWorkloadCoverageCard data={reportData.TenantInfo?.DlpWorkloadCoverage} />
+                </div>
             )}
         </TooltipProvider>
     )
