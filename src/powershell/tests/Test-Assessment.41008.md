@@ -5,7 +5,7 @@ The Local Administrator Password Solution randomizes the built-in local Administ
 - [What is Windows LAPS?](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
 - [Get started with Windows LAPS for Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory)
 - [Manage Windows LAPS in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/devices/howto-manage-local-admin-passwords)
-- [Microsoft Defender for Identity security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments)
+- [Microsoft Defender for Identity security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-assessment)
 
 <!--- Results --->
 %TestResult%

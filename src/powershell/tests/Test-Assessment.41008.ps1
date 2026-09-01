@@ -11,7 +11,8 @@
       Pass        – Every monitored identity asset has a LAPS-managed local Administrator password.
       Fail        – One or more monitored identity assets do not have a LAPS-managed local
                      Administrator password.
-      Investigate – The MDI posture control is not present in the tenant's Secure Score.
+      Investigate – The MDI posture control is not present in the tenant's Secure Score,
+                     or the control has been set to Ignored.
 
 .NOTES
     Test ID: 41008
@@ -78,8 +79,9 @@ function Test-Assessment-41008 {
 
     #region Assessment Logic
 
-    $passed       = $false
-    $customStatus = $null
+    $passed          = $false
+    $customStatus     = $null
+    $investigateMessage = 'The Microsoft Defender for Identity posture recommendation for Microsoft LAPS was not found in the tenant''s Microsoft Secure Score, or the control has been set to Ignored (the recommendation was dismissed, so LAPS compliance cannot be confirmed from Secure Score); verify that MDI posture assessments are enabled and review any ignored state.'
 
     # ── Investigate: Q1 returned no profile (404 / not provisioned) or an error (permission/transient) ──
     if ($null -eq $controlProfile) {
@@ -91,7 +93,7 @@ function Test-Assessment-41008 {
         }
         else {
             # HTTP 404 (or no error at all) means the control is simply absent from this tenant's Secure Score.
-            $investigateReason = 'The Microsoft Defender for Identity posture recommendation for Microsoft LAPS was not found in the tenant''s Microsoft Secure Score; verify that MDI posture assessments are enabled.'
+            $investigateReason = $investigateMessage
         }
 
         $customStatus = 'Investigate'
@@ -107,10 +109,28 @@ function Test-Assessment-41008 {
     }
 
     # Resolve profile fields
-    $controlId = $controlProfile.id
+    $controlId    = $controlProfile.id
     $profileTitle = $controlProfile.title
-    $maxScore = $controlProfile.maxScore
-    $actionUrl = $controlProfile.actionUrl
+    $maxScore     = $controlProfile.maxScore
+    $actionUrl    = $controlProfile.actionUrl
+
+    # ── Check if the control has been dismissed in Secure Score ──
+    $latestStateUpdate = @($controlProfile.controlStateUpdates | Sort-Object { if ($_.updatedDateTime) { [datetime]$_.updatedDateTime } else { [datetime]::MinValue } } -Descending) | Select-Object -First 1
+    $isIgnored    = $latestStateUpdate -and $latestStateUpdate.state -eq 'Ignored'
+    $controlState = if ($latestStateUpdate -and -not [string]::IsNullOrEmpty($latestStateUpdate.state)) { $latestStateUpdate.state } else { '—' }
+
+    if ($isIgnored) {
+        $customStatus = 'Investigate'
+        $params = @{
+            TestId       = '41008'
+            Title        = 'Local administrator passwords on identity assets are protected and managed with Microsoft LAPS'
+            Status       = $passed
+            Result       = "⚠️ $investigateMessage"
+            CustomStatus = $customStatus
+        }
+        Add-ZtTestResultDetail @params
+        return
+    }
 
     # ── Investigate: Q2 returned no data at all ──
     if ($null -eq $latestSecureScore) {
@@ -141,7 +161,7 @@ function Test-Assessment-41008 {
             TestId       = '41008'
             Title        = 'Local administrator passwords on identity assets are protected and managed with Microsoft LAPS'
             Status       = $passed
-            Result       = '⚠️ The Microsoft Defender for Identity posture recommendation for Microsoft LAPS was not found in the tenant''s Microsoft Secure Score; verify that MDI posture assessments are enabled.'
+            Result       = "⚠️ $investigateMessage"
             CustomStatus = $customStatus
         }
         Add-ZtTestResultDetail @params
@@ -173,13 +193,13 @@ function Test-Assessment-41008 {
         $mdFailLink = "`n## [Defender XDR > Secure Score > Recommendations]($defenderLink)`n"
     }
 
-    $tableRows = "| $titleMarkdown | $currentScore | $maxScore | $defenderLinkMarkdown | $statusLabel |`n"
+    $tableRows = "| $titleMarkdown | $currentScore | $maxScore | $controlState | $defenderLinkMarkdown | $statusLabel |`n"
 
     $mdTable = @"
 
 $mdFailLink
-| Recommendation title | Current score | Maximum score | Defender XDR Recommendation Link | Status |
-| :-------------------- | :-----------: | :-----------: | :-------------------------------- | :----: |
+| Recommendation title | Current score | Maximum score | Control state | Defender XDR Recommendation Link | Status |
+| :-------------------- | :-----------: | :-----------: | :------------ | :-------------------------------- | :----: |
 $tableRows
 "@
 
