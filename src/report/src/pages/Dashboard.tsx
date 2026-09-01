@@ -39,6 +39,7 @@ import { CaDeviceSankey } from "@/components/overview/caDevice-sankey";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
+import { SensitivityLabelProtectionSankey } from "@/components/overview/sensitivity-label-protection-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
@@ -1289,7 +1290,11 @@ export default function Dashboard() {
             {(() => {
                 const swg = hasSwgData();
                 const privateAccess = hasPrivateAccessData();
-                if (!swg && !privateAccess) return null;
+                const sensitivityLabels = Object.prototype.hasOwnProperty.call(
+                    reportData.TenantInfo ?? {},
+                    "SensitivityLabelProtection",
+                );
+                if (!swg && !privateAccess && !sensitivityLabels) return null;
 
                 return (
                     <div className="mx-auto mt-6 grid w-full max-w-7xl grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
@@ -1312,6 +1317,7 @@ export default function Dashboard() {
                             </Card>
                         )}
                         {privateAccess && <PrivateAccessSankey />}
+                        {sensitivityLabels && <SensitivityLabelProtectionSankey />}
                     </div>
                 );
             })()}

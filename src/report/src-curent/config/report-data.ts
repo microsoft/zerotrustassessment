@@ -23,6 +23,7 @@ export interface TenantInfo {
   OverviewAuthMethodsAllUsers?: SankeyData | null;
   OverviewM365ProtectionCircuit?: M365ProtectionCircuitSankeyData | null;
   OverviewPrivateAccess?: PrivateAccessSankeyData | null;
+  SensitivityLabelProtection?: SensitivityLabelProtectionSankeyData | null;
   ConfigWindowsEnrollment?: ConfigWindowsEnrollment[] | null;
   ConfigDeviceEnrollmentRestriction?: ConfigDeviceEnrollmentRestriction[] | null;
   ConfigDeviceCompliancePolicies?: ConfigDeviceCompliancePolicies[] | null;
@@ -164,6 +165,14 @@ export interface PrivateAccessSankeyData extends SankeyData {
   applicationCount?: number;
   tenantWideAdmin?: number;
   scopedAdminAtRisk?: number;
+}
+
+export interface SensitivityLabelProtectionSankeyData extends SankeyData {
+  totalLabelCount: number;
+  encryptionDkeCount: number;
+  encryptionCount: number;
+  visualMarkingOnlyCount: number;
+  classificationOnlyCount: number;
 }
 
 export interface PrivateAccessGate {

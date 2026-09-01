@@ -38,6 +38,7 @@ import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
+import { SensitivityLabelProtectionSankey } from "@/components/overview/sensitivity-label-protection-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
@@ -1318,7 +1319,10 @@ export default function Dashboard() {
             )}
 
             {/* Network overview */}
-            {(hasSwgData() || hasPrivateAccessData()) && (
+            {(hasSwgData() || hasPrivateAccessData() || Object.prototype.hasOwnProperty.call(
+                reportData.TenantInfo ?? {},
+                "SensitivityLabelProtection",
+            )) && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                     {hasSwgData() && (
                         <Card className="h-full">
@@ -1339,6 +1343,10 @@ export default function Dashboard() {
                         </Card>
                     )}
                     {hasPrivateAccessData() && <PrivateAccessSankey />}
+                    {Object.prototype.hasOwnProperty.call(
+                        reportData.TenantInfo ?? {},
+                        "SensitivityLabelProtection",
+                    ) && <SensitivityLabelProtectionSankey />}
                 </div>
             )}
 
