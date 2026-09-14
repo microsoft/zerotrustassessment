@@ -74,8 +74,8 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'Application'
 	Uri = 'beta/applications'
-	QueryString = '$top=999'
-	RelatedPropertyNames = @()
+	QueryString = '$top=999&$select=id,appId,displayName,signInAudience,tags,passwordCredentials,keyCredentials,servicePrincipalLockConfiguration'
+	RelatedPropertyNames = @('owners?$select=id,displayName,userPrincipalName,userType,accountEnabled')
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')

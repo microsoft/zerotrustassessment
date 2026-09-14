@@ -139,6 +139,11 @@ function Export-ZtGraphEntity {
 			return
 		}
 
+		# Preserve query options in the Graph request while storing results under the navigation property name.
+		# For example, 'owners?$select=id,displayName' is requested as written but assigned to 'owners'.
+		$propertyNameParts = $PropertyName -split '\?', 2
+		$propertyKey = $propertyNameParts[0]
+
 		$data = Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id -Matched -ErrorAction SilentlyContinue -ErrorVariable failed
 		# Since the argument property is the original hashtable provided, we can update the hashtable as it is and thereby update the original object
 		foreach ($pair in $data) {
@@ -147,7 +152,7 @@ function Export-ZtGraphEntity {
 				continue
 			}
 
-			$pair.Argument[$PropertyName] = $($pair.Result)
+			$pair.Argument[$propertyKey] = $($pair.Result)
 		}
 
 		foreach ($fail in $failed) {
