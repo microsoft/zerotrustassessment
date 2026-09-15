@@ -205,6 +205,31 @@ function Test-Assessment-41119 {
             continue
         }
 
+        $malformedSettings = @($settings | Where-Object {
+            $null -eq $_ -or
+            $null -eq $_.PSObject.Properties['settingInstance'] -or
+            $null -eq $_.PSObject.Properties['settingInstance'].Value
+        })
+        if ($malformedSettings.Count -gt 0) {
+            Write-PSFMessage "The settings response for policy '$($policy.name)' did not contain usable settingInstance data." -Tag Test -Level Warning
+            $evaluationResults += [PSCustomObject]@{
+                PolicyName          = $policy.name
+                PolicyId            = $policy.id
+                TemplateFamily      = $templateFamily
+                Technologies        = $technologies
+                TemplateId          = $templateId
+                Platforms           = $platforms
+                Assigned            = $assignedText
+                AssignmentTargets   = $assignmentTargetsText
+                SettingDefinitionId = 'N/A'
+                RawSettingValue     = 'N/A'
+                NormalizedState     = 'Unknown'
+                Details             = 'The policy settings response did not contain usable settingInstance data.'
+                Status              = 'Investigate'
+            }
+            continue
+        }
+
         # Identify the control by exact, case-insensitive settingDefinitionId equality.
         # Evaluate every matching instance (Graph can nest duplicates) and roll up within the policy.
         $allInstances = @(Get-AllSettingInstances -SettingInstances @($settings.settingInstance))
