@@ -1,0 +1,10 @@
+The Microsoft Entra Connect synchronization account (typically named `MSOL_<hash>` or `AD_AAD_<hash>`) is granted, by default, the directory permissions necessary for the configured Entra Connect features: writeback, password hash sync, and so on. Replication permissions (`Replicating Directory Changes` and `Replicating Directory Changes All`) are required for password hash synchronization (PHS); remove them only after confirming that PHS and any other legitimate consumers no longer require them. A change of sign-in method or the presence of multiple synchronization accounts alone does not establish that these permissions are unnecessary. When the MSOL_ account holds replication rights it does not need, it becomes a Tier-0 credential whose compromise — through credential extraction on the Entra Connect server or password recovery from the Entra Connect database — enables a threat actor to pull every credential hash from the domain, leading to lateral movement, long-lived authentication forgery, and forest-wide privilege escalation. Microsoft Defender for Identity's "Remove unnecessary replication permissions for Microsoft Entra Connect AD DS Connector account" posture assessment identifies exposed accounts for administrators to review before removing permissions.
+
+**Remediation action**
+
+- [Remove unnecessary replication permissions for Microsoft Entra Connect AD DS Connector account](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/hybrid-security#remove-unnecessary-replication-permissions-for-microsoft-entra-connect-ad-ds-connector-account)
+- [Microsoft Entra Connect: Accounts and permissions](https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/reference-connect-accounts-permissions)
+- [Microsoft Defender for Identity hybrid security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/hybrid-security)
+
+<!--- Results --->
+%TestResult%
