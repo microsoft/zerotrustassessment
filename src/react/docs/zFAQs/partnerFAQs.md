@@ -14,6 +14,10 @@ The Zero Trust Workshop is designed to be a self-service tool, meaning that all 
 
 For training materials, check out the [Zero Trust Workshop Plan](https://microsoft.github.io/zerotrustassessment/guide) page and the [Docs](https://microsoft.github.io/zerotrustassessment/docs/intro) section of the website.
 
+## Is there a Pitch Deck I can use to pitch this to customers?
+
+Yes, you can find the pitch deck at [aka.ms/ztworkshop/pitchdeck](https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZTWorkshopPitchDeck.pptx)
+
 ## How can Microsoft Partners report their workshop deliveries?
 
 By sharing feedback and reporting on workshop deliveries, partners will be helping Microsoft to better tailor the Microsoft Zero Trust Workshop to meet partner demand and needs. Partners can self-report Microsoft Zero Trust Workshop deliveries via the following form: [Microsoft Zero Trust Workshop Partner Delivery Survey](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR7t6ckxTCw9OiSbwsJxSnMlUMDEzTUtLQ0dXSUMyTjJPVVI5M1JYNUNRNC4u)
