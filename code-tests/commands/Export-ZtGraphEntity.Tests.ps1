@@ -244,6 +244,140 @@ Describe "Export-ZtGraphEntity" {
             $secondPage.value[0].principal.displayName | Should -Be 'Recovered Group'
         }
 
+        It "Does not retry an unchanged unresolved principal on later pages" {
+            $script:rolePage = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $result = @{
+                    value = @(@{
+                        id = "assignment-$script:rolePage"
+                        principalId = 'deleted-group'
+                        principal = @{ id = 'deleted-group'; '@odata.type' = '#microsoft.graph.group' }
+                    })
+                }
+                if ($script:rolePage -lt 3) {
+                    $result['@odata.nextLink'] = "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?`$skiptoken=$script:rolePage"
+                }
+                return $result
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest { return @() }
+
+            Export-ZtGraphEntity -Name 'RoleAssignmentScheduleInstance' `
+                -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' `
+                -QueryString '$expand=principal($select=id)' -ResolveRolePrincipals `
+                -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphRequest -Times 1 -Exactly -ParameterFilter {
+                $RelativeUri -eq 'groups'
+            }
+            $thirdPage = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-2.json') -Raw | ConvertFrom-Json
+            $thirdPage.value[0].principal.id | Should -Be 'deleted-group'
+            $thirdPage.value[0].principal.'@odata.type' | Should -Be '#microsoft.graph.group'
+            $thirdPage.value[0].principal.displayName | Should -BeNullOrEmpty
+        }
+
+        It "Retries a principal on a later page after a transient lookup exception" {
+            $script:rolePage = 0
+            $script:groupLookup = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $result = @{
+                    value = @(@{
+                        id = "assignment-$script:rolePage"
+                        principalId = 'group-1'
+                        principal = @{ id = 'group-1'; '@odata.type' = '#microsoft.graph.group' }
+                    })
+                }
+                if ($script:rolePage -eq 1) {
+                    $result['@odata.nextLink'] = 'https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?$skiptoken=next'
+                }
+                return $result
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                $script:groupLookup++
+                if ($script:groupLookup -eq 1) {
+                    throw 'Transient Graph failure'
+                }
+                return @{ id = 'group-1'; '@odata.type' = '#microsoft.graph.group'; displayName = 'Recovered Group' }
+            } -ParameterFilter { $RelativeUri -eq 'groups' }
+
+            Export-ZtGraphEntity -Name 'RoleAssignmentScheduleInstance' `
+                -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' `
+                -QueryString '$expand=principal($select=id)' -ResolveRolePrincipals `
+                -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphRequest -Times 2 -Exactly -ParameterFilter {
+                $RelativeUri -eq 'groups'
+            }
+            $secondPage = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-1.json') -Raw | ConvertFrom-Json
+            $secondPage.value[0].principal.displayName | Should -Be 'Recovered Group'
+        }
+
+        It "Refines a cached base type when a later page provides a derived subtype" {
+            $script:rolePage = 0
+            $script:servicePrincipalLookup = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                if ($script:rolePage -eq 1) {
+                    return @{
+                        value = @(@{
+                            id = 'assignment-1'
+                            principalId = 'agent-identity-1'
+                            principal = @{ id = 'agent-identity-1'; '@odata.type' = '#microsoft.graph.servicePrincipal' }
+                        })
+                        '@odata.nextLink' = 'https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?$skiptoken=next'
+                    }
+                }
+                return @{ value = @(@{
+                    id = 'assignment-2'
+                    principalId = 'agent-identity-1'
+                    principal = @{ id = 'agent-identity-1'; '@odata.type' = '#microsoft.graph.agentIdentity' }
+                }) }
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                $script:servicePrincipalLookup++
+                if ($script:servicePrincipalLookup -eq 1) {
+                    return @()
+                }
+                return @{
+                    id = 'agent-identity-1'
+                    '@odata.type' = '#microsoft.graph.agentIdentity'
+                    displayName = 'Recovered Agent'
+                }
+            } -ParameterFilter { $RelativeUri -eq 'servicePrincipals' }
+
+            Export-ZtGraphEntity -Name 'RoleAssignmentScheduleInstance' `
+                -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' `
+                -QueryString '$expand=principal($select=id)' -ResolveRolePrincipals `
+                -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphRequest -Times 2 -Exactly -ParameterFilter {
+                $RelativeUri -eq 'servicePrincipals'
+            }
+            $secondPage = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-1.json') -Raw | ConvertFrom-Json
+            $secondPage.value[0].principal.'@odata.type' | Should -Be '#microsoft.graph.agentIdentity'
+            $secondPage.value[0].principal.displayName | Should -Be 'Recovered Agent'
+        }
+
+        It "Skips enrichment when a later duplicate on the same page completes the principal" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                return @{ value = @(
+                    @{ id = 'assignment-1'; principalId = 'group-1'; principal = $null }
+                    @{ id = 'assignment-2'; principalId = 'group-1'; principal = @{ id = 'group-1'; '@odata.type' = '#microsoft.graph.group'; displayName = 'Complete Group' } }
+                ) }
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest { return @() }
+
+            Export-ZtGraphEntity -Name 'RoleAssignmentScheduleInstance' `
+                -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' `
+                -QueryString '$expand=principal($select=id)' -ResolveRolePrincipals `
+                -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphRequest -Times 0 -Exactly
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-0.json') -Raw | ConvertFrom-Json
+            @($export.value.principal.displayName) | Should -Be @('Complete Group', 'Complete Group')
+        }
+
         It "Resolves a missing principal type before querying the typed endpoint" {
             Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
                 return @{ value = @(@{ id = 'assignment-1'; principalId = 'user-1'; principal = @{ id = 'user-1' } }) }
@@ -414,9 +548,11 @@ Describe "Export-ZtGraphEntity" {
 
             Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Write-PSFMessage -Times 1 -Exactly -ParameterFilter {
                 $Level -eq 'Warning' -and
-                $Message -eq '{0} role principals could not be enriched. Their identifiers and known types were preserved. Sample IDs: {1}' -and
+                $Message -eq '{0} role principals could not be enriched. Their identifiers and known types were preserved in the export.' -and
                 $StringValues[0] -eq 3 -and
-                $StringValues[1] -eq 'deleted-user-1, deleted-user-2, deleted-user-3'
+                $StringValues -notcontains 'deleted-user-1' -and
+                $StringValues -notcontains 'deleted-user-2' -and
+                $StringValues -notcontains 'deleted-user-3'
             }
             $export = Get-Content (Join-Path $script:roleExportPath 'RoleEligibilityScheduleInstance/RoleEligibilityScheduleInstance-0.json') -Raw | ConvertFrom-Json
             @($export.value.principal.id) | Should -Be @('deleted-user-3', 'deleted-user-1', 'deleted-user-2')

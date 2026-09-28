@@ -14,6 +14,7 @@ function Resolve-ZtRoleAssignmentPrincipal {
 	}
 
 	$unresolved = @{}
+	$completedLookups = @{}
 	foreach ($assignment in $Assignments) {
 		$principal = $assignment.principal
 		$principalId = if ($principal.id) { $principal.id } else { $assignment.principalId }
@@ -21,6 +22,7 @@ function Resolve-ZtRoleAssignmentPrincipal {
 			continue
 		}
 
+		$hasNewPrincipalData = $false
 		if (-not $Cache.ContainsKey($principalId)) {
 			$Cache[$principalId] = @{
 				'@odata.type' = $principal.'@odata.type'
@@ -28,18 +30,36 @@ function Resolve-ZtRoleAssignmentPrincipal {
 				displayName = $principal.displayName
 				userPrincipalName = $principal.userPrincipalName
 				uniqueName = $principal.uniqueName
+				'__ztLookupAttempted' = $false
 			}
+			$hasNewPrincipalData = $true
 		}
 		else {
-			foreach ($propertyName in '@odata.type', 'displayName', 'userPrincipalName', 'uniqueName') {
+			$cachedType = $Cache[$principalId]['@odata.type']
+			$incomingType = $principal.'@odata.type'
+			$isDerivedType =
+				($cachedType -eq '#microsoft.graph.user' -and $incomingType -eq '#microsoft.graph.agentUser') -or
+				($cachedType -eq '#microsoft.graph.servicePrincipal' -and $incomingType -in @('#microsoft.graph.agentIdentity', '#microsoft.graph.agentIdentityBlueprintPrincipal'))
+			if ($incomingType -and (-not $cachedType -or $isDerivedType)) {
+				$Cache[$principalId]['@odata.type'] = $incomingType
+				$hasNewPrincipalData = $true
+			}
+
+			foreach ($propertyName in 'displayName', 'userPrincipalName', 'uniqueName') {
 				if (-not $Cache[$principalId][$propertyName] -and $principal.$propertyName) {
 					$Cache[$principalId][$propertyName] = $principal.$propertyName
+					$hasNewPrincipalData = $true
 				}
 			}
 		}
 
-		if (-not $Cache[$principalId]['@odata.type'] -or -not $Cache[$principalId].displayName) {
+		$lookupAttempted = $Cache[$principalId]['__ztLookupAttempted']
+		$isIncomplete = -not $Cache[$principalId]['@odata.type'] -or -not $Cache[$principalId].displayName
+		if ($isIncomplete -and (-not $lookupAttempted -or $hasNewPrincipalData)) {
 			$unresolved[$principalId] = $Cache[$principalId]['@odata.type']
+		}
+		elseif (-not $isIncomplete) {
+			[void]$unresolved.Remove($principalId)
 		}
 	}
 
@@ -58,6 +78,11 @@ function Resolve-ZtRoleAssignmentPrincipal {
 				if ($result.id -and $unresolved.ContainsKey($result.id)) {
 					$unresolved[$result.id] = $result.'@odata.type'
 					$Cache[$result.id]['@odata.type'] = $result.'@odata.type'
+				}
+			}
+			foreach ($id in $ids) {
+				if (-not $unresolved[$id]) {
+					$completedLookups[$id] = $true
 				}
 			}
 		}
@@ -99,8 +124,11 @@ function Resolve-ZtRoleAssignmentPrincipal {
 
 		try {
 			$principals = @(Invoke-ZtGraphRequest -RelativeUri $typeDefinition.RelativeUri -UniqueId $principalIds -Select $typeDefinition.Select -ApiVersion beta -OutputType Hashtable -DisableCache)
+			foreach ($principalId in $principalIds) {
+				$completedLookups[$principalId] = $true
+			}
 			foreach ($principal in $principals) {
-				if (-not $principal.id -or -not $Cache.ContainsKey($principal.id)) {
+				if (-not $principal.id -or $principal.id -notin $principalIds -or -not $Cache.ContainsKey($principal.id)) {
 					continue
 				}
 
@@ -119,6 +147,7 @@ function Resolve-ZtRoleAssignmentPrincipal {
 					displayName = if ($principal.displayName) { $principal.displayName } else { $Cache[$principal.id].displayName }
 					userPrincipalName = if ($principal.userPrincipalName) { $principal.userPrincipalName } else { $Cache[$principal.id].userPrincipalName }
 					uniqueName = if ($principal.uniqueName) { $principal.uniqueName } else { $Cache[$principal.id].uniqueName }
+					'__ztLookupAttempted' = $Cache[$principal.id]['__ztLookupAttempted']
 				}
 			}
 		}
@@ -127,10 +156,19 @@ function Resolve-ZtRoleAssignmentPrincipal {
 		}
 	}
 
+	$supportedTypes = @($typeDefinitions | ForEach-Object { $_.ODataTypes })
+	foreach ($principalId in $unresolved.Keys) {
+		if ($unresolved[$principalId] -and $unresolved[$principalId] -notin $supportedTypes) {
+			$completedLookups[$principalId] = $true
+		}
+	}
+	foreach ($principalId in $completedLookups.Keys) {
+		$Cache[$principalId]['__ztLookupAttempted'] = $true
+	}
+
 	$unenrichedPrincipalIds = @($unresolved.Keys | Where-Object { -not $Cache[$_]['@odata.type'] -or -not $Cache[$_].displayName } | Sort-Object)
 	if ($unenrichedPrincipalIds) {
-		$sampleIds = @($unenrichedPrincipalIds | Select-Object -First 10) -join ', '
-		Write-PSFMessage -Level Warning -Message '{0} role principals could not be enriched. Their identifiers and known types were preserved. Sample IDs: {1}' -StringValues $unenrichedPrincipalIds.Count, $sampleIds -Tag Graph, Export
+		Write-PSFMessage -Level Warning -Message '{0} role principals could not be enriched. Their identifiers and known types were preserved in the export.' -StringValues $unenrichedPrincipalIds.Count -Tag Graph, Export
 	}
 
 	foreach ($assignment in $Assignments) {
@@ -139,11 +177,18 @@ function Resolve-ZtRoleAssignmentPrincipal {
 			continue
 		}
 
+		$resolvedPrincipal = @{
+			'@odata.type' = $Cache[$principalId]['@odata.type']
+			id = $Cache[$principalId].id
+			displayName = $Cache[$principalId].displayName
+			userPrincipalName = $Cache[$principalId].userPrincipalName
+			uniqueName = $Cache[$principalId].uniqueName
+		}
 		if ($assignment -is [System.Collections.IDictionary]) {
-			$assignment['principal'] = $Cache[$principalId].Clone()
+			$assignment['principal'] = $resolvedPrincipal
 		}
 		else {
-			$assignment.principal = [pscustomobject]$Cache[$principalId].Clone()
+			$assignment.principal = [pscustomobject]$resolvedPrincipal
 		}
 	}
 }
