@@ -85,21 +85,25 @@
 	}
 	#endregion Execute Query
 
-	#region Process Results
-	$logsIncludeResults = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Logging.Database.IncludeQueryResults'
+	try {
+		#region Process Results
+		$logsIncludeResults = Get-PSFConfigValue -FullName 'ZeroTrustAssessment.Logging.Database.IncludeQueryResults'
 
-	while ($reader.read()) {
-		if ($Ordered) { $rowObject = [ordered]@{} }
-		else { $rowObject = @{} }
+		while ($reader.read()) {
+			if ($Ordered) { $rowObject = [ordered]@{} }
+			else { $rowObject = @{} }
 
-		for ($columnIndex = 0; $columnIndex -lt $reader.FieldCount; $columnIndex++ ) {
-			$rowObject[$reader.GetName($columnIndex)] = $reader.GetValue($columnIndex)
+			for ($columnIndex = 0; $columnIndex -lt $reader.FieldCount; $columnIndex++ ) {
+				$rowObject[$reader.GetName($columnIndex)] = $reader.GetValue($columnIndex)
+			}
+			if ($logsIncludeResults) { Write-PSFMessage $rowObject -Target $rowObject -Level Debug -Tag DB }
+			if ($AsCustomObject) { [PSCustomObject]$rowObject }
+			else { $rowObject }
 		}
-		if ($logsIncludeResults) { Write-PSFMessage $rowObject -Target $rowObject -Level Debug -Tag DB }
-		if ($AsCustomObject) { [PSCustomObject]$rowObject }
-		else { $rowObject }
+		#endregion Process Results
 	}
-	#endregion Process Results
-
-    $cmd.Dispose()
+	finally {
+    	$cmd.Dispose()
+		$reader.Dispose()
+	}
 }
