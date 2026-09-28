@@ -9,8 +9,10 @@ Describe "Export-ZtGraphEntity" {
 
     BeforeAll {
         $srcRoot = Join-Path $PSScriptRoot "../../src/powershell"
-        if (-not (Get-Module ZeroTrustAssessment -ErrorAction SilentlyContinue)) {
-            Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global 3>$null
+        if (-not (Get-Command Export-ZtGraphEntity -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Module ZeroTrustAssessment -ErrorAction SilentlyContinue)) {
+				Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global 3>$null
+            }
             Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psm1") -Global -Force 3>$null
         }
         if (-not (Get-Command Get-MgContext -ErrorAction SilentlyContinue)) {
