@@ -97,29 +97,37 @@ ORDER BY displayName
 
     $blueprintObjectIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($blueprint in $agentBlueprints) {
-        if (-not [string]::IsNullOrEmpty($blueprint.id)) { $null = $blueprintObjectIdSet.Add($blueprint.id) }
+        if (-not [string]::IsNullOrEmpty($blueprint.id) -and $agentIdentities.agentIdentityBlueprintId -contains $blueprint.appId) {
+            $null = $blueprintObjectIdSet.Add($blueprint.id)
+        }
     }
 
     $lookbackDate = (Get-Date).ToUniversalTime().AddDays(-30).ToString('yyyy-MM-ddTHH:mm:ssZ')
 
-    # Q3: Last 30 days of interactive user sign-ins targeting agent blueprints (live Graph — sign-in logs are not exported)
+    # Q3: Last 30 days of interactive user sign-ins targeting agent blueprints (the export only covers Office 365 Shell sign-ins)
     Write-ZtProgress -Activity $activity -Status 'Getting interactive user sign-ins (Q3)'
     $q3QueryError = $null
     $interactiveSignIns = @()
     try {
-        $interactiveSignIns = @(Invoke-ZtGraphRequest `
-            -RelativeUri 'auditLogs/signIns' `
-            -ApiVersion beta `
-            -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'interactiveUser')" `
-            -Select @('id', 'createdDateTime', 'userPrincipalName', 'appId', 'resourceId', 'resourceDisplayName', 'signInEventTypes') `
-            -ErrorAction Stop)
+        $interactiveSignIns = @(foreach ($blueprintObjectId in $blueprintObjectIdSet) {
+            $resourceIdFilter = $blueprintObjectId.Replace("'", "''")
+            $response = Invoke-ZtGraphRequest `
+                -RelativeUri 'auditLogs/signIns' `
+                -ApiVersion beta `
+                -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'interactiveUser') and resourceId eq '$resourceIdFilter'" `
+                -Select @('createdDateTime', 'resourceId') `
+                -Top 1 `
+                -DisablePaging `
+                -ErrorAction Stop
+            $response.value
+        })
     }
     catch {
         $q3QueryError = $_
         Write-PSFMessage "Failed to retrieve interactive sign-in logs: $_" -Tag Test -Level Warning
     }
 
-    # Q4: Last 30 days of agentic non-interactive sign-ins on behalf of real users (live Graph — sign-in logs are not exported)
+    # Q4: Last 30 days of agentic non-interactive sign-ins on behalf of real users (not covered by the existing export)
     Write-ZtProgress -Activity $activity -Status 'Getting agentic non-interactive sign-ins (Q4)'
     $q4QueryError = $null
     $agenticSignIns = @()
@@ -128,7 +136,7 @@ ORDER BY displayName
             -RelativeUri 'auditLogs/signIns' `
             -ApiVersion beta `
             -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'nonInteractiveUser') and agent/agentType eq 'agenticAppInstance' and agent/agentSubjectType ne 'agentIDuser'" `
-            -Select @('id', 'createdDateTime', 'userPrincipalName', 'appId', 'resourceId', 'resourceDisplayName', 'signInEventTypes', 'agent') `
+            -Select @('createdDateTime', 'agent') `
             -ErrorAction Stop)
     }
     catch {
