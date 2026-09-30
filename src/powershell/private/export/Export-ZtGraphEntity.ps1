@@ -26,9 +26,6 @@ function Export-ZtGraphEntity {
 		Additional sub-datasets to retrieve for each entity.
 		For example in cases, where multiple requests are needed - such as "oauth2PermissionGrants" for Service Principals.
 
-	.PARAMETER ResolveRolePrincipals
-		Resolves id-only role principals to the minimal scalar object required by role processing.
-
 	.PARAMETER MaximumQueryTime
 		Maximum time we will spend on this query, iterating through the pages.
 
@@ -60,10 +57,6 @@ function Export-ZtGraphEntity {
 		# The additional properties/relations to be queried for each object. e.g. oauth2PermissionGrants
 		[string[]]
 		$RelatedPropertyNames,
-
-		# Resolve id-only role principals to the minimal object shape required by role processing.
-		[switch]
-		$ResolveRolePrincipals,
 
 		# The maximum time (in minutes) the assessment should spend on querying this entity.
 		[int]
@@ -102,13 +95,7 @@ function Export-ZtGraphEntity {
 			$Name,
 
 			[string]
-			$Uri,
-
-			[switch]
-			$ResolveRolePrincipals,
-
-			[hashtable]
-			$RolePrincipalCache
+			$Uri
 		)
 		Write-PSFMessage "Exporting $Name page $PageIndex"
 		$newResults = $Results
@@ -119,10 +106,6 @@ function Export-ZtGraphEntity {
 				Add-GraphProperty -Results $items -PropertyName $propertyName -Name $Name -Uri $Uri
 			}
 			$newResults = @{ value = $items }
-		}
-
-		if ($ResolveRolePrincipals) {
-			Resolve-ZtRoleAssignmentPrincipal -Assignments $newResults.Value -Cache $RolePrincipalCache
 		}
 
 		$filePath = Join-Path -Path $Path -ChildPath "$Name-$PageIndex.json"
@@ -188,7 +171,6 @@ function Export-ZtGraphEntity {
 	$pageIndex = 0
 	$totalSize = 0
 	$isSignInLog = $Name -eq 'SignIn'
-	$rolePrincipalCache = @{}
 
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $Name
 	Clear-ZtFolder -Path $folderPath
@@ -234,7 +216,7 @@ function Export-ZtGraphEntity {
 			throw $errorRecord
 		}
 
-		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri -ResolveRolePrincipals:$ResolveRolePrincipals -RolePrincipalCache $rolePrincipalCache
+		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
 
 		# Track file size for SignIn logs
 		if ($isSignInLog) {

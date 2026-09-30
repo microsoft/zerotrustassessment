@@ -88,7 +88,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 	Name = 'ServicePrincipal'
 	Uri = 'beta/servicePrincipals'
 	QueryString = '$expand=appRoleAssignments($select=id,appRoleId,principalId,resourceId)&$top=999&$select=id,appId,displayName,accountEnabled,servicePrincipalType,signInAudience,appOwnerOrganizationId,publisherName,replyUrls,preferredSingleSignOnMode,appRoleAssignmentRequired,tags,passwordCredentials,keyCredentials,appRoles,customSecurityAttributes,agentIdentityBlueprintId,createdByAppId'
-	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners?$select=id')
+	RelatedPropertyNames = @('oauth2PermissionGrants', 'owners')
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
@@ -113,7 +113,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'AgentIdentityBlueprint'
 	Uri = 'beta/applications/microsoft.graph.agentIdentityBlueprint'
-	QueryString = '$top=999&$expand=sponsors($select=id,mailEnabled)'
+	QueryString = '$top=999&$expand=sponsors($select=id)'
 	RelatedPropertyNames = @()
 	Type = 'Default'
 
@@ -123,7 +123,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'AgentIdentity'
 	Uri = 'beta/servicePrincipals/microsoft.graph.agentIdentity'
-	QueryString = '$top=999&$expand=sponsors($select=id,mailEnabled)'
+	QueryString = '$top=999&$expand=sponsors($select=id)'
 	RelatedPropertyNames = @()
 	Type = 'Default'
 
@@ -143,7 +143,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'User'
 	Uri = 'beta/users'
-	QueryString = '$top=999&$select=id,displayName,userPrincipalName,userType,accountEnabled,createdDateTime,externalUserState,passwordPolicies,onPremisesSyncEnabled,signInActivity'
+	QueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country, signInActivity'
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
@@ -156,7 +156,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'User'
 	Uri = 'beta/users'
-	QueryString = '$top=999&$select=id,displayName,userPrincipalName,userType,accountEnabled,createdDateTime,externalUserState,passwordPolicies,onPremisesSyncEnabled'
+	QueryString = '$top=999&$select=deletedDateTime, userType, streetAddress, onPremisesSipInfo, displayName, preferredLanguage, postalCode, faxNumber, onPremisesUserPrincipalName, serviceProvisioningErrors, cloudRealtimeCommunicationInfo, createdDateTime, signInSessionsValidFromDateTime, creationType, city, onPremisesDomainName, onPremisesProvisioningErrors, externalUserStateChangeDateTime, proxyAddresses, imAddresses, refreshTokensValidFromDateTime, onPremisesLastSyncDateTime, passwordPolicies, employeeLeaveDateTime, surname, employeeId, showInAddressList, usageLocation, isManagementRestricted, assignedPlans, authorizationInfo, id, provisionedPlans, userPrincipalName, accountEnabled, passwordProfile, onPremisesObjectIdentifier, state, ageGroup, isLicenseReconciliationNeeded, mobilePhone, employeeHireDate, securityIdentifier, onPremisesSyncEnabled, identities, jobTitle, onPremisesSecurityIdentifier, companyName, legalAgeGroupClassification, otherMails, mailNickname, employeeOrgData, assignedLicenses, employeeType, onPremisesSamAccountName, externalUserState, businessPhones, isResourceAccount, mail, infoCatalogs, deviceKeys, onPremisesImmutableId, externalUserConvertedOn, department, onPremisesExtensionAttributes, givenName, preferredDataLocation, officeLocation, onPremisesDistinguishedName, consentProvidedForMinor, country'
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
@@ -195,7 +195,7 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'RoleAssignment'
 	Uri = 'beta/roleManagement/directory/roleAssignments'
-	QueryString = '$expand=principal($select=id,displayName,userPrincipalName,uniqueName)&$select=id,principalOrganizationId,resourceScope,directoryScopeId,principalId,roleDefinitionId'
+	QueryString = '$expand=principal'
 	RelatedPropertyNames = @()
 	Type = 'Default' # PrivilegedGroup
 
@@ -208,9 +208,8 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'RoleAssignmentScheduleInstance'
 	Uri = 'beta/roleManagement/directory/roleAssignmentScheduleInstances'
-	QueryString = '$expand=principal($select=id)&$filter = assignmentType eq ''Assigned'''
+	QueryString = '$expand=principal&$filter = assignmentType eq ''Assigned'''
 	RelatedPropertyNames = @()
-	ResolveRolePrincipals = $true
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
@@ -222,9 +221,8 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'RoleEligibilityScheduleInstance'
 	Uri = 'beta/roleManagement/directory/roleEligibilityScheduleInstances'
-	QueryString = '$expand=principal($select=id)'
+	QueryString = "`$expand=principal"
 	RelatedPropertyNames = @()
-	ResolveRolePrincipals = $true
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
