@@ -1,0 +1,78 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
+  "value": [
+    {
+      "isZtModelRow": true,
+      "@odata.type": "#microsoft.graph.servicePrincipal",
+      "id": "00000000-0000-0000-0000-000000000000",
+      "appId": "00000000-0000-0000-0000-000000000000",
+      "displayName": "model",
+      "accountEnabled": true,
+      "servicePrincipalType": "Application",
+      "signInAudience": "AzureADMyOrg",
+      "appOwnerOrganizationId": "00000000-0000-0000-0000-000000000000",
+      "publisherName": "model",
+      "replyUrls": [
+        "https://example.com"
+      ],
+      "preferredSingleSignOnMode": null,
+      "appRoleAssignmentRequired": false,
+      "tags": [
+        "model"
+      ],
+      "passwordCredentials": [
+        {
+          "startDateTime": "1900-01-01T00:00:00Z",
+          "endDateTime": "1900-01-01T00:00:00Z"
+        }
+      ],
+      "keyCredentials": [
+        {
+          "startDateTime": "1900-01-01T00:00:00Z",
+          "endDateTime": "1900-01-01T00:00:00Z"
+        }
+      ],
+      "appRoles": [
+        {
+          "id": null,
+          "value": null,
+          "isEnabled": false,
+          "isPreAuthorizationRequired": false,
+          "origin": null,
+          "description": null,
+          "allowedMemberTypes": [],
+          "isPrivate": false,
+          "displayName": null
+        }
+      ],
+      "customSecurityAttributes": {},
+      "agentIdentityBlueprintId": null,
+      "createdByAppId": null,
+      "appRoleAssignments": [
+        {
+          "id": null,
+          "appRoleId": null,
+          "principalId": null,
+          "resourceId": null
+        }
+      ],
+      "oauth2PermissionGrants": [
+        {
+          "id": null,
+          "clientId": null,
+          "consentType": null,
+          "expiryTime": "1900-01-01T00:00:00Z",
+          "principalId": null,
+          "resourceId": null,
+          "scope": null,
+          "startTime": "1900-01-01T00:00:00Z"
+        }
+      ],
+      "owners": [
+        {
+          "id": null
+        }
+      ]
+    }
+  ]
+}
