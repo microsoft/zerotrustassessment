@@ -242,6 +242,17 @@ $titleLine
 		Write-Host
 		Write-Host "🚀 " -NoNewline -ForegroundColor Green
 		Write-Host "Starting Zero Trust Assessment..." -ForegroundColor White
+		Write-Host "⚠️ " -NoNewline -ForegroundColor Yellow
+		Write-Host @"
+This run will send ONLY your tenant ID (GUID) to Microsoft for telemetry
+purposes. No information about the system running this script, no assessment
+results, and no other data will be collected or sent for telemetry. You can
+disable telemetry by using the -DisableTelemetry switch.
+"@ -ForegroundColor Yellow
+		Write-Host @"
+Review the telemetry implementation (Send-ZtAppInsightsTelemetry):
+https://github.com/microsoft/zerotrustassessment/blob/3a3f0966dffaa11ff8fe36db5cc602c8aef741c1/src/powershell/public/Invoke-ZtAssessment.ps1#L464
+"@ -ForegroundColor Cyan
 		Write-Host
 	}
 	#endregion Utility Functions

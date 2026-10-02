@@ -12,7 +12,7 @@
 
     try {
         # Application Insights Instrumentation Key
-        $instrumentationKey = "9ef9a343-9c69-4468-a1a0-e1786a6d9f89"
+        $instrumentationKey = "a534a7fd-1eac-44b9-a128-0f40f497e7eb"
 
         # Set up the telemetry data
         $timestamp = [System.DateTime]::UtcNow.ToString("o")
@@ -23,7 +23,8 @@
             time = $timestamp
             iKey = $instrumentationKey
             tags = @{
-                #"ai.cloud.roleInstance" = $hostname
+                "ai.location.ip"      = "0.0.0.0"
+                "ai.device.osVersion" = "Unknown"
             }
             data = @{
                 baseType = "EventData"
@@ -59,7 +60,14 @@
         }
 
         # Send request without waiting for response
-        $null = Invoke-WebRequest -Uri $uri -Method Post -Body $compressedBytes -Headers $headers -UseBasicParsing -ErrorAction SilentlyContinue
+        $null = Invoke-WebRequest `
+            -Uri $uri `
+            -Method Post `
+            -Body $compressedBytes `
+            -Headers $headers `
+            -UserAgent "ZeroTrustAssessmentTelemetry/1.0" `
+            -UseBasicParsing `
+            -ErrorAction SilentlyContinue
 
         Write-PSFMessage -Level Debug -Message "Telemetry event '$EventName' sent successfully."
     }
