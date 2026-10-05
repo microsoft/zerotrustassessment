@@ -1,0 +1,11 @@
+Kerberos delegation lets a service that holds a user's ticket impersonate that user against downstream services. When a privileged account — a member of Domain Admins, Enterprise Admins, Schema Admins, or another Tier 0 group — is not marked sensitive and not delegatable in Active Directory, any service trusted for unconstrained or constrained delegation that an attacker has compromised can request a Kerberos ticket for that privileged user and move laterally as them. With a Domain Admin ticket, the attacker performs directory replication to extract every credential in the domain, escalates to forest-wide control, and establishes long-lived persistence through forged Kerberos tickets and authentication-package implants. The argument that delegation is necessary for some application workloads does not protect Tier 0: those accounts should never be the principal a delegated service impersonates, regardless of how delegation is configured elsewhere. Microsoft Defender for Identity's posture engine continuously evaluates every privileged account in monitored Active Directory domains and surfaces those that are still eligible for delegation as a Secure Score recommendation, and the documented remediation is to mark each Tier 0 user account as sensitive and not delegatable and to set the same restriction on computer accounts that host privileged services.
+
+**Remediation action**
+
+- [Ensure privileged accounts are not delegated](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/accounts#ensure-privileged-accounts-are-not-delegated)
+- [Microsoft Defender for Identity security posture assessments](https://learn.microsoft.com/en-us/defender-for-identity/security-assessment)
+- [Set-ADAccountControl PowerShell reference](https://learn.microsoft.com/en-us/powershell/module/activedirectory/set-adaccountcontrol)
+- [Protected accounts and groups in Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory)
+
+<!--- Results --->
+%TestResult%

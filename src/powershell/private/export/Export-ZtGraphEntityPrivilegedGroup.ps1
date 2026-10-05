@@ -60,7 +60,7 @@
 				# 5/10/2024 - Entra ID Role Enabled Security Groups do not currently support nesting so we don't need to get transitive members
 				$groupId = $_.principal.id
 				Update-ZtProgressState -WorkerId $Name -WorkerName $Name -WorkerStatus 'Running' -WorkerDetail "GET beta/groups/$groupId/members"
-				$members = Get-ZtGroupMember -GroupId $groupId -OutputType Hashtable
+				$members = Get-ZtGroupMember -GroupId $groupId -Select @('id', 'displayName', 'userPrincipalName') -OutputType Hashtable
 				foreach ($member in $members) {
 					# Clone the hashtable, so we don't modify the hashed results from the membership resolution
 					$cloneMember = $member.Clone()

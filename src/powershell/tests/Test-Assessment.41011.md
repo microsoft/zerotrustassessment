@@ -1,0 +1,8 @@
+Directory replication permissions on the domain naming context — `Replicating Directory Changes`, `Replicating Directory Changes All`, and `Replicating Directory Changes In Filtered Set` — allow a principal to invoke the directory-replication protocol (DRSUAPI/`IDL_DRSGetNCChanges`) and pull every credential hash and Kerberos key in the domain. By design these permissions are granted to Domain Controllers, Enterprise Domain Controllers, the Microsoft Entra Connect MSOL_ account, and a small number of Microsoft service principals. When a non-administrative user, group, or service account holds these permissions — typically because of legacy delegation, an over-permissive ACL on the domain root, or an old administrative install — a threat actor who compromises that account can pull the full credential corpus from any machine in the domain, without ever logging on to a domain controller, without writing files, and without producing a Windows Security event by default. Extracted credentials enable credential replay and lateral movement at will, and the krbtgt key enables long-lived authentication forgery and forest-wide compromise. Microsoft Defender for Identity's "Remove non-admin accounts with DC-Sync permissions" posture assessment lists every non-admin principal that holds these rights so they can be removed.
+
+**Remediation action**
+
+- [Remove non-admin accounts with DC-Sync permissions](https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/accounts)
+- [DCSync attack (replication of directory services)](https://learn.microsoft.com/en-us/defender-for-identity/alerts-xdr#dcsync-attack-replication-of-directory-services)
+<!--- Results --->
+%TestResult%

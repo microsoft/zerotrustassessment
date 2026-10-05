@@ -38,9 +38,11 @@ import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
 import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
+import { SensitivityLabelProtectionSankey } from "@/components/overview/sensitivity-label-protection-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
+import { DlpWorkloadCoverageCard } from "@/components/overview/dlp-workload-coverage";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 import { buildDeviceCoverageRows } from "@/lib/device-coverage";
@@ -108,6 +110,11 @@ export default function Dashboard() {
     const compliantDeviceCount = hasComplianceTotals ? rawCompliantDeviceCount : 0;
     const nonCompliantDeviceCount = hasComplianceTotals ? rawNonCompliantDeviceCount : discoveredDeviceTotal;
     const totalComplianceDeviceCount = compliantDeviceCount + nonCompliantDeviceCount;
+    const hasDlpWorkloadCoverage = reportData.TenantInfo != null
+        && Object.prototype.hasOwnProperty.call(reportData.TenantInfo, "DlpWorkloadCoverage");
+    const hasSensitivityLabelProtection = reportData.TenantInfo != null
+        && Object.prototype.hasOwnProperty.call(reportData.TenantInfo, "SensitivityLabelProtection");
+    const hasAgentOwnershipDistribution = reportData.TenantInfo?.AgentOwnershipDistribution != null;
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -1108,6 +1115,7 @@ export default function Dashboard() {
                         )}
 
                         <DeviceAntivirusProtectionCard />
+
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >
@@ -1310,13 +1318,6 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* AI overview */}
-            {reportData.TenantInfo?.AgentOwnershipDistribution && (
-                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
-                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
-                </div>
-            )}
-
             {/* Network overview */}
             {(hasSwgData() || hasPrivateAccessData()) && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
@@ -1339,6 +1340,22 @@ export default function Dashboard() {
                         </Card>
                     )}
                     {hasPrivateAccessData() && <PrivateAccessSankey />}
+                </div>
+            )}
+
+            {/* Data overview */}
+            {(hasSensitivityLabelProtection || hasDlpWorkloadCoverage) && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {hasSensitivityLabelProtection && <SensitivityLabelProtectionSankey />}
+                    {hasDlpWorkloadCoverage && (
+                        <DlpWorkloadCoverageCard data={reportData.TenantInfo?.DlpWorkloadCoverage} />
+                    )}
+                </div>
+            )}
+
+            {hasAgentOwnershipDistribution && reportData.TenantInfo?.AgentOwnershipDistribution && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
                 </div>
             )}
 

@@ -9,8 +9,10 @@ Describe "Export-ZtGraphEntity" {
 
     BeforeAll {
         $srcRoot = Join-Path $PSScriptRoot "../../src/powershell"
-        if (-not (Get-Module ZeroTrustAssessment -ErrorAction SilentlyContinue)) {
-            Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global 3>$null
+        if (-not (Get-Command Export-ZtGraphEntity -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Module ZeroTrustAssessment -ErrorAction SilentlyContinue)) {
+				Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psd1") -Global 3>$null
+            }
             Import-Module (Join-Path $srcRoot "ZeroTrustAssessment.psm1") -Global -Force 3>$null
         }
         if (-not (Get-Command Get-MgContext -ErrorAction SilentlyContinue)) {
@@ -110,6 +112,30 @@ Describe "Export-ZtGraphEntity" {
                 -ExportPath $script:exportPath
 
             Should -Invoke -ModuleName ZeroTrustAssessment -CommandName Invoke-ZtGraphBatchRequest -Times 1 -Exactly
+        }
+
+        It "Uses related-property query options while preserving the result property name" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                return @{ value = @(@{ id = 'app-1'; displayName = 'Test application' }) }
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphBatchRequest {
+                param($Path, $ArgumentList)
+
+                $script:relatedPropertyPath = $Path
+                return @([pscustomobject]@{
+                    Success = $true
+                    Argument = $ArgumentList[0]
+                    Result = @(@{ id = 'owner-1'; displayName = 'Test owner' })
+                })
+            }
+
+            Export-ZtGraphEntity -Name 'Application' -Uri 'beta/applications' `
+                -QueryString '$top=999' -RelatedPropertyNames @('owners?$select=id,displayName') `
+                -ExportPath $script:exportPath
+
+            $script:relatedPropertyPath | Should -Be 'beta/applications/{0}/owners?$select=id,displayName'
+            $exportedApplication = Get-Content (Join-Path $script:exportPath 'Application/Application-0.json') -Raw | ConvertFrom-Json
+            $exportedApplication.value[0].owners[0].id | Should -Be 'owner-1'
         }
     }
 }

@@ -34,6 +34,15 @@
     }
   ],
   "TenantInfo": {
+    "DlpWorkloadCoverage": {
+      "exchangePolicyCount": 6,
+      "sharePointPolicyCount": 5,
+      "oneDrivePolicyCount": 5,
+      "teamsPolicyCount": 3,
+      "endpointPolicyCount": 2,
+      "copilotPolicyCount": 0,
+      "coveredWorkloadCount": 5
+    },
     "AgentOwnershipDistribution": {
       "ownerAndSponsor": 2,
       "ownerOnly": 1,

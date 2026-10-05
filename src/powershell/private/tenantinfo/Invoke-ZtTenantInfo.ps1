@@ -34,6 +34,10 @@ function Invoke-ZtTenantInfo {
         Add-ZtOverviewPrivateAccess
     }
 
+    if ($Pillar -in ('All', 'Data')) {
+        Add-ZtOverviewSensitivityLabelProtection
+    }
+
     if ($Pillar -in ('All', 'Devices')) {
         $IntunePlan = Get-ZtLicenseInformation -Product Intune
         Add-ZtDeviceOverview -Database $Database
@@ -48,5 +52,9 @@ function Invoke-ZtTenantInfo {
 
     if ($Pillar -in ('All', 'Network')) {
         Add-ZtOverviewM365ProtectionCircuit
+    }
+
+    if ($Pillar -in ('All', 'Data')) {
+        Add-ZtDlpWorkloadCoverage
     }
 }
