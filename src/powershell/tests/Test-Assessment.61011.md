@@ -2,7 +2,7 @@ An agent endpoint that does not require Microsoft Entra user authentication is a
 
 Calls that don't reach Microsoft Entra can't be evaluated by Conditional Access policies, have no sign-in risk to calculate, and can't tie audit records to a specific user. The lack of this information makes it difficult to investigate and remediate. The runtime behavior that enforces Microsoft Entra user authentication lives inside each agent's host (Copilot Studio, Microsoft 365 Copilot, Microsoft Foundry, custom code, or non-Microsoft platforms) and is therefore not directly observable from the directory. What *is* observable is the trail left in the Microsoft Entra sign-in logs whenever an agent and its callers do go through Microsoft Entra.
 
-This check inspects the last 30 days of sign-in activity for each agent identity and classifies the agent by the strongest evidence found: a non-interactive agent sign-in where the subject is a real user is the strongest positive signal. An interactive user sign-in to the agent's blueprint is also positive evidence that users reach the agent through Microsoft Entra. Absence of either signal across the observation period means the platform can't confirm the agent enforces Microsoft Entra user authentication, and an accountable owner must verify the agent's host configuration directly.
+This check inspects the last 30 days of sign-in activity for each agent identity and classifies the agent by the strongest evidence found: a non-interactive agent sign-in where the subject is a real user is the strongest positive signal. An interactive user sign-in to the agent's blueprint principal is also positive evidence that users reach the agent through Microsoft Entra. Absence of either signal across the observation period means the platform can't confirm the agent enforces Microsoft Entra user authentication, and an accountable owner must verify the agent's host configuration directly.
 
 **Remediation action**
 
@@ -13,4 +13,3 @@ This check inspects the last 30 days of sign-in activity for each agent identity
 - [Sign-in logs in Microsoft Entra ID](https://learn.microsoft.com/entra/identity/monitoring-health/concept-sign-ins?wt.mc_id=zerotrustrecommendations_automation_content_cnl_csasci)
 <!--- Results --->
 %TestResult%
-
