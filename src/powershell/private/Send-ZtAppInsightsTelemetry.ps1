@@ -59,15 +59,18 @@
             "Content-Encoding" = "gzip"
         }
 
-        # Send request without waiting for response
-        $null = Invoke-WebRequest `
-            -Uri $uri `
-            -Method Post `
-            -Body $compressedBytes `
-            -Headers $headers `
-            -UserAgent "ZeroTrustAssessmentTelemetry/1.0" `
-            -UseBasicParsing `
-            -ErrorAction SilentlyContinue
+        $requestParameters = @{
+            Uri             = $uri
+            Method          = 'Post'
+            Body            = $compressedBytes
+            Headers         = $headers
+            UserAgent       = 'ZeroTrustAssessmentTelemetry/1.0'
+            UseBasicParsing = $true
+            ErrorAction     = 'SilentlyContinue'
+        }
+
+        # Send the request and discard the response.
+        $null = Invoke-WebRequest @requestParameters
 
         Write-PSFMessage -Level Debug -Message "Telemetry event '$EventName' sent successfully."
     }
