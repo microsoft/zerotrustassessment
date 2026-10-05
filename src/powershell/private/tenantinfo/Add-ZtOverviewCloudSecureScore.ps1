@@ -8,17 +8,18 @@ function Add-ZtOverviewCloudSecureScore {
     $query = @'
 securityresources
 | where type =~ "microsoft.security/securescores"
-| project percentage=round(todecimal(properties.score.percentage)*100), weight=tolong(properties.weight), scoreType=name, environment=tostring(properties.environment)
+| project percentage=todecimal(properties.score.percentage)*100, weight=tolong(properties.weight), scoreType=name, environment=tostring(properties.environment)
 | where scoreType == "ascScore"
-| where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab")
+| where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
 | extend subTotal = weight*percentage
-| summarize percentage = round(sum(subTotal)/sum(weight)) by environment
-| extend percentage = iff(isinf(percentage) or isnan(percentage), 0.00, percentage)
+| summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight) or weight <= 0) by environment
+| where invalidCount == 0 and totalWeight > 0
+| project percentage=round(weightedSum/totalWeight), environment
 | join kind=inner (
     securityresources
     | where type == "microsoft.security/securescores/securescorecontrols"
     | extend environment = tostring(properties.environment)
-    | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab")
+    | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
     | summarize maxControlPoints=max(tolong(properties.score.max)) by name, environment
     | summarize max=sum(maxControlPoints) by environment
 ) on environment
@@ -27,20 +28,19 @@ securityresources
 | union (
     securityresources
     | where type =~ "microsoft.security/securescores"
-    | project percentage=round(todecimal(properties.score.percentage)*100), weight=tolong(properties.weight), scoreType=name, environment=tostring(properties.environment)
+    | project percentage=todecimal(properties.score.percentage)*100, weight=tolong(properties.weight), scoreType=name, environment=tostring(properties.environment)
     | where scoreType == "ascScore"
-    | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab")
+    | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
     | extend subTotal = weight*percentage
-    | summarize percentage = round(sum(subTotal)/sum(weight)), scoreCount=count()
-    | where scoreCount > 0
-    | project-away scoreCount
-    | extend percentage = iff(isinf(percentage) or isnan(percentage), 0.00, percentage)
+    | summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight) or weight <= 0)
+    | where invalidCount == 0 and totalWeight > 0
+    | project percentage=round(weightedSum/totalWeight)
     | extend joinColumn = 0
     | join kind=inner (
         securityresources
         | where type == "microsoft.security/securescores/securescorecontrols"
         | extend environment = tostring(properties.environment)
-        | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab")
+        | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
         | summarize maxControlPoints=max(tolong(properties.score.max)) by name
         | summarize max=sum(maxControlPoints)
         | extend joinColumn = 0

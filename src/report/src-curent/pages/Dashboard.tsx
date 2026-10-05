@@ -1117,8 +1117,6 @@ export default function Dashboard() {
 
                         <DeviceAntivirusProtectionCard />
 
-                        <CloudSecureScoreCard data={reportData.TenantInfo?.OverviewCloudSecureScore} />
-
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >
@@ -1347,23 +1345,21 @@ export default function Dashboard() {
             )}
 
             {/* Data overview */}
-            {(hasSensitivityLabelProtection || hasDlpWorkloadCoverage) && (
+            {(hasSensitivityLabelProtection || hasDlpWorkloadCoverage || hasAgentOwnershipDistribution) && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {hasSensitivityLabelProtection && <SensitivityLabelProtectionSankey />}
                     {hasDlpWorkloadCoverage && (
                         <DlpWorkloadCoverageCard data={reportData.TenantInfo?.DlpWorkloadCoverage} />
                     )}
+                    {hasAgentOwnershipDistribution && reportData.TenantInfo?.AgentOwnershipDistribution && (
+                        <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
+                    )}
                 </div>
             )}
 
-            {hasAgentOwnershipDistribution && reportData.TenantInfo?.AgentOwnershipDistribution && (
-                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
-                </div>
-            )}
-
-            {hasAzureNetSecData() && (
-                <Card className="mt-[26px]">
+            <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+                {hasAzureNetSecData() && (
+                <Card className="min-w-0 lg:col-span-2">
                     <CardHeader className="flex-row space-y-0 pb-3 pt-3">
                         <ShieldCheck className="size-8 pr-2" />
                         <div>
@@ -1379,7 +1375,11 @@ export default function Dashboard() {
                         <AzureNetSecPlanes />
                     </CardContent>
                 </Card>
-            )}
+                )}
+                <div className="min-w-0">
+                    <CloudSecureScoreCard data={reportData.TenantInfo?.OverviewCloudSecureScore} />
+                </div>
+            </div>
         </TooltipProvider>
     )
 }
