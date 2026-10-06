@@ -147,7 +147,7 @@ function ConvertTo-ZtDemoReportData {
                     $prefixes = @('192.0.2.', '198.51.100.', '203.0.113.')
                     $IdentityMap.Addresses[$match.Value] = $prefixes[[int][Math]::Floor(($number - 1) / 254)] + (1 + (($number - 1) % 254))
                 }
-                return $IdentityMap.Addresses[$match.Value]
+                return $IdentityMap.Addresses[$match.Value] + $(if ($match.Value -match '(/\d{1,2})$') { $matches[1] } else { '' })
             })
             $Text = [regex]::Replace($Text, '(?i)(?<![\w:])(?:[a-f0-9]{0,4}:){2,}[a-f0-9:]{0,39}(?:/\d{1,3})?(?![\w:])', {
                 param($match)
