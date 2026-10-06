@@ -333,6 +333,8 @@ $titleLine
 		}
 	}
 
+	Show-ZtTelemetryNotice -DisableTelemetry ([bool]$DisableTelemetry)
+
 	# # Handle interactive parameter collection
 	# if ($Interactive) {
 	# 	try {
