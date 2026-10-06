@@ -90,7 +90,7 @@ function ConvertTo-ZtDemoReportData {
         $Text = $Text -replace '\bey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}', '[REDACTED]'
         $Text = $Text -replace '(?i)((?:client_secret|access_token|refresh_token|password|connectionstring|AccountKey|SharedAccessSignature)\s*[:=]\s*)[^;\s|]+', '${1}[REDACTED]'
         $public = [System.Collections.Generic.List[string]]::new()
-        $Text = [regex]::Replace($Text, '(?i)(?:https?://|api://|mailto:)[^\s<>"`\\\]]+', {
+        $Text = [regex]::Replace($Text, '(?i)(?:https?://|api://|mailto:)[^\s<>"''`\\\]]+', {
             param($match)
             $url = $match.Value.TrimEnd(')', ',', ';', '.')
             $tail = $match.Value.Substring($url.Length)
