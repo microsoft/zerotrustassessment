@@ -13,10 +13,12 @@ Run all the following commands inside the `src/report` directory.
 - New/default work-in-progress source lives under `src-curent/`.
 - Use `npm run dev:current` to run the new/default work-in-progress app.
 
-## Copying a new ZeroTrustReport/ZeroTrustAssessmentReport.json
+## Refreshing demo report data
 
-- Use quicktype (Paste JSON as Code) VSCode extension to generate this typescript interface from ZeroTrustAssessmentReport.json created by PowerShell
-- Copy the ts and data to src/report/src/config/report-data.ts
+- Both frontend variants load `demo-report-data.json` through the Vite report-data plugin. Do not copy tenant exports into TypeScript or this fixture.
+- Generate the fixture alongside the anonymized HTML/JSON sample using `build\demo-report\New-DemoReport.ps1` from the repository root. See `build\demo-report\README.md` for the paired source HTML/JSON inputs and publication targets.
+- When the source report contains UX changes not yet in this checkout, reuse its HTML shell for the published demo rather than rebuilding it from older frontend sources.
+- To check fixture loading without replacing production PowerShell templates, run `.\node_modules\.bin\vite.cmd build --config .\vite.config.current.ts` from this directory.
 
 ## Building & updating PowerShell
 
