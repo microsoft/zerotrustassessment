@@ -21,6 +21,49 @@ Describe "Invoke-ZtRetry" {
 		Mock Start-Sleep {}
 	}
 
+	Context "HTTP Status Extraction" {
+		It "Should extract ResponseStatusCode <StatusCode> with aggregate wrapping <Wrapped>" -ForEach @(
+			@{ StatusCode = 429; Wrapped = $false }
+			@{ StatusCode = 503; Wrapped = $false }
+			@{ StatusCode = 504; Wrapped = $false }
+			@{ StatusCode = 429; Wrapped = $true }
+			@{ StatusCode = 503; Wrapped = $true }
+			@{ StatusCode = 504; Wrapped = $true }
+		) {
+			$exception = [System.Exception]::new("HTTP request failed.")
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue $StatusCode
+			if ($Wrapped) {
+				$exception = [System.AggregateException]::new("Too many retries performed.", $exception)
+			}
+			$errorRecord = [System.Management.Automation.ErrorRecord]::new(
+				$exception, "GraphRequestFailed", [System.Management.Automation.ErrorCategory]::NotSpecified, $null
+			)
+
+			Get-ZtHttpStatusCode -ErrorRecord $errorRecord | Should -Be $StatusCode
+		}
+
+		It "Should preserve message fallback when ResponseStatusCode is <StatusCode>" -ForEach @(
+			@{ StatusCode = $null }
+			@{ StatusCode = 0 }
+		) {
+			$exception = [System.Exception]::new("Response status code does not indicate success: 500 (Internal Server Error).")
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue $StatusCode
+			$errorRecord = [System.Management.Automation.ErrorRecord]::new(
+				$exception, "GraphRequestFailed", [System.Management.Automation.ErrorCategory]::NotSpecified, $null
+			)
+
+			Get-ZtHttpStatusCode -ErrorRecord $errorRecord | Should -Be 500
+		}
+
+		It "Should return null for an exception without an HTTP status" {
+			$errorRecord = [System.Management.Automation.ErrorRecord]::new(
+				[System.Exception]::new("Network unavailable."), "NetworkError", [System.Management.Automation.ErrorCategory]::NotSpecified, $null
+			)
+
+			Get-ZtHttpStatusCode -ErrorRecord $errorRecord | Should -BeNullOrEmpty
+		}
+	}
+
 	Context "Core Retry Logic" {
 		It "Should return result immediately when scriptblock succeeds on first attempt" {
 			$result = Invoke-ZtRetry -ScriptBlock { "success" }
