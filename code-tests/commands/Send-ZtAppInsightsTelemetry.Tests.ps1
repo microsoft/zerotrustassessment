@@ -2,7 +2,7 @@
 	BeforeAll {
 		$srcRoot = Join-Path $PSScriptRoot "../../src/powershell"
 
-		function global:Write-PSFMessage {
+		function Write-PSFMessage {
 			param($Level, $Message)
 		}
 
@@ -43,8 +43,12 @@
 		}
 
 		$payload.iKey | Should -Be "a534a7fd-1eac-44b9-a128-0f40f497e7eb"
+		$payload.name | Should -Be "AppEvents"
 		$payload.tags."ai.location.ip" | Should -Be "0.0.0.0"
 		$payload.tags."ai.device.osVersion" | Should -Be "Unknown"
+		$payload.data.baseType | Should -Be "EventData"
+		$payload.data.baseData.name | Should -Be "ZTv2TenantId"
+		$payload.data.baseData.properties.PSObject.Properties.Name | Should -Be "TenantId"
 		$payload.data.baseData.properties.TenantId | Should -Be "00000000-0000-0000-0000-000000000000"
 		$script:request.UserAgent | Should -Be "ZeroTrustAssessmentTelemetry/1.0"
 		$script:request.Headers["Content-Encoding"] | Should -Be "gzip"
