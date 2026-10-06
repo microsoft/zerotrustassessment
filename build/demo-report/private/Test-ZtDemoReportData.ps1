@@ -89,7 +89,7 @@ function Test-ZtDemoReportData {
             $Text = [regex]::Replace($Text, '(?i)(?:https?://|api://|mailto:)[^\s<>"`\\\]]+', {
                 param($match)
                 $url = $match.Value.TrimEnd(')', ',', ';', '.')
-                if (& $IdentityMap.IsPublicUrl $url) { return '' }
+                if ((& $IdentityMap.IsPublicUrl $url) -or (& $IdentityMap.CanRetainRemediationUrl $url $Text $match.Index)) { return '' }
                 return $match.Value
             })
         }

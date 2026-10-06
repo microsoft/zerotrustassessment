@@ -271,6 +271,50 @@ Authorization: Bearer eyJsyntheticheader.eyJsyntheticpayload.syntheticSignature
         $report.Tests[0].TestResult | Should -Not -Match 'https://entra\.microsoft\.com/'
     }
 
+    It 'retains remediation references except sensitive values and admin portal deep links' {
+        $fixture = New-DemoTestFixture (Join-Path $TestDrive 'remediation-links')
+        $source = Get-Content -LiteralPath $fixture.JsonPath -Raw | ConvertFrom-Json -AsHashtable -Depth 100
+        $source.Tests[0].TestResult += @"
+
+# Remediation
+
+- [Primary guidance](https://guidance.example.org/remediation)
+
+**Remediation action**
+
+- [Microsoft Learn](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview?tabs=overview#policies)
+- [Vendor guidance](https://docs.example.org/security/remediation)
+- [Entra home](https://entra.microsoft.com/)
+- [Entra tenant blade](https://entra.microsoft.com/#view/Example/tenant)
+- [Microsoft 365 admin blade](https://admin.microsoft.com/Adminportal/Home#/Settings)
+
+<b>Remediation links</b>
+
+- [Additional guidance](https://reference.example.org/remediation)
+
+**Evidence**
+
+- [Evidence link](https://evidence.example.org/customer/result)
+"@
+        $json = $source | ConvertTo-Json -Depth 100
+        $inline = $source | ConvertTo-Json -Depth 100 -EscapeHandling EscapeHtml
+        Set-Content -LiteralPath $fixture.JsonPath -Value $json
+        [System.IO.File]::WriteAllText($fixture.HtmlPath, $fixture.Prefix + $inline + $fixture.Suffix)
+
+        Invoke-DemoTestGeneration $fixture
+
+        $report = Get-Content -LiteralPath $fixture.JsonOutputPath -Raw | ConvertFrom-Json -Depth 100
+        $result = $report.Tests[0].TestResult
+        $result | Should -Match ([regex]::Escape('https://guidance.example.org/remediation'))
+        $result | Should -Match ([regex]::Escape('https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview?tabs=overview#policies'))
+        $result | Should -Match ([regex]::Escape('https://docs.example.org/security/remediation'))
+        $result | Should -Match ([regex]::Escape('https://entra.microsoft.com/'))
+        $result | Should -Match ([regex]::Escape('https://reference.example.org/remediation'))
+        $result | Should -Not -Match ([regex]::Escape('https://entra.microsoft.com/#view/Example/tenant'))
+        $result | Should -Not -Match ([regex]::Escape('https://admin.microsoft.com/Adminportal/Home#/Settings'))
+        $result | Should -Not -Match ([regex]::Escape('https://evidence.example.org/customer/result'))
+    }
+
     It 'recomputes multi-pillar assessment summaries and reconciles synthetic agent populations' {
         $fixture = New-DemoTestFixture (Join-Path $TestDrive 'metrics')
         Invoke-DemoTestGeneration $fixture

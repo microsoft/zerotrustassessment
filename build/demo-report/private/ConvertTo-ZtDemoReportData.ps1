@@ -39,7 +39,34 @@ function ConvertTo-ZtDemoReportData {
         if ($uri.Host -in @('privacy.microsoft.com', 'www.microsoft.com') -and $uri.AbsolutePath -match '^/(?:[a-z]{2}-[a-z]{2}/)?(?:privacy|legal|security|trust-center|licensing|microsoft-365)(?:/|$)') { return $true }
         return $false
     }
+    $canRetainRemediationUrl = {
+        param([string]$Value, [string]$Text, [int]$Index)
+
+        $remediationHeadingPattern = '(?im)(?:^\s*(?:#{1,6}\s+(?<hash>[^#\r\n]+?)\s*#*\s*|\*{1,2}(?<bold>[^*\r\n]+?)\*{1,2}\s*|_{1,2}(?<italic>[^_\r\n]+?)_{1,2}\s*|(?<plain>Remediation(?:\s+(?:action|links?))?)\s*:?\s*)$|<(?:b|strong|h[1-6])\b[^>]*>\s*(?<html>[^<]+?)\s*</(?:b|strong|h[1-6])>)'
+        $headings = [regex]::Matches($Text.Substring(0, $Index), $remediationHeadingPattern)
+        if (-not $headings.Count) { return $false }
+        $heading = $headings[$headings.Count - 1]
+        $title = @('hash', 'bold', 'italic', 'plain', 'html') |
+            ForEach-Object { $heading.Groups[$_].Value } |
+            Where-Object { $_ } |
+            Select-Object -First 1
+        if (([string]$title).Trim().TrimEnd(':') -notmatch '^(?i:remediation(?:\s+(?:action|links?))?)$') { return $false }
+
+        $uri = $null
+        if (-not [uri]::TryCreate($Value, [System.UriKind]::Absolute, [ref]$uri) -or $uri.Scheme -notin @('http', 'https')) { return $false }
+        $decodedValue = $Value
+        for ($i = 0; $i -lt 3; $i++) { $decodedValue = [System.Net.WebUtility]::HtmlDecode([uri]::UnescapeDataString($decodedValue)) }
+        if ($uri.UserInfo -or $decodedValue -match '(?i)(?<![a-f0-9])(?:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}|[a-f0-9]{32})(?![a-f0-9])' -or
+            $decodedValue -match '(?i)@|tenantId|access_token|client_secret|signature=') {
+            return $false
+        }
+
+        $adminPortal = $uri.Host -match '^(?i:portal\.azure\.com|entra\.microsoft\.com|portal\.cloud\.microsoft|(?:admin|security|compliance|endpoint|intune|defender|purview)\.microsoft\.com|admin\.(?:exchange|teams)\.microsoft\.com|[^.]+\.admin\.microsoft\.com|admin\.powerplatform\.microsoft\.com|make\.powerapps\.com|admin\.fabric\.microsoft\.com)$'
+        $deepLink = $uri.AbsolutePath -notin @('', '/') -or $uri.Query -or $uri.Fragment
+        return -not ($adminPortal -and $deepLink)
+    }
     $IdentityMap.IsPublicUrl = $isPublicUrl
+    $IdentityMap.CanRetainRemediationUrl = $canRetainRemediationUrl
     $transform = {
         param([string]$Text, [string]$Field)
         if (-not $Text) { return $Text }
@@ -67,7 +94,7 @@ function ConvertTo-ZtDemoReportData {
             param($match)
             $url = $match.Value.TrimEnd(')', ',', ';', '.')
             $tail = $match.Value.Substring($url.Length)
-            $retained = & $isPublicUrl $url
+            $retained = (& $isPublicUrl $url) -or (& $canRetainRemediationUrl $url $Text $match.Index)
             if (-not $retained -and -not $IdentityMap.Urls.ContainsKey($url)) {
                 $number = $IdentityMap.Next.Url
                 $IdentityMap.Next.Url++
