@@ -5,8 +5,9 @@ function Test-ZtRetryableError {
 
 	.DESCRIPTION
 		Inspects an ErrorRecord to determine if the underlying error represents a transient
-		failure that should be retried (e.g., 429, 5xx, network errors) or a permanent failure
-		that should fail immediately (e.g., 401, 403, 404).
+		failure that should be retried (e.g., 500, 502, network errors) or a failure
+		that should be propagated immediately (e.g., 401, 403, 404).
+		HTTP 429, 503, and 504 are retried by the Graph SDK and are not retried again here.
 
 		Network-level errors (no HTTP status code) are always considered retryable.
 
@@ -16,7 +17,7 @@ function Test-ZtRetryableError {
 	.EXAMPLE
 		PS C:\> try { Invoke-MgGraphRequest ... } catch { if (Test-ZtRetryableError $_) { # retry } }
 
-		Returns $true for transient errors (429, 5xx, network errors) and $false for client errors (4xx).
+		Returns $false for excluded client errors and SDK-handled statuses (429, 503, 504).
 	#>
 	[CmdletBinding()]
 	[OutputType([bool])]
@@ -26,7 +27,7 @@ function Test-ZtRetryableError {
 		$ErrorRecord
 	)
 
-	# Well-known permanent 4xx errors that will never succeed on retry
+	# Exclude permanent client errors and transient statuses whose retries belong to the Graph SDK.
 	$nonRetryableStatusCodes = @(
 		400  # Bad Request - malformed request
 		401  # Unauthorized - invalid/missing credentials
@@ -39,6 +40,9 @@ function Test-ZtRetryableError {
 		413  # Payload Too Large - request body too big
 		415  # Unsupported Media Type - wrong content type
 		422  # Unprocessable Entity - validation failure
+		429  # Too Many Requests - retries handled by the Graph SDK
+		503  # Service Unavailable - retries handled by the Graph SDK
+		504  # Gateway Timeout - retries handled by the Graph SDK
 	)
 
 	$statusCode = Get-ZtHttpStatusCode -ErrorRecord $ErrorRecord
@@ -49,7 +53,7 @@ function Test-ZtRetryableError {
 		return $true
 	}
 
-	# Permanent client errors fail immediately. All other errors (including 400, 429, 5xx)
+	# Excluded statuses fail immediately. All other errors
 	# are retried up to the configured retry count, since they may be transient.
 	return $statusCode -notin $nonRetryableStatusCodes
 }

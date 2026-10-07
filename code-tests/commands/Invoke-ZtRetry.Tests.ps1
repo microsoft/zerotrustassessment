@@ -195,7 +195,7 @@ Describe "Invoke-ZtRetry" {
 		}
 	}
 
-	Context "Error Filtering - Retryable Errors (5xx, 429, network)" {
+	Context "Error Filtering - Retryable Errors (500, 502, network)" {
 		It "Should retry on HTTP 500 Internal Server Error" {
 			$script:callCount = 0
 			$result = Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
@@ -210,54 +210,12 @@ Describe "Invoke-ZtRetry" {
 			$script:callCount | Should -Be 2
 		}
 
-		It "Should retry on HTTP 429 Too Many Requests" {
-			$script:callCount = 0
-			$result = Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
-				$script:callCount++
-				if ($script:callCount -eq 1) {
-					throw "Response status code does not indicate success: 429 (Too Many Requests)."
-				}
-				"ok"
-			}
-
-			$result | Should -Be "ok"
-			$script:callCount | Should -Be 2
-		}
-
 		It "Should retry on HTTP 502 Bad Gateway" {
 			$script:callCount = 0
 			$result = Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
 				$script:callCount++
 				if ($script:callCount -eq 1) {
 					throw "Response status code does not indicate success: 502 (Bad Gateway)."
-				}
-				"ok"
-			}
-
-			$result | Should -Be "ok"
-			$script:callCount | Should -Be 2
-		}
-
-		It "Should retry on HTTP 503 Service Unavailable" {
-			$script:callCount = 0
-			$result = Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
-				$script:callCount++
-				if ($script:callCount -eq 1) {
-					throw "Response status code does not indicate success: 503 (Service Unavailable)."
-				}
-				"ok"
-			}
-
-			$result | Should -Be "ok"
-			$script:callCount | Should -Be 2
-		}
-
-		It "Should retry on HTTP 504 Gateway Timeout" {
-			$script:callCount = 0
-			$result = Invoke-ZtRetry -RetryCount 3 -RetryDelay 1 -ScriptBlock {
-				$script:callCount++
-				if ($script:callCount -eq 1) {
-					throw "Response status code does not indicate success: 504 (Gateway Timeout)."
 				}
 				"ok"
 			}
@@ -292,6 +250,55 @@ Describe "Invoke-ZtRetry" {
 
 			$result | Should -Be "ok"
 			$script:callCount | Should -Be 2
+		}
+	}
+
+	Context "Error Filtering - SDK-Owned Retries" {
+		It "Should not retry HTTP <StatusCode> with aggregate wrapping <Wrapped>" -ForEach @(
+			@{ StatusCode = 429; Wrapped = $false }
+			@{ StatusCode = 503; Wrapped = $false }
+			@{ StatusCode = 504; Wrapped = $false }
+			@{ StatusCode = 429; Wrapped = $true }
+			@{ StatusCode = 503; Wrapped = $true }
+			@{ StatusCode = 504; Wrapped = $true }
+		) {
+			$exception = [System.Exception]::new("HTTP request failed.")
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue $StatusCode
+			if ($Wrapped) {
+				$exception = [System.AggregateException]::new("Too many retries performed.", $exception)
+			}
+			$script:callCount = 0
+			{
+				Invoke-ZtRetry -RetryHandler { throw "Retry handler must not run." } -ScriptBlock {
+					Invoke-ZtRetry -ScriptBlock {
+						$script:callCount++
+						throw $exception
+					}
+				}
+			} | Should -Throw "*HTTP request failed*"
+
+			$script:callCount | Should -Be 1
+			Should -Invoke Start-Sleep -Times 0 -Exactly
+			Should -Invoke Write-PSFMessage -Times 0 -Exactly -ParameterFilter {
+				$Message -match "Retrying in"
+			}
+		}
+
+		It "Should not retry SDK-owned status <StatusCode> from the message" -ForEach @(
+			@{ StatusCode = 429 }
+			@{ StatusCode = 503 }
+			@{ StatusCode = 504 }
+		) {
+			$script:callCount = 0
+			{
+				Invoke-ZtRetry -ScriptBlock {
+					$script:callCount++
+					throw "Response status code does not indicate success: $StatusCode (Failure)."
+				}
+			} | Should -Throw "*$StatusCode*"
+
+			$script:callCount | Should -Be 1
+			Should -Invoke Start-Sleep -Times 0 -Exactly
 		}
 	}
 
