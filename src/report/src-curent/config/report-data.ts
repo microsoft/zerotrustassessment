@@ -16,6 +16,7 @@ export interface ZeroTrustAssessmentReport {
 }
 
 export interface TenantInfo {
+  OverviewCloudSecureScore?: CloudSecureScore[] | null;
   AgentOwnershipDistribution?: AgentOwnershipDistribution | null;
   OverviewCaMfaAllUsers?: SankeyData | null;
   OverviewCaDevicesAllUsers?: SankeyData | null;
@@ -32,6 +33,13 @@ export interface TenantInfo {
   DeviceOverview?: DeviceOverview | null;
   TenantOverview?: TenantOverview | null;
   AgentOverview?: AgentOverview | null;
+}
+
+export interface CloudSecureScore {
+  environment: string;
+  percentage: number | null;
+  current: number | null;
+  max: number | null;
 }
 
 export interface DlpWorkloadCoverage {
