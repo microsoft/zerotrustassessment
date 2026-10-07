@@ -197,7 +197,7 @@ Set-MgRequestContext -MaxRetry 3 -RetryDelay 3 -RetriesTimeLimit 0 -ClientTimeou
 . ./src/powershell/private/core/Test-ZtRetryableError.ps1
 . ./src/powershell/private/core/Invoke-ZtRetry.ps1
 $afterPolicy = (Get-Command Test-ZtRetryableError -CommandType Function).ScriptBlock
-$beforePolicy = [scriptblock]::Create(($afterPolicy.ToString() -replace '(?m)^\s*(429|503|504)\s*\r?\n', ''))
+$beforePolicy = [scriptblock]::Create(($afterPolicy.ToString() -replace '(?m)^[\t ]*(429|503|504)[\t ]*(?:#[^\r\n]*)?\r?\n', ''))
 $testUri = 'https://graph.microsoft.com/v1.0/me'
 $runProbe = {
    $script:wrapperCalls = 0
