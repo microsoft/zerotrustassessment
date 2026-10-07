@@ -44,6 +44,7 @@ import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azu
 import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
 import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { DlpWorkloadCoverageCard } from "@/components/overview/dlp-workload-coverage";
+import { CloudSecureScoreCard } from "@/components/overview/infrastructure-insights";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
 import { buildDeviceCoverageRows } from "@/lib/device-coverage";
@@ -1280,6 +1281,8 @@ export default function Dashboard() {
                         )}
 
                     <DeviceAntivirusProtectionCard />
+
+                    <CloudSecureScoreCard data={reportData.TenantInfo?.OverviewCloudSecureScore} />
 
                 </div>
             </div>
