@@ -1,52 +1,155 @@
 Describe 'Add-ZtOverviewCloudSecureScore' {
     BeforeAll {
-        if (-not (Get-Command Invoke-ZtAzureResourceGraphRequest -ErrorAction SilentlyContinue)) {
-            function global:Invoke-ZtAzureResourceGraphRequest {
+        $script:createdAzureResourceGraphRequest = $false
+        $script:createdTenantInfo = $false
+        $script:createdPsfMessage = $false
+
+        if (-not (Get-Command Invoke-ZtAzureResourceGraphRequest -ListImported -ErrorAction SilentlyContinue)) {
+            function script:Invoke-ZtAzureResourceGraphRequest {
                 param($Query, $SubscriptionId)
             }
+            $script:createdAzureResourceGraphRequest = $true
         }
-        if (-not (Get-Command Add-ZtTenantInfo -ErrorAction SilentlyContinue)) {
-            function global:Add-ZtTenantInfo {
+        if (-not (Get-Command Add-ZtTenantInfo -ListImported -ErrorAction SilentlyContinue)) {
+            function script:Add-ZtTenantInfo {
                 param($Name, $Value)
             }
+            $script:createdTenantInfo = $true
         }
-        if (-not (Get-Command Write-PSFMessage -ErrorAction SilentlyContinue)) {
-            function global:Write-PSFMessage {}
+        if (-not (Get-Command Write-PSFMessage -ListImported -ErrorAction SilentlyContinue)) {
+            function script:Write-PSFMessage {}
+            $script:createdPsfMessage = $true
         }
 
         . (Join-Path $PSScriptRoot '../../src/powershell/private/tenantinfo/Add-ZtOverviewCloudSecureScore.ps1')
     }
 
+    AfterAll {
+        if ($script:createdAzureResourceGraphRequest) {
+            Remove-Item function:script:Invoke-ZtAzureResourceGraphRequest
+        }
+        if ($script:createdTenantInfo) {
+            Remove-Item function:script:Add-ZtTenantInfo
+        }
+        if ($script:createdPsfMessage) {
+            Remove-Item function:script:Write-PSFMessage
+        }
+    }
+
     BeforeEach {
         $script:query = $null
-        $script:score = $null
+        $script:subscriptionIds = $null
+        $script:response = @()
+        $script:tenantInfoAdded = $false
+        $script:tenantInfoName = $null
+        $script:score = 'not set'
+
         Mock Invoke-ZtAzureResourceGraphRequest {
             $script:query = $Query
-            @()
+            $script:subscriptionIds = $SubscriptionId
+            $script:response
         }
         Mock Add-ZtTenantInfo {
+            $script:tenantInfoAdded = $true
+            $script:tenantInfoName = $Name
             $script:score = $Value
         }
+        Mock Write-PSFMessage {}
     }
 
     It 'Keeps fractional source scores until the weighted average crosses the display boundary' {
+        $script:response = @([pscustomobject]@{
+                secureScore = [pscustomobject]@{ percentage = 51; environment = 'All' }
+            })
+
         Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
 
-        $weightedPercentage = ([decimal]50.49 * 4 + [decimal]51.49) / 5
-        $weightedPercentage | Should -Be ([decimal]50.69)
-        [math]::Round($weightedPercentage, 0, [MidpointRounding]::AwayFromZero) | Should -Be 51
         ([regex]::Matches($script:query, 'percentage=todecimal\(properties\.score\.percentage\)\*100')).Count | Should -Be 2
         ([regex]::Matches($script:query, 'percentage=round\(weightedSum/totalWeight\)')).Count | Should -Be 2
         $script:query | Should -Not -Match 'percentage=round\(todecimal'
+        $script:score[0].percentage | Should -Be 51
     }
 
-    It 'Omits incomplete or zero-weight aggregates rather than publishing an artificial zero' {
+    It 'Treats zero-weight rows as neutral while requiring a positive aggregate weight' {
+        $script:response = @([pscustomobject]@{
+                secureScore = [pscustomobject]@{ percentage = 51; environment = 'All' }
+            })
+
         Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
 
-        ([regex]::Matches($script:query, 'invalidCount=countif\(isnull\(percentage\).*isnull\(weight\) or weight <= 0\)')).Count | Should -Be 2
-        ([regex]::Matches($script:query, 'invalidCount == 0 and totalWeight > 0')).Count | Should -Be 2
-        $script:query | Should -Not -Match '0\.00, percentage'
+        ([regex]::Matches($script:query, 'invalidCount=countif\(isnull\(percentage\).*isnull\(weight\)\)')).Count | Should -Be 2
+        ([regex]::Matches($script:query, 'totalWeight > 0')).Count | Should -Be 2
+        $script:query | Should -Not -Match 'weight <= 0'
+    }
+
+    It 'Stores one secure score as an array' {
+        $expectedScore = [pscustomobject]@{ percentage = 75; environment = 'Azure'; current = 15; max = 20 }
+        $script:response = @([pscustomobject]@{ secureScore = $expectedScore })
+
+        Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
+
+        $script:tenantInfoAdded | Should -BeTrue
+        $script:tenantInfoName | Should -Be 'OverviewCloudSecureScore'
+        $script:score.GetType().FullName | Should -Be 'System.Object[]'
+        $script:score | Should -HaveCount 1
+        $script:score[0] | Should -Be $expectedScore
+    }
+
+    It 'Stores several secure scores as an array' {
+        $firstScore = [pscustomobject]@{ percentage = 75; environment = 'Azure' }
+        $secondScore = [pscustomobject]@{ percentage = 50; environment = 'AWS' }
+        $script:response = @(
+            [pscustomobject]@{ secureScore = $firstScore }
+            [pscustomobject]@{ secureScore = $secondScore }
+        )
+
+        Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
+
+        $script:score.GetType().FullName | Should -Be 'System.Object[]'
+        $script:score | Should -HaveCount 2
+        $script:score[0] | Should -Be $firstScore
+        $script:score[1] | Should -Be $secondScore
+    }
+
+    It 'Preserves a measured zero percent secure score' {
+        $script:response = @([pscustomobject]@{
+                secureScore = [pscustomobject]@{ percentage = 0; environment = 'Azure'; current = 0; max = 20 }
+            })
+
+        Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
+
+        $script:tenantInfoAdded | Should -BeTrue
+        $script:score | Should -HaveCount 1
+        $script:score[0].percentage | Should -Be 0
+    }
+
+    It 'Stores null for an empty Azure Resource Graph response' {
+        Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1'
+
+        $script:tenantInfoAdded | Should -BeTrue
         $script:score | Should -BeNullOrEmpty
+    }
+
+    It 'Warns and stores null when the Azure Resource Graph request fails' {
+        Mock Invoke-ZtAzureResourceGraphRequest { throw 'Azure Resource Graph is unavailable' }
+
+        { Add-ZtOverviewCloudSecureScore -SubscriptionId 'subscription-1' } | Should -Not -Throw
+
+        Should -Invoke Write-PSFMessage -Times 1 -Exactly -ParameterFilter {
+            $Level -eq 'Warning' -and $Message -eq 'Cloud secure score collection failed; the score will be unavailable.'
+        }
+        $script:tenantInfoAdded | Should -BeTrue
+        $script:score | Should -BeNullOrEmpty
+    }
+
+    It 'Passes supplied subscription IDs to Azure Resource Graph unchanged' {
+        $subscriptionIds = @('subscription-1', 'subscription-2')
+
+        Add-ZtOverviewCloudSecureScore -SubscriptionId $subscriptionIds
+
+        $script:subscriptionIds | Should -HaveCount 2
+        $script:subscriptionIds[0] | Should -Be 'subscription-1'
+        $script:subscriptionIds[1] | Should -Be 'subscription-2'
     }
 
     It 'Includes every scored recommendation environment in both branches' {

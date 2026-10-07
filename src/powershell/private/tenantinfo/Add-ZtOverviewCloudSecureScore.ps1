@@ -12,7 +12,7 @@ securityresources
 | where scoreType == "ascScore"
 | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
 | extend subTotal = weight*percentage
-| summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight) or weight <= 0) by environment
+| summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight)) by environment
 | where invalidCount == 0 and totalWeight > 0
 | project percentage=round(weightedSum/totalWeight), environment
 | join kind=inner (
@@ -32,7 +32,7 @@ securityresources
     | where scoreType == "ascScore"
     | where environment in~ ("Azure", "AWS", "GCP", "AzureDevOps", "Github", "GitLab", "DockerHub", "JFrog")
     | extend subTotal = weight*percentage
-    | summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight) or weight <= 0)
+    | summarize weightedSum=sum(subTotal), totalWeight=sum(weight), invalidCount=countif(isnull(percentage) or percentage < 0 or percentage > 100 or isnull(weight))
     | where invalidCount == 0 and totalWeight > 0
     | project percentage=round(weightedSum/totalWeight)
     | extend joinColumn = 0
