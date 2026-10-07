@@ -189,7 +189,7 @@ Use the same connected PowerShell process for all runs, not a new `pwsh` process
 Import-Module Microsoft.Graph.Authentication
 Import-Module PSFramework
 Connect-MgGraph -Scopes User.Read -NoWelcome
-$previousRequestContext = Get-MgRequestContext
+$previousRequestContext = Get-MgRequestContext | Select-Object *
 Get-Module Microsoft.Graph.Authentication | Select-Object Name, Version
 $previousRequestContext | Select-Object MaxRetry, RetryDelay, RetriesTimeLimit, ClientTimeout
 Set-MgRequestContext -MaxRetry 3 -RetryDelay 3 -RetriesTimeLimit 0 -ClientTimeout 300
@@ -276,8 +276,11 @@ and status properties: missing status extraction still triggers wrapper retries.
 
 These counts assume persistent identical failures and the explicit SDK settings
 above. This probe bypasses Graph response caching and measures one wrapper,
-not the nested license lookup. The license lookup's conditional bound changes
-from 96 to four for the SDK-handled statuses when both layers extract the status.
+not the nested license lookup. Before commit `9ddf89767`, `Get-ZtCurrentLicense`
+wrapped `Invoke-ZtGraphRequest` in its own `Invoke-ZtRetry -RetryCount 3`, so
+a persistent 429, 503, or 504 could produce up to 96 HTTP requests
+(4 outer attempts x 24). That outer loop is gone, and the lookup now makes at most
+four requests (the SDK retries only) for those statuses.
 
 ### 7. Clean up
 
@@ -285,6 +288,12 @@ Stop Dev Proxy with Ctrl+C in terminal A. In terminal B, restore the request
 settings and close this dedicated session to discard the local function copies:
 
 ```powershell
-Set-MgRequestContext -MaxRetry $previousRequestContext.MaxRetry -RetryDelay $previousRequestContext.RetryDelay -RetriesTimeLimit ([int]$previousRequestContext.RetriesTimeLimit.TotalSeconds) -ClientTimeout ([int]$previousRequestContext.ClientTimeout.TotalSeconds)
+$restoreParams = @{
+    MaxRetry         = $previousRequestContext.MaxRetry
+    RetryDelay       = $previousRequestContext.RetryDelay
+    RetriesTimeLimit = $previousRequestContext.RetriesTimeLimit.TotalSeconds
+    ClientTimeout    = $previousRequestContext.ClientTimeout.TotalSeconds
+}
+Set-MgRequestContext @restoreParams
 Disconnect-MgGraph
 ```
