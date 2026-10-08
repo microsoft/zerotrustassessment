@@ -7,6 +7,7 @@
     * Filter, Select and Unique IDs as parameters
     * Automatic paging if Graph returns a nextLink
     * Batching of requests to Graph if multiple requests are piped through
+	* Selective batch item retries for missing/invalid responses, HTTP 429 and 5xx
     * Caching of results for the duration of the session
     * Ability to skip cache and go directly to Graph
     * Specify consistency level as a parameter
@@ -18,6 +19,31 @@
     :::info
     Note: Batch requests don't support caching.
     :::
+
+	 Batch items allow five retries after the initial attempt (six attempts total).
+	 Successful and terminal items are not resent. Retry delays use the greater of
+	 exponential backoff (3, 6, 12, 24, 48 seconds) and the longest valid Retry-After
+	 from retryable HTTP 429 or 5xx responses. Retry-After supports nonnegative integer
+	 seconds and HTTP dates; missing, malformed or past values use the fallback.
+	 Ordinary batch invocation throws on item retry exhaustion. Transport and paging
+	 failures retain their existing behavior and are not retried by the item loop.
+
+ .PARAMETER Matched
+	 Return one PSCustomObject per resolved GET request, in request order, with Id,
+	 Argument (RelativeUri, UniqueId and absolute Uri), Result, Success, StatusCode,
+	 RetryExhausted and Attempts. Success indicates HTTP 2xx, not body validity.
+	 Successful Result values are formatted and paged normally; failed Result values
+	 contain the last error body, if available. OutputType applies to these values.
+	 Missing or invalid statuses are reported as null. Item retry exhaustion logs a
+	 PSFramework warning and returns successful, terminal and exhausted outcomes.
+	 Transport and paging failures still terminate. All matched GETs use batching,
+	 including a single request. Cannot be combined with POST, DisableBatching or
+	 OutputFilePath. Batch responses bypass caching; paging cache behavior is unchanged.
+
+ .EXAMPLE
+	 Invoke-ZtGraphRequest -RelativeUri 'users' -UniqueId 'user-1', 'user-2' -Matched
+
+	 Retrieve correlated outcomes while retaining successful siblings after item retry exhaustion.
 
  .Example
 
@@ -92,12 +118,24 @@ function Invoke-ZtGraphRequest {
 		[string] $OutputFilePath,
 		# Additional headers to include in the request
 		[Parameter(Mandatory = $false)]
-		[hashtable] $Headers
+		[hashtable] $Headers,
+		[Parameter(Mandatory = $false)]
+		[switch] $Matched
 	)
 
 	begin {
 		$batchRequests = New-Object 'System.Collections.Generic.List[psobject]'
+		$batchArguments = [System.Collections.Generic.List[object]]::new()
 		$postRelativeUris = New-Object 'System.Collections.Generic.List[string]'
+
+		if ($Matched) {
+			if ($Method -ne 'GET') {
+				throw [System.ArgumentException]::new('-Matched only supports GET requests.', 'Matched')
+			}
+			if ($DisableBatching -or $PSBoundParameters.ContainsKey('OutputFilePath')) {
+				throw [System.ArgumentException]::new('-Matched cannot be combined with -DisableBatching or -OutputFilePath.', 'Matched')
+			}
+		}
 
 		if ($Method -eq 'GET') {
 			if ($PSBoundParameters.ContainsKey('Body')) {
@@ -228,6 +266,109 @@ function Invoke-ZtGraphRequest {
 			return [uri] $script:__ZtSession.GraphBaseUri
 		}
 
+		function Invoke-GraphBatchChunk {
+			[CmdletBinding()]
+			param (
+				[object[]] $Requests,
+				[uri] $BatchUri
+			)
+
+			$pendingRequests = @($Requests)
+			$responsesById = @{}
+			$attemptsById = @{}
+			$exhaustedIds = @{}
+			$retryCount = 0
+			$retryDelay = 3
+			$maximumRetryCount = 5
+
+			while ($pendingRequests.Count -gt 0) {
+				$jsonRequests = New-Object psobject -Property @{ requests = $pendingRequests } | ConvertTo-Json -Depth 5
+				$batchResult = Invoke-ZtGraphRequestCache -Method POST -Uri $BatchUri.AbsoluteUri -Body $jsonRequests -OutputType $OutputType -DisableCache:$DisableCache
+				$responseLookup = @{}
+				foreach ($response in @($batchResult.responses)) {
+					if ($null -ne $response.id) {
+						$responseLookup[[string]$response.id] = $response
+					}
+				}
+
+				$retryRequests = [System.Collections.Generic.List[object]]::new()
+				$retryAfterSeconds = 0
+				foreach ($request in $pendingRequests) {
+					$requestId = [string]$request.id
+					$attemptsById[$requestId]++
+					$response = $responseLookup[$requestId]
+					$responsesById[$requestId] = $response
+					$status = 0
+					$validStatus = [int]::TryParse([string]$response.status, [ref]$status) -and $status -ge 100 -and $status -le 599
+					$isTransientFailure = -not $validStatus -or $status -eq 429 -or $status -ge 500
+					if (-not $isTransientFailure) {
+						continue
+					}
+					$retryRequests.Add($request)
+					if ($validStatus -and ($status -eq 429 -or $status -ge 500)) {
+						$headerValue = [string]$response.headers.'Retry-After'
+						$currentRetryAfter = 0
+						if ([int]::TryParse($headerValue, [ref]$currentRetryAfter) -and $currentRetryAfter -ge 0) {
+							$retryAfterSeconds = [Math]::Max($retryAfterSeconds, $currentRetryAfter)
+						}
+						else {
+							$retryDate = [DateTimeOffset]::MinValue
+							if ([DateTimeOffset]::TryParseExact($headerValue, 'r', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$retryDate)) {
+								$retryAfterSeconds = [Math]::Max($retryAfterSeconds, [Math]::Ceiling(($retryDate - [DateTimeOffset]::UtcNow).TotalSeconds))
+							}
+						}
+					}
+				}
+
+				if ($retryRequests.Count -eq 0) {
+					break
+				}
+				if ($retryCount -ge $maximumRetryCount) {
+					if ($Matched) {
+						foreach ($request in $retryRequests) {
+							$exhaustedIds[[string]$request.id] = $true
+						}
+						Write-PSFMessage -Level Warning -Message 'Graph batch exhausted retries for {0} items after {1} attempts. Returning correlated outcomes with available successes.' -StringValues $retryRequests.Count, ($maximumRetryCount + 1) -Tag Graph, Retry
+						break
+					}
+					throw "Graph batch contained $($retryRequests.Count) item-level transient failures after $($maximumRetryCount + 1) attempts."
+				}
+
+				$waitSeconds = [Math]::Max($retryDelay, $retryAfterSeconds)
+				Write-PSFMessage -Level Warning -Message 'Graph batch contained {0} transient item failures. Retrying those items in {1} seconds.' -StringValues $retryRequests.Count, $waitSeconds -Tag Graph, Retry
+				Start-Sleep -Seconds $waitSeconds
+				$pendingRequests = @($retryRequests)
+				$retryCount++
+				$retryDelay *= 2
+			}
+
+			foreach ($request in $Requests) {
+				$response = $responsesById[[string]$request.id]
+				if ($Matched) {
+					$status = 0
+					$validStatus = [int]::TryParse([string]$response.status, [ref]$status) -and $status -ge 100 -and $status -le 599
+					$success = $validStatus -and $status -ge 200 -and $status -le 299
+					$matchedResult = if ($success) {
+						Format-Result -Results $response.body -RawOutput $DisablePaging
+						Complete-Result -Results $response.body -DisablePaging $DisablePaging -RequestParam $requestParam
+					}
+					else { $response.body }
+					[pscustomobject]@{
+						Id = $request.id
+						Argument = $batchArguments[[int]$request.id]
+						Result = $matchedResult
+						Success = $success
+						StatusCode = if ($validStatus) { $status } else { $null }
+						RetryExhausted = $exhaustedIds.ContainsKey([string]$request.id)
+						Attempts = $attemptsById[[string]$request.id]
+					}
+					continue
+				}
+				Format-Result -Results $response.body -RawOutput $DisablePaging
+				Complete-Result -Results $response.body -DisablePaging $DisablePaging -RequestParam $requestParam
+			}
+		}
+
 		function Invoke-ResolvedGraphRequest {
 			param(
 				[string[]] $Uris
@@ -237,7 +378,7 @@ function Invoke-ZtGraphRequest {
 			if ($DisableBatching -and ($Uris.Count -gt 1 -or $UniqueId.Count -gt 1)) {
 				Write-Warning ('This command is invoking {0} individual Graph requests. For better performance, remove the -DisableBatching parameter.' -f ($Uris.Count * $UniqueId.Count))
 			}
-			$doBatch = ($Method -eq 'GET') -and -not $DisableBatching -and ($Uris.Count -gt 1 -or $UniqueId.Count -gt 1)
+			$doBatch = ($Method -eq 'GET') -and -not $DisableBatching -and ($Matched -or $Uris.Count -gt 1 -or $UniqueId.Count -gt 1)
 
 			foreach ($uri in $Uris) {
 				$uriQueryEndpoint = [System.UriBuilder]::new([IO.Path]::Combine($resolvedGraphBaseUri.AbsoluteUri, $ApiVersion, $uri))
@@ -284,6 +425,13 @@ function Invoke-ZtGraphRequest {
 							headers = $batchHeaders
 						}
 						$batchRequests.Add($request)
+						if ($Matched) {
+							$batchArguments.Add([pscustomobject]@{
+								RelativeUri = $uri
+								UniqueId = $id
+								Uri = $uriQueryEndpointFinal.Uri.AbsoluteUri
+							})
+						}
 					}
 					else {
 						$results = Invoke-ZtGraphRequestCache -Uri $uriQueryEndpointFinal.Uri.AbsoluteUri @requestParam
@@ -324,16 +472,7 @@ function Invoke-ZtGraphRequest {
 		$uriQueryEndpoint = [System.UriBuilder]::new([IO.Path]::Combine($resolvedGraphBaseUri.AbsoluteUri, $ApiVersion, '$batch'))
 		for ($iRequest = 0; $iRequest -lt $batchRequests.Count; $iRequest += $BatchSize) {
 			$indexEnd = [System.Math]::Min($iRequest + $BatchSize - 1, $batchRequests.Count - 1)
-			$jsonRequests = New-Object psobject -Property @{ requests = $batchRequests[$iRequest..$indexEnd] } | ConvertTo-Json -Depth 5
-			Write-Debug $jsonRequests
-
-			$resultsBatch = Invoke-ZtGraphRequestCache -Method POST -Uri $uriQueryEndpoint.Uri.AbsoluteUri -Body $jsonRequests -OutputType $OutputType -DisableCache:$DisableCache
-			$resultsBatch = $resultsBatch.responses | Sort-Object -Property id
-
-			foreach ($results in $resultsBatch.body) {
-				Format-Result -Results $results -RawOutput $DisablePaging
-				Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
-			}
+			Invoke-GraphBatchChunk -Requests @($batchRequests[$iRequest..$indexEnd]) -BatchUri $uriQueryEndpoint.Uri
 		}
 	}
 }
