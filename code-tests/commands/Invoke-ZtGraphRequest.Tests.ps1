@@ -150,8 +150,8 @@ Describe 'Invoke-ZtGraphRequest POST and batch support' {
 		@{ Status = 500; Header = '-1' }
 		@{ Status = 502; Header = '1.5' }
 		@{ Status = 504; Header = '0' }
-		@{ Status = 501; Header = '1' }
-		@{ Status = 599; Header = 'Wed, 01 Jan 2020 00:00:00 GMT' }
+		@{ Status = 503; Header = '1' }
+		@{ Status = 502; Header = 'Wed, 01 Jan 2020 00:00:00 GMT' }
 	) {
 		Mock Start-Sleep {}
 		Mock Invoke-ZtGraphRequestCache {
@@ -205,6 +205,7 @@ Describe 'Invoke-ZtGraphRequest POST and batch support' {
 	It 'does not resend terminal status <Status> or apply its Retry-After' -ForEach @(
 		@{ Status = 400 }, @{ Status = 401 }, @{ Status = 403 }, @{ Status = 404 }
 		@{ Status = 408 }, @{ Status = 409 }, @{ Status = 422 }
+		@{ Status = 501 }, @{ Status = 505 }, @{ Status = 507 }, @{ Status = 599 }
 	) {
 		Mock Start-Sleep {}
 		Mock Invoke-ZtGraphRequestCache {
@@ -218,6 +219,26 @@ Describe 'Invoke-ZtGraphRequest POST and batch support' {
 		$result.RetryExhausted | Should -BeFalse
 		$result.Attempts | Should -Be 1
 		$result.Result.error.code | Should -Be 'TerminalError'
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 1 -Exactly
+		Should -Invoke Start-Sleep -Times 0 -Exactly
+	}
+
+	It 'returns non-retryable status <Status> bodies without retrying ordinary batches' -ForEach @(
+		@{ Status = 501 }, @{ Status = 505 }, @{ Status = 507 }, @{ Status = 599 }
+	) {
+		Mock Start-Sleep {}
+		Mock Invoke-ZtGraphRequestCache {
+			param($Body)
+			$batch = $Body | ConvertFrom-Json
+			@{ responses = @($batch.requests | ForEach-Object {
+				@{ id = $_.id; status = $Status; headers = @{ 'Retry-After' = '100' }; body = @{ error = @{ code = 'TerminalError' } } }
+			}) }
+		}
+
+		$result = @(Invoke-ZtGraphRequest -RelativeUri 'users', 'groups' -GraphBaseUri 'https://graph.microsoft.com/')
+
+		$result | Should -HaveCount 2
+		$result.error.code | Should -Be @('TerminalError', 'TerminalError')
 		Should -Invoke Invoke-ZtGraphRequestCache -Times 1 -Exactly
 		Should -Invoke Start-Sleep -Times 0 -Exactly
 	}

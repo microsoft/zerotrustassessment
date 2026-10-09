@@ -7,7 +7,7 @@
     * Filter, Select and Unique IDs as parameters
     * Automatic paging if Graph returns a nextLink
     * Batching of requests to Graph if multiple requests are piped through
-	* Selective batch item retries for missing/invalid responses, HTTP 429 and 5xx
+	* Selective batch item retries for missing/invalid responses and HTTP 429, 500, 502, 503, 504
     * Caching of results for the duration of the session
     * Ability to skip cache and go directly to Graph
     * Specify consistency level as a parameter
@@ -23,7 +23,8 @@
 	 Batch items allow five retries after the initial attempt (six attempts total).
 	 Successful and terminal items are not resent. Retry delays use the greater of
 	 exponential backoff (3, 6, 12, 24, 48 seconds) and the longest valid Retry-After
-	 from retryable HTTP 429 or 5xx responses. Retry-After supports nonnegative integer
+	 from HTTP 429, 500, 502, 503 or 504 responses. Other valid HTTP statuses are not retried.
+	 Retry-After supports nonnegative integer
 	 seconds and HTTP dates; missing, malformed or past values use the fallback.
 	 Ordinary batch invocation throws on item retry exhaustion. Transport and paging
 	 failures retain their existing behavior and are not retried by the item loop.
@@ -306,12 +307,13 @@ function Invoke-ZtGraphRequest {
 					$responsesById[$requestId] = $response
 					$status = 0
 					$validStatus = [int]::TryParse([string]$response.status, [ref]$status) -and $status -ge 100 -and $status -le 599
-					$isTransientFailure = -not $validStatus -or $status -eq 429 -or $status -ge 500
+					$isRetryableStatus = $validStatus -and $status -in @(429, 500, 502, 503, 504)
+					$isTransientFailure = -not $validStatus -or $isRetryableStatus
 					if (-not $isTransientFailure) {
 						continue
 					}
 					$retryRequests.Add($request)
-					if ($validStatus -and ($status -eq 429 -or $status -ge 500)) {
+					if ($isRetryableStatus) {
 						$headerValue = [string]$response.headers.'Retry-After'
 						$currentRetryAfter = 0
 						if ([int]::TryParse($headerValue, [ref]$currentRetryAfter) -and $currentRetryAfter -ge 0) {
