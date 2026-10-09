@@ -7,12 +7,14 @@
     For each agent identity service principal (microsoft.graph.agentIdentity), the test looks for
     two positive signals in the last 30 days of sign-in logs:
 
-      Signal 1 (strong pass) — A non-interactive sign-in where the agent acquired a token on
-      behalf of a real user (agent.agentType eq 'agenticAppInstance' and agent.parentAppId
-      matches the agent's blueprint appId). This proves end-to-end delegated user authentication.
+        Signal 1 (strong pass) — A successful non-interactive sign-in from an agent instance on
+        behalf of the documented nonagent subject type (agent.agentType eq 'agenticAppInstance',
+        agent.agentSubjectType eq 'notAgentic', and agent.parentAppId matches the agent's blueprint
+        appId). This proves end-to-end delegated user authentication.
 
-            Signal 2 (pass) — An interactive user sign-in whose resourceId matches the agent's
-            blueprint principal object ID. This proves users reach the agent's blueprint audience through Entra.
+        Signal 2 (pass) — A successful interactive user sign-in whose resource service principal
+        matches the agent's blueprint principal object ID. This proves users reach the agent's
+        blueprint audience through Entra.
 
     An agent identity with neither signal in the lookback window is classified as Warning; the
     tenant-level result is Fail when any agent identity is in Warning.
@@ -57,14 +59,7 @@ FROM main.ServicePrincipal
 WHERE "@odata.type" = '#microsoft.graph.agentIdentity'
 ORDER BY displayName
 "@
-    try {
-        $agentIdentities = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ1)
-    }
-    catch {
-        Write-PSFMessage "Failed to query agent identities: $_" -Tag Test -Level Warning -ErrorRecord $_
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
+    $agentIdentities = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ1)
 
     if (-not $agentIdentities -or $agentIdentities.Count -eq 0) {
         Add-ZtTestResultDetail -SkippedBecause NotApplicable
@@ -79,14 +74,7 @@ FROM main.ServicePrincipal
 WHERE "@odata.type" = '#microsoft.graph.agentIdentityBlueprintPrincipal'
 ORDER BY displayName
 "@
-    try {
-        $blueprintPrincipals = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ2)
-    }
-    catch {
-        Write-PSFMessage "Failed to query agent identity blueprint principals: $_" -Tag Test -Level Warning -ErrorRecord $_
-        Add-ZtTestResultDetail -SkippedBecause NotApplicable
-        return
-    }
+    $blueprintPrincipals = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlQ2)
 
     $principalByAppId = @{}
     $principalObjectIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -102,67 +90,44 @@ ORDER BY displayName
 
     $lookbackDate = (Get-Date).ToUniversalTime().AddDays(-30).ToString('yyyy-MM-ddTHH:mm:ssZ')
 
-    # Q3: Last 30 days of interactive user sign-ins targeting blueprint principals
+    # Q3: Last 30 days of interactive user sign-ins for client-side matching to blueprint principals
     Write-ZtProgress -Activity $activity -Status 'Getting interactive user sign-ins (Q3)'
-    $q3QueryError = $null
-    $interactiveSignIns = @()
-    try {
-        $interactiveSignIns = @(Invoke-ZtGraphRequest `
-            -RelativeUri 'auditLogs/signIns' `
-            -ApiVersion beta `
-            -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'interactiveUser')" `
-            -Select @('createdDateTime', 'resourceId') `
-            -ErrorAction Stop)
-    }
-    catch {
-        $q3QueryError = $_
-        Write-PSFMessage "Failed to retrieve interactive sign-in logs: $_" -Tag Test -Level Warning
-    }
+    $interactiveSignIns = @(Invoke-ZtGraphRequest `
+        -RelativeUri 'auditLogs/signIns' `
+        -ApiVersion beta `
+        -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'interactiveUser')" `
+        -Select @('createdDateTime', 'resourceServicePrincipalId', 'status') `
+        -ErrorAction Stop)
 
-    # Q4: Last 30 days of agentic non-interactive sign-ins on behalf of real users (not covered by the existing export)
+    # Q4: Last 30 days of agentic non-interactive sign-ins for the documented nonagent subject type
     Write-ZtProgress -Activity $activity -Status 'Getting agentic non-interactive sign-ins (Q4)'
-    $q4QueryError = $null
-    $agenticSignIns = @()
-    try {
-        $agenticSignIns = @(Invoke-ZtGraphRequest `
-            -RelativeUri 'auditLogs/signIns' `
-            -ApiVersion beta `
-            -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'nonInteractiveUser') and agent/agentType eq 'agenticAppInstance' and agent/agentSubjectType ne 'agentIDuser'" `
-            -Select @('createdDateTime', 'agent') `
-            -ErrorAction Stop)
-    }
-    catch {
-        $q4QueryError = $_
-        Write-PSFMessage "Failed to retrieve agentic non-interactive sign-in logs: $_" -Tag Test -Level Warning
-    }
+    $agenticSignIns = @(Invoke-ZtGraphRequest `
+        -RelativeUri 'auditLogs/signIns' `
+        -ApiVersion beta `
+        -Filter "createdDateTime ge $lookbackDate and signInEventTypes/any(t:t eq 'nonInteractiveUser') and agent/agentType eq 'agenticAppInstance' and agent/agentSubjectType eq 'notAgentic'" `
+        -Select @('createdDateTime', 'agent', 'status') `
+        -Headers @{ Prefer = 'include-unknown-enum-members' } `
+        -ErrorAction Stop)
 
-    foreach ($queryError in @($q3QueryError, $q4QueryError) | Where-Object { $null -ne $_ }) {
-        if ((Get-ZtHttpStatusCode -ErrorRecord $queryError) -in (401, 403)) {
-            Add-ZtTestResultDetail -SkippedBecause NotApplicable -Result 'Microsoft Graph sign-in logs require AuditLog.Read.All and a supported directory role for delegated access.'
-            return
-        }
-    }
-    if ($q3QueryError -or $q4QueryError) {
-        Add-ZtTestResultDetail -TestId '61011' -Title 'Require users to use Microsoft Entra ID auth to interact with agents' -Status $false -CustomStatus Investigate -Result 'Unable to evaluate agent identity sign-in evidence because sign-in log data could not be retrieved.'
-        return
-    }
-
-    # Group Q3 records by blueprint principal object id
+    # Group successful Q3 records by blueprint principal object ID.
     $interactiveSignInsByPrincipalObjectId = @{}
     foreach ($signIn in $interactiveSignIns) {
-        if (-not [string]::IsNullOrEmpty($signIn.resourceId) -and $principalObjectIdSet.Contains($signIn.resourceId)) {
-            if (-not $interactiveSignInsByPrincipalObjectId.ContainsKey($signIn.resourceId)) {
-                $interactiveSignInsByPrincipalObjectId[$signIn.resourceId] = [System.Collections.Generic.List[object]]::new()
+        $resourceServicePrincipalId = $signIn.resourceServicePrincipalId
+        $isSuccessful = $null -ne $signIn.status -and $null -ne $signIn.status.errorCode -and $signIn.status.errorCode -eq 0
+        if ($isSuccessful -and -not [string]::IsNullOrEmpty($resourceServicePrincipalId) -and $principalObjectIdSet.Contains($resourceServicePrincipalId)) {
+            if (-not $interactiveSignInsByPrincipalObjectId.ContainsKey($resourceServicePrincipalId)) {
+                $interactiveSignInsByPrincipalObjectId[$resourceServicePrincipalId] = [System.Collections.Generic.List[object]]::new()
             }
-            $interactiveSignInsByPrincipalObjectId[$signIn.resourceId].Add($signIn)
+            $interactiveSignInsByPrincipalObjectId[$resourceServicePrincipalId].Add($signIn)
         }
     }
 
-    # Group Q4 records by agent.parentAppId (blueprint appId)
+    # Group successful Q4 records by agent.parentAppId (blueprint appId).
     $agenticSignInsByParentAppId = @{}
     foreach ($signIn in $agenticSignIns) {
         $parentAppId = $signIn.agent.parentAppId
-        if (-not [string]::IsNullOrEmpty($parentAppId)) {
+        $isSuccessful = $null -ne $signIn.status -and $null -ne $signIn.status.errorCode -and $signIn.status.errorCode -eq 0
+        if ($isSuccessful -and -not [string]::IsNullOrEmpty($parentAppId)) {
             if (-not $agenticSignInsByParentAppId.ContainsKey($parentAppId)) {
                 $agenticSignInsByParentAppId[$parentAppId] = [System.Collections.Generic.List[object]]::new()
             }
@@ -186,14 +151,14 @@ ORDER BY displayName
         $lastUserSignIn          = $null
 
         if ($principal) {
-            # Signal 1: agentic non-interactive sign-in with agent.parentAppId == principal.appId
+            # Signal 1: successful agentic non-interactive sign-in with agent.parentAppId == principal.appId
             $q4Records = $agenticSignInsByParentAppId[$principal.appId]
             if ($q4Records -and $q4Records.Count -gt 0) {
                 $signal1HasDelegatedCall = $true
                 $lastDelegatedCall = ($q4Records | Sort-Object createdDateTime -Descending | Select-Object -First 1).createdDateTime
             }
 
-            # Signal 2: interactive user sign-in with resourceId == principal.id
+            # Signal 2: successful interactive user sign-in with resourceServicePrincipalId == principal.id
             $q3Records = $interactiveSignInsByPrincipalObjectId[$principal.id]
             if ($q3Records -and $q3Records.Count -gt 0) {
                 $signal2HasUserSignIn = $true
@@ -204,11 +169,9 @@ ORDER BY displayName
         if (-not $signal1HasDelegatedCall -and -not $signal2HasUserSignIn) {
             $warningAgents.Add([PSCustomObject]@{
                 AgentDisplayName     = $agentIdentity.displayName
-                AgentAppId           = $agentIdentity.appId
                 AgentObjectId        = $agentIdentity.id
                 BlueprintDisplayName = if ($principal) { $principal.displayName } else { '' }
                 BlueprintAppId       = if ($principal) { $principal.appId } else { '' }
-                PrincipalObjectId    = if ($principal) { $principal.id } else { '' }
                 LastUserSignIn       = $lastUserSignIn
                 LastDelegatedCall    = $lastDelegatedCall
             })
@@ -238,7 +201,7 @@ ORDER BY displayName
             $blueprintLink = if (-not [string]::IsNullOrEmpty($agent.BlueprintDisplayName)) { "[$(Get-SafeMarkdown $agent.BlueprintDisplayName)]($blueprintUrl)" } else { '' }
             $lastUserSignInDisplay    = if ($agent.LastUserSignIn)    { $agent.LastUserSignIn }    else { 'none' }
             $lastDelegatedCallDisplay = if ($agent.LastDelegatedCall) { $agent.LastDelegatedCall } else { 'none' }
-            $tableRows += "| $agentLink | $($agent.AgentAppId) | $($agent.AgentObjectId) | $blueprintLink | $($agent.BlueprintAppId) | $($agent.PrincipalObjectId) | $lastUserSignInDisplay | $lastDelegatedCallDisplay |`n"
+            $tableRows += "| $agentLink | $blueprintLink | $lastUserSignInDisplay | $lastDelegatedCallDisplay |`n"
         }
 
         $formatTemplate = @'
@@ -246,8 +209,8 @@ ORDER BY displayName
 
 ### [Agent identities without Entra-mediated user-authentication evidence]({0})
 
-| Agent Display Name | Agent App ID | Agent Object ID | Blueprint Principal Display Name | Blueprint App ID | Blueprint Principal Object ID | Last User Sign-In to Blueprint Principal | Last Delegated Downstream Call |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Agent Display Name | Blueprint Principal Display Name | Last User Sign-In to Blueprint Principal | Last Delegated Downstream Call |
+| :--- | :--- | :--- | :--- |
 {1}
 **Summary:**
 - Total agent identities evaluated: {2}
