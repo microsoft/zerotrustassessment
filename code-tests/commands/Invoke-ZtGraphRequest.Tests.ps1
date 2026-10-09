@@ -222,6 +222,92 @@ Describe 'Invoke-ZtGraphRequest POST and batch support' {
 		Should -Invoke Start-Sleep -Times 0 -Exactly
 	}
 
+	It 'retries only duplicated IDs with statuses <Statuses> in matched mode <Correlated>' -ForEach @(
+		@{ Statuses = @(200, 500); Correlated = $false }
+		@{ Statuses = @(500, 200); Correlated = $false }
+		@{ Statuses = @(200, 403); Correlated = $false }
+		@{ Statuses = @(403, 200); Correlated = $false }
+		@{ Statuses = @(200, 200); Correlated = $false }
+		@{ Statuses = @(200, 500, 200); Correlated = $false }
+		@{ Statuses = @(200, 500); Correlated = $true }
+		@{ Statuses = @(500, 200); Correlated = $true }
+		@{ Statuses = @(200, 403); Correlated = $true }
+		@{ Statuses = @(403, 200); Correlated = $true }
+		@{ Statuses = @(200, 200); Correlated = $true }
+		@{ Statuses = @(200, 500, 200); Correlated = $true }
+	) {
+		Mock Start-Sleep {}
+		Mock Invoke-ZtGraphRequestCache {
+			param($Body)
+			$script:requests.Add(@{ Body = $Body })
+			if ($script:requests.Count -eq 1) {
+				$duplicates = @($Statuses | ForEach-Object {
+					@{ id = '1'; status = $_; headers = @{ 'Retry-After' = '100' }; body = @{ id = 'ambiguous' } }
+				})
+				return @{ responses = @(@{ id = '0'; status = 200; body = @{ id = 'first' } }) + $duplicates }
+			}
+			@{ responses = @(@{ id = 1; status = 200; body = @{ id = 'second' } }) }
+		}
+
+		$result = @(Invoke-ZtGraphRequest -RelativeUri 'users' -UniqueId 'first', 'second' -Matched:$Correlated -GraphBaseUri 'https://graph.microsoft.com/')
+
+		$result | Should -HaveCount 2
+		if ($Correlated) {
+			$result.Id | Should -Be @(0, 1)
+			$result.Result.id | Should -Be @('first', 'second')
+			$result.Attempts | Should -Be @(1, 2)
+			$result.Success | Should -Be @($true, $true)
+			$result.RetryExhausted | Should -Be @($false, $false)
+		}
+		else {
+			$result.id | Should -Be @('first', 'second')
+		}
+		$script:requests | Should -HaveCount 2
+		(($script:requests[1].Body | ConvertFrom-Json).requests.id) | Should -Be 1
+		Should -Invoke Start-Sleep -Times 1 -Exactly -ParameterFilter { $Seconds -eq 3 }
+	}
+
+	It 'preserves exhaustion behavior for persistent duplicated IDs in matched mode <Correlated>' -ForEach @(
+		@{ Correlated = $false }, @{ Correlated = $true }
+	) {
+		Mock Start-Sleep {}
+		Mock Invoke-ZtGraphRequestCache {
+			param($Body)
+			$script:requests.Add(@{ Body = $Body })
+			$batch = $Body | ConvertFrom-Json
+			@{ responses = @($batch.requests | ForEach-Object {
+				if ($_.id -eq 0) {
+					@{ id = '0'; status = 200; body = @{ id = 'first' } }
+				}
+				else {
+					@{ id = 1; status = 500; body = @{ error = 'ambiguous' } }
+					@{ id = '1'; status = 200; body = @{ id = 'ambiguous' } }
+				}
+			}) }
+		}
+
+		if ($Correlated) {
+			$result = @(Invoke-ZtGraphRequest -RelativeUri 'users' -UniqueId 'first', 'second' -Matched -GraphBaseUri 'https://graph.microsoft.com/')
+			$result | Should -HaveCount 2
+			$result.Id | Should -Be @(0, 1)
+			$result.Success | Should -Be @($true, $false)
+			$result.RetryExhausted | Should -Be @($false, $true)
+			$result.Attempts | Should -Be @(1, 6)
+			$result[0].Result.id | Should -Be 'first'
+			$result[1].Result | Should -BeNullOrEmpty
+			$result[1].StatusCode | Should -BeNullOrEmpty
+			Should -Invoke Write-PSFMessage -Times 1 -Exactly -ParameterFilter { $Level -eq 'Warning' -and $Message -like '*exhausted retries*' }
+		}
+		else {
+			{ Invoke-ZtGraphRequest -RelativeUri 'users' -UniqueId 'first', 'second' -GraphBaseUri 'https://graph.microsoft.com/' } | Should -Throw '*after 6 attempts*'
+		}
+		$script:requests | Should -HaveCount 6
+		foreach ($retryRequest in $script:requests | Select-Object -Skip 1) {
+			(($retryRequest.Body | ConvertFrom-Json).requests.id) | Should -Be 1
+		}
+		Should -Invoke Start-Sleep -Times 5 -Exactly
+	}
+
 	It 'retries malformed response <Case> and reports null status on exhaustion' -ForEach @(
 		@{ Case = 'missing response'; Responses = @() }
 		@{ Case = 'missing status'; Responses = @(@{ id = '0'; body = @{ error = 'missing status' } }) }

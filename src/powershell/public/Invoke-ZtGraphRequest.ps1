@@ -287,7 +287,13 @@ function Invoke-ZtGraphRequest {
 				$responseLookup = @{}
 				foreach ($response in @($batchResult.responses)) {
 					if ($null -ne $response.id) {
-						$responseLookup[[string]$response.id] = $response
+						$responseId = [string]$response.id
+						if ($responseLookup.ContainsKey($responseId)) {
+							$responseLookup[$responseId] = $null
+						}
+						else {
+							$responseLookup[$responseId] = $response
+						}
 					}
 				}
 
