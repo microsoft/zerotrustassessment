@@ -73,19 +73,19 @@ ORDER BY vr.roleDisplayName, displayName
     $mdInfo += "| :--- | :--- | :--- | :---: |`n"
     foreach ($user in $privilegedRoleUsers) {
         if ($user.onPremisesSyncEnabled -eq $true) {
-            $type = "Synced from on-premises"
-            $status = "❌"
+            $type = 'Synced from on-premises'
+            $status = '❌'
         }
         else {
-            $type = "Cloud native identity"
-            $status = "✅"
+            $type = 'Cloud native identity'
+            $status = '✅'
         }
 
         $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}" -f $user.id
         $mdInfo += "| $($user.roleDisplayName) | [$($user.displayName)]($userLink) | $type | $status |`n"
     }
 
-    $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
 
     $params = @{
         TestId = '21814'
