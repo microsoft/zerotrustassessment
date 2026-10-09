@@ -68,21 +68,24 @@ ORDER BY vr.roleDisplayName, displayName
     #endregion Assessment Logic
 
     #region Report Generation
-    $mdInfo = "## Privileged roles`n`n"
-    $mdInfo += "| Role name | User | Source | Status |`n"
-    $mdInfo += "| :--- | :--- | :--- | :---: |`n"
-    foreach ($user in $privilegedRoleUsers) {
-        if ($user.onPremisesSyncEnabled -eq $true) {
-            $type = 'Synced from on-premises'
-            $status = '❌'
-        }
-        else {
-            $type = 'Cloud native identity'
-            $status = '✅'
-        }
+    $mdInfo = ''
+    if ($privilegedRoleUsers.Count -gt 0) {
+        $mdInfo = "## Privileged roles`n`n"
+        $mdInfo += "| Role name | User | Source | Status |`n"
+        $mdInfo += "| :--- | :--- | :--- | :---: |`n"
+        foreach ($user in $privilegedRoleUsers) {
+            if ($user.onPremisesSyncEnabled -eq $true) {
+                $type = 'Synced from on-premises'
+                $status = '❌'
+            }
+            else {
+                $type = 'Cloud native identity'
+                $status = '✅'
+            }
 
-        $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}" -f $user.id
-        $mdInfo += "| $($user.roleDisplayName) | [$($user.displayName)]($userLink) | $type | $status |`n"
+            $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}" -f $user.id
+            $mdInfo += "| $($user.roleDisplayName) | [$($user.displayName)]($userLink) | $type | $status |`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace '%TestResult%', $mdInfo
