@@ -44,7 +44,12 @@ function Test-Assessment-61005 {
     $httpStatusCode = $null
 
     try {
-        $agentPackages = Invoke-ZtGraphRequest -RelativeUri 'copilot/admin/catalog/packages' -Filter "supportedHosts/any(h:h eq 'Copilot')" -ApiVersion beta -ErrorAction Stop
+        $agentPackages = Invoke-ZtGraphRequest `
+            -RelativeUri 'copilot/admin/catalog/packages' `
+            -Filter "supportedHosts/any(h:h eq 'Copilot')" `
+            -Select @('displayName', 'elementTypes', 'availableTo', 'deployedTo') `
+            -ApiVersion beta `
+            -ErrorAction Stop
     }
     catch {
         $errorMsg = $_
