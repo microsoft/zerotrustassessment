@@ -177,6 +177,102 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 0 -Exactly
 	}
 
+	It 'preserves zero dependency <Dependency> as a string' -TestCases @(
+		@{ Dependency = 0 }
+		@{ Dependency = '0' }
+		@{ Dependency = @(0) }
+	) {
+		param($Dependency)
+		Invoke-ZtGraphBatchRequest -Request @(@{ id = 0; url = 'users' }, @{ id = 'dependent'; url = 'groups'; dependsOn = $Dependency }) -Raw | Out-Null
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].Members[1].dependsOn | Should -Be @('0')
+		$script:requests[0].Members[1].dependsOn[0] | Should -BeOfType [string]
+	}
+
+	It 'rejects a dependency workload of <Count> requests exceeding BatchSize <Size> before transport' -TestCases @(
+		@{ Count = 2; Size = 1 }
+		@{ Count = 21; Size = 20 }
+	) {
+		param($Count, $Size)
+		$dependentRequests = @(1..$Count | ForEach-Object { @{ id = "$_"; url = "users/$_" } })
+		$dependentRequests[-1].dependsOn = @('1')
+		{ Invoke-ZtGraphBatchRequest -Request $dependentRequests -BatchSize $Size -Raw } | Should -Throw '*must fit within BatchSize*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 0 -Exactly
+	}
+
+	It 'keeps multiple string and numeric dependency IDs in one batch' {
+		Invoke-ZtGraphBatchRequest -Request @(
+			@{ id = 0; url = 'users' }
+			@{ id = 'custom'; url = 'groups' }
+			@{ id = 'dependent'; url = 'devices'; dependsOn = @(0, 'custom') }
+		) -BatchSize 3 -Raw | Out-Null
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].Members[2].dependsOn | Should -Be @('0', 'custom')
+		foreach ($dependency in $script:requests[0].Members[2].dependsOn) {
+			$dependency | Should -BeOfType [string]
+		}
+	}
+
+	It 'rejects invalid dependency <Dependency> before transport' -TestCases @(
+		@{ Dependency = 'missing' }
+		@{ Dependency = 'dependent' }
+		@{ Dependency = '' }
+	) {
+		param($Dependency)
+		{ Invoke-ZtGraphBatchRequest -Request @(@{ id = 'first'; url = 'users' }, @{ id = 'dependent'; url = 'groups'; dependsOn = @($Dependency) }) -Raw } | Should -Throw '*reference other requests*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 0 -Exactly
+	}
+
+	It 'retries a throttled dependent without replaying its successful write prerequisite' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 1) {
+				return @{ responses = @(
+					@{ id = 'dependent'; status = 429; headers = @{ 'Retry-After' = '0' } }
+					@{ id = 'first'; status = 201; body = @{ result = 'created' } }
+				) }
+			}
+			@{ responses = @(@{ id = 'dependent'; status = 200; body = @{ result = 'recovered' } }) }
+		}
+		$result = @(Invoke-ZtGraphBatchRequest -Request @(@{ id = 'first'; url = 'users'; method = 'POST' }, @{ id = 'dependent'; url = 'groups'; dependsOn = @('FIRST') }) -Raw)
+		$result.id | Should -Be @('first', 'dependent')
+		$script:requests | Should -HaveCount 2
+		$script:requests[1].Members.id | Should -Be @('dependent')
+		$script:requests[1].Members[0].ContainsKey('dependsOn') | Should -BeFalse
+	}
+
+	It 'retries pending dependencies together when both are ready' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 1) {
+				return @{ responses = @($Body.requests | ForEach-Object {
+					@{ id = $_.id; status = 429; headers = @{ 'Retry-After' = '0' } }
+				}) }
+			}
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{} } }) }
+		}
+		$result = @(Invoke-ZtGraphBatchRequest -Request @(@{ id = 'first'; url = 'users' }, @{ id = 'dependent'; url = 'groups'; dependsOn = @('first') }) -Raw)
+		$result | Should -HaveCount 2
+		$script:requests | Should -HaveCount 2
+		$script:requests[1].Members.id | Should -Be @('first', 'dependent')
+		$script:requests[1].Members[1].dependsOn | Should -Be @('first')
+	}
+
+	It 'rejects retry selection that separates pending dependencies' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			@{ responses = @(
+				@{ id = 'first'; status = 429; headers = @{ 'Retry-After' = '60' } }
+				@{ id = 'dependent'; status = 429; headers = @{ 'Retry-After' = '0' } }
+			) }
+		}
+		{ Invoke-ZtGraphBatchRequest -Request @(@{ id = 'first'; url = 'users' }, @{ id = 'dependent'; url = 'groups'; dependsOn = @('first') }) -Raw } | Should -Throw '*cannot be submitted separately*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+	}
+
 	It 'retries an inner 429 without replaying successful siblings' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Body)

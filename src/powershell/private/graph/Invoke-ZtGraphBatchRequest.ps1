@@ -25,6 +25,9 @@
 		+ headers:   Headers to include with the request
 		+ dependsOn: The id of another request that must be successful, in order to run this request. Prevents executing requests invalidated by another request's failure.
 
+		Dependency IDs are normalized to strings. Workloads containing dependencies must fit within BatchSize.
+		Dependencies must reference other requests in the same workload.
+
 		The only mandatory value to provide (whether as plain string or via hashtable) is the "url".
 		The rest are filled by default values either provided via other parameters (Method, Body, Header) or the system (id) or omitted (dependsOn).
 
@@ -109,6 +112,8 @@
 		Outer transport failures use Invoke-ZtRetry only when every submitted member is GET or HEAD.
 		Intermediate retry errors are isolated from caller error variables when the batch recovers.
 		Batches containing writes are not replayed by this helper after an outer failure.
+		Successful prerequisites are not replayed for dependent retries; their dependency references are removed.
+		Pending dependencies that cannot be submitted together are rejected rather than sent as dangling references.
 
 	.EXAMPLE
 		PS C:\> Invoke-ZtGraphBatchRequest -Path 'users/{0}/authentication/methods' -ArgumentList $users.id
@@ -498,8 +503,8 @@
 					$task.Url = ($task.Url -split '/',2)[1]
 				}
 
-				if ($Request.DependsOn) {
-					$task.DependsOn = $Request.DependsOn
+				if ($null -ne $Request.DependsOn) {
+					$task.DependsOn = @($Request.DependsOn | ForEach-Object { [string]$_ })
 				}
 				#endregion Other Metadata
 
@@ -535,6 +540,7 @@
 			)
 
 			$count = 0
+			$selectedTasks = [System.Collections.Generic.List[object]]::new()
 			$now = Get-Date
 			foreach ($task in $Tasks) {
 				if ($task.WaitUntil -and $task.WaitUntil -gt $now) {
@@ -547,7 +553,7 @@
 					continue
     } # Waiting will take longer than we are willing to wait
 
-				$task
+				$selectedTasks.Add($task)
 				$count++
 
 				if ($count -ge $BatchSize) {
@@ -574,6 +580,14 @@
 					)
 				)
 			}
+			foreach ($task in $selectedTasks) {
+				foreach ($dependency in $task.Batch.dependsOn) {
+					if ($dependency -notin $selectedTasks.Id) {
+						throw [System.InvalidOperationException]::new('Pending dependent requests cannot be submitted separately from their prerequisites.')
+					}
+				}
+			}
+			$selectedTasks.ToArray()
 		}
 
 		function Invoke-GraphBatch {
@@ -715,6 +729,24 @@
 						))
 					}
 					return
+				}
+
+				if ($Tasks[0].Parameters.HasDependencies) {
+					$successfulIDs = @($innerResult | Where-Object { $_.status -ge 200 -and $_.status -le 299 } | ForEach-Object { [string]$_.id })
+					foreach ($pendingTask in $TaskList) {
+						if (-not $pendingTask.Batch.ContainsKey('dependsOn')) {
+							continue
+						}
+						$remainingDependencies = @($pendingTask.Batch.dependsOn | Where-Object { $_ -notin $successfulIDs })
+						$retryBatch = $pendingTask.Batch.Clone()
+						if ($remainingDependencies.Count -gt 0) {
+							$retryBatch.dependsOn = $remainingDependencies
+						}
+						else {
+							$retryBatch.Remove('dependsOn')
+						}
+						$pendingTask.Batch = $retryBatch
+					}
 				}
 
 				foreach ($result in $innerResult) {
@@ -861,6 +893,19 @@
 		foreach ($pathItem in $Path) {
 			foreach ($argumentItem in $ArgumentList) {
 				ConvertFrom-PathRequest -Path $pathItem -Argument $argumentItem -Parameters $parameters -TaskList $allTasks -Tracking $idTracking
+			}
+		}
+		$parameters.HasDependencies = @($allTasks | Where-Object { $_.Batch.ContainsKey('dependsOn') -and $_.Batch.dependsOn.Count -gt 0 }).Count -gt 0
+		if ($parameters.HasDependencies) {
+			if ($allTasks.Count -gt $BatchSize) {
+				throw [System.ArgumentException]::new('Workloads containing dependsOn must fit within BatchSize; dependency-bearing workloads cannot be split across batches.')
+			}
+			foreach ($task in $allTasks) {
+				foreach ($dependency in $task.Batch.dependsOn) {
+					if ([string]::IsNullOrWhiteSpace($dependency) -or $dependency -eq $task.Id -or $dependency -notin $allTasks.Id) {
+						throw [System.ArgumentException]::new('Dependency IDs must reference other requests in the same workload.')
+					}
+				}
 			}
 		}
 	}
