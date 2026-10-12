@@ -228,8 +228,15 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Method, $Body)
 			$script:requests.Add(@{ Method = $Method })
-			$member = $Body.requests[0]
-			@{ responses = @(@{ id = $member.id; status = 200; body = @{ result = 'first'; '@odata.nextLink' = 'https://graph.microsoft.com/v1.0/users?page=2' } }) }
+			$members = @($Body.requests)
+			@{ responses = @($members | ForEach-Object {
+				$responseBody = @{ result = $_.url }
+				if ($_.id -eq $members[0].id) {
+					$responseBody['result'] = 'first'
+					$responseBody['@odata.nextLink'] = 'https://graph.microsoft.com/v1.0/users?page=2'
+				}
+				@{ id = $_.id; status = 200; body = $responseBody }
+			}) }
 		}
 		$emitted = [System.Collections.Generic.List[object]]::new()
 		{ Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..20) -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Continuation failed*'
