@@ -32,6 +32,16 @@
   letter-spacing: 0.02em;
   margin-bottom: 1.5rem;
   color: #c8e6ff;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.heroTagline:hover,
+.heroTagline:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  text-decoration: none;
 }
 
 .newBadge {
@@ -64,10 +74,18 @@
 
 .heroCtas {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.heroPrimaryCtas {
+  display: flex;
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 3rem;
 }
 
 .ctaPrimary {
@@ -156,6 +174,16 @@
   display: block;
 }
 
+.carouselSlideLinkContain {
+  aspect-ratio: 16 / 9;
+  background: #f5f7fa;
+}
+
+.carouselSlideLinkContain img {
+  height: 100%;
+  object-fit: contain;
+}
+
 /* ─── Controls: arrows + dots ─── */
 
 .carouselControls {
@@ -230,13 +258,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #e8f0fe;
-  border: 1px solid #b8d4fe;
-  color: #0a1628;
+  background: #ff6b35;
+  border: 1px solid #e05520;
+  color: #fff;
   border-radius: 999px;
   padding: 0.35rem 1rem;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1.25rem;
 }
 
@@ -256,16 +284,54 @@
   margin: 0 auto 2rem;
 }
 
+.releaseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  text-align: left;
+}
+
+.releaseItem {
+  padding: 1.75rem;
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.releaseProduct {
+  margin-bottom: 0.5rem;
+  color: #0078d4;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.releaseTitle {
+  margin-bottom: 0.65rem;
+  color: #0a1628;
+  font-size: 1.25rem;
+}
+
+.releaseDesc {
+  min-height: 4.8rem;
+  margin-bottom: 1.25rem;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 /* ─── Mini Pillar Diagram ─── */
 
 .pillarRow {
   display: flex;
   gap: 0.5rem;
-  justify-content: center;
   flex-wrap: wrap;
 }
 
 .pillarItem {
+  display: inline-block;
   padding: 0.55rem 1rem;
   border-radius: 8px;
   background: #e8eef4;
@@ -287,10 +353,15 @@
   background: linear-gradient(135deg, #ff6b35, #e05520);
   color: #fff;
   animation: pillarGlow 2.5s ease-in-out infinite;
+  cursor: pointer;
+  text-decoration: none;
 }
 
-.pillarHighlighted:hover {
+.pillarHighlighted:hover,
+.pillarHighlighted:focus-visible {
   box-shadow: 0 4px 20px rgba(255, 107, 53, 0.45);
+  color: #fff;
+  text-decoration: none;
 }
 
 .pillarNew {
@@ -393,17 +464,19 @@
 
 .productImageWrap {
   position: relative;
+  aspect-ratio: 16 / 9;
   background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
   padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 260px;
   overflow: hidden;
 }
 
 .productImageWrap img {
   width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s;
@@ -762,6 +835,14 @@
     grid-template-columns: 1fr;
   }
 
+  .releaseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .releaseDesc {
+    min-height: 0;
+  }
+
   .stepsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -808,8 +889,12 @@
   }
 
   .heroCtas {
+    width: 100%;
+  }
+
+  .heroPrimaryCtas {
     flex-direction: column;
-    align-items: center;
+    width: 100%;
   }
 
   .ctaPrimary,
