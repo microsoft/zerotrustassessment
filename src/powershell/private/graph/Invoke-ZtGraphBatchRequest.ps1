@@ -105,7 +105,9 @@
 
 	.NOTES
 		Incomplete or invalid member responses fail the submitted batch without resubmission.
+		Under nonterminating error handling, each affected request receives an error targeting its batch request descriptor.
 		Outer transport failures use Invoke-ZtRetry only when every submitted member is GET or HEAD.
+		Intermediate retry errors are isolated from caller error variables when the batch recovers.
 		Batches containing writes are not replayed by this helper after an outer failure.
 
 	.EXAMPLE
@@ -643,7 +645,26 @@
 				}
 				$innerResult = try {
 					if (@($Tasks | Where-Object { $_.Batch.method -notin 'GET', 'HEAD' }).Count -eq 0) {
-						$response = Invoke-ZtRetry -ScriptBlock { Microsoft.Graph.Authentication\Invoke-MgGraphRequest @transportParameters }
+						$retryPipeline = [System.Management.Automation.PowerShell]::Create([System.Management.Automation.RunspaceMode]::CurrentRunspace)
+						try {
+							$null = $retryPipeline.AddCommand('Invoke-Command').AddParameter('ScriptBlock', {
+								param($Parameters)
+								try {
+									@{ Response = Invoke-ZtRetry -ScriptBlock { Microsoft.Graph.Authentication\Invoke-MgGraphRequest @Parameters } }
+								}
+								catch {
+									@{ ErrorRecord = $_ }
+								}
+							}).AddParameter('ArgumentList', @($transportParameters))
+							$retryResult = $retryPipeline.Invoke()[0]
+						}
+						finally {
+							$retryPipeline.Dispose()
+						}
+						if ($retryResult.ErrorRecord) {
+							throw $retryResult.ErrorRecord
+						}
+						$response = $retryResult.Response
 					}
 					else {
 						$response = Microsoft.Graph.Authentication\Invoke-MgGraphRequest @transportParameters
@@ -685,12 +706,14 @@
 					foreach ($task in $Tasks) {
 						$null = $TaskList.Remove($task)
 					}
-					$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
-						[System.IO.InvalidDataException]::new('Batch response is incomplete or contains invalid or duplicate member IDs or statuses.'),
-						'InvalidGraphBatchResponse',
-						[System.Management.Automation.ErrorCategory]::InvalidData,
-						@($Tasks.Batch.id)
-					))
+					foreach ($task in $Tasks) {
+						$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+							[System.IO.InvalidDataException]::new('Batch response is incomplete or contains invalid or duplicate member IDs or statuses.'),
+							'InvalidGraphBatchResponse',
+							[System.Management.Automation.ErrorCategory]::InvalidData,
+							$task.Batch
+						))
+					}
 					return
 				}
 

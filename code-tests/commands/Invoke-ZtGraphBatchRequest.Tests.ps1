@@ -158,8 +158,12 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 		$batchErrors = @()
 		$result = @(Invoke-ZtGraphBatchRequest -Request users, groups -Raw -ErrorAction SilentlyContinue -ErrorVariable batchErrors)
 		$result | Should -HaveCount 0
-		$batchErrors | Should -HaveCount 1
-		$batchErrors[0].FullyQualifiedErrorId | Should -BeLike 'InvalidGraphBatchResponse*'
+		$batchErrors | Should -HaveCount 2
+		foreach ($batchError in $batchErrors) {
+			$batchError.FullyQualifiedErrorId | Should -BeLike 'InvalidGraphBatchResponse*'
+		}
+		$batchErrors.TargetObject.url | Should -Be @('users', 'groups')
+		$batchErrors.TargetObject.id | Should -Be @('1', '2')
 		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
 	}
 
@@ -220,8 +224,10 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 			}
 			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = 'recovered' } } }) }
 		}
-		$result = @(Invoke-ZtGraphBatchRequest -Request users, groups -Raw)
+		$batchErrors = @()
+		$result = @(Invoke-ZtGraphBatchRequest -Request users, groups -Raw -ErrorAction SilentlyContinue -ErrorVariable batchErrors)
 		$result | Should -HaveCount 2
+		$batchErrors | Should -HaveCount 0
 		$script:attempt | Should -Be 2
 		Should -Invoke Start-Sleep -Times 1 -Exactly
 	}
