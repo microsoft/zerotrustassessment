@@ -18,7 +18,7 @@
 
 	.PARAMETER Request
 		The requests to send. Provide either a url string or a request hashtables with any combination of the following keys:
-		+ id:        The numeric ID to use. Determines the order in which requests are processed in the server end.
+		+ id:        A nonempty string correlation ID, unique without regard to case. Generated if omitted.
 		+ method:    The REST method to use (GET, POST, PATCH, ...)
 		+ url:       The relative url to call
 		+ body:      The body to provide with the request
@@ -75,7 +75,7 @@
 		Rather than returning the results alone, match the results to the input object.
 		This will create a custom object with ...
 		- Id: The batch ID (generally cosmetic).
-		- Argument: The value provided to "-ArgumentList" or - if using the "-Request" parameter instead - the finalized batch request entry.
+		- Argument: The original value provided to "-ArgumentList" or "-Request".
 		- Result: The return value (if any) or the error result.
 		- Success: Boolean truth of whether the request was successful.
 
@@ -87,6 +87,26 @@
 	.PARAMETER NoPaging
 		Disables paging for each individual request.
 		If not specified, all batches that has more data will automatically page through all pages, until there is no more data.
+
+	.PARAMETER ApiVersion
+		The Graph API version used for the batch endpoint. Defaults to v1.0.
+
+	.PARAMETER GraphBaseUri
+		An absolute HTTPS Graph service root, such as https://graph.microsoft.us/.
+		If omitted, the SDK's connected environment determines the destination.
+
+	.PARAMETER BatchSize
+		Maximum number of ready requests in each batch, from 1 to 20. Defaults to 20.
+
+	.PARAMETER OutputType
+		The SDK response representation: PSObject, PSCustomObject, or Hashtable.
+		PSCustomObject is an alias for the SDK's PSObject representation.
+		Defaults to Hashtable to preserve existing private-helper callers.
+
+	.NOTES
+		Incomplete or invalid member responses fail the submitted batch without resubmission.
+		Outer transport failures use Invoke-ZtRetry only when every submitted member is GET or HEAD.
+		Batches containing writes are not replayed by this helper after an outer failure.
 
 	.EXAMPLE
 		PS C:\> Invoke-ZtGraphBatchRequest -Path 'users/{0}/authentication/methods' -ArgumentList $users.id
@@ -228,6 +248,23 @@
 		[ValidateSet('v1.0', 'beta')]
 		[string]
 		$ApiVersion = 'v1.0',
+
+		[ValidateScript({
+			if (-not $_.IsAbsoluteUri -or $_.Scheme -ne 'https' -or $_.UserInfo -or $_.Query -or $_.Fragment -or $_.AbsolutePath -ne '/') {
+				throw 'GraphBaseUri must be an absolute HTTPS service root without credentials, a query, or a fragment.'
+			}
+			$true
+		})]
+		[uri]
+		$GraphBaseUri,
+
+		[ValidateRange(1, 20)]
+		[int]
+		$BatchSize = 20,
+
+		[ValidateSet('PSObject', 'PSCustomObject', 'Hashtable')]
+		[string]
+		$OutputType = 'Hashtable',
 
 		[switch]
 		$NoPaging
@@ -413,14 +450,14 @@
 				}
 
 				#region ID
-				if ($Request.id) {
-					$task.Id = $Request.Id -as [int]
-					if ($task.Id -gt $Tracking.CurrentID) {
-						$Tracking.CurrentID = $task.Id + 1
+				if ($null -ne $Request.id) {
+					$task.Id = [string]$Request.id
+					if ([string]::IsNullOrWhiteSpace($task.Id) -or $task.Id -in $TaskList.Id) {
+						throw [System.ArgumentException]::new('Batch request IDs must be nonempty and unique.')
 					}
 				}
 				else {
-					while ($Tracking.CurrentID -in $TaskList.Id) {
+					while ([string]$Tracking.CurrentID -in $Tracking.ReservedIDs -or [string]$Tracking.CurrentID -in $TaskList.Id) {
 						$Tracking.CurrentID++
 					}
 					$task.Id = $Tracking.CurrentID
@@ -489,6 +526,9 @@
 			param (
 				$Tasks,
 
+				[int]
+				$BatchSize,
+
 				$Cmdlet
 			)
 
@@ -508,7 +548,7 @@
 				$task
 				$count++
 
-				if ($count -gt 18) {
+				if ($count -ge $BatchSize) {
 					break
     }
 			}
@@ -572,16 +612,45 @@
 				[string]
 				$ApiVersion = 'v1.0',
 
+				[uri]
+				$GraphBaseUri,
+
+				[string]
+				$OutputType,
+
 				[Parameter(Mandatory = $true)]
 				$Cmdlet
 			)
 			process {
 				$start = Get-Date
+				foreach ($task in $Tasks) {
+					if (-not $task.Start) {
+						$task.Start = $start
+						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
+					}
+				}
+				$batchUri = "$ApiVersion/`$batch"
+				if ($GraphBaseUri) {
+					$batchUri = [uri]::new($GraphBaseUri, $batchUri).AbsoluteUri
+				}
+				$transportParameters = @{
+					Uri = $batchUri
+					Method = 'Post'
+					Body = @{ requests = @($Tasks.Batch) }
+					ContentType = 'application/json'
+					OutputType = $(if ($OutputType -eq 'PSCustomObject') { 'PSObject' } else { $OutputType })
+					ErrorAction = 'Stop'
+				}
 				$innerResult = try {
-					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri 'v1.0/$batch' -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
+					if (@($Tasks | Where-Object { $_.Batch.method -notin 'GET', 'HEAD' }).Count -eq 0) {
+						$response = Invoke-ZtRetry -ScriptBlock { Microsoft.Graph.Authentication\Invoke-MgGraphRequest @transportParameters }
+					}
+					else {
+						$response = Microsoft.Graph.Authentication\Invoke-MgGraphRequest @transportParameters
+					}
+					$response.responses
 				}
 				catch {
-					# This should happen only for bad requests (insufficient or bad request data), as otherwise the error is within the respective results on the individual batch members
 					$Cmdlet.WriteError(
 						[System.Management.Automation.ErrorRecord]::new(
 							[Exception]::new("Error sending batch: $($_.Exception.Message)", $_.Exception),
@@ -597,12 +666,36 @@
 					return
 				}
 
+				$submittedIDs = @{}
+				foreach ($task in $Tasks) {
+					$submittedIDs[[string]$task.Batch.id] = $task
+				}
+				$returnedIDs = @{}
+				$invalidResponse = $false
 				foreach ($result in $innerResult) {
-					$task = @($Tasks).Where{ $_.batch.id -eq $result.id }[0]
-					if (-not $task.Start) {
-						$task.Start = $start
-						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
+					$responseID = [string]$result.id
+					$status = 0
+					if (-not $submittedIDs.ContainsKey($responseID) -or $returnedIDs.ContainsKey($responseID) -or
+						-not [int]::TryParse([string]$result.status, [ref]$status) -or $status -lt 200 -or $status -gt 599) {
+						$invalidResponse = $true
 					}
+					$returnedIDs[$responseID] = $true
+				}
+				if ($invalidResponse -or $returnedIDs.Count -ne $submittedIDs.Count) {
+					foreach ($task in $Tasks) {
+						$null = $TaskList.Remove($task)
+					}
+					$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+						[System.IO.InvalidDataException]::new('Batch response is incomplete or contains invalid or duplicate member IDs or statuses.'),
+						'InvalidGraphBatchResponse',
+						[System.Management.Automation.ErrorCategory]::InvalidData,
+						@($Tasks.Batch.id)
+					))
+					return
+				}
+
+				foreach ($result in $innerResult) {
+					$task = $submittedIDs[[string]$result.id]
 
 					#region Case: Success
 					if (200 -le $result.status -and 299 -ge $result.status) {
@@ -623,7 +716,8 @@
 						# Matched Output
 						if ($task.Parameters.Matched) {
 							$data = $result.body
-							if ($data.Keys -contains 'value') {
+							if (($data -is [System.Collections.IDictionary] -and $data.Contains('value')) -or
+								$data.PSObject.Properties.Name -contains 'value') {
 								$data = $data.value
 							}
 							if (-not $task.Result) {
@@ -634,7 +728,7 @@
 							}
 
 							# Only return matched result after completing the batching
-							if ($result.body.'@odata.nextLink') {
+							if ($result.body.'@odata.nextLink' -and -not $task.Parameters.NoPaging) {
 								continue
 							}
 
@@ -650,7 +744,8 @@
 						}
 
 						# Plain Output
-						if ($result.body.PSObject.Properties.Name -contains 'value') {
+						if (($result.body -is [System.Collections.IDictionary] -and $result.body.Contains('value')) -or
+							$result.body.PSObject.Properties.Name -contains 'value') {
 							$result.body.value
 						}
 						else {
@@ -662,7 +757,11 @@
 					#endregion Case: Success
 					#region Case: Throttled
 					if (429 -eq $result.status) {
-						$task.WaitUntil = (Get-Date).AddSeconds($result.Headers.'Retry-After')
+						$retryAfter = 0
+						if (-not [int]::TryParse([string]$result.Headers.'Retry-After', [ref]$retryAfter) -or $retryAfter -lt 0) {
+							$retryAfter = 3
+						}
+						$task.WaitUntil = (Get-Date).AddSeconds($retryAfter)
 						continue
 					}
 					#endregion Case: Throttled
@@ -678,7 +777,7 @@
 						$Cmdlet.WriteError(
 							[System.Management.Automation.ErrorRecord]::new(
 								[Exception]::new("Error in batch request $($result.id): $($result.body.error.message)"),
-								('{0}|{1}' -f $result.status, $result.error.code),
+								('{0}|{1}' -f $result.status, $result.body.error.code),
 								[System.Management.Automation.ErrorCategory]::NotSpecified,
 								$task.Batch
 							)
@@ -688,9 +787,9 @@
 							[PSCustomObject]@{
 								PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
 								Id         = "$($task.Id)"
-								Argument   = $task.Batch
+								Argument   = $task.Argument
 								Success    = $false
-								Result     = $result.error
+								Result     = $result.body.error
 								Status     = $result.status
 							}
 						}
@@ -709,7 +808,7 @@
 						[PSCustomObject]@{
 							PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
 							Id         = "$($task.Id)"
-							Argument   = $task.Batch
+							Argument   = $task.Argument
 							Success    = $false
 							Result     = $result
 							Status     = $result.status
@@ -725,7 +824,7 @@
 		#endregion Utility Functions
 
 		$allTasks = [System.Collections.Generic.List[object]]::new()
-		$idTracking = @{ CurrentID = 1 }
+		$idTracking = @{ CurrentID = 1; ReservedIDs = @($Request | ForEach-Object { if ($null -ne $_.id) { [string]$_.id } }) }
 		$parameters = @{}
 		foreach ($key in $PSBoundParameters.Keys) {
 			$parameters[$key] = $PSBoundParameters.$Key
@@ -744,7 +843,7 @@
 	}
 	process {
 		do {
-			$tasks = Get-NextBatch -Tasks $allTasks -Cmdlet $PSCmdlet
+			$tasks = Get-NextBatch -Tasks $allTasks -BatchSize $BatchSize -Cmdlet $PSCmdlet
 
 			# Case: All remaining tasks have expired
 			if ($allTasks.Count -lt 1) {
@@ -757,7 +856,7 @@
 				continue
 			}
 
-			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion
+			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion -GraphBaseUri $GraphBaseUri -OutputType $OutputType
 		}
 		while ($allTasks.Count -gt 0)
 	}
