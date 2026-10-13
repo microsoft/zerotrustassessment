@@ -578,7 +578,7 @@
 			process {
 				$start = Get-Date
 				$innerResult = try {
-					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri 'v1.0/$batch' -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
+					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri "$ApiVersion/`$batch" -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
 				}
 				catch {
 					# This should happen only for bad requests (insufficient or bad request data), as otherwise the error is within the respective results on the individual batch members
