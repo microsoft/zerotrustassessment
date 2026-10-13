@@ -88,6 +88,9 @@
 		Disables paging for each individual request.
 		If not specified, all batches that has more data will automatically page through all pages, until there is no more data.
 
+	.PARAMETER ApiVersion
+		The Graph API version used for the batch endpoint. Defaults to v1.0.
+
 	.EXAMPLE
 		PS C:\> Invoke-ZtGraphBatchRequest -Path 'users/{0}/authentication/methods' -ArgumentList $users.id
 
@@ -578,7 +581,7 @@
 			process {
 				$start = Get-Date
 				$innerResult = try {
-					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri 'v1.0/$batch' -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
+					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri "$ApiVersion/`$batch" -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
 				}
 				catch {
 					# This should happen only for bad requests (insufficient or bad request data), as otherwise the error is within the respective results on the individual batch members
