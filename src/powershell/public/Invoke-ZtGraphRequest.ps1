@@ -81,6 +81,7 @@ function Invoke-ZtGraphRequest {
 		[switch] $DisableBatching,
 		# Specify Batch size.
 		[Parameter(Mandatory = $false)]
+		[System.Obsolete('BatchSize is deprecated. Batch sizing is managed by Invoke-ZtGraphBatchRequest.')]
 		[int] $BatchSize = 20,
 		# Base URL for Microsoft Graph API.
 		[Parameter(Mandatory = $false)]

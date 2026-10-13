@@ -129,6 +129,29 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		Should -Invoke Get-MgEnvironment -Times 1 -Exactly
 	}
 
+	It 'warns about BatchSize deprecation while preserving helper-controlled batching' {
+		$script:__ZtSession = [pscustomobject]@{ GraphBaseUri = $null }
+		Mock Get-MgContext { [pscustomobject]@{ Environment = 'Global' } }
+		Mock Get-MgEnvironment { [pscustomobject]@{ GraphEndpoint = 'https://graph.microsoft.com/' } }
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$members = @($Body.requests)
+			$script:requests.Add(@{ Members = $members })
+			@{ responses = @($members | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = $_.url } } }) }
+		}
+
+		$output = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -BatchSize 2 -WarningAction Continue 3>&1)
+		$deprecationWarnings = @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+		$results = @($output | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] })
+
+		$deprecationWarnings | Should -HaveCount 1
+		$deprecationWarnings[0].Message | Should -BeLike '*BatchSize is deprecated*'
+		$results | Should -HaveCount 21
+		$script:requests | Should -HaveCount 2
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(19, 2)
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
+	}
+
 	It 'delegates 41 prepared requests with unique IDs and headers to the unchanged scheduler' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Uri, $Body)
