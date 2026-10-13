@@ -61,8 +61,8 @@ WHERE userType = 'Guest'
     $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
     $sponsorlessLimit = 20
 
-    for ($offset = 0; $offset -lt $totalGuestCount -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit; $offset += 100) {
-        $lastIndex = [Math]::Min($offset + 99, $totalGuestCount - 1)
+    for ($offset = 0; $offset -lt $totalGuestCount -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit; $offset += 20) {
+        $lastIndex = [Math]::Min($offset + 19, $totalGuestCount - 1)
         $batchGuests = @($guestUsers[$offset..$lastIndex])
         $batchResults = Invoke-ZtGraphBatchRequest -Path 'users/{0}?$select=id,displayName,userPrincipalName,userType&$expand=sponsors($select=id)' -ArgumentList $batchGuests -Properties id -ApiVersion 'v1.0' -Matched -ErrorAction Stop
 
