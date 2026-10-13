@@ -36,7 +36,7 @@ SELECT id, userPrincipalName, displayName, userType
 FROM User
 WHERE userType = 'Guest'
 "@
-    $guestUsers = Invoke-DatabaseQuery -Database $Database -Sql $sqlGuests
+    $guestUsers = @(Invoke-DatabaseQuery -Database $Database -Sql $sqlGuests)
     $totalGuestCount = $guestUsers.Count
 
     # Early return if no guests exist
@@ -58,27 +58,26 @@ WHERE userType = 'Guest'
 
     Write-ZtProgress -Activity $activity -Status "Checking sponsors for $totalGuestCount guest users"
 
-    # Process guests and check sponsors efficiently
     $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
-    $guestsWithSponsorsCount = 0
+    $sponsorlessLimit = 20
 
-    foreach ($guest in $guestUsers) {
-        try {
-            # Get the sponsors for the guest user
-            $guestUserWithSponsors = Invoke-ZtGraphRequest -RelativeUri "users/$($guest.id)?`$expand=sponsors" -ApiVersion 'v1.0'
+    for ($offset = 0; $offset -lt $totalGuestCount -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit; $offset += 100) {
+        $lastIndex = [Math]::Min($offset + 99, $totalGuestCount - 1)
+        $batchGuests = @($guestUsers[$offset..$lastIndex])
+        $batchResults = Invoke-ZtGraphBatchRequest -Path 'users/{0}?$select=id,displayName,userPrincipalName,userType&$expand=sponsors($select=id)' -ArgumentList $batchGuests -Properties id -ApiVersion 'v1.0' -Matched -ErrorAction Stop
 
-            # Check if guest has sponsors
-            if ($guestUserWithSponsors.sponsors -and $guestUserWithSponsors.sponsors.Count -gt 0) {
-                $guestsWithSponsorsCount++
+        foreach ($batchResult in $batchResults) {
+            if (-not $batchResult.Success) {
+                throw "Failed to get sponsors for guest $($batchResult.Argument.id): $($batchResult.Status)"
             }
-            else {
+
+            $guestUserWithSponsors = $batchResult.Result | Select-Object -First 1
+            if (-not $guestUserWithSponsors.sponsors -or $guestUserWithSponsors.sponsors.Count -eq 0) {
                 $guestsWithoutSponsors.Add($guestUserWithSponsors)
+                if ($guestsWithoutSponsors.Count -ge $sponsorlessLimit) {
+                    break
+                }
             }
-        }
-        catch {
-            Write-PSFMessage "Failed to get sponsors for guest $($guest.userPrincipalName): $($_.Exception.Message)" -Level Verbose
-            # Treat as guest without sponsor if API call fails
-            $guestsWithoutSponsors.Add($guest)
         }
     }
 
@@ -103,8 +102,7 @@ WHERE userType = 'Guest'
 ## Guest users without sponsors
 
 - Total count of guests in the tenant: $totalGuestCount
-- Total count of guests with sponsors: $guestsWithSponsorsCount
-- Total count of guests without sponsors: $guestsWithoutSponsorsCount
+- $(if ($guestsWithoutSponsorsCount -eq $sponsorlessLimit) { 'Found at least 20 without sponsors' } else { "Found $guestsWithoutSponsorsCount without sponsors" })
 
 | User Display Name | User Principal Name |
 | :---------------- | :------------------ |
