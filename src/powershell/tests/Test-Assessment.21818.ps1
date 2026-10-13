@@ -125,7 +125,7 @@ ORDER BY rd.displayName;
         foreach ($ruleId in $notifications.RuleId) {
             $rule = $policyRulesById[$ruleId]
             if (-not $rule) {
-                continue
+                throw "Required notification rule $ruleId was not returned for policy $policyId"
             }
 
             $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
