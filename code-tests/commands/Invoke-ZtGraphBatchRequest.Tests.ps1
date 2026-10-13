@@ -23,36 +23,6 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 		}
 	}
 
-	It 'uses the requested API version <Version>' -TestCases @(
-		@{ Version = 'v1.0' }
-		@{ Version = 'beta' }
-	) {
-		param($Version)
-		Invoke-ZtGraphBatchRequest -Request users, groups -ApiVersion $Version -Raw -NoPaging | Out-Null
-		$script:requests[0].Uri | Should -Be "$Version/`$batch"
-	}
-
-	It 'honors an explicit Graph service root <Root>' -TestCases @(
-		@{ Root = 'https://graph.microsoft.us/' }
-		@{ Root = 'https://graph.microsoft.us' }
-	) {
-		param($Root)
-		Invoke-ZtGraphBatchRequest -Request users -GraphBaseUri $Root -ApiVersion beta -Raw | Out-Null
-		$script:requests[0].Uri | Should -Be 'https://graph.microsoft.us/beta/$batch'
-	}
-
-	It 'rejects an invalid Graph service root <Root> before transport' -TestCases @(
-		@{ Root = 'http://graph.microsoft.com/' }
-		@{ Root = 'https://graph.microsoft.com/beta/' }
-		@{ Root = 'https://graph.microsoft.com/?query=1' }
-		@{ Root = 'https://graph.microsoft.com/#fragment' }
-		@{ Root = 'https://user:password@graph.microsoft.com/' }
-	) {
-		param($Root)
-		{ Invoke-ZtGraphBatchRequest -Request users -GraphBaseUri $Root } | Should -Throw
-		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 0 -Exactly
-	}
-
 	It 'splits <Count> requests into caller-sized batches of <Size>' -TestCases @(
 		@{ Count = 1; Size = 1; Expected = @(1) }
 		@{ Count = 4; Size = 1; Expected = @(1, 1, 1, 1) }

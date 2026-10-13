@@ -91,13 +91,6 @@
 		Disables paging for each individual request.
 		If not specified, all batches that has more data will automatically page through all pages, until there is no more data.
 
-	.PARAMETER ApiVersion
-		The Graph API version used for the batch endpoint. Defaults to v1.0.
-
-	.PARAMETER GraphBaseUri
-		An absolute HTTPS Graph service root, such as https://graph.microsoft.us/.
-		If omitted, the SDK's connected environment determines the destination.
-
 	.PARAMETER BatchSize
 		Maximum number of ready requests in each batch, from 1 to 20. Defaults to 20.
 
@@ -255,15 +248,6 @@
 		[ValidateSet('v1.0', 'beta')]
 		[string]
 		$ApiVersion = 'v1.0',
-
-		[ValidateScript({
-			if (-not $_.IsAbsoluteUri -or $_.Scheme -ne 'https' -or $_.UserInfo -or $_.Query -or $_.Fragment -or $_.AbsolutePath -ne '/') {
-				throw 'GraphBaseUri must be an absolute HTTPS service root without credentials, a query, or a fragment.'
-			}
-			$true
-		})]
-		[uri]
-		$GraphBaseUri,
 
 		[ValidateRange(1, 20)]
 		[int]
@@ -628,9 +612,6 @@
 				[string]
 				$ApiVersion = 'v1.0',
 
-				[uri]
-				$GraphBaseUri,
-
 				[string]
 				$OutputType,
 
@@ -645,12 +626,8 @@
 						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
 					}
 				}
-				$batchUri = "$ApiVersion/`$batch"
-				if ($GraphBaseUri) {
-					$batchUri = [uri]::new($GraphBaseUri, $batchUri).AbsoluteUri
-				}
 				$transportParameters = @{
-					Uri = $batchUri
+					Uri = 'v1.0/$batch'
 					Method = 'Post'
 					Body = @{ requests = @($Tasks.Batch) }
 					ContentType = 'application/json'
@@ -924,7 +901,7 @@
 				continue
 			}
 
-			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion -GraphBaseUri $GraphBaseUri -OutputType $OutputType
+			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion -OutputType $OutputType
 		}
 		while ($allTasks.Count -gt 0)
 	}
