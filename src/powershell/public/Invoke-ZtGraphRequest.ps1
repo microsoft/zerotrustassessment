@@ -84,6 +84,7 @@ function Invoke-ZtGraphRequest {
 		[int] $BatchSize = 20,
 		# Base URL for Microsoft Graph API.
 		[Parameter(Mandatory = $false)]
+		[System.Obsolete('GraphBaseUri is deprecated. Use the connected Microsoft Graph environment instead.')]
 		[uri] $GraphBaseUri,
 		# Specify if this request should skip cache and go directly to Graph.
 		[Parameter(Mandatory = $false)]

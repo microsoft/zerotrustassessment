@@ -32,6 +32,18 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		}
 	}
 
+	It 'warns about GraphBaseUri deprecation while preserving individual-request routing' {
+		$output = @(Invoke-ZtGraphRequest -RelativeUri users -GraphBaseUri 'https://graph.microsoft.us/' -WarningAction Continue 3>&1)
+		$deprecationWarnings = @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+		$result = $output | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] }
+
+		$result.result | Should -Be 'success'
+		$deprecationWarnings | Should -HaveCount 1
+		$deprecationWarnings[0].Message | Should -BeLike '*GraphBaseUri is deprecated*'
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].Uri | Should -Be 'https://graph.microsoft.us/v1.0/users'
+	}
+
 	It 'forwards a valid POST body and adds the JSON content type' {
 		$body = '{"Query":"DeviceProcessEvents | limit 2"}'
 		$result = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -Method POST -Body $body -GraphBaseUri 'https://graph.microsoft.com/'
