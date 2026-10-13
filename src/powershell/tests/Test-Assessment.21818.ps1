@@ -130,7 +130,7 @@ ORDER BY rd.displayName;
 
             $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
 
-            if ($rule.isDefaultRecipientsEnabled -eq $true -and
+            if ($rule.isDefaultRecipientsEnabled -eq $false -and
                 ($null -eq $rule.notificationRecipients -or $rule.notificationRecipients.Count -eq 0)) {
                 $passed = $false
                 $exitLoop = $true
