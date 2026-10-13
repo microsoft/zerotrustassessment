@@ -7,16 +7,16 @@
 
 function Test-Assessment-24552 {
     [ZtTest(
-        Category = 'Devices',
-        ImplementationCost = 'Low',
-        MinimumLicense = ('Intune'),
-        Pillar = 'Devices',
-        RiskLevel = 'Medium',
-        SfiPillar = 'Protect engineering systems',
-        TenantType = ('Workforce'),
-        TestId = 24552,
-        Title = 'macOS Firewall policies protect against unauthorized network access',
-        UserImpact = 'High'
+    	Category = 'Devices',
+    	ImplementationCost = 'Low',
+    	MinimumLicense = ('Intune'),
+    	Pillar = 'Devices',
+    	RiskLevel = 'Medium',
+    	SfiPillar = 'Protect networks',
+    	TenantType = ('Workforce'),
+    	TestId = 24552,
+    	Title = 'macOS Firewall policies protect against unauthorized network access',
+    	UserImpact = 'High'
     )]
     [CmdletBinding()]
     param(

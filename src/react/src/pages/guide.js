@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Layout from "@theme/Layout";
 import GuideSteps from "@site/src/components/GuideSteps";
 
@@ -6,42 +5,12 @@ import Heading from "@theme/Heading";
 import styles from "./index.module.css";
 
 export default function Guide() {
-    const [showAnnouncementBanner, setShowAnnouncementBanner] = useState(true);
-
-    const dismissAnnouncementBanner = () => {
-        setShowAnnouncementBanner(false);
-    };
-
     return (
         <Layout
             title={`Microsoft Zero Trust Assessment`}
             description="Check your Microsoft tenant configuration for zero trust readiness"
         >
             <div className={styles.guidePageShell}>
-                {showAnnouncementBanner && (
-                    <section className={styles.homeAnnouncementBanner} aria-label="Product announcement">
-                        <button
-                            type="button"
-                            className={styles.dismissBannerButton}
-                            aria-label="Dismiss announcement"
-                            onClick={dismissAnnouncementBanner}
-                        >
-                            x
-                        </button>
-                        <p className={styles.homeAnnouncementText}>
-                            <strong>Check out our latest updates!</strong> Experience our new{" "}
-                            <a href="https://zerotrust.microsoft.com/"><strong>ZT Workshop Tool</strong></a>: a
-                            Single-Page Application with a new AI pillar and the ability to generate
-                            automated summaries and implementation plans. We&apos;ve also made
-                            updates to the{" "}
-                            <a href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started">
-                                <strong>ZT Assessment</strong>
-                            </a>, adding support for the Data and Network pillars and expanding the
-                            number of Identity and Devices checks available.
-                        </p>
-                    </section>
-                )}
-
                 <header className={`${styles.hero} ${styles.guideHero}`}>
                     <div className={styles.heroInner}>
                         <div className={styles.guideHeroContent}>
