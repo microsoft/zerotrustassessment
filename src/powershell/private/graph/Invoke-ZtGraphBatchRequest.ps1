@@ -88,6 +88,9 @@
 		Disables paging for each individual request.
 		If not specified, all batches that has more data will automatically page through all pages, until there is no more data.
 
+	.PARAMETER ApiVersion
+		The Graph API version used for the batch endpoint. Defaults to v1.0.
+
 	.EXAMPLE
 		PS C:\> Invoke-ZtGraphBatchRequest -Path 'users/{0}/authentication/methods' -ArgumentList $users.id
 
