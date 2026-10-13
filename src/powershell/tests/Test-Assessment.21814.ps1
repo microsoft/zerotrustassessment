@@ -40,6 +40,7 @@ SELECT DISTINCT
     vr.roleDisplayName,
     cast(vr.principalId AS varchar) AS id,
     coalesce(cast(u.displayName AS varchar), vr.principalDisplayName) AS displayName,
+    u.id IS NOT NULL AS userRecordFound,
     coalesce(u.onPremisesSyncEnabled, false) AS onPremisesSyncEnabled
 FROM main.vwRole vr
 LEFT JOIN main."User" u ON vr.principalId = u.id
@@ -50,19 +51,79 @@ ORDER BY vr.roleDisplayName, displayName
 
     $privilegedRoleUsers = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
     foreach ($user in $privilegedRoleUsers) {
+        $user.userRecordFound = $user.userRecordFound -eq $true
         $user.onPremisesSyncEnabled = $user.onPremisesSyncEnabled -eq $true
+    }
+
+    $effectiveExportStatistics = @()
+    if (Get-Command Get-ZtExportStatistics -ErrorAction SilentlyContinue) {
+        $effectiveExportStatistics = @(Get-ZtExportStatistics)
+    }
+
+    $exportStatisticsByName = @{}
+    foreach ($export in $effectiveExportStatistics) {
+        if ($export.Name) {
+            $exportStatisticsByName[$export.Name] = $export
+        }
+    }
+
+    $incompleteExports = @()
+    if ($exportStatisticsByName.Count -gt 0) {
+        $usesPimRoleAssignments = $exportStatisticsByName.ContainsKey('RoleAssignmentScheduleInstance')
+        $requiredExportNames = @('User', 'RoleDefinition')
+        if ($usesPimRoleAssignments) {
+            $requiredExportNames += 'RoleAssignmentScheduleInstance', 'RoleAssignmentScheduleInstanceGroup',
+                'RoleEligibilityScheduleInstance', 'RoleEligibilityScheduleInstanceGroup'
+        }
+        else {
+            $requiredExportNames += 'RoleAssignment', 'RoleAssignmentGroup'
+        }
+
+        $incompleteExports = @(
+            foreach ($name in $requiredExportNames) {
+                if (-not $exportStatisticsByName.ContainsKey($name)) {
+                    "$name export did not run"
+                }
+                elseif (-not $exportStatisticsByName[$name].Success) {
+                    "$name export did not complete successfully"
+                }
+            }
+        )
+    }
+    elseif ($privilegedRoleUsers.Count -eq 0) {
+        $incompleteExports = @('Export completion statistics are unavailable')
     }
     #endregion Data Collection
 
     #region Assessment Logic
-    $syncedPrivilegedRoleUsers = @($privilegedRoleUsers | Where-Object { $_.onPremisesSyncEnabled -eq $true })
-    $passed = $syncedPrivilegedRoleUsers.Count -eq 0
+    $syncedPrivilegedRoleUsers = @($privilegedRoleUsers | Where-Object { $_.onPremisesSyncEnabled -eq $true } |
+        Select-Object -Property id -Unique)
+    $usersMissingFromExport = @($privilegedRoleUsers | Where-Object { -not $_.userRecordFound } |
+        Select-Object -Property id -Unique)
+    $hasUnresolvedData = $usersMissingFromExport.Count -gt 0 -or $incompleteExports.Count -gt 0
+    $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
+    $customStatus = $null
 
-    if ($passed) {
-        $testResultMarkdown += "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
+    if ($syncedPrivilegedRoleUsers.Count -gt 0) {
+        $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user' } else { 'users' }
+        $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel that are synced from on-premises.`n`n%TestResult%"
+        if ($hasUnresolvedData) {
+            $testResultMarkdown += "`n`nSome privileged accounts could not be fully evaluated."
+        }
+    }
+    elseif ($hasUnresolvedData) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "The exported data is incomplete, so not all privileged accounts could be verified as cloud native.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "This tenant has $($syncedPrivilegedRoleUsers.Count) privileged users that are synced from on-premises.`n`n%TestResult%"
+        $testResultMarkdown += "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
+    }
+
+    if ($usersMissingFromExport.Count -gt 0) {
+        $testResultMarkdown += "`n`nUser records missing from the export: $($usersMissingFromExport.Count)."
+    }
+    if ($incompleteExports.Count -gt 0) {
+        $testResultMarkdown += "`n`nIncomplete required exports: $($incompleteExports -join ', ')."
     }
     #endregion Assessment Logic
 
@@ -73,7 +134,11 @@ ORDER BY vr.roleDisplayName, displayName
         $mdInfo += "| Role name | User | Source | Status |`n"
         $mdInfo += "| :--- | :--- | :--- | :---: |`n"
         foreach ($user in $privilegedRoleUsers) {
-            if ($user.onPremisesSyncEnabled -eq $true) {
+            if (-not $user.userRecordFound) {
+                $type = 'User data unavailable'
+                $status = '⚠️'
+            }
+            elseif ($user.onPremisesSyncEnabled -eq $true) {
                 $type = 'Synced from on-premises'
                 $status = '❌'
             }
@@ -94,6 +159,9 @@ ORDER BY vr.roleDisplayName, displayName
         Title  = 'Privileged accounts are cloud native identities'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
     #endregion Report Generation
