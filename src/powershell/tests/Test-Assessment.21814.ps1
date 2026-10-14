@@ -54,6 +54,7 @@ ORDER BY vr.roleDisplayName, displayName
         $user.userRecordFound = $user.userRecordFound -eq $true
         $user.onPremisesSyncEnabled = $user.onPremisesSyncEnabled -eq $true
     }
+
     #endregion Data Collection
 
     #region Assessment Logic
@@ -65,17 +66,24 @@ ORDER BY vr.roleDisplayName, displayName
     $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
     $customStatus = $null
 
+    $missingRecordReason = if ($usersMissingFromExport.Count -eq 1) {
+        'user record because it is missing'
+    }
+    else {
+        'user records because they are missing'
+    }
+
     # A confirmed synced account is a failure; missing records make an otherwise clean result inconclusive.
     if ($syncedPrivilegedRoleUsers.Count -gt 0) {
-        $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user' } else { 'users' }
-        $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel that are synced from on-premises.`n`n%TestResult%"
+        $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user who is' } else { 'users who are' }
+        $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel synced from on-premises.`n`n%TestResult%"
         if ($hasUnresolvedData) {
-            $testResultMarkdown += "`n`nCould not verify $($usersMissingFromExport.Count) additional privileged user records because they are missing from the exported user data."
+            $testResultMarkdown += "`n`nCould not verify $($usersMissingFromExport.Count) additional privileged $missingRecordReason from the exported user data."
         }
     }
     elseif ($hasUnresolvedData) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged user records because they are missing from the exported user data.`n`n%TestResult%"
+        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged $missingRecordReason from the exported user data.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
