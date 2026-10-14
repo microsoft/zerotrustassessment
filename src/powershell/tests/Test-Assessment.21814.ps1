@@ -65,18 +65,17 @@ ORDER BY vr.roleDisplayName, displayName
     $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
     $customStatus = $null
 
-    # Missing exported user records make the assessment inconclusive, even if other users are known failures.
-    if ($hasUnresolvedData) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged user records because they are missing from the exported user data."
-        if ($syncedPrivilegedRoleUsers.Count -gt 0) {
-            $testResultMarkdown += " Also identified $($syncedPrivilegedRoleUsers.Count) distinct privileged users synced from on-premises."
-        }
-        $testResultMarkdown += "`n`n%TestResult%"
-    }
-    elseif ($syncedPrivilegedRoleUsers.Count -gt 0) {
+    # A confirmed synced account is a failure; missing records make an otherwise clean result inconclusive.
+    if ($syncedPrivilegedRoleUsers.Count -gt 0) {
         $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user' } else { 'users' }
         $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel that are synced from on-premises.`n`n%TestResult%"
+        if ($hasUnresolvedData) {
+            $testResultMarkdown += "`n`nCould not verify $($usersMissingFromExport.Count) additional privileged user records because they are missing from the exported user data."
+        }
+    }
+    elseif ($hasUnresolvedData) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged user records because they are missing from the exported user data.`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
