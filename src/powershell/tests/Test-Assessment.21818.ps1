@@ -110,11 +110,17 @@ ORDER BY rd.displayName;
         try {
             $policyRules = @(Invoke-ZtGraphRequest -RelativeUri "policies/roleManagementPolicies/$policyId/rules" -ApiVersion 'v1.0' -ErrorAction Stop)
             if ($policyRules.Count -eq 1 -and $policyRules[0].error) {
-                throw "Graph returned an error response: $($policyRules[0].error.message)"
+                $exception = [System.InvalidOperationException]::new('Graph returned an error response while retrieving notification rules.')
+                throw [System.Management.Automation.ErrorRecord]::new(
+                    $exception,
+                    'Zt21818GraphResponseError',
+                    [System.Management.Automation.ErrorCategory]::InvalidData,
+                    $null
+                )
             }
         }
         catch {
-            throw "Failed to retrieve notification rules for policy $policyId`: $($_.Exception.Message)"
+            throw
         }
 
         $policyRulesById = @{}
@@ -125,7 +131,13 @@ ORDER BY rd.displayName;
         foreach ($ruleId in $notifications.RuleId) {
             $rule = $policyRulesById[$ruleId]
             if (-not $rule) {
-                throw "Required notification rule $ruleId was not returned for policy $policyId"
+                $exception = [System.InvalidOperationException]::new('A required notification rule was not returned for a policy.')
+                throw [System.Management.Automation.ErrorRecord]::new(
+                    $exception,
+                    'Zt21818RequiredRuleMissing',
+                    [System.Management.Automation.ErrorCategory]::InvalidData,
+                    $null
+                )
             }
 
             $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
