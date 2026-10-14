@@ -60,24 +60,46 @@ WHERE userType = 'Guest'
 
     $guestsWithoutSponsors = [System.Collections.Generic.List[object]]::new()
     $sponsorlessLimit = 20
+    $lookupFailures = [System.Collections.Generic.List[string]]::new()
+    $lookupFailureCount = 0
 
-    for ($offset = 0; $offset -lt $totalGuestCount -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit; $offset += 20) {
-        $lastIndex = [Math]::Min($offset + 19, $totalGuestCount - 1)
+    for ($offset = 0; $offset -lt $totalGuestCount -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit; $offset += 19) {
+        $lastIndex = [Math]::Min($offset + 18, $totalGuestCount - 1)
         $batchGuests = @($guestUsers[$offset..$lastIndex])
-        $batchResults = Invoke-ZtGraphBatchRequest -Path 'users/{0}?$select=id,displayName,userPrincipalName,userType&$expand=sponsors($select=id)' -ArgumentList $batchGuests -Properties id -ApiVersion 'v1.0' -Matched -ErrorAction Stop
-
-        foreach ($batchResult in $batchResults) {
-            if (-not $batchResult.Success) {
-                throw "Failed to get sponsors for guest $($batchResult.Argument.id): $($batchResult.Status)"
-            }
-
-            $guestUserWithSponsors = $batchResult.Result | Select-Object -First 1
-            if (-not $guestUserWithSponsors.sponsors -or $guestUserWithSponsors.sponsors.Count -eq 0) {
-                $guestsWithoutSponsors.Add($guestUserWithSponsors)
-                if ($guestsWithoutSponsors.Count -ge $sponsorlessLimit) {
-                    break
+        $processedGuestIds = [System.Collections.Generic.HashSet[string]]::new()
+        try {
+            Invoke-ZtGraphBatchRequest -Path 'users/{0}?$select=id,displayName,userPrincipalName,userType&$expand=sponsors($select=id)' -ArgumentList $batchGuests -Properties id -ApiVersion 'v1.0' -Raw -ErrorAction Stop | ForEach-Object {
+                $batchResult = $_
+                $guest = $batchGuests[[int]$batchResult.id - 1]
+                [void]$processedGuestIds.Add([string]$guest.id)
+                if ($batchResult.status -lt 200 -or $batchResult.status -ge 300) {
+                    $lookupFailureCount++
+                    if ($lookupFailures.Count -lt 20) {
+                        $errorCode = $batchResult.body.error.code
+                        $lookupFailures.Add("Guest $($guest.id): HTTP $($batchResult.status)$(if ($errorCode) { " ($errorCode)" })")
+                    }
+                }
+                elseif (-not $batchResult.body) {
+                    $lookupFailureCount++
+                    if ($lookupFailures.Count -lt 20) {
+                        $lookupFailures.Add("Guest $($guest.id): empty response")
+                    }
+                }
+                elseif ((-not $batchResult.body.sponsors -or $batchResult.body.sponsors.Count -eq 0) -and $guestsWithoutSponsors.Count -lt $sponsorlessLimit) {
+                    $guestsWithoutSponsors.Add($batchResult.body)
                 }
             }
+        }
+        catch {
+            foreach ($guest in $batchGuests) {
+                if (-not $processedGuestIds.Contains([string]$guest.id)) {
+                    $lookupFailureCount++
+                    if ($lookupFailures.Count -lt 20) {
+                        $lookupFailures.Add("Guest $($guest.id): batch request failed")
+                    }
+                }
+            }
+            break
         }
     }
 
@@ -85,7 +107,10 @@ WHERE userType = 'Guest'
     $passed = $guestsWithoutSponsorsCount -eq 0
 
     # Build result markdown
-    if ($passed) {
+    if ($lookupFailureCount -gt 0 -and $passed) {
+        $testResultMarkdown = "Sponsor lookup incomplete for $lookupFailureCount request(s) (up to 20 shown): $($lookupFailures -join '; '). No confirmed guests without sponsors."
+    }
+    elseif ($passed) {
         $testResultMarkdown = "✅ All guest accounts in the tenant have an assigned sponsor."
     }
     else {
@@ -102,7 +127,7 @@ WHERE userType = 'Guest'
 ## Guest users without sponsors
 
 - Total count of guests in the tenant: $totalGuestCount
-- $(if ($guestsWithoutSponsorsCount -eq $sponsorlessLimit) { 'Found at least 20 without sponsors' } else { "Found $guestsWithoutSponsorsCount without sponsors" })
+- $(if ($guestsWithoutSponsorsCount -eq $sponsorlessLimit) { 'Found at least 20 without sponsors' } elseif ($lookupFailureCount -gt 0) { "Confirmed $guestsWithoutSponsorsCount without sponsors" } else { "Found $guestsWithoutSponsorsCount without sponsors" })
 
 | User Display Name | User Principal Name |
 | :---------------- | :------------------ |
@@ -110,6 +135,9 @@ $($tableRowsBuilder.ToString())
 "@
 
         $testResultMarkdown = "❌ One or more guest accounts have no sponsor recorded.`n`n$detailedReport"
+        if ($lookupFailureCount -gt 0) {
+            $testResultMarkdown += "`n`nSponsor lookup incomplete for $lookupFailureCount request(s) (up to 20 shown): $($lookupFailures -join '; ')."
+        }
     }
 
     $testParams = @{
@@ -122,6 +150,9 @@ $($tableRowsBuilder.ToString())
         Tag                = 'Identity'
         Status             = $passed
         Result             = $testResultMarkdown
+    }
+    if ($lookupFailureCount -gt 0 -and $passed) {
+        $testParams.CustomStatus = 'Error'
     }
     Add-ZtTestResultDetail @testParams
 }
