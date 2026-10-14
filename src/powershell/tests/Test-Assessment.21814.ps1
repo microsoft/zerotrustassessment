@@ -65,6 +65,7 @@ ORDER BY vr.roleDisplayName, displayName
     $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
     $customStatus = $null
 
+    # Missing exported user records make the assessment inconclusive, even if other users are known failures.
     if ($hasUnresolvedData) {
         $customStatus = 'Investigate'
         $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged user records because they are missing from the exported user data."
@@ -88,6 +89,7 @@ ORDER BY vr.roleDisplayName, displayName
         $exceptionRoleUsers = @($privilegedRoleUsers | Where-Object {
             -not $_.userRecordFound -or $_.onPremisesSyncEnabled -eq $true
         })
+        # Keep the report focused on actionable rows; cap large result sets to avoid oversized reports.
         if ($exceptionRoleUsers.Count -gt 0) {
             $reportRoleUsers = $exceptionRoleUsers | Select-Object -First 50
             $omittedRoleUsers = $exceptionRoleUsers.Count - $reportRoleUsers.Count
