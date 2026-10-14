@@ -24,6 +24,9 @@ The assessment is organized into **pillars**. The current default run includes *
 - Windows
   - A full assessment requires **Windows**. Two of the bundled modules — SharePoint Online (`Microsoft.Online.SharePoint.PowerShell`) and Azure Information Protection (`AipService`) — are Windows-only. On non-Windows platforms these services are skipped and the related tests do not run.
 
+- Dedicated, clean Windows VM (**Strongly recommended**)
+  - Run the assessment on a **dedicated Windows VM with no other PowerShell modules installed**. Because the assessment relies on sensitive dependencies across multiple external PowerShell modules that are strictly pinned to exact versions, running on a machine that already has other PowerShell modules installed (such as `Microsoft.Graph.*`, `Az.*`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, `AipService`, or `PSFramework`) can cause .NET assembly/DLL conflicts and lead to authentication or runtime failures. See [Recommended: use a dedicated clean VM](#recommended-use-a-dedicated-clean-vm).
+
 - Global Administrator role
   - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
 
@@ -54,21 +57,23 @@ Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
 > Install-PSResource -Name ZeroTrustAssessment -Prerelease -Scope CurrentUser
 > ```
 
-## Bundled PowerShell modules
+## Bundled PowerShell modules (pinned versions)
 
-The Zero Trust Assessment connects to several Microsoft cloud services, each of which relies on its own PowerShell module. Rather than depending on whatever versions happen to be installed on your machine, the assessment **bundles a specific, pinned version of every required module**. These bundled modules are downloaded into a private module cache the first time you connect (`%APPDATA%\ZeroTrustAssessment\Modules` on Windows) and are loaded only for the assessment.
+The Zero Trust Assessment connects to several Microsoft cloud services, each of which relies on its own PowerShell module. Rather than depending on whatever versions happen to be installed on your machine, the assessment **explicitly pins a specific `RequiredVersion` of every required module** in the main module manifest (`ZeroTrustAssessment.psd1`).
 
-> **Important:** The Zero Trust Assessment is **validated and tested only against the exact module versions listed below**. This is why they are bundled together and isolated from your global module set. Having other (conflicting) versions of these modules installed on the same machine can cause assembly/DLL conflicts (for example `Microsoft.Identity.Client.dll`) and lead to sign-in or runtime failures. See [Recommended: use a dedicated clean VM](#recommended-use-a-dedicated-clean-vm).
+When the module is imported, `Initialize-Dependencies.ps1` reads the pinned versions from `ZeroTrustAssessment.psd1`, downloads the exact required versions into an isolated module cache (`%APPDATA%\ZeroTrustAssessment\Modules` on Windows, `~/.cache/ZeroTrustAssessment/Modules` on macOS/Linux), prepends that folder to `$env:PSModulePath`, and coordinates the load order of shared .NET assemblies (such as `Microsoft.Identity.Client.dll` and `Microsoft.IdentityModel.Abstractions.dll`). Neither older nor newer versions of these modules are substituted.
 
-| Module | Version | Service | Platform |
-|--------|---------|---------|----------|
-| `PSFramework` | 1.13.419 | Logging / framework | All |
-| `Microsoft.Graph.Authentication` | 2.35.0 | Microsoft Graph | All |
-| `Microsoft.Graph.Beta.Teams` | 2.35.0 | Microsoft Graph (Teams beta) | All |
-| `Az.Accounts` | 4.0.2 | Azure | All |
-| `ExchangeOnlineManagement` | 3.9.0 | Exchange Online & Security &amp; Compliance | All |
-| `Microsoft.Online.SharePoint.PowerShell` | 16.0.26914.12004 | SharePoint Online | Windows only |
-| `AipService` | 3.0.0.1 | Azure Information Protection (Purview) | Windows only |
+> **Important:** The Zero Trust Assessment is **strictly pinned, validated, and tested only against the exact module versions listed below**. Because PowerShell loads .NET assemblies into a shared process AppDomain and cannot unload or replace an assembly once loaded, having other versions of these modules (or other modules that ship conflicting versions of `Microsoft.Identity.Client.dll` / `Microsoft.IdentityModel.Abstractions.dll`) installed on the same machine can cause assembly/DLL conflicts and lead to sign-in or runtime failures. We strongly recommend running the assessment on a clean machine with no other PowerShell modules installed — see [Recommended: use a dedicated clean VM](#recommended-use-a-dedicated-clean-vm).
+
+| Module | Pinned Version (`RequiredVersion`) | Manifest Section | Service | Platform |
+|--------|------------------------------------|------------------|---------|----------|
+| `PSFramework` | `1.14.457` | `RequiredModules` | Logging / configuration / runspace framework | All |
+| `Microsoft.Graph.Authentication` | `2.40.0` | `PrivateData.XPlatPowerShellRequiredModules` | Microsoft Graph | All |
+| `Microsoft.Graph.Beta.Teams` | `2.40.0` | `PrivateData.XPlatPowerShellRequiredModules` | Microsoft Graph (Teams beta) | All |
+| `Az.Accounts` | `5.5.3` | `PrivateData.XPlatPowerShellRequiredModules` | Azure | All |
+| `ExchangeOnlineManagement` | `3.10.1` | `PrivateData.XPlatPowerShellRequiredModules` | Exchange Online &amp; Security &amp; Compliance | All |
+| `Microsoft.Online.SharePoint.PowerShell` | `16.0.27612.12000` | `PrivateData.WindowsPowerShellRequiredModules` | SharePoint Online | Windows only |
+| `AipService` | `3.1.0.0` | `PrivateData.WindowsPowerShellRequiredModules` | Azure Information Protection (Purview) | Windows only |
 
 ## Connect to Microsoft 365 and Azure services
 
@@ -216,7 +221,7 @@ The most commonly used parameters are described below. All parameters are option
 | `-ShowLog` | Prints a high-level summary of log messages to the console. |
 | `-ExportLog` | Writes the log to a file. |
 | `-ConfigurationFile <path>` | Path to a JSON configuration file. Command-line parameters override values from the file. |
-| `-DisableTelemetry` | Disables telemetry collection (by default only the tenant ID is collected). |
+| `-DisableTelemetry` | Disables telemetry collection - enabled by default this module collects `Tenant ID` and nothing else. |
 | `-Timeout <timespan>` | Maximum time to wait for all tests before giving up (default 24 hours). Supports humanized input notation, such as `12h` or `3d`. |
 | `-TestTimeout <minutes/timespan>` | Maximum time a single test may run (default 60; `0` = disabled). Supports humanized input notation, such as `30m`, `2h`, or `'2h 15m'`. |
 | `-ExportThrottleLimit <n>` / `-TestThrottleLimit <n>` | Maximum number of parallel data collectors / tests (default 5 each). |
@@ -238,9 +243,122 @@ Invoke-ZtAssessment
 
 ### Recommended: use a dedicated clean VM
 
-Because the assessment is validated against a specific, pinned set of module versions (see [Bundled PowerShell modules](#bundled-powershell-modules)), other versions of those modules already installed on your machine can cause assembly/DLL conflicts and sign-in or runtime failures.
+> **Strong recommendation:** Run the Zero Trust Assessment on a **dedicated, clean Windows VM with no other PowerShell modules installed**.
 
-For the most reliable experience we recommend running the assessment on a **dedicated, clean Windows VM** that is used only for the Zero Trust Assessment and does **not** have any other (conflicting) versions of the required modules installed - for example, an existing installation of Microsoft Graph PowerShell, the Az modules, ExchangeOnlineManagement, SharePoint Online, or AipService. Starting from a clean machine avoids the DLL conflicts described in the FAQ and keeps the bundled, tested module versions isolated.
+The Zero Trust Assessment has sensitive dependencies on multiple external PowerShell modules that are **strictly pinned to specific versions** (see [Bundled PowerShell modules (pinned versions)](#bundled-powershell-modules-pinned-versions)). Several of these modules (`Microsoft.Graph.*`, `Az.Accounts`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, and `AipService`) ship their own copies of shared authentication and runtime libraries such as `Microsoft.Identity.Client.dll` (MSAL) and `Microsoft.IdentityModel.Abstractions.dll`.
+
+Because .NET loads assemblies into the PowerShell process on a first-loaded-wins basis and cannot unload or side-by-side isolate conflicting versions within the same session:
+
+- Having **any other versions** of `Microsoft.Graph.*`, `Az.*`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, `AipService`, or `PSFramework` installed in user or system module paths (`$env:PSModulePath`), or auto-imported via a PowerShell `$PROFILE`, can load an incompatible assembly version before the assessment's dependency initializer runs.
+- Even unrelated PowerShell modules installed on the machine can pre-load conflicting versions of shared .NET dependencies (`Microsoft.Identity.Client`, `Microsoft.IdentityModel.*`, `System.Text.Json`, etc.), resulting in `Could not load file or assembly`, `MethodNotFoundException`, sign-in failures, or unexpected test errors during execution.
+
+For the most reliable and predictable experience:
+
+1. Provision a **fresh, dedicated Windows VM** used exclusively for running the Zero Trust Assessment.
+2. Install **PowerShell 7** and the [Microsoft Visual C++ Redistributable (x64)](#error-the-type-initializer-for-duckdbnetdataduckdbconnectionstringbuilder-threw-an-exception).
+3. Do **not** install any other PowerShell modules (such as `Microsoft.Graph`, `Az`, `ExchangeOnlineManagement`, etc.) on the VM — install only `ZeroTrustAssessment` and let it download and manage its own pinned dependency set automatically.
+
+### Tuning configuration settings (heavy load / large tenants)
+
+In addition to the command-line parameters on `Invoke-ZtAssessment`, the module exposes [PSFramework](https://psframework.org/) configuration settings (defined in `scripts/configuration.ps1`) that allow you to fine-tune concurrency, timeouts, retries, caching, memory consumption, and logging.
+
+Tuning these settings is especially useful when running the assessment against **large tenants** or under **heavy load**, where large object counts, big sign-in logs, API throttling, or high memory consumption can otherwise cause timeouts, throttling errors, or system memory swapping.
+
+#### Viewing and modifying configuration settings
+
+After importing the module (for example `Import-Module ZeroTrustAssessment` or after running `Connect-ZtAssessment`), you can inspect all available settings and their current values with `Get-PSFConfig`:
+
+```powershell
+Get-PSFConfig -Module ZeroTrustAssessment
+```
+
+To change a setting for the **current PowerShell session** (run this before calling `Invoke-ZtAssessment`), use `Set-PSFConfig` with either `-Module` and `-Name` or `-FullName`:
+
+```powershell
+# Using -Module and -Name
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 3
+
+# Or using the full configuration name (-FullName)
+Set-PSFConfig -FullName 'ZeroTrustAssessment.Tests.Timeout' -Value '2h'
+```
+
+To **persist** a setting across future PowerShell sessions for the current user, add the `-Register` switch:
+
+```powershell
+Set-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems' -Value 10000 -Register
+```
+
+> **Note:** Duration/timeout settings (`timespan` validation) accept standard `TimeSpan` strings as well as PSFramework humanized time notation such as `'30m'`, `'2h'`, `'1d'`, or `'2h 30m'`.
+
+#### Example: tuning for large tenants
+
+On very large tenants, you can reduce parallel workers to lower memory pressure and API throttling, increase per-test and export dependency timeouts, enable automatic retries, and cap or disable in-memory caches to prevent memory swapping:
+
+```powershell
+Import-Module ZeroTrustAssessment
+
+# Reduce parallel export collectors and test runners to lower memory use and API throttling
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Export' -Value 3
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 3
+
+# Allow longer export dependency waits and individual test execution times
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Export.DependencyWaitLimit' -Value '2d'
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.Timeout' -Value '2h'
+
+# Retry failed (and optionally timed-out) tests once in case of transient errors
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryCount' -Value 1
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryTimeout' -Value $true
+
+# Cap or disable in-memory Graph/Azure caches to avoid excessive RAM usage and disk swapping
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Graph.CacheMaxItems' -Value 10000
+Set-PSFConfig -Module ZeroTrustAssessment -Name 'Azure.CacheMaxItems' -Value 10000
+# Or disable caching entirely if the machine is memory-constrained:
+# Set-PSFConfig -Module ZeroTrustAssessment -Name 'Graph.DisableCache' -Value $true
+# Set-PSFConfig -Module ZeroTrustAssessment -Name 'Azure.DisableCache' -Value $true
+```
+
+#### Available configuration settings
+
+All settings below belong to the `ZeroTrustAssessment` module (full name format: `ZeroTrustAssessment.<Name>`).
+
+##### Export settings
+
+| Setting (`-Name`) | Default Value | Type | Description |
+|-------------------|---------------|------|-------------|
+| `Export.DependencyWaitLimit` | `'1d'` | `timespan` | Maximum time a data export component waits for another export it depends on to finish. If dependencies are not exported within this timeout, the dependent export fails. Increase on very large tenants where prerequisite exports take longer than 1 day. |
+| `Export.SignInLog.MaxSizeBytes` | `1073741824` (1 GB) | `integerpositive` | Maximum size in bytes for sign-in log exports. When this limit is reached, the sign-in log export stops and execution continues with the next export. Lower to reduce disk/database size or raise if more sign-in log volume is needed. |
+| `ThrottleLimit.Export` | `5` | `integerpositive` | Maximum number of data collectors processed in parallel during the export phase (also sets the default for `Invoke-ZtAssessment -ExportThrottleLimit`). Lower this value on large tenants to reduce API throttling and memory consumption. |
+
+##### Test settings
+
+| Setting (`-Name`) | Default Value | Type | Description |
+|-------------------|---------------|------|-------------|
+| `ThrottleLimit.Tests` | `5` | `integerpositive` | Maximum number of tests processed in parallel (also sets the default for `Invoke-ZtAssessment -TestThrottleLimit`). Lower this value under heavy load to reduce concurrent database queries, API requests, and memory usage. |
+| `Tests.Timeout` | `'1h'` | `timespan` | Maximum time a single test is allowed to run before it is stopped (also sets the default for `Invoke-ZtAssessment -TestTimeout`). Set to `0` to disable the timeout. Tests exceeding this limit are recorded as timed out and execution continues with the next test. Increase on large tenants where individual tests evaluate large datasets. |
+| `Tests.TimeoutType` | `'Idle'` | `rstimeout` (`'Idle'` or `'Start'`) | How the test execution timeout (`Tests.Timeout`) is measured: `'Idle'` measures time elapsed since the test last logged activity; `'Start'` measures total wall-clock time since the test started. |
+| `Tests.RetryCount` | `0` | `integerpositive` | Number of times a failed test is automatically reattempted before being recorded as failed. Set to `1` or higher to recover from transient API throttling or network errors. |
+| `Tests.RetryTimeout` | `$false` | `bool` | Whether a timed-out test should also be reattempted when `Tests.RetryCount` is greater than `0`. |
+| `Tests.Statistics.MessageCountSoftCap` | `1024` | `integerpositive` | Maximum number of full log message objects stored in test statistics per test. When a test logs more messages than this cap, message objects are simplified to preserve memory. Lower this value on large tenants to further reduce memory footprint. |
+
+##### Caching settings
+
+| Setting (`-Name`) | Default Value | Type | Description |
+|-------------------|---------------|------|-------------|
+| `Azure.DisableCache` | `$false` | `bool` | Global toggle to disable in-memory caching of Azure REST API GET responses. Caching speeds up repeated requests, but can consume substantial memory in large environments and lead to OS paging/swapping that degrades performance. Set to `$true` on memory-constrained systems. |
+| `Azure.CacheMaxItems` | `50000` | `integerpositive` | Maximum number of items kept in the in-memory Azure request cache. Lower this value on large tenants to cap memory usage while keeping caching enabled. |
+| `Azure.CacheLifetime` | `'30m'` | `timespan` | Maximum age of entries in the Azure request cache before they expire. |
+| `Graph.DisableCache` | `$false` | `bool` | Global toggle to disable in-memory caching of Microsoft Graph GET responses. Caching speeds up repeated requests, but can consume substantial memory on large tenants and lead to OS paging/swapping that degrades performance. Set to `$true` on memory-constrained systems. |
+| `Graph.CacheMaxItems` | `50000` | `integerpositive` | Maximum number of items kept in the in-memory Microsoft Graph request cache. Lower this value on large tenants to cap memory usage while keeping caching enabled. |
+| `Graph.CacheLifetime` | `'30m'` | `timespan` | Maximum age of entries in the Microsoft Graph request cache before they expire. |
+
+##### Debugging and UX settings
+
+| Setting (`-Name`) | Default Value | Type | Description |
+|-------------------|---------------|------|-------------|
+| `Logging.Database.IncludeQueryResults` | `$false` | `bool` | Includes individual row results from queries against the internal DuckDB database in the logs. Keep `$false` under normal and heavy-load runs, as enabling it significantly increases log size/memory use and writes sensitive tenant data to logs. |
+| `Logging.InMemoryLog.MinSize` | `51200` | `integerpositive` | Minimum size enforced for the PSFramework in-memory log (`PSFramework.Logging.MaxMessageCount`) during module import. If `PSFramework.Logging.MaxMessageCount` is lower than this value when the module loads, it is raised to match. Larger values aid troubleshooting but increase memory consumption; to apply a new value on module import, persist it with `-Register` and re-import the module (or adjust `PSFramework.Logging.MaxMessageCount` directly). |
+| `Debug.KeepWorkflows` | `$false` | `bool` | Retains the PSFramework background runspace workflow engines after export and test completion instead of cleaning them up. Useful for debugging background tasks, but leaves runspace artifacts in memory that must be terminated manually before starting another run. |
+| `TabExpansion.TestLimit` | `10` | `integerpositive` | Maximum number of test IDs offered at a time via tab completion (for example on `Invoke-ZtAssessment -Tests`). |
 
 ## Review assessment results
 
@@ -255,6 +373,22 @@ The **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecO
 Select a result to see more information and remediation actions.
 
 ![Screenshot of details page](media/image7.png)
+
+## Import Zero Trust Assessment results into Zero Trust Workshop
+
+Once the assessment completes, you can import its findings into the [Zero Trust Workshop](https://aka.ms/ztworkshop) tool to help accelerate your workshop review and roadmap planning.
+
+During the report-generation stage of `Invoke-ZtAssessment`, the module automatically maps your assessed test results to the corresponding Zero Trust Workshop tasks and writes a Workshop-compatible JSON file to the `zt-export` subfolder of your output path:
+
+- `<Path>\zt-export\ZeroTrustWorkshop.json` (by default `.\ZeroTrustReport\zt-export\ZeroTrustWorkshop.json`)
+
+You can import this `ZeroTrustWorkshop.json` file directly into the [Zero Trust Workshop](https://aka.ms/ztworkshop) web application to pre-populate task notes with your tenant's assessment findings (prefixed with `✅` for passed checks, `❌` for failed checks, or `⚠️` for other non-skipped outcomes).
+
+### Current limitations
+
+- **Experimental functionality:** The Zero Trust Workshop export and import integration is currently **experimental** and is generated on a best-effort basis alongside the standard assessment reports.
+- **Notes are truncated to 1,000 characters:** Due to a maximum length limitation in the `notes` section of the Zero Trust Workshop importer, the combined assessment findings written to each Workshop task's `notes` field (including the `ZT Assessment result:` header) are **truncated to 1,000 characters**. In addition, any single test finding exceeding 200 characters is compacted to the test title, and if multiple mapped findings exceed the 1,000-character budget for a task, the remaining findings are omitted with a `…(+N more findings)` indicator.
+- **Task status is not changed:** Importing `ZeroTrustWorkshop.json` **only updates the `notes` section** of the mapped Workshop tasks. It does **not** automatically change the status of any task (all mapped tasks are imported with a status of `not-reviewed` so they can be reviewed and triaged during the workshop).
 
 ## Reporting issues
 
