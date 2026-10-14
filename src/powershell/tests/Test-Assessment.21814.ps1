@@ -54,45 +54,6 @@ ORDER BY vr.roleDisplayName, displayName
         $user.userRecordFound = $user.userRecordFound -eq $true
         $user.onPremisesSyncEnabled = $user.onPremisesSyncEnabled -eq $true
     }
-
-    $effectiveExportStatistics = @()
-    if (Get-Command Get-ZtExportStatistics -ErrorAction SilentlyContinue) {
-        $effectiveExportStatistics = @(Get-ZtExportStatistics)
-    }
-
-    $exportStatisticsByName = @{}
-    foreach ($export in $effectiveExportStatistics) {
-        if ($export.Name) {
-            $exportStatisticsByName[$export.Name] = $export
-        }
-    }
-
-    $incompleteExports = @()
-    if ($exportStatisticsByName.Count -gt 0) {
-        $usesPimRoleAssignments = $exportStatisticsByName.ContainsKey('RoleAssignmentScheduleInstance')
-        $requiredExportNames = @('User', 'RoleDefinition')
-        if ($usesPimRoleAssignments) {
-            $requiredExportNames += 'RoleAssignmentScheduleInstance', 'RoleAssignmentScheduleInstanceGroup',
-                'RoleEligibilityScheduleInstance', 'RoleEligibilityScheduleInstanceGroup'
-        }
-        else {
-            $requiredExportNames += 'RoleAssignment', 'RoleAssignmentGroup'
-        }
-
-        $incompleteExports = @(
-            foreach ($name in $requiredExportNames) {
-                if (-not $exportStatisticsByName.ContainsKey($name)) {
-                    "$name export did not run"
-                }
-                elseif (-not $exportStatisticsByName[$name].Success) {
-                    "$name export did not complete successfully"
-                }
-            }
-        )
-    }
-    elseif ($privilegedRoleUsers.Count -eq 0) {
-        $incompleteExports = @('Export completion statistics are unavailable')
-    }
     #endregion Data Collection
 
     #region Assessment Logic
@@ -100,40 +61,46 @@ ORDER BY vr.roleDisplayName, displayName
         Select-Object -Property id -Unique)
     $usersMissingFromExport = @($privilegedRoleUsers | Where-Object { -not $_.userRecordFound } |
         Select-Object -Property id -Unique)
-    $hasUnresolvedData = $usersMissingFromExport.Count -gt 0 -or $incompleteExports.Count -gt 0
+    $hasUnresolvedData = $usersMissingFromExport.Count -gt 0
     $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
     $customStatus = $null
 
-    if ($syncedPrivilegedRoleUsers.Count -gt 0) {
+    if ($hasUnresolvedData) {
+        $customStatus = 'Investigate'
+        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged user records because they are missing from the exported user data."
+        if ($syncedPrivilegedRoleUsers.Count -gt 0) {
+            $testResultMarkdown += " Also identified $($syncedPrivilegedRoleUsers.Count) distinct privileged users synced from on-premises."
+        }
+        $testResultMarkdown += "`n`n%TestResult%"
+    }
+    elseif ($syncedPrivilegedRoleUsers.Count -gt 0) {
         $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user' } else { 'users' }
         $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel that are synced from on-premises.`n`n%TestResult%"
-        if ($hasUnresolvedData) {
-            $testResultMarkdown += "`n`nSome privileged accounts could not be fully evaluated."
-        }
-    }
-    elseif ($hasUnresolvedData) {
-        $customStatus = 'Investigate'
-        $testResultMarkdown = "The exported data is incomplete, so not all privileged accounts could be verified as cloud native.`n`n%TestResult%"
     }
     else {
-        $testResultMarkdown += "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
-    }
-
-    if ($usersMissingFromExport.Count -gt 0) {
-        $testResultMarkdown += "`n`nUser records missing from the export: $($usersMissingFromExport.Count)."
-    }
-    if ($incompleteExports.Count -gt 0) {
-        $testResultMarkdown += "`n`nIncomplete required exports: $($incompleteExports -join ', ')."
+        $testResultMarkdown = "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
     }
     #endregion Assessment Logic
 
     #region Report Generation
     $mdInfo = ''
     if ($privilegedRoleUsers.Count -gt 0) {
+        $exceptionRoleUsers = @($privilegedRoleUsers | Where-Object {
+            -not $_.userRecordFound -or $_.onPremisesSyncEnabled -eq $true
+        })
+        if ($exceptionRoleUsers.Count -gt 0) {
+            $reportRoleUsers = $exceptionRoleUsers | Select-Object -First 50
+            $omittedRoleUsers = $exceptionRoleUsers.Count - $reportRoleUsers.Count
+        }
+        else {
+            $reportRoleUsers = $privilegedRoleUsers | Select-Object -First 10
+            $omittedRoleUsers = $privilegedRoleUsers.Count - $reportRoleUsers.Count
+        }
+
         $mdInfo = "## Privileged roles`n`n"
         $mdInfo += "| Role name | User | Source | Status |`n"
         $mdInfo += "| :--- | :--- | :--- | :---: |`n"
-        foreach ($user in $privilegedRoleUsers) {
+        foreach ($user in $reportRoleUsers) {
             if (-not $user.userRecordFound) {
                 $type = 'User data unavailable'
                 $status = '⚠️'
@@ -149,6 +116,14 @@ ORDER BY vr.roleDisplayName, displayName
 
             $userLink = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/AdministrativeRole/userId/{0}" -f $user.id
             $mdInfo += "| $($user.roleDisplayName) | [$($user.displayName)]($userLink) | $type | $status |`n"
+        }
+        if ($omittedRoleUsers -gt 0) {
+            if ($exceptionRoleUsers.Count -gt 0) {
+                $mdInfo += "`nShowing the first $($reportRoleUsers.Count) of $($exceptionRoleUsers.Count) failed or unresolved privileged role assignments; additional rows were omitted.`n"
+            }
+            else {
+                $mdInfo += "`nShowing the first $($reportRoleUsers.Count) of $($privilegedRoleUsers.Count) cloud-only privileged role assignments; additional rows were omitted.`n"
+            }
         }
     }
 
