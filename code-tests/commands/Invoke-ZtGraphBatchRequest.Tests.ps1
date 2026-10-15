@@ -131,6 +131,73 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
 	}
 
+	It 'rejects an incomplete Count-ID batch in <Mode> mode using <Representation> with <ErrorHandling>' -ForEach @(
+		foreach ($mode in 'Raw', 'Matched', 'Plain') {
+			foreach ($representation in 'Hashtable', 'PSObject') {
+				foreach ($errorHandling in 'Stop', 'SilentlyContinue') {
+					@{ Mode = $mode; Representation = $representation; ErrorHandling = $errorHandling }
+				}
+			}
+		}
+	) {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body, $OutputType)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -gt 1) { throw 'Unexpected resubmission of missing write' }
+			$envelope = @{ responses = @(@{ id = 'Count'; status = 200; body = @{ id = 'Count' } }) }
+			if ($OutputType -eq 'Hashtable') { return $envelope }
+			$envelope | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+		$parameters = @{
+			Request = @(@{ id = 'Count'; url = 'users' }, @{ id = 'other'; url = 'groups'; method = 'POST' })
+			OutputType = $Representation
+			ErrorAction = $ErrorHandling
+		}
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$emitted = [System.Collections.Generic.List[object]]::new()
+		$batchErrors = @()
+		if ($ErrorHandling -eq 'Stop') {
+			{ Invoke-ZtGraphBatchRequest @parameters | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Batch response is incomplete*'
+		}
+		else {
+			Invoke-ZtGraphBatchRequest @parameters -ErrorVariable batchErrors | ForEach-Object { $emitted.Add($_) }
+			$batchErrors | Should -HaveCount 2
+			foreach ($batchError in $batchErrors) {
+				$batchError.FullyQualifiedErrorId | Should -BeLike 'InvalidGraphBatchResponse*'
+			}
+			$batchErrors.TargetObject.id | Should -Be @('Count', 'other')
+			$batchErrors.TargetObject.url | Should -Be @('users', 'groups')
+		}
+		$emitted | Should -HaveCount 0
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+	}
+
+	It 'accepts a complete Count-ID batch in <Mode> mode using <Representation>' -ForEach @(
+		foreach ($mode in 'Raw', 'Matched', 'Plain') {
+			foreach ($representation in 'Hashtable', 'PSObject') {
+				@{ Mode = $mode; Representation = $representation }
+			}
+		}
+	) {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body, $OutputType)
+			$envelope = @{ responses = @($Body.requests | ForEach-Object {
+				@{ id = $_.id; status = 200; body = @{ id = $_.id } }
+			}) }
+			if ($OutputType -eq 'Hashtable') { return $envelope }
+			$envelope | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+		$parameters = @{
+			Request = @(@{ id = 'Count'; url = 'users' }, @{ id = 'other'; url = 'groups'; method = 'POST' })
+			OutputType = $Representation
+		}
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction Stop)
+		$result | Should -HaveCount 2
+		$result.id | Should -Be @('Count', 'other')
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+	}
+
 	It 'preserves zero and string IDs and avoids collisions with future explicit IDs' {
 		$result = @(Invoke-ZtGraphBatchRequest -Request @('users', @{ id = '1'; url = 'groups' }, @{ id = 0; url = 'devices' }, @{ id = 'custom'; url = 'sites' }) -Raw)
 		$result.id | Should -Be @('2', '1', '0', 'custom')

@@ -702,7 +702,7 @@
 					}
 					$returnedIDs[$responseID] = $true
 				}
-				if ($invalidResponse -or $returnedIDs.Count -ne $submittedIDs.Count) {
+				if ($invalidResponse -or $returnedIDs.get_Count() -ne $submittedIDs.get_Count()) {
 					foreach ($task in $Tasks) {
 						$null = $TaskList.Remove($task)
 					}
