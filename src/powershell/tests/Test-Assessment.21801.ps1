@@ -52,8 +52,7 @@ where u.accountEnabled
     $phishResistantUsers = $results | Where-Object { $_.phishResistantAuthMethod }
     $phishableUsers = $results | Where-Object { !$_.phishResistantAuthMethod }
 
-    $phishResistantUserCount = $phishResistantPrivUsers.Length
-
+    $phishResistantUserCount = @($phishResistantUsers).Count
     $passed = $totalUserCount -eq $phishResistantUserCount
 
     if ($passed) {
