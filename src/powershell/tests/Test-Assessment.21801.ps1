@@ -48,7 +48,7 @@ where u.accountEnabled
 "@
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
 
-    $totalUserCount = $results.Length
+    $totalUserCount = @($results).Count
     $phishResistantUsers = $results | Where-Object { $_.phishResistantAuthMethod }
     $phishableUsers = $results | Where-Object { !$_.phishResistantAuthMethod }
 
