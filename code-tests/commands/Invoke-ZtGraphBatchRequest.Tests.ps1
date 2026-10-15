@@ -518,12 +518,23 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 			}
 			$parameters = @{ Request = @(@{ id = 'retry'; url = 'users'; metadata = 'original' }) }
 			if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
-			$result = @(Invoke-ZtGraphBatchRequest @parameters)
+			$batchErrors = @()
+			$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction SilentlyContinue -ErrorVariable batchErrors)
 			$script:requests | Should -HaveCount 6
 			$delays = @(1..5 | ForEach-Object { ($script:requests[$_].Time - $script:requests[$_ - 1].Time).TotalSeconds })
 			$delays | Should -Be @(3, 6, 12, 24, 48)
-			if ($Mode -eq 'Plain') { $result | Should -HaveCount 0 }
+			if ($Mode -eq 'Plain') {
+				$result | Should -HaveCount 0
+				$batchErrors | Should -HaveCount 1
+				$batchErrors[0].FullyQualifiedErrorId | Should -BeLike 'TransientRetriesExhausted*'
+				$batchErrors[0].CategoryInfo.Category | Should -Be 'LimitsExceeded'
+				$batchErrors[0].TargetObject.url | Should -Be 'users'
+				$batchErrors[0].TargetObject.id | Should -Be 'retry'
+				$batchErrors[0].Exception.Message | Should -BeLike "*status $Status*"
+				Should -Invoke Write-PSFMessage -Times 0 -Exactly -ParameterFilter { $Message -like 'Unexpected response code:*' }
+			}
 			else {
+				$batchErrors | Should -HaveCount 0
 				$result | Should -HaveCount 1
 				$result[0].Status | Should -Be $Status
 				if ($Mode -eq 'Matched') {
@@ -536,6 +547,29 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 			Should -Invoke Write-PSFMessage -Times 1 -Exactly -ParameterFilter {
 				$Level -eq 'Warning' -and $Message -like 'Transient member retries exhausted*'
 			}
+		}
+
+		It 'terminates plain status <Status> exhaustion for <RequestMethod> with Timeout <Seconds> and ErrorAction Stop' -ForEach @(
+			foreach ($status in 500, 502, 503, 504) {
+				foreach ($requestMethod in 'GET', 'HEAD') {
+					foreach ($seconds in 0, 300) {
+						@{ Status = $status; RequestMethod = $requestMethod; Seconds = $seconds }
+					}
+				}
+			}
+		) {
+			Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+				param($Body)
+				$script:requests.Add(@{ Members = @($Body.requests) })
+				@{ responses = @(@{ id = $Body.requests[0].id; status = $Status; body = @{ error = @{ code = 'Unavailable' } } }) }
+			}
+			{
+				Invoke-ZtGraphBatchRequest -Request @(@{ url = 'users'; method = $RequestMethod }) -Timeout ([timespan]::FromSeconds($Seconds)) -ErrorAction Stop
+			} | Should -Throw "*Retries for transient member failures exceeded*status $Status*"
+			$expectedCalls = if ($Seconds -eq 0) { 1 } else { 6 }
+			$script:requests | Should -HaveCount $expectedCalls
+			$expectedSleepCalls = if ($Seconds -eq 0) { 0 } else { 93 }
+			Should -Invoke Start-Sleep -Times $expectedSleepCalls -Exactly
 		}
 
 		It 'uses delay <Delay> for Retry-After <Header> in <Representation> output' -TestCases @(

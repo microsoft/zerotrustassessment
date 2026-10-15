@@ -104,8 +104,8 @@
 		Under nonterminating error handling, each affected request receives an error targeting its batch request descriptor.
 		GET and HEAD members returning 500, 502, 503 or 504 allow five retries per page, within Timeout.
 		Retry delays use the greater of exponential backoff (3, 6, 12, 24, 48 seconds) and Retry-After seconds or an HTTP date.
-		Successful and terminal members are not resent. Exhausted transient members retain the existing failure output behavior.
-		Queued transient timeout returns the final response in Raw or Matched mode; plain output receives a TransientRetriesExhausted error.
+		Successful and terminal members are not resent.
+		Transient retry exhaustion or timeout returns the final response in Raw or Matched mode; plain output receives a TransientRetriesExhausted error.
 		Member 429 handling is unchanged; writes are not retried for transient 5xx member responses.
 		Outer transport failures use Invoke-ZtRetry only when every submitted member is GET or HEAD.
 		Intermediate retry errors are isolated from caller error variables when the batch recovers.
@@ -834,6 +834,16 @@
 							}
 						}
 						Write-PSFMessage -Level Warning -Message "Transient member retries exhausted or timeout reached for request id $($task.Id) (status $($result.status))."
+						if (-not $task.Parameters.Raw -and -not $task.Parameters.Matched) {
+							$null = $TaskList.Remove($task)
+							$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+								[Exception]::new("Retries for transient member failures exceeded, giving up on request id $($task.Id) (status $($result.status))."),
+								'TransientRetriesExhausted',
+								[System.Management.Automation.ErrorCategory]::LimitsExceeded,
+								$task.Batch
+							))
+							continue
+						}
 					}
 					if ($result.status -eq 424 -and $task.Batch.dependsOn.Count -gt 0) {
 						$task.LastDependencyResponse = $result
