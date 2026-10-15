@@ -40,17 +40,20 @@ SELECT DISTINCT
     vr.roleDisplayName,
     cast(vr.principalId AS varchar) AS id,
     coalesce(cast(u.displayName AS varchar), vr.principalDisplayName) AS displayName,
+    vr.isPrivileged IS NOT NULL AS privilegeClassificationKnown,
     u.id IS NOT NULL AS userRecordFound,
     coalesce(u.onPremisesSyncEnabled, false) AS onPremisesSyncEnabled
 FROM main.vwRole vr
 LEFT JOIN main."User" u ON vr.principalId = u.id
-WHERE vr.isPrivileged = 1
+-- Include unknown privilege classifications so they can be reported as unresolved.
+WHERE (vr.isPrivileged = 1 OR vr.isPrivileged IS NULL)
     AND vr."@odata.type" = '#microsoft.graph.user'
 ORDER BY vr.roleDisplayName, displayName
 "@
 
     $privilegedRoleUsers = @(Invoke-DatabaseQuery -Database $Database -Sql $sql)
     foreach ($user in $privilegedRoleUsers) {
+        $user.privilegeClassificationKnown = $user.privilegeClassificationKnown -eq $true
         $user.userRecordFound = $user.userRecordFound -eq $true
         $user.onPremisesSyncEnabled = $user.onPremisesSyncEnabled -eq $true
     }
@@ -58,32 +61,50 @@ ORDER BY vr.roleDisplayName, displayName
     #endregion Data Collection
 
     #region Assessment Logic
-    $syncedPrivilegedRoleUsers = @($privilegedRoleUsers | Where-Object { $_.onPremisesSyncEnabled -eq $true } |
+    $syncedPrivilegedRoleUsers = @($privilegedRoleUsers | Where-Object {
+        $_.privilegeClassificationKnown -and $_.onPremisesSyncEnabled
+    } |
         Select-Object -Property id -Unique)
     $usersMissingFromExport = @($privilegedRoleUsers | Where-Object { -not $_.userRecordFound } |
         Select-Object -Property id -Unique)
-    $hasUnresolvedData = $usersMissingFromExport.Count -gt 0
+    $unknownPrivilegeRoleAssignments = @($privilegedRoleUsers | Where-Object {
+        -not $_.privilegeClassificationKnown
+    })
+    $hasUnresolvedData = $usersMissingFromExport.Count -gt 0 -or $unknownPrivilegeRoleAssignments.Count -gt 0
     $passed = $syncedPrivilegedRoleUsers.Count -eq 0 -and -not $hasUnresolvedData
     $customStatus = $null
 
-    $missingRecordReason = if ($usersMissingFromExport.Count -eq 1) {
-        'user record because it is missing'
+    $missingUserRecordReason = if ($usersMissingFromExport.Count -eq 1) {
+        "User data is missing for $($usersMissingFromExport.Count) role principal."
     }
     else {
-        'user records because they are missing'
+        "User data is missing for $($usersMissingFromExport.Count) role principals."
+    }
+    $unresolvedReasons = @()
+    if ($usersMissingFromExport.Count -gt 0) {
+        $unresolvedReasons += $missingUserRecordReason
+    }
+    if ($unknownPrivilegeRoleAssignments.Count -gt 0) {
+        $unknownPrivilegeReason = if ($unknownPrivilegeRoleAssignments.Count -eq 1) {
+            'Could not determine privilege status for 1 role assignment because its matching role definition is missing from the exported data.'
+        }
+        else {
+            "Could not determine privilege status for $($unknownPrivilegeRoleAssignments.Count) role assignments because their matching role definitions are missing from the exported data."
+        }
+        $unresolvedReasons += $unknownPrivilegeReason
     }
 
-    # A confirmed synced account is a failure; missing records make an otherwise clean result inconclusive.
+    # A confirmed synced account is a failure; incomplete classification makes an otherwise clean result inconclusive.
     if ($syncedPrivilegedRoleUsers.Count -gt 0) {
         $userLabel = if ($syncedPrivilegedRoleUsers.Count -eq 1) { 'user who is' } else { 'users who are' }
         $testResultMarkdown = "This tenant has $($syncedPrivilegedRoleUsers.Count) distinct privileged $userLabel synced from on-premises.`n`n%TestResult%"
         if ($hasUnresolvedData) {
-            $testResultMarkdown += "`n`nCould not verify $($usersMissingFromExport.Count) additional privileged $missingRecordReason from the exported user data."
+            $testResultMarkdown += "`n`n$($unresolvedReasons -join ' ')"
         }
     }
     elseif ($hasUnresolvedData) {
         $customStatus = 'Investigate'
-        $testResultMarkdown = "Could not verify $($usersMissingFromExport.Count) privileged $missingRecordReason from the exported user data.`n`n%TestResult%"
+        $testResultMarkdown = "$($unresolvedReasons -join ' ')`n`n%TestResult%"
     }
     else {
         $testResultMarkdown = "Validated that standing or eligible privileged accounts are cloud only accounts.`n`n%TestResult%"
@@ -94,7 +115,8 @@ ORDER BY vr.roleDisplayName, displayName
     $mdInfo = ''
     if ($privilegedRoleUsers.Count -gt 0) {
         $exceptionRoleUsers = @($privilegedRoleUsers | Where-Object {
-            -not $_.userRecordFound -or $_.onPremisesSyncEnabled -eq $true
+            -not $_.privilegeClassificationKnown -or -not $_.userRecordFound -or
+            ($_.privilegeClassificationKnown -and $_.onPremisesSyncEnabled)
         })
         # Keep the report focused on actionable rows; cap large result sets to avoid oversized reports.
         if ($exceptionRoleUsers.Count -gt 0) {
@@ -110,7 +132,11 @@ ORDER BY vr.roleDisplayName, displayName
         $mdInfo += "| Role name | User | Source | Status |`n"
         $mdInfo += "| :--- | :--- | :--- | :---: |`n"
         foreach ($user in $reportRoleUsers) {
-            if (-not $user.userRecordFound) {
+            if (-not $user.privilegeClassificationKnown) {
+                $type = 'Privilege status unavailable'
+                $status = '⚠️'
+            }
+            elseif (-not $user.userRecordFound) {
                 $type = 'User data unavailable'
                 $status = '⚠️'
             }
