@@ -220,6 +220,216 @@ Describe 'Invoke-ZtGraphBatchRequest contracts' {
 		$script:requests[1].Members[1].dependsOn | Should -Be @('first')
 	}
 
+	It 'recovers a 424 dependent after <PrerequisiteStatus> in <Mode> mode using <Representation> without replaying successful writes' -ForEach @(
+		foreach ($prerequisiteStatus in 429, 503) {
+			foreach ($mode in 'Raw', 'Matched', 'Plain') {
+				foreach ($representation in 'Hashtable', 'PSObject') {
+					@{ PrerequisiteStatus = $prerequisiteStatus; Mode = $mode; Representation = $representation }
+				}
+			}
+		}
+	) {
+		$script:clock = [datetime]::UtcNow
+		$script:prerequisiteStatus = $PrerequisiteStatus
+		Mock Get-Date { $script:clock }
+		Mock Start-Sleep { param($Seconds) $script:clock = $script:clock.AddSeconds($Seconds) }
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body, $OutputType)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 1) {
+				$envelope = @{ responses = @(
+					@{ id = 'dependent'; status = 424; body = @{ error = @{ code = 'FailedDependency' } } }
+					@{ id = 'created'; status = 201; body = @{ id = 'created' } }
+					@{ id = 'first'; status = $script:prerequisiteStatus; headers = @{ 'Retry-After' = '0' }; body = @{ error = @{ code = 'Unavailable' } } }
+				) }
+			}
+			else {
+				$envelope = @{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ id = $_.id } } }) }
+			}
+			if ($OutputType -eq 'Hashtable') { return $envelope }
+			$envelope | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+		$descriptors = @(
+			@{ id = 'created'; url = 'users'; method = 'POST' }
+			@{ id = 'first'; url = 'groups' }
+			@{ id = 'dependent'; url = 'devices'; method = 'POST'; dependsOn = @('created', 'FIRST'); metadata = 'original' }
+		)
+		$parameters = @{ Request = $descriptors; OutputType = $Representation }
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$batchErrors = @()
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction Stop -ErrorVariable batchErrors)
+		$result | Should -HaveCount 3
+		$batchErrors | Should -HaveCount 0
+		if ($Mode -eq 'Raw') { @($result | Where-Object status -eq 424) | Should -HaveCount 0 }
+		elseif ($Mode -eq 'Matched') {
+			@($result | Where-Object { -not $_.Success }) | Should -HaveCount 0
+			($result | Where-Object Id -eq 'dependent').Argument.metadata | Should -Be 'original'
+		}
+		else { $result.id | Should -Be @('created', 'first', 'dependent') }
+		$script:requests | Should -HaveCount 3
+		$script:requests[1].Members.id | Should -Be @('first')
+		$script:requests[2].Members.id | Should -Be @('dependent')
+		$script:requests[2].Members[0].ContainsKey('dependsOn') | Should -BeFalse
+		$descriptors[2].dependsOn | Should -Be @('created', 'FIRST')
+	}
+
+	It 'recovers a chain with differently scheduled prerequisites in <Mode> mode' -ForEach @(
+		@{ Mode = 'Raw' }, @{ Mode = 'Matched' }, @{ Mode = 'Plain' }
+	) {
+		$script:clock = [datetime]::UtcNow
+		Mock Get-Date { $script:clock }
+		Mock Start-Sleep { param($Seconds) $script:clock = $script:clock.AddSeconds($Seconds) }
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 1) {
+				return @{ responses = @(
+					@{ id = 'leaf'; status = 424; body = @{ error = @{ code = 'FailedDependency' } } }
+					@{ id = 'middle'; status = 424; body = @{ error = @{ code = 'FailedDependency' } } }
+					@{ id = 'slow'; status = 503; body = @{ error = @{ code = 'Unavailable' } } }
+					@{ id = 'fast'; status = 429; headers = @{ 'Retry-After' = '0' } }
+				) }
+			}
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ id = $_.id } } }) }
+		}
+		$parameters = @{ Request = @(
+			@{ id = 'slow'; url = 'users' }
+			@{ id = 'fast'; url = 'groups' }
+			@{ id = 'middle'; url = 'devices'; dependsOn = @('slow', 'fast') }
+			@{ id = 'leaf'; url = 'sites'; dependsOn = @('middle') }
+		) }
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction Stop)
+		$result | Should -HaveCount 4
+		$script:requests | Should -HaveCount 5
+		$script:requests[1].Members.id | Should -Be @('fast')
+		$script:requests[2].Members.id | Should -Be @('slow')
+		$script:requests[3].Members.id | Should -Be @('middle')
+		$script:requests[4].Members.id | Should -Be @('leaf')
+		foreach ($submission in $script:requests | Select-Object -Skip 1) {
+			$submission.Members[0].ContainsKey('dependsOn') | Should -BeFalse
+		}
+	}
+
+	It 'fails dependent chains after <Failure> in <Mode> mode without replaying them' -ForEach @(
+		foreach ($mode in 'Raw', 'Matched', 'Plain') {
+			@{ Mode = $mode; Failure = 'permanent denial'; FailureStatus = 403; RequestMethod = 'GET'; ExpectedCalls = 1 }
+			@{ Mode = $mode; Failure = 'write failure'; FailureStatus = 503; RequestMethod = 'POST'; ExpectedCalls = 1 }
+			@{ Mode = $mode; Failure = 'transient exhaustion'; FailureStatus = 503; RequestMethod = 'GET'; ExpectedCalls = 6 }
+			@{ Mode = $mode; Failure = 'queued transient expiry'; FailureStatus = 503; RequestMethod = 'GET'; ExpectedCalls = 1 }
+			@{ Mode = $mode; Failure = 'throttle expiry'; FailureStatus = 429; RequestMethod = 'GET'; ExpectedCalls = 1 }
+		}
+	) {
+		$script:clock = [datetime]::UtcNow
+		$script:failureStatus = $FailureStatus
+		$script:expiry = $Failure -in 'queued transient expiry', 'throttle expiry'
+		Mock Get-Date { $script:clock }
+		Mock Start-Sleep {
+			param($Seconds)
+			if ($script:expiry) { $Seconds = 10 }
+			$script:clock = $script:clock.AddSeconds($Seconds)
+		}
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			@{ responses = @($Body.requests | ForEach-Object {
+				if ($_.id -eq 'first') {
+					$retryAfter = if ($script:failureStatus -eq 429) { '10' } else { '0' }
+					@{ id = $_.id; status = $script:failureStatus; headers = @{ 'Retry-After' = $retryAfter }; body = @{ error = @{ code = 'PrerequisiteFailure' } } }
+				}
+				else { @{ id = $_.id; status = 424; body = @{ error = @{ code = 'FailedDependency' } } } }
+			}) }
+		}
+		$parameters = @{ Request = @(
+			@{ id = 'leaf'; url = 'sites'; dependsOn = @('middle'); metadata = 'leaf' }
+			@{ id = 'middle'; url = 'groups'; dependsOn = @('first'); metadata = 'middle' }
+			@{ id = 'first'; url = 'users'; method = $RequestMethod }
+		) }
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		if ($script:expiry) { $parameters.Timeout = [timespan]::FromSeconds(5) }
+		$batchErrors = @()
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction SilentlyContinue -ErrorVariable batchErrors)
+		$script:requests | Should -HaveCount $ExpectedCalls
+		foreach ($submission in $script:requests | Select-Object -Skip 1) {
+			$submission.Members.id | Should -Be @('first')
+		}
+		if ($Mode -eq 'Plain') { $result | Should -HaveCount 0 }
+		else {
+			$dependents = @($result | Where-Object Id -in 'middle', 'leaf')
+			$dependents | Should -HaveCount 2
+			foreach ($dependent in $dependents) {
+				$dependent.Status | Should -Be 424
+				if ($Mode -eq 'Matched') {
+					$dependent.Success | Should -BeFalse
+					$dependent.Argument.metadata | Should -Be $dependent.Id
+				}
+			}
+		}
+		if ($Mode -ne 'Raw') {
+			@($batchErrors | Where-Object { $_.TargetObject.id -in 'middle', 'leaf' }) | Should -HaveCount 2
+		}
+	}
+
+	It 'does not submit a recovered dependent after its deadline in <Mode> mode' -ForEach @(
+		@{ Mode = 'Raw' }, @{ Mode = 'Matched' }, @{ Mode = 'Plain' }
+	) {
+		$script:clock = [datetime]::UtcNow
+		Mock Get-Date { $script:clock }
+		Mock Start-Sleep { param($Seconds) $script:clock = $script:clock.AddSeconds($Seconds) }
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 1) {
+				return @{ responses = @(
+					@{ id = 'first'; status = 503; body = @{ error = @{ code = 'Unavailable' } } }
+					@{ id = 'dependent'; status = 424; body = @{ error = @{ code = 'FailedDependency' } } }
+				) }
+			}
+			$script:clock = $script:clock.AddSeconds(10)
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ id = $_.id } } }) }
+		}
+		$parameters = @{ Request = @(
+			@{ id = 'first'; url = 'users' }
+			@{ id = 'dependent'; url = 'groups'; dependsOn = @('first') }
+		); Timeout = [timespan]::FromSeconds(5) }
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$batchErrors = @()
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction SilentlyContinue -ErrorVariable batchErrors)
+		$script:requests | Should -HaveCount 2
+		$script:requests[1].Members.id | Should -Be @('first')
+		if ($Mode -eq 'Plain') { $result.id | Should -Be @('first') }
+		else { ($result | Where-Object Id -eq 'dependent').Status | Should -Be 424 }
+		if ($Mode -ne 'Raw') { $batchErrors.TargetObject.id | Should -Be @('dependent') }
+	}
+
+	It 'does not retry a 424 without unresolved dependencies in <Mode> mode' -ForEach @(
+		@{ Mode = 'Raw' }, @{ Mode = 'Matched' }, @{ Mode = 'Plain' }
+	) {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			@{ responses = @(@{ id = 'first'; status = 424; body = @{ error = @{ code = 'FailedDependency' } } }) }
+		}
+		$parameters = @{ Request = @(@{ id = 'first'; url = 'users' }) }
+		if ($Mode -ne 'Plain') { $parameters[$Mode] = $true }
+		$result = @(Invoke-ZtGraphBatchRequest @parameters -ErrorAction SilentlyContinue)
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+		if ($Mode -eq 'Plain') { $result | Should -HaveCount 0 }
+		else { $result.Status | Should -Be 424 }
+	}
+
+	It 'finalizes blocked dependency cycles without resubmitting them' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 424; body = @{ error = @{ code = 'FailedDependency' } } } }) }
+		}
+		$result = @(Invoke-ZtGraphBatchRequest -Request @(
+			@{ id = 'first'; url = 'users'; dependsOn = @('second') }
+			@{ id = 'second'; url = 'groups'; dependsOn = @('first') }
+		) -Raw)
+		$result | Should -HaveCount 2
+		foreach ($response in $result) { $response.status | Should -Be 424 }
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+	}
+
 	It 'rejects retry selection that separates pending dependencies' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Body)

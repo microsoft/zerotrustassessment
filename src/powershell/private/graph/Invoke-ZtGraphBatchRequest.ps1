@@ -111,6 +111,7 @@
 		Intermediate retry errors are isolated from caller error variables when the batch recovers.
 		Batches containing writes are not replayed by this helper after an outer failure.
 		Successful prerequisites are not replayed for dependent retries; their dependency references are removed.
+		Failed-dependency responses wait for pending prerequisites to recover and are not retried after a prerequisite fails permanently.
 		Pending dependencies that cannot be submitted together are rejected rather than sent as dangling references.
 
 	.EXAMPLE
@@ -332,6 +333,7 @@
 					WaitLimit  = $null
 					TransientRetries = 0
 					LastTransientResponse = $null
+					LastDependencyResponse = $null
 
 					# Metadata
 					Argument   = $Argument
@@ -437,6 +439,7 @@
 					WaitLimit  = $null
 					TransientRetries = 0
 					LastTransientResponse = $null
+					LastDependencyResponse = $null
 
 					# Metadata
 					Argument   = $Request
@@ -532,6 +535,9 @@
 			$selectedTasks = [System.Collections.Generic.List[object]]::new()
 			$now = Get-Date
 			foreach ($task in $Tasks) {
+				if ($task.LastDependencyResponse -and $task.Batch.dependsOn.Count -gt 0) {
+					continue
+				}
 				if ($task.LastTransientResponse -and $task.WaitLimit -le $now) {
 					continue
 				}
@@ -633,6 +639,7 @@
 			process {
 				$start = Get-Date
 				foreach ($task in $Tasks) {
+					$task.LastDependencyResponse = $null
 					if (-not $task.Start) {
 						$task.Start = $start
 						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
@@ -828,6 +835,10 @@
 						}
 						Write-PSFMessage -Level Warning -Message "Transient member retries exhausted or timeout reached for request id $($task.Id) (status $($result.status))."
 					}
+					if ($result.status -eq 424 -and $task.Batch.dependsOn.Count -gt 0) {
+						$task.LastDependencyResponse = $result
+						continue
+					}
 					#region Case: Failed
 					if (400 -le $result.status -and 499 -ge $result.Status ) {
 						$null = $TaskList.Remove($task)
@@ -919,6 +930,46 @@
 	}
 	process {
 		do {
+			do {
+				$now = Get-Date
+				$runnableDependencyTasks = @($allTasks | Where-Object { -not $_.LastDependencyResponse -or -not $_.Batch.ContainsKey('dependsOn') -or $_.Batch.dependsOn.Count -eq 0 })
+				$failedDependencyTasks = @(
+					foreach ($pendingTask in $allTasks) {
+						if (-not $pendingTask.LastDependencyResponse) { continue }
+						$missingDependencies = @()
+						if ($pendingTask.Batch.ContainsKey('dependsOn')) {
+							$missingDependencies = @($pendingTask.Batch.dependsOn | Where-Object { $_ -notin $allTasks.Id })
+						}
+						if ($missingDependencies.Count -gt 0 -or $pendingTask.WaitLimit -le $now -or $runnableDependencyTasks.Count -eq 0) {
+							$pendingTask
+						}
+					}
+				)
+				foreach ($task in $failedDependencyTasks) {
+					$null = $allTasks.Remove($task)
+					$dependencyResponse = $task.LastDependencyResponse
+					if ($task.Parameters.Raw) {
+						$dependencyResponse
+						continue
+					}
+					$PSCmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+						[Exception]::new("Error in batch request $($task.Id): prerequisite failed or dependency recovery expired."),
+						('424|{0}' -f $dependencyResponse.body.error.code),
+						[System.Management.Automation.ErrorCategory]::NotSpecified,
+						$task.Batch
+					))
+					if ($task.Parameters.Matched) {
+						[PSCustomObject]@{
+							PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
+							Id         = "$($task.Id)"
+							Argument   = $task.Argument
+							Success    = $false
+							Result     = $dependencyResponse.body.error
+							Status     = 424
+						}
+					}
+				}
+			} while ($failedDependencyTasks.Count -gt 0)
 			$expiredTransientTasks = [System.Collections.Generic.List[object]]::new()
 			$tasks = Get-NextBatch -Tasks $allTasks -ExpiredTransientTasks $expiredTransientTasks -Cmdlet $PSCmdlet
 			foreach ($task in $expiredTransientTasks) {
