@@ -123,16 +123,30 @@ function Resolve-ZtRoleAssignmentPrincipal {
 		}
 
 		try {
-			$principals = @(Invoke-ZtGraphRequest -RelativeUri $typeDefinition.RelativeUri -UniqueId $principalIds -Select $typeDefinition.Select -ApiVersion beta -OutputType Hashtable -DisableCache -ErrorAction Stop)
-			foreach ($principalId in $principalIds) {
-				$completedLookups[$principalId] = $true
-			}
-			foreach ($principal in $principals) {
-				if (-not $principal.id -or $principal.id -notin $principalIds -or -not $Cache.ContainsKey($principal.id)) {
+			$select = $typeDefinition.Select -join ','
+			$path = "$($typeDefinition.RelativeUri)/{0}?`$select=$select"
+			$lookupResults = @(Invoke-ZtGraphBatchRequest -Path $path -ArgumentList $principalIds -Matched -ApiVersion beta -OutputType Hashtable -ErrorAction SilentlyContinue)
+			foreach ($lookupResult in $lookupResults) {
+				$principalId = [string]$lookupResult.Argument
+				if (-not $principalId -or -not $Cache.ContainsKey($principalId)) {
 					continue
 				}
 
-				$cachedType = $Cache[$principal.id]['@odata.type']
+				if (-not $lookupResult.Success) {
+					if ($lookupResult.Status -eq 404) {
+						$completedLookups[$principalId] = $true
+					}
+					continue
+				}
+
+				$principal = @($lookupResult.Result | Where-Object { $_.id -eq $principalId } | Select-Object -First 1)
+				if (-not $principal) {
+					continue
+				}
+				$principal = $principal[0]
+				$completedLookups[$principalId] = $true
+
+				$cachedType = $Cache[$principalId]['@odata.type']
 				$resolvedType = $principal.'@odata.type'
 				if (-not $resolvedType -or ($resolvedType -eq $typeDefinition.ODataType -and $cachedType -ne $typeDefinition.ODataType)) {
 					$resolvedType = $cachedType
@@ -141,13 +155,13 @@ function Resolve-ZtRoleAssignmentPrincipal {
 					$resolvedType = $typeDefinition.ODataType
 				}
 
-				$Cache[$principal.id] = @{
+				$Cache[$principalId] = @{
 					'@odata.type' = $resolvedType
-					id = $principal.id
-					displayName = if ($principal.displayName) { $principal.displayName } else { $Cache[$principal.id].displayName }
-					userPrincipalName = if ($principal.userPrincipalName) { $principal.userPrincipalName } else { $Cache[$principal.id].userPrincipalName }
-					uniqueName = if ($principal.uniqueName) { $principal.uniqueName } else { $Cache[$principal.id].uniqueName }
-					'__ztLookupAttempted' = $Cache[$principal.id]['__ztLookupAttempted']
+					id = $principalId
+					displayName = if ($principal.displayName) { $principal.displayName } else { $Cache[$principalId].displayName }
+					userPrincipalName = if ($principal.userPrincipalName) { $principal.userPrincipalName } else { $Cache[$principalId].userPrincipalName }
+					uniqueName = if ($principal.uniqueName) { $principal.uniqueName } else { $Cache[$principalId].uniqueName }
+					'__ztLookupAttempted' = $Cache[$principalId]['__ztLookupAttempted']
 				}
 			}
 		}
