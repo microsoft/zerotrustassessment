@@ -22,6 +22,7 @@ function Test-Assessment-21801 {
         $Database
     )
 
+    #region Data Collection
     Write-PSFMessage '🟦 Start' -Tag Test -Level VeryVerbose
 
     $activity = "Checking phishing resistant authentication for user"
@@ -47,7 +48,9 @@ from User u
 where u.accountEnabled
 "@
     $results = Invoke-DatabaseQuery -Database $Database -Sql $sql
+    #endregion Data Collection
 
+    #region Assessment Logic
     $totalUserCount = @($results).Count
     $phishResistantUsers = $results | Where-Object { $_.phishResistantAuthMethod }
     $phishableUsers = $results | Where-Object { !$_.phishResistantAuthMethod }
@@ -62,7 +65,9 @@ where u.accountEnabled
     else {
         $testResultMarkdown += "Found users that have not yet registered phishing resistant authentication methods`n`n%TestResult%"
     }
+    #endregion Assessment Logic
 
+    #region Report Generation
     $mdInfo = "## Users strong authentication methods`n`n"
     $mdInfo += "Total users assessed: $totalUserCount`n`n"
     $mdInfo += "Users with phishing-resistant authentication methods: $phishResistantUserCount`n`n"
@@ -83,14 +88,18 @@ where u.accountEnabled
 
         $omittedUserCount = $phishableUserCount - $reportedPhishableUsers.Count
         if ($omittedUserCount -gt 0) {
-            $mdInfo += "`nShowing 50 of $phishableUserCount users without phishing-resistant authentication methods; $omittedUserCount more omitted.`n"
+            $mdInfo += "`nShowing 50 of $phishableUserCount users without phishing-resistant authentication methods; $omittedUserCount were omitted.`n"
         }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
+    #endregion Report Generation
 
-    Add-ZtTestResultDetail -TestId '21801' -Title 'Users have strong authentication methods configured ' `
-        -UserImpact Medium -Risk Medium -ImplementationCost Medium `
-        -AppliesTo Identity -Tag Credential `
-        -Status $passed -Result $testResultMarkdown
+    $params = @{
+        TestId             = '21801'
+        Title              = 'Users have strong authentication methods configured '
+        Status             = $passed
+        Result             = $testResultMarkdown
+    }
+    Add-ZtTestResultDetail @params
 }
