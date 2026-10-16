@@ -1,5 +1,6 @@
 Describe 'Invoke-ZtGraphRequest POST support' {
 	BeforeAll {
+		Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
 		$srcRoot = Join-Path $PSScriptRoot '../../src/powershell'
 
 		function global:Write-PSFMessage { param($Message, $Level, $Tag) }
@@ -12,12 +13,17 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		function global:Get-MgContext { throw 'Graph context should not be resolved for validation failures.' }
 		function global:Get-MgEnvironment { param($Name) throw 'Graph environment should not be resolved for validation failures.' }
 
+		. (Join-Path $srcRoot 'private/core/Get-ZtHttpStatusCode.ps1')
+		. (Join-Path $srcRoot 'private/core/Test-ZtRetryableError.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtRetry.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtGraphRequestCache.ps1')
 		. (Join-Path $srcRoot 'public/Invoke-ZtGraphRequest.ps1')
 		. (Join-Path $srcRoot 'private/graph/Invoke-ZtGraphBatchRequest.ps1')
 	}
 
 	BeforeEach {
 		$script:requests = [System.Collections.Generic.List[hashtable]]::new()
+		Mock Start-Sleep {}
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' { throw 'Unexpected SDK request' }
 		Mock Invoke-ZtGraphRequestCache {
 			param($Method, $Uri, $Headers, $Body, $OutputType, $DisableCache, $OutputFilePath, $PageIndex)
@@ -148,11 +154,11 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		$deprecationWarnings[0].Message | Should -BeLike '*BatchSize is deprecated*'
 		$results | Should -HaveCount 21
 		$script:requests | Should -HaveCount 2
-		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(19, 2)
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(20, 1)
 		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
 	}
 
-	It 'delegates 41 prepared requests with unique IDs and headers to the unchanged scheduler' {
+	It 'delegates 41 prepared requests with unique IDs and headers to the helper scheduler' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Uri, $Body)
 			$members = @($Body.requests)
@@ -164,7 +170,7 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 
 		$result | Should -HaveCount 41
 		$script:requests | Should -HaveCount 3
-		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(19, 19, 3)
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(20, 20, 1)
 		$members = @($script:requests | ForEach-Object { $_.Members })
 		@($members.id | Select-Object -Unique) | Should -HaveCount 41
 		$members[0].id | Should -Be '1'
@@ -216,12 +222,12 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 			}) }
 		}
 
-		$result = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..20) -GraphBaseUri 'https://graph.microsoft.com/' -OutputFilePath 'pages.json' -Headers @{ 'X-Test' = 'retained' })
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -GraphBaseUri 'https://graph.microsoft.com/' -OutputFilePath 'pages.json' -Headers @{ 'X-Test' = 'retained' })
 
-		$result | Should -HaveCount 21
+		$result | Should -HaveCount 22
 		$result[0].result | Should -Be 'users/1'
 		$result[1].result | Should -Be 'continued'
-		$result[-1].result | Should -Be 'users/20'
+		$result[-1].result | Should -Be 'users/21'
 		$script:requests.Method | Should -Be @('POST', 'GET', 'POST')
 		$script:requests[1].PageIndex | Should -Be 1
 		$script:requests[1].OutputFilePath | Should -Be 'pages.json'
@@ -274,16 +280,32 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 			}) }
 		}
 		$emitted = [System.Collections.Generic.List[object]]::new()
-		{ Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..20) -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Continuation failed*'
+		{ Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Continuation failed*'
 		$script:requests.Method | Should -Be @('POST', 'GET')
 		$emitted | Should -HaveCount 1
 		$emitted[0].result | Should -Be 'first'
 	}
 
-	It 'surfaces batch transport errors with ErrorAction Stop' {
-		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' { throw 'Batch transport failed' }
+	It 'surfaces batch transport errors after bounded retries with ErrorAction Stop' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Batch transport failed')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 502
+			throw $exception
+		}
 		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch transport failed*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 6 -Exactly
+		Should -Invoke Start-Sleep -Times 5 -Exactly
+	}
+
+	It 'surfaces nonretryable batch transport errors without replaying requests' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Batch access denied')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 403
+			throw $exception
+		}
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch access denied*'
 		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+		Should -Invoke Start-Sleep -Times 0 -Exactly
 	}
 
 	It 'does not delegate disabled batching or scalar pipeline records' {
