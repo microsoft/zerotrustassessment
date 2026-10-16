@@ -138,4 +138,186 @@ Describe "Export-ZtGraphEntity" {
             $exportedApplication.value[0].owners[0].id | Should -Be 'owner-1'
         }
     }
+
+    Context "Schedule-instance principal enrichment" {
+        BeforeEach {
+            $script:roleExportPath = Join-Path $TestDrive 'schedule-export'
+            Mock -ModuleName ZeroTrustAssessment Get-ZtConfig { return $false }
+            Mock -ModuleName ZeroTrustAssessment Set-ZtConfig {}
+            Mock -ModuleName ZeroTrustAssessment Update-ZtProgressState {}
+            Mock -ModuleName ZeroTrustAssessment Get-PSFConfigValue { return 1073741824 }
+            Mock -ModuleName ZeroTrustAssessment Write-PSFMessage {}
+        }
+
+        It "Persists minimal scalar principals for <PrincipalType>" -TestCases @(
+            @{ PrincipalType = 'user'; Endpoint = 'users'; UserName = 'user@contoso.com'; UniqueName = $null }
+            @{ PrincipalType = 'group'; Endpoint = 'groups'; UserName = $null; UniqueName = 'group@contoso.com' }
+            @{ PrincipalType = 'servicePrincipal'; Endpoint = 'servicePrincipals'; UserName = $null; UniqueName = $null }
+            @{ PrincipalType = 'agentUser'; Endpoint = 'users'; UserName = 'agent@contoso.com'; UniqueName = $null }
+            @{ PrincipalType = 'agentIdentity'; Endpoint = 'servicePrincipals'; UserName = $null; UniqueName = $null }
+            @{ PrincipalType = 'agentIdentityBlueprintPrincipal'; Endpoint = 'servicePrincipals'; UserName = $null; UniqueName = $null }
+        ) {
+            param($PrincipalType, $Endpoint, $UserName, $UniqueName)
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                @{ value = @(@{ id = 'assignment'; principalId = 'principal'; principal = @{ id = 'principal'; '@odata.type' = "#microsoft.graph.$PrincipalType" } }) }
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                @{ id = 'principal'; displayName = 'Principal'; userPrincipalName = $UserName; uniqueName = $UniqueName }
+            }
+
+            Export-ZtGraphEntity -Name RoleEligibilityScheduleInstance -Uri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleEligibilityScheduleInstance/RoleEligibilityScheduleInstance-0.json') -Raw | ConvertFrom-Json
+            $export.value[0].principal | Should -BeOfType PSCustomObject
+            @($export.value[0].principal.PSObject.Properties.Name) | Should -HaveCount 5
+            $export.value[0].principal.'@odata.type' | Should -Be "#microsoft.graph.$PrincipalType"
+            $export.value[0].principal.displayName | Should -Be 'Principal'
+            $export.value[0].principal.userPrincipalName | Should -Be $UserName
+            $export.value[0].principal.uniqueName | Should -Be $UniqueName
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 1 -Exactly -ParameterFilter {
+                $RelativeUri -eq $Endpoint -and $OutputType -eq 'Hashtable' -and $ApiVersion -eq 'beta' -and $DisableCache -and $ErrorAction -eq 'Stop'
+            }
+        }
+
+        It "Caches repeated <Outcome> principals across pages" -TestCases @(
+            @{ Outcome = 'resolved' }
+            @{ Outcome = 'deleted' }
+            @{ Outcome = 'unknown type' }
+        ) {
+            param($Outcome)
+            $script:rolePage = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $principal = if ($Outcome -eq 'unknown type') { $null } else { @{ id = 'principal'; '@odata.type' = '#microsoft.graph.group' } }
+                $page = @{ value = @(@{ id = "assignment-$script:rolePage"; principalId = 'principal'; principal = $principal }) }
+                if ($script:rolePage -lt 3) { $page['@odata.nextLink'] = "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?page=$script:rolePage" }
+                $page
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                if ($Outcome -eq 'resolved') { @{ id = 'principal'; displayName = 'Group' } }
+            }
+
+            Export-ZtGraphEntity -Name RoleAssignmentScheduleInstance -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 1 -Exactly
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-2.json') -Raw | ConvertFrom-Json
+            $export.value[0].principal.id | Should -Be 'principal'
+            if ($Outcome -eq 'resolved') { $export.value[0].principal.displayName | Should -Be 'Group' }
+            else { $export.value[0].principal.displayName | Should -BeNullOrEmpty }
+        }
+
+        It "Retries a failed <Lookup> lookup and requests terminating errors" -TestCases @(
+            @{ Lookup = 'typed' }
+            @{ Lookup = 'type discovery' }
+        ) {
+            param($Lookup)
+            $script:rolePage = 0
+            $script:lookupAttempt = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $principal = if ($Lookup -eq 'typed') { @{ id = 'principal'; '@odata.type' = '#microsoft.graph.group' } } else { $null }
+                $page = @{ value = @(@{ id = "assignment-$script:rolePage"; principalId = 'principal'; principal = $principal }) }
+                if ($script:rolePage -eq 1) { $page['@odata.nextLink'] = 'https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?page=2' }
+                $page
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                $script:lookupAttempt++
+                if ($script:lookupAttempt -eq 1) { Write-Error 'Batch transport failed' -ErrorAction Stop }
+                @{ id = 'principal'; '@odata.type' = '#microsoft.graph.group'; displayName = 'Recovered' }
+            }
+
+            Export-ZtGraphEntity -Name RoleAssignmentScheduleInstance -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            $expectedCalls = if ($Lookup -eq 'typed') { 2 } else { 3 }
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times $expectedCalls -Exactly
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 0 -Exactly -ParameterFilter { $ErrorAction -ne 'Stop' }
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-1.json') -Raw | ConvertFrom-Json
+            $export.value[0].principal.displayName | Should -Be 'Recovered'
+        }
+
+        It "Uses richer duplicate data on the same page without a lookup" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                @{ value = @(
+                    @{ id = 'first'; principalId = 'principal'; principal = $null }
+                    @{ id = 'second'; principalId = 'principal'; principal = @{ id = 'principal'; '@odata.type' = '#microsoft.graph.group'; displayName = 'Group' } }
+                ) }
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {}
+
+            Export-ZtGraphEntity -Name RoleAssignmentScheduleInstance -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 0 -Exactly
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-0.json') -Raw | ConvertFrom-Json
+            @($export.value.principal.displayName) | Should -Be @('Group', 'Group')
+        }
+
+        It "Refines an unresolved cached base type from a later page" {
+            $script:rolePage = 0
+            $script:lookupAttempt = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $type = if ($script:rolePage -eq 1) { '#microsoft.graph.servicePrincipal' } else { '#microsoft.graph.agentIdentity' }
+                $page = @{ value = @(@{ id = "assignment-$script:rolePage"; principalId = 'principal'; principal = @{ id = 'principal'; '@odata.type' = $type } }) }
+                if ($script:rolePage -eq 1) { $page['@odata.nextLink'] = 'https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?page=2' }
+                $page
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                $script:lookupAttempt++
+                if ($script:lookupAttempt -gt 1) { @{ id = 'principal'; '@odata.type' = '#microsoft.graph.servicePrincipal'; displayName = 'Agent' } }
+            }
+
+            Export-ZtGraphEntity -Name RoleAssignmentScheduleInstance -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 2 -Exactly
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-1.json') -Raw | ConvertFrom-Json
+            $export.value[0].principal.'@odata.type' | Should -Be '#microsoft.graph.agentIdentity'
+            $export.value[0].principal.displayName | Should -Be 'Agent'
+        }
+
+        It "Discovers unknown types in chunks of at most 1000 IDs" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                @{ value = @(1..1001 | ForEach-Object { @{ id = "assignment-$_"; principalId = "principal-$_"; principal = $null } }) }
+            }
+            $script:lookupSizes = [System.Collections.Generic.List[int]]::new()
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                param($Body)
+                $requestBody = $Body | ConvertFrom-Json
+                $script:lookupSizes.Add($requestBody.ids.Count)
+                foreach ($principalId in $requestBody.ids) { @{ id = $principalId; '@odata.type' = '#microsoft.graph.user' } }
+            } -ParameterFilter { $RelativeUri -eq 'directoryObjects/getByIds' }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                param($UniqueId)
+                foreach ($principalId in $UniqueId) { @{ id = $principalId; '@odata.type' = '#microsoft.graph.agentUser'; displayName = 'Agent' } }
+            } -ParameterFilter { $RelativeUri -eq 'users' }
+
+            Export-ZtGraphEntity -Name RoleEligibilityScheduleInstance -Uri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            @($script:lookupSizes) | Should -Be @(1000, 1)
+            $export = Get-Content (Join-Path $script:roleExportPath 'RoleEligibilityScheduleInstance/RoleEligibilityScheduleInstance-0.json') -Raw | ConvertFrom-Json
+            $export.value | Should -HaveCount 1001
+            @($export.value.principal.'@odata.type' | Select-Object -Unique) | Should -Be @('#microsoft.graph.agentUser')
+        }
+
+        It "Limits enrichment configuration to the two schedule exports" {
+            $srcRoot = Join-Path $PSScriptRoot '../../src/powershell'
+            $config = Import-PSFPowerShellDataFile -Path (Join-Path $srcRoot 'assets/export-tenant.config.psd1') -Psd1Mode Safe
+            $scheduleExports = @($config | Where-Object ResolveRolePrincipals)
+            $scheduleExports.Name | Should -Be @('RoleAssignmentScheduleInstance', 'RoleEligibilityScheduleInstance')
+            foreach ($scheduleExport in $scheduleExports) {
+                $scheduleExport.QueryString | Should -BeLike '*$expand=principal($select=id)*'
+                $model = Get-Content (Join-Path $srcRoot "assets/export-model/$($scheduleExport.Name)-model.json") -Raw | ConvertFrom-Json
+                @($model.value[0].principal.PSObject.Properties.Name | Sort-Object) | Should -Be @('@odata.type', 'displayName', 'id', 'uniqueName', 'userPrincipalName')
+            }
+            $scheduleExports[0].QueryString | Should -BeLike "*assignmentType eq 'Assigned'*"
+        }
+
+        It "Does not perform principal lookups for an empty schedule page" {
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry { @{ value = @() } }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {}
+
+            Export-ZtGraphEntity -Name RoleEligibilityScheduleInstance -Uri 'beta/roleManagement/directory/roleEligibilityScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 0 -Exactly
+        }
+    }
 }
