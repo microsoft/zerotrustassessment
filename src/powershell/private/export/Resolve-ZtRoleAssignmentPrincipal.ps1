@@ -6,10 +6,37 @@ function Resolve-ZtRoleAssignmentPrincipal {
 
 		[Parameter(Mandatory = $true)]
 		[hashtable]
-		$Cache
+		$Cache,
+
+		[switch]
+		$ReconcileOnly
 	)
 
 	if (-not $Assignments) {
+		return
+	}
+
+	if ($ReconcileOnly) {
+		foreach ($assignment in $Assignments) {
+			$principalId = if ($assignment.principal.id) { $assignment.principal.id } else { $assignment.principalId }
+			if (-not $principalId -or -not $Cache.ContainsKey($principalId)) {
+				continue
+			}
+
+			$resolvedPrincipal = @{
+				'@odata.type' = $Cache[$principalId]['@odata.type']
+				id = $Cache[$principalId].id
+				displayName = $Cache[$principalId].displayName
+				userPrincipalName = $Cache[$principalId].userPrincipalName
+				uniqueName = $Cache[$principalId].uniqueName
+			}
+			if ($assignment -is [System.Collections.IDictionary]) {
+				$assignment['principal'] = $resolvedPrincipal
+			}
+			else {
+				$assignment.principal = [pscustomobject]$resolvedPrincipal
+			}
+		}
 		return
 	}
 

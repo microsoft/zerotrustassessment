@@ -307,6 +307,57 @@ Describe "Export-ZtGraphEntity" {
             $export.value[0].principal.displayName | Should -Be 'Recovered'
         }
 
+        It "Reconciles earlier pages when principal type discovery succeeds on a later page" {
+            $script:rolePage = 0
+            $script:typeDiscoveryCalls = 0
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
+                $script:rolePage++
+                $page = @{
+                    value = @(@{
+                        id = "assignment-$script:rolePage"
+                        principalId = 'group-principal'
+                        principal = @{ id = 'group-principal' }
+                    })
+                }
+                if ($script:rolePage -eq 1) {
+                    $page['@odata.nextLink'] = 'https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentScheduleInstances?page=2'
+                }
+                $page
+            }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest {
+                $script:typeDiscoveryCalls++
+                if ($script:typeDiscoveryCalls -eq 1) {
+                    Write-Error 'Type discovery temporarily failed' -ErrorAction Stop
+                }
+                @{ id = 'group-principal'; '@odata.type' = '#microsoft.graph.group' }
+            } -ParameterFilter { $RelativeUri -eq 'directoryObjects/getByIds' }
+            Mock -ModuleName ZeroTrustAssessment Invoke-ZtGraphBatchRequest {
+                [pscustomobject]@{
+                    Argument = 'group-principal'
+                    Success = $true
+                    Status = 200
+                    Result = @(@{
+                        id = 'group-principal'
+                        '@odata.type' = '#microsoft.graph.group'
+                        displayName = 'Recovered group'
+                        uniqueName = 'group@contoso.com'
+                    })
+                }
+            }
+
+            Export-ZtGraphEntity -Name RoleAssignmentScheduleInstance -Uri 'beta/roleManagement/directory/roleAssignmentScheduleInstances' -ResolveRolePrincipals -ExportPath $script:roleExportPath
+
+            Should -Invoke -ModuleName ZeroTrustAssessment Invoke-ZtGraphRequest -Times 2 -Exactly -ParameterFilter {
+                $RelativeUri -eq 'directoryObjects/getByIds'
+            }
+            foreach ($pageIndex in 0, 1) {
+                $export = Get-Content (Join-Path $script:roleExportPath "RoleAssignmentScheduleInstance/RoleAssignmentScheduleInstance-$pageIndex.json") -Raw | ConvertFrom-Json
+                $export.value[0].principal.'@odata.type' | Should -Be '#microsoft.graph.group'
+                $export.value[0].principal.displayName | Should -Be 'Recovered group'
+                $export.value[0].principal.uniqueName | Should -Be 'group@contoso.com'
+            }
+        }
+
         It "Uses richer duplicate data on the same page without a lookup" {
             Mock -ModuleName ZeroTrustAssessment Invoke-ZtRetry {
                 @{ value = @(

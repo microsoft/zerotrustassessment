@@ -279,5 +279,15 @@ function Export-ZtGraphEntity {
 	}
 	while ($true)
 
+	if ($ResolveRolePrincipals) {
+		# Reconcile each saved page separately so late principal resolution updates earlier assignments without retaining all pages in memory.
+		for ($reconcilePageIndex = 0; $reconcilePageIndex -lt $pageIndex; $reconcilePageIndex++) {
+			$pagePath = Join-Path -Path $folderPath -ChildPath "$Name-$reconcilePageIndex.json"
+			$savedPage = Import-PSFJson -Path $pagePath -Encoding UTF8NoBom -ErrorAction Stop
+			Resolve-ZtRoleAssignmentPrincipal -Assignments $savedPage.value -Cache $rolePrincipalCache -ReconcileOnly
+			$savedPage | Export-PSFJson -Path $pagePath -Depth 100 -Encoding UTF8NoBom -ErrorAction Stop
+		}
+	}
+
 	Set-ZtConfig -ExportPath $ExportPath -Property $Name -Value $true
 }
