@@ -88,7 +88,7 @@ where u.accountEnabled
 
         $omittedUserCount = $phishableUserCount - $reportedPhishableUsers.Count
         if ($omittedUserCount -gt 0) {
-            $mdInfo += "`nShowing 50 of $phishableUserCount users without phishing-resistant authentication methods; $omittedUserCount were omitted.`n"
+            $mdInfo += "`nShowing 50 of $phishableUserCount users without phishing-resistant authentication methods; $omittedUserCount more omitted.`n"
         }
     }
 
