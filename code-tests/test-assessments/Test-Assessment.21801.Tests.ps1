@@ -122,7 +122,7 @@ Describe 'Test-Assessment-21801' {
         $script:capturedStatus | Should -Be $false
         $script:capturedResult | Should -Match 'Total users assessed: 52'
         $script:capturedResult | Should -Match 'Users without phishing-resistant authentication methods: 52'
-        $script:capturedResult | Should -Match 'Showing 50 of 52 users.*2 were omitted'
+        $script:capturedResult | Should -Match 'Showing 50 of 52 users.*2 more omitted\.'
         ([regex]::Matches($script:capturedResult, '\[User \d{3}\]')).Count | Should -Be 50
         $script:capturedResult | Should -Not -Match '\[User 051\]'
         $script:capturedResult | Should -Not -Match '\[User 052\]'
