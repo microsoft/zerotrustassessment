@@ -53,6 +53,7 @@ where u.accountEnabled
     $phishableUsers = $results | Where-Object { !$_.phishResistantAuthMethod }
 
     $phishResistantUserCount = @($phishResistantUsers).Count
+    $phishableUserCount = @($phishableUsers).Count
     $passed = $totalUserCount -eq $phishResistantUserCount
 
     if ($passed) {
@@ -63,31 +64,27 @@ where u.accountEnabled
     }
 
     $mdInfo = "## Users strong authentication methods`n`n"
+    $mdInfo += "Total users assessed: $totalUserCount`n`n"
+    $mdInfo += "Users with phishing-resistant authentication methods: $phishResistantUserCount`n`n"
+    $mdInfo += "Users without phishing-resistant authentication methods: $phishableUserCount`n`n"
 
-    if ($passed) {
-        $mdInfo += "All users have registered phishing resistant authentication methods.`n`n"
-    }
-    else{
-        $mdInfo += "Found users that have not registered phishing resistant authentication methods.`n`n"
-    }
+    $reportedPhishableUsers = @($phishableUsers | Sort-Object displayName, id | Select-Object -First 50)
 
+    if ($reportedPhishableUsers.Count -gt 0) {
+        $mdInfo += "User | Last sign in | Phishing resistant method registered |`n"
+        $mdInfo += "| :--- | :--- | :---: |`n"
 
-    $mdInfo += "User | Last sign in | Phishing resistant method registered |`n"
-    $mdInfo += "| :--- | :--- | :---: |`n"
+        $userLinkFormat = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/UserAuthMethods/userId/{0}/hidePreviewBanner~/true"
+        foreach ($user in $reportedPhishableUsers) {
+            $userLink = $userLinkFormat -f $user.id
+            $lastSignInDate = Get-FormattedDate -Date $user.lastSuccessfulSignInDateTime
+            $mdInfo += "|[$($user.displayName)]($userLink)| $lastSignInDate | ❌ |`n"
+        }
 
-    $userLinkFormat = "https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/UserAuthMethods/userId/{0}/hidePreviewBanner~/true"
-
-
-    foreach ($user in $phishableUsers | Sort-Object displayName) {
-        $userLink = $userLinkFormat -f $user.id
-        $lastSignInDate = Get-FormattedDate -Date $user.lastSuccessfulSignInDateTime
-        $mdInfo += "|[$($user.displayName)]($userLink)| $lastSignInDate | ❌ |`n"
-    }
-
-    foreach ($user in $phishResistantUsers | Sort-Object displayName) {
-        $userLink = $userLinkFormat -f $user.id
-        $lastSignInDate = Get-FormattedDate -Date $user.lastSuccessfulSignInDateTime
-        $mdInfo += "|[$($user.displayName)]($userLink)| $lastSignInDate | ✅ |`n"
+        $omittedUserCount = $phishableUserCount - $reportedPhishableUsers.Count
+        if ($omittedUserCount -gt 0) {
+            $mdInfo += "`nShowing 50 of $phishableUserCount users without phishing-resistant authentication methods; $omittedUserCount more omitted.`n"
+        }
     }
 
     $testResultMarkdown = $testResultMarkdown -replace "%TestResult%", $mdInfo
