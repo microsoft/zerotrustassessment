@@ -7,7 +7,7 @@ function Test-Assessment-21818 {
     [ZtTest(
     	Category = 'Monitoring',
     	ImplementationCost = 'Medium',
-    	MinimumLicense = ('P2'),
+    	CompatibleLicense = ('AAD_PREMIUM_P2', 'Entra_Identity_Governance'),
     	Pillar = 'Identity',
     	RiskLevel = 'High',
     	SfiPillar = 'Monitor and detect cyberthreats',
@@ -25,12 +25,6 @@ function Test-Assessment-21818 {
 
     $activity = "Checking Activation alert for highly privileged role assignments"
     Write-ZtProgress -Activity $activity -Status "Getting PIM policy assignments for highly privileged roles"
-
-    $EntraIDPlan = Get-ZtLicenseInformation -Product EntraID
-    if ($EntraIDPlan -eq "Free" -or $EntraIDPlan -eq "P1") {
-        Write-PSFMessage '🟦 Skipping test: Requires P2 or Governance plan' -Tag Test -Level VeryVerbose
-        return
-    }
 
     # Query retrieves the associated PIM role management policy assignments for each highly privileged role
     $sqlPolicyAssignments = @"
@@ -113,31 +107,51 @@ ORDER BY rd.displayName;
         $policyId = $policyAssignment.policyId
         $roleDisplayName = $policyAssignment.roleDisplayName
 
-        foreach ($ruleId in $notifications.ruleId) {
-            try {
-                $uri = "policies/roleManagementPolicies/$policyId/rules/$ruleId"
-
-                $rule = Invoke-ZtGraphRequest -RelativeUri $uri -ApiVersion 'v1.0' -ErrorAction Stop
-
-                if ($rule) {
-                    $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
-
-                    # TO-DO: When the performance of the API is improved, we can collect all rules and move the check outside the loop to determine if the test passes or fails.
-                    # Check if isDefaultRecipientsEnabled is false and notificationRecipients is an empty array
-                    if ($rule.isDefaultRecipientsEnabled -eq $false -and
-                        ($null -eq $rule.notificationRecipients -or $rule.notificationRecipients.Count -eq 0)) {
-                        $passed = $false
-                        $exitLoop = $true
-                        break  # Exit inner loop if condition is met
-                    }
-                }
-            }
-            catch {
-                Write-Error "Failed to retrieve rule $ruleId for policy $($policyId): $($_.Exception.Message)"
+        try {
+            $policyRules = @(Invoke-ZtGraphRequest -RelativeUri "policies/roleManagementPolicies/$policyId/rules" -ApiVersion 'v1.0' -ErrorAction Stop)
+            if ($policyRules.Count -eq 1 -and $policyRules[0].error) {
+                $exception = [System.InvalidOperationException]::new('Graph returned an error response while retrieving notification rules.')
+                throw [System.Management.Automation.ErrorRecord]::new(
+                    $exception,
+                    'Zt21818GraphResponseError',
+                    [System.Management.Automation.ErrorCategory]::InvalidData,
+                    $null
+                )
             }
         }
+        catch {
+            throw
+        }
+
+        $policyRulesById = @{}
+        foreach ($policyRule in $policyRules) {
+            $policyRulesById[$policyRule.id] = $policyRule
+        }
+
+        foreach ($ruleId in $notifications.RuleId) {
+            $rule = $policyRulesById[$ruleId]
+            if (-not $rule) {
+                $exception = [System.InvalidOperationException]::new('A required notification rule was not returned for a policy.')
+                throw [System.Management.Automation.ErrorRecord]::new(
+                    $exception,
+                    'Zt21818RequiredRuleMissing',
+                    [System.Management.Automation.ErrorCategory]::InvalidData,
+                    $null
+                )
+            }
+
+            $notificationRules += ($rule | Add-Member -MemberType NoteProperty -Name RoleDisplayName -Value $roleDisplayName -Force -PassThru)
+
+            if ($rule.isDefaultRecipientsEnabled -eq $false -and
+                ($null -eq $rule.notificationRecipients -or $rule.notificationRecipients.Count -eq 0)) {
+                $passed = $false
+                $exitLoop = $true
+                break
+            }
+        }
+
         if ($exitLoop) {
-            break # Exit outer loop if condition is met
+            break
         }
     }
 

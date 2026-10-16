@@ -24,7 +24,6 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 
 	BeforeEach {
 		$script:requests = [System.Collections.Generic.List[hashtable]]::new()
-		$script:__ZtSession = [pscustomobject]@{ GraphBaseUri = 'https://graph.microsoft.com/' }
 		Mock Start-Sleep {}
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' { throw 'Unexpected SDK request' }
 		Mock Invoke-ZtGraphRequestCache {
@@ -305,7 +304,7 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
 	}
 
-	It 'delegates 41 prepared requests with unique IDs and headers in batches of 20' {
+	It 'delegates 41 prepared requests with unique IDs and headers to the helper scheduler in batches of 20' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			param($Uri, $Body)
 			$members = @($Body.requests)
@@ -433,14 +432,26 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		$emitted[0].result | Should -Be 'first'
 	}
 
-	It 'surfaces batch transport errors with ErrorAction Stop' {
+	It 'surfaces batch transport errors after bounded retries with ErrorAction Stop' {
 		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
 			$exception = [Exception]::new('Batch transport failed')
-			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 403
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 502
 			throw $exception
 		}
 		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch transport failed*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 6 -Exactly
+		Should -Invoke Start-Sleep -Times 5 -Exactly
+	}
+
+	It 'surfaces nonretryable batch transport errors without replaying requests' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Batch access denied')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 403
+			throw $exception
+		}
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch access denied*'
 		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+		Should -Invoke Start-Sleep -Times 0 -Exactly
 	}
 
 	It 'does not delegate disabled batching or scalar pipeline records' {

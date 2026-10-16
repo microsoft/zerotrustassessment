@@ -18,12 +18,15 @@
 
 	.PARAMETER Request
 		The requests to send. Provide either a url string or a request hashtables with any combination of the following keys:
-		+ id:        The numeric ID to use. Determines the order in which requests are processed in the server end.
+		+ id:        A nonempty string correlation ID, unique without regard to case. Generated if omitted.
 		+ method:    The REST method to use (GET, POST, PATCH, ...)
 		+ url:       The relative url to call
 		+ body:      The body to provide with the request
 		+ headers:   Headers to include with the request
 		+ dependsOn: The id of another request that must be successful, in order to run this request. Prevents executing requests invalidated by another request's failure.
+
+		Dependency IDs are normalized to strings. Workloads containing dependencies must fit within one batch of 20 requests.
+		Dependencies must reference other requests in the same workload.
 
 		The only mandatory value to provide (whether as plain string or via hashtable) is the "url".
 		The rest are filled by default values either provided via other parameters (Method, Body, Header) or the system (id) or omitted (dependsOn).
@@ -67,15 +70,15 @@
 		Defaults to not being specified at all.
 
 	.PARAMETER Timeout
-		How long to retry batched requests that are being throttled.
+		How long to retry batched requests that are being throttled or return retryable transient errors.
 		By default, requests are re-attempted until 5 minutes have expired (specifically, until the "notAfter" response would lead the next attempt beyond that time limit).
-		Set to 0 minutes to never retry throttled requests.
+		Set to 0 minutes to never retry throttled or transient member responses.
 
 	.PARAMETER Matched
 		Rather than returning the results alone, match the results to the input object.
 		This will create a custom object with ...
 		- Id: The batch ID (generally cosmetic).
-		- Argument: The value provided to "-ArgumentList" or - if using the "-Request" parameter instead - the finalized batch request entry.
+		- Argument: The original value provided to "-ArgumentList" or "-Request".
 		- Result: The return value (if any) or the error result.
 		- Success: Boolean truth of whether the request was successful.
 
@@ -90,6 +93,26 @@
 
 	.PARAMETER ApiVersion
 		The Graph API version used for the batch endpoint. Defaults to v1.0.
+
+	.PARAMETER OutputType
+		The SDK response representation: PSObject, PSCustomObject, or Hashtable.
+		PSCustomObject is an alias for the SDK's PSObject representation.
+		Defaults to Hashtable to preserve existing private-helper callers.
+
+	.NOTES
+		Incomplete or invalid member responses fail the submitted batch without resubmission.
+		Under nonterminating error handling, each affected request receives an error targeting its batch request descriptor.
+		GET and HEAD members returning 500, 502, 503 or 504 allow five retries per page, within Timeout.
+		Retry delays use the greater of exponential backoff (3, 6, 12, 24, 48 seconds) and Retry-After seconds or an HTTP date.
+		Successful and terminal members are not resent.
+		Transient retry exhaustion or timeout returns the final response in Raw or Matched mode; plain output receives a TransientRetriesExhausted error.
+		Member 429 handling is unchanged; writes are not retried for transient 5xx member responses.
+		Outer transport failures use Invoke-ZtRetry only when every submitted member is GET or HEAD.
+		Intermediate retry errors are isolated from caller error variables when the batch recovers.
+		Batches containing writes are not replayed by this helper after an outer failure.
+		Successful prerequisites are not replayed for dependent retries; their dependency references are removed.
+		Failed-dependency responses wait for pending prerequisites to recover and are not retried after a prerequisite fails permanently.
+		Pending dependencies that cannot be submitted together are rejected rather than sent as dangling references.
 
 	.EXAMPLE
 		PS C:\> Invoke-ZtGraphBatchRequest -Path 'users/{0}/authentication/methods' -ArgumentList $users.id
@@ -232,6 +255,10 @@
 		[string]
 		$ApiVersion = 'v1.0',
 
+		[ValidateSet('PSObject', 'PSCustomObject', 'Hashtable')]
+		[string]
+		$OutputType = 'Hashtable',
+
 		[switch]
 		$NoPaging
 	)
@@ -304,6 +331,9 @@
 					Start      = $null
 					WaitUntil  = $null
 					WaitLimit  = $null
+					TransientRetries = 0
+					LastTransientResponse = $null
+					LastDependencyResponse = $null
 
 					# Metadata
 					Argument   = $Argument
@@ -407,6 +437,9 @@
 					Start      = $null
 					WaitUntil  = $null
 					WaitLimit  = $null
+					TransientRetries = 0
+					LastTransientResponse = $null
+					LastDependencyResponse = $null
 
 					# Metadata
 					Argument   = $Request
@@ -416,14 +449,14 @@
 				}
 
 				#region ID
-				if ($Request.id) {
-					$task.Id = $Request.Id -as [int]
-					if ($task.Id -gt $Tracking.CurrentID) {
-						$Tracking.CurrentID = $task.Id + 1
+				if ($null -ne $Request.id) {
+					$task.Id = [string]$Request.id
+					if ([string]::IsNullOrWhiteSpace($task.Id) -or $task.Id -in $TaskList.Id) {
+						throw [System.ArgumentException]::new('Batch request IDs must be nonempty and unique.')
 					}
 				}
 				else {
-					while ($Tracking.CurrentID -in $TaskList.Id) {
+					while ([string]$Tracking.CurrentID -in $Tracking.ReservedIDs -or [string]$Tracking.CurrentID -in $TaskList.Id) {
 						$Tracking.CurrentID++
 					}
 					$task.Id = $Tracking.CurrentID
@@ -462,8 +495,8 @@
 					$task.Url = ($task.Url -split '/',2)[1]
 				}
 
-				if ($Request.DependsOn) {
-					$task.DependsOn = $Request.DependsOn
+				if ($null -ne $Request.DependsOn) {
+					$task.DependsOn = @($Request.DependsOn | ForEach-Object { [string]$_ })
 				}
 				#endregion Other Metadata
 
@@ -492,12 +525,22 @@
 			param (
 				$Tasks,
 
+				[System.Collections.Generic.List[object]]
+				$ExpiredTransientTasks,
+
 				$Cmdlet
 			)
 
 			$count = 0
+			$selectedTasks = [System.Collections.Generic.List[object]]::new()
 			$now = Get-Date
 			foreach ($task in $Tasks) {
+				if ($task.LastDependencyResponse -and $task.Batch.dependsOn.Count -gt 0) {
+					continue
+				}
+				if ($task.LastTransientResponse -and $task.WaitLimit -le $now) {
+					continue
+				}
 				if ($task.WaitUntil -and $task.WaitUntil -gt $now) {
 					continue
     } # Not ready yet
@@ -508,10 +551,10 @@
 					continue
     } # Waiting will take longer than we are willing to wait
 
-				$task
+				$selectedTasks.Add($task)
 				$count++
 
-				if ($count -gt 18) {
+				if ($count -ge 20) {
 					break
     }
 			}
@@ -526,6 +569,10 @@
     }
 
 				$null = $Tasks.Remove($task)
+				if ($task.LastTransientResponse) {
+					$ExpiredTransientTasks.Add($task)
+					continue
+				}
 				$Cmdlet.WriteError(
 					[System.Management.Automation.ErrorRecord]::new(
 						[Exception]::new("Retries for throttling exceeded, giving up on: $($task.id)"),
@@ -535,6 +582,14 @@
 					)
 				)
 			}
+			foreach ($task in $selectedTasks) {
+				foreach ($dependency in $task.Batch.dependsOn) {
+					if ($dependency -notin $selectedTasks.Id) {
+						throw [System.InvalidOperationException]::new('Pending dependent requests cannot be submitted separately from their prerequisites.')
+					}
+				}
+			}
+			$selectedTasks.ToArray()
 		}
 
 		function Invoke-GraphBatch {
@@ -575,16 +630,48 @@
 				[string]
 				$ApiVersion = 'v1.0',
 
+				[string]
+				$OutputType,
+
 				[Parameter(Mandatory = $true)]
 				$Cmdlet
 			)
 			process {
 				$start = Get-Date
+				foreach ($task in $Tasks) {
+					$task.LastDependencyResponse = $null
+					if (-not $task.Start) {
+						$task.Start = $start
+						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
+					}
+				}
+				$transportParameters = @{
+					Uri = "$ApiVersion/`$batch"
+					Method = 'Post'
+					Body = @{ requests = @($Tasks.Batch) }
+					ContentType = 'application/json'
+					OutputType = $(if ($OutputType -eq 'PSCustomObject') { 'PSObject' } else { $OutputType })
+					ErrorAction = 'Stop'
+				}
 				$innerResult = try {
-					(Microsoft.Graph.Authentication\Invoke-MgGraphRequest -Uri "$ApiVersion/`$batch" -Method Post -Body @{ requests = @($Tasks.Batch) } -ContentType 'application/json' -ErrorAction Stop).responses
+					if (@($Tasks | Where-Object { $_.Batch.method -notin 'GET', 'HEAD' }).Count -eq 0) {
+						$retryPipeline = [System.Management.Automation.PowerShell]::Create([System.Management.Automation.RunspaceMode]::CurrentRunspace)
+						try {
+							$null = $retryPipeline.AddCommand('Invoke-Command').AddParameter('ScriptBlock', {
+								param($Parameters)
+								try { @{ Response = Invoke-ZtRetry -ScriptBlock { Microsoft.Graph.Authentication\Invoke-MgGraphRequest @Parameters } } }
+								catch { @{ ErrorRecord = $_ } }
+							}).AddParameter('ArgumentList', @($transportParameters))
+							$retryResult = $retryPipeline.Invoke()[0]
+						}
+						finally { $retryPipeline.Dispose() }
+						if ($retryResult.ErrorRecord) { throw $retryResult.ErrorRecord }
+						$response = $retryResult.Response
+					}
+					else { $response = Microsoft.Graph.Authentication\Invoke-MgGraphRequest @transportParameters }
+					$response.responses
 				}
 				catch {
-					# This should happen only for bad requests (insufficient or bad request data), as otherwise the error is within the respective results on the individual batch members
 					$Cmdlet.WriteError(
 						[System.Management.Automation.ErrorRecord]::new(
 							[Exception]::new("Error sending batch: $($_.Exception.Message)", $_.Exception),
@@ -600,15 +687,62 @@
 					return
 				}
 
+				$submittedIDs = @{}
+				foreach ($task in $Tasks) {
+					$submittedIDs[[string]$task.Batch.id] = $task
+				}
+				$returnedIDs = @{}
+				$invalidResponse = $false
 				foreach ($result in $innerResult) {
-					$task = @($Tasks).Where{ $_.batch.id -eq $result.id }[0]
-					if (-not $task.Start) {
-						$task.Start = $start
-						$task.WaitLimit = $start.Add($task.Parameters.Timeout)
+					$responseID = [string]$result.id
+					$status = 0
+					if (-not $submittedIDs.ContainsKey($responseID) -or $returnedIDs.ContainsKey($responseID) -or
+						-not [int]::TryParse([string]$result.status, [ref]$status) -or $status -lt 200 -or $status -gt 599) {
+						$invalidResponse = $true
 					}
+					$returnedIDs[$responseID] = $true
+				}
+				if ($invalidResponse -or $returnedIDs.get_Count() -ne $submittedIDs.get_Count()) {
+					foreach ($task in $Tasks) {
+						$null = $TaskList.Remove($task)
+					}
+					foreach ($task in $Tasks) {
+						$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+							[System.IO.InvalidDataException]::new('Batch response is incomplete or contains invalid or duplicate member IDs or statuses.'),
+							'InvalidGraphBatchResponse',
+							[System.Management.Automation.ErrorCategory]::InvalidData,
+							$task.Batch
+						))
+					}
+					return
+				}
+
+				if ($Tasks[0].Parameters.HasDependencies) {
+					$successfulIDs = @($innerResult | Where-Object { $_.status -ge 200 -and $_.status -le 299 } | ForEach-Object { [string]$_.id })
+					foreach ($pendingTask in $TaskList) {
+						if (-not $pendingTask.Batch.ContainsKey('dependsOn')) {
+							continue
+						}
+						$remainingDependencies = @($pendingTask.Batch.dependsOn | Where-Object { $_ -notin $successfulIDs })
+						$retryBatch = $pendingTask.Batch.Clone()
+						if ($remainingDependencies.Count -gt 0) {
+							$retryBatch.dependsOn = $remainingDependencies
+						}
+						else {
+							$retryBatch.Remove('dependsOn')
+						}
+						$pendingTask.Batch = $retryBatch
+					}
+				}
+
+				foreach ($result in $innerResult) {
+					$task = $submittedIDs[[string]$result.id]
 
 					#region Case: Success
 					if (200 -le $result.status -and 299 -ge $result.status) {
+						$task.TransientRetries = 0
+						$task.LastTransientResponse = $null
+						$task.WaitUntil = $null
 						# Update for paging or complete task
 						if ($result.body.'@odata.nextLink' -and -not $task.Parameters.NoPaging) {
 							$task.Batch.url = ($result.body.'@odata.nextLink' -replace '^https://' -split '/', 3)[-1]
@@ -626,7 +760,8 @@
 						# Matched Output
 						if ($task.Parameters.Matched) {
 							$data = $result.body
-							if ($data.Keys -contains 'value') {
+							if (($data -is [System.Collections.IDictionary] -and $data.Contains('value')) -or
+								$data.PSObject.Properties.Name -contains 'value') {
 								$data = $data.value
 							}
 							if (-not $task.Result) {
@@ -637,7 +772,7 @@
 							}
 
 							# Only return matched result after completing the batching
-							if ($result.body.'@odata.nextLink') {
+							if ($result.body.'@odata.nextLink' -and -not $task.Parameters.NoPaging) {
 								continue
 							}
 
@@ -653,7 +788,8 @@
 						}
 
 						# Plain Output
-						if ($result.body.PSObject.Properties.Name -contains 'value') {
+						if (($result.body -is [System.Collections.IDictionary] -and $result.body.Contains('value')) -or
+							$result.body.PSObject.Properties.Name -contains 'value') {
 							$result.body.value
 						}
 						else {
@@ -665,10 +801,54 @@
 					#endregion Case: Success
 					#region Case: Throttled
 					if (429 -eq $result.status) {
-						$task.WaitUntil = (Get-Date).AddSeconds($result.Headers.'Retry-After')
+						$task.LastTransientResponse = $null
+						$retryAfter = 0
+						if (-not [int]::TryParse([string]$result.Headers.'Retry-After', [ref]$retryAfter) -or $retryAfter -lt 0) {
+							$retryAfter = 3
+						}
+						$task.WaitUntil = (Get-Date).AddSeconds($retryAfter)
 						continue
 					}
 					#endregion Case: Throttled
+					if ($result.status -in 500, 502, 503, 504 -and $task.Batch.method -in 'GET', 'HEAD') {
+						if ($task.TransientRetries -lt 5) {
+							$now = Get-Date
+							$retryDelay = 3 * [Math]::Pow(2, $task.TransientRetries)
+							$headerValue = [string]$result.headers.'Retry-After'
+							$retryAfter = 0
+							if ([int]::TryParse($headerValue, [ref]$retryAfter) -and $retryAfter -ge 0) {
+								$retryDelay = [Math]::Max($retryDelay, $retryAfter)
+							}
+							else {
+								$retryDate = [DateTimeOffset]::MinValue
+								if ([DateTimeOffset]::TryParseExact($headerValue, 'r', [Globalization.CultureInfo]::InvariantCulture,
+									[Globalization.DateTimeStyles]::AssumeUniversal, [ref]$retryDate)) {
+									$retryDelay = [Math]::Max($retryDelay, [Math]::Ceiling(($retryDate - [DateTimeOffset]$now).TotalSeconds))
+								}
+							}
+							if ($retryDelay -lt ($task.WaitLimit - $now).TotalSeconds) {
+								$task.LastTransientResponse = $result
+								$task.TransientRetries++
+								$task.WaitUntil = $now.AddSeconds($retryDelay)
+								continue
+							}
+						}
+						Write-PSFMessage -Level Warning -Message "Transient member retries exhausted or timeout reached for request id $($task.Id) (status $($result.status))."
+						if (-not $task.Parameters.Raw -and -not $task.Parameters.Matched) {
+							$null = $TaskList.Remove($task)
+							$Cmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+								[Exception]::new("Retries for transient member failures exceeded, giving up on request id $($task.Id) (status $($result.status))."),
+								'TransientRetriesExhausted',
+								[System.Management.Automation.ErrorCategory]::LimitsExceeded,
+								$task.Batch
+							))
+							continue
+						}
+					}
+					if ($result.status -eq 424 -and $task.Batch.dependsOn.Count -gt 0) {
+						$task.LastDependencyResponse = $result
+						continue
+					}
 					#region Case: Failed
 					if (400 -le $result.status -and 499 -ge $result.Status ) {
 						$null = $TaskList.Remove($task)
@@ -681,7 +861,7 @@
 						$Cmdlet.WriteError(
 							[System.Management.Automation.ErrorRecord]::new(
 								[Exception]::new("Error in batch request $($result.id): $($result.body.error.message)"),
-								('{0}|{1}' -f $result.status, $result.error.code),
+								('{0}|{1}' -f $result.status, $result.body.error.code),
 								[System.Management.Automation.ErrorCategory]::NotSpecified,
 								$task.Batch
 							)
@@ -691,9 +871,9 @@
 							[PSCustomObject]@{
 								PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
 								Id         = "$($task.Id)"
-								Argument   = $task.Batch
+								Argument   = $task.Argument
 								Success    = $false
-								Result     = $result.error
+								Result     = $result.body.error
 								Status     = $result.status
 							}
 						}
@@ -712,7 +892,7 @@
 						[PSCustomObject]@{
 							PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
 							Id         = "$($task.Id)"
-							Argument   = $task.Batch
+							Argument   = $task.Argument
 							Success    = $false
 							Result     = $result
 							Status     = $result.status
@@ -728,7 +908,7 @@
 		#endregion Utility Functions
 
 		$allTasks = [System.Collections.Generic.List[object]]::new()
-		$idTracking = @{ CurrentID = 1 }
+		$idTracking = @{ CurrentID = 1; ReservedIDs = @($Request | ForEach-Object { if ($null -ne $_.id) { [string]$_.id } }) }
 		$parameters = @{}
 		foreach ($key in $PSBoundParameters.Keys) {
 			$parameters[$key] = $PSBoundParameters.$Key
@@ -744,10 +924,92 @@
 				ConvertFrom-PathRequest -Path $pathItem -Argument $argumentItem -Parameters $parameters -TaskList $allTasks -Tracking $idTracking
 			}
 		}
+		$parameters.HasDependencies = @($allTasks | Where-Object { $_.Batch.ContainsKey('dependsOn') -and $_.Batch.dependsOn.Count -gt 0 }).Count -gt 0
+		if ($parameters.HasDependencies) {
+			if ($allTasks.Count -gt 20) {
+				throw [System.ArgumentException]::new('Workloads containing dependsOn must fit within one batch of 20 requests; dependency-bearing workloads cannot be split across batches.')
+			}
+			foreach ($task in $allTasks) {
+				foreach ($dependency in $task.Batch.dependsOn) {
+					if ([string]::IsNullOrWhiteSpace($dependency) -or $dependency -eq $task.Id -or $dependency -notin $allTasks.Id) {
+						throw [System.ArgumentException]::new('Dependency IDs must reference other requests in the same workload.')
+					}
+				}
+			}
+		}
 	}
 	process {
 		do {
-			$tasks = Get-NextBatch -Tasks $allTasks -Cmdlet $PSCmdlet
+			do {
+				$now = Get-Date
+				$runnableDependencyTasks = @($allTasks | Where-Object { -not $_.LastDependencyResponse -or -not $_.Batch.ContainsKey('dependsOn') -or $_.Batch.dependsOn.Count -eq 0 })
+				$failedDependencyTasks = @(
+					foreach ($pendingTask in $allTasks) {
+						if (-not $pendingTask.LastDependencyResponse) { continue }
+						$missingDependencies = @()
+						if ($pendingTask.Batch.ContainsKey('dependsOn')) {
+							$missingDependencies = @($pendingTask.Batch.dependsOn | Where-Object { $_ -notin $allTasks.Id })
+						}
+						if ($missingDependencies.Count -gt 0 -or $pendingTask.WaitLimit -le $now -or $runnableDependencyTasks.Count -eq 0) {
+							$pendingTask
+						}
+					}
+				)
+				foreach ($task in $failedDependencyTasks) {
+					$null = $allTasks.Remove($task)
+					$dependencyResponse = $task.LastDependencyResponse
+					if ($task.Parameters.Raw) {
+						$dependencyResponse
+						continue
+					}
+					$PSCmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+						[Exception]::new("Error in batch request $($task.Id): prerequisite failed or dependency recovery expired."),
+						('424|{0}' -f $dependencyResponse.body.error.code),
+						[System.Management.Automation.ErrorCategory]::NotSpecified,
+						$task.Batch
+					))
+					if ($task.Parameters.Matched) {
+						[PSCustomObject]@{
+							PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
+							Id         = "$($task.Id)"
+							Argument   = $task.Argument
+							Success    = $false
+							Result     = $dependencyResponse.body.error
+							Status     = 424
+						}
+					}
+				}
+			} while ($failedDependencyTasks.Count -gt 0)
+			$expiredTransientTasks = [System.Collections.Generic.List[object]]::new()
+			$tasks = Get-NextBatch -Tasks $allTasks -ExpiredTransientTasks $expiredTransientTasks -Cmdlet $PSCmdlet
+			foreach ($task in $expiredTransientTasks) {
+				$lastResponse = $task.LastTransientResponse
+				Write-PSFMessage -Level Warning -Message "Transient member retries exhausted or timeout reached for request id $($task.Id) (status $($lastResponse.status))."
+				if ($task.Parameters.Raw) {
+					$lastResponse
+				}
+				elseif ($task.Parameters.Matched) {
+					[PSCustomObject]@{
+						PSTypeName = 'ZeroTrustAssessment.Graph.BatchResult'
+						Id         = "$($task.Id)"
+						Argument   = $task.Argument
+						Success    = $false
+						Result     = $lastResponse
+						Status     = $lastResponse.status
+					}
+				}
+				else {
+					$PSCmdlet.WriteError([System.Management.Automation.ErrorRecord]::new(
+						[Exception]::new("Retries for transient member failures exceeded, giving up on request id $($task.Id) (status $($lastResponse.status))."),
+						'TransientRetriesExhausted',
+						[System.Management.Automation.ErrorCategory]::LimitsExceeded,
+						$task.Batch
+					))
+				}
+			}
+			if ($expiredTransientTasks.Count -gt 0) {
+				continue
+			}
 
 			# Case: All remaining tasks have expired
 			if ($allTasks.Count -lt 1) {
@@ -760,7 +1022,7 @@
 				continue
 			}
 
-			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion
+			Invoke-GraphBatch -Tasks $tasks -TaskList $allTasks -Cmdlet $PSCmdlet -ApiVersion $ApiVersion -OutputType $OutputType
 		}
 		while ($allTasks.Count -gt 0)
 	}
