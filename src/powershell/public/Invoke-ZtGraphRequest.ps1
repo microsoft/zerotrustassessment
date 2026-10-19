@@ -21,8 +21,8 @@
 
 	Batched GETs use Invoke-ZtGraphBatchRequest for scheduling and member throttling retries.
 	Results are processed as the helper returns them; continuation pages use ordinary GET requests.
-	Initial batches use the helper's SDK routing, fixed batch size, and output representation,
-	rather than GraphBaseUri, BatchSize, or OutputType. The helper currently sends batches to v1.0.
+	Initial batches use the connected Graph environment and a fixed limit of 20 requests,
+	honoring ApiVersion and OutputType. Deprecated GraphBaseUri and BatchSize do not control batches.
 
  .Example
 
@@ -148,7 +148,7 @@ function Invoke-ZtGraphRequest {
 
 		$requestParam = @{
 			Headers = $requestHeaders
-			OutputType = $OutputType
+			OutputType = $(if ($OutputType -eq 'PSCustomObject') { 'PSObject' } else { $OutputType })
 			DisableCache = $DisableCache
 			OutputFilePath = $OutputFilePath
 			Method = $Method
@@ -327,7 +327,7 @@ function Invoke-ZtGraphRequest {
 			return
 		}
 
-		Invoke-ZtGraphBatchRequest -Request $batchRequests.ToArray() -Raw -NoPaging -ApiVersion $ApiVersion | ForEach-Object {
+		Invoke-ZtGraphBatchRequest -Request $batchRequests.ToArray() -Raw -NoPaging -ApiVersion $ApiVersion -OutputType $OutputType | ForEach-Object {
 			$results = $_.body
 			Format-Result -Results $results -RawOutput $DisablePaging
 			Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
