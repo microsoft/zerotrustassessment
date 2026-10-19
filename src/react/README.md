@@ -23,3 +23,10 @@ There are two options here. You can use GitHub Codespaces (simple) where everyth
 - Type this command and hit enter to launch site in English → `npm run start`
    - If you want to run the site in a different language (e.g. Japanese) → `npm run start -- --locale ja`
    - Use the right code for the language that you are testing
+
+## Build dependency security
+
+The [package manifest](./package.json) temporarily overrides Docusaurus's `tinypool`
+dependency and webpack's `serialize-javascript` dependency to patched public releases.
+These versions support Node.js 20. Revisit the overrides when upstream dependency ranges
+include the fixes, and validate the full production build after changing them.

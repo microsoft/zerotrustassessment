@@ -34,6 +34,12 @@
     "@docusaurus/module-type-aliases": "^3.10.2",
     "@docusaurus/types": "^3.10.2"
   },
+  "overrides": {
+    "@docusaurus/core": {
+      "tinypool": "^2.2.0"
+    },
+    "serialize-javascript": "^7.1.2"
+  },
   "browserslist": {
     "production": [
       ">0.5%",
