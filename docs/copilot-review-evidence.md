@@ -10,15 +10,15 @@ Research window: **June 1, 2025 through October 19, 2026 at 09:46:51 UTC**.
 Comments qualify by their own creation/submission timestamp, not the PR's creation
 date. Older discussion is retained as context when needed.
 
-| Repository | Candidate PRs enumerated | PRs with in-scope records | Conversation | Inline | Submitted reviews | Total records | alexandair records |
+| Review corpus | Candidate PRs enumerated | PRs with in-scope records | Conversation | Inline | Submitted reviews | Total records | alexandair records |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | microsoft/zerotrustassessment | 1,038 | 824 | 378 | 3,400 | 2,881 | 6,659 | 1,295 |
-| astaykov/zerotrustassessment | 23 | 16 | 6 | 98 | 86 | 190 | 76 |
+| Supplementary review corpus | 23 | 16 | 6 | 98 | 86 | 190 | 76 |
 
-Upstream coverage includes all accessible in-window PR comments. Fork coverage
+Upstream coverage includes all accessible in-window PR comments. Supplementary coverage
 includes all in-window comments on PRs with `alexandair` participation in any of
 the three comment types. The 1,371 target-reviewer records span 335 upstream and
-16 fork PRs. Review totals include empty formal reviews; not every record contains
+16 supplementary PRs. Review totals include empty formal reviews; not every record contains
 an actionable suggestion.
 
 Collection used paginated PR metadata/reviews/threads and repository-wide REST
@@ -26,7 +26,7 @@ conversation/inline-comment listings, not GitHub search as an exhaustive source.
 All 6,849 scoped record identities are unique; all 3,498 inline records map to
 review threads, including resolved/outdated threads. REST listings supplied all
 thread replies, avoiding truncation of nested GraphQL comment connections.
-Search was a cross-check: it found only 15 matching fork PRs, missing participation
+Search was a cross-check: it found only 15 matching supplementary PRs, missing participation
 visible through the full review/comment collection.
 
 The analysis separates substantive human feedback, replies, editorial remarks,
@@ -41,7 +41,7 @@ not counted as a literal-LGTM approval.
 
 ### Reviewer-specific outcome cohorts
 
-| Outcome | Upstream | Matching fork PRs |
+| Outcome | Upstream | Supplementary PRs |
 | --- | ---: | ---: |
 | Final affirmative literal LGTM, no explicit outstanding qualification | 279 | 12 |
 | Final affirmative literal LGTM with scoped deferral/qualification | 6 | 0 |
@@ -53,7 +53,7 @@ not counted as a literal-LGTM approval.
 | Equivalent affirmative wording, not literal LGTM | 1 | 0 |
 | Intent to approve, not a final approval | 1 | 0 |
 
-The conservative final-affirmative cohort is **297 PRs: 285 upstream and 12 fork**,
+The conservative final-affirmative cohort is **297 PRs: 285 upstream and 12 supplementary**,
 including six qualified cases. The five formal-approved-only cases are supporting
 evidence; one (#1312) is conditional. These are PR counts, not independent-change
 counts. The remaining target-reviewer discussions and other authors' feedback
@@ -80,14 +80,14 @@ the text was drafted; disclosed AI-assisted human comments were not represented
 as proof of unaided human judgment.
 The four analysis catalogs reconcile exactly to all 6,849 scoped records, with
 no missing or duplicate identities; PR dispositions cover all 1,038 upstream
-candidates and all 16 selected fork PRs.
+candidates and all 16 selected supplementary PRs.
 
 ## Adopted checks and their boundaries
 
 Historical links below identify the feedback, not an instruction for Copilot to
 follow external links during review. The actionable checks are included directly
-in the instruction files. Fork feedback is summarized without links so the guidance
-does not depend on the fork remaining available.
+in the instruction files. Supplementary feedback is summarized without identifying
+its source repository or linking to it; the guidance remains self-contained.
 
 | Check | Historical evidence | Current contract and boundary |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ They are not presented as newly discovered preferences of one reviewer.
   explicitly deferred wrapper work. API-version, batch recovery/completeness, and
   representation fixes landed separately in #1591, #1590, and #1596; accepted
   deprecations must not be mistaken for broken promises to preserve retired options.
-- Fork findings can disappear with the implementation they targeted: one reviewed
+- Historical findings can disappear with the implementation they targeted: one reviewed
   resolver implementation was absent from its approved head, and another change
   removed intermediate HTTP 206 handling after a specification change. Neither
   intermediate mechanism was promoted into a mandatory rule.
@@ -189,7 +189,7 @@ These are configuration references, not external rule dependencies for the revie
 
 Historical regression replay used actual reviewed and final source revisions with
 synthetic dependencies: 18 cases produced 36 expected revision observations across
-three upstream PRs and one fork PR. Cases cover null/DBNull,
+three upstream PRs and one supplementary PR. Cases cover null/DBNull,
 single/empty results, unwanted success-stream values, report boundaries, identifier
 semantics, failed/missing sign-in status, unknown subjects, collection failure,
 and legitimate empty-resource applicability.
