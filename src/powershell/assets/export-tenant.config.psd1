@@ -208,8 +208,9 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'RoleAssignmentScheduleInstance'
 	Uri = 'beta/roleManagement/directory/roleAssignmentScheduleInstances'
-	QueryString = '$expand=principal&$filter = assignmentType eq ''Assigned'''
+	QueryString = '$expand=principal($select=id)&$filter = assignmentType eq ''Assigned'''
 	RelatedPropertyNames = @()
+	ResolveRolePrincipals = $true
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
@@ -221,8 +222,9 @@ Note: Avoid using the same names as used for the "General Parameters" section of
 @{
 	Name = 'RoleEligibilityScheduleInstance'
 	Uri = 'beta/roleManagement/directory/roleEligibilityScheduleInstances'
-	QueryString = "`$expand=principal"
+	QueryString = '$expand=principal($select=id)'
 	RelatedPropertyNames = @()
+	ResolveRolePrincipals = $true
 	Type = 'Default' # PrivilegedGroup
 
 	Pillar = @('Identity', 'Network', 'AI')
