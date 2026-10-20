@@ -75,10 +75,10 @@ function getStatusLabel(status: PlaneStatus): string {
 
 function getPlaneFill(status: PlaneStatus): string {
     switch (status) {
-        case "pass": return "#22C55E";
-        case "partial": return "#EAB308";
-        case "fail": return "#EF4444";
-        default: return "#9CA3AF";
+        case "pass": return "#1a7a30";
+        case "partial": return "#cc9010";
+        case "fail": return "#d83838";
+        default: return "#a8a8b0";
     }
 }
 

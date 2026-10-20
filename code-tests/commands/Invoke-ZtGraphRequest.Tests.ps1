@@ -1,5 +1,7 @@
 Describe 'Invoke-ZtGraphRequest POST support' {
 	BeforeAll {
+		Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
+		Import-Module PSFramework -ErrorAction Stop
 		$srcRoot = Join-Path $PSScriptRoot '../../src/powershell'
 
 		function global:Write-PSFMessage { param($Message, $Level, $Tag) }
@@ -12,11 +14,18 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		function global:Get-MgContext { throw 'Graph context should not be resolved for validation failures.' }
 		function global:Get-MgEnvironment { param($Name) throw 'Graph environment should not be resolved for validation failures.' }
 
+		. (Join-Path $srcRoot 'private/core/Get-ZtHttpStatusCode.ps1')
+		. (Join-Path $srcRoot 'private/core/Test-ZtRetryableError.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtRetry.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtGraphRequestCache.ps1')
 		. (Join-Path $srcRoot 'public/Invoke-ZtGraphRequest.ps1')
+		. (Join-Path $srcRoot 'private/graph/Invoke-ZtGraphBatchRequest.ps1')
 	}
 
 	BeforeEach {
 		$script:requests = [System.Collections.Generic.List[hashtable]]::new()
+		Mock Start-Sleep {}
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' { throw 'Unexpected SDK request' }
 		Mock Invoke-ZtGraphRequestCache {
 			param($Method, $Uri, $Headers, $Body, $OutputType, $DisableCache, $OutputFilePath, $PageIndex)
 			$script:requests.Add(@{
@@ -28,6 +37,18 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 			})
 			[pscustomobject]@{ result = 'success' }
 		}
+	}
+
+	It 'warns about GraphBaseUri deprecation while preserving individual-request routing' {
+		$output = @(Invoke-ZtGraphRequest -RelativeUri users -GraphBaseUri 'https://graph.microsoft.us/' -WarningAction Continue 3>&1)
+		$deprecationWarnings = @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+		$result = $output | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] }
+
+		$result.result | Should -Be 'success'
+		$deprecationWarnings | Should -HaveCount 1
+		$deprecationWarnings[0].Message | Should -BeLike '*GraphBaseUri is deprecated*'
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].Uri | Should -Be 'https://graph.microsoft.us/v1.0/users'
 	}
 
 	It 'forwards a valid POST body and adds the JSON content type' {
@@ -94,23 +115,445 @@ Describe 'Invoke-ZtGraphRequest POST support' {
 		$script:requests[1].PageIndex | Should -Be 1
 	}
 
-	It 'uses the session-resolved Graph endpoint for GET batch requests' {
+	It 'delegates prepared relative requests using the session-resolved Graph endpoint' {
 		$script:__ZtSession = [pscustomobject]@{ GraphBaseUri = $null }
 		Mock Get-MgContext { [pscustomobject]@{ Environment = 'Global' } }
 		Mock Get-MgEnvironment { [pscustomobject]@{ GraphEndpoint = 'https://graph.microsoft.com/' } }
-		Mock Invoke-ZtGraphRequestCache {
-			param($Method, $Uri, $Body)
-			$script:requests.Add(@{ Method = $Method; Uri = $Uri; Body = $Body })
-			[pscustomobject]@{ responses = @() }
+		Mock Invoke-ZtGraphBatchRequest {
+			param($Request, $Raw, $NoPaging, $ApiVersion, $OutputType)
+			$script:requests.Add(@{ Members = $Request; Raw = $Raw; NoPaging = $NoPaging; ApiVersion = $ApiVersion; OutputType = $OutputType })
 		}
 
 		Invoke-ZtGraphRequest -RelativeUri @('users', 'groups') | Out-Null
 
 		$script:requests | Should -HaveCount 1
-		$script:requests[0].Method | Should -Be 'POST'
-		$script:requests[0].Uri.AbsoluteUri | Should -Be 'https://graph.microsoft.com/v1.0/$batch'
+		$script:requests[0].Members.url | Should -Be @('users', 'groups')
+		$script:requests[0].Raw | Should -BeTrue
+		$script:requests[0].NoPaging | Should -BeTrue
+		$script:requests[0].ApiVersion | Should -Be 'v1.0'
+		$script:requests[0].OutputType | Should -Be 'PSObject'
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
 		Should -Invoke Get-MgContext -Times 1 -Exactly
 		Should -Invoke Get-MgEnvironment -Times 1 -Exactly
+	}
+
+	It 'preserves <Representation> for batch results with DisablePaging <FirstPageOnly>' -ForEach @(
+		foreach ($representation in 'Default', 'PSObject', 'PSCustomObject', 'Hashtable') {
+			foreach ($firstPageOnly in $true, $false) {
+				@{ Representation = $representation; FirstPageOnly = $firstPageOnly }
+			}
+		}
+	) {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body, $OutputType)
+			$script:requests.Add(@{ Method = 'POST'; Members = @($Body.requests); OutputType = $OutputType })
+			$envelope = @{ responses = @($Body.requests | ForEach-Object {
+				$responseBody = @{ value = @(@{ id = $_.id }); '@odata.context' = 'context' }
+				if ($_.id -eq '1') {
+					$responseBody['@odata.nextLink'] = 'https://graph.microsoft.com/v1.0/users?page=2'
+				}
+				@{ id = $_.id; status = 200; body = $responseBody }
+			}) }
+			if ($OutputType -eq 'Hashtable') { return $envelope }
+			$envelope | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+		Mock Invoke-ZtGraphRequestCache {
+			param($Method, $Uri, $OutputType, $PageIndex)
+			$script:requests.Add(@{ Method = $Method; Uri = $Uri; OutputType = $OutputType; PageIndex = $PageIndex })
+			$responseBody = @{ value = @(@{ id = 'continued' }); '@odata.context' = 'context' }
+			if ($OutputType -eq 'Hashtable') { return $responseBody }
+			$responseBody | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+		$parameters = @{ RelativeUri = @('users', 'groups'); DisablePaging = $FirstPageOnly }
+		if ($Representation -ne 'Default') { $parameters.OutputType = $Representation }
+		$result = @(Invoke-ZtGraphRequest @parameters)
+		$publicRepresentation = if ($Representation -eq 'Default') { 'PSObject' } else { $Representation }
+		$sdkRepresentation = if ($publicRepresentation -eq 'PSCustomObject') { 'PSObject' } else { $publicRepresentation }
+		$script:requests[0].OutputType | Should -Be $sdkRepresentation
+		$script:requests[0].Members.url | Should -Be @('users', 'groups')
+		$expectedType = if ($publicRepresentation -eq 'Hashtable') { [hashtable] } else { [pscustomobject] }
+		foreach ($item in $result) { $item | Should -BeOfType $expectedType }
+		if ($FirstPageOnly) {
+			$result | Should -HaveCount 2
+			$result[0].value.id | Should -Be '1'
+			$result[0].'@odata.nextLink' | Should -Be 'https://graph.microsoft.com/v1.0/users?page=2'
+			$script:requests | Should -HaveCount 1
+			Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
+		}
+		else {
+			$result.id | Should -Be @('1', 'continued', '2')
+			foreach ($item in $result) { $item.'@odata.context' | Should -Be 'context/$entity' }
+			$script:requests | Should -HaveCount 2
+			$script:requests[1].Method | Should -Be 'GET'
+			$script:requests[1].OutputType | Should -Be $sdkRepresentation
+			$script:requests[1].PageIndex | Should -Be 1
+			$script:requests[1].Uri | Should -Be 'https://graph.microsoft.com/v1.0/users?page=2'
+		}
+	}
+
+	It 'routes delegated batches to API version <Version>' -TestCases @(
+		@{ Version = 'v1.0' }, @{ Version = 'beta' }
+	) {
+		param($Version)
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Uri, $Body)
+			$script:requests.Add(@{ Uri = $Uri; Members = @($Body.requests) })
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = $_.url } } }) }
+		}
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users, groups -ApiVersion $Version)
+		$result.result | Should -Be @('users', 'groups')
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].Uri | Should -Be "$Version/`$batch"
+		$script:requests[0].Members.url | Should -Be @('users', 'groups')
+	}
+
+	It 'fails malformed <Case> batches without emitting partial results or resubmitting' -TestCases @(
+		@{ Case = 'missing' }, @{ Case = 'empty' }, @{ Case = 'unknown' }
+		@{ Case = 'duplicate' }, @{ Case = 'invalid status' }, @{ Case = 'missing envelope' }
+	) {
+		param($Case)
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -gt 1) { throw 'Unexpected resubmission' }
+			$first = @{ id = $Body.requests[0].id; status = 200; body = @{ result = 'first' } }
+			$second = @{ id = $Body.requests[1].id; status = 200; body = @{ result = 'second' } }
+			switch ($Case) {
+				'missing' { @{ responses = @($first) } }
+				'empty' { @{ responses = @() } }
+				'unknown' { $second.id = 'unknown'; @{ responses = @($first, $second) } }
+				'duplicate' { @{ responses = @($first, $first) } }
+				'invalid status' { $second.status = 'invalid'; @{ responses = @($first, $second) } }
+				'missing envelope' { @{} }
+			}
+		}
+		$emitted = [System.Collections.Generic.List[object]]::new()
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Batch response is incomplete*'
+		$emitted | Should -HaveCount 0
+		$script:requests | Should -HaveCount 1
+	}
+
+	It 'reports incomplete member descriptors and stops under nonterminating error handling' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' { @{ responses = @() } }
+		$output = @(Invoke-ZtGraphRequest -RelativeUri users, groups -ErrorAction Continue 2>&1)
+		$batchErrors = @($output | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] })
+		$result = @($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] })
+		$result | Should -HaveCount 0
+		$batchErrors | Should -HaveCount 2
+		foreach ($batchError in $batchErrors) { $batchError.FullyQualifiedErrorId | Should -BeLike 'InvalidGraphBatchResponse*' }
+		$batchErrors.TargetObject.url | Should -Be @('users', 'groups')
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+	}
+
+	It 'recovers an outer 502 without replaying completed chunks or leaking retry errors' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$script:requests.Add(@{ Members = @($Body.requests) })
+			if ($script:requests.Count -eq 2) {
+				$exception = [Exception]::new('Transient outer failure')
+				$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 502
+				throw $exception
+			}
+			@{ responses = @($Body.requests | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = $_.url } } }) }
+		}
+		$batchErrors = @()
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -ErrorAction Stop -ErrorVariable batchErrors)
+		$result | Should -HaveCount 21
+		@($result.result | Select-Object -Unique) | Should -HaveCount 21
+		$batchErrors | Should -HaveCount 0
+		$script:requests | Should -HaveCount 3
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(20, 1, 1)
+		$script:requests[1].Members.id | Should -Be @('21')
+		$script:requests[2].Members.id | Should -Be @('21')
+		Should -Invoke Start-Sleep -Times 1 -Exactly -ParameterFilter { $Seconds -eq 3 }
+	}
+
+	It 'bounds persistent outer failures before emitting any public results' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Persistent outer failure')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 502
+			throw $exception
+		}
+		$emitted = [System.Collections.Generic.List[object]]::new()
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Persistent outer failure*'
+		$emitted | Should -HaveCount 0
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 6 -Exactly
+		Should -Invoke Start-Sleep -Times 5 -Exactly
+	}
+
+	It 'warns about BatchSize deprecation while preserving helper-controlled batching' {
+		$script:__ZtSession = [pscustomobject]@{ GraphBaseUri = $null }
+		Mock Get-MgContext { [pscustomobject]@{ Environment = 'Global' } }
+		Mock Get-MgEnvironment { [pscustomobject]@{ GraphEndpoint = 'https://graph.microsoft.com/' } }
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$members = @($Body.requests)
+			$script:requests.Add(@{ Members = $members })
+			@{ responses = @($members | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = $_.url } } }) }
+		}
+
+		$output = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -BatchSize 2 -WarningAction Continue 3>&1)
+		$deprecationWarnings = @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+		$results = @($output | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] })
+
+		$deprecationWarnings | Should -HaveCount 1
+		$deprecationWarnings[0].Message | Should -BeLike '*BatchSize is deprecated*'
+		$results | Should -HaveCount 21
+		$script:requests | Should -HaveCount 2
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(20, 1)
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
+	}
+
+	It 'delegates 41 prepared requests with unique IDs and headers to the helper scheduler in batches of 20' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Uri, $Body)
+			$members = @($Body.requests)
+			$script:requests.Add(@{ Uri = $Uri; Members = $members })
+			@{ responses = @($members | ForEach-Object { @{ id = $_.id; status = 200; body = @{ result = $_.url } } }) }
+		}
+		$headers = @{ 'X-Test' = 'retained' }
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..41) -GraphBaseUri 'https://graph.microsoft.com/' -Headers $headers -ConsistencyLevel eventual)
+
+		$result | Should -HaveCount 41
+		$script:requests | Should -HaveCount 3
+		@($script:requests | ForEach-Object { $_.Members.Count }) | Should -Be @(20, 20, 1)
+		$members = @($script:requests | ForEach-Object { $_.Members })
+		@($members.id | Select-Object -Unique) | Should -HaveCount 41
+		$members[0].id | Should -Be '1'
+		$members[0].url | Should -Be 'users/1'
+		$members[0].headers.'X-Test' | Should -Be 'retained'
+		$members[0].headers.ConsistencyLevel | Should -Be 'eventual'
+		$headers.ContainsKey('ConsistencyLevel') | Should -BeFalse
+		foreach ($request in $script:requests) {
+			$request.Uri | Should -Be 'v1.0/$batch'
+		}
+	}
+
+	It 'retries an inner 429 without resending a successful sibling' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			$members = @($Body.requests)
+			$script:requests.Add(@{ Members = $members })
+			if ($script:requests.Count -eq 1) {
+				return @{ responses = @(
+					@{ id = $members[0].id; status = 200; body = @{ result = 'users' } }
+					@{ id = $members[1].id; status = 429; headers = @{ 'Retry-After' = '0' }; body = @{ error = @{ code = 'TooManyRequests' } } }
+				) }
+			}
+			@{ responses = @(@{ id = $members[0].id; status = 200; body = @{ result = 'groups' } }) }
+		}
+
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/')
+
+		$result.result | Should -Be @('users', 'groups')
+		$script:requests | Should -HaveCount 2
+		$script:requests[1].Members | Should -HaveCount 1
+		$script:requests[1].Members[0].url | Should -Be 'groups'
+	}
+
+	It 'streams continuation GETs before submitting the next chunk' {
+		Mock Invoke-ZtGraphRequestCache {
+			param($Method, $Uri, $Headers, $OutputFilePath, $PageIndex)
+			$script:requests.Add(@{ Method = $Method; Uri = $Uri; Headers = $Headers; OutputFilePath = $OutputFilePath; PageIndex = $PageIndex })
+			@{ result = 'continued' }
+		}
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Method, $Body)
+			$script:requests.Add(@{ Method = $Method })
+			$members = @($Body.requests)
+			@{ responses = @($members | ForEach-Object {
+				$responseBody = @{ result = $_.url }
+				if ($_.id -eq '1') { $responseBody['@odata.nextLink'] = 'https://graph.microsoft.com/v1.0/users?page=2' }
+				@{ id = $_.id; status = 200; body = $responseBody }
+			}) }
+		}
+
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -GraphBaseUri 'https://graph.microsoft.com/' -OutputFilePath 'pages.json' -Headers @{ 'X-Test' = 'retained' })
+
+		$result | Should -HaveCount 22
+		$result[0].result | Should -Be 'users/1'
+		$result[1].result | Should -Be 'continued'
+		$result[-1].result | Should -Be 'users/21'
+		$script:requests.Method | Should -Be @('POST', 'GET', 'POST')
+		$script:requests[1].PageIndex | Should -Be 1
+		$script:requests[1].OutputFilePath | Should -Be 'pages.json'
+		$script:requests[1].Headers.'X-Test' | Should -Be 'retained'
+	}
+
+	It 'returns first-page envelopes without continuation GETs when paging is disabled' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Body)
+			@{ responses = @($Body.requests | ForEach-Object {
+				@{ id = $_.id; status = 200; body = @{ value = @(@{ id = $_.id }); '@odata.nextLink' = 'https://graph.microsoft.com/v1.0/users?page=2' } }
+			}) }
+		}
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users, groups -DisablePaging -GraphBaseUri 'https://graph.microsoft.com/')
+		$result | Should -HaveCount 2
+		$result[0].ContainsKey('value') | Should -BeTrue
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 0 -Exactly
+	}
+
+	It 'formats collections and retains raw member failure bodies' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			@{ responses = @(
+				@{ id = '2'; status = 403; body = @{ error = @{ code = 'Authorization_RequestDenied' } } }
+				@{ id = '1'; status = 200; body = @{ value = @(@{ id = 'user' }); '@odata.context' = 'context' } }
+			) }
+		}
+		$result = @(Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/')
+		$result | Should -HaveCount 2
+		$result[0].error.code | Should -Be 'Authorization_RequestDenied'
+		$result[1].'@odata.context' | Should -Be 'context/$entity'
+	}
+
+	It 'stops batch submission when a continuation GET terminates' {
+		Mock Invoke-ZtGraphRequestCache {
+			param($Method)
+			$script:requests.Add(@{ Method = $Method })
+			throw 'Continuation failed'
+		}
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Method, $Body)
+			$script:requests.Add(@{ Method = $Method })
+			$members = @($Body.requests)
+			@{ responses = @($members | ForEach-Object {
+				$responseBody = @{ result = $_.url }
+				if ($_.id -eq $members[0].id) {
+					$responseBody['result'] = 'first'
+					$responseBody['@odata.nextLink'] = 'https://graph.microsoft.com/v1.0/users?page=2'
+				}
+				@{ id = $_.id; status = 200; body = $responseBody }
+			}) }
+		}
+		$emitted = [System.Collections.Generic.List[object]]::new()
+		{ Invoke-ZtGraphRequest -RelativeUri users -UniqueId (1..21) -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop | ForEach-Object { $emitted.Add($_) } } | Should -Throw '*Continuation failed*'
+		$script:requests.Method | Should -Be @('POST', 'GET')
+		$emitted | Should -HaveCount 1
+		$emitted[0].result | Should -Be 'first'
+	}
+
+	It 'surfaces batch transport errors after bounded retries with ErrorAction Stop' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Batch transport failed')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 502
+			throw $exception
+		}
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch transport failed*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 6 -Exactly
+		Should -Invoke Start-Sleep -Times 5 -Exactly
+	}
+
+	It 'surfaces nonretryable batch transport errors without replaying requests' {
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			$exception = [Exception]::new('Batch access denied')
+			$exception | Add-Member -NotePropertyName ResponseStatusCode -NotePropertyValue 403
+			throw $exception
+		}
+		{ Invoke-ZtGraphRequest -RelativeUri users, groups -GraphBaseUri 'https://graph.microsoft.com/' -ErrorAction Stop } | Should -Throw '*Batch access denied*'
+		Should -Invoke 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' -Times 1 -Exactly
+		Should -Invoke Start-Sleep -Times 0 -Exactly
+	}
+
+	It 'does not delegate disabled batching or scalar pipeline records' {
+		Mock Invoke-ZtGraphBatchRequest { throw 'Unexpected batch delegation' }
+		Invoke-ZtGraphRequest -RelativeUri users, groups -DisableBatching -GraphBaseUri 'https://graph.microsoft.com/' -WarningAction SilentlyContinue | Out-Null
+		@('users', 'groups') | Invoke-ZtGraphRequest -GraphBaseUri 'https://graph.microsoft.com/' | Out-Null
+		Should -Invoke Invoke-ZtGraphBatchRequest -Times 0 -Exactly
+		Should -Invoke Invoke-ZtGraphRequestCache -Times 4 -Exactly
+	}
+}
+
+Describe 'Invoke-ZtGraphRequest real-cache output handling' {
+	BeforeAll {
+		Import-Module Microsoft.Graph.Authentication -Force -ErrorAction Stop
+		Import-Module PSFramework -ErrorAction Stop
+		$srcRoot = Join-Path $PSScriptRoot '../../src/powershell'
+		. (Join-Path $srcRoot 'private/core/Get-ZtHttpStatusCode.ps1')
+		. (Join-Path $srcRoot 'private/core/Test-ZtRetryableError.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtRetry.ps1')
+		. (Join-Path $srcRoot 'private/core/Invoke-ZtGraphRequestCache.ps1')
+		. (Join-Path $srcRoot 'private/graph/Invoke-ZtGraphBatchRequest.ps1')
+		. (Join-Path $srcRoot 'public/Invoke-ZtGraphRequest.ps1')
+	}
+
+	BeforeEach {
+		$script:requests = [System.Collections.Generic.List[hashtable]]::new()
+		$script:__ZtSession = [pscustomobject]@{
+			GraphBaseUri = 'https://graph.microsoft.com/'
+			GraphCache = [pscustomobject]@{ Value = @{} }
+		}
+		$script:__ZtThrottling = [pscustomobject]@{ Value = @{} }
+		Mock Write-PSFMessage {}
+		Mock Get-PSFConfigValue { $false }
+		Mock Start-Sleep {}
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Method, $Uri, $Body, [Microsoft.Graph.PowerShell.Authentication.Models.OutputType]$OutputType)
+			$script:requests.Add(@{ Method = $Method; Uri = [string]$Uri; OutputType = [string]$OutputType; Body = $Body })
+			if ($Method -eq 'GET') {
+				$response = @{ value = @(@{ id = 'continued' }); '@odata.context' = 'context' }
+			}
+			else {
+				$response = @{ responses = @($Body.requests | ForEach-Object {
+					$responseBody = @{ value = @(@{ id = $_.id }); '@odata.context' = 'context' }
+					if ($_.id -eq '1') { $responseBody['@odata.nextLink'] = 'https://graph.microsoft.com/v1.0/users?page=2' }
+					@{ id = $_.id; status = 200; body = $responseBody }
+				}) }
+			}
+			if ($OutputType -eq 'HashTable') { return $response }
+			$response | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+		}
+	}
+
+	It 'preserves <Representation> through real-cache paging with DisablePaging <FirstPageOnly>' -ForEach @(
+		foreach ($representation in 'Default', 'PSObject', 'PSCustomObject', 'Hashtable') {
+			foreach ($firstPageOnly in $true, $false) {
+				@{ Representation = $representation; FirstPageOnly = $firstPageOnly }
+			}
+		}
+	) {
+		$parameters = @{ RelativeUri = @('users', 'groups'); DisablePaging = $FirstPageOnly }
+		if ($Representation -ne 'Default') { $parameters.OutputType = $Representation }
+		$result = @(Invoke-ZtGraphRequest @parameters -ErrorAction Stop)
+		$expectedRepresentation = if ($Representation -eq 'Hashtable') { 'HashTable' } else { 'PSObject' }
+		$expectedType = if ($Representation -eq 'Hashtable') { [hashtable] } else { [pscustomobject] }
+		foreach ($item in $result) { $item | Should -BeOfType $expectedType }
+		foreach ($request in $script:requests) { $request.OutputType | Should -Be $expectedRepresentation }
+		$script:requests[0].Uri | Should -Be 'v1.0/$batch'
+		if ($FirstPageOnly) {
+			$result | Should -HaveCount 2
+			$result[0].value.id | Should -Be '1'
+			$result[0].'@odata.nextLink' | Should -Be 'https://graph.microsoft.com/v1.0/users?page=2'
+			$script:requests.Method | Should -Be @('POST')
+		}
+		else {
+			$result.id | Should -Be @('1', 'continued', '2')
+			foreach ($item in $result) { $item.'@odata.context' | Should -Be 'context/$entity' }
+			$script:requests.Method | Should -Be @('POST', 'GET')
+			$script:requests[1].Uri | Should -Be 'https://graph.microsoft.com/v1.0/users?page=2'
+			$script:requests[1].Body | Should -BeNullOrEmpty
+			$cachedPage = $script:__ZtSession.GraphCache.Value.Values | Select-Object -First 1
+			$cachedPage | Should -BeOfType $expectedType
+			$cachedPage.value.id | Should -Be 'continued'
+		}
+	}
+
+	It 'normalizes PSCustomObject for individual public <Method> requests' -TestCases @(
+		@{ Method = 'GET' }, @{ Method = 'POST' }
+	) {
+		param($Method)
+		Mock 'Microsoft.Graph.Authentication\Invoke-MgGraphRequest' {
+			param($Method, $Uri, $Body, [Microsoft.Graph.PowerShell.Authentication.Models.OutputType]$OutputType)
+			$script:requests.Add(@{ Method = $Method; OutputType = [string]$OutputType; Body = $Body })
+			[pscustomobject]@{ result = 'success' }
+		}
+		$parameters = @{ RelativeUri = 'users'; Method = $Method; OutputType = 'PSCustomObject' }
+		if ($Method -eq 'POST') { $parameters.Body = '{}' }
+		$result = Invoke-ZtGraphRequest @parameters -ErrorAction Stop
+		$result.result | Should -Be 'success'
+		$result | Should -BeOfType [pscustomobject]
+		$script:requests | Should -HaveCount 1
+		$script:requests[0].OutputType | Should -Be 'PSObject'
+		$script:requests[0].Method | Should -Be $Method
 	}
 }
 

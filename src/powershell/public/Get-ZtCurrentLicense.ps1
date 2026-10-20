@@ -7,6 +7,7 @@ function Get-ZtCurrentLicense {
         This function retrieves the list of licenses or service plans names that the tenant is currently subscribed to.
         It uses the Microsoft Graph API to fetch the subscribed SKUs and filters out any deleted service plans.
         It will only return all licenses if the user has the necessary permissions to read this information from Microsoft Graph.
+        Request retries are handled by Invoke-ZtGraphRequest without an additional license-level retry loop.
         If the API call fails for any reason, it will return an empty array and log a warning message.
 
     .PARAMETER Force
@@ -30,9 +31,7 @@ function Get-ZtCurrentLicense {
         try
         {
             if (-not $script:CurrentLicense -or $Force.IsPresent) {
-                [string[]] $script:CurrentLicense = Invoke-ZtRetry -RetryCount 3 -ScriptBlock {
-                    (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" -ErrorAction Stop).servicePlans.Where{ $_.capabilityStatus -ne 'Deleted' }.servicePlanName | Sort-Object -Unique
-                }
+                [string[]] $script:CurrentLicense = (Invoke-ZtGraphRequest -RelativeUri "subscribedSkus" -ErrorAction Stop).servicePlans.Where{ $_.capabilityStatus -ne 'Deleted' }.servicePlanName | Sort-Object -Unique
             }
         }
         catch {

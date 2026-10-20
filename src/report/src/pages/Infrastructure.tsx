@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { columns } from "@/components/test-table/columns";
 import { DataTable } from "@/components/test-table/data-table";
 import { reportData } from "@/config/report-data";
+import { RecommendationsBySeverity } from "@/components/overview/infrastructure-insights";
 
 export default function Infrastructure() {
     return (
@@ -10,6 +11,7 @@ export default function Infrastructure() {
             <PageHeader>
                 <PageHeaderHeading>Infrastructure</PageHeaderHeading>
             </PageHeader>
+            <RecommendationsBySeverity tests={reportData.Tests} />
             <Card>
                 <CardHeader>
                     <CardTitle className="mb-3">Assessment results</CardTitle>

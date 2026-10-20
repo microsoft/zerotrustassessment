@@ -3,7 +3,6 @@ import {
     CircleCheckBig,
     Monitor,
     MonitorSmartphone,
-    ShieldCheck,
 } from "lucide-react";
 import {
     Bar,
@@ -18,6 +17,7 @@ import {
 } from "recharts";
 
 import { DesktopDevicesSankey } from "@/components/overview/desktop-devices-sankey";
+import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
 import { MobileSankey } from "@/components/overview/mobile-sankey";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Separator } from "@/components/ui/separator";
 import { reportData } from "@/config/report-data";
 import { formatNumber } from "@/lib/format-utils";
+import { buildDeviceCoverageRows } from "@/lib/device-coverage";
 
 type SankeyLink = { source: string; target: string; value: number | null };
 
@@ -48,6 +49,10 @@ export default function DevicesInsightsAccordion() {
     const desktopNodes: SankeyLink[] = deviceOverview?.DesktopDevicesSummary?.nodes || [];
     const mobileNodes: SankeyLink[] = deviceOverview?.MobileSummary?.nodes || [];
     const osSummary: any = deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary || deviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+    const deviceCoverageRows = buildDeviceCoverageRows(
+        deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary,
+        deviceOverview?.DeviceSummary?.mdeSensorInstalledOperatingSystemSummary,
+    );
 
     const windowsDeviceCount = Number(osSummary?.windowsCount) || getFlow(desktopNodes, (s) => s === "Desktop devices", (t) => t === "Windows");
     const macOSDeviceCount = Number(osSummary?.macOSCount) || getFlow(desktopNodes, (s) => s === "Desktop devices", (t) => t === "macOS");
@@ -67,10 +72,6 @@ export default function DevicesInsightsAccordion() {
     const corporateCount = Number(deviceOverview?.DeviceOwnership?.corporateCount) || 0;
     const personalCount = Number(deviceOverview?.DeviceOwnership?.personalCount) || 0;
     const totalOwnershipCount = corporateCount + personalCount;
-
-    const protectedCount = 0;
-    const unprotectedCount = 0;
-    const totalProtectedCount = protectedCount + unprotectedCount;
 
     return (
         <Card>
@@ -138,6 +139,8 @@ export default function DevicesInsightsAccordion() {
                                             <CardTitle className="text-2xl tabular-nums">Device summary</CardTitle>
                                         </CardHeader>
                                         <CardContent className="flex flex-1 min-h-0 flex-col pb-2 pt-0">
+                                            {deviceCoverageRows ? (
+                                            <>
                                             <ChartContainer
                                                 config={{
                                                     covered: { label: "MDE sensor installed", color: "hsl(240, 40%, 45%)" },
@@ -147,48 +150,7 @@ export default function DevicesInsightsAccordion() {
                                             >
                                                 <BarChart
                                                     margin={{ left: 64, right: 64, top: 0, bottom: 0 }}
-                                                    data={(() => {
-                                                        const finalizeCoverage = (total: number, coveredRaw: number, notCoveredRaw: number) => {
-                                                            const safeTotal = Math.max(0, total || 0);
-                                                            const safeCovered = Math.max(0, coveredRaw || 0);
-                                                            const safeNotCovered = Math.max(0, notCoveredRaw || 0);
-                                                            const adjustedNotCovered = safeCovered + safeNotCovered < safeTotal
-                                                                ? safeNotCovered + (safeTotal - (safeCovered + safeNotCovered))
-                                                                : safeNotCovered;
-                                                            const percent = safeTotal > 0 ? Math.round((safeCovered / safeTotal) * 100) : 0;
-                                                            return { covered: safeCovered, notCovered: Math.max(0, safeTotal - safeCovered), percent, adjustedNotCovered };
-                                                        };
-
-                                                        const windows = finalizeCoverage(
-                                                            windowsDeviceCount,
-                                                            getFlow(desktopNodes, (s) => ["Entra joined", "Entra hybrid joined", "Entra registered"].includes(s), (t) => t === "Compliant"),
-                                                            getFlow(desktopNodes, (s) => ["Entra joined", "Entra hybrid joined", "Entra registered"].includes(s), (t) => t === "Non-compliant" || t === "Unmanaged"),
-                                                        );
-                                                        const mac = finalizeCoverage(
-                                                            macOSDeviceCount,
-                                                            getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Compliant"),
-                                                            getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Non-compliant" || t === "Unmanaged"),
-                                                        );
-                                                        const ios = finalizeCoverage(
-                                                            iosDeviceCount,
-                                                            getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Compliant"),
-                                                            getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Non-compliant"),
-                                                        );
-                                                        const android = finalizeCoverage(
-                                                            androidDeviceCount,
-                                                            getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Compliant"),
-                                                            getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Non-compliant"),
-                                                        );
-                                                        const linux = finalizeCoverage(linuxDeviceCount, 0, linuxDeviceCount);
-
-                                                        return [
-                                                            { os: "Windows", total: windowsDeviceCount, covered: windows.covered, notCovered: windows.notCovered, label: `${formatNumber(windows.covered)}/${formatNumber(windowsDeviceCount)} (${windows.percent}%)` },
-                                                            { os: "macOS", total: macOSDeviceCount, covered: mac.covered, notCovered: mac.notCovered, label: `${formatNumber(mac.covered)}/${formatNumber(macOSDeviceCount)} (${mac.percent}%)` },
-                                                            { os: "iOS", total: iosDeviceCount, covered: ios.covered, notCovered: ios.notCovered, label: `${formatNumber(ios.covered)}/${formatNumber(iosDeviceCount)} (${ios.percent}%)` },
-                                                            { os: "Android", total: androidDeviceCount, covered: android.covered, notCovered: android.notCovered, label: `${formatNumber(android.covered)}/${formatNumber(androidDeviceCount)} (${android.percent}%)` },
-                                                            { os: "Linux", total: linuxDeviceCount, covered: linux.covered, notCovered: linux.notCovered, label: `${formatNumber(linux.covered)}/${formatNumber(linuxDeviceCount)} (${linux.percent}%)` },
-                                                        ];
-                                                    })()}
+                                                    data={deviceCoverageRows}
                                                     layout="vertical"
                                                     barSize={32}
                                                     barGap={36}
@@ -212,6 +174,8 @@ export default function DevicesInsightsAccordion() {
                                                     Not covered
                                                 </div>
                                             </div>
+                                            </>
+                                            ) : renderNoData("No MDE coverage data available.")}
                                         </CardContent>
                                         <CardFooter className="flex flex-row items-center border-t p-4">
                                             <div className="flex w-full items-center gap-2">
@@ -389,68 +353,7 @@ export default function DevicesInsightsAccordion() {
                                         </CardFooter>
                                     </Card>
 
-                                    <Card className="flex h-[420px] flex-col overflow-hidden">
-                                        <CardHeader className="space-y-0 pb-2 flex-row pt-3">
-                                            <ShieldCheck className="pr-2 size-8" />
-                                            <CardTitle className="text-2xl tabular-nums">Device antivirus protection</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="flex flex-1 min-h-0 items-center justify-center pb-2 pt-0">
-                                            {totalProtectedCount <= 0 ? renderNoData() : (
-                                                <ChartContainer
-                                                    config={{
-                                                        protected: { label: "Protected", color: "hsl(142, 76%, 36%)" },
-                                                        unprotected: { label: "Unprotected", color: "hsl(0, 84%, 60%)" },
-                                                    }}
-                                                    className="mx-auto h-full w-full"
-                                                >
-                                                    <PieChart margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                                                        <Pie
-                                                            data={[
-                                                                { name: "Protected", value: protectedCount, fill: "var(--color-protected)" },
-                                                                { name: "Unprotected", value: unprotectedCount, fill: "var(--color-unprotected)" },
-                                                            ]}
-                                                            cx="50%"
-                                                            cy="50%"
-                                                            innerRadius={50}
-                                                            outerRadius={100}
-                                                            paddingAngle={2}
-                                                            dataKey="value"
-                                                            cornerRadius={5}
-                                                        >
-                                                            <Cell fill="var(--color-protected)" />
-                                                            <Cell fill="var(--color-unprotected)" />
-                                                        </Pie>
-                                                        <ChartTooltip content={<ChartTooltipContent />} />
-                                                    </PieChart>
-                                                </ChartContainer>
-                                            )}
-                                        </CardContent>
-                                        <CardFooter className="flex flex-row items-center border-t p-4">
-                                            <div className="flex w-full items-center gap-2">
-                                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <div className="h-3 w-3 rounded-sm bg-green-600" />
-                                                        Protected
-                                                    </div>
-                                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                        0
-                                                        <span className="text-sm font-normal text-muted-foreground">%</span>
-                                                    </div>
-                                                </div>
-                                                <Separator orientation="vertical" className="mx-2 h-10 w-px" />
-                                                <div className="grid flex-1 auto-rows-min gap-0.5">
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <div className="h-3 w-3 rounded-sm bg-red-500" />
-                                                        Unprotected
-                                                    </div>
-                                                    <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
-                                                        0
-                                                        <span className="text-sm font-normal text-muted-foreground">%</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
+                                    <DeviceAntivirusProtectionCard fixedHeight />
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-2">

@@ -58,6 +58,20 @@ function Export-ZtTenantData {
 	)
 
 	#region Helper Functions
+	function Resolve-ZtExportVariables {
+		param (
+			[string] $Value,
+			[hashtable] $Variables
+		)
+
+		[regex]::Replace($Value, '%(?<name>[^%]+)%', {
+			param ($match)
+
+			$name = $match.Groups['name'].Value
+			$Variables[$name]
+		})
+	}
+
 	function Get-ZtiAuditQueryString {
 		[CmdletBinding()]
 		param (
@@ -118,7 +132,7 @@ https://github.com/microsoft/zerotrustassessment/issues
 		if ($Pillar -ne 'All' -and $exportCfg.Pillar -notcontains $Pillar) { continue }
 		if ($exportCfg.Environment -and $exportCfg.Environment -notcontains $azureEnvironment) { continue }
 		if ($exportCfg.IncludePlan -and $entraIDPlan -notin $exportCfg.IncludePlan) { continue }
-		if ($exportCfg.ExcludePlan -and $entraIDPlan -in $exportCfg.IncludePlan) { continue }
+		if ($exportCfg.ExcludePlan -and $entraIDPlan -in $exportCfg.ExcludePlan) { continue }
 
 		if ($exportCfg.DependsOn -and $includedExports -notcontains $exportCfg.DependsOn) {
 			# Dependencies must exist, be viable and come first in the order within the config file
@@ -132,9 +146,9 @@ https://github.com/microsoft/zerotrustassessment/issues
 		$includedExports += $exportCfg.Name
 
 		# Insert dynamic data as prepared above
-		if ($exportCfg.Uri -like "%*%") { $exportCfg.Uri = $configVariables[$exportCfg.Uri.Trim("%")] }
-		if ($exportCfg.QueryString -like "%*%") { $exportCfg.QueryString = $configVariables[$exportCfg.QueryString.Trim("%")] }
-		if ($exportCfg.MaximumQueryTime -like "%*%") { $exportCfg.MaximumQueryTime = $configVariables[$exportCfg.MaximumQueryTime.Trim("%")] }
+		$exportCfg.Uri = Resolve-ZtExportVariables -Value $exportCfg.Uri -Variables $configVariables
+		$exportCfg.QueryString = Resolve-ZtExportVariables -Value $exportCfg.QueryString -Variables $configVariables
+		$exportCfg.MaximumQueryTime = Resolve-ZtExportVariables -Value $exportCfg.MaximumQueryTime -Variables $configVariables
 
 		$exportCfg
 	}

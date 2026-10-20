@@ -17,6 +17,9 @@
 		The datatype to return the members in.
 		Defaults to: PSObject
 
+	.PARAMETER Select
+		The member properties to retrieve.
+
 	.EXAMPLE
 		PS C:\> Get-ZtGroupMember -GroupId $myGroup
 
@@ -35,17 +38,20 @@
 
 		[ValidateSet('PSObject', 'PSCustomObject', 'Hashtable')]
 		[string]
-		$OutputType = 'PSObject'
+		$OutputType = 'PSObject',
+
+		[string[]]
+		$Select
 	)
 
 	process {
 		Write-PSFMessage -Message "Retrieving group members for {0}." -StringValues "$GroupId"
 
 		if ($Recurse) {
-			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/transitiveMembers" -Top 999 -ApiVersion v1.0 -OutputType $OutputType
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/transitiveMembers" -Select $Select -Top 999 -ApiVersion v1.0 -OutputType $OutputType
 		}
 		else {
-			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/members" -Top 999 -ApiVersion v1.0 -OutputType $OutputType
+			Invoke-ZtGraphRequest -RelativeUri "groups/$GroupId/members" -Select $Select -Top 999 -ApiVersion v1.0 -OutputType $OutputType
 		}
 	}
 }

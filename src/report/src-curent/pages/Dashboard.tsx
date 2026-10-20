@@ -37,9 +37,16 @@ import {
 import { reportData } from "@/config/report-data";
 import { AuthMethodSankey } from "@/components/overview/authMethod-sankey";
 import { SwgDefenseLayers, hasSwgData } from "@/components/overview/swg-defense-layers";
+import { PrivateAccessSankey, hasPrivateAccessData } from "@/components/overview/private-access-sankey";
+import { SensitivityLabelProtectionSankey } from "@/components/overview/sensitivity-label-protection-sankey";
 import { AzureNetSecPlanes, hasAzureNetSecData } from "@/components/overview/azure-netsec-planes";
+import { AgentOwnershipDistribution } from "@/components/overview/agent-ownership-distribution";
+import { DeviceAntivirusProtectionCard } from "@/components/overview/device-antivirus-protection";
+import { DlpWorkloadCoverageCard } from "@/components/overview/dlp-workload-coverage";
+import { CloudSecureScoreCard } from "@/components/overview/infrastructure-insights";
 import { Separator } from "@/components/ui/separator";
 import { formatNumber } from "@/lib/format-utils";
+import { buildDeviceCoverageRows } from "@/lib/device-coverage";
 
 export default function Dashboard() {
     // Helper function to calculate percentage with proper number coercion
@@ -57,6 +64,10 @@ export default function Dashboard() {
     const desktopNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.DesktopDevicesSummary?.nodes || [];
     const mobileNodes: Array<{ source: string; target: string; value: number | null }> = deviceOverview?.MobileSummary?.nodes || [];
     const osSummary: any = deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary || deviceOverview?.ManagedDevices?.deviceOperatingSystemSummary;
+    const deviceCoverageRows = buildDeviceCoverageRows(
+        deviceOverview?.DeviceSummary?.deviceOperatingSystemSummary,
+        deviceOverview?.DeviceSummary?.mdeSensorInstalledOperatingSystemSummary,
+    );
 
     const getFlow = (
         nodes: { source: string; target: string; value: number | null }[],
@@ -100,6 +111,11 @@ export default function Dashboard() {
     const compliantDeviceCount = hasComplianceTotals ? rawCompliantDeviceCount : 0;
     const nonCompliantDeviceCount = hasComplianceTotals ? rawNonCompliantDeviceCount : discoveredDeviceTotal;
     const totalComplianceDeviceCount = compliantDeviceCount + nonCompliantDeviceCount;
+    const hasDlpWorkloadCoverage = reportData.TenantInfo != null
+        && Object.prototype.hasOwnProperty.call(reportData.TenantInfo, "DlpWorkloadCoverage");
+    const hasSensitivityLabelProtection = reportData.TenantInfo != null
+        && Object.prototype.hasOwnProperty.call(reportData.TenantInfo, "SensitivityLabelProtection");
+    const hasAgentOwnershipDistribution = reportData.TenantInfo?.AgentOwnershipDistribution != null;
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -492,9 +508,9 @@ export default function Dashboard() {
 
             {/* Identity summary */}
             <div className="flex flex-col gap-4 mt-[26px]">
-                <div className="grid gap-4 grid-cols-1 lg:grid-cols-4 items-stretch">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-6 items-stretch">
 
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                    <div className="order-2 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-6 items-stretch">
                         {reportData.TenantInfo?.OverviewAuthMethodsPrivilegedUsers?.nodes ? (
                         <Card
                             className="w-full" x-chunk="charts-01-chunk-0"
@@ -827,7 +843,7 @@ export default function Dashboard() {
                         </CardContent>
                     </Card> */}
                     </div>
-                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:col-span-2 items-stretch">
+                    <div className="order-1 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:col-span-6 items-stretch">
                         {reportData.TenantInfo?.DeviceOverview ? (
                         <Card
                             className="lmax-w-xs flex h-full flex-col" x-chunk="charts-01-chunk-0"
@@ -853,6 +869,8 @@ export default function Dashboard() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 pt-0 flex flex-1 flex-col pb-2 h-[480px]">
+                                {deviceCoverageRows ? (
+                                <>
                                 <ChartContainer
                                     config={{
                                         covered: {
@@ -873,54 +891,7 @@ export default function Dashboard() {
                                             top: 0,
                                             bottom: 0,
                                         }}
-                                        data={(() => {
-                                            const finalizeCoverage = (total: number, coveredRaw: number, notCoveredRaw: number) => {
-                                                const safeTotal = Math.max(0, total || 0);
-                                                const safeCovered = Math.max(0, coveredRaw || 0);
-                                                const safeNotCovered = Math.max(0, notCoveredRaw || 0);
-                                                const known = safeCovered + safeNotCovered;
-                                                const adjustedNotCovered = known < safeTotal ? safeNotCovered + (safeTotal - known) : safeNotCovered;
-                                                const cappedCovered = Math.min(safeTotal, safeCovered);
-                                                const cappedNotCovered = Math.max(0, Math.min(safeTotal - cappedCovered, adjustedNotCovered));
-                                                const percent = safeTotal > 0 ? Math.round((cappedCovered / safeTotal) * 100) : 0;
-                                                return {
-                                                    covered: cappedCovered,
-                                                    notCovered: safeTotal - cappedCovered,
-                                                    percent,
-                                                };
-                                            };
-
-                                            const windowsTotal = windowsDeviceCount;
-                                            const windowsCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Compliant");
-                                            const windowsNotCoveredRaw = getFlow(desktopNodes, (s) => s === "Entra joined" || s === "Entra hybrid joined" || s === "Entra registered", (t) => t === "Non-compliant" || t === "Unmanaged");
-                                            const windows = finalizeCoverage(windowsTotal, windowsCoveredRaw, windowsNotCoveredRaw);
-
-                                            const macTotal = macOSDeviceCount;
-                                            const macCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Compliant");
-                                            const macNotCoveredRaw = getFlow(desktopNodes, (s) => s === "macOS", (t) => t === "Non-compliant" || t === "Unmanaged");
-                                            const mac = finalizeCoverage(macTotal, macCoveredRaw, macNotCoveredRaw);
-
-                                            const iosTotal = iosDeviceCount;
-                                            const iosCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Compliant");
-                                            const iosNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("iOS"), (t) => t === "Non-compliant");
-                                            const ios = finalizeCoverage(iosTotal, iosCoveredRaw, iosNotCoveredRaw);
-
-                                            const androidTotal = androidDeviceCount;
-                                            const androidCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Compliant");
-                                            const androidNotCoveredRaw = getFlow(mobileNodes, (s) => s.includes("Android"), (t) => t === "Non-compliant");
-                                            const android = finalizeCoverage(androidTotal, androidCoveredRaw, androidNotCoveredRaw);
-
-                                            const linuxTotal = linuxDeviceCount;
-                                            const linux = finalizeCoverage(linuxTotal, 0, linuxTotal);
-
-                                            return [
-                                                { os: "Windows", total: windowsTotal, covered: windows.covered, notCovered: windows.notCovered, label: `${formatNumber(windows.covered)}/${formatNumber(windowsTotal)} (${windows.percent}%)` },
-                                                { os: "macOS", total: macTotal, covered: mac.covered, notCovered: mac.notCovered, label: `${formatNumber(mac.covered)}/${formatNumber(macTotal)} (${mac.percent}%)` },
-                                                { os: "iOS", total: iosTotal, covered: ios.covered, notCovered: ios.notCovered, label: `${formatNumber(ios.covered)}/${formatNumber(iosTotal)} (${ios.percent}%)` },
-                                                { os: "Android", total: androidTotal, covered: android.covered, notCovered: android.notCovered, label: `${formatNumber(android.covered)}/${formatNumber(androidTotal)} (${android.percent}%)` },
-                                                { os: "Linux", total: linuxTotal, covered: linux.covered, notCovered: linux.notCovered, label: `${formatNumber(linux.covered)}/${formatNumber(linuxTotal)} (${linux.percent}%)` },
-                                            ];
-                                        })()}
+                                        data={deviceCoverageRows}
                                         layout="vertical"
                                         barSize={32}
                                         barGap={36}
@@ -961,6 +932,12 @@ export default function Dashboard() {
                                         Not covered
                                     </div>
                                 </div>
+                                </>
+                                ) : (
+                                    <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                                        No MDE coverage data available.
+                                    </div>
+                                )}
                             </CardContent>
 
                             <CardFooter className="items-center flex flex-row border-t p-4">
@@ -1137,6 +1114,9 @@ export default function Dashboard() {
                             </CardFooter>
                         </Card>
                         )}
+
+                        <DeviceAntivirusProtectionCard />
+
                         {/* {<Card
                             className="max-w-xs" x-chunk="charts-01-chunk-2"
                         >
@@ -1339,8 +1319,8 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Network security posture charts */}
-            {(hasSwgData() || hasAzureNetSecData()) && (
+            {/* Network overview */}
+            {(hasSwgData() || hasPrivateAccessData()) && (
                 <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
                     {hasSwgData() && (
                         <Card className="h-full">
@@ -1360,26 +1340,46 @@ export default function Dashboard() {
                             </CardContent>
                         </Card>
                     )}
-                    {hasAzureNetSecData() && (
-                        <Card className="h-full">
-                            <CardHeader className="space-y-0 pt-3 pb-3 flex-row">
-                                <ShieldCheck className="pr-2 size-8" />
-                                <div>
-                                    <CardTitle className="text-2xl tabular-nums">
-                                        Azure network security
-                                    </CardTitle>
-                                    <CardDescription className="mt-1">
-                                        Defense plane posture — availability, inbound, and outbound protection.
-                                    </CardDescription>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <AzureNetSecPlanes />
-                            </CardContent>
-                        </Card>
+                    {hasPrivateAccessData() && <PrivateAccessSankey />}
+                </div>
+            )}
+
+            {/* Data overview */}
+            {(hasSensitivityLabelProtection || hasDlpWorkloadCoverage || hasAgentOwnershipDistribution) && (
+                <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {hasSensitivityLabelProtection && <SensitivityLabelProtectionSankey />}
+                    {hasDlpWorkloadCoverage && (
+                        <DlpWorkloadCoverageCard data={reportData.TenantInfo?.DlpWorkloadCoverage} />
+                    )}
+                    {hasAgentOwnershipDistribution && reportData.TenantInfo?.AgentOwnershipDistribution && (
+                        <AgentOwnershipDistribution data={reportData.TenantInfo.AgentOwnershipDistribution} />
                     )}
                 </div>
             )}
+
+            <div className="mt-[26px] grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+                {hasAzureNetSecData() && (
+                <Card className="min-w-0 lg:col-span-2">
+                    <CardHeader className="flex-row space-y-0 pb-3 pt-3">
+                        <ShieldCheck className="size-8 pr-2" />
+                        <div>
+                            <CardTitle className="text-2xl tabular-nums">
+                                Azure network security
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                Defense plane posture — availability, inbound, and outbound protection.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <AzureNetSecPlanes />
+                    </CardContent>
+                </Card>
+                )}
+                <div className="min-w-0">
+                    <CloudSecureScoreCard data={reportData.TenantInfo?.OverviewCloudSecureScore} />
+                </div>
+            </div>
         </TooltipProvider>
     )
 }

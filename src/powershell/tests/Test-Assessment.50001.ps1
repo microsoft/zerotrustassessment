@@ -166,6 +166,8 @@ resourcecontainers
         return
     }
 
+    Add-ZtOverviewCloudSecureScore -SubscriptionId $taggedSubscriptionIds
+
     # KQL 1: Secure Score recommendations (per-resource state + secure score control name)
     $secureScoreQuery = @'
 securityresources

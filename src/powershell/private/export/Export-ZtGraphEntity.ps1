@@ -26,6 +26,9 @@ function Export-ZtGraphEntity {
 		Additional sub-datasets to retrieve for each entity.
 		For example in cases, where multiple requests are needed - such as "oauth2PermissionGrants" for Service Principals.
 
+	.PARAMETER ResolveRolePrincipals
+		Resolves id-only role principals to the minimal scalar object required by role processing.
+
 	.PARAMETER MaximumQueryTime
 		Maximum time we will spend on this query, iterating through the pages.
 
@@ -57,6 +60,9 @@ function Export-ZtGraphEntity {
 		# The additional properties/relations to be queried for each object. e.g. oauth2PermissionGrants
 		[string[]]
 		$RelatedPropertyNames,
+
+		[switch]
+		$ResolveRolePrincipals,
 
 		# The maximum time (in minutes) the assessment should spend on querying this entity.
 		[int]
@@ -95,7 +101,13 @@ function Export-ZtGraphEntity {
 			$Name,
 
 			[string]
-			$Uri
+			$Uri,
+
+			[switch]
+			$ResolveRolePrincipals,
+
+			[hashtable]
+			$RolePrincipalCache
 		)
 		Write-PSFMessage "Exporting $Name page $PageIndex"
 		$newResults = $Results
@@ -106,6 +118,10 @@ function Export-ZtGraphEntity {
 				Add-GraphProperty -Results $items -PropertyName $propertyName -Name $Name -Uri $Uri
 			}
 			$newResults = @{ value = $items }
+		}
+
+		if ($ResolveRolePrincipals) {
+			Resolve-ZtRoleAssignmentPrincipal -Assignments $newResults.Value -Cache $RolePrincipalCache
 		}
 
 		$filePath = Join-Path -Path $Path -ChildPath "$Name-$PageIndex.json"
@@ -139,6 +155,11 @@ function Export-ZtGraphEntity {
 			return
 		}
 
+		# Preserve query options in the Graph request while storing results under the navigation property name.
+		# For example, 'owners?$select=id,displayName' is requested as written but assigned to 'owners'.
+		$propertyNameParts = $PropertyName -split '\?', 2
+		$propertyKey = $propertyNameParts[0]
+
 		$data = Invoke-ZtGraphBatchRequest -Path "$Uri/{0}/$PropertyName" -ArgumentList $Results -Properties id -Matched -ErrorAction SilentlyContinue -ErrorVariable failed
 		# Since the argument property is the original hashtable provided, we can update the hashtable as it is and thereby update the original object
 		foreach ($pair in $data) {
@@ -147,7 +168,7 @@ function Export-ZtGraphEntity {
 				continue
 			}
 
-			$pair.Argument[$PropertyName] = $($pair.Result)
+			$pair.Argument[$propertyKey] = $($pair.Result)
 		}
 
 		foreach ($fail in $failed) {
@@ -166,6 +187,7 @@ function Export-ZtGraphEntity {
 	$pageIndex = 0
 	$totalSize = 0
 	$isSignInLog = $Name -eq 'SignIn'
+	$rolePrincipalCache = @{}
 
 	$folderPath = Join-Path -Path $ExportPath -ChildPath $Name
 	Clear-ZtFolder -Path $folderPath
@@ -211,7 +233,7 @@ function Export-ZtGraphEntity {
 			throw $errorRecord
 		}
 
-		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri
+		Export-Page -PageIndex $pageIndex -Path $folderPath -Results $results -RelatedPropertyNames $RelatedPropertyNames -Name $Name -Uri $Uri -ResolveRolePrincipals:$ResolveRolePrincipals -RolePrincipalCache $rolePrincipalCache
 
 		# Track file size for SignIn logs
 		if ($isSignInLog) {
@@ -256,6 +278,16 @@ function Export-ZtGraphEntity {
 		}
 	}
 	while ($true)
+
+	if ($ResolveRolePrincipals) {
+		# Reconcile each saved page separately so late principal resolution updates earlier assignments without retaining all pages in memory.
+		for ($reconcilePageIndex = 0; $reconcilePageIndex -lt $pageIndex; $reconcilePageIndex++) {
+			$pagePath = Join-Path -Path $folderPath -ChildPath "$Name-$reconcilePageIndex.json"
+			$savedPage = Import-PSFJson -Path $pagePath -Encoding UTF8NoBom -ErrorAction Stop
+			Resolve-ZtRoleAssignmentPrincipal -Assignments $savedPage.value -Cache $rolePrincipalCache -ReconcileOnly
+			$savedPage | Export-PSFJson -Path $pagePath -Depth 100 -Encoding UTF8NoBom -ErrorAction Stop
+		}
+	}
 
 	Set-ZtConfig -ExportPath $ExportPath -Property $Name -Value $true
 }

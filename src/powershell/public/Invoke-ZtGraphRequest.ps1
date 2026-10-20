@@ -19,6 +19,11 @@
     Note: Batch requests don't support caching.
     :::
 
+	Batched GETs use Invoke-ZtGraphBatchRequest for scheduling and member throttling retries.
+	Results are processed as the helper returns them; continuation pages use ordinary GET requests.
+	Initial batches use the connected Graph environment and a fixed limit of 20 requests,
+	honoring ApiVersion and OutputType. Deprecated GraphBaseUri and BatchSize do not control batches.
+
  .Example
 
     Invoke-ZtGraphRequest -RelativeUri "users" -Filter "displayName eq 'John Doe'" -Select "displayName" -Top 10
@@ -76,9 +81,11 @@ function Invoke-ZtGraphRequest {
 		[switch] $DisableBatching,
 		# Specify Batch size.
 		[Parameter(Mandatory = $false)]
+		[System.Obsolete('BatchSize is deprecated. Batch sizing is managed by Invoke-ZtGraphBatchRequest.')]
 		[int] $BatchSize = 20,
 		# Base URL for Microsoft Graph API.
 		[Parameter(Mandatory = $false)]
+		[System.Obsolete('GraphBaseUri is deprecated. Use the connected Microsoft Graph environment instead.')]
 		[uri] $GraphBaseUri,
 		# Specify if this request should skip cache and go directly to Graph.
 		[Parameter(Mandatory = $false)]
@@ -141,7 +148,7 @@ function Invoke-ZtGraphRequest {
 
 		$requestParam = @{
 			Headers = $requestHeaders
-			OutputType = $OutputType
+			OutputType = $(if ($OutputType -eq 'PSCustomObject') { 'PSObject' } else { $OutputType })
 			DisableCache = $DisableCache
 			OutputFilePath = $OutputFilePath
 			Method = $Method
@@ -278,7 +285,7 @@ function Invoke-ZtGraphRequest {
 						$batchHeaders['ConsistencyLevel'] = $ConsistencyLevel
 
 						$request = [PSCustomObject]@{
-							id      = $batchRequests.Count
+							id      = $batchRequests.Count + 1
 							method  = 'GET'
 							url     = $uriQueryEndpointFinal.Uri.AbsoluteUri -replace ('{0}{1}/' -f $resolvedGraphBaseUri.AbsoluteUri, $ApiVersion)
 							headers = $batchHeaders
@@ -320,20 +327,10 @@ function Invoke-ZtGraphRequest {
 			return
 		}
 
-		$resolvedGraphBaseUri = Resolve-GraphBaseUri
-		$uriQueryEndpoint = [System.UriBuilder]::new([IO.Path]::Combine($resolvedGraphBaseUri.AbsoluteUri, $ApiVersion, '$batch'))
-		for ($iRequest = 0; $iRequest -lt $batchRequests.Count; $iRequest += $BatchSize) {
-			$indexEnd = [System.Math]::Min($iRequest + $BatchSize - 1, $batchRequests.Count - 1)
-			$jsonRequests = New-Object psobject -Property @{ requests = $batchRequests[$iRequest..$indexEnd] } | ConvertTo-Json -Depth 5
-			Write-Debug $jsonRequests
-
-			$resultsBatch = Invoke-ZtGraphRequestCache -Method POST -Uri $uriQueryEndpoint.Uri.AbsoluteUri -Body $jsonRequests -OutputType $OutputType -DisableCache:$DisableCache
-			$resultsBatch = $resultsBatch.responses | Sort-Object -Property id
-
-			foreach ($results in $resultsBatch.body) {
-				Format-Result -Results $results -RawOutput $DisablePaging
-				Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
-			}
+		Invoke-ZtGraphBatchRequest -Request $batchRequests.ToArray() -Raw -NoPaging -ApiVersion $ApiVersion -OutputType $OutputType | ForEach-Object {
+			$results = $_.body
+			Format-Result -Results $results -RawOutput $DisablePaging
+			Complete-Result -Results $results -DisablePaging $DisablePaging -RequestParam $requestParam
 		}
 	}
 }

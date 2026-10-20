@@ -7,7 +7,8 @@ function Get-ZtHttpStatusCode {
 		Attempts to extract the HTTP status code from an ErrorRecord using multiple strategies:
 		1. The exception's Response.StatusCode property (WebException, HttpResponseException)
 		2. The exception's StatusCode property (HttpRequestException in .NET 5+)
-		3. Regex parsing of the exception message (fallback for Graph SDK exceptions)
+		3. The exception's ResponseStatusCode property (Kiota ApiException)
+		4. Regex parsing of the exception message (fallback for Graph SDK exceptions)
 
 		Returns $null if no HTTP status code can be determined (e.g., pure network errors).
 
@@ -42,16 +43,22 @@ function Get-ZtHttpStatusCode {
 			return [int]$current.StatusCode
 		}
 
+		# Graph SDK retry exhaustion wraps a Kiota ApiException in an AggregateException.
+		# Its HTTP status is in ResponseStatusCode, not StatusCode or Response.StatusCode; zero means unknown.
+		if ($null -ne $current.PSObject.Properties['ResponseStatusCode'] -and $current.ResponseStatusCode -gt 0) {
+			return [int]$current.ResponseStatusCode
+		}
+
 		$current = $current.InnerException
 	}
 
-	# Strategy 3: Regex fallback - Graph SDK often includes status codes in the message
+	# Strategy 4: Regex fallback - Graph SDK often includes status codes in the message
 	# e.g., "Response status code does not indicate success: 500 (Internal Server Error)."
 	if ($exception.Message -match ':\s*(4\d{2}|5\d{2})\s') {
 		return [int]$Matches[1]
 	}
 
-	# Strategy 4: Match raw HTTP status line in error message
+	# Strategy 5: Match raw HTTP status line in error message
 	# e.g., "HTTP/2.0 400 Bad Request" or "HTTP/1.1 503 Service Unavailable"
 	if ($exception.Message -match 'HTTP/\S+\s+(4\d{2}|5\d{2})\s') {
 		return [int]$Matches[1]

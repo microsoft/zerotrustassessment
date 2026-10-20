@@ -1,0 +1,9 @@
+Security Copilot is billed by the hour against a fixed pool of Security Compute Units (SCUs) provisioned per capacity, with optional overage units that take over when the provisioned pool is exhausted. When the combined provisioned plus overage capacity is reached, analysts receive an in-product error and Copilot stops responding to new prompts until the next hour, breaking incident triage in mid-flight. From a kill-chain perspective, an unmonitored capacity that silently saturates during a high-volume incident (for example, a phishing wave producing hundreds of correlated alerts) erodes defender velocity exactly when it matters: while Copilot is unavailable, analysts revert to manual workflows, mean-time-to-respond (MTTR) increases, and the threat actor's window for Lateral Movement, Collection, and Exfiltration widens. Continuous monitoring of SCU consumption through Microsoft Cost Management — paired with budget alerts that fire well before the cap — converts a hard service interruption into an early signal that lets owners adjust capacity proactively. This check applies to **provisioned and overage (paid) SCU capacity**, which is billed through Azure and is therefore governable by a Cost Management budget. Microsoft 365 E5 and E7 **inclusion** capacity is auto-provisioned (zero-click) at no additional Azure cost, cannot be modified, and is monitored through the in-product Security Copilot usage dashboard rather than Cost Management — so a tenant with only inclusion capacity is out of scope for this check.
+
+## Remediation resources
+
+- [Tutorial: Create and manage budgets](https://learn.microsoft.com/azure/cost-management-billing/costs/tutorial-acm-create-budgets)
+- [Manage security compute unit usage in Security Copilot](https://learn.microsoft.com/copilot/security/manage-usage)
+
+<!--- Results --->
+%TestResult%

@@ -1,0 +1,9 @@
+Log Analytics tables can be provisioned on three plans, each with a different ingest cost, query cost, and detection capability: Analytics (full KQL, real-time analytics rule support, UEBA, scheduled rules; highest ingest cost), Basic (KQL with limitations, no scheduled analytics rules, search jobs over 8-day interactive window; mid ingest cost), and Auxiliary (very low ingest cost, no scheduled rules, queryable only via search jobs and Summary Rules over 30-day interactive window). Putting a high-fidelity, low-volume detection source like SigninLogs, SecurityAlert, or IdentityLogonEvents on Auxiliary breaks every analytics rule and incident-creation workflow that depends on it (the rules cannot run against Auxiliary tables) — meaning attacker-relevant signals such as impossible-travel sign-ins, DCSync, or token-replay silently stop generating Sentinel incidents even though the data is technically retained. Conversely, putting high-volume verbose telemetry like CommonSecurityLog, Syslog, or DeviceNetworkEvents on Analytics costs roughly 4–10× more per GB than Basic/Auxiliary while delivering little marginal detection value because most of those events are used in retrospective hunting rather than scheduled rules. The plan choice is therefore a security-and-cost decision: detection-critical tables must remain on Analytics, and high-volume tables that are only hunted retrospectively are candidates for Basic or Auxiliary. This check verifies the plan assignment of the security-relevant tables in each Sentinel workspace.
+
+**Remediation action**
+
+- [Set a table's log data plan](https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans)
+- [Switch a table's plan from the Azure portal](https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans#change-the-table-plan)
+
+<!--- Results --->
+%TestResult%

@@ -31,8 +31,46 @@ order by operatingSystem
     if ($null -eq $linuxCount) { $linuxCount = 0 }
     if ($null -eq $discoveredDeviceTotal) { $discoveredDeviceTotal = 0 }
 
+    $mdeSensorInstalledOperatingSystemSummary = $null
+    $mdeCoverageQuery = "let Platforms = datatable(Platform:string, PlatformOrder:int) ['Windows', 1, 'macOS', 2, 'iOS/iPadOS', 3, 'Android', 4, 'Linux', 5]; let Coverage = DeviceInfo | where Timestamp > ago(30d) | summarize arg_max(Timestamp, *) by DeviceId | where isempty(MergedToDeviceId) | where OnboardingStatus =~ 'Onboarded' and SensorHealthState =~ 'Active' and isnotempty(AadDeviceId) | extend NormalizedOS=tolower(OSPlatform) | extend Platform=case(NormalizedOS startswith 'windows', 'Windows', NormalizedOS startswith 'mac', 'macOS', NormalizedOS startswith 'ios' or NormalizedOS startswith 'ipados', 'iOS/iPadOS', NormalizedOS startswith 'android', 'Android', NormalizedOS startswith 'linux', 'Linux', 'Other') | where Platform != 'Other' | summarize arg_max(Timestamp, Platform) by AadDeviceId=tolower(AadDeviceId) | summarize MdeSensorInstalledCount=count() by Platform; Platforms | join kind=leftouter Coverage on Platform | project Platform, MdeSensorInstalledCount=coalesce(MdeSensorInstalledCount, 0), PlatformOrder | order by PlatformOrder asc | project-away PlatformOrder"
+    try {
+        $requestBody = @{ Query = $mdeCoverageQuery; Timespan = 'P30D' } | ConvertTo-Json -Compress
+        $mdeCoverageResponse = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -ApiVersion 'v1.0' -Method POST -Body $requestBody -ErrorAction Stop
+        $mdeCoverageRows = @()
+        if ($null -ne $mdeCoverageResponse -and $null -ne $mdeCoverageResponse.results) {
+            $mdeCoverageRows = @($mdeCoverageResponse.results)
+        }
+        if ($mdeCoverageRows.Count -gt 0) {
+            $mdeSensorInstalledOperatingSystemSummary = [PSCustomObject]@{
+                windowsCount = [long](($mdeCoverageRows | Where-Object Platform -eq 'Windows' | Select-Object -First 1).MdeSensorInstalledCount)
+                macOSCount   = [long](($mdeCoverageRows | Where-Object Platform -eq 'macOS' | Select-Object -First 1).MdeSensorInstalledCount)
+                iosCount     = [long](($mdeCoverageRows | Where-Object Platform -eq 'iOS/iPadOS' | Select-Object -First 1).MdeSensorInstalledCount)
+                androidCount = [long](($mdeCoverageRows | Where-Object Platform -eq 'Android' | Select-Object -First 1).MdeSensorInstalledCount)
+                linuxCount   = [long](($mdeCoverageRows | Where-Object Platform -eq 'Linux' | Select-Object -First 1).MdeSensorInstalledCount)
+            }
+
+            foreach ($platformCoverage in @(
+                @{ Platform = 'Windows'; Installed = $mdeSensorInstalledOperatingSystemSummary.windowsCount; Total = $windowsCount },
+                @{ Platform = 'macOS'; Installed = $mdeSensorInstalledOperatingSystemSummary.macOSCount; Total = $macOSCount },
+                @{ Platform = 'iOS/iPadOS'; Installed = $mdeSensorInstalledOperatingSystemSummary.iosCount; Total = $iosCount },
+                @{ Platform = 'Android'; Installed = $mdeSensorInstalledOperatingSystemSummary.androidCount; Total = $androidCount },
+                @{ Platform = 'Linux'; Installed = $mdeSensorInstalledOperatingSystemSummary.linuxCount; Total = $linuxCount }
+            )) {
+                if ([long] $platformCoverage.Installed -gt [long] $platformCoverage.Total) {
+                    Write-PSFMessage "MDE sensor coverage is inconsistent for $($platformCoverage.Platform): installed count $($platformCoverage.Installed) exceeds total device count $($platformCoverage.Total)." -Level Warning -Tag TenantInfo
+                }
+            }
+        }
+        else {
+            Write-PSFMessage 'Advanced hunting returned no result set for MDE sensor coverage.' -Level Warning -Tag TenantInfo
+        }
+    }
+    catch {
+        Write-PSFMessage "Failed to retrieve MDE sensor coverage from advanced hunting: $_" -Level Warning -Tag TenantInfo
+    }
+
     $deviceSummary = [PSCustomObject]@{
-        description = 'All devices by operating system.'
+        description = 'Total devices and Microsoft Defender for Endpoint sensor coverage by OS.'
         deviceOperatingSystemSummary = [PSCustomObject]@{
             windowsCount = $windowsCount
             macOSCount   = $macOSCount
@@ -41,6 +79,9 @@ order by operatingSystem
             linuxCount   = $linuxCount
         }
         totalDevices = $discoveredDeviceTotal
+    }
+    if ($null -ne $mdeSensorInstalledOperatingSystemSummary) {
+        $deviceSummary | Add-Member -MemberType NoteProperty -Name mdeSensorInstalledOperatingSystemSummary -Value $mdeSensorInstalledOperatingSystemSummary
     }
 
     $desktopRows = Invoke-DatabaseQuery -Database $Database -Sql @"
@@ -267,13 +308,72 @@ where accountEnabled and "isManaged"
         $managedDevices = $fallbackManagedDevices
     }
 
+    # Preserve null when Defender/TVM data is unavailable so the report can show no data.
+    $huntingQuery = @'
+let OperationalControls = DeviceTvmSecureConfigurationAssessmentKB
+| where ConfigurationName in~ ('Turn on Microsoft Defender Antivirus', 'Turn on real-time protection')
+| distinct ConfigurationId;
+let ProtectedMdeDevices = DeviceTvmSecureConfigurationAssessment
+| where Timestamp > ago(7d)
+| join kind=inner OperationalControls on ConfigurationId
+| summarize arg_max(Timestamp, IsApplicable, IsCompliant) by DeviceId, ConfigurationId
+| where IsApplicable == true
+| summarize ApplicableControls=count(), InconclusiveOrNonCompliantControls=countif(IsCompliant == false or isnull(IsCompliant)) by DeviceId
+| where ApplicableControls > 0 and InconclusiveOrNonCompliantControls == 0
+| project DeviceId;
+DeviceInfo
+| where Timestamp > ago(30d)
+| summarize arg_max(Timestamp, AadDeviceId) by DeviceId
+| where isnotempty(AadDeviceId)
+| join kind=leftsemi ProtectedMdeDevices on DeviceId
+| summarize by AadDeviceId=tolower(AadDeviceId)
+| summarize ProtectedDeviceCount=count()
+'@
+
+    $protectedDeviceCount = $null
+    try {
+        $huntingBody = @{ query = $huntingQuery; timespan = 'P30D' } | ConvertTo-Json -Compress
+        $huntingResult = Invoke-ZtGraphRequest -RelativeUri 'security/runHuntingQuery' -ApiVersion beta -Method POST -Body $huntingBody -ErrorAction Stop
+        $huntingRows = @()
+        if ($null -ne $huntingResult -and $null -ne $huntingResult.results) {
+            $huntingRows = @($huntingResult.results)
+        }
+        $hasProtectedDeviceCount = $huntingRows.Count -eq 1 -and
+            $null -ne $huntingRows[0].PSObject.Properties['ProtectedDeviceCount']
+        $parsedProtectedDeviceCount = 0L
+
+        if (-not $hasProtectedDeviceCount -or
+            -not [long]::TryParse([string]$huntingRows[0].ProtectedDeviceCount, [ref]$parsedProtectedDeviceCount) -or
+            $parsedProtectedDeviceCount -lt 0) {
+            Write-PSFMessage "Advanced Hunting antivirus protection query returned an invalid result shape or count (row count: $($huntingRows.Count))." -Level Warning -Tag Devices
+        }
+        else {
+            $protectedDeviceCount = $parsedProtectedDeviceCount
+            if ($protectedDeviceCount -eq 0) {
+                Write-PSFMessage 'Advanced Hunting antivirus protection query returned zero protected devices. Verify that the tenant exposes the expected Defender Antivirus controls in DeviceTvmSecureConfigurationAssessmentKB.' -Level Warning -Tag Devices
+            }
+            else {
+                Write-PSFMessage "Advanced Hunting antivirus protection query completed with $protectedDeviceCount protected devices." -Level Debug -Tag Devices
+            }
+        }
+    }
+    catch {
+        $httpStatus = Get-ZtHttpStatusCode -ErrorRecord $_
+        Write-PSFMessage "Unable to retrieve Defender antivirus protection counts from Advanced Hunting (HTTP $httpStatus): $($_.Exception.Message)" -Level Warning -Tag Devices
+    }
+
+    $deviceAntivirusProtection = [PSCustomObject]@{
+        protectedDeviceCount = $protectedDeviceCount
+    }
+
     $deviceOverview = [PSCustomObject]@{
-        DeviceSummary         = $deviceSummary
-        DesktopDevicesSummary = $desktopDevicesSummary
-        ManagedDevices        = $managedDevices
-        MobileSummary         = $mobileSummary
-        DeviceCompliance      = $deviceCompliance
-        DeviceOwnership       = $deviceOwnership
+        DeviceSummary             = $deviceSummary
+        DesktopDevicesSummary     = $desktopDevicesSummary
+        ManagedDevices            = $managedDevices
+        MobileSummary             = $mobileSummary
+        DeviceCompliance          = $deviceCompliance
+        DeviceOwnership           = $deviceOwnership
+        DeviceAntivirusProtection = $deviceAntivirusProtection
     }
 
     Add-ZtTenantInfo -Name 'DeviceOverview' -Value $deviceOverview

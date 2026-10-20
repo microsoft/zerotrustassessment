@@ -153,6 +153,147 @@ Press `Ctrl+C` in the Dev Proxy terminal. Always stop Dev Proxy this way so it p
 | File | Description |
 |------|-------------|
 | `src/powershell/private/core/Invoke-ZtRetry.ps1` | The retry wrapper function being tested |
-| `src/powershell/private/core/Test-ZtRetryableError.ps1` | Determines if an error is retryable (5xx, 429, network) vs non-retryable (4xx) |
+| `src/powershell/private/core/Test-ZtRetryableError.ps1` | Excludes permanent client errors and SDK-handled 429, 503, and 504; other statuses and status-less errors retain wrapper retries |
 | `src/powershell/private/core/Get-ZtHttpStatusCode.ps1` | Extracts HTTP status code from exception objects |
-| `code-tests/commands/Invoke-ZtRetry.Tests.ps1` | Pester unit tests (21 tests, no Dev Proxy required) |
+| `code-tests/commands/Invoke-ZtRetry.Tests.ps1` | Pester unit tests (no Dev Proxy required) |
+
+## Compare SDK-owned retries before and after
+
+The Graph SDK retries 429, 503, and 504 before the wrapper receives the failure.
+The wrapper now propagates these statuses without starting another SDK retry cycle.
+HTTP 500, 502, and errors without an extracted status retain the previous wrapper behavior.
+
+Use a dedicated PowerShell session and a test tenant. Do not run an assessment or
+other Graph commands during measurement. Count only `req` entries for the exact
+test URL in Dev Proxy, not both request and response lines. The integration
+script's "intercept rate" measures failed/retried iterations, not HTTP requests.
+Do not share raw captures containing tokens or tenant data.
+
+### 1. Start a deterministic proxy in terminal A
+
+From the repository root:
+
+```powershell
+devproxy --config-file devproxy/devproxyrc-always-fail.json --allowed-errors 429 --failure-rate 100
+```
+
+Accept any required certificate trust prompt yourself. Verify that the proxy
+injects 429 for every test request. Repeat the procedure separately with 503 and
+504, stopping the previous proxy with Ctrl+C before starting another.
+
+### 2. Prepare terminal B
+
+Use the same connected PowerShell process for all runs, not a new `pwsh` process:
+
+```powershell
+Import-Module Microsoft.Graph.Authentication
+Import-Module PSFramework
+Connect-MgGraph -Scopes User.Read -NoWelcome
+$previousRequestContext = Get-MgRequestContext | Select-Object *
+Get-Module Microsoft.Graph.Authentication | Select-Object Name, Version
+$previousRequestContext | Select-Object MaxRetry, RetryDelay, RetriesTimeLimit, ClientTimeout
+Set-MgRequestContext -MaxRetry 3 -RetryDelay 3 -RetriesTimeLimit 0 -ClientTimeout 300
+. ./src/powershell/private/core/Get-ZtHttpStatusCode.ps1
+. ./src/powershell/private/core/Test-ZtRetryableError.ps1
+. ./src/powershell/private/core/Invoke-ZtRetry.ps1
+$afterPolicy = (Get-Command Test-ZtRetryableError -CommandType Function).ScriptBlock
+$beforePolicy = [scriptblock]::Create(($afterPolicy.ToString() -replace '(?m)^[\t ]*(429|503|504)[\t ]*(?:#[^\r\n]*)?\r?\n', ''))
+$testUri = 'https://graph.microsoft.com/v1.0/me'
+$runProbe = {
+   $script:wrapperCalls = 0
+   try {
+      Invoke-ZtRetry -RetryCount 5 -RetryDelay 1 -ScriptBlock {
+         $script:wrapperCalls++
+         Invoke-MgGraphRequest -Method GET -Uri $testUri -OutputType HashTable -ErrorAction Stop
+      } | Out-Null
+   }
+   catch {
+      [pscustomobject]@{
+         WrapperCalls = $script:wrapperCalls
+         StatusCode = Get-ZtHttpStatusCode -ErrorRecord $_
+         ExceptionType = $_.Exception.GetType().FullName
+      }
+   }
+}
+```
+
+The before policy removes only the three newly added status entries from an
+in-memory copy. It does not revert files or remove the status-extraction fix.
+The one-second wrapper delay shortens the comparison without changing request
+counts; the SDK still uses its three-second delay or the injected Retry-After.
+
+### 3. Establish the SDK-only baseline
+
+Mark the start and end of this run in terminal A, then run in terminal B:
+
+```powershell
+try {
+   Invoke-MgGraphRequest -Method GET -Uri $testUri -OutputType HashTable -ErrorAction Stop | Out-Null
+}
+catch {
+   Get-ZtHttpStatusCode -ErrorRecord $_
+}
+```
+
+Expect four HTTP request entries for persistent 429, 503, or 504. Do not proceed
+with the comparison if requests bypass the proxy or this baseline differs; first
+check the loaded SDK, request context, timeout, and injected status.
+
+### 4. Measure the before policy
+
+Mark a new measurement interval in terminal A. In terminal B:
+
+```powershell
+Set-Item -Path Function:Test-ZtRetryableError -Value $beforePolicy
+try { & $runProbe }
+finally { Set-Item -Path Function:Test-ZtRetryableError -Value $afterPolicy }
+```
+
+Expect `WrapperCalls = 6` and 24 HTTP request entries. The final status must be
+the injected status, not null. A failed command is expected in a 100% failure run.
+
+### 5. Measure the after policy
+
+Mark another measurement interval in terminal A. In terminal B:
+
+```powershell
+& $runProbe
+```
+
+Expect `WrapperCalls = 1` and four HTTP request entries, with no wrapper
+"Retrying in" warnings. If the status is null, inspect sanitized exception types
+and status properties: missing status extraction still triggers wrapper retries.
+
+### 6. Repeat and check controls
+
+| Injected status | SDK only | Wrapper before | Wrapper after |
+|---|---:|---:|---:|
+| 429 | 4 | 24 | 4 |
+| 503 | 4 | 24 | 4 |
+| 504 | 4 | 24 | 4 |
+| 500 | 1 | 6 | 6 |
+| 502 | 1 | 6 | 6 |
+
+These counts assume persistent identical failures and the explicit SDK settings
+above. This probe bypasses Graph response caching and measures one wrapper,
+not the nested license lookup. Before commit `9ddf89767`, `Get-ZtCurrentLicense`
+wrapped `Invoke-ZtGraphRequest` in its own `Invoke-ZtRetry -RetryCount 3`, so
+a persistent 429, 503, or 504 could produce up to 96 HTTP requests
+(4 outer attempts x 24). That outer loop is gone, and the lookup now makes at most
+four requests (the SDK retries only) for those statuses.
+
+### 7. Clean up
+
+Stop Dev Proxy with Ctrl+C in terminal A. In terminal B, restore the request
+settings and close this dedicated session to discard the local function copies:
+
+```powershell
+$restoreParams = @{
+    MaxRetry         = $previousRequestContext.MaxRetry
+    RetryDelay       = $previousRequestContext.RetryDelay
+    RetriesTimeLimit = $previousRequestContext.RetriesTimeLimit.TotalSeconds
+    ClientTimeout    = $previousRequestContext.ClientTimeout.TotalSeconds
+}
+Set-MgRequestContext @restoreParams
+Disconnect-MgGraph
+```

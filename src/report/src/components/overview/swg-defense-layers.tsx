@@ -145,7 +145,11 @@ export function hasSwgData(): boolean {
     return reportData.Tests.some((t) => allSpecIds.includes(t.TestId));
 }
 
-export function SwgDefenseLayers() {
+interface SwgDefenseLayersProps {
+    stacked?: boolean;
+}
+
+export function SwgDefenseLayers({ stacked = false }: SwgDefenseLayersProps) {
     const [hoveredLayer, setHoveredLayer] = useState<number | null>(null);
 
     const layerResults = useMemo(() => {
@@ -175,7 +179,7 @@ export function SwgDefenseLayers() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-col lg:flex-row gap-6 items-center">
+            <div className={`flex flex-col gap-6 items-center ${stacked ? "" : "lg:flex-row"}`}>
                 <div className="flex-shrink-0">
                     <svg
                         width="420"
