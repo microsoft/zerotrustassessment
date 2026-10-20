@@ -1,102 +1,60 @@
-# Microsoft Zero Trust Assessment - Preview
+# Run the Zero Trust Assessment
 
-## About the Zero Trust Assessment tool
+Use the Zero Trust Assessment PowerShell module to assess your Microsoft 365 tenant and Azure configuration, review findings, and plan improvements. This guide covers installation, interactive and app-only authentication, permissions, reports, and troubleshooting for administrators running the assessment.
 
-As the security threat landscape evolves, Microsoft continues to respond and re-evaluate default tenant security settings.​ Based on insights, experience and learnings Microsoft will continue to change the default tenant security settings in the product over time.
+The assessment is a community project maintained by Microsoft employees, **not an official Microsoft product**. It is provided as-is, without support through any Microsoft support program or service. See the [support policy](../../../SUPPORT.md).
 
-Microsoft publishes the [Entra Security Recommendations](https://aka.ms/entra/security) and [Intune Security Recommendations](https://aka.ms/intune/security) guidance to help customers to act more quickly using Microsoft's latest guidance, re-evaluate existing tenant security settings and make change in advance of our product updates.
+<a name="about-the-zero-trust-assessment-tool"></a>
 
-Manually checking a tenant's configuration against the published guidance can be time consuming and error-prone. The Zero Trust Assessment PowerShell module was built to help with this activity.
+The current default run includes **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**. The tool checks configuration against guidance such as the [Microsoft Entra security recommendations](https://aka.ms/entra/security) and [Microsoft Intune security recommendations](https://aka.ms/intune/security); it does not apply remediation.
 
-The Zero Trust Assessment module in this private preview helps customers perform an automated security assessment. This works by assessing the tenant configuration and provides guidance on how to improve the security of the tenant.
+This guide describes the source in this checkout. Published packages can differ: [release 2.6.0](https://github.com/microsoft/zerotrustassessment/releases/tag/2.6.0) introduced the redesigned report and all seven default pillars, while subsequent source changes include updated dependencies and the `AttackSimulation.Read.All` scope. Check the [release history](https://github.com/microsoft/zerotrustassessment/releases) and the help for your installed version.
 
-The assessment is organized into **pillars**. The current default run includes **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**. The `-Preview` switch remains available for any future preview-only features. See [Preview-only pillars](#preview-only-pillars-future-use) for details.
+**In this guide:** [Prerequisites](#prerequisites) · [Permissions and roles](#permissions-and-roles) · [Install](#install-the-powershell-modules) · [Connect](#connect-to-microsoft-365-and-azure-services) · [Run](#run-the-assessment) · [Results](#review-assessment-results) · [Tuning](#tuning-configuration-settings-heavy-load--large-tenants) · [Logs](#logs-and-diagnostic-files) · [Troubleshooting](#troubleshooting) · [Cleanup](#removing-the-zero-trust-assessment)
 
 ## Prerequisites
 
-- PowerShell v7
+- **PowerShell 7.6 or later for the current source's dependency set.** The pinned ExchangeOnlineManagement 3.10.1 requires PowerShell 7.6+ because it uses .NET 10. Older assessment packages can have different requirements; see [Exchange module prerequisites](https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps) and [Install PowerShell on Windows](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows). Windows PowerShell 5.1 is not the assessment host.
+- **Windows for full service coverage.** SharePoint Online and Azure Information Protection (AIP) dependencies use Windows PowerShell compatibility sessions. On other platforms these services are unavailable and their related tests are skipped.
+- **Microsoft Visual C++ Redistributable (x64)** for the native DuckDB dependency on Windows. See the [redistributable download](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version).
+- **A clean PowerShell process**, preferably on a dedicated Windows VM. Review [dependency isolation](#recommended-use-a-dedicated-clean-vm) before importing other modules.
+- **Access to the tenant and services being assessed**, including the [permissions and roles](#permissions-and-roles) below. A successful Graph connection does not grant access to Azure, Exchange, SharePoint, or Purview.
+- **Applicable service subscriptions and licenses.** Coverage depends on the tenant's licenses, service availability, and data access. Missing prerequisites can produce skipped checks, not evidence that the tenant meets a recommendation.
+- **A protected output directory with sufficient disk space.** Reports, exports, and diagnostics can contain tenant configuration and personal information. Use a new directory for each fresh assessment.
 
-> The assessment uses PowerShell modules that are only compatible with
-> PowerShell 7. Install PowerShell v7 if not already installed:
-> [Installing PowerShell on Windows - PowerShell \| Microsoft
-> Learn](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.4#installing-the-msi-package)
+### Data handling and telemetry
 
-- Windows
-  - A full assessment requires **Windows**. Two of the bundled modules — SharePoint Online (`Microsoft.Online.SharePoint.PowerShell`) and Azure Information Protection (`AipService`) — are Windows-only. On non-Windows platforms these services are skipped and the related tests do not run.
+Assessment exports and reports are written locally. Protect them, limit access, and remove them when no longer needed. Importing the Workshop JSON or sharing diagnostics is a separate action you control.
 
-- Dedicated, clean Windows VM (**Strongly recommended**)
-  - Run the assessment on a **dedicated Windows VM with no other PowerShell modules installed**. Because the assessment relies on sensitive dependencies across multiple external PowerShell modules that are strictly pinned to exact versions, running on a machine that already has other PowerShell modules installed (such as `Microsoft.Graph.*`, `Az.*`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, `AipService`, or `PSFramework`) can cause .NET assembly/DLL conflicts and lead to authentication or runtime failures. See [Recommended: use a dedicated clean VM](#recommended-use-a-dedicated-clean-vm).
+Telemetry is enabled by default. Its only tenant-specific custom property is the tenant ID; the event also includes a name, timestamp, instrumentation key, and fixed anonymized IP/OS tags. Assessment results are not included. Network services can process standard connection metadata such as the source IP. Use `Invoke-ZtAssessment -DisableTelemetry` to disable the assessment telemetry event. See the [telemetry implementation](../private/Send-ZtAppInsightsTelemetry.ps1).
 
-- Global Administrator role
-  - Note: The module supports running the assessment as a Global Reader, but the Global Administrator role is required to initially connect to Microsoft Graph and consent to permissions.
+## Permissions and roles
 
-- Uninstall previous versions
-  - If you have installed previous versions of the Zero Trust Assessment, [uninstall](#how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment) before continuing.
-  
-## Install the PowerShell modules
+API permissions, administrator consent, directory roles, workload roles, and Azure resource access are separate requirements. Grant access only to the services and resources you intend to assess. Activate eligible roles through Privileged Identity Management before connecting, and reconnect after changing access.
 
-Follow these steps to install the assessment and connect to Microsoft Graph and your tenant. 
+### Interactive user access
 
-### Open PowerShell 7
+Use a highly privileged administrator for initial setup only; do not use a highly privileged account for every assessment merely because it granted consent.
 
-Open PowerShell 7 by searching in your Start Menu for `PowerShell 7`, or open PowerShell 7 directly via the path: `C:\Program Files\PowerShell\7\pwsh.exe`
+| Service or task | Required access and scope |
+| --- | --- |
+| Initial Microsoft Graph consent | For delegated permission grants, **Cloud Application Administrator** or **Application Administrator**, or another authorized consent role. **Privileged Role Administrator** can grant consent for any API, including Graph Application permissions; Global Administrator can also perform this setup. Consent does not assign runtime roles to the assessment user. |
+| Microsoft Graph assessment context | All [Graph permissions](#microsoft-graph-permissions) below and an active **Global Reader** or **Global Administrator** role. The module validates these roles for delegated authentication. Prefer Global Reader for the assessment account. |
+| Custom security attributes | **Attribute Assignment Reader** (or Attribute Assignment Administrator) in addition to `CustomSecAttributeAssignment.Read.All`. Global Reader/Global Administrator alone does not grant access to attribute values. |
+| Azure | **Reader** at the subscription/resource scopes to assess, or equivalent read permissions for the relevant resource providers. Azure access is separate from Entra directory roles. Resource Graph only returns resources the caller can read; check coverage across every intended subscription. |
+| Exchange Online and Defender protection policies | **Global Reader** plus **Security Reader** for protection-policy checks. If your organization customizes workload roles, verify access to `Get-AntiPhishPolicy`, `Get-HostedContentFilterPolicy`, `Get-MalwareFilterPolicy`, `Get-SafeAttachmentPolicy`, `Get-SafeLinksPolicy`, `Get-AtpPolicyForO365`, and `Get-TeamsProtectionPolicy`. |
+| Security & Compliance (Microsoft Purview) | **Global Reader** provides the standard read-only role mapping, including **Sensitivity Label Reader** and **View-Only DLP Compliance Management**. Verify those workload roles are effective for `Get-Label`, `Get-LabelPolicy`, `Get-DlpCompliancePolicy`, `Get-DlpComplianceRule`, `Get-DlpEdmSchema`, and `Get-DlpSensitiveInformationType`; customized role groups can change access. |
+| SharePoint Online | **SharePoint Administrator** for the tenant administration commands, including `Get-SPOTenant`. Global Reader alone is not sufficient for these PowerShell commands. |
+| Azure Information Protection | A tenant account with **Azure Information Protection Administrator**, **Compliance Administrator**, **Compliance Data Administrator**, or Global Administrator; alternatively, delegated AIP administrative access configured with `Add-AipServiceRoleBasedAdministrator`. Do not enable the AIP super-user feature or add yourself as a super user just to read its configuration. |
+| Defender advanced hunting | `ThreatHunting.Read.All` plus access to the relevant Defender data through the user's effective security roles and data scope. A Graph consent grant alone does not remove workload or licensing restrictions. |
 
-_When prompted to install modules from an untrusted repository, choose `Yes to All`._
+For service-specific details, see [consent administrator requirements](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-admin-consent), [Azure Resource Graph permissions](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph), [Exchange cmdlet permissions](https://learn.microsoft.com/en-us/powershell/exchange/find-exchange-cmdlet-permissions?view=exchange-ps), [Defender and Purview role mappings](https://learn.microsoft.com/en-us/defender-office-365/scc-permissions), [SharePoint tenant command requirements](https://learn.microsoft.com/en-us/powershell/module/microsoft.online.sharepoint.powershell/get-spotenant?view=sharepoint-ps), and [AIP connection requirements](https://learn.microsoft.com/en-us/powershell/module/aipservice/connect-aipservice?view=azureipps).
 
-### Install Zero Trust Assessment module
+These are access requirements, not a guarantee that every check will run. Service configuration, licenses, scoped permissions, and supported authentication modes also affect coverage. Investigate permission errors rather than treating them as tenant security failures or granting broad administrator access without review.
 
-Install the `ZeroTrustAssessment` module using the following command.
+### Microsoft Graph permissions
 
-```powershell
-Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
-```
-
-> **Tip:** New assessment checks and fixes are shipped in preview (prerelease) builds before they are rolled into a stable release. To get the **latest implemented checks and fixes**, install the prerelease build by adding the `-Prerelease` switch:
->
-> ```powershell
-> Install-PSResource -Name ZeroTrustAssessment -Prerelease -Scope CurrentUser
-> ```
-
-## Bundled PowerShell modules (pinned versions)
-
-The Zero Trust Assessment connects to several Microsoft cloud services, each of which relies on its own PowerShell module. Rather than depending on whatever versions happen to be installed on your machine, the assessment **explicitly pins a specific `RequiredVersion` of every required module** in the main module manifest (`ZeroTrustAssessment.psd1`).
-
-When the module is imported, `Initialize-Dependencies.ps1` reads the pinned versions from `ZeroTrustAssessment.psd1`, downloads the exact required versions into an isolated module cache (`%APPDATA%\ZeroTrustAssessment\Modules` on Windows, `~/.cache/ZeroTrustAssessment/Modules` on macOS/Linux), prepends that folder to `$env:PSModulePath`, and coordinates the load order of shared .NET assemblies (such as `Microsoft.Identity.Client.dll` and `Microsoft.IdentityModel.Abstractions.dll`). Neither older nor newer versions of these modules are substituted.
-
-> **Important:** The Zero Trust Assessment is **strictly pinned, validated, and tested only against the exact module versions listed below**. Because PowerShell loads .NET assemblies into a shared process AppDomain and cannot unload or replace an assembly once loaded, having other versions of these modules (or other modules that ship conflicting versions of `Microsoft.Identity.Client.dll` / `Microsoft.IdentityModel.Abstractions.dll`) installed on the same machine can cause assembly/DLL conflicts and lead to sign-in or runtime failures. We strongly recommend running the assessment on a clean machine with no other PowerShell modules installed — see [Recommended: use a dedicated clean VM](#recommended-use-a-dedicated-clean-vm).
-
-| Module | Pinned Version (`RequiredVersion`) | Manifest Section | Service | Platform |
-|--------|------------------------------------|------------------|---------|----------|
-| `PSFramework` | `1.14.457` | `RequiredModules` | Logging / configuration / runspace framework | All |
-| `Microsoft.Graph.Authentication` | `2.40.0` | `PrivateData.XPlatPowerShellRequiredModules` | Microsoft Graph | All |
-| `Microsoft.Graph.Beta.Teams` | `2.40.0` | `PrivateData.XPlatPowerShellRequiredModules` | Microsoft Graph (Teams beta) | All |
-| `Az.Accounts` | `5.5.3` | `PrivateData.XPlatPowerShellRequiredModules` | Azure | All |
-| `ExchangeOnlineManagement` | `3.10.1` | `PrivateData.XPlatPowerShellRequiredModules` | Exchange Online &amp; Security &amp; Compliance | All |
-| `Microsoft.Online.SharePoint.PowerShell` | `16.0.27612.12000` | `PrivateData.WindowsPowerShellRequiredModules` | SharePoint Online | Windows only |
-| `AipService` | `3.1.0.0` | `PrivateData.WindowsPowerShellRequiredModules` | Azure Information Protection (Purview) | Windows only |
-
-## Connect to Microsoft 365 and Azure services
-
-Earlier versions of the assessment connected only to Microsoft Graph and Azure. The assessment now connects to **six** services so it can evaluate all pillars:
-
-| # | Service | Sign-in cmdlet used |
-|---|---------|---------------------|
-| 1 | Microsoft Graph | `Connect-MgGraph` |
-| 2 | Azure | `Connect-AzAccount` |
-| 3 | Azure Information Protection (Purview) | `Connect-AipService` |
-| 4 | SharePoint Online | `Connect-SPOService` |
-| 5 | Exchange Online | `Connect-ExchangeOnline` |
-| 6 | Security &amp; Compliance | `Connect-IPPSSession` |
-
-> **Expect multiple sign-in prompts.** Each service authenticates separately, so during `Connect-ZtAssessment` you will see **at least one sign-in prompt per service**. SharePoint Online additionally opens your **default system browser** to complete its sign-in. This is expected behavior — see the FAQ entry [Why do I get multiple sign-in prompts?](#why-do-i-get-multiple-sign-in-prompts).
->
-> **Tip:** To make the sign-in experience smoother, we recommend running the assessment while **signed in to Windows as the same account** that runs the assessment (or adding that account as a local user on the machine). This lets the interactive and system-browser prompts reuse your existing Windows session instead of prompting repeatedly.
-
-When connecting using Microsoft Graph PowerShell, the following permissions are requested. You are presented with a permissions requested page that you must consent to be able to run the assessment.
-
-The consent prompt is only displayed if the Graph PowerShell app does not already have these permissions.
-
-> **Note:** To read Custom Security Attributes on service principals, the account running the assessment must also be assigned the **Attribute Assignment Reader** (or **Attribute Assignment Administrator**) Entra ID role. Without this role, Custom Security Attribute values will be returned as null.
+The current source requests these delegated permissions. For app-only authentication, configure the **Application** permission with the same name and grant administrator consent; a delegated grant does not authorize an application token.
 
 - Application.Read.All
 - AttackSimulation.Read.All
@@ -133,398 +91,382 @@ The consent prompt is only displayed if the Graph PowerShell app does not alread
 - ThreatHunting.Read.All
 - UserAuthenticationMethod.Read.All
 
-Run the following command to connect to the services and consent to the permissions using a Global Administrator account. We recommend **explicitly specifying the tenant** you want to assess:
+To list the requirements for the version you installed, import the module and query its scope helper:
 
 ```powershell
-Connect-ZtAssessment -Tenant <tenant>
+Import-Module ZeroTrustAssessment
+Get-ZtGraphScope
 ```
 
-The `-Tenant` parameter accepts either the **tenant ID (GUID)** or any **verified domain name** of the tenant, for example:
+The source of this list is [Get-ZtGraphScope](../public/Get-ZtGraphScope.ps1). Permission definitions and supported permission types are in the [Microsoft Graph permissions reference](https://learn.microsoft.com/en-us/graph/permissions-reference).
+
+### App-only permissions and roles
+
+Certificate authentication uses an application identity rather than the signed-in user's roles. Configure the app registration, its enterprise application/service principal, and resource assignments separately. Graph Application permission consent requires Privileged Role Administrator, Global Administrator, or a suitable custom consent role; Application Administrator alone is not sufficient. Resource-role assignment also requires administrative authority at the target Azure scope.
+
+| Service | Application permissions and authorization |
+| --- | --- |
+| Microsoft Graph | The Application permissions in the [Graph list](#microsoft-graph-permissions), with administrator consent. The module checks the complete list, even when selecting a single pillar. The delegated user's Global Reader role is not the app-only Graph context check. |
+| Azure | **Reader**, or equivalent resource-read permissions, assigned to the **service principal** on each intended subscription/resource scope. Microsoft Graph permissions do not grant Azure access. |
+| Exchange Online | **Office 365 Exchange Online > Exchange.ManageAsApp**, with consent, plus supported directory roles or Exchange role-group assignments to the service principal. Global Reader and Security Reader are supported read-oriented directory roles; verify the protection cmdlets listed above. |
+| Security & Compliance | Follow the current [Exchange/Purview app-only setup](https://learn.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps): **Microsoft Exchange Online Protection > Exchange.ManageAsApp**, with consent, plus supported directory roles or Purview role-group assignments to the service principal. Configure authorization for both services if using both. |
+| SharePoint Online | **SharePoint > Sites.FullControl.All** Application permission with administrator consent for tenant administration APIs. This is a broad permission, not a read-only scope and not the Microsoft Graph permission with the same name. See [SharePoint admin API authorization](https://learn.microsoft.com/en-us/sharepoint/dev/sp-add-ins/sharepoint-admin-apis-authentication-and-authorization). |
+| Azure Information Protection | The current connector expects **Azure Rights Management Services > Application.Read.All**, with consent, for its service-principal connection. This is a separate API grant from Microsoft Graph `Application.Read.All`. The pinned AIPService 3.1.0.0 module exposes certificate service-principal parameter sets even though the published cmdlet help does not list them. Verify effective access to `Get-AipServiceSuperUser` and `Get-AipServiceSuperUserFeature` in your environment. |
+
+**Read-only assessment does not mean every underlying service offers read-only connection permissions.** In particular, review the SharePoint full-control grant with your tenant administrator. Do not add content-decryption or write permissions merely to suppress an error.
+
+Exchange and Purview support built-in directory roles and custom workload role groups. Their role groups do not automatically share membership. Use the [app-only role-assignment procedure](https://learn.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps#step-5-assign-role-permissions-to-the-application) when scoping the available commands. Some service cmdlets do not support app-only authentication; a successful connection is not proof of complete assessment coverage.
+
+## Install the PowerShell modules
+
+To install a published package without importing unrelated modules first:
+
+1. Open a fresh PowerShell 7 process, preferably with `pwsh -NoProfile`.
+2. Install the assessment for your user.
+3. Let the assessment initialize its dependencies when imported or first used.
+
+<a name="open-powershell-7"></a>
+<a name="install-zero-trust-assessment-module"></a>
+
+Install the stable package from the PowerShell Gallery:
 
 ```powershell
-# Using the tenant ID (GUID)
-Connect-ZtAssessment -Tenant 00000000-0000-0000-0000-000000000000
-
-# Using a verified domain name
-Connect-ZtAssessment -Tenant contoso.onmicrosoft.com
+Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
 ```
 
-If you omit `-Tenant`, you are connected against a multi-tenant (`/organizations`) context and the tenant is inferred from the account you sign in with. Specifying the tenant avoids accidentally assessing the wrong tenant when your account has access to more than one.
-
-### Sign into each service
-
-When prompted, sign in as a Global Administrator. Because the assessment connects to six services (Graph, Azure, Azure Information Protection, SharePoint Online, Exchange Online, and Security &amp; Compliance), **you will be prompted multiple times** - at least once per service, plus a system-browser prompt for SharePoint Online. Complete each prompt in the order it appears.
-
-For the Microsoft Graph consent prompt, review and accept the requested permissions. The next time you connect, you won't be required to reconsent to the permissions.
-
-The Azure sign in is required to check for export of Audit and sign in logs. If you don't have Azure, you can close the Azure window without signing in and ignore the warning - the test that relies on Azure will be skipped. If you have multiple subscriptions, select a tenant and subscription when prompted.
-
-## Run the assessment
-
-This assessment is a read-only assessment, and all data is run and
-stored locally on the desktop. We recommend storing this report securely and deleting the generated folder and its contents from the local drive once the assessment is complete.
-
-After providing Administrator consent to the permissions, you can run the assessment with an account that has been assigned the **Global Reader** role.
-
-> **Note:** Some tests that evaluate Exchange Online protection policies require the **Security Reader** role in the Microsoft Defender portal in addition to Global Reader. Without this role, those Exchange Online cmdlets will return permission errors and the affected tests may generate unexpected output.
-
-We recommend the following two-step flow. First connect to the specific tenant you want to assess, then run the assessment:
+For a prerelease package, explicitly opt in:
 
 ```powershell
-# 1. Connect to the target tenant (GUID or verified domain name)
-Connect-ZtAssessment -Tenant contoso.onmicrosoft.com
-
-# 2. Run the assessment against the connected tenant
-Invoke-ZtAssessment
+Install-PSResource -Name ZeroTrustAssessment -Prerelease -Scope CurrentUser
 ```
 
-> `Invoke-ZtAssessment` runs against the tenant you are already connected to; it does not take a `-Tenant` parameter. Set the tenant when you call `Connect-ZtAssessment`.
+Prerelease packages and the assessment's `-Preview` switch serve different purposes. Installing a prerelease selects a package version; `-Preview` enables preview-only assessment features when present. Neither means that every change in this repository has already been published.
 
-> The assessment may take more than 24 hours to run on large
-tenants. Please do not abort the assessment while it is running (even if warnings and errors are logged)
+To update an existing stable installation, use `Update-PSResource -Name ZeroTrustAssessment`, then start a fresh PowerShell process. Review repository trust prompts before accepting them. See [cleanup](#removing-the-zero-trust-assessment) if you need to remove an older installation.
 
-If you are only interested in the Devices (Intune) pillar (which takes less than 5 minutes to run), you can use the following command:
+## Bundled PowerShell modules (pinned versions)
 
-```powershell
-Invoke-ZtAssessment -Pillar Devices
-```
+The current [module manifest](../ZeroTrustAssessment.psd1) pins these versions. This table describes the source checkout, not necessarily the latest stable Gallery package.
 
-The results are created in the current working folder as two files:
+| Module | RequiredVersion | Service | Platform |
+| --- | --- | --- | --- |
+| `PSFramework` | `1.14.457` | Logging, configuration, runspaces | All |
+| `Microsoft.Graph.Authentication` | `2.40.0` | Microsoft Graph | All |
+| `Microsoft.Graph.Beta.Teams` | `2.40.0` | Teams beta APIs | All |
+| `Az.Accounts` | `5.5.3` | Azure | All |
+| `ExchangeOnlineManagement` | `3.10.1` | Exchange Online and Security & Compliance | All, where supported by the service |
+| `Microsoft.Online.SharePoint.PowerShell` | `16.0.27612.12000` | SharePoint Online | Windows |
+| `AipService` | `3.1.0.0` | Azure Information Protection | Windows |
 
-- `.\ZeroTrustReport\ZeroTrustAssessmentReport.html` (default/new report, opened by default)
-- `.\ZeroTrustReport\ZeroTrustAssessmentReport-classic.html` (classic report)
-
-After the assessment completes, the default/new report is automatically opened in the default browser.
-
-You can use the `-Path` parameter to provide a custom location to
-store the assessment reports. For example, the following command produces reports in the folder
-`C:\MyAssessment01\` as `ZeroTrustAssessmentReport.html` and `ZeroTrustAssessmentReport-classic.html`.
-
-```powershell
-Invoke-ZtAssessment -Path C:\MyAssessment01
-```
-
-### `Invoke-ZtAssessment` parameters
-
-The most commonly used parameters are described below. All parameters are optional.
-
-| Parameter | Description |
-|-----------|-------------|
-| `-Path <string>` | Folder where the report and exported data are written. Defaults to `./ZeroTrustReport` in the current directory. |
-| `-Pillar <string>` | Which pillar to assess. One of `All` (default), `Identity`, `Devices`, `Network`, `Data`, `Infrastructure`, `SecOps`, or `AI`. |
-| `-Preview` | Enables preview-only pillars when available in future releases. Current pillars do not require this switch. See [Preview-only pillars](#preview-only-pillars-future-use). |
-| `-Resume` | Reuses the data that was already exported to `-Path` on a previous run, skipping data collection and database rebuild, and re-runs only the tests/report. Useful to regenerate the report or re-run tests without re-exporting. The pillar must match the pillar used for the original export. |
-| `-Tests <id[,id...]>` | Runs only the specified test ID(s) (exact match, no wildcards). If omitted, all tests for the selected pillar run. Example: `-Tests 21770, 21771`. |
-| `-Days <1-30>` | Number of days of sign-in logs to query (1-30, default 30). |
-| `-MaximumSignInLogQueryTime <minutes>` | Maximum time to spend querying sign-in logs (default 60; `0` = no limit). |
-| `-NoBrowser` | Suppresses automatically opening the progress dashboard and the final report in the browser. |
-| `-ShowLog` | Prints a high-level summary of log messages to the console. |
-| `-ExportLog` | Writes the log to a file. |
-| `-ConfigurationFile <path>` | Path to a JSON configuration file. Command-line parameters override values from the file. |
-| `-DisableTelemetry` | Disables telemetry collection - enabled by default this module collects `Tenant ID` and nothing else. |
-| `-Timeout <timespan>` | Maximum time to wait for all tests before giving up (default 24 hours). Supports humanized input notation, such as `12h` or `3d`. |
-| `-TestTimeout <minutes/timespan>` | Maximum time a single test may run (default 60; `0` = disabled). Supports humanized input notation, such as `30m`, `2h`, or `'2h 15m'`. |
-| `-ExportThrottleLimit <n>` / `-TestThrottleLimit <n>` | Maximum number of parallel data collectors / tests (default 5 each). |
-
-### Preview-only pillars (future use)
-
-By default the assessment now runs all current pillars: **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**.
-
-The `-Preview` switch is reserved for future preview-only features. When new preview-only pillars are introduced, include `-Preview` to run them:
-
-```powershell
-# Run all current pillars (default behavior)
-Invoke-ZtAssessment
-
-# Example future usage when preview-only pillars are introduced
-# Invoke-ZtAssessment -Preview
-# Invoke-ZtAssessment -Pillar <FuturePreviewPillar> -Preview
-```
+[Initialize-Dependencies.ps1](../Initialize-Dependencies.ps1) resolves the manifest's versions into `%APPDATA%\ZeroTrustAssessment\Modules` on Windows, or `~/.cache/ZeroTrustAssessment/Modules` on macOS/Linux, and prepends the cache to `$env:PSModulePath`. Do not replace these with arbitrary dependency versions.
 
 ### Recommended: use a dedicated clean VM
 
-> **Strong recommendation:** Run the Zero Trust Assessment on a **dedicated, clean Windows VM with no other PowerShell modules installed**.
+A dedicated Windows VM with only the assessment's dependencies minimizes assembly conflicts. Start with PowerShell 7 and the Visual C++ Redistributable, install the assessment, and let it manage its dependency set.
 
-The Zero Trust Assessment has sensitive dependencies on multiple external PowerShell modules that are **strictly pinned to specific versions** (see [Bundled PowerShell modules (pinned versions)](#bundled-powershell-modules-pinned-versions)). Several of these modules (`Microsoft.Graph.*`, `Az.Accounts`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, and `AipService`) ship their own copies of shared authentication and runtime libraries such as `Microsoft.Identity.Client.dll` (MSAL) and `Microsoft.IdentityModel.Abstractions.dll`.
+The important distinction is **installed versus loaded**: another installed module is not automatically a conflict, but profiles, automatic imports, or earlier commands can load incompatible authentication/runtime assemblies into the same process. Removing or reimporting a module does not reliably unload those assemblies. Start a new `pwsh -NoProfile` process before retrying; do not uninstall unrelated modules as the first troubleshooting step.
 
-Because .NET loads assemblies into the PowerShell process on a first-loaded-wins basis and cannot unload or side-by-side isolate conflicting versions within the same session:
+## Connect to Microsoft 365 and Azure services
 
-- Having **any other versions** of `Microsoft.Graph.*`, `Az.*`, `ExchangeOnlineManagement`, `Microsoft.Online.SharePoint.PowerShell`, `AipService`, or `PSFramework` installed in user or system module paths (`$env:PSModulePath`), or auto-imported via a PowerShell `$PROFILE`, can load an incompatible assembly version before the assessment's dependency initializer runs.
-- Even unrelated PowerShell modules installed on the machine can pre-load conflicting versions of shared .NET dependencies (`Microsoft.Identity.Client`, `Microsoft.IdentityModel.*`, `System.Text.Json`, etc.), resulting in `Could not load file or assembly`, `MethodNotFoundException`, sign-in failures, or unexpected test errors during execution.
+`Connect-ZtAssessment` connects to all available services by default:
 
-For the most reliable and predictable experience:
+| Service selector | Underlying command |
+| --- | --- |
+| `Graph` | `Connect-MgGraph` |
+| `Azure` | `Connect-AzAccount` |
+| `AipService` | `Connect-AipService` |
+| `SharePointOnline` | `Connect-SPOService` |
+| `ExchangeOnline` | `Connect-ExchangeOnline` |
+| `SecurityCompliance` | `Connect-IPPSSession` |
 
-1. Provision a **fresh, dedicated Windows VM** used exclusively for running the Zero Trust Assessment.
-2. Install **PowerShell 7** and the [Microsoft Visual C++ Redistributable (x64)](#error-the-type-initializer-for-duckdbnetdataduckdbconnectionstringbuilder-threw-an-exception).
-3. Do **not** install any other PowerShell modules (such as `Microsoft.Graph`, `Az`, `ExchangeOnlineManagement`, etc.) on the VM — install only `ZeroTrustAssessment` and let it download and manage its own pinned dependency set automatically.
+### Interactive sign-in
 
-### Tuning configuration settings (heavy load / large tenants)
+After arranging [user access](#interactive-user-access), connect to the tenant you intend to assess:
 
-In addition to the command-line parameters on `Invoke-ZtAssessment`, the module exposes [PSFramework](https://psframework.org/) configuration settings (defined in `scripts/configuration.ps1`) that allow you to fine-tune concurrency, timeouts, retries, caching, memory consumption, and logging.
+```powershell
+Connect-ZtAssessment -Tenant contoso.onmicrosoft.com
+```
 
-Tuning these settings is especially useful when running the assessment against **large tenants** or under **heavy load**, where large object counts, big sign-in logs, API throttling, or high memory consumption can otherwise cause timeouts, throttling errors, or system memory swapping.
+`-Tenant` is an alias for `-TenantId` and accepts a tenant GUID or verified domain name for interactive sign-in. If omitted, Graph uses an organizations context and derives the tenant from sign-in. Explicit tenant selection helps avoid assessing the wrong organization.
 
-#### Viewing and modifying configuration settings
+<a name="sign-into-each-service"></a>
+<a name="why-do-i-get-multiple-sign-in-prompts"></a>
 
-After importing the module (for example `Import-Module ZeroTrustAssessment` or after running `Connect-ZtAssessment`), you can inspect all available settings and their current values with `Get-PSFConfig`:
+Complete the service prompts and review the connection status messages. Services authenticate separately, but cached sessions and single sign-on can reduce prompts; there is not a guaranteed minimum prompt count. SharePoint interactive authentication uses the system browser. Consent is requested when the application lacks the required grants; new scopes can require consent again.
+
+Use `-Service` to select services, for example `Connect-ZtAssessment -Tenant contoso.onmicrosoft.com -Service Graph,Azure`. The connector adds Graph first if it is not already connected. Skipping a service limits coverage: Azure is used by more than the audit/sign-in log export check, including Infrastructure, Network, and SecOps assessments.
+
+Other connection options:
+
+- `-Force` refreshes existing connections after access or context changes.
+- `-SharePointAdminUrl` supplies the tenant admin URL if it cannot be inferred.
+- `-UserPrincipalName` supplies the user identity for Security & Compliance.
+- `-Environment` and `-ExchangeEnvironmentName` select the appropriate cloud environments; use the values documented by `Get-Help Connect-ZtAssessment -Full`.
+- `-UseDeviceCode` is not an all-service unattended mode. Security & Compliance does not support that flow in this connector, and SharePoint/AIP have their own authentication behavior.
+
+### App-only certificate sign-in
+
+To configure unattended access without storing user credentials:
+
+1. Register an application in the target tenant and record its application/client ID and tenant **GUID**.
+2. Configure and grant consent for the [application permissions](#app-only-permissions-and-roles). Assign workload roles and Azure resource roles to the service principal, not just to the person configuring it.
+3. Upload the certificate's public key to the app registration. Install the corresponding certificate and private key in the local user's certificate store on the assessment machine. For Exchange, follow the certificate-provider requirements in the [app-only authentication guide](https://learn.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps).
+4. If connecting to SharePoint, the current connector requires an **exportable private key** to pass a temporary certificate file into its Windows PowerShell compatibility session. Protect that key and follow any temporary-file cleanup warning.
+5. Connect with the client ID, tenant GUID, and certificate thumbprint. Review each service's connection status before running the assessment.
+
+Replace the placeholders with your own IDs and installed certificate thumbprint:
+
+```powershell
+Connect-ZtAssessment -ClientId '<application-id>' -TenantId '<tenant-guid>' -Certificate '<certificate-thumbprint>' -Service All
+```
+
+Both `-ClientId` and `-TenantId` are required with `-Certificate`; do not combine it with `-UseDeviceCode`. For cross-service app-only connections, use the tenant GUID rather than relying on every service accepting a domain name. The connector resolves the tenant's initial `.onmicrosoft.com` domain for Exchange and Security & Compliance.
+
+App-only support depends on the installed package, dependency versions, service permissions, and commands used by individual checks. Missing connections produce service-related skips; other authorization errors can appear in test diagnostics. Review those outcomes before treating an unattended run as complete.
+
+## Run the assessment
+
+After connecting, run the assessment in the same PowerShell session. The command uses the connected tenant; `Invoke-ZtAssessment` does not take a tenant parameter.
+
+```powershell
+Invoke-ZtAssessment
+```
+
+For a fresh run, choose a new output directory. To assess only a pillar, select it explicitly:
+
+```powershell
+Invoke-ZtAssessment -Path C:\MyAssessment01 -Pillar Devices
+```
+
+> [!WARNING]
+> A non-resume run against a nonempty output directory asks to delete its contents. In a detected CI environment, the current implementation cleans that directory automatically. Do not point `-Path` at a directory containing unrelated files.
+
+Runtime varies with tenant size, service response times, throttling, and selected tests. Use the progress dashboard and [diagnostic files](#logs-and-diagnostic-files) to distinguish active work from a failure. `-NoBrowser` disables both the dashboard server and automatic report opening.
+
+### Reuse an existing export
+
+Use `-Resume` only when you intend to reuse the existing tenant snapshot and database:
+
+```powershell
+Invoke-ZtAssessment -Path C:\MyAssessment01 -Pillar Devices -Resume
+```
+
+Use the original pillar, or select an individual pillar if the original export used `All`. A single-pillar export cannot be resumed as `All` or as a different pillar. Resume skips export and database rebuild, but reruns assessment/report processing; it is not a fresh tenant collection or a promise of fully offline execution. Keep the necessary service connections available.
+
+### `Invoke-ZtAssessment` parameters
+
+| Parameter | Behavior |
+| --- | --- |
+| `-Path <string>` | Output folder; default `.\ZeroTrustReport` relative to the current directory. |
+| `-Pillar <string>` | `All` (default), `Identity`, `Devices`, `Network`, `Data`, `Infrastructure`, `SecOps`, or `AI`. |
+| `-Preview` | Enables preview-only features when present; not needed for the seven current pillars. |
+| `-Resume` | Reuses existing exports/database at `-Path`; use the original pillar, or a subset of an `All` export. |
+| `-Tests <id[,id...]>` | Exact test IDs, without wildcards; otherwise runs the selected pillar's tests. |
+| `-Days <1-30>` | Sign-in log lookback; default 30 days. |
+| `-MaximumSignInLogQueryTime <minutes>` | Sign-in collection time budget; default 60, `0` for no time limit. The export size limit still applies. |
+| `-NoBrowser` | Does not start the progress dashboard server or open the final report. |
+| `-ShowLog` | Shows a high-level console log summary. |
+| `-ExportLog` | Creates a PSFramework support package under `<Path>\log` near the end of the run. Per-run diagnostic files do not require this switch. |
+| `-ConfigurationFile <path>` | JSON configuration for the supported settings; explicit command-line values override it. Not every parameter is a configuration-file setting. |
+| `-DisableTelemetry` | Disables the assessment telemetry event; see [data handling](#data-handling-and-telemetry). |
+| `-Timeout <timespan>` | Overall wait for tests; default 24 hours. Accepts values such as `12h` or `3d`. |
+| `-TestTimeout <minutes/timespan>` | Per-test timeout; default 60 minutes, `0` disables it. Default measurement is idle time since activity, not total elapsed time. Interruption of external/remoting operations is best effort. |
+| `-ExportThrottleLimit <n>` / `-TestThrottleLimit <n>` | Parallel export collectors / tests; default 5 each. |
+
+See [Invoke-ZtAssessment](../public/Invoke-ZtAssessment.ps1) and `Get-Help Invoke-ZtAssessment -Full` for the complete interface.
+
+<a name="preview-only-pillars-future-use"></a>
+
+The `-Preview` switch is retained for future preview-only functionality. It is separate from installing a prerelease package and is not required for any current pillar.
+
+### Infrastructure scope
+
+Infrastructure findings use Microsoft Defender for Cloud recommendations and include only accessible Azure subscriptions tagged with `ZeroTrustAssessment:Infrastructure`. Arrange the subscription tags and Azure read access before running. No matching tagged subscriptions produces a skip, not a clean bill of health.
+
+## Review assessment results
+
+The default output directory contains:
+
+- `.\ZeroTrustReport\ZeroTrustAssessmentReport.html`: redesigned report, opened by default.
+- `.\ZeroTrustReport\ZeroTrustAssessmentReport-classic.html`: classic report.
+
+The **Overview** shows tenant summaries and assessment results across pillars. The screenshots below come from the [public demo with synthetic data](https://microsoft.github.io/zerotrustassessment/demo/).
+
+![Screenshot of the Zero Trust Assessment overview with synthetic tenant counts and results across seven pillars.](media/zero-trust-assessment-overview.png)
+
+Open a pillar to filter results by risk and status. Check skipped tests and errors as well as pass/fail results: an unavailable service, license, or permission can leave part of the tenant unassessed.
+
+![Screenshot of Identity assessment results with risk and status filters and synthetic test findings.](media/zero-trust-assessment-identity.png)
+
+Select a result to read its findings and supporting guidance:
+
+![Screenshot of an assessment detail showing a failed synthetic check and what was evaluated.](media/zero-trust-assessment-detail.png)
+
+## Import Zero Trust Assessment results into Zero Trust Workshop
+
+Report generation also creates `<Path>\zt-export\ZeroTrustWorkshop.json`. Import that file into the [Zero Trust Workshop](https://aka.ms/ztworkshop) to bring mapped assessment findings into task notes.
+
+### Current limitations
+
+- The integration is experimental and generated on a best-effort basis alongside the reports.
+- Skipped tests are omitted. Other outcomes are represented in the notes.
+- Notes are limited to 1,000 characters per task, including the header. A finding longer than 200 characters is compacted to its test title; excess findings can be omitted with an indication of how many remain.
+- Exported task status is `not-reviewed`; assessment findings do not automatically mark Workshop tasks complete.
+
+## Tuning configuration settings (heavy load / large tenants)
+
+Tune only after identifying a bottleneck. Lower concurrency can reduce memory pressure and throttling; increasing a timeout does not fix missing access.
+
+### Viewing and modifying configuration settings
+
+Inspect settings after importing the module:
 
 ```powershell
 Get-PSFConfig -Module ZeroTrustAssessment
 ```
 
-To change a setting for the **current PowerShell session** (run this before calling `Invoke-ZtAssessment`), use `Set-PSFConfig` with either `-Module` and `-Name` or `-FullName`:
+Set values before invoking the assessment. For example, reduce test concurrency in the current session:
 
 ```powershell
-# Using -Module and -Name
 Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 3
-
-# Or using the full configuration name (-FullName)
-Set-PSFConfig -FullName 'ZeroTrustAssessment.Tests.Timeout' -Value '2h'
 ```
 
-To **persist** a setting across future PowerShell sessions for the current user, add the `-Register` switch:
+To persist a setting for future sessions, set it and then register that configuration entry. `Register-PSFConfig` defaults to the current user's settings; `Set-PSFConfig` does not have a `-Register` switch.
 
 ```powershell
-Set-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems' -Value 10000 -Register
+Set-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems' -Value 10000
+Register-PSFConfig -FullName 'ZeroTrustAssessment.Graph.CacheMaxItems'
 ```
 
-> **Note:** Duration/timeout settings (`timespan` validation) accept standard `TimeSpan` strings as well as PSFramework humanized time notation such as `'30m'`, `'2h'`, `'1d'`, or `'2h 30m'`.
+Duration settings accept standard time spans and PSFramework notation such as `30m`, `2h`, or `2h 30m`. See [PSFramework documentation](https://psframework.org/) and the [configuration definitions](../scripts/configuration.ps1).
 
-#### Example: tuning for large tenants
+<a name="example-tuning-for-large-tenants"></a>
 
-On very large tenants, you can reduce parallel workers to lower memory pressure and API throttling, increase per-test and export dependency timeouts, enable automatic retries, and cap or disable in-memory caches to prevent memory swapping:
+For large tenants, consider lowering both throttle limits, bounding caches, and reviewing export/test timeouts together. Retry settings apply to failed or timed-out executions; they do not turn a failed security recommendation into a pass.
+
+### Available configuration settings
+
+All names below use the prefix `ZeroTrustAssessment.`. Defaults describe the current source.
+
+<a name="export-settings"></a>
+<a name="test-settings"></a>
+<a name="caching-settings"></a>
+<a name="debugging-and-ux-settings"></a>
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `Export.DependencyWaitLimit` | `1d` | Maximum wait for another export that a collector depends on. |
+| `Export.SignInLog.MaxSizeBytes` | `1073741824` (1 GB) | Sign-in export size cap; collection stops at the cap. |
+| `ThrottleLimit.Export` | `5` | Maximum parallel collectors. |
+| `ThrottleLimit.Tests` | `5` | Maximum parallel tests. |
+| `Tests.Timeout` | `1h` | Per-test timeout; `0` disables it. |
+| `Tests.TimeoutType` | `Idle` | `Idle`: since last activity; `Start`: since execution began. |
+| `Tests.RetryCount` | `0` | Reattempts for failed executions. |
+| `Tests.RetryTimeout` | `$false` | Include timed-out executions in retries. |
+| `Tests.Statistics.MessageCountSoftCap` | `1024` | Threshold for simplifying stored per-test message objects. |
+| `Azure.DisableCache` / `Graph.DisableCache` | `$false` | Disable the respective in-memory request cache. |
+| `Azure.CacheMaxItems` / `Graph.CacheMaxItems` | `50000` | Maximum items in each request cache. |
+| `Azure.CacheLifetime` / `Graph.CacheLifetime` | `30m` | Expiration of cached entries. |
+| `Logging.Database.IncludeQueryResults` | `$false` | Include database row values in logs. Leave disabled normally: this increases volume and exposes tenant data. |
+| `Logging.InMemoryLog.MinSize` | `51200` | Minimum PSFramework in-memory message capacity enforced at import. Larger values consume more memory. |
+| `Debug.KeepWorkflows` | `$false` | Keep background workflows for debugging instead of normal cleanup. Avoid for routine runs. |
+| `TabExpansion.TestLimit` | `10` | Maximum test IDs offered by tab completion at a time. |
+
+## Logs and diagnostic files
+
+`<Path>` is the directory passed to `Invoke-ZtAssessment -Path`, or `.\ZeroTrustReport` by default. There are **three separate diagnostic locations**: the optional support package in the output directory, per-run logs inside `zt-export`, and extended PSFramework logs outside the output directory.
+
+| Location | What it contains and when to use it |
+| --- | --- |
+| `<Path>\log\` | A PSFramework support-package ZIP created by `-ExportLog` near successful completion, containing a `.cliDat` diagnostic snapshot. It can be absent if the switch was not used or the run failed before this stage. |
+| `<Path>\zt-export\logs\<run>\1-export_progress.log` | Export collector progress and status; start here for data-collection problems. |
+| `<Path>\zt-export\logs\<run>\2-database_progress.log` | Database build progress and timings. A resume run skips this phase. |
+| `<Path>\zt-export\logs\<run>\3-test_progress.log` | Assessment execution progress and status. |
+| `<Path>\zt-export\logs\<run>\1-Export\export_<Name>.md` | Individual collector status, duration, timestamps, endpoint/type, module version, and diagnostic messages. |
+| `<Path>\zt-export\logs\<run>\2-Tests\<TestID>.md` | Individual test title, status, duration, timestamps, module version, and detailed messages, potentially including query text. |
+| `%APPDATA%\PowerShell\PSFramework\Logs\` on Windows | Extended PSFramework message logs and XML error records, independent of the assessment output path. Useful for connection/import issues, exceptions, source locations, stack traces, and messages outside individual tests. Files include computer/process identifiers and numbered segments, such as `<computer>_<pid>_message_0.log` and `<computer>_<pid>_error_0.xml`. Availability and retention depend on the logging provider configuration. |
+
+`<run>` uses the timestamp format `yy-MM-dd-HHmmss`. Files appear as their phases execute, so a partial or resumed run need not contain every file in the table. These per-run files are generated independently of `-ExportLog`.
+
+On Windows, `%APPDATA%` identifies the user's Roaming folder, normally `%USERPROFILE%\AppData\Roaming`. In PowerShell, use `$env:APPDATA`; the equivalent log path is `Join-Path $env:APPDATA 'PowerShell\PSFramework\Logs'`.
+
+The rest of `<Path>\zt-export` is **assessment data, not just logs**: exported entities, `ztConfig.json`, `db\zt.db`, `ZeroTrustAssessmentReport.json`, and `ZeroTrustWorkshop.json`. These help reproduce or resume a run but can contain sensitive tenant data. Deleting `<Path>` does not remove the separate PSFramework logs.
+
+<a name="export-troubleshooting-logs"></a>
+
+### Capture a support package
+
+If a run fails before its optional package is created, capture diagnostics **in the same PowerShell session**, before closing it. Choose a separate destination; it does not need to equal the assessment's `-Path`.
 
 ```powershell
-Import-Module ZeroTrustAssessment
-
-# Reduce parallel export collectors and test runners to lower memory use and API throttling
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Export' -Value 3
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'ThrottleLimit.Tests' -Value 3
-
-# Allow longer export dependency waits and individual test execution times
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Export.DependencyWaitLimit' -Value '2d'
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.Timeout' -Value '2h'
-
-# Retry failed (and optionally timed-out) tests once in case of transient errors
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryCount' -Value 1
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Tests.RetryTimeout' -Value $true
-
-# Cap or disable in-memory Graph/Azure caches to avoid excessive RAM usage and disk swapping
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Graph.CacheMaxItems' -Value 10000
-Set-PSFConfig -Module ZeroTrustAssessment -Name 'Azure.CacheMaxItems' -Value 10000
-# Or disable caching entirely if the machine is memory-constrained:
-# Set-PSFConfig -Module ZeroTrustAssessment -Name 'Graph.DisableCache' -Value $true
-# Set-PSFConfig -Module ZeroTrustAssessment -Name 'Azure.DisableCache' -Value $true
+New-PSFSupportPackage -Path C:\AssessmentLogs\Run01 -Force
 ```
 
-#### Available configuration settings
+Replace the example destination with a folder for your run. Extract the generated ZIP to access its `.cliDat` file. A support package is a snapshot of available session diagnostics, including message/error history and potentially command history or console output, not an automatic archive of all exported tenant files. See [advanced log analysis](../../../docs/troubleshooting.md) for importing and investigating it.
 
-All settings below belong to the `ZeroTrustAssessment` module (full name format: `ZeroTrustAssessment.<Name>`).
+> [!WARNING]
+> Reports, exports, support packages, and extended logs can contain personal information, tenant identifiers, query values, and configuration details. Never attach them unreviewed to public GitHub issues or upload them to an unapproved tool. Review and redact any excerpt; share additional diagnostics only through an approved private channel agreed with the recipient.
 
-##### Export settings
+<a name="faqs"></a>
 
-| Setting (`-Name`) | Default Value | Type | Description |
-|-------------------|---------------|------|-------------|
-| `Export.DependencyWaitLimit` | `'1d'` | `timespan` | Maximum time a data export component waits for another export it depends on to finish. If dependencies are not exported within this timeout, the dependent export fails. Increase on very large tenants where prerequisite exports take longer than 1 day. |
-| `Export.SignInLog.MaxSizeBytes` | `1073741824` (1 GB) | `integerpositive` | Maximum size in bytes for sign-in log exports. When this limit is reached, the sign-in log export stops and execution continues with the next export. Lower to reduce disk/database size or raise if more sign-in log volume is needed. |
-| `ThrottleLimit.Export` | `5` | `integerpositive` | Maximum number of data collectors processed in parallel during the export phase (also sets the default for `Invoke-ZtAssessment -ExportThrottleLimit`). Lower this value on large tenants to reduce API throttling and memory consumption. |
+## Troubleshooting
 
-##### Test settings
+Start with the relevant symptom, then use the [log map](#logs-and-diagnostic-files) to investigate the affected stage.
 
-| Setting (`-Name`) | Default Value | Type | Description |
-|-------------------|---------------|------|-------------|
-| `ThrottleLimit.Tests` | `5` | `integerpositive` | Maximum number of tests processed in parallel (also sets the default for `Invoke-ZtAssessment -TestThrottleLimit`). Lower this value under heavy load to reduce concurrent database queries, API requests, and memory usage. |
-| `Tests.Timeout` | `'1h'` | `timespan` | Maximum time a single test is allowed to run before it is stopped (also sets the default for `Invoke-ZtAssessment -TestTimeout`). Set to `0` to disable the timeout. Tests exceeding this limit are recorded as timed out and execution continues with the next test. Increase on large tenants where individual tests evaluate large datasets. |
-| `Tests.TimeoutType` | `'Idle'` | `rstimeout` (`'Idle'` or `'Start'`) | How the test execution timeout (`Tests.Timeout`) is measured: `'Idle'` measures time elapsed since the test last logged activity; `'Start'` measures total wall-clock time since the test started. |
-| `Tests.RetryCount` | `0` | `integerpositive` | Number of times a failed test is automatically reattempted before being recorded as failed. Set to `1` or higher to recover from transient API throttling or network errors. |
-| `Tests.RetryTimeout` | `$false` | `bool` | Whether a timed-out test should also be reattempted when `Tests.RetryCount` is greater than `0`. |
-| `Tests.Statistics.MessageCountSoftCap` | `1024` | `integerpositive` | Maximum number of full log message objects stored in test statistics per test. When a test logs more messages than this cap, message objects are simplified to preserve memory. Lower this value on large tenants to further reduce memory footprint. |
-
-##### Caching settings
-
-| Setting (`-Name`) | Default Value | Type | Description |
-|-------------------|---------------|------|-------------|
-| `Azure.DisableCache` | `$false` | `bool` | Global toggle to disable in-memory caching of Azure REST API GET responses. Caching speeds up repeated requests, but can consume substantial memory in large environments and lead to OS paging/swapping that degrades performance. Set to `$true` on memory-constrained systems. |
-| `Azure.CacheMaxItems` | `50000` | `integerpositive` | Maximum number of items kept in the in-memory Azure request cache. Lower this value on large tenants to cap memory usage while keeping caching enabled. |
-| `Azure.CacheLifetime` | `'30m'` | `timespan` | Maximum age of entries in the Azure request cache before they expire. |
-| `Graph.DisableCache` | `$false` | `bool` | Global toggle to disable in-memory caching of Microsoft Graph GET responses. Caching speeds up repeated requests, but can consume substantial memory on large tenants and lead to OS paging/swapping that degrades performance. Set to `$true` on memory-constrained systems. |
-| `Graph.CacheMaxItems` | `50000` | `integerpositive` | Maximum number of items kept in the in-memory Microsoft Graph request cache. Lower this value on large tenants to cap memory usage while keeping caching enabled. |
-| `Graph.CacheLifetime` | `'30m'` | `timespan` | Maximum age of entries in the Microsoft Graph request cache before they expire. |
-
-##### Debugging and UX settings
-
-| Setting (`-Name`) | Default Value | Type | Description |
-|-------------------|---------------|------|-------------|
-| `Logging.Database.IncludeQueryResults` | `$false` | `bool` | Includes individual row results from queries against the internal DuckDB database in the logs. Keep `$false` under normal and heavy-load runs, as enabling it significantly increases log size/memory use and writes sensitive tenant data to logs. |
-| `Logging.InMemoryLog.MinSize` | `51200` | `integerpositive` | Minimum size enforced for the PSFramework in-memory log (`PSFramework.Logging.MaxMessageCount`) during module import. If `PSFramework.Logging.MaxMessageCount` is lower than this value when the module loads, it is raised to match. Larger values aid troubleshooting but increase memory consumption; to apply a new value on module import, persist it with `-Register` and re-import the module (or adjust `PSFramework.Logging.MaxMessageCount` directly). |
-| `Debug.KeepWorkflows` | `$false` | `bool` | Retains the PSFramework background runspace workflow engines after export and test completion instead of cleaning them up. Useful for debugging background tasks, but leaves runspace artifacts in memory that must be terminated manually before starting another run. |
-| `TabExpansion.TestLimit` | `10` | `integerpositive` | Maximum number of test IDs offered at a time via tab completion (for example on `Invoke-ZtAssessment -Tests`). |
-
-## Review assessment results
-
-After the assessment completes, you are redirected to the **Overview** tab of the report in your default browser. The **Overview** tab displays key Zero Trust related information about the tenant.
-
-![Screenshot of Results](media/image5.png)
-
-The **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI** tabs display the list of tests that were run against the tenant and provide recommendations on addressing the tenant configuration information.
-
-![Screenshot of test results](media/image6.png)
-
-Select a result to see more information and remediation actions.
-
-![Screenshot of details page](media/image7.png)
-
-## Import Zero Trust Assessment results into Zero Trust Workshop
-
-Once the assessment completes, you can import its findings into the [Zero Trust Workshop](https://aka.ms/ztworkshop) tool to help accelerate your workshop review and roadmap planning.
-
-During the report-generation stage of `Invoke-ZtAssessment`, the module automatically maps your assessed test results to the corresponding Zero Trust Workshop tasks and writes a Workshop-compatible JSON file to the `zt-export` subfolder of your output path:
-
-- `<Path>\zt-export\ZeroTrustWorkshop.json` (by default `.\ZeroTrustReport\zt-export\ZeroTrustWorkshop.json`)
-
-You can import this `ZeroTrustWorkshop.json` file directly into the [Zero Trust Workshop](https://aka.ms/ztworkshop) web application to pre-populate task notes with your tenant's assessment findings (prefixed with `✅` for passed checks, `❌` for failed checks, or `⚠️` for other non-skipped outcomes).
-
-### Current limitations
-
-- **Experimental functionality:** The Zero Trust Workshop export and import integration is currently **experimental** and is generated on a best-effort basis alongside the standard assessment reports.
-- **Notes are truncated to 1,000 characters:** Due to a maximum length limitation in the `notes` section of the Zero Trust Workshop importer, the combined assessment findings written to each Workshop task's `notes` field (including the `ZT Assessment result:` header) are **truncated to 1,000 characters**. In addition, any single test finding exceeding 200 characters is compacted to the test title, and if multiple mapped findings exceed the 1,000-character budget for a task, the remaining findings are omitted with a `…(+N more findings)` indicator.
-- **Task status is not changed:** Importing `ZeroTrustWorkshop.json` **only updates the `notes` section** of the mapped Workshop tasks. It does **not** automatically change the status of any task (all mapped tasks are imported with a status of `not-reviewed` so they can be reviewed and triaged during the workshop).
-
-## Reporting issues
-
-If you run into any issues or have queries about the results, reach out to your account contact that suggested you run the assessment.
-
-### Export troubleshooting logs
-
-If an issue occurs, export a log using these instructions.
-
-Run the following command in the same session where you ran the
-assessment to create the export package (update the date to reflect the date of your run).
-
-```powershell
-New-PSFSupportPackage -Path C:\AssessmentLog_2025_01_01 -Force
-```
-
-Zip this folder along with the folder that was created by
-Invoke-ZtAssessment (default is `ZeroTrustAssessment`) and share it with your contact at Microsoft.
-
-> **Warning:** The troubleshooting package and the assessment output folder can contain **sensitive and personally identifiable information (PII)** about your tenant - for example, the Global Administrator account identifier (UPN) used to sign in, other user or account identifiers, tenant IDs, and configuration details. **Do not post this package publicly** (for example, on GitHub issues, forums, or social media). Share it only through a private, trusted channel directly with your Microsoft contact.
-
-## Removing the Zero Trust assessment
-
-To remove the assessment, follow these steps.
-
-- Remove PowerShell module.
-- Remove App Reg + consent.
-- Delete the folder that was created by the assessment.
-
-## Feedback / Issues
-
-The **Identity** tab shows the results of the assessment on your tenant.
-
-Feel free to share feedback on the report. If you have any feedback or issues, reach out to your account contact that suggested you run the assessment or post in the private preview Teams channel.
-
-## FAQs
-
-### How can I uninstall previous versions of the Zero Trust Assessment?
-
-Run the following commands to ensure all versions of the past modules are uninstalled.
-
-Next restart PowerShell and follow the instructions in this page to install the latest version.
-
-```powershell
-Uninstall-PSResource ZeroTrustAssessment -Version '*'
-Uninstall-PSResource ZeroTrustAssessmentv2 -Version '*'
-```
+| Symptom | What to check |
+| --- | --- |
+| Graph consent or role validation fails | Compare grants with `Get-ZtGraphScope`, activate the required user role or configure app permissions, and reconnect. A new package can require additional consent. |
+| A service fails to connect or tests are skipped | Check that service's role, license, platform, and connection message. A Graph connection does not establish every other service. |
+| A protection, label, DLP, or hunting check returns an authorization error | Check workload role assignments/data scopes for the specific command or API, not just Entra role names. Use the [access tables](#permissions-and-roles). |
+| Infrastructure has no findings | Verify Azure read access and subscription tags; no tagged/accessible subscriptions is not a passed assessment. |
+| Long runtime, throttling, or memory pressure | Inspect collector/test logs; review lookback, concurrency, caches, and timeouts in [tuning settings](#tuning-configuration-settings-heavy-load--large-tenants). |
+| A certificate connection fails | Check the certificate's validity/private key, app public-key registration, tenant GUID, consent, and service-principal roles. SharePoint also needs an exportable key in the current connector. |
+| Constrained Language Mode prevents execution | Use an approved host/policy that supports the assessment. Do not bypass organizational controls; the advanced override does not make restricted operations work. |
 
 ### Could not load file or assembly Microsoft.Graph.Authentication
 
-This error happens when you have conflicting versions of Microsoft Graph PowerShell installed.
-
-To fix this error we recommend uninstalling all Microsoft Graph PowerShell modules installed on your system. You can use a helper module like [uninstall-graph.merill.net](https://uninstall-graph.merill.net/) to run the cleanup.
-
-When uninstalling Microsoft Graph you should also uninstall versions of Zero Trust Assessment, restart PowerShell and then try a fresh install. 
-
-This is the order of running the cmdlets.
-
-```powershell
-Install-PSResource Uninstall-Graph
-Uninstall-PSResource ZeroTrustAssessment -Version '*'
-Uninstall-PSResource ZeroTrustAssessmentv2 -Version '*'
-Uninstall-Graph
-```
-Close all open PowerShell windows.
-
-Start a new PowerShell session.
-
-```powershell
-Install-PSResource ZeroTrustAssessment -Scope CurrentUser
-```
-
-Note: The Zero Trust Assessment module will automatically install the required Graph PowerShell modules.
-
-### Why do I get multiple sign-in prompts?
-
-This is expected. The assessment connects to six separate services - Microsoft Graph, Azure, Azure Information Protection (Purview), SharePoint Online, Exchange Online, and Security &amp; Compliance - and each one authenticates independently. During `Connect-ZtAssessment` you will therefore see **at least one sign-in prompt per service**. SharePoint Online additionally opens your **default system browser** to complete its sign-in.
-
-To reduce how often you are prompted, sign in to Windows as (or add as a local user) the same account that runs the assessment, so the prompts can reuse your existing Windows session. See [Connect to Microsoft 365 and Azure services](#connect-to-microsoft-365-and-azure-services).
-
-### The HTML report shows "Unexpected Application Error! Invalid array length"
-
-Some releases (including 2.3.0 and 2.4.0) can produce a report that fails to render in the browser with an error similar to:
-
-```text
-Unexpected Application Error!
-Invalid array length
-```
-
-The data export, database, and tests complete successfully - only the rendering of the generated HTML report fails. This is a known issue tracked in the following GitHub issues:
-
-- [#1235 - ZTA 2.3.0 completes successfully but the generated HTML report crashes when rendering](https://github.com/microsoft/zerotrustassessment/issues/1235)
-- [#1272 - "Unexpected Application Error! Invalid array length" using version 2.3.0](https://github.com/microsoft/zerotrustassessment/issues/1272)
-- [#1310 - "Unexpected Application Error! Invalid array length" in HTML report](https://github.com/microsoft/zerotrustassessment/issues/1310)
-- [#1388 - Post completion of scripts, getting multiple errors and HTML error](https://github.com/microsoft/zerotrustassessment/issues/1388)
-
-The fix is included in the latest **preview (CI) build** published to the PowerShell Gallery. Install it with the `-Prerelease` switch:
-
-```powershell
-# Optional: remove the current version first
-Uninstall-PSResource ZeroTrustAssessment -Version '*'
-
-# Install the latest preview (CI) build that includes the fix
-Install-PSResource -Name ZeroTrustAssessment -Prerelease -Scope CurrentUser
-```
-
-If you already have the exported data from a previous run, you can regenerate just the report with the fixed build using the `-Resume` switch instead of re-exporting all data:
-
-```powershell
-Invoke-ZtAssessment -Path <your report path> -Resume
-```
-
-### How can I know what the script is doing?
-
-- The code for this assessment is open source and can be reviewed at `https://github.com/microsoft/zerotrustassessment/tree/psnext/src/powershell`
+Start a new `pwsh -NoProfile` process and let the assessment load its pinned dependencies before other cloud modules. Check the dependency cache and [clean-VM guidance](#recommended-use-a-dedicated-clean-vm). Avoid blanket removal of shared Graph modules or use of third-party cleanup scripts as the default remedy.
 
 ### Error: The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception
 
-On a new installation of Windows you may run into the following error.
+On Windows, an inner `DllNotFoundException` for `duckdb` can indicate a missing native dependency. Install the [Microsoft Visual C++ Redistributable (x64)](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version) if missing, then retry in a fresh session. Inspect the inner exception before assuming every database error has this cause.
 
-```text
-The type initializer for 'DuckDB.NET.Data.DuckDBConnectionStringBuilder' threw an exception.
-Inner exception: Unable to load DLL 'duckdb' or one of its dependencies: The specified module could not be found. (0x8007007E)
-Inner exception type: DllNotFoundException
+### The HTML report shows "Unexpected Application Error! Invalid array length"
+
+Older report-rendering problems were reported in [#1235](https://github.com/microsoft/zerotrustassessment/issues/1235), [#1272](https://github.com/microsoft/zerotrustassessment/issues/1272), [#1310](https://github.com/microsoft/zerotrustassessment/issues/1310), and [#1388](https://github.com/microsoft/zerotrustassessment/issues/1388). Check the issue and [release history](https://github.com/microsoft/zerotrustassessment/releases) for the version you are using rather than assuming a prerelease is always required.
+
+If exports and the database completed, preserve them. After installing an applicable fix, reconnect and use `-Resume` with the original path and pillar to rerun report processing. The classic HTML report is also available if it was generated successfully.
+
+### How can I know what the script is doing?
+
+Review the [PowerShell source](../), progress dashboard, and [per-run logs](#logs-and-diagnostic-files). See [advanced troubleshooting](../../../docs/troubleshooting.md) for support-package analysis.
+
+## Removing the Zero Trust assessment
+
+<a name="how-can-i-uninstall-previous-versions-of-the-zero-trust-assessment"></a>
+
+To remove the module and data you no longer need:
+
+1. Close assessment sessions before uninstalling the module.
+2. Uninstall the assessment package for your user.
+3. Delete only the assessment output and manually created diagnostic packages you intend to remove. Review the separate PSFramework log location according to your retention policy; it can include other PSFramework-using tools.
+4. If retiring a dedicated app registration, review and remove its grants and resource-role assignments before deleting it. Do not delete a shared Microsoft Graph PowerShell application or revoke shared consent without assessing the impact on other tools.
+
+Remove installed assessment versions with:
+
+```powershell
+Uninstall-PSResource ZeroTrustAssessment -Version '*'
 ```
 
-This error occurs because you are running on a system that does not include Microsoft Visual C++ 2015-2022 Redistributable (x64) - Microsoft.VCRedist.2015+.x64.
+If the legacy `ZeroTrustAssessmentv2` package is installed, remove it separately with `Uninstall-PSResource ZeroTrustAssessmentv2 -Version '*'`. The isolated dependency cache is separate from the assessment package; do not remove it while any assessment session is using it.
 
-VCRedist is usually installed when you install Microsoft products like Microsoft Office or Entra Connect Sync. If this is a new device you may need to manually install this component using the link below.
+<a name="reporting-issues"></a>
+<a name="feedback--issues"></a>
+<a name="is-this-an-official-microsoft-product"></a>
+<a name="how-do-i-get-support"></a>
 
-[VCRedistributable Download](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version)
+## Community help and feedback
 
-### Is this an official Microsoft product?
+Search or file [GitHub issues](https://github.com/microsoft/zerotrustassessment/issues) and use the [feedback channel](https://aka.ms/zerotrust/feedback). Include the assessment version, PowerShell version, selected pillar/test IDs, affected stage, and a sanitized error summary.
 
-No. It is a community project that is maintained by Microsoft employees. The app is provided as-is and is not supported through any Microsoft support program or service. Please do not contact Microsoft support with any issues or concerns.
-
-### How do I get support?
-
-Please raise an issue on the [Zero Trust Assessment GitHub repo](https://github.com/microsoft/zerotrustassessment/issues).
+This is not an official Microsoft product and has no official Microsoft support. Community issue reporting is not a support contract or a guarantee of a response. Read [SUPPORT.md](../../../SUPPORT.md) before sharing diagnostic information.
