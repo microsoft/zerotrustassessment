@@ -19,10 +19,9 @@ if ( -not (Test-Path $ManifestPath )) {
     throw
 } else {
     # Get the current version of the module from the PowerShell gallery
-    $previousVersion = (Find-Module -Name $moduleName -AllowPrerelease:$preview).Version
-    Write-Host "Previous version: $previousVersion"
-
-    $ver = [version]($previousVersion -replace '-preview')
+    $resource = Find-PSResource -Name $moduleName -Repository PSGallery -Prerelease:$preview -ErrorAction Stop
+    $ver = $resource.Version
+    Write-Host "Previous version: $ver$(if ($resource.Prerelease) { "-$($resource.Prerelease)" })"
 
     # Set new version number. If it is pre-release, increment the build number otherwise increment the minor version.
     $major = $ver.Major # Update this to change the major version number.
@@ -36,7 +35,6 @@ if ( -not (Test-Path $ManifestPath )) {
     }
 
     $NewVersion = '{0}.{1}.{2}' -f $major, $minor, $build
-
     $publicScripts = @( Get-ChildItem -Path "$ModuleRoot/public" -Recurse -Filter "*.ps1" )
     $FunctionNames = @( $publicScripts.BaseName | Sort-Object )
 

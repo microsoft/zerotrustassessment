@@ -23,12 +23,8 @@ Import-Module "$PSScriptRoot\CommonFunctions.psm1" -Force -WarningAction Silentl
 ## Read Module Manifest
 $ModuleManifest = Import-PowerShellDataFile $ModuleManifestFileInfo.FullName
 
-## Ensure PSGallery is registered for PowerShellGet.
-## PowerShell 7.6+ bundles Microsoft.PowerShell.PSResourceGet as the default package module
-## and no longer seeds the PSGallery source for the legacy PowerShellGet/PackageManagement stack
-## that Install-Module relies on, so register it explicitly when missing.
-if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
-    Register-PSRepository -Default -ErrorAction Stop
+if (-not (Get-PSResourceRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+    Register-PSResourceRepository -PSGallery -ErrorAction Stop
 }
 
 ## Install Module Dependencies
@@ -36,35 +32,37 @@ foreach ($Module in $ModuleManifest['RequiredModules']) {
     if ($Module -is [hashtable]) { $ModuleName = $Module.ModuleName }
     else { $ModuleName = $Module }
     if ($ModuleName -notin $ModuleManifest.PrivateData.PSData['ExternalModuleDependencies'] -and !(Get-Module $ModuleName -ListAvailable)) {
-        Install-Module $ModuleName -Force -SkipPublisherCheck -Repository PSGallery -AcceptLicense
+        Install-PSResource -Name $ModuleName -Repository PSGallery -TrustRepository -AcceptLicense -ErrorAction Stop
     }
 }
 
 ## Publish
-$PSRepositoryAll = Get-PSRepository
-$PSRepository = $PSRepositoryAll | Where-Object SourceLocation -Like "$RepositorySourceLocation*"
+$ApiKeyPlainText = (ConvertFrom-SecureString $NuGetApiKey -AsPlainText).Trim()
+$PSRepositoryAll = Get-PSResourceRepository
+$PSRepository = $PSRepositoryAll | Where-Object Uri -Like "$RepositorySourceLocation*"
 if (!$PSRepository) {
     try {
         [string] $RepositoryName = New-Guid
-        Register-PSRepository $RepositoryName -SourceLocation $RepositorySourceLocation
-        $PSRepository = Get-PSRepository $RepositoryName
-        Publish-Module -Path $ModuleManifestFileInfo.DirectoryName -NuGetApiKey (ConvertFrom-SecureString $NuGetApiKey -AsPlainText) -Repository $PSRepository.Name
+        Register-PSResourceRepository -Name $RepositoryName -Uri $RepositorySourceLocation
+        $PSRepository = Get-PSResourceRepository -Name $RepositoryName
+        Publish-PSResource -Path $ModuleManifestFileInfo.DirectoryName -ApiKey $ApiKeyPlainText -Repository $PSRepository.Name
     }
     finally {
-        Unregister-PSRepository $RepositoryName
+        Unregister-PSResourceRepository -Name $RepositoryName
     }
 }
 else {
     Write-Host ('Publishing Module Path [{0}]' -f $ModuleManifestFileInfo.DirectoryName) -ForegroundColor Green
-    Publish-Module -Path $ModuleManifestFileInfo.DirectoryName -NuGetApiKey (ConvertFrom-SecureString $NuGetApiKey -AsPlainText) -Repository $PSRepository.Name
+    Publish-PSResource -Path $ModuleManifestFileInfo.DirectoryName -ApiKey $ApiKeyPlainText -Repository $PSRepository.Name
 }
 
 ## Unlist the Package
 if ($Unlist) {
+    $PublishLocation = "{0}/package" -f $PSRepository.Uri.ToString().TrimEnd('/')
     if ($ModuleManifest.PrivateData.PSData['Prerelease']) {
-        Invoke-RestMethod -Method Delete -Uri ("{0}/{1}/{2}-{3}" -f $PSRepository.PublishLocation, $ModuleManifestFileInfo.BaseName, $ModuleManifest['ModuleVersion'], $ModuleManifest.PrivateData.PSData['Prerelease']) -Headers @{ 'X-NuGet-ApiKey' = ConvertFrom-SecureString $NuGetApiKey -AsPlainText }
+        Invoke-RestMethod -Method Delete -Uri ("{0}/{1}/{2}-{3}" -f $PublishLocation, $ModuleManifestFileInfo.BaseName, $ModuleManifest['ModuleVersion'], $ModuleManifest.PrivateData.PSData['Prerelease']) -Headers @{ 'X-NuGet-ApiKey' = $ApiKeyPlainText }
     }
     else {
-        Invoke-RestMethod -Method Delete -Uri ("{0}/{1}/{2}" -f $PSRepository.PublishLocation, $ModuleManifestFileInfo.BaseName, $ModuleManifest['ModuleVersion']) -Headers @{ 'X-NuGet-ApiKey' = ConvertFrom-SecureString $NuGetApiKey -AsPlainText }
+        Invoke-RestMethod -Method Delete -Uri ("{0}/{1}/{2}" -f $PublishLocation, $ModuleManifestFileInfo.BaseName, $ModuleManifest['ModuleVersion']) -Headers @{ 'X-NuGet-ApiKey' = $ApiKeyPlainText }
     }
 }

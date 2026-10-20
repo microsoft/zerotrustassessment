@@ -66,12 +66,8 @@ if (!$SkipRequiredAssembliesDetection -and $ModuleRequiredAssembliesFileInfo) {
 #     (Get-Content $ModuleManifestFileInfo.FullName -Raw) -replace "(?s)(#\s*)?FileList\s*=\s*@\([^)]*\)", "# FileList = @()" | Set-Content $ModuleManifestFileInfo.FullName
 # }
 
-## Ensure PSGallery is registered for PowerShellGet.
-## PowerShell 7.6+ bundles Microsoft.PowerShell.PSResourceGet as the default package module
-## and no longer seeds the PSGallery source for the legacy PowerShellGet/PackageManagement stack
-## that Install-Module relies on, so register it explicitly when missing.
-if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
-    Register-PSRepository -Default -ErrorAction Stop
+if (-not (Get-PSResourceRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+    Register-PSResourceRepository -PSGallery -ErrorAction Stop
 }
 
 ## Install Module Dependencies
@@ -79,7 +75,7 @@ foreach ($Module in $ModuleManifest['RequiredModules']) {
     if ($Module -is [hashtable]) { $ModuleName = $Module.ModuleName }
     else { $ModuleName = $Module }
     if ($ModuleName -notin $ModuleManifest.PrivateData.PSData['ExternalModuleDependencies'] -and !(Get-Module $ModuleName -ListAvailable)) {
-        Install-Module $ModuleName -Force -SkipPublisherCheck -Repository PSGallery -AcceptLicense
+        Install-PSResource -Name $ModuleName -Repository PSGallery -TrustRepository -AcceptLicense -ErrorAction Stop
     }
 }
 

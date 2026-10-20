@@ -174,8 +174,6 @@ TestID Start               Duration         Success Error
 
 ```Powershell
 ./build/powershell/Install-Prerequisites.ps1
-Install-Module -Name PackageManagement -Repository PSGallery -Force -AllowClobber
-Install-Module -Name PowerShellGet -Repository PSGallery -Force -AllowClobber
 ```
 
 ### Create a preview build
