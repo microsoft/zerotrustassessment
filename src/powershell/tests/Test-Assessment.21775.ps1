@@ -46,11 +46,11 @@ function Test-Assessment-21775{
 
     # Step 1: Validate policy exists
     if (-not $policy) {
-        $testResultMarkdown = '❌ Tenant app management policy could not be retrieved or does not exist.`n`n%TestResult%'
+        $testResultMarkdown = "❌ Tenant app management policy could not be retrieved or does not exist.`n`n%TestResult%"
     }
     # Step 2: Validate policy is enabled
     elseif (-not $policy.isEnabled) {
-        $testResultMarkdown = '❌ Tenant app management policy exists but is not enabled.`n`n%TestResult%'
+        $testResultMarkdown = "❌ Tenant app management policy exists but is not enabled.`n`n%TestResult%"
     }
     # Step 3: Validate credential restrictions are configured and enabled
     else {
@@ -86,16 +86,16 @@ function Test-Assessment-21775{
         # Determine pass/fail status
         if ($hasCredentialRestrictions) {
             $passed = $true
-            $testResultMarkdown = '✅ Tenant app management policy is properly configured with active credential restrictions.`n`n%TestResult%'
+            $testResultMarkdown = "✅ Tenant app management policy is properly configured with active credential restrictions.`n`n%TestResult%"
         }
         elseif ($configurationIssues.Count -gt 0) {
-            $testResultMarkdown = '❌ Tenant app management policy is enabled but credential restrictions are not enabled.`n`n%TestResult%'
+            $testResultMarkdown = "❌ Tenant app management policy is enabled but credential restrictions are not enabled.`n`n%TestResult%"
         }
         elseif (-not $policy.applicationRestrictions -and -not $policy.servicePrincipalRestrictions) {
-            $testResultMarkdown = '❌ Tenant app management policy is enabled but no application or service principal restrictions are configured.`n`n%TestResult%'
+            $testResultMarkdown = "❌ Tenant app management policy is enabled but no application or service principal restrictions are configured.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = '❌ Tenant app management policy is enabled but lacks active credential restrictions.`n`n%TestResult%'
+            $testResultMarkdown = "❌ Tenant app management policy is enabled but lacks active credential restrictions.`n`n%TestResult%"
         }
     }
 
