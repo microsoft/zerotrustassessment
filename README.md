@@ -3,38 +3,58 @@
 
 # Zero Trust Assessment
 
-The Zero Trust Assessment is a PowerShell module that checks your tenant configuration and recommends ways to improve the security configuration.
+The Zero Trust Assessment is a PowerShell module for administrators who want to review their Microsoft 365 tenant and Azure security configuration. It runs read-only assessments, generates local reports, and provides recommendations to help prioritize improvements.
 
-To learn more see [aka.ms/zerotrust/assessment](https://aka.ms/zerotrust/assessment)
+> [!IMPORTANT]
+> This is a community project maintained by Microsoft employees, **not an official Microsoft product**. It is provided as-is and is not supported through any Microsoft support program or service. See [SUPPORT.md](SUPPORT.md) for community help and issue-reporting guidance.
+
+## What the assessment covers
+
+All seven current pillars run by default: **Identity**, **Devices**, **Network**, **Data**, **Infrastructure**, **SecOps**, and **AI**. The `-Preview` switch is reserved for preview-only features and is not required for these pillars.
+
+Coverage depends on service connections, permissions, licenses, and available data. Review skipped checks and errors as well as pass/fail results. The assessment does not apply remediation.
+
+The repository can contain changes not yet available in a published package. See the [release history](https://github.com/microsoft/zerotrustassessment/releases) for shipped changes, and the [PowerShell guide](src/powershell/doc/readme.md) for the current source's requirements and behavior.
 
 ## Installing and running the assessment
 
-Use PowerShell 7 to install, sign in and run the assessment against your tenant.
+Before you start, review the [prerequisites](src/powershell/doc/readme.md#prerequisites) and [required permissions and roles](src/powershell/doc/readme.md#permissions-and-roles). Use PowerShell 7.6 or later for the current source's dependencies; published packages can have different requirements. Windows is needed for full service coverage. A dedicated Windows VM and a fresh PowerShell session help avoid dependency conflicts.
+
+Install the stable package, connect to your tenant, and run the assessment:
 
 ```powershell
 Install-PSResource -Name ZeroTrustAssessment -Scope CurrentUser
-Connect-ZtAssessment
+Connect-ZtAssessment -Tenant contoso.onmicrosoft.com
 Invoke-ZtAssessment
 ```
 
-By default, `Invoke-ZtAssessment` now runs all current pillars: Identity, Devices, Network, Data, Infrastructure, SecOps, and AI. The `-Preview` switch is reserved for future preview-only features.
+Replace `contoso.onmicrosoft.com` with your tenant's verified domain or GUID. The default output directory is `.\ZeroTrustReport`; use a new output directory for each fresh run. Protect the reports and exports because they can contain sensitive tenant data.
+
+See the [PowerShell guide](src/powershell/doc/readme.md) for [app-only certificate authentication](src/powershell/doc/readme.md#app-only-certificate-sign-in), [pillar selection and resume behavior](src/powershell/doc/readme.md#run-the-assessment), and [configuration tuning](src/powershell/doc/readme.md#tuning-configuration-settings-heavy-load--large-tenants).
+
+Telemetry is enabled by default, with the tenant ID as its only tenant-specific custom property. Assessment results are not included. Use `-DisableTelemetry` to opt out; see [data handling and telemetry](src/powershell/doc/readme.md#data-handling-and-telemetry) for payload and network-metadata details.
 
 ## Infrastructure Pillar Scope
 
-Infrastructure pillar results are based on Microsoft Defender for Cloud recommendations and only include Azure subscriptions tagged with `ZeroTrustAssessment:Infrastructure`.
+Infrastructure results use Microsoft Defender for Cloud recommendations and include only accessible Azure subscriptions tagged with `ZeroTrustAssessment:Infrastructure`. Arrange the tags and Azure read access before running; see [Infrastructure scope](src/powershell/doc/readme.md#infrastructure-scope).
 
 ## Quicklinks
 
-* [aka.ms/zerotrust/assessment](https://aka.ms/zerotrust/assessment) → Microsoft Learn docs page for the assessment (includes install guide).
-* [aka.ms/zerotrust/demo](https://aka.ms/zerotrust/demo) → Interactive demo of a sample assessment report.
-* [aka.ms/zerotrust/feedback](https://aka.ms/zerotrust/feedback) → Share your feedback. Let us know what you like and how we can improve.
-* [aka.ms/zerotrust/issues](https://aka.ms/zerotrust/issues) → Logging bugs & issues
+* [Assessment overview on Microsoft Learn](https://aka.ms/zerotrust/assessment).
+* [Installation and operating guide](src/powershell/doc/readme.md), including permissions, authentication, outputs, and troubleshooting.
+* [Log locations and support packages](src/powershell/doc/readme.md#logs-and-diagnostic-files) and [advanced diagnostic analysis](docs/troubleshooting.md).
+* [Interactive synthetic-data demo](https://aka.ms/zerotrust/demo).
+* [Share feedback](https://aka.ms/zerotrust/feedback) or [report a bug](https://aka.ms/zerotrust/issues). Review the [support policy](SUPPORT.md) and do not post raw tenant reports or logs publicly.
 
 ## Zero Trust Assessment Report
 
-Sample report generated by the Zero Trust Assessment tool. Try [aka.ms/zerotrust/demo](https://aka.ms/zerotrust/demo) for an interactive demo.
+The assessment generates `ZeroTrustAssessmentReport.html` and retains `ZeroTrustAssessmentReport-classic.html` alongside it. The overview summarizes the tenant and pillar results; open a pillar to explore findings and guidance.
 
-![ZeroTrustAssessmentReport](https://github.com/user-attachments/assets/929b3ea6-7e54-47ce-9626-9adddee5fd2f)
+The screenshot below is from the [public demo](https://microsoft.github.io/zerotrustassessment/demo/), which uses synthetic Contoso data.
+
+![Screenshot of the Zero Trust Assessment overview with synthetic tenant counts and results across seven pillars.](src/powershell/doc/media/zero-trust-assessment-overview.png)
+
+Reports also include a `zt-export\ZeroTrustWorkshop.json` file for the experimental [Zero Trust Workshop integration](src/powershell/doc/readme.md#import-zero-trust-assessment-results-into-zero-trust-workshop).
 
 ## Contributing
 
