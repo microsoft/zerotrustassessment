@@ -12,7 +12,7 @@
 RootModule = 'ZeroTrustAssessment.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.6.0'
+ModuleVersion = '3.1.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core', 'Desktop'
@@ -33,7 +33,7 @@ Copyright = '(c) Microsoft. All rights reserved.'
 Description = 'Perform a Zero Trust Assessment of your Microsoft 365 environment.'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '7.0'
+PowerShellVersion = '7.6'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
