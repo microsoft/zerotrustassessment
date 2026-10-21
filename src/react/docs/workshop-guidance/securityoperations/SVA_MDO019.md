@@ -1,6 +1,6 @@
 # Hunt for Threats Using Email and Collaboration Advanced Hunting Tables
 
-**Implementation Effort:** Medium – This requires SecOps teams to author, run, and maintain KQL queries using advanced hunting tables, which is a project‑level activity involving analysis and repeatable workflows..  
+**Implementation Effort:** Medium – This requires SecOps teams to author, run, and maintain KQL queries using advanced hunting tables, which is a project‑level activity involving analysis and repeatable workflows.  
 **User Impact:** Low – All activity is done by administrators; end users are not notified or required to take action.
 
 ## Overview

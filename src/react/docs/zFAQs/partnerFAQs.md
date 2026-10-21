@@ -4,7 +4,7 @@
 
 The Zero Trust Workshop can help partners to generate business and increase revenue. Some ways in which partners are already using these tools are:
 - **Convert to Paid Offering**: The Zero Trust Workshop can be converted to a paid offering, as partners can serve as valuable resources to deliver these workshops to customers and help them to understand the results of the Assessment.
-- **Enhance Existing Offerings**: The tools available in the Zero Trust Workshop can be used to enhance the Zero Trust offerings of partners. For example, starting off Zero Trust offerings by having the customer run the Zero Trust Assessment to get a baseline understanding of the customer’s environment.
+- **Enhance Existing Offerings**: The tools available in the Zero Trust Workshop can be used to enhance the Zero Trust offerings of partners. For example, partners can begin an engagement by having the customer run the Zero Trust Assessment to establish a baseline.
 - **Selling Opportunities**: The Zero Trust Workshop provides customers with a detailed roadmap for how they can implement a secure Zero Trust posture. Seeing this can help customers to better understand what features and licenses they need to achieve their security goals.
 - **Roadmap for Future Work**: The Zero Trust Workshop serves as a great way to generate future work with customers, as after running a workshop, partners can help customers with implementation steps.
 

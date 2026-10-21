@@ -1,4 +1,4 @@
-# 029: Integrate Entra ID to ADO​
+# 029: Integrate Azure DevOps with Microsoft Entra ID
 
 ## Overview
 
@@ -7,4 +7,3 @@
 ## Reference
 
 * 
-

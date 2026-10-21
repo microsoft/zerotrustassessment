@@ -14,4 +14,4 @@ This activity supports the Zero Trust principle of **"Assume breach"** by laying
 
 ## Reference
 
-- [Enable Microsoft Sentinel – Microsoft Learn](https://learn.microsoft.com/en-us/azure/sentinel/quickstart-onboard?tabs=defender-portal
+- [Enable Microsoft Sentinel – Microsoft Learn](https://learn.microsoft.com/en-us/azure/sentinel/quickstart-onboard?tabs=defender-portal)

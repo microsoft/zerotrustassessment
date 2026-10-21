@@ -8,7 +8,7 @@ const benefits = [
     {
         icon: <FaRoad />,
         title: 'Create',
-        description: 'a detailed, customized zero trust roadmap that is relevant to your organization',
+        description: 'a detailed, customized Zero Trust roadmap that is relevant to your organization',
     },
     {
         icon: <FaChartLine />,
@@ -36,7 +36,7 @@ const attendees = [
     {
         icon: <FaUserTie />,
         title: 'Zero Trust Lead',
-        description: 'Leads the zero trust strategy and implementation across the organization',
+        description: 'Leads the Zero Trust strategy and implementation across the organization',
     },
     {
         icon: <FaCogs />,
@@ -46,7 +46,7 @@ const attendees = [
     {
         icon: <FaProjectDiagram />,
         title: 'Pillar Architects, Leads, and Experts',
-        description: 'Ensure specific business or technical pillars are aligned with the zero trust strategy',
+        description: 'Ensure specific business or technical pillars are aligned with the Zero Trust strategy',
     },
     {
         icon: <FaShieldAlt />,

@@ -7,8 +7,9 @@ const Steps = [
         description: (
             <>
                 <ul>
-                    <li>Identify and notify the right stakeholders from your organization and your deployment partners for each zero trust pillar</li>
+                    <li>Identify and notify the right stakeholders from your organization and your deployment partners for each Zero Trust pillar</li>
                     <li>Review the <a href="docs/workshop-guidance/delivery-guide" title="Workshop Delivery Guide">delivery guide</a></li>
+                    <li>Review the <a href="https://github.com/microsoft/zerotrustassessment/raw/main/src/documentgenerator/Assets/ZTWorkshopPitchDeck.pptx" title="Zero Trust Workshop Pitch Deck">pitch deck</a></li>
                     <li>Run the <a href="https://learn.microsoft.com/en-us/security/zero-trust/assessment/get-started" title="Learn about the Zero Trust Assessment">Zero Trust Assessment</a> to make sure you are starting with a healthy configuration</li>
                 </ul>
             </>
@@ -96,7 +97,7 @@ const Steps = [
                         assessments every 6 months
                     </li>
                     <li>
-                        Export workshop and assessment results to your project management tool (e.g., ADO, JIRA)
+                        Export workshop and assessment results to your project management tool (e.g., ADO, Jira)
                     </li>
                 </ul>
             </>

@@ -81,11 +81,18 @@
   margin-bottom: 3rem;
 }
 
-.heroPrimaryCtas {
-  display: flex;
+.heroPrimaryCtas,
+.heroSecondaryCtas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 34rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
   justify-content: center;
-  flex-wrap: wrap;
 }
 
 .ctaPrimary {
@@ -790,18 +797,20 @@
   max-width: 640px;
 }
 
-.guideHeroImage {
+.guideHeroVideo {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.guideHeroImage img {
+.guideHeroVideo iframe {
   width: min(100%, 520px);
+  aspect-ratio: 16 / 9;
+  border: none;
   border-radius: 14px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.08);
-  background: #fff;
+  background: #000;
 }
 
 .guidePageShell {
@@ -892,8 +901,9 @@
     width: 100%;
   }
 
-  .heroPrimaryCtas {
-    flex-direction: column;
+  .heroPrimaryCtas,
+  .heroSecondaryCtas {
+    grid-template-columns: 1fr;
     width: 100%;
   }
 

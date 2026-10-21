@@ -2,7 +2,7 @@
 
 **Implementation Effort:** Medium – Setup requires provisioning Security Copilot capacity, configuring permissions, and enabling the Phishing Triage Agent, making this a project‑driven task for IT and SecOps teams. 
 
-**User Impact:** High – All users who Report Message as Phishing using the outlook setting to trigger the agent, and their submissions are analyzed and acted on, making it a high‑touch feature across the organization. 
+**User Impact:** High – When users report messages as phishing in Outlook, they trigger the agent, and their submissions are analyzed and acted on, making it a high‑touch feature across the organization. 
 
 ## Overview
 The Phishing Triage Agent is an AI-driven capability in Microsoft Defender XDR that automates the classification and handling of user-reported phishing emails. Instead of requiring SOC analysts to manually review every suspicious email, the agent uses large language models (LLMs) and contextual security signals to determine whether a reported message is malicious or benign.

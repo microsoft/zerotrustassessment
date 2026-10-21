@@ -1,4 +1,4 @@
-# Provision Security Copilot Units (SCUs)
+# Provision Security Compute Units (SCUs)
 
 **Implementation Effort:** Medium — Provisioning SCUs requires IT and Security Operations teams to configure and manage capacity through Azure or the Security Copilot portal.  
 **User Impact:** Low — All actions occur at the admin level; non‑privileged users do not need to take any action.
