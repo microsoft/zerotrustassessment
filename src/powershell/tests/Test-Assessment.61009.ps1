@@ -186,10 +186,10 @@ function Test-Assessment-61009 {
             $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
             $includedResources = @($pol.conditions.applications.includeApplications)
             $hasExceptions = (
-                (@($pol.conditions.clientApplications.excludeAgentIdServicePrincipals).Count -gt 0) -or
-                (@($pol.conditions.clientApplications.excludeServicePrincipals).Count -gt 0) -or
-                (@($pol.conditions.agents.excludeAgentUsers).Count -gt 0) -or
-                (@($pol.conditions.applications.excludeApplications).Count -gt 0) -or
+                ($null -ne $pol.conditions.clientApplications.excludeAgentIdServicePrincipals -and @($pol.conditions.clientApplications.excludeAgentIdServicePrincipals).Count -gt 0) -or
+                ($null -ne $pol.conditions.clientApplications.excludeServicePrincipals -and @($pol.conditions.clientApplications.excludeServicePrincipals).Count -gt 0) -or
+                ($null -ne $pol.conditions.agents.excludeAgentUsers -and @($pol.conditions.agents.excludeAgentUsers).Count -gt 0) -or
+                ($null -ne $pol.conditions.applications.excludeApplications -and @($pol.conditions.applications.excludeApplications).Count -gt 0) -or
                 ($null -ne $pol.conditions.agents.agentFilter) -or
                 ($null -ne $pol.conditions.applications.applicationFilter)
             )
