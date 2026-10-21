@@ -32,7 +32,7 @@ export default function Workshop() {
                             What is the Microsoft Zero Trust Workshop and why use it?
                         </Heading>
                         <p>
-                            The Microsoft Zero Trust Workshop simplifies the complexity of today's Security landscape by embracing Zero Trust concepts and architecture into a tailored, actionable roadmap. This roadmap provides precise, step-by-step guidance for implementing a secure Zero Trust posture, along with measurable milestones to track progress.
+                            The Microsoft Zero Trust Workshop simplifies the complexity of today's security landscape by translating Zero Trust concepts and architecture into a tailored, actionable roadmap. This roadmap provides precise, step-by-step guidance for implementing a secure Zero Trust posture, along with measurable milestones to track progress.
                         </p>
                     </div>
                 </div>

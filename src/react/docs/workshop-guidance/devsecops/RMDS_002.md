@@ -1,4 +1,4 @@
-# 002: Discover servers/infra for build/deploy code
+# 002: Discover servers and infrastructure for building and deploying code
 
 ## Overview
 
@@ -7,4 +7,3 @@
 ## Reference
 
 * 
-

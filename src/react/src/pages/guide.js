@@ -7,8 +7,8 @@ import styles from "./index.module.css";
 export default function Guide() {
     return (
         <Layout
-            title={`Microsoft Zero Trust Assessment`}
-            description="Check your Microsoft tenant configuration for zero trust readiness"
+            title="Zero Trust Workshop Plan"
+            description="Learn how to prepare for, deliver, and follow up on a Zero Trust workshop for your customers or your organization"
         >
             <div className={styles.guidePageShell}>
                 <header className={`${styles.hero} ${styles.guideHero}`}>
@@ -22,8 +22,14 @@ export default function Guide() {
                                     Learn how to run the Microsoft Zero Trust workshop, including step-by-step instructions and best practices.
                                 </p>
                             </div>
-                            <div className={styles.guideHeroImage}>
-                                <img src={require("@site/static/img/workshop-cover.png").default} alt="Zero Trust Workshop Guide" />
+                            <div className={styles.guideHeroVideo}>
+                                <iframe
+                                    src="https://www.youtube.com/embed/IM1tPevGTJg?si=dgo43IyqmcFdWlmo"
+                                    title="Microsoft Zero Trust Workshop and Assessment Overview"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                    allowFullScreen
+                                />
                             </div>
                         </div>
                     </div>

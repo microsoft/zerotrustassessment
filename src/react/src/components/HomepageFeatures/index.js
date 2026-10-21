@@ -69,7 +69,7 @@ export default function HomepageFeatures() {
                 <ul>
                   <li><Translate id='homepage.whatIsZt.verify'>Verify Explicitly</Translate></li>
                   <li><Translate id='homepage.whatIsZt.leastPriv'>Use Least Privilege Access</Translate></li>
-                  <li><Translate id='homepage.whatIsZt.assumeComp'>Assume Compromise</Translate></li>
+                  <li><Translate id='homepage.whatIsZt.assumeComp'>Assume breach</Translate></li>
                 </ul>
                 <br />
               </p>

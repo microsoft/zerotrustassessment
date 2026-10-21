@@ -481,7 +481,7 @@
     "message": "Learn"
   },
   "howItWorks.step1.description": {
-    "message": "Understand Zero Trust principles — Verify Explicitly, Least Privilege Access, and Assume Compromise — and how they apply to your environment."
+    "message": "Understand Zero Trust principles — Verify Explicitly, Least Privilege Access, and Assume Breach — and how they apply to your environment."
   },
   "howItWorks.step1.link": {
     "message": "Explore Microsoft Zero Trust"

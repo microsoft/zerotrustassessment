@@ -3,9 +3,9 @@
     "message": "Next",
     "description": "The label for version current"
   },
-  "sidebar.docsSidebar.category.Workshop Guided Videos": {
-    "message": "Workshop Guided Videos",
-    "description": "The label for category Workshop Guided Videos in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Workshop Training Videos": {
+    "message": "Workshop Training Videos",
+    "description": "The label for category Workshop Training Videos in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.category.Workshop Guidance": {
     "message": "Workshop Guidance",

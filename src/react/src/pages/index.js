@@ -174,15 +174,23 @@ function HeroSection() {
               <Translate id="hero.cta.assessment">Run Assessment</Translate> →
             </Link>
           </div>
-          <Link
-            className={styles.ctaSecondary}
-            href="https://microsoft.github.io/zerotrustassessment/demo/#/"
-          >
-            <Translate id="hero.cta.assessmentDemo">
-              View Assessment Demo
-            </Translate>{" "}
-            →
-          </Link>
+          <div className={styles.heroSecondaryCtas}>
+            <Link className={styles.ctaSecondary} to="/guide">
+              <Translate id="hero.cta.deliveryResources">
+                Learn How to Deliver
+              </Translate>{" "}
+              →
+            </Link>
+            <Link
+              className={styles.ctaSecondary}
+              href="https://microsoft.github.io/zerotrustassessment/demo/#/"
+            >
+              <Translate id="hero.cta.assessmentDemo">
+                View Assessment Demo
+              </Translate>{" "}
+              →
+            </Link>
+          </div>
         </div>
 
         <HeroCarousel />
@@ -474,7 +482,7 @@ function HowItWorks() {
             <p className={styles.stepDesc}>
               <Translate id="howItWorks.step1.description">
                 Understand Zero Trust principles — Verify Explicitly, Least
-                Privilege Access, and Assume Compromise — and how they apply to
+                Privilege Access, and Assume Breach — and how they apply to
                 your environment.
               </Translate>
             </p>
@@ -538,8 +546,8 @@ function GetStarted() {
       <div className={styles.getStartedInner}>
         <div className={styles.videoWrap}>
           <iframe
-            src="https://www.youtube.com/embed/0-IYLWMHxGg?si=JyV0MuwIUBDKoFpN"
-            title="Zero Trust Workshop — Introduction"
+            src="https://www.youtube.com/embed/IM1tPevGTJg?si=dgo43IyqmcFdWlmo"
+            title="Microsoft Zero Trust Workshop and Assessment Overview"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen

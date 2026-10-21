@@ -8,7 +8,7 @@ Device identity configuration is handled by IT and does not require user action 
 
 ## Overview
 
-Windows 365 device identities define how Cloud PCs are joined to Microsoft Entra ID and how they are managed and authenticated. There are two supported join types: **Microsoft Entra Join**, which connects the Cloud PC directly to Entra ID, and **Microsoft Entra Hybrid Join**, which joins the Cloud PC to an on-premises Active Directory and syncs it to Entra ID. The join type determines influences how policies are applied (via Intune or Group Policy) and what identity types are supported (cloud-only or hybrid).
+Windows 365 device identities define how Cloud PCs are joined to Microsoft Entra ID and how they are managed and authenticated. There are two supported join types: **Microsoft Entra Join**, which connects the Cloud PC directly to Entra ID, and **Microsoft Entra Hybrid Join**, which joins the Cloud PC to an on-premises Active Directory and syncs it to Entra ID. The join type influences how policies are applied (via Intune or Group Policy) and what identity types are supported (cloud-only or hybrid).
 
 Device identities are critical for enforcing Conditional Access, enabling password less authentication, and managing devices through Intune. If device identities are not properly configured, organizations may face authentication failures, policy misapplication, or reduced security posture.
 

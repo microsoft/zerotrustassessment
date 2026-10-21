@@ -1,4 +1,4 @@
-# 019: Decide if default or advanced custom setup for CodeQL​
+# 019: Decide whether to use the default setup or an advanced custom setup for CodeQL
 
 ## Overview
 
@@ -7,4 +7,3 @@
 ## Reference
 
 * 
-
