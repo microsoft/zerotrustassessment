@@ -1,14 +1,18 @@
-# 163: Cloud PKI
+# 163: Microsoft Cloud PKI
+
+**Implementation Effort:** Low – Cloud-hosted root and issuing CAs require no on-premises servers, NDES, or Intune Certificate Connectors.
+
+**User Impact:** Low – Automates silent certificate issuance, renewal, and revocation for Wi-Fi, VPN, and certificate-based authentication.
 
 ## Overview
 
-Microsoft Cloud PKI is a cloud-based service that simplifies and automates certificate lifecycle management for Intune-managed devices. It provides a dedicated public key infrastructure (PKI) for your organization, without requiring any on-premises servers, connectors, or hardware. It handles the certificate issuance, renewal, and revocation for all Intune supported platforms.
+**Microsoft Cloud PKI** is a cloud-based service that simplifies and automates certificate lifecycle management for Intune-managed Windows, iOS/iPadOS, macOS, and Android devices. It provides a dedicated public key infrastructure (PKI) without requiring on-premises certification authorities (CAs), Network Device Enrollment Service (NDES), or Intune Certificate Connectors.
 
-Microsoft Cloud PKI requires one of the following licenses:
-
-* Microsoft Intune Suite license
-* Microsoft Cloud PKI standalone Intune add-ons license
-For more information about licensing options, see [Microsoft Intune licensing](https://learn.microsoft.com/en-us/mem/intune/fundamentals/licenses).
+Key 2026 updates include:
+- **Included in Microsoft 365 E5 (June 2026 / 2606):** Microsoft Cloud PKI is now included directly in **Microsoft 365 E5** (as well as Intune Suite and standalone add-on).
+- **In-Place Renewal of Cloud PKI Issuing CAs (June 2026 / 2605):** Admins can renew eligible Cloud PKI issuing CAs in place. Certificate issuance continues uninterrupted for Wi-Fi, VPN, and email without needing to create a new CA or manually update dependent SCEP profiles and device assignments.
+- **US Government GCC High Support (September 2026 / 2609):** Microsoft Cloud PKI is now generally available for tenants in the US Government Community Cloud High (GCC High) environment.
+- *(Note: For organizations still using on-premises CAs with the Intune Certificate Connector, Intune is also adding **Certificate Connector health monitoring** in the admin center to surface CA reachability, permission, and template mismatch alerts early).*
 
 ## Video Walkthrough
 
@@ -16,5 +20,5 @@ For more information about licensing options, see [Microsoft Intune licensing](h
 
 ## Reference
 
-* https://learn.microsoft.com/en-us/mem/intune/protect/microsoft-cloud-pki-overview
- ![image](https://github.com/microsoft/zerotrustassessment/assets/20829177/da63eb67-9d2c-440f-a000-3fb1df505f81)
+- [Overview of Microsoft Cloud PKI for Microsoft Intune](https://learn.microsoft.com/en-us/intune/cloud-pki/)
+- [Renew a certification authority in Cloud PKI](https://learn.microsoft.com/en-us/intune/cloud-pki/renew-ca)

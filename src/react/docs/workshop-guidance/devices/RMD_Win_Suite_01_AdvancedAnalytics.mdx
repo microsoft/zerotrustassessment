@@ -1,32 +1,27 @@
-# Intune Advanced Analytics
+# Intune Advanced Analytics & Multi-Device Query
 
-**Implementation Effort:** **Medium**  
-This feature requires IT teams to onboard devices into Endpoint Analytics, assign appropriate licenses (via Intune Suite or add-on), configure role-based access, and potentially train staff on using  tools like anomaly detection and KQL for device queries.
+**Implementation Effort:** Medium – Requires enabling Properties Catalog collection policies and training admins on KQL for Multi-Device Query.
 
-**User Impact:** **Low**  
-The feature operates in the background and is used by IT admins; end users are not required to take action or be notified.
+**User Impact:** Low – Operates silently in the background; no end-user interaction required.
 
-### **Video Walkthrough**
+### Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/oQeHMweSWms?si=HMwssCmWSeWYX9iR" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; fullscreen; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-* * *
+---
 
-### **Overview**
+## Overview
 
-**Microsoft Intune Advanced Analytics** is an add-on to Endpoint Analytics that provides deeper insights into device performance, user experience, and operational health. It includes capabilities like:
+**Microsoft Intune Advanced Analytics** provides real-time, fleet-wide visibility into endpoint health, hardware/software inventory, registry state, and security posture using Kusto Query Language (KQL) **Multi-Device Query** and anomaly detection.
 
-- **Anomaly Detection**: Identifies regressions in user experience after configuration changes.
-- **Enhanced Device Timeline**: Offers more granular event data for troubleshooting.
-- **Device Query**: Enables near real-time querying of device state using KQL.
-- **Battery Health & Resource Performance Reports**: Helps identify hardware issues affecting productivity.
+Key 2025–2026 updates include:
+- **Included in Microsoft 365 E3 and E5 (June 2026 / 2606):** Advanced Analytics is now included in **Microsoft 365 E3 (EMS E3)** and **Microsoft 365 E5** without requiring a separate add-on.
+- **Properties Catalog – Windows Registry & System Info Collection (2510 / July 2026):** Admins can define Properties Catalog policies to collect `System Info`, **Local AI Agent (OpenClaw)** presence, and custom **Windows Registry keys and values (`HKEY_LOCAL_MACHINE`)** across enrolled Windows devices without deploying custom PowerShell scripts.
+- **Enhanced App Inventory & Multi-Device App Query (May 2026 / In Development):** Delivers faster, richer application inventory on Windows and extends KQL Multi-Device Query to search installed applications across the entire fleet for vulnerability triage and compliance.
+- **Actionable Query Results (April 2026 / 2604):** Admins can search and filter across multi-device query results, click directly into device pages, and **create Microsoft Entra security groups directly from a KQL query's device results** for immediate remediation targeting.
+- **Android BYOD Work Profile Inventory (August 2026 / 2608):** Extends Device Inventory and Multi-Device Query to personally owned Android Enterprise devices with a work profile (via AMAPI).
 
-These tools help IT proactively detect and resolve issues, reducing support costs and improving user satisfaction. It aligns with the **Zero Trust principle of "Assume Breach"** by enabling continuous monitoring and rapid response to anomalies.
+## Reference
 
-If not implemented, organizations risk delayed detection of performance issues, higher support costs, and reduced end-user productivity due to unresolved device problems.
-
-* * *
-### **Reference**
-
-- [What is Microsoft Intune Advanced Analytics](https://learn.microsoft.com/en-us/intune/analytics/advanced-endpoint-analytics)
-- [Use Intune Suite add-on capabilities](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/intune-add-ons)
+- [Device query for multiple devices in Microsoft Intune](https://learn.microsoft.com/en-us/intune/advanced-analytics/device-query-multiple-devices)
+- [Use the Intune properties catalog to collect device hardware and registry properties](https://learn.microsoft.com/en-us/intune/device-configuration/collect-device-properties)
