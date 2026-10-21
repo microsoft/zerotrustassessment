@@ -54,6 +54,7 @@ function Test-Assessment-61009 {
 
     #region Assessment Logic
     $passed                     = $false
+    $customStatus               = $null
     $testResultMarkdown         = ''
     $agentIdentityPolicies      = @()
     $agentUserPolicies          = @()
@@ -64,19 +65,19 @@ function Test-Assessment-61009 {
         $testResultMarkdown = "❌ Unable to determine Conditional Access policy configuration for agent principals due to a query failure or insufficient permissions.`n`n**Error:** ``$queryError```n`n%TestResult%"
     }
     else {
-        # Policies targeting agent identities via clientApplications (includeAgentIdServicePrincipals or agentIdServicePrincipalFilter.rule).
+        # Policies targeting agent identities via the agent-specific inclusion array.
         $agentIdentityPolicies = @($allCAPolicies | Where-Object {
             $null -ne $_.conditions.clientApplications -and (
                 ($null -ne $_.conditions.clientApplications.includeAgentIdServicePrincipals -and
-                 $_.conditions.clientApplications.includeAgentIdServicePrincipals.Count -gt 0) -or
-                (-not [string]::IsNullOrEmpty($_.conditions.clientApplications.agentIdServicePrincipalFilter.rule))
+                 @($_.conditions.clientApplications.includeAgentIdServicePrincipals).Count -gt 0)
             )
         })
 
-        # Policies targeting agent users via the reserved token conditions.users.includeUsers = ["AllAgentIdUsers"].
+        # Policies targeting agent users via the agent-specific inclusion array.
         $agentUserPolicies = @($allCAPolicies | Where-Object {
-            $null -ne $_.conditions.users.includeUsers -and
-            $_.conditions.users.includeUsers -contains 'AllAgentIdUsers'
+            $null -ne $_.conditions.agents -and
+            $null -ne $_.conditions.agents.includeAgentUsers -and
+            @($_.conditions.agents.includeAgentUsers).Count -gt 0
         })
 
         # Enabled agent-identity policies that apply the 'block' grant control
@@ -89,13 +90,40 @@ function Test-Assessment-61009 {
             $_.state -eq 'enabled' -and $_.grantControls.builtInControls -contains 'block'
         })
 
-        $passed = ($agentIdentityBlockPolicies.Count -ge 1) -and ($agentUserBlockPolicies.Count -ge 1)
+        $agentIdentityAllPolicies = @($agentIdentityBlockPolicies | Where-Object {
+            @($_.conditions.applications.includeApplications) -contains 'All'
+        })
+        $agentUserAllPolicies = @($agentUserBlockPolicies | Where-Object {
+            @($_.conditions.applications.includeApplications) -contains 'All'
+        })
+        $agentIdentityRestrictedPolicies = @($agentIdentityBlockPolicies | Where-Object {
+            @($_.conditions.applications.includeApplications) -contains 'AllAgentIdResources' -and
+            -not (@($_.conditions.applications.includeApplications) -contains 'All')
+        })
+        $agentUserRestrictedPolicies = @($agentUserBlockPolicies | Where-Object {
+            @($_.conditions.applications.includeApplications) -contains 'AllAgentIdResources' -and
+            -not (@($_.conditions.applications.includeApplications) -contains 'All')
+        })
 
-        if ($passed) {
-            $testResultMarkdown = "✅ At least one enabled Conditional Access policy blocks agent identities, and at least one enabled Conditional Access policy blocks agent users.`n`n%TestResult%"
+        $agentIdentityOutcome = if ($agentIdentityAllPolicies.Count -ge 1) { 'Pass' }
+                                elseif ($agentIdentityRestrictedPolicies.Count -ge 1) { 'Investigate' }
+                                else { 'Fail' }
+        $agentUserOutcome = if ($agentUserAllPolicies.Count -ge 1) { 'Pass' }
+                            elseif ($agentUserRestrictedPolicies.Count -ge 1) { 'Investigate' }
+                            else { 'Fail' }
+
+        if ($agentIdentityOutcome -eq 'Fail' -or $agentUserOutcome -eq 'Fail') {
+            $passed = $false
+            $testResultMarkdown = "❌ Conditional Access policy coverage is insufficient for agent identities, agents' user accounts, or both.`n`n%TestResult%"
+        }
+        elseif ($agentIdentityOutcome -eq 'Investigate' -or $agentUserOutcome -eq 'Investigate') {
+            $passed = $false
+            $customStatus = 'Investigate'
+            $testResultMarkdown = "⚠️ A required Conditional Access policy uses ``AllAgentIdResources`` instead of ``All``. The CA does not cover all resources.`n`n%TestResult%"
         }
         else {
-            $testResultMarkdown = "❌ No enabled Conditional Access policy targets agent identities with the ``block`` control, OR no enabled Conditional Access policy targets agent users with the ``block`` control. Agent traffic for the uncovered principal type bypasses Conditional Access enforcement.`n`n%TestResult%"
+            $passed = $true
+            $testResultMarkdown = "✅ At least one enabled Conditional Access policy blocks all resources for agent identities, and at least one blocks all resources for agents' user accounts.`n`n%TestResult%"
         }
     }
     #endregion Assessment Logic
@@ -134,9 +162,16 @@ function Test-Assessment-61009 {
         }
 
         foreach ($policy in ($agentUserPolicies | Sort-Object displayName)) {
+            $agents = $policy.conditions.agents
+            $targetedType = if ($null -ne $agents -and
+                                $agents.includeAgentUsers -contains 'All' -and
+                                (@($agents.excludeAgentUsers).Count -eq 0) -and
+                                $null -eq $agents.agentFilter) {
+                                'All Agent Users'
+                            } else { 'Some Agent Users' }
             $agentPolicies += [PSCustomObject]@{
                 Policy       = $policy
-                TargetedType = 'All Agent Users'
+                TargetedType = $targetedType
                 IsBlocking   = ($agentUserBlockPolicies | Where-Object { $_.id -eq $policy.id }).Count -gt 0
             }
         }
@@ -144,12 +179,34 @@ function Test-Assessment-61009 {
 
     $tableRows = ''
     if ($agentPolicies.Count -gt 0) {
-        foreach ($entry in $agentPolicies) {
+        $rowPolicies = @($agentPolicies | Select-Object -First 10)
+        foreach ($entry in $rowPolicies) {
             $pol        = $entry.Policy
             $policyName = Get-SafeMarkdown -Text $pol.displayName
             $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
-            $status     = if ($entry.IsBlocking) { '✅ Pass' } else { '❌ Fail' }
+            $includedResources = @($pol.conditions.applications.includeApplications)
+            $hasExceptions = (
+                (@($pol.conditions.clientApplications.excludeAgentIdServicePrincipals).Count -gt 0) -or
+                (@($pol.conditions.clientApplications.excludeServicePrincipals).Count -gt 0) -or
+                (@($pol.conditions.agents.excludeAgentUsers).Count -gt 0) -or
+                (@($pol.conditions.applications.excludeApplications).Count -gt 0) -or
+                ($null -ne $pol.conditions.agents.agentFilter) -or
+                ($null -ne $pol.conditions.applications.applicationFilter)
+            )
+            if ($pol.state -eq 'enabled' -and @($pol.grantControls.builtInControls) -contains 'block' -and $includedResources -contains 'All') {
+                $status = if ($hasExceptions) { 'Pass (exceptions configured)' } else { 'Pass' }
+            }
+            elseif ($pol.state -eq 'enabled' -and @($pol.grantControls.builtInControls) -contains 'block' -and $includedResources -contains 'AllAgentIdResources') {
+                $status = 'Investigate (CA does not cover all resources)'
+                if ($hasExceptions) { $status += '; exceptions configured' }
+            }
+            else {
+                $status = 'Fail'
+            }
             $tableRows += "| [$policyName]($portalPolicyBaseUrl$($pol.id)) | $($entry.TargetedType) | $(Get-ZtCaPolicyState -State $pol.state) | $grants | $status |`n"
+        }
+        if ($agentPolicies.Count -gt 10) {
+            $tableRows += "| ... | | | | |`n"
         }
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
@@ -163,6 +220,9 @@ function Test-Assessment-61009 {
         Title  = 'Conditional Access policies cover both agent identities and agent users'
         Status = $passed
         Result = $testResultMarkdown
+    }
+    if ($customStatus) {
+        $params.CustomStatus = $customStatus
     }
     Add-ZtTestResultDetail @params
 }
