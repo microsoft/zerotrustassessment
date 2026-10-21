@@ -179,11 +179,9 @@ function Test-Assessment-61009 {
 
     $tableRows = ''
     if ($agentPolicies.Count -gt 0) {
-        $rowPolicies = @($agentPolicies | Select-Object -First 10)
-        foreach ($entry in $rowPolicies) {
-            $pol        = $entry.Policy
-            $policyName = Get-SafeMarkdown -Text $pol.displayName
-            $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
+        $rankedPolicies = @()
+        foreach ($entry in $agentPolicies) {
+            $pol = $entry.Policy
             $includedResources = @($pol.conditions.applications.includeApplications)
             $hasExceptions = (
                 ($null -ne $pol.conditions.clientApplications.excludeAgentIdServicePrincipals -and @($pol.conditions.clientApplications.excludeAgentIdServicePrincipals).Count -gt 0) -or
@@ -193,20 +191,40 @@ function Test-Assessment-61009 {
                 ($null -ne $pol.conditions.agents.agentFilter) -or
                 ($null -ne $pol.conditions.applications.applicationFilter)
             )
+
             if ($pol.state -eq 'enabled' -and @($pol.grantControls.builtInControls) -contains 'block' -and $includedResources -contains 'All') {
                 $status = if ($hasExceptions) { 'Pass (exceptions configured)' } else { 'Pass' }
+                $priority = 2
             }
             elseif ($pol.state -eq 'enabled' -and @($pol.grantControls.builtInControls) -contains 'block' -and $includedResources -contains 'AllAgentIdResources') {
                 $status = 'Investigate (CA does not cover all resources)'
                 if ($hasExceptions) { $status += '; exceptions configured' }
+                $priority = 1
             }
             else {
                 $status = 'Fail'
+                $priority = 0
             }
-            $tableRows += "| [$policyName]($portalPolicyBaseUrl$($pol.id)) | $($entry.TargetedType) | $(Get-ZtCaPolicyState -State $pol.state) | $grants | $status |`n"
+
+            $rankedPolicies += [PSCustomObject]@{
+                Entry = $entry
+                Status = $status
+                Priority = $priority
+            }
+        }
+
+        $rowPolicies = @($rankedPolicies |
+            Sort-Object -Property Priority, @{ Expression = { $_.Entry.Policy.displayName } } |
+            Select-Object -First 10)
+        foreach ($entry in $rowPolicies) {
+            $pol        = $entry.Entry.Policy
+            $policyName = Get-SafeMarkdown -Text $pol.displayName
+            $grants     = if ($pol.grantControls -and $pol.grantControls.builtInControls) { $pol.grantControls.builtInControls -join ', ' } else { '(none)' }
+            $tableRows += "| [$policyName]($portalPolicyBaseUrl$($pol.id)) | $($entry.Entry.TargetedType) | $(Get-ZtCaPolicyState -State $pol.state) | $grants | $($entry.Status) |`n"
         }
         if ($agentPolicies.Count -gt 10) {
-            $tableRows += "| ... | | | | |`n"
+            $omittedCount = $agentPolicies.Count - $rowPolicies.Count
+            $tableRows += "| ... | | | | $omittedCount more policies omitted |`n"
         }
 
         $mdInfo = $formatTemplate -f $reportTitle, $portalLink, $tableRows
