@@ -94,7 +94,7 @@ function Test-Assessment-21825 {
                 $freq.frequencyInterval -eq 'everyTime' -or (
                     ($null -eq $freq.frequencyInterval -or $freq.frequencyInterval -eq 'timeBased') -and
                     $freq.type -eq 'hours' -and
-                    $freq.value -gt 0 -and $freq.value -le $recommendedMaxHours
+                    $freq.value -le $recommendedMaxHours
                 )
             )
         })

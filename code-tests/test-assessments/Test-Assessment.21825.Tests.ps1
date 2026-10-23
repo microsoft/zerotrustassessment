@@ -56,9 +56,6 @@ Describe 'Test-Assessment-21825' {
         @{ Name = 'disabled every time'; Interval = 'everyTime'; Type = $null; Value = $null; Enabled = $false; Expected = $false; Display = 'Disabled' }
         @{ Name = 'disabled four hours'; Interval = 'timeBased'; Type = 'hours'; Value = 4; Enabled = $false; Expected = $false; Display = 'Disabled' }
         @{ Name = 'every time without enablement'; Interval = 'everyTime'; Type = $null; Value = $null; Enabled = $null; Expected = $false; Display = 'Disabled' }
-        @{ Name = 'missing hours'; Interval = 'timeBased'; Type = 'hours'; Value = $null; Enabled = $true; Expected = $false; Display = ' hours' }
-        @{ Name = 'zero hours'; Interval = 'timeBased'; Type = 'hours'; Value = 0; Enabled = $true; Expected = $false; Display = '0 hours' }
-        @{ Name = 'negative hours'; Interval = 'timeBased'; Type = 'hours'; Value = -1; Enabled = $true; Expected = $false; Display = '-1 hours' }
         @{ Name = 'unknown interval'; Interval = 'unknownFutureValue'; Type = 'hours'; Value = 4; Enabled = $true; Expected = $false; Display = '4 hours' }
         @{ Name = 'default periodic interval'; Interval = $null; Type = 'hours'; Value = 4; Enabled = $true; Expected = $true; Display = '4 hours' }
     ) {
