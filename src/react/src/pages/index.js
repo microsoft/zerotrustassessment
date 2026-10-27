@@ -589,8 +589,8 @@ export default function Home() {
       })}
     >
       <HeroSection />
-      <LatestUpdates />
       <ProductShowcase />
+      <LatestUpdates />
       <HowItWorks />
       <GetStarted />
     </Layout>

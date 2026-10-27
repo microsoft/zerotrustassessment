@@ -111,6 +111,78 @@
 	color: #005ea6;
 }
 
+.feedbackSection {
+	margin-top: 2rem;
+}
+
+.feedbackPanel {
+	padding: 2rem;
+	border-radius: 16px;
+	background: #f1f5f9;
+}
+
+.feedbackPanel h2 {
+	margin: 0 0 1.5rem;
+	color: #0a1628;
+	font-size: 1.4rem;
+	line-height: 1.3;
+}
+
+.feedbackCards {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.feedbackCards li {
+	margin: 0;
+}
+
+.feedbackCard {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	height: 100%;
+	padding: 1.25rem;
+	border: 1px solid #cbd5e1;
+	border-radius: 10px;
+	background: #ffffff;
+	text-decoration: none;
+}
+
+.feedbackCard:hover,
+.feedbackCard:focus-visible {
+	border-color: #0078d4;
+	text-decoration: none;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.feedbackCard:focus-visible {
+	outline: 2px solid #0078d4;
+	outline-offset: 3px;
+}
+
+.feedbackCardTitle {
+	color: #0078d4;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.feedbackCard:hover .feedbackCardTitle,
+.feedbackCard:focus-visible .feedbackCardTitle {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.feedbackCardDescription {
+	color: #475569;
+	font-size: 0.95rem;
+	line-height: 1.5;
+}
+
 @media (max-width: 996px) {
 	.contentRows {
 		padding: 1rem 0 1.25rem;
@@ -137,5 +209,13 @@
 	.videoContainer {
 		padding: 1.25rem;
 		min-height: 220px;
+	}
+
+	.feedbackPanel {
+		padding: 1.25rem;
+	}
+
+	.feedbackCards {
+		grid-template-columns: 1fr;
 	}
 }
