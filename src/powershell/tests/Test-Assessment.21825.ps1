@@ -90,12 +90,13 @@ function Test-Assessment-21825 {
     $testResultMarkdown += "**Recommended Sign In Session Hours:** $recommendedMaxHours`n`n"
     $policiesWithCompliantFreq = @($policiesWithSessionControls | Where-Object {
             $freq = $_.sessionControls.signInFrequency
-            if ($freq.type -eq 'hours') {
-                $freq.value -le $recommendedMaxHours
-            }
-            else {
-                $false  # Days are not recommended for privileged users
-            }
+            $_.state -eq 'enabled' -and $freq.isEnabled -eq $true -and (
+                $freq.frequencyInterval -eq 'everyTime' -or (
+                    ($null -eq $freq.frequencyInterval -or $freq.frequencyInterval -eq 'timeBased') -and
+                    $freq.type -eq 'hours' -and
+                    $freq.value -le $recommendedMaxHours
+                )
+            )
         })
 
     $testResultMarkdown += "**Policies with Compliant Frequency (≤$recommendedMaxHours hours):** $($policiesWithCompliantFreq.Count)`n`n"
@@ -117,10 +118,7 @@ function Test-Assessment-21825 {
         if ($enabledPolicies.Count -gt 0) {
             # Check if at least one compliant enabled policy covers this role
             $compliantForRole = @($enabledPolicies | Where-Object {
-                    $null -ne $_.sessionControls -and
-                    $null -ne $_.sessionControls.signInFrequency -and
-                    $_.sessionControls.signInFrequency.type -eq 'hours' -and
-                    $_.sessionControls.signInFrequency.value -le $recommendedMaxHours
+                    $policiesWithCompliantFreq.id -contains $_.id
                 })
 
             $roleStatus = if ($compliantForRole.Count -gt 0) {
@@ -140,15 +138,23 @@ function Test-Assessment-21825 {
 
                 if ($null -ne $policy.sessionControls -and $null -ne $policy.sessionControls.signInFrequency) {
                     $freq = $policy.sessionControls.signInFrequency
-                    $freqValue = "$($freq.value) $($freq.type)"
-
-                    if ($freq.type -eq 'hours' -and $freq.value -le $recommendedMaxHours) {
-                        $isCompliant = '✅'
+                    $freqValue = if ($freq.isEnabled -ne $true) {
+                        'Disabled'
                     }
-                    elseif ($freq.type -eq 'hours') {
-                        $isCompliant = "⚠️ ($($freq.value)h > $($recommendedMaxHours)h)"
+                    elseif ($freq.frequencyInterval -eq 'everyTime') {
+                        'Every time'
                     }
                     else {
+                        "$($freq.value) $($freq.type)"
+                    }
+
+                    if ($policiesWithCompliantFreq.id -contains $policy.id) {
+                        $isCompliant = '✅'
+                    }
+                    elseif ($freq.isEnabled -eq $true -and $freq.type -eq 'hours' -and $freq.value -gt $recommendedMaxHours) {
+                        $isCompliant = "⚠️ ($($freq.value)h > $($recommendedMaxHours)h)"
+                    }
+                    elseif ($freq.isEnabled -eq $true -and $freq.type -eq 'days') {
                         $isCompliant = '❌ (Days not recommended)'
                     }
                 }
