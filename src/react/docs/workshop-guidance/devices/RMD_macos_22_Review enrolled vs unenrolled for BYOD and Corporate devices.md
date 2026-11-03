@@ -9,7 +9,7 @@ A Zero Trust macOS strategy starts by deciding which populations must be fully e
 ## Implementation Guidance
 1. Separate device populations into at least three buckets: corporate-owned Macs that must be fully managed, personal Macs that may be allowed with defined limits, and devices that are not allowed to access sensitive resources.
 2. For corporate-owned Macs, use Apple Business Manager plus Automated Device Enrollment and require Intune management, compliance, encryption, and baseline apps before broad access is granted.
-3. For personally owned Macs, decide whether the organization allows full device enrollment, user enrollment, or only browser-based access with strong Conditional Access and document the privacy boundary for each option.
+3. For personally owned Macs, decide whether the organization allows device enrollment through Company Portal or only browser-based access with strong Conditional Access. Document the privacy boundary for each option; Intune does not support Apple User Enrollment for macOS.
 4. Build Conditional Access to match the model: compliant managed Macs for sensitive apps, lighter controls for lower-risk resources if permitted, and explicit blocks for scenarios outside policy.
 5. Publish a simple support matrix that explains what IT supports on corporate-owned devices versus personal devices and what data the organization can and cannot manage.
 
