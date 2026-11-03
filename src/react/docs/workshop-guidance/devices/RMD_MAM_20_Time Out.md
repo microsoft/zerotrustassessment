@@ -1,18 +1,19 @@
 # Time Out
 
-**Implementation Effort:** Low  
-This setting is configured within existing Intune App Protection Policies and does not require infrastructure changes or device enrollment.
+**Implementation Effort:** Low
 
-**User Impact:** Low  
-This setting operates in the background and does not require users to take action beyond reauthenticating after inactivity, which is a standard security expectation.
+**User Impact:** Low
 
 ## Overview
+The APP timeout control limits how long a managed app can remain idle before the user must re-authenticate to regain access to organizational data. It reduces the risk of unattended-device exposure without requiring the organization to manage the whole device.
 
-The **Time Out** setting in Microsoft Intune App Protection Policies (APP) defines how long a user can remain inactive before being required to reauthenticate using a PIN or biometric method. This helps prevent unauthorized access to corporate data if a device is left unattended. Admins can configure the timeout duration to balance security and user convenience, typically ranging from a few minutes to several hours.
+Timeout should not be chosen in isolation. It works with PIN and biometric settings, offline grace period, and the broader session design enforced by Microsoft Entra ID and Conditional Access.
 
-This setting supports the **Zero Trust principle of "Assume Breach"** by limiting the window of opportunity for unauthorized access in case a device is lost, stolen, or left unattended. Without a timeout policy, sensitive data in corporate apps could remain accessible indefinitely, increasing the risk of data leakage.
+## Implementation Guidance
+1. Open the relevant Android and iOS/iPadOS app protection policies in the Intune admin center and review the **Access requirements** settings.
+2. Configure the app inactivity timeout according to user risk and data sensitivity. Shorter values are usually appropriate for high-risk users and regulated workloads; broader user populations may tolerate a slightly longer interval to reduce friction.
+3. Test the experience in the apps your organization standardizes on, especially Outlook, Teams, OneDrive, and Office mobile apps. Confirm when the prompt appears and whether it requires PIN or biometric re-entry.
+4. Document the rationale for the chosen timeout so administrators understand why the organization selected that value instead of treating it as an arbitrary number.
 
 ## Reference
-
-- [Create and deploy app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policies)
-- [Understand app protection policy delivery and timing](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-delivery)
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Describes Intune app protection access requirements such as PIN, biometric, credential, and recheck controls.

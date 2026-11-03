@@ -1,20 +1,19 @@
 # Recheck Access Requirement
 
-**Implementation Effort:** Low  
-This setting is configured within existing Intune App Protection Policies and does not require infrastructure changes or device enrollment.
+**Implementation Effort:** Low
 
-**User Impact:** Low  
-Reauthentication happens in the background or during app use and does not require user training or significant behavior change.
+**User Impact:** Low
 
 ## Overview
+The **Recheck the access requirements after** setting controls how often a managed app must re-evaluate the user’s access conditions. It complements, but does not replace, inactivity timeout and broader Microsoft Entra session controls.
 
-The **Recheck Access Requirement** setting in Microsoft Intune App Protection Policies (APP) defines how frequently users must reauthenticate to continue accessing corporate data. Admins can configure this interval in minutes, prompting users to re-enter their app PIN or corporate credentials after a defined period of app usage or inactivity.
+This setting matters because it limits how long a previously validated app session can continue without being challenged again, which is especially important on shared, unattended, or higher-risk mobile devices.
 
-This setting is available for both iOS/iPadOS and Android platforms and is part of the broader access requirements configuration. It ensures that even if a device is left unattended or compromised, access to corporate data is not persistent without revalidation.
-
-This feature supports the **Zero Trust principle of "Verify Explicitly"** by enforcing periodic reauthentication based on time, reducing the risk of unauthorized access due to session hijacking or unattended devices.
+## Implementation Guidance
+1. In **Apps** > **App protection policies**, review the **Access requirements** section for the Android and iOS/iPadOS policies that use app PIN or related access controls.
+2. Configure the recheck interval based on the protection tier. More sensitive populations generally justify shorter intervals; general productivity users may need a balance that reduces repeated prompts during normal work.
+3. Document the difference between this setting, the app inactivity timeout, and any Microsoft Entra sign-in frequency or Conditional Access session controls so administrators do not create overlapping prompts accidentally.
+4. Test with pilot users over a realistic workday and confirm that the recheck cadence is understandable and supportable.
 
 ## Reference
-
-- [Understand app protection access requirements using Microsoft Intune](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-access-requirements?view=o365-worldwide)
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Describes Intune app protection access requirements such as PIN, biometric, credential, and recheck controls.

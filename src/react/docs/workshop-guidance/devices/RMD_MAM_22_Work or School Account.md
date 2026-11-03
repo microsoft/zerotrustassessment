@@ -1,22 +1,21 @@
 # Work or School Account
 
-**Implementation Effort:** Low  
-This setting is part of standard app protection policy configurations and does not require infrastructure changes or device enrollment.
+**Implementation Effort:** Low
 
-**User Impact:** Medium  
-Users must sign in with their organizational account, and may need guidance if they are using personal devices or multi-identity apps.
+**User Impact:** Medium
 
 ## Overview
+MAM policy is applied to the user’s organizational identity inside supported apps. That identity boundary is what allows Intune to protect work data differently from personal data in multi-identity app scenarios.
 
-In Microsoft Intune App Protection Policies (APP), a **Work or School Account** refers to the Microsoft Entra ID identity used to access corporate resources. These accounts are essential for applying app-level protections to corporate data on both managed and unmanaged devices. Intune APP can distinguish between corporate and personal identities in multi-identity apps (like Outlook), ensuring that protections apply only to work or school data.
+For Zero Trust guidance, the key lesson is that the work or school account is not just a sign-in requirement; it is the anchor that tells the app which data is corporate, which policy applies, and when selective wipe or restricted sharing should take effect.
 
-Admins can configure policies to prevent data transfer between work/school accounts and personal accounts, enforce encryption, and require authentication (e.g., PIN or biometric) for access. This helps protect sensitive data even on BYOD (Bring Your Own Device) scenarios.
-
-This setting supports the **Zero Trust principle of "Verify Explicitly"** by ensuring that access to corporate data is tied to authenticated organizational identities, and not personal accounts.
+## Implementation Guidance
+1. In the Intune admin center, target app protection policies to the correct **user groups** and verify that the intended users sign in with their Microsoft Entra work account in supported apps.
+2. Document which apps in scope are **multi-identity** and which are effectively **work-only**. This matters because the user experience differs when an app can hold both personal and organizational data.
+3. Use Conditional Access to ensure targeted cloud resources are accessed through approved apps and the protected work identity context. Without that pairing, users may find alternate access paths that bypass the intended mobile protection model.
+4. Test account switching, shared-device sign-out, and selective wipe behavior so the workshop content shows how the work identity is separated from personal content in practice.
 
 ## Reference
-
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
-- [Data protection framework using app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-framework)
-- [Troubleshoot user issues for Microsoft Intune app protection policies](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/troubleshoot-mam)
-
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.
+- **[Migrate approved client app to application protection policy in Conditional Access - Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/conditional-access/migrate-approved-client-app)** — Explains current Conditional Access guidance for requiring approved client apps or app protection policy with mobile devices.
+- **[Tutorial - Walkthrough the Microsoft Intune Admin Center - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/tutorial-admin-center-walkthrough)** — Shows where to review app protection policy status and troubleshoot affected users in the Intune admin center.

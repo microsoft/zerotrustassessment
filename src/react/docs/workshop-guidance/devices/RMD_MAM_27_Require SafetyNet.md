@@ -1,21 +1,21 @@
 # Require SafetyNet
 
-**Implementation Effort:** Low  
-This setting is a built-in configuration option within Intune App Protection Policies for Android and does not require infrastructure changes.
+**Implementation Effort:** Medium
 
-**User Impact:** Low  
-Users are not impacted unless their device fails the SafetyNet check, in which case access to corporate data is blocked.
+**User Impact:** Low
 
 ## Overview
+Android device integrity checks are essential for protecting organizational data on unmanaged (BYOD) and managed Android devices. Google replaced the legacy SafetyNet Attestation API with the **Google Play Integrity API**, which Microsoft Intune uses in App Protection Policy (APP) conditional launch and Android device compliance evaluations.
 
-The **Require SafetyNet** setting in Microsoft Intune App Protection Policies (APP) is used to verify the integrity of Android devices before allowing access to corporate data. SafetyNet is a Google Play service that checks whether a device is rooted, tampered with, or running a custom ROM. When enabled, Intune uses SafetyNet to assess the device's security posture and can block access or wipe corporate data if the device fails the check.
+From a Zero Trust perspective, the point is to prevent access from tampered or untrustworthy Android environments without relying on outdated terminology or retired APIs.
 
-This setting is especially useful in BYOD scenarios where devices are not enrolled in Intune but still need to meet minimum security standards. It ensures that only trusted, unmodified Android environments can access sensitive organizational resources.
-
-This feature supports the **Zero Trust principle of "Assume Breach"** by treating potentially compromised devices as untrusted and enforcing strict access controls based on real-time integrity checks.
+## Implementation Guidance
+1. In the Microsoft Intune admin center, open your Android app protection policy (**Apps > App protection policies**) and configure **Play Integrity verdict** under **Conditional launch > Device conditions**.
+2. Choose **Basic integrity**, **Device integrity**, or **Strong integrity** based on your user risk tier, and pair the check with **Min OS version** and **Min patch version** settings.
+3. If the organization uses Microsoft Defender for Endpoint or other supported mobile risk integrations, align Android integrity enforcement with those signals and the APP **Conditional launch** design instead of treating SafetyNet as a standalone checkbox.
+4. Test the scenario on current Android versions and supported devices, and document any prerequisites such as Google Play services availability or other platform dependencies called out by Microsoft.
 
 ## Reference
-
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
-- [Data protection framework using app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-framework)
-- [Conditional Access - Require approved app or app protection policy](https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-all-users-approved-app-or-app-protection)
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[Configure Microsoft Defender for Endpoint with Intune and onboard devices - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/microsoft-defender/configure-integration)** — Explains how Defender for Endpoint integrates with Intune app protection and threat-based controls.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.

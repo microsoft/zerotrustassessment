@@ -1,27 +1,25 @@
 # Encryption in App Protection Policies
 
-**Implementation Effort:** Low – IT administrators only need to enable encryption settings within the App Protection Policies in Microsoft Intune.
+**Implementation Effort:** Low
 
-**User Impact:** Low – Encryption is applied silently in the background, with no noticeable impact on user experience or required user action.
+**User Impact:** Low
 
 ## Overview
+Encryption in the MAM context means organizational data used by supported apps is protected at rest within the managed app experience, according to the platform capabilities and the Intune APP implementation documented by Microsoft. This is an important foundational control, but it should not be presented as a stand-alone security strategy.
 
-Encryption in Microsoft Intune App Protection Policies (APP) ensures that corporate data stored by managed apps is protected at rest on mobile devices. This is especially important in BYOD scenarios or on devices that are not enrolled in a Mobile Device Management (MDM) solution.
+For Zero Trust guidance, administrators should combine app data encryption with app PIN and biometric requirements, data transfer restrictions, conditional launch checks, and Conditional Access. The protection goal is to keep work data usable only inside the intended managed context.
 
-### Platform-Specific Behavior:
-
-- **Android**: Intune uses **wolfSSL** and **256-bit AES encryption**, integrated with the **Android Keystore system**, to encrypt app data. Encryption is applied synchronously during file I/O operations, ensuring that all content written to device storage is encrypted by default.
-
-- **iOS/iPadOS**: While iOS provides native encryption at the OS level, Intune App Protection Policies ensure that corporate data remains within managed apps and is not transferred to unprotected storage or apps. Encryption is enforced through data containment and access control policies.
-
-This encryption setting supports the Zero Trust principle of **assume breach** by ensuring that even if a device is compromised, corporate data remains encrypted and inaccessible to unauthorized apps or users. If not configured, sensitive data stored by apps like Outlook, Word, or Teams could be exposed through device-level vulnerabilities or unauthorized access.
+## Implementation Guidance
+1. Review the current Microsoft Learn guidance for how encryption is handled on **Android** and **iOS/iPadOS** in app protection policies because implementation details can change over time and should not be frozen into workshop text unless Microsoft documents them explicitly.
+2. In the relevant app protection policies, enable or retain the documented encryption protections and pair them with **Require PIN for access**, backup restrictions, and data transfer restrictions so encrypted data is not simply copied to an unmanaged destination.
+3. For regulated scenarios, confirm that device-level encryption, OS version requirements, and related compliance controls are handled in the device-management and Conditional Access layers as appropriate.
+4. Test supported app behavior on representative devices and record any app-specific limitations from Microsoft Learn rather than assuming identical encryption handling across every platform and client app.
 
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/VBUNETZN-c0?si=NU4hjTzsqU9SoNOw&amp;start=141" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-- [App protection policies overview – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)  
-- [Understand app data protection using Microsoft Intune](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-data-protection?view=o365-worldwide)  
-- [Create and deploy app protection policies – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policies)
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.

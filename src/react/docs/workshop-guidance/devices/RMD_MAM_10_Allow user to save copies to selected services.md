@@ -1,28 +1,22 @@
 # Allow User to Save Copies to Selected Services
 
-**Implementation Effort:** Low – IT administrators only need to configure this setting within the App Protection Policies for Android and iOS/iPadOS in Microsoft Intune.
+**Implementation Effort:** Low
 
-**User Impact:** Medium – A subset of users may experience changes in how they can save or export corporate data, depending on which services are allowed or blocked.
+**User Impact:** Medium
 
 ## Overview
+This APP control lets administrators make a limited exception to a broader **block save copies of org data** posture. Rather than allowing users to save work data anywhere, administrators can permit only specific trusted services or app destinations supported by Intune.
 
-The **“Allow user to save copies to selected services”** setting in Microsoft Intune App Protection Policies (APP) allows organizations to control where users can save copies of corporate data when the broader **“Save copies of org data”** setting is set to **Block**.
+Used correctly, this setting helps preserve productivity while maintaining Zero Trust data containment. Used loosely, it becomes an exception path that quietly undermines the broader data transfer strategy.
 
-This setting provides a more granular approach by allowing exceptions for specific services, such as:
-- **Microsoft OneDrive for Business**
-- **SharePoint Online**
-- **Local device storage (if explicitly allowed)**
-- **Other approved services integrated with Microsoft Intune**
-
-### Platform Support:
-- **Android**: Supported for apps like Microsoft Excel, OneNote, PowerPoint, Word, and Edge [1](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-android).
-- **iOS/iPadOS**: Supported for Excel, OneNote, Outlook, PowerPoint, Word, Edge, and some third-party or line-of-business (LOB) apps [2](https://learn.microsoft.com/en-us/mem/intune/apps/app-protection-policy-settings-ios?form=MG0AV3).
-
-By selectively allowing certain services, organizations can balance productivity and security—enabling users to save work to trusted cloud services while blocking personal or unmanaged destinations.
-
-This setting supports the Zero Trust principle of **least privilege access** by ensuring that corporate data is only saved to approved, policy-managed services. If not configured properly, users might save sensitive data to personal storage or unapproved apps, increasing the risk of data leakage.
+## Implementation Guidance
+1. First confirm the parent control is designed correctly. This setting is most useful when the broader save copies of organizational data behavior is restricted and you need to allow only a small set of approved destinations.
+2. In **Apps** > **App protection policies**, edit the relevant Android or iOS/iPadOS policy and review the data protection settings that govern save-as behavior and approved save locations.
+3. Allow only destinations that are part of the organization’s managed data path, typically Microsoft OneDrive for Business and SharePoint Online. Avoid broad allowances for local storage or consumer services unless there is a documented exception and compensating control.
+4. Test the supported app matrix. Save and open behaviors are not identical across Outlook, Office mobile apps, Edge, and line-of-business apps, so validate the exact workflows the business uses.
+5. Publish the approved-save-path standard: for example, users may save to OneDrive for Business or SharePoint Online from managed apps, but not to personal OneDrive, consumer storage apps, or unprotected local destinations.
 
 ## Reference
-
-- [Android app protection policy settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-android)  
-- [iOS/iPadOS app protection policy settings - Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/apps/app-protection-policy-settings-ios?form=MG0AV3)  
+- **[Android app protection policy settings in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Lists and explains Android-specific app protection policy settings in Intune.
+- **[iOS/iPadOS app protection policy settings in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Lists and explains iOS/iPadOS-specific app protection policy settings in Intune.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policies for managed apps and unenrolled devices.

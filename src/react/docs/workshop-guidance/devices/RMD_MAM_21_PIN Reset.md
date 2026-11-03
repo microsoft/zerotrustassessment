@@ -1,19 +1,20 @@
 # PIN Reset
 
-**Implementation Effort:** Low  
-PIN reset is handled on the user’s device and does not require admin-side configuration or infrastructure changes.
+**Implementation Effort:** Low
 
-**User Impact:** Low  
-Users can reset their PIN directly from the app interface, and no broad communication or training is typically required.
+**User Impact:** Low
 
 ## Overview
+Forgotten app PIN scenarios are common in MAM deployments and should be documented operationally, not just mentioned conceptually. The important design point is that APP PIN handling is app-centric and user-centric; administrators do not manage it the same way they manage a device sign-in password.
 
-In Microsoft Intune App Protection Policies (APP), users are required to set a PIN to access managed apps like Outlook, Teams, and OneDrive. If a user forgets their PIN, there is no admin-side reset option available in the Intune or Azure portals. Instead, users must reset the PIN themselves by either uninstalling and reinstalling the app or triggering a reset through the app interface, depending on the platform and policy configuration.
+Clear self-service and help desk procedures ensure support teams know when users can reset their app PIN locally through reauthentication and when a selective wipe is appropriate.
 
-This approach supports the **Zero Trust principle of "Verify Explicitly"** by ensuring that only the user can reset their authentication method, reducing the risk of unauthorized access. However, if not properly communicated, users may become frustrated or confused when they cannot reset their PIN through IT support.
+## Implementation Guidance
+1. Configure the **Number of tries before PIN reset** (maximum PIN attempts) under **Conditional launch** in the Microsoft Intune admin center (**Apps > App protection policies**).
+2. Document the user flow for a forgotten APP PIN based on the current Microsoft Learn guidance for supported apps and platforms. Depending on the app and platform, users may be able to trigger a reset experience in-app after successful reauthentication, or they may need app-data reset or reinstall behavior documented by Microsoft.
+3. Document the IT support path separately: support staff can typically validate account status, confirm policy assignment, and use **selective wipe** of organizational app data when appropriate, but they should not treat the APP PIN as a recoverable admin-set secret.
+4. Include a test procedure in the workshop: deliberately forget the app PIN on pilot devices, walk through the documented reset path, and confirm that the support script matches the real user experience.
 
 ## Reference
-
-- [How to reset Intune (App protection policy) PIN with MAM setup](https://learn.microsoft.com/en-us/answers/questions/887935/how-to-reset-intune-%28app-protection-policy%29-pin-wi)
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
-- [PIN reset for Windows Hello for Business (not APP-specific)](https://learn.microsoft.com/en-us/windows/security/identity-protection/hello-for-business/pin-reset)
+- **[Tutorial - Walkthrough the Microsoft Intune Admin Center - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/tutorial-admin-center-walkthrough)** — Shows where to review app protection policy status and troubleshoot affected users in the Intune admin center.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.

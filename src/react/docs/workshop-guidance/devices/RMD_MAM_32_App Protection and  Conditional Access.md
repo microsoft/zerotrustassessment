@@ -1,23 +1,24 @@
 # App Protection and Conditional Access
 
 **Implementation Effort:** Low  
-Once foundational policies are in place, enabling app protection with Conditional Access is a straightforward configuration within Intune and Entra ID.
-
-**User Impact:** Medium  
-Users may be required to switch to approved apps (e.g., Outlook instead of native mail apps) and complete additional authentication steps, which may require communication and support.
+**User Impact:** Medium
 
 ## Overview
 
-**App Protection and Conditional Access** work together in Microsoft Intune to ensure that only trusted apps and users can access corporate data. App Protection Policies (APP) define how data is protected within apps, while Conditional Access policies control who can access what, under which conditions. When combined, this is known as **App-based Conditional Access**.
+App protection policies and Conditional Access work together to protect Microsoft 365 data on mobile devices without requiring full device management in every case. App protection policies control what happens inside supported apps, while Conditional Access determines whether the user session is allowed based on identity, device, app, and risk conditions.
 
-For example, an organization can enforce that only apps with Intune APP applied—like Microsoft Outlook—can access Exchange Online, while blocking native mail apps. Conditional Access policies can also require device compliance, multi-factor authentication, or app-based restrictions before granting access to Microsoft 365 services.
+This combination is central to Zero Trust mobile access. It lets organizations support BYOD while still requiring approved access paths for Exchange Online, SharePoint, Teams, and related services.
 
-This integration supports both managed and unmanaged (BYOD) devices, providing flexibility while maintaining security. It ensures that only apps that support modern authentication and are protected by Intune policies can access sensitive data.
+## Implementation Guidance
 
-This setup supports the **Zero Trust principles of "Verify Explicitly"** and **"Use Least Privilege Access"** by enforcing identity, device, and app conditions before granting access to corporate resources.
+1. Start by defining the supported mobile access path. For most tenants, the standard should be Microsoft 365 mobile apps that can receive Intune app protection policy, not native mail clients or unmanaged third-party apps.
+2. In the Microsoft Intune admin center, create app protection policies for iOS/iPadOS and Android. Configure PIN, encryption, selective wipe, data transfer restrictions, and conditional launch settings such as maximum offline time and device threat level.
+3. In the Microsoft Entra admin center, create Conditional Access policies that target the cloud apps you need to protect, such as Exchange Online, SharePoint Online, and Microsoft Teams. Use grant controls that require an app protection policy on supported mobile platforms, and add multifactor authentication or sign-in risk controls where appropriate.
+4. Exclude emergency access accounts and stage the rollout. Use report-only mode where feasible, monitor sign-in logs for unexpected blocks, and validate that unmanaged clients are denied while protected apps continue to work.
+5. Document the user journey. Users should know which apps are required, what enrollment or sign-in steps to expect, and what to do when access is blocked because a device is not meeting app protection or authentication requirements.
 
 ## Reference
 
-- [Use app-based Conditional Access policies with Intune](https://learn.microsoft.com/en-us/intune/intune-service/protect/app-based-conditional-access-intune)
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
-- [Conditional Access - Require approved app or app protection policy](https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-all-users-approved-app-or-app-protection)
+- **[Migrate approved client app to application protection policy in Conditional Access - Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/conditional-access/migrate-approved-client-app)** — Explains current Conditional Access guidance for requiring approved client apps or app protection policy with mobile devices.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Summarizes Intune app protection policy concepts, platform coverage, and policy behavior.
+- **[Plan Your Microsoft Entra Conditional Access Deployment - Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)** — Provides planning guidance for piloting, validating, and rolling out Conditional Access policies safely.

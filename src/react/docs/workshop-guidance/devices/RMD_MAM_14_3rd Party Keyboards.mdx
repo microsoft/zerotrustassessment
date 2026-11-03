@@ -1,26 +1,26 @@
 # 3rd Party Keyboards for iOS
 
-**Implementation Effort:** Low  
-This setting is a targeted configuration within Microsoft Intune App Protection Policies and can be applied without requiring major infrastructure changes.
+**Implementation Effort:** Low
 
-**User Impact:** Medium  
-Blocking third-party keyboards may affect a subset of users who rely on them for accessibility, language input, or productivity, and they may need to be notified or trained on alternatives.
-
-Example of 3rd party keyboard EULA on iOS Device
-https://github.com/microsoft/zerotrustassessment/assets/20829177/d70a3ecb-8b48-4f63-af5f-f44eec79fa6a
+**User Impact:** Medium
 
 ## Overview
+On iOS and iPadOS, Intune app protection can restrict third-party keyboard use in supported managed apps so that work data entry stays within more trusted input paths. This is a useful Zero Trust control where the organization wants to reduce the risk of data capture by keyboard extensions.
 
-Blocking third-party keyboards on iOS devices is a security control available through Microsoft Intune's App Protection Policies (APP). This setting helps prevent potential data leakage by ensuring that only the system keyboard — which is more trusted and controlled — is used when entering corporate data. Third-party keyboards can pose a risk because they may capture keystrokes or transmit data externally, especially if they are not vetted or managed by the organization.
+Because some users rely on third-party keyboards for accessibility, multilingual input, or productivity, the organization should treat this as a policy decision that requires communication, testing, and an exception process.
 
-This control supports the **Zero Trust principle of "Assume Breach"** by minimizing the attack surface and reducing the risk of sensitive data being exposed through untrusted input methods. If not implemented, organizations risk data exfiltration through compromised or malicious keyboard apps.
+## Implementation Guidance
+1. In the Microsoft Intune admin center, edit the applicable **iOS/iPadOS** app protection policy and review the keyboard and input controls documented for APP on that platform.
+2. Enable the setting that restricts third-party keyboards in supported managed apps. Confirm the exact current UI text in Microsoft Learn before publishing final workshop guidance.
+3. Pilot with users who depend on different input methods, especially accessibility scenarios, before broad enforcement. Document what happens in Outlook, Teams, and Microsoft 365 apps when the restriction is active.
+4. Coordinate with user communications so employees understand that the restriction applies when entering organizational data in managed apps, not necessarily across the whole personal device.
+5. Maintain an exception path for validated accessibility or language-input needs if the business determines the risk can be accepted with compensating controls.
 
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/fu6fioaSjp4?si=4s2-aF2Lw_xvUOI-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-- [Understand app data protection using Microsoft Intune](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-data-protection?view=o365-worldwide)
-- [Data protection framework using app protection policies](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-framework)
-- [iOS/iPadOS device settings in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/configuration/device-restrictions-ios)
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.
+- **[Tutorial - Walkthrough the Microsoft Intune Admin Center - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/tutorial-admin-center-walkthrough)** — Shows where to review app protection policy status and troubleshoot affected users in the Intune admin center.

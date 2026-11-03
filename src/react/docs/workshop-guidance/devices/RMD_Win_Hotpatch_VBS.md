@@ -27,3 +27,4 @@ This supports *Assume breach* and *Verify explicitly* by combining VBS memory is
 - [Hotpatch updates in Windows Autopatch](https://aka.ms/HotpatchByDefault)
 - [Protect your estate: Reassess your Windows update policies (Autopatch update risk visibility)](https://aka.ms/ReassessProtect)
 - [Manage Windows quality updates in Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-updates/windows/manage-quality-updates)
+- **[What is Windows Autopatch?](https://learn.microsoft.com/en-us/windows/deployment/windows-autopatch/overview/windows-autopatch-overview)** — Introduces the Windows Autopatch service and what it manages.

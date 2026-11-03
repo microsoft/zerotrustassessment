@@ -1,19 +1,24 @@
 # 150: Endpoint Analytics
 
+**Implementation Effort:** Medium — turning telemetry into action requires ownership and process, not just enabling the feature.
+
+**User Impact:** Low — the capability is mostly transparent to end users, but the remediations it drives may change device behavior over time.
+
 ## Overview
+Endpoint analytics in Microsoft Intune gives administrators visibility into startup performance, application reliability, resource health, and other user-experience indicators across managed devices. In a Zero Trust operating model, this matters because unhealthy devices create friction that often drives users toward unsafe workarounds. Strong visibility helps teams address degraded devices proactively, reduce service disruption, and keep secure configurations usable at scale.
 
-**Endpoint Analytics** in Intune provides insights into the performance and health of your devices. It helps identify issues that might be affecting user productivity, such as long boot times or software configurations that aren't optimized. By collecting and analyzing data from your devices, Endpoint Analytics enables IT to proactively address these issues before they impact users.
+## Implementation Guidance
+- Enable the required data collection for eligible devices and verify that privacy, telemetry, and governance requirements are understood before broad onboarding.
+- Define which Endpoint analytics reports matter most for your organization, such as startup performance, application reliability, device scores, or work-from-anywhere health indicators.
+- Assign operational owners for triage so poor scores actually trigger action, whether that means remediation scripts, driver cleanup, hardware refresh, policy tuning, or app engineering work.
+- Use the data to improve secure user experience, not just produce dashboards. For example, long startup delays caused by security tooling should be investigated rather than accepted as a permanent tradeoff.
+- Review segmentation and RBAC so administrators see the data they need without overexposing sensitive device or user context.
+- Track outcome metrics over time to show whether remediation work is reducing support demand and improving device readiness.
 
-To use Endpoint Analytics, you need to enable data collection on your devices. This involves creating a policy in Intune that targets the devices you want to monitor. The data collected includes information about boot times, application performance, and other metrics that can help you understand and improve the user experience.
-
-Endpoint Analytics supports the Zero Trust security model by providing visibility into device health and performance. Zero Trust assumes that breaches can occur at any time, so continuous monitoring and assessment are crucial
-
-* * *
-### **Video Walkthrough**
+## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/hI-nD7E0PnQ?si=-WhYMibV4ILoVUwM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-* [What is Endpoint analytics?](https://learn.microsoft.com/en-us/mem/analytics/overview)
-
+- **[Endpoint analytics overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/endpoint-analytics/)** — Introduces Endpoint analytics and the core performance, reliability, and experience insights it provides.
+- **[Use Remediations to Detect and Fix Support Issues - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-management/tools/deploy-remediations)** — Explains how to deploy and monitor Remediations in Microsoft Intune.

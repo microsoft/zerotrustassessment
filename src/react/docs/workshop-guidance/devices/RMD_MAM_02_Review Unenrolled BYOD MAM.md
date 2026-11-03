@@ -1,30 +1,24 @@
 # Review Unenrolled BYOD MAM in the Context of Intune App Protection Policies
 
-**Implementation Effort:** Medium – IT and Security Operations teams must configure app protection policies, define app configuration profiles, and maintain ongoing support for BYOD users.
+**Implementation Effort:** Medium
 
-**User Impact:** High – A large number of non-privileged users with personal (BYOD) devices must follow new app usage rules, install or update apps, and adapt to new access and security behaviors.
+**User Impact:** High
 
 ## Overview
+Unenrolled BYOD MAM is the core Intune pattern for protecting corporate data on personal mobile devices without requiring full device enrollment. Users sign in to supported apps with their Microsoft Entra work account, and Intune applies app protection policy to the work identity inside the app.
 
-Mobile Application Management (MAM) for unenrolled devices in Microsoft Intune allows organizations to protect corporate data at the app level without requiring full device enrollment. This is especially useful in Bring Your Own Device (BYOD) scenarios, where users access corporate resources like Outlook or Teams from personal devices.
+This model is well suited to organizations that need strong data protection but want to minimize privacy concerns and enrollment friction for personally owned devices. The tradeoff is that protection is limited to supported apps and app-layer controls; it is not a substitute for device compliance on corporate-owned or regulated endpoints.
 
-MAM uses **App Protection Policies (APP)** to enforce controls such as:
-- Requiring PINs to access apps
-- Blocking copy/paste between managed and unmanaged apps
-- Encrypting app data at rest
-
-These policies apply only to supported apps and do not affect the rest of the device. MAM is available on Android and iOS/iPadOS.
-
-When deployed across a large workforce, especially in hybrid or remote environments, the user impact becomes high. Many users must:
-- Install the Company Portal or Microsoft Intune app
-- Accept new terms of use
-- Learn how to use protected apps differently (e.g., no copy/paste)
-- Contact support for setup or troubleshooting
-
-This approach supports the Zero Trust principle of **least privilege access** by ensuring that only approved apps can access corporate data, and that data remains protected even if the device is unmanaged. Without MAM, organizations risk data leakage from personal devices that access sensitive content without any policy enforcement.
+## Implementation Guidance
+1. In the Microsoft Intune admin center, create platform-specific app protection policies for **Android** and **iOS/iPadOS** under **Apps** > **App protection policies**.
+2. Target **user groups** that represent BYOD users. Avoid mixing unenrolled BYOD users and fully managed corporate device users in the same policy unless the experience has been intentionally designed and tested.
+3. Configure baseline BYOD controls: **Send org data to other apps = Policy managed apps**, require a **PIN** for access, allow **biometrics** if permitted by policy, block **backup** to personal cloud services where supported, and set **conditional launch** actions for offline grace period, jailbroken/rooted devices, minimum app version, and threat signals if Microsoft Defender for Endpoint or another supported mobile threat defense solution is integrated.
+4. Create or review the relevant **Conditional Access** policies so Exchange Online, SharePoint Online, and other targeted resources require an approved client app and or app protection policy for mobile access.
+5. Document end-user prerequisites by platform. For example, some Android MAM scenarios rely on Company Portal presence even when the device is not enrolled, and some scenarios depend on Microsoft Edge or Defender for Endpoint when you use related controls.
+6. Pilot with a small user group and test common flows: Outlook sign-in, opening SharePoint links, copy/paste to unmanaged apps, saving files, selective wipe, and re-authentication after inactivity.
 
 ## Reference
-
-- [Mobile Application Management (MAM) for unenrolled devices in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe)  
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)  
-- [MAM and Android Enterprise personally owned devices](https://learn.microsoft.com/en-us/intune/intune-service/apps/android-deployment-scenarios-app-protection-work-profiles)
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policies for managed apps and unenrolled devices.
+- **[Use app-based Conditional Access policies with Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/conditional-access-integration/app-based-policies)** — Explains how app-based Conditional Access works with Intune app protection policies.
+- **[Android app protection policy settings in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Lists and explains Android-specific app protection policy settings in Intune.
+- **[iOS/iPadOS app protection policy settings in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Lists and explains iOS/iPadOS-specific app protection policy settings in Intune.

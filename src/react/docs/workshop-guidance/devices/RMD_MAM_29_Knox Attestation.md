@@ -1,21 +1,24 @@
 # Knox Attestation
 
 **Implementation Effort:** Low  
-Knox Attestation is a built-in option for supported Samsung devices and can be enabled through a simple policy configuration in Intune.
-
-**User Impact:** Low  
-Users are not affected unless their device fails the attestation check, in which case access to corporate data is silently blocked or wiped.
+**User Impact:** Low
 
 ## Overview
 
-**Knox Attestation** is a hardware-backed integrity check available on Samsung devices that verifies whether the device has been tampered with or rooted. In Microsoft Intune, administrators can configure App Protection Policies (APP) to require Knox Attestation as a condition for accessing corporate data. If the device fails the attestation check, Intune can automatically wipe organizational data from the app.
+Samsung Knox attestation gives organizations an additional device integrity signal on supported Samsung Android devices. In Microsoft Intune, this signal is most relevant when you want stronger assurance that a device accessing organizational data has not been rooted or tampered with.
 
-This setting is particularly useful in high-security environments where device integrity is critical. It ensures that only healthy, unmodified Samsung devices can access sensitive data, even in BYOD scenarios. Microsoft recommends setting the Knox Attestation policy action to **"Wipe data"** to ensure corporate data is removed if the device fails the check.
+This control should be positioned as a targeted enhancement, not as the entire Android trust strategy. Use it together with Android Enterprise enrollment choices, app protection policies, mobile threat defense, and Conditional Access so Samsung devices are protected consistently with the rest of the mobile fleet.
 
-This feature supports the **Zero Trust principle of "Assume Breach"** by enforcing hardware-level verification of device health before granting access to corporate resources.
+## Implementation Guidance
+
+1. First confirm scope. Knox attestation only applies to supported Samsung devices, so identify whether it is required for all Samsung users or only for high-sensitivity groups such as executives, developers, or regulated business units.
+2. In the Microsoft Intune admin center, create or update the Android app protection policy that applies to Samsung users. Review the Conditional launch settings and enable the Samsung Knox attestation-related control where available in your tenant UI.
+3. Set a clear action for failure. In most environments, Block access is appropriate immediately, followed by Wipe organizational data after a defined interval if the device does not return to a healthy state. Document the user support process before broad rollout.
+4. Pair the policy with Conditional Access and app targeting. Require protected client apps for Exchange Online, SharePoint, and Teams so organizational data is accessed only through apps that can enforce Intune policy.
+5. Pilot on representative Samsung models and Android versions. Validate both success and failure behavior, including what users see in Outlook or Teams when attestation fails and how help desk staff can distinguish policy blocks from general sign-in problems.
 
 ## Reference
 
-- [Step 3. Apply high data protection | Microsoft Learn](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-step-3?view=o365-worldwide)
-- [Data protection framework using app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-framework)
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[Migrate approved client app to application protection policy in Conditional Access - Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/conditional-access/migrate-approved-client-app)** — Explains current Conditional Access guidance for requiring approved client apps or app protection policy with mobile devices.
+- **[Android device enrollment guide for Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-enrollment/android/guide)** — Summarizes Android Enterprise enrollment options in Intune, including Samsung Knox Mobile Enrollment guidance.

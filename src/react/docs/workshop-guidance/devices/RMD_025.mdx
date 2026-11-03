@@ -1,23 +1,36 @@
 # 025: Data protection framework using App protection
 
+> **Implementation Effort:** Medium  
+> **User Impact:** Medium
+
 ## Overview
-As more organizations implement mobile device strategies for accessing work or school data, protecting against data leakage becomes paramount. Intune's mobile application management solution for protecting against data leakage is App Protection Policies (APP). APP are rules that ensure an organization's data remains safe or contained in a managed app, regardless of whether the device is enrolled. For more information, see App protection policies overview.
+Microsoft publishes a data protection framework for Intune app protection policies so organizations can phase controls based on risk. This is useful for Zero Trust because it lets you start with a practical baseline for all mobile users, then add stronger controls for sensitive roles or higher-risk data.
 
-When configuring App Protection Policies, the number of various settings and options enable organizations to tailor the protection to their specific needs. Due to this flexibility, it may not be obvious which permutation of policy settings are required to implement a complete scenario. To help organizations prioritize client endpoint hardening endeavors, Microsoft has introduced a new taxonomy for security configurations in Windows 10, and Intune is leveraging a similar taxonomy for its APP data protection framework for mobile app management.
+To operationalize the framework effectively, administrators should map each user population to Level 1, Level 2, or Level 3 and define which policy controls tighten between each level.
 
-The APP data protection configuration framework is organized into three distinct configuration scenarios:
+## Implementation Guidance
+1. Define user populations first:
+   - **Level 1 / Basic**: broad mobile workforce
+   - **Level 2 / Enhanced**: users handling confidential data
+   - **Level 3 / High**: highly targeted roles, privileged or regulated populations
+2. Build separate Intune app protection policies for each level rather than one policy with many exceptions.
+3. Use Level 1 to establish the minimum Zero Trust baseline, such as:
+   - Require PIN or biometric-backed app access where appropriate
+   - Restrict copy/paste from managed to unmanaged apps
+   - Prevent saving organizational data to personal storage locations
+4. Use Level 2 to increase resistance to data leakage and outdated clients, such as stricter data transfer settings, shorter offline grace periods, and stronger launch requirements.
+5. Use Level 3 for the highest-risk roles, often including aggressive data movement restrictions, tighter version requirements, and stricter response actions when risk conditions are detected.
+6. Align each level with Microsoft Entra Conditional Access so cloud access requirements and app protection requirements reinforce each other.
+7. Publish support documentation that explains what users should expect when moving between levels.
 
-Level 1 enterprise basic data protection – Microsoft recommends this configuration as the minimum data protection configuration for an enterprise device.
-
-Level 2 enterprise enhanced data protection – Microsoft recommends this configuration for devices where users access sensitive or confidential information. This configuration is applicable to most mobile users accessing work or school data. Some of the controls may impact user experience.
-
-Level 3 enterprise high data protection – Microsoft recommends this configuration for devices run by an organization with a larger or more sophisticated security team, or for specific users or groups who are at uniquely high risk (users who handle highly sensitive data where unauthorized disclosure causes considerable material loss to the organization). An organization likely to be targeted by well-funded and sophisticated adversaries should aspire to this configuration.
+Treat the framework as a living standard. Reassess it when new app protection capabilities appear, when business units adopt new mobile apps, or when your threat model changes.
 
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/E6OCXXSWD2s?si=fqmKW4Ly-JE7-TnN" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-* https://learn.microsoft.com/en-us/mem/intune/apps/app-protection-framework 
-
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Provides an overview of Intune app protection policies for managed apps.
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details the available Intune app protection policy settings for Android devices.
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details the available Intune app protection settings for iOS and iPadOS apps.
+- **[Data Protection Framework Using App Protection Policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/data-protection-framework)** — Explains the Intune app data protection levels and framework used to secure corporate data in managed apps.

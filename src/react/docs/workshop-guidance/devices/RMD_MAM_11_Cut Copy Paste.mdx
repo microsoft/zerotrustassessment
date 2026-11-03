@@ -1,35 +1,27 @@
 # Cut, Copy, Paste in App Protection Policies
 
-**Implementation Effort:** Low – IT administrators only need to configure this setting within the App Protection Policies in Microsoft Intune.
+**Implementation Effort:** Low
 
-**User Impact:** Medium – A subset of users may experience changes in how they can move or share content between apps, especially when using personal or unmanaged apps.
+**User Impact:** Medium
 
 ## Overview
+Clipboard control is one of the most visible and effective APP protections. It determines whether users can move data from a managed work context into other apps, which directly affects the risk of accidental or deliberate exfiltration.
 
-The **“Restrict cut, copy, and paste between other apps”** setting in Microsoft Intune App Protection Policies (APP) controls how users can transfer data between managed and unmanaged apps. This is a key control for preventing data leakage, especially in BYOD environments or on devices with both personal and work profiles.
+Because this control is user-visible, the goal is not simply to choose the most restrictive option; it is to define a policy that protects sensitive data while still enabling legitimate cross-app work inside the managed app ecosystem.
 
-### Available Options for Android and iOS:
-- **Blocked** – Prevents all cut, copy, and paste actions between managed and unmanaged apps.
-- **Policy managed apps** – Allows cut, copy, and paste only between apps that are managed by Intune.
-- **Policy managed apps with paste in** – Allows paste from unmanaged apps into managed apps, but blocks copying from managed apps to unmanaged ones.
-- **Any app** – No restrictions; users can cut, copy, and paste between any apps [1](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/troubleshoot-cut-copy-paste) [2](https://learn.microsoft.com/en-us/answers/questions/50143/app-protection-policy-prevent-copying-from-managed).
-
-#### Additional Control:
-- **Cut and copy character limit** – Admins can define a maximum number of characters that can be copied from managed apps, even when restrictions are in place [1](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/troubleshoot-cut-copy-paste).
-
-### Available Options for Windows:
-- **Any destination and any source** – Org users can paste data from and cut/copy data to any account, document, location, or application.
-- **No destination or source** – Org users can't cut, copy, or paste data to or from external accounts, documents, locations or applications from or into the org context. 
-**NOTE**: For Microsoft Edge, No destination or source blocks cut, copy, and paste behavior within the web content only. Cut, copy, and paste are disabled from all web content, but not application controls, including the address bar.
-This setting supports the Zero Trust principle of **assume breach** by ensuring that sensitive organizational data cannot be exfiltrated via clipboard operations to unmanaged or personal apps. If not configured properly, users may inadvertently copy confidential information from apps like Outlook or Teams into personal apps like WhatsApp or Notes.
+## Implementation Guidance
+1. In the Intune admin center, edit the relevant app protection policies and review **Restrict cut, copy, and paste between other apps** in the data protection settings.
+2. For most organizations, **Policy managed apps** is the best default because it allows productivity inside the managed ecosystem while blocking transfer to personal apps. Use **Policy managed apps with paste in** only where business workflows genuinely require inbound paste from unmanaged apps. Use **None** or the most restrictive equivalent for higher-sensitivity populations. Treat **Any app** as an exception.
+3. If the current platform supports a character limit or other refinements, define them explicitly for high-risk groups instead of applying one global setting to everyone.
+4. Document Windows separately. Windows app protection and Microsoft Edge behaviors are not identical to Android and iOS/iPadOS, so the workshop should not imply a single cross-platform experience.
+5. Test with the real app portfolio: Outlook to Teams, Outlook to OneDrive, Word to personal Notes, browser copy and paste, and any line-of-business apps that claim APP support.
 
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/VBUNETZN-c0?si=cEuRAbFzOkeyUjAe" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-- [Troubleshoot restricting cut, copy, and paste between applications - Intune](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/troubleshoot-cut-copy-paste)  
-- [iOS app protection policy settings in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-ios#data-protection)
-- [Android app protection policy settings in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-android)
-- [App protection policy settings for Windows - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-windows) 
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.
+- **[App Protection Policy Settings for Windows - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-windows)** — Describes Windows app protection policy settings, including protected access to organizational data through Microsoft Edge on personal Windows devices.
+- **[Tutorial - Walkthrough the Microsoft Intune Admin Center - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/tutorial-admin-center-walkthrough)** — Shows where to review app protection policy status and troubleshoot affected users in the Intune admin center.

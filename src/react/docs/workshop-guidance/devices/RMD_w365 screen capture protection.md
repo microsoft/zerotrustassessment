@@ -1,19 +1,24 @@
 # Windows 365: Screen Capture Protection
 
 **Implementation Effort:** Medium  
-Configuration requires policy deployment via Intune or Group Policy and testing across supported platforms, especially for mixed-device environments.
-
-**User Impact:** Medium  
-Users may be restricted from using screen sharing or collaboration tools like Teams during Cloud PC sessions, and unsupported platforms may be blocked from connecting.
+**User Impact:** Medium
 
 ## Overview
 
-Screen capture protection in Windows 365 prevents sensitive content from being captured through screenshots or screen sharing tools on client devices. When enabled, this feature blocks remote desktop content from being visible in screenshots. Additionally, on MacOS screen capture protection prevents screen sharing within Microsoft Teams. It can be configured to block screen capture either on the client side only or on both the client and session host, depending on the security requirements.
+Screen capture protection reduces the risk that sensitive information displayed in a Windows 365 session can be captured through supported screenshot or screen-sharing mechanisms on the client device. This is especially relevant for privileged workflows, regulated data, and scenarios where Cloud PCs are accessed from endpoints the organization does not fully trust.
 
-This feature is enforced by the Windows app on Windows, macOS, iOS, and Android. It is not supported on web client. See the below link for details the configuration, as it can vary for different operating systems. Organizations must carefully plan deployment based on the platforms their users connect from. If not implemented, sensitive data displayed in Cloud PC sessions may be exposed through screen capture tools, increasing the risk of data leakage.
+It is important to position the control accurately: it can reduce digital capture opportunities, but it does not stop a user from photographing a screen with another device. As part of Zero Trust, it is best combined with watermarking, least-privilege access, and deliberate client support standards.
 
-Screen capture protection cannot prevent physical photography of the screen. However, it supports the Zero Trust principle of **\"Assume breach\"** by helping trace and deter data exfiltration attempts.
+## Implementation Guidance
 
-# Reference
+1. Confirm client support before enabling the feature broadly. Review Microsoft documentation for supported Windows 365 connection clients and operating systems, because unsupported clients may not enforce the setting and may need to be blocked or redirected to an approved connection method.
+2. Configure screen capture protection through the supported Windows management path for Cloud PCs, typically via Microsoft Intune policy settings or the equivalent session-host policy surfaced in Intune or Group Policy. Standardize one approved deployment path to avoid conflicting settings.
+3. Scope the control by sensitivity tier. High-risk or regulated data users may require protection by default, while broad populations might first need impact assessment because some collaboration or support workflows can change.
+4. Pilot on Windows, macOS, iOS, and Android clients actually used in your organization. Validate user behavior for screenshots, screen sharing, and Teams-based collaboration where Microsoft documentation notes platform-specific differences.
+5. Update support documentation. Users and help desk teams should understand why capture is blocked, which client is approved, and what alternative sharing methods are acceptable.
 
-- [Enable screen capture protection in Azure Virtual Desktop](https://learn.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection)
+## Reference
+
+- **[Screen capture protection in Azure Virtual Desktop - Azure Virtual Desktop](https://learn.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection)** — Explains screen capture protection for Azure Virtual Desktop and Windows 365 Cloud PCs.
+- **[Accessing Cloud PCs](https://learn.microsoft.com/en-us/windows-365/end-user-access-cloud-pc)** — Lists the supported clients and access methods for Windows 365 Cloud PCs.
+- **[Create a policy using settings catalog in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-configuration/settings-catalog/)** — Shows how to configure Windows settings in Intune by using Settings Catalog policies.

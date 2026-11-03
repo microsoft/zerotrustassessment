@@ -21,7 +21,17 @@ Key 2025–2026 updates include:
 - **Actionable Query Results (April 2026 / 2604):** Admins can search and filter across multi-device query results, click directly into device pages, and **create Microsoft Entra security groups directly from a KQL query's device results** for immediate remediation targeting.
 - **Android BYOD Work Profile Inventory (August 2026 / 2608):** Extends Device Inventory and Multi-Device Query to personally owned Android Enterprise devices with a work profile (via AMAPI).
 
+## Implementation Guidance
+
+1. Confirm prerequisites first: licensing, device enrollment state, data collection readiness, and role-based access for the IT staff who will use the feature. Decide which teams need read-only visibility versus those who can act on findings.
+2. In the Intune admin center, review the Endpoint Analytics and Advanced Analytics areas and pilot with a representative set of managed Windows devices. Make sure the data you expect to analyze is actually flowing before promising outcomes to stakeholders.
+3. Define operational use cases up front. Common examples include detecting performance regressions after a policy change, investigating device startup or application issues, and using device query capabilities to find machines with a risky configuration or outdated component.
+4. Link findings to action. If analytics identifies poor restart behavior, app failures, or resource issues, route those findings into your support, engineering, or security workflows rather than treating the tool as a passive dashboard.
+5. Review analytics trend lines after major policy, image, or update changes. This makes the feature much more valuable than occasional ad hoc troubleshooting.
+
 ## Reference
 
 - [Device query for multiple devices in Microsoft Intune](https://learn.microsoft.com/en-us/intune/advanced-analytics/device-query-multiple-devices)
 - [Use the Intune properties catalog to collect device hardware and registry properties](https://learn.microsoft.com/en-us/intune/device-configuration/collect-device-properties)
+- **[Endpoint analytics overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/endpoint-analytics/)** — Introduces Endpoint analytics and what insights it provides in Intune.
+- **[Advanced Analytics Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/advanced-analytics/)** — Introduces Intune Advanced Analytics capabilities and reporting features.

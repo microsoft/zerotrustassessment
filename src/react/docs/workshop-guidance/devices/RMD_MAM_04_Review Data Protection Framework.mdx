@@ -1,29 +1,26 @@
 # Review Data Protection Framework
 
-**Implementation Effort:** Medium – IT and Security Operations teams must assess organizational risk levels, map users to protection tiers, and configure appropriate App Protection Policies (APP) in Intune.
+**Implementation Effort:** Medium
 
-**User Impact:** High – A large number of non-privileged users will experience changes in app behavior, such as stricter access controls, blocked data sharing, and additional authentication requirements, depending on their assigned protection level.
+**User Impact:** High
 
 ## Overview
+The Intune app protection data protection framework is intended to help organizations standardize MAM settings at increasing levels of protection. In a Zero Trust workshop, the value of the framework is not the labels alone; it is the repeatable decision model that maps data sensitivity, user risk, and usability needs to concrete Intune settings.
 
-The **Data Protection Framework** in Microsoft Intune is a structured approach to applying **App Protection Policies (APP)** that safeguard organizational data within managed apps—regardless of whether the device is enrolled. This framework helps organizations prevent data leakage and align protection levels with user risk profiles and data sensitivity.
+Most organizations should define a baseline mobile app protection profile for all users, a stricter profile for users who access sensitive business data, and a high-protection profile for privileged, regulated, or high-risk users. This avoids one-size-fits-all policies while still keeping policy sprawl manageable.
 
-The framework is divided into three levels:
-
-- **Level 1 – Enterprise Basic Protection**: Minimum recommended settings for general enterprise use. Offers baseline protections like PIN requirements and basic data encryption.
-- **Level 2 – Enterprise Enhanced Protection**: Designed for users accessing sensitive or confidential data. Adds stricter controls such as blocking data transfer between apps and enforcing biometric access.
-- **Level 3 – Enterprise High Protection**: Intended for high-risk users or organizations targeted by advanced threats. Includes the most restrictive settings, such as preventing data backup and requiring device compliance.
-
-When deployed broadly across an organization, this framework significantly impacts users. Many will need to adapt to new app behaviors, such as blocked copy/paste, enforced app PINs, or conditional access prompts. These changes can affect productivity and require user training and support.
-
-This framework supports the Zero Trust principle of **assume breach** by applying layered, risk-based protections that limit data exposure even if a device or app is compromised.
+## Implementation Guidance
+1. Start with the Microsoft app protection framework guidance and translate it into your own three-tier policy model, for example: **Baseline**, **Enhanced**, and **High Protection**.
+2. For each tier, define the expected settings in the Intune admin center: data transfer restrictions, allowed save locations, backup behavior, PIN and biometric requirements, timeout values, offline grace periods, rooted and jailbroken response, threat signals, and browser handling.
+3. Create separate app protection policies per platform and per tier. Assign them to clearly defined user groups such as all mobile users, sensitive-data users, and high-risk or privileged roles.
+4. Pair the tiers with matching **Conditional Access** controls where appropriate. For example, high-protection users may require additional access conditions or shorter sign-in frequency expectations beyond the app-layer policy.
+5. Document exceptions explicitly. If a business workflow needs copy and paste or save-as behavior that is blocked in the baseline tier, capture the justification, approval path, and compensating controls.
+6. Review the framework at least quarterly or whenever Microsoft ships major changes to supported APP settings, platform capabilities, or dependent services such as Microsoft Defender for Endpoint and Microsoft Edge.
 
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/xhWP7dXk4I4?si=wJTbXvohcvDvMRif" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Reference
-
-- [Data protection framework using app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-framework)  
-- [App protection policies overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)  
-- [Use the app protection framework with Microsoft Intune](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-framework?view=o365-worldwide)
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Describes the app protection data protection framework levels used in Intune.
+- **[Use app-based Conditional Access policies with Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/conditional-access-integration/app-based-policies)** — Explains how app-based Conditional Access works with Intune app protection policies.

@@ -1,42 +1,24 @@
-
 # MDM_04: Mobile Threat Defense for iOS and Android MDM in Intune
 
-**Implementation Effort:** Medium  
-IT teams must configure MTD connectors, deploy third-party or Microsoft Defender apps, and integrate threat signals into compliance and Conditional Access policies.
-
-**User Impact:** Medium  
-Users may need to install and maintain a threat defense app on their mobile devices and respond to alerts or remediation steps.
-
----
+**Implementation Effort:** Medium  
+**User Impact:** Medium
 
 ## Overview
 
-Mobile Threat Defense (MTD) in Microsoft Intune enhances mobile security by integrating with third-party MTD vendors or Microsoft Defender for Endpoint. It enables real-time threat detection and response for iOS and Android devices, helping protect corporate data from mobile-specific threats such as malicious apps, unsafe networks, and OS vulnerabilities.
+For managed mobile devices, Mobile Threat Defense should be treated as an input to trust, not just as a reporting feature. Microsoft Intune can use device risk telemetry from Microsoft Defender for Endpoint or supported partner integrations to decide whether an enrolled device remains compliant and therefore whether it can continue to access organizational resources.
 
-### Key Capabilities
+A strong workshop design ties mobile threat signals to enforcement. Administrators should know which risk levels trigger noncompliance, how Conditional Access responds, and how users recover when a threat is remediated.
 
-- **Threat Detection**: MTD apps analyze device behavior, network activity, and app integrity to detect threats.
-- **Risk-Based Compliance**: Devices are evaluated against risk levels (low, medium, high) reported by the MTD app.
-- **Conditional Access Enforcement**: Devices exceeding the allowed risk level are blocked from accessing corporate resources like Exchange, SharePoint, or Teams.
-- **Support for Unenrolled Devices**: MTD can also protect BYOD scenarios using Intune App Protection Policies (MAM).
+## Implementation Guidance
 
-### Integration Workflow
-
-1. **Deploy MTD App**: Users install the MTD app (e.g., Microsoft Defender or a third-party partner).
-2. **Connect MTD to Intune**: Admins configure the MTD connector in the Intune admin center.
-3. **Define Compliance Policies**: Set risk level thresholds that determine device compliance.
-4. **Enforce with Conditional Access**: Block or limit access based on device risk status.
-
-> Example: A device connected to a suspicious Wi-Fi network is flagged as "High Risk" by the MTD app. Intune marks the device non-compliant and blocks access to Microsoft 365 until the issue is resolved [1](https://learn.microsoft.com/en-us/intune/intune-service/protect/mobile-threat-defense).
-
-### Zero Trust Fit
-
-This supports the **"Assume breach"** principle by continuously evaluating device health and blocking access from compromised endpoints, even if they are enrolled and previously compliant.
-
----
+1. Decide whether Microsoft Defender for Endpoint will be your strategic mobile threat provider or whether a supported third-party integration is required. Standardize on one primary operating model where possible to simplify support and reporting.
+2. Deploy the MTD app to enrolled iOS and Android devices and validate tenant integration. Confirm that device risk information is flowing before you build policies that depend on it.
+3. Create compliance policies for enrolled devices that include the appropriate device threat level condition. Keep the threshold aligned to business risk; highly sensitive populations may justify blocking at lower risk levels than the general workforce.
+4. Create Conditional Access policies that require compliant devices for the protected cloud apps. A device that exceeds the accepted threat level should lose access until the threat is resolved and compliance status updates successfully.
+5. Monitor pilot users carefully. Review Defender or partner alerts, Intune compliance reports, Entra sign-in logs, and user support tickets so you can tune thresholds before enforcing at scale.
 
 ## Reference
 
-- [Mobile Threat Defense with Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/protect/mobile-threat-defense)  
-- [Install mobile threat defense app on your mobile device](https://learn.microsoft.com/en-us/intune/intune-service/user-help/set-up-mobile-threat-defense)  
-- [Microsoft Defender for Endpoint - Mobile Threat Defense](https://learn.microsoft.com/en-us/defender-endpoint/mtd)
+- **[Configure Microsoft Defender for Endpoint with Intune and onboard devices - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/microsoft-defender/configure-integration)** — Explains how to integrate Defender for Endpoint with Intune and onboard devices.
+- **[Device compliance policies in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/compliance/overview)** — Provides the Intune compliance policy concepts and setup guidance for managed devices.
+- **[Use Conditional Access with Microsoft Intune compliance policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/conditional-access-integration/overview)** — Explains how Intune compliance policies integrate with Conditional Access.
