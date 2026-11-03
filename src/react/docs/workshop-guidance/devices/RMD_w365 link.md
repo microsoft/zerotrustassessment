@@ -12,8 +12,8 @@ Because it is a purpose-built access device, the deployment focus is less about 
 ## Implementation Guidance
 
 1. Confirm the supported Windows 365 Link hardware, licensing, and management prerequisites for your tenant. Validate commercial availability, regional support, and any Windows 365 edition requirements before designing a broad deployment plan.
-2. Plan enrollment through Microsoft Intune the same way you would plan any managed endpoint: ownership model, naming standard, configuration profiles, compliance expectations, and application assignments needed for the access device role.
-3. Harden the device for its purpose. Apply security baselines, update policy, passwordless sign-in where appropriate, and least-privilege local settings. The endpoint should be treated as a controlled access point to the Cloud PC, not as a general unmanaged workstation.
+2. Plan enrollment using the [Windows 365 Link management guidance](https://learn.microsoft.com/en-us/windows-365/link/device-management-overview). Configure only supported CSPs and compliance settings, and use device filters to exclude Link devices from unsupported application assignments.
+3. Validate the device's built-in security posture and supported update and sign-in policies. Applicable security baselines and restrictions on local administrator access are built in; do not treat Link as a general-purpose Windows workstation.
 4. Test connectivity to Windows 365 from representative networks, including home, branch, and remote-office scenarios. Validate sign-in, Cloud PC launch behavior, audio/video performance, and support workflows when connection quality is poor.
 5. Document break-glass and replacement procedures. If a dedicated device fails, users should know the approved alternate way to reach their Cloud PC without resorting to unmanaged or unapproved endpoints.
 
