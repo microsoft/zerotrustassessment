@@ -1,24 +1,21 @@
 # App Data Sync with Native Apps or Add-ins
 
-**Implementation Effort:** Low – IT administrators only need to configure a single setting within the App Protection Policies in Microsoft Intune for Android and iOS/iPadOS.
+**Implementation Effort:** Low
 
-**User Impact:** Medium – A subset of users may notice that features like calendar sync, contact sharing, or add-ins in managed apps are disabled, which may affect productivity or app integration.
+**User Impact:** Medium
 
 ## Overview
+The sync-with-native-apps-or-add-ins control determines whether data from a managed app can move into native mobile apps or app extensions outside the managed boundary. This is highly relevant for contacts, calendar integration, widgets, and add-in scenarios that can quietly expose work data to the personal side of a device.
 
-The **“Sync policy managed app data with native apps or add-ins”** setting in Microsoft Intune App Protection Policies (APP) controls whether managed apps can share data with the device’s native apps (such as Contacts, Calendar, and widgets) or use add-ins. This setting is available for both **Android** and **iOS/iPadOS** platforms.
+For Zero Trust programs, the default posture should be driven by data sensitivity and user role. High-sensitivity populations usually need this blocked or tightly constrained; broader populations may allow it only where the business value clearly outweighs the data handling risk.
 
-When this setting is configured to **Block**:
-- Managed apps (like Outlook) cannot sync data to native apps (e.g., syncing calendar events to the native Calendar app or saving contacts to the device).
-- Add-ins within managed apps are also disabled, limiting third-party integrations.
-
-When set to **Allow**:
-- Managed apps can sync data with native apps and use add-ins, which may improve user experience but increases the risk of data leakage.
-
-This setting supports the Zero Trust principle of **assume breach** by preventing corporate data from being exposed to apps or services outside the organization's control. If not configured properly, sensitive data could be synced to personal apps or accessed by unauthorized add-ins, increasing the risk of data exfiltration.
+## Implementation Guidance
+1. In **Apps** > **App protection policies**, edit the relevant Android and iOS/iPadOS policies and review the setting that controls syncing policy-managed app data with native apps or add-ins.
+2. Set the policy intentionally: **Block** is the safer choice for sensitive populations or BYOD scenarios with stronger containment requirements; **Allow** should be limited to workflows that have been validated and accepted by the business owner.
+3. Test the specific integrations in scope, such as Outlook contacts, calendar sync, widget behavior, or supported add-ins. Do not assume that all native integration points behave the same way across apps and platforms.
+4. If you allow sync or add-ins for some users, document exactly which apps and integrations are sanctioned and what data categories are considered acceptable for those workflows.
 
 ## Reference
-
-- [Android app protection policy settings – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-android)  
-- [Understand app data protection using Microsoft Intune](https://learn.microsoft.com/en-us/microsoft-365/solutions/apps-protect-data-protection?view=o365-worldwide)  
-- [App protection policies overview – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy)
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains the Intune app protection data protection framework and how policy settings protect organizational data in managed apps.

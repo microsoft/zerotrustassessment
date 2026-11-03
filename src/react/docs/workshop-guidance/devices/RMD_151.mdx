@@ -1,17 +1,25 @@
 # 151: Proactive Remediations
 
+**Implementation Effort:** Medium — scripting is powerful but requires change control, testing, and ownership to avoid creating unmanaged drift.
+
+**User Impact:** Low to Medium — good remediations are invisible to users, but bad scripts can cause disruption quickly.
+
 ## Overview
+The feature commonly known as Proactive Remediations is now presented as Remediations in Microsoft Intune. It allows administrators to run paired detection and remediation scripts on managed devices so common configuration drift, health issues, and low-risk support problems can be corrected automatically. In a Zero Trust program, Remediations can help sustain required device state between policy refreshes, but they should complement formal configuration management rather than replace it.
 
-**Remediations** in Intune are script packages designed to detect and automatically fix common issues on managed devices before they become significant problems. These scripts consist of a detection script to identify issues and a remediation script to resolve them.
+## Implementation Guidance
+- Establish script governance first. Every remediation should have an owner, source control, testing history, approval path, and clear rollback plan.
+- Use detection logic that is explicit and safe. The detection script should identify a known issue precisely, and the remediation should make the smallest reliable corrective change.
+- Pilot new remediations on limited device rings and review logs before moving to broad production assignment.
+- Avoid using Remediations as a hidden workaround for policy design problems. If a setting belongs in a compliance policy, configuration profile, security baseline, or app package, manage it there instead.
+- Capture output and operational telemetry so repeated failures can be investigated and so successful remediations can be measured for business value.
+- Review and retire old remediations periodically so the environment does not accumulate orphaned scripts that no one remembers.
 
- Remediations can be particularly useful for maintaining device security. For example, they can automatically restart crucial services, update stale group policies, or fix configuration issues that could otherwise lead to vulnerabilities. By addressing these issues proactively, organizations can reduce support calls and ensure a smoother, more secure user experience.
-
-## Reference 
-
-[Remediations in Intune](https://learn.microsoft.com/en-us/mem/intune/fundamentals/remediations)
-
-* * *
-### **Video Walkthrough**
+## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/7IqON_3_ZEU?si=I7okz7eHzmCCyzY4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
+## Reference
+- **[Use Remediations to Detect and Fix Support Issues - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-management/tools/deploy-remediations)** — Explains how to use Remediations to detect issues and run built-in or custom fixes.
+- **[Add PowerShell Scripts to Windows Devices in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-management/tools/run-powershell-scripts-windows)** — Describes how to deploy and run PowerShell scripts on Windows devices through Intune.
+- **[Endpoint analytics overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/endpoint-analytics/)** — Introduces Endpoint analytics for measuring user experience and device performance trends.

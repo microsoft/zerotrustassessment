@@ -1,20 +1,23 @@
 # Windows 365: Security Baselines
 
 **Implementation Effort:** Medium  
-Deploying security baselines requires IT and security teams to review, customize, and assign policy profiles via Intune, with periodic updates and testing.
-
-**User Impact:** Low  
-Security baselines are applied silently to Cloud PCs; users are not required to take action or be notified unless specific settings impact usability.
+**User Impact:** Low
 
 ## Overview
 
-Windows 365 Security Baselines are preconfigured sets of security policies designed to enforce best practices across Cloud PCs. These baselines cover Windows 10/11, Microsoft Edge, and Microsoft Defender for Endpoint, and are managed through Microsoft Intune. Each baseline version (e.g., 24H1) includes default configurations that can be customized to meet organizational needs. Admins can assign these baselines to device groups, ensuring consistent security posture across the Cloud PC fleet.
+Security baselines in Microsoft Intune provide curated starting points for hardening Windows, Microsoft Edge, and Microsoft Defender. For Windows 365, baselines help reduce configuration drift and establish a consistent minimum security posture across Cloud PCs.
 
-Security baselines help reduce risk by enforcing settings like credential protection, firewall rules, and browser hardening. They also support versioning, allowing organizations to adopt new recommendations over time. If not deployed, Cloud PCs may remain misconfigured or exposed to known threats due to inconsistent or outdated security settings.
+A Zero Trust workshop should emphasize that baselines are starting points, not magic defaults. Administrators should review each setting, understand where it conflicts with business workflows, and document any approved deviation rather than assigning a baseline blindly.
 
-This capability supports the Zero Trust principle of **\"Use least privilege access\"** by enforcing strict, role-appropriate configurations and reducing the attack surface.
+## Implementation Guidance
+
+1. In the Microsoft Intune admin center, review the available security baseline templates relevant to Cloud PCs, such as Windows, Microsoft Edge, and Defender baselines. Align each with the Cloud PC personas you actually operate.
+2. Create a pilot baseline profile instead of assigning Microsoft defaults directly to every Cloud PC. Compare baseline settings with existing configuration profiles, endpoint security policies, and update policies to avoid overlap and contradictory settings.
+3. Use groups to separate general productivity Cloud PCs from privileged or regulated workloads. More restrictive baselines may be justified for administrator jump environments, finance, or engineering enclaves.
+4. Track baseline versioning. When Microsoft releases a new baseline version, review the setting deltas, test them, and migrate intentionally rather than leaving old baselines in place indefinitely.
+5. Monitor user and operational impact after deployment. Security baselines that silently break browser workflows, remote support, or app compatibility will not remain durable unless those effects are understood and remediated.
 
 ## Reference
 
-- [Windows 365 Cloud PC security baseline settings reference](https://learn.microsoft.com/en-us/intune/intune-service/protect/security-baseline-settings-windows-365)
-- [Security baselines guide](https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/windows-security-baselines)
+- **[Default configuration of Intune's Windows security baselines - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-security/security-baselines/ref-windows-mdm-settings)** — Provides the Windows security baseline settings used in Microsoft Intune.
+- **[Managing Cloud PCs with Microsoft Intune](https://learn.microsoft.com/en-us/windows-365/enterprise/device-management-overview)** — Describes how Cloud PCs are managed through Microsoft Intune.

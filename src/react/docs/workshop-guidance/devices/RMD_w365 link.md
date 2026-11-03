@@ -1,19 +1,24 @@
 # Windows 365: Link
 
 **Implementation Effort:** Medium  
-IT admins must procure, enroll, and manage dedicated hardware devices using Microsoft Intune and ensure licensing and network readiness.
-
-**User Impact:** Low  
-Users simply sign in to access their Cloud PC; no configuration or technical knowledge is required.
+**User Impact:** Low
 
 ## Overview
 
-Windows 365 Link is a purpose-built hardware device from Microsoft that provides a direct, secure connection to a user\'s Windows 365 Cloud PC. It is designed for simplicity and security, with no local data storage, no local apps, and no administrative rights for users. The device is managed through Microsoft Intune and comes with built-in security features such as TPM 2.0, secure boot, BitLocker, and Microsoft Defender EDR. It supports media redirection for a smooth user experience and is ideal for organizations seeking a plug-and-play endpoint for secure Cloud PC access.
+Windows 365 Link is intended to provide a simple, dedicated endpoint experience for accessing a Windows 365 Cloud PC with minimal local footprint. In a Zero Trust design, that value comes from reducing local data persistence, simplifying the endpoint role, and standardizing how users reach their Cloud PC.
 
-If not deployed properly, organizations may face issues with device enrollment, user access, or compliance with security baselines. This capability supports the Zero Trust principle of **"Assume breach"**, as the device is hardened by design and minimizes attack surface by eliminating local data and app exposure.
+Because it is a purpose-built access device, the deployment focus is less about local productivity configuration and more about identity, network readiness, Intune management, and supportability. Administrators should confirm how the device fits into their broader Cloud PC access model before rollout.
+
+## Implementation Guidance
+
+1. Confirm the supported Windows 365 Link hardware, licensing, and management prerequisites for your tenant. Validate commercial availability, regional support, and any Windows 365 edition requirements before designing a broad deployment plan.
+2. Plan enrollment using the [Windows 365 Link management guidance](https://learn.microsoft.com/en-us/windows-365/link/device-management-overview). Configure only supported CSPs and compliance settings, and use device filters to exclude Link devices from unsupported application assignments.
+3. Validate the device's built-in security posture and supported update and sign-in policies. Applicable security baselines and restrictions on local administrator access are built in; do not treat Link as a general-purpose Windows workstation.
+4. Test connectivity to Windows 365 from representative networks, including home, branch, and remote-office scenarios. Validate sign-in, Cloud PC launch behavior, audio/video performance, and support workflows when connection quality is poor.
+5. Document break-glass and replacement procedures. If a dedicated device fails, users should know the approved alternate way to reach their Cloud PC without resorting to unmanaged or unapproved endpoints.
 
 ## Reference
 
-- [What is Windows 365 Link?](https://learn.microsoft.com/en-us/windows-365/link/overview)
-- [Windows 365 Link Security](https://learn.microsoft.com/en-us/windows-365/link/security-overview)
-- [Windows 365 Link documentation](https://learn.microsoft.com/en-us/windows-365/link/)
+- **[What is Windows 365 Link?](https://learn.microsoft.com/en-us/windows-365/link/overview)** — Introduces Windows 365 Link and its role in accessing Cloud PCs.
+- **[Deployment guide for Windows device management - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/platform-guide-windows)** — Provides the main guidance for managing Windows devices with Intune.
+- **[Windows 365 requirements](https://learn.microsoft.com/en-us/windows-365/enterprise/requirements)** — Lists the technical, licensing, and configuration prerequisites for Windows 365.

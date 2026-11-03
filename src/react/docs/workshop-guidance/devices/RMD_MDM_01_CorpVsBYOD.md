@@ -1,51 +1,24 @@
 # MDM 01: Intune MDM for iOS and Android: Corporate-Owned vs BYOD Deployment Strategies
 
 **Implementation Effort:** Medium  
-Customer IT teams must plan and execute enrollment strategies, configure policies, and support users across multiple device ownership models.
-
-**User Impact:** Medium  
-A subset of users—those using mobile devices for work—must follow enrollment steps and may experience changes in app behavior or access.
-
----
+**User Impact:** Medium
 
 ## Overview
 
-Microsoft Intune supports two primary mobile device management (MDM) strategies for iOS and Android: **Corporate-Owned** and **BYOD (Bring Your Own Device)**. Each approach offers different levels of control, security, and user experience.
+A defensible mobile strategy starts with deciding whether each population should use full device management, lightweight enrollment, or app protection without enrollment. In Microsoft Intune, corporate-owned and personally owned devices should not be treated as a single policy problem because the trust level, privacy expectations, and enforcement options are different.
 
-### Corporate-Owned Devices
+Corporate-owned devices typically justify deeper control over device settings, security baselines, apps, and lifecycle actions. BYOD users usually require a more privacy-preserving model that protects organizational data inside apps while limiting collection and control over personal content.
 
-These are fully managed by the organization. Intune offers several enrollment options:
-- **Android**: Fully Managed, Dedicated, or Corporate-Owned Work Profile.
-- **iOS/iPadOS**: Automated Device Enrollment via Apple Business Manager.
+## Implementation Guidance
 
-**Key Features:**
-- Full control over device settings, apps, and security.
-- Ideal for kiosk, frontline, or task-specific devices.
-- Enables remote wipe, compliance enforcement, and app deployment.
-
-**Risks if not deployed:** Without proper enrollment, corporate data may be exposed, and IT cannot enforce security baselines or compliance policies.
-
-### BYOD (Bring Your Own Device)
-
-These are personal devices voluntarily enrolled by users. Intune supports:
-- **Mobile Application Management (MAM)** without device enrollment.
-- **Work Profiles** (Android) or **User Enrollment** (iOS).
-
-**Key Features:**
-- Protects corporate data within apps (e.g., Outlook, Teams) without managing the entire device.
-- Users retain control over personal data and apps.
-- Less intrusive, better for user privacy.
-
-**Risks if not deployed:** Sensitive data accessed on personal devices may be unprotected, increasing the risk of data leakage.
-
-### Zero Trust Fit
-
-This strategy aligns with the **"Use least privilege access"** principle. BYOD with MAM ensures only corporate data is managed, while corporate-owned devices enforce strict access controls and compliance.
-
----
+1. Define your ownership personas before you configure policy. Common groupings include frontline corporate-owned Android devices, general-purpose corporate smartphones, BYOD mobile productivity users, and regulated users who require stronger controls or full enrollment.
+2. For corporate-owned Android, standardize on Android Enterprise modes such as Fully Managed, Corporate-Owned Work Profile, or Dedicated, based on device purpose. For corporate-owned Apple devices, integrate Apple Business Manager and use Automated Device Enrollment so devices arrive pre-associated with the organization.
+3. For BYOD, decide whether users need full MDM enrollment or only mobile application management. Where possible, use app protection policies first for low-friction access to Microsoft 365 data, and reserve full enrollment for scenarios that genuinely require device-wide settings or compliance enforcement.
+4. Use enrollment profiles, device categories, and naming conventions so devices are clearly classified when they appear in Intune. Align compliance, configuration, app deployment, and Conditional Access policies to the ownership model instead of applying one broad baseline to every mobile device.
+5. Pilot each ownership path separately. Validate enrollment experience, privacy messaging, selective wipe behavior, app deployment, compliance evaluation, and access control before scaling to the full population.
 
 ## Reference
 
-- [Deployment guide: MAM for unenrolled devices (BYOD)](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-mamwe)  
-- [Corporate-owned vs Fully Managed Android Devices](https://learn.microsoft.com/en-us/answers/questions/68310/corporate-owned-fully-managed-user-devices-vs-corp)  
-- [Android Device Enrollment Guide](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/deployment-guide-enrollment-android)
+- **[Device enrollment guide for Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-enrollment/guide)** — Helps plan Intune enrollment scenarios across platforms, ownership models, and enrollment methods.
+- **[Set up automated device enrollment (ADE) for iOS/iPadOS - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-enrollment/apple/setup-automated-ios)** — Covers configuring Automated Device Enrollment for corporate-owned Apple mobile devices in Intune.
+- **[Android device enrollment guide for Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-enrollment/android/guide)** — Summarizes Android Enterprise enrollment models for personally owned and corporate-owned devices managed by Intune.

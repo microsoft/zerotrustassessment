@@ -1,23 +1,22 @@
 # Backup to iCloud
 
-**Implementation Effort:** Low – IT administrators only need to configure a single setting within the iOS/iPadOS App Protection Policy in Microsoft Intune.
+**Implementation Effort:** Low
 
-**User Impact:** Medium – A subset of users may notice changes in how their work or school data is backed up, especially if backup to iCloud is blocked or restricted.
+**User Impact:** Medium
 
 ## Overview
+For iOS and iPadOS MAM, blocking backup of organizational data to iTunes and iCloud backups reduces the risk that work data is copied into personal backup containers outside organizational governance. This is a common Zero Trust baseline requirement for BYOD and contractor access.
 
-In Microsoft Intune, administrators can control whether organizational data within managed apps on iOS/iPadOS devices is allowed to be backed up to **iCloud** or **iTunes**. This setting is part of the **App Protection Policy (APP)** configuration and is critical for protecting sensitive corporate data on both BYOD and corporate-enrolled Apple devices.
+The decision should be based on data sensitivity, legal requirements, and the supported-app experience. In most Microsoft 365 mobile scenarios, blocking personal backup of work data is acceptable because the authoritative data remains in Microsoft 365 rather than only on the device.
 
-The setting **“Backup Org data to iTunes and iCloud backups”** offers two options:
-- **Allow** – Enables backup of work or school data to iCloud and iTunes.
-- **Block** – Prevents backup of organizational data, reducing the risk of data leakage through Apple’s cloud services.
-
-Blocking backup aligns with the Zero Trust principle of **assume breach**, as it minimizes the risk of sensitive data being stored in personal cloud environments that are outside the organization’s control. This is especially important for regulated industries or organizations with strict data residency and compliance requirements.
-
-If not configured properly, corporate data could be unintentionally stored in personal iCloud backups, potentially violating internal policies or external regulations.
+## Implementation Guidance
+1. In the Microsoft Intune admin center, go to **Apps** > **App protection policies**, open the applicable **iOS/iPadOS** policy, and review the **Data protection** settings.
+2. Set **Backup org data to iTunes and iCloud backups** to **Block** unless a business-approved exception exists. This is usually the right default for BYOD and other unmanaged device scenarios.
+3. Use separate policy assignments for exception populations rather than allowing personal backup broadly. Capture the justification, business owner, and review date for any exception.
+4. Explain the behavior in user guidance: this setting protects work data; it does not prevent users from reinstalling supported Microsoft apps and signing back in to retrieve data from Microsoft 365 services.
+5. Validate on test devices by applying the policy to pilot users, confirming the policy is received, and checking any documented app-specific restore behavior from Microsoft Learn.
 
 ## Reference
-
-- [iOS/iPadOS app protection policy settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-ios)  
-- [Back up and restore iOS/iPadOS - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/enrollment/backup-restore-ios)  
-- [Create and deploy app protection policies - Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policies)
+- **[iOS/iPadOS app protection policy settings in Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Lists and explains iOS/iPadOS-specific app protection policy settings in Intune.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policies for managed apps and unenrolled devices.
+- **[Tutorial - Walkthrough the Microsoft Intune Admin Center - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/tutorial-admin-center-walkthrough)** — Shows the App protection policy status area and troubleshooting views for app protection users in Intune.

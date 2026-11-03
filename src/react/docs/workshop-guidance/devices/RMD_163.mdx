@@ -14,6 +14,23 @@ Key 2026 updates include:
 - **US Government GCC High Support (September 2026 / 2609):** Microsoft Cloud PKI is now generally available for tenants in the US Government Community Cloud High (GCC High) environment.
 - *(Note: For organizations still using on-premises CAs with the Intune Certificate Connector, Intune is also adding **Certificate Connector health monitoring** in the admin center to surface CA reachability, permission, and template mismatch alerts early).*
 
+## Implementation Guidance
+
+### Decide whether Cloud PKI fits the design
+- Inventory certificate use cases such as EAP-TLS Wi-Fi, VPN authentication, S/MIME, or device identity and confirm whether Cloud PKI supports the required platforms and profile types.
+- Determine whether an existing enterprise PKI must remain authoritative for some use cases, which may require a hybrid transition instead of an immediate replacement.
+- Review licensing requirements early because Cloud PKI is not included in every Intune license plan.
+
+### Implement the certificate flow
+- Create the required root or issuing CA objects in the Intune service according to the target trust model and certificate hierarchy.
+- Configure SCEP or other supported certificate profiles in Intune and assign them to a pilot device set before production rollout.
+- Coordinate with network and security teams so Wi-Fi, VPN, or application services trust the new issuing chain before certificates are pushed widely.
+
+### Operate and govern
+- Monitor issuance, renewal, and revocation behavior and confirm that devices renew before certificate expiration windows become a support issue.
+- Document emergency revocation and root rollover procedures before relying on Cloud PKI for a critical access path.
+- Treat certificate profile changes as change-controlled infrastructure work because a misconfiguration can disrupt broad device access.
+
 ## Video Walkthrough
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/E6OCXXSWD2s?si=1m28Ci7XeSPwBCOe" title="YouTube video player" frameborder="0" allow="accelerometer; fullscreen; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -22,3 +39,5 @@ Key 2026 updates include:
 
 - [Overview of Microsoft Cloud PKI for Microsoft Intune](https://learn.microsoft.com/en-us/intune/cloud-pki/)
 - [Renew a certification authority in Cloud PKI](https://learn.microsoft.com/en-us/intune/cloud-pki/renew-ca)
+- **[Microsoft Intune Licensing Plans and Options - Microsoft Intune](https://learn.microsoft.com/en-us/intune/fundamentals/licensing)** — Describes Intune licensing plans and add-on requirements relevant to Cloud PKI deployments.
+- **[Use SCEP certificate profiles with Microsoft Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-configuration/certificates/scep-profiles)** — Explains how to create and assign SCEP certificate profiles to users and devices in Intune.

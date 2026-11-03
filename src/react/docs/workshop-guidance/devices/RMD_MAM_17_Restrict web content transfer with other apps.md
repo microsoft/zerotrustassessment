@@ -1,23 +1,22 @@
 # Restrict Web Content Transfer with Other Apps
 
-**Implementation Effort:** Low – IT administrators only need to configure a single setting within the App Protection Policies for iOS/iPadOS and Android in Microsoft Intune.
+**Implementation Effort:** Low
 
-**User Impact:** Medium – A subset of users may experience changes in how web links open from managed apps, especially if they are redirected to a specific browser like Microsoft Edge.
+**User Impact:** Medium
 
 ## Overview
+This APP control determines which browser can open web content launched from a managed app. In many Zero Trust mobile designs, the goal is to keep corporate links inside a policy-managed browser such as Microsoft Edge so that authentication, session handling, and data transfer controls remain inside the managed path.
 
-The **“Restrict web content transfer with other apps”** setting in Microsoft Intune App Protection Policies (APP) controls how HTTP/HTTPS links are handled when opened from policy-managed apps. This setting is designed to prevent corporate data from being exposed through unmanaged or personal browsers.
+If links open in any installed browser, the organization loses consistency and may allow corporate content into unmanaged browsing sessions. That makes this control an important companion to the broader APP data transfer settings.
 
-### Available Options:
-- **Any app** – Allows web links to open in any browser installed on the device.
-- **Microsoft Edge** – Restricts web content to open only in Microsoft Edge, which is a policy-managed browser [1](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-ios).
-
-This setting is particularly useful in BYOD scenarios where users may have multiple browsers installed. By forcing links to open in Microsoft Edge, organizations can ensure that web sessions are protected by app protection policies, Conditional Access, and single sign-on (SSO).
-
-This setting supports the Zero Trust principle of **assume breach** by ensuring that sensitive web content is only accessed through trusted, policy-managed browsers. If not configured, users could open corporate links in unmanaged browsers, increasing the risk of data leakage or session hijacking.
+## Implementation Guidance
+1. In the applicable Android and iOS/iPadOS app protection policies, review the **Restrict web content transfer with other apps** setting.
+2. Use the managed-browser option, for example Microsoft Edge where documented, when the organization wants web content from managed apps to stay inside the protected app ecosystem. Avoid **Any app** unless the business has accepted the broader exposure.
+3. Coordinate this setting with app configuration for Microsoft Edge, Conditional Access rules for mobile browser access, and the **Send org data to other apps** setting so the user experience is predictable.
+4. Test common user flows from Outlook, Teams, OneDrive, and Office mobile apps: opening SharePoint links, opening document links, single sign-on behavior, and copy and paste restrictions inside the managed browser.
 
 ## Reference
-
-- [iOS/iPadOS app protection policy settings – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-ios)  
-- [Troubleshoot data transfer and Intune app protection policies](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/troubleshoot-data-transfer)  
-- [Common issues with Intune APP data transfer](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-protection-policies/data-transfer-scenarios)
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[Migrate approved client app to application protection policy in Conditional Access - Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/conditional-access/migrate-approved-client-app)** — Explains current Conditional Access guidance for requiring approved client apps or app protection policy with mobile devices.
+- **[Manage Microsoft Edge on iOS and Android With Intune - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/configuration/configure-edge-ios-android)** — Covers deploying and managing Microsoft Edge on mobile with Intune for secure web access and policy integration.

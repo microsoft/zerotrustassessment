@@ -1,23 +1,21 @@
 # Screen Capture
 
-**Implementation Effort:** Low – IT administrators only need to configure a setting within the App Protection Policy or device restriction policy, depending on the platform.
+**Implementation Effort:** Medium
 
-**User Impact:** Medium – A subset of users may be unable to take screenshots or record screens in managed apps, which could affect workflows involving note-taking or sharing information.
+**User Impact:** Medium
 
 ## Overview
+Screen capture controls reduce the risk that users capture sensitive work data outside the intended managed data path. However, organizations should document this carefully because Intune’s protection options differ by platform and are not all pure MAM controls.
 
-The **screen capture control** in Microsoft Intune helps prevent sensitive organizational data from being exfiltrated via screenshots or screen recordings. This is especially important in BYOD and mobile-first environments where users may unintentionally or intentionally capture and share corporate data.
+For Zero Trust guidance, the key message is that administrators should use the native APP control where it exists, understand platform limitations, and combine MAM with device management or app-specific settings when a platform does not offer equivalent screenshot protection through APP alone.
 
-
-### Platform-Specific Behavior:
-
-- **Android**: Select Block to block screen capture, block Circle to Search, and block Google Assistant accessing org data on the device when using this app. Choosing Block will also blur the App-switcher preview image when using this app with a work or school account.
-Note: Google Assistant may be accessible to users for scenarios that don't access org data.
-
-
-This setting supports the Zero Trust principle of **assume breach** by reducing the risk of sensitive data being leaked through visual capture methods. If not configured, users may capture and share confidential information from apps like Outlook, Teams, or OneDrive, bypassing other data protection controls.
+## Implementation Guidance
+1. For **Android**, review the app protection policy setting that blocks screen capture and related assistant or search exposure in supported apps. Configure it in the Android policy under **Apps** > **App protection policies** and test the actual user experience, including app-switcher previews where documented by Microsoft.
+2. For **iOS/iPadOS**, do not imply there is a universal MAM-only screenshot block unless Microsoft Learn specifically documents one for the target app and platform combination. If the requirement is strict, document complementary controls such as device management restrictions, sensitivity labeling, or workflow redesign.
+3. Apply this control first to populations handling sensitive or regulated data. For broad populations, confirm that support teams understand the productivity impact before enforcing it at scale.
+4. Test on physical devices, not only emulators: screenshot, screen recording, app switcher preview, and any assistant or search integrations referenced by Microsoft Learn.
 
 ## Reference
-
-- [iOS/iPadOS app protection policy settings – Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-ios) 
-- [Android app protection policy settings in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-protection-policy-settings-android)
+- **[Android App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-android)** — Details Android app protection policy data protection, access requirements, and conditional launch settings.
+- **[iOS/iPadOS App Protection Policy Settings - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/ref-settings-ios)** — Details iOS/iPadOS app protection policy data protection, access requirements, and conditional launch settings.
+- **[App Protection Policies Overview - Microsoft Intune](https://learn.microsoft.com/en-us/intune/app-management/protection/overview)** — Explains Intune app protection policy capabilities, the data protection framework, access requirements, and conditional launch behaviors.
