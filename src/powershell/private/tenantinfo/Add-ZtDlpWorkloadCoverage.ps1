@@ -17,7 +17,7 @@ function Add-ZtDlpWorkloadCoverage {
         }
 
         # Q1: One collection supplies all workload counts.
-        $policies = @(Get-DlpCompliancePolicy -IncludeExtendedProperties -ErrorAction Stop)
+        $policies = @(Get-DlpCompliancePolicy -IncludeExtendedProperties $true -ErrorAction Stop)
         $includedModes = @('Enable', 'TestWithNotifications', 'TestWithoutNotifications')
         $activePolicies = @($policies | Where-Object { [string]$_.Mode -in $includedModes })
 
