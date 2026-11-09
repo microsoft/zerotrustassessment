@@ -165,9 +165,9 @@ They are not presented as newly discovered preferences of one reviewer.
 
 - [Repository-wide guidance](../.github/copilot-instructions.md) contains review
   scope, evidence standards, integration, cleanup, and privacy/security checks.
-- [PowerShell guidance](../.github/instructions/powershell-review.instructions.md)
+- [PowerShell guidance](../.github/instructions/powershell.instructions.md)
   applies to module PowerShell, export JSON, Pester, and PowerShell build/scripts.
-- [Assessment guidance](../.github/instructions/assessment-review.instructions.md)
+- [Assessment guidance](../.github/instructions/assessments.instructions.md)
   applies to assessment code/docs/tests and the metadata/execution/result surfaces.
 - The two scoped files use documented `applyTo` globs and
   `excludeAgent: "cloud-agent"` to target review rather than add a competing coding
@@ -210,3 +210,243 @@ Custom instructions are nondeterministic and do not replace Pester, tenant
 validation, or human judgment. `scripts/verify.ps1` checks source syntax and build
 configuration; it does not run Pester. Revisit the guidance when current contracts
 change, and add future review rules only with concrete evidence and known exceptions.
+
+## Merged-PR census: March through November 2026
+
+This addendum is a separate research cohort, collected on **2026-11-09**.
+It does not replace or combine the older cohort's counts, timestamp selection,
+or synthetic-replay results above.
+
+### Selection and completeness
+
+The GitHub search was:
+
+```text
+repo:microsoft/zerotrustassessment is:pr is:merged merged:2026-03-01..2026-11-09
+```
+
+- Enumerated **381 distinct merged PRs** across eight paginated search responses.
+  Selection is by merge date, not creation date or comment timestamp.
+- Retrieved alexandair's available review history for every candidate, including
+  later-superseded requests for changes. Checked review-dismissal events and their
+  previous state; no dismissal events were returned.
+- Selected **124 PRs** containing **174 CHANGES_REQUESTED reviews** by alexandair.
+  Filtering only the latest review state would omit approved PRs in this cohort.
+- Retrieved complete reviews, review threads, issue discussion, and changed-file
+  lists for the selected PRs. Checked each connection's pagination, including
+  comments within threads; no pages remained outstanding.
+- The selected PRs contain **304 alexandair review records**, **409 inline comments**
+  by alexandair, and **8 issue comments** by alexandair. Focused extracts retained
+  every one of those records. Analysis included relevant replies and later reviews,
+  even when their timestamp falls outside the merge-date window.
+- Analyzed disjoint groups of 42, 41, and 41 PRs and checked their union against the
+  full 124-PR selection. The index below includes every selected PR, not only
+  #1541, #1524, #1523, and #1461 supplied as examples.
+
+The query, raw API snapshots, pagination/coverage manifests, reviewer-focused
+extracts, and full analyses are retained in the session workspace, not committed
+as raw discussions. Deleted/edited historical text cannot be reconstructed from
+the current API snapshot. A source link and recorded disposition do not prove
+every proposed correction was implemented or remains current policy.
+
+### Rule mapping
+
+The concise instructions carry implementation contracts; this document carries
+their provenance and qualifications. An index entry can support a general
+principle without making its original proposed algorithm a rule.
+
+| Area | Adopted context |
+| --- | --- |
+| Types | [PowerShell commands/types/output](../.github/instructions/powershell.instructions.md#commands-types-and-output): null/cardinality, membership, real driver types, numeric range, and output purity. |
+| Data | [Requests and data](../.github/instructions/powershell.instructions.md#requests-and-data): wrappers, paging/batching, identifier meaning, SQL/export shape, and snapshot joins. |
+| Lifecycle | [Lifecycle/configuration](../.github/instructions/powershell.instructions.md#lifecycle-and-configuration): shared state, cache presence/expiry, service affinity, units, and cleanup. |
+| Errors | [Errors/privacy](../.github/instructions/powershell.instructions.md#errors-and-privacy): structured failure state, safe diagnostics/IDs, and bounded retries. |
+| Metadata | [Assessment authoring](../.github/instructions/assessments.instructions.md#authoring-and-metadata): scaffold, parameters, services, license alternatives, and independent assessments. |
+| Verdicts | [Evidence/outcomes](../.github/instructions/assessments.instructions.md#evidence-and-outcomes): control-specific quantifiers, row versus aggregate decisions, and unresolved evidence. |
+| Reports | [Report generation](../.github/instructions/assessments.instructions.md#report-generation): required evidence, actual counts, safe formatting, portal links, and approved presentation bounds. |
+| Tests | [Behavioral validation](../.github/instructions/powershell.instructions.md#behavioral-validation) and [assessment coverage](../.github/instructions/assessments.instructions.md#regression-coverage): reachable failures and observable outputs, not idealized mocks. |
+| Report build | [Static report ownership](../.github/instructions/report.instructions.md): producer/consumer wiring and regenerated default/classic assets. |
+| Review process | [Review evidence and scope](../.github/instructions/code-review.instructions.md#evidence-and-scope): later decisions, fixed/deferred/rejected distinctions, and demonstrated impact. |
+
+### PR coverage index
+
+Entries summarize the technical lesson and its limits, not an assertion that
+every historical finding is still open. Editorial-only entries are retained for
+coverage but do not become code-review gates.
+
+| PR | Lesson and qualification | Feedback source |
+| --- | --- | --- |
+| [#938](https://github.com/microsoft/zerotrustassessment/pull/938) | Enforce actual SKU/scope, preserve required profiles and associated counts, and do not invent an omitted action's default. | [Review](https://github.com/microsoft/zerotrustassessment/pull/938#discussion_r2864627962) |
+| [#948](https://github.com/microsoft/zerotrustassessment/pull/948) | Reuse Azure/ARG wrappers; recognize valid category groups and preserve all relevant setting names. | [Review](https://github.com/microsoft/zerotrustassessment/pull/948#discussion_r2854148022) |
+| [#951](https://github.com/microsoft/zerotrustassessment/pull/951) | Unnesting empty arrays must not erase the very resources that should fail. The suggested KQL replacement is not a universal algorithm. | [Review](https://github.com/microsoft/zerotrustassessment/pull/951#discussion_r2860783770) |
+| [#954](https://github.com/microsoft/zerotrustassessment/pull/954) | Retain Graph errors instead of evaluating an empty fallback; historical skip suggestions do not define every API failure's status. | [Review](https://github.com/microsoft/zerotrustassessment/pull/954#discussion_r2865568754) |
+| [#959](https://github.com/microsoft/zerotrustassessment/pull/959) | Distinguish enabled, disabled-only, and absent rules in evidence. Narrower projections were optional optimization, not a correctness gate. | [Review](https://github.com/microsoft/zerotrustassessment/pull/959#discussion_r2865723030) |
+| [#968](https://github.com/microsoft/zerotrustassessment/pull/968) | Failed TLS queries are not verified zero-rule results; applicability depends on the specified resource/SKU/attachment conditions. | [Review](https://github.com/microsoft/zerotrustassessment/pull/968#discussion_r2914018510) |
+| [#969](https://github.com/microsoft/zerotrustassessment/pull/969) | A count of disabled JavaScript challenge rules must not display as successful protection. | [Review](https://github.com/microsoft/zerotrustassessment/pull/969#discussion_r2865883077) |
+| [#970](https://github.com/microsoft/zerotrustassessment/pull/970) | Enabled-rule counts and textual status must agree with the evaluated configuration. | [Review](https://github.com/microsoft/zerotrustassessment/pull/970#discussion_r2865922916) |
+| [#993](https://github.com/microsoft/zerotrustassessment/pull/993) | Check whether a framework stop actually ends caller execution; retain operational diagnostics rather than only console output. | [Review](https://github.com/microsoft/zerotrustassessment/pull/993#discussion_r2885312969) |
+| [#1000](https://github.com/microsoft/zerotrustassessment/pull/1000) | Use normal PowerShell helper invocation and context-appropriate escaping; fixed enum strings do not need mechanical decoration. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1000#pullrequestreview-3912083900) |
+| [#1003](https://github.com/microsoft/zerotrustassessment/pull/1003) | Similar application/service-principal properties are not interchangeable; preserve query failures and actionable object links. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1003#discussion_r2891753926) |
+| [#1005](https://github.com/microsoft/zerotrustassessment/pull/1005) | Keep report predicates consistent with verdicts. Rule-state heuristics and a cardinality concern were superseded or disputed; do not standardize them. | [Spec-change reply](https://github.com/microsoft/zerotrustassessment/pull/1005#discussion_r2924200148) |
+| [#1009](https://github.com/microsoft/zerotrustassessment/pull/1009) | Hoist invariant work and capture errors. The absent-certificate Pass was defended as specified, not settled as a general defect. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1009#discussion_r2896634786) |
+| [#1010](https://github.com/microsoft/zerotrustassessment/pull/1010) | Let result helpers derive ordinary TestId/Title metadata; use supported skip-and-return behavior. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1010#discussion_r2895626354) |
+| [#1012](https://github.com/microsoft/zerotrustassessment/pull/1012) | Remove a proven unnecessary fallback in this implementation, not every fallback in the project. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1012#pullrequestreview-3925046869) |
+| [#1035](https://github.com/microsoft/zerotrustassessment/pull/1035) | Prefer suitable exported device data and existing formatting; early returns must not leak report placeholders. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1035#pullrequestreview-3933060309) |
+| [#1047](https://github.com/microsoft/zerotrustassessment/pull/1047) | Use intentional null comparisons and retained endpoint errors. Unused expansion removal was nonblocking. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1047#discussion_r2941126425) |
+| [#1053](https://github.com/microsoft/zerotrustassessment/pull/1053) | Verify `enabledState` and inherited defaults; the proposed override inference still could not prove complete coverage. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1053#discussion_r2937546759) |
+| [#1064](https://github.com/microsoft/zerotrustassessment/pull/1064) | Ordinary malformed-request 400s are not blanket-retryable transient errors. Author confirmation is not a later review approval. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1064#discussion_r2942361894) |
+| [#1076](https://github.com/microsoft/zerotrustassessment/pull/1076) | Check output against the current contract; the per-loop initialization suggestion was explicitly not a present functional bug. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1076#discussion_r2955974947) |
+| [#1083](https://github.com/microsoft/zerotrustassessment/pull/1083) | Remove unused Graph expansions/selections after checking both evaluation and reporting consumers. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1083#discussion_r2962662656) |
+| [#1084](https://github.com/microsoft/zerotrustassessment/pull/1084) | A recipient collection needs collection/null semantics, not string emptiness checks; an earlier approval did not cover later feedback. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1084#discussion_r3110655586) |
+| [#1098](https://github.com/microsoft/zerotrustassessment/pull/1098) | Test actual principal/table variants. Later maintainer direction favored export-model correction over a runtime JSON workaround. | [Later direction](https://github.com/microsoft/zerotrustassessment/pull/1098#issuecomment-4115890760) |
+| [#1112](https://github.com/microsoft/zerotrustassessment/pull/1112) | Declare actual services and reuse evaluated predicates for reports. Unresolved thread flags plus approval do not prove implementation completeness. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1112#discussion_r3019651518) |
+| [#1127](https://github.com/microsoft/zerotrustassessment/pull/1127) | Trace separate Connect/Invoke workflows and acknowledged session choices; JSON config could not bypass a gate running before config loading. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1127#discussion_r3055423744) |
+| [#1141](https://github.com/microsoft/zerotrustassessment/pull/1141) | Editorial-only duplicated explanation; no durable technical implementation rule was established. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1141#discussion_r3058904699) |
+| [#1164](https://github.com/microsoft/zerotrustassessment/pull/1164) | Reuse declared dependencies, Graph wrappers, exported users, nested membership resolution, and batched SQL enrichment. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1164#discussion_r3177089380) |
+| [#1165](https://github.com/microsoft/zerotrustassessment/pull/1165) | Validate authentication parameter combinations, connected-cloud/session state, shared lookups, and PFX cleanup. Some permission/module suggestions remained unverified. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1165#discussion_r3145505239) |
+| [#1174](https://github.com/microsoft/zerotrustassessment/pull/1174) | Distinguish collection null/emptiness from string emptiness; null and an empty collection are not automatically equivalent. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1174#discussion_r3110647588) |
+| [#1182](https://github.com/microsoft/zerotrustassessment/pull/1182) | Transitive membership, thresholds, and performance concerns were explicitly deferred. Record disposition instead of treating resolved threads as fixes. | [Disposition](https://github.com/microsoft/zerotrustassessment/pull/1182#issuecomment-4364558715) |
+| [#1185](https://github.com/microsoft/zerotrustassessment/pull/1185) | Use the wrapper's projection contract and focused deleted-object coverage; this is not permission to suppress all 404s. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1185#discussion_r3130039594) |
+| [#1186](https://github.com/microsoft/zerotrustassessment/pull/1186) | Pagination fixtures must actually reach the next-page branch; test null separately from an empty collection. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1186#discussion_r3145061300) |
+| [#1190](https://github.com/microsoft/zerotrustassessment/pull/1190) | Express collection membership directly rather than relying on pipeline truthiness; a separately raised inherited omission was follow-up work. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1190#discussion_r3145212369) |
+| [#1191](https://github.com/microsoft/zerotrustassessment/pull/1191) | Push applicable filtering into SQL and validate parameters; ordinary ValidateSet does not canonicalize case-sensitive SQL values. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1191#discussion_r3193813094) |
+| [#1197](https://github.com/microsoft/zerotrustassessment/pull/1197) | Normalize risk values, preserve explicit metadata overrides, and build functional links. Preview/helper suggestions evolved or were rebutted. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1197#discussion_r3184162853) |
+| [#1208](https://github.com/microsoft/zerotrustassessment/pull/1208) | Apply compound predicates to the same assignment item; PIM-for-Groups semantics were disputed and cannot be copied from role schedules. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1208#discussion_r3387079283) |
+| [#1211](https://github.com/microsoft/zerotrustassessment/pull/1211) | Deduplicate principals before counting/calling APIs; verify the full resistant-authentication predicate and required Database parameter. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1211#discussion_r3329916946) |
+| [#1215](https://github.com/microsoft/zerotrustassessment/pull/1215) | Identify console failures structurally, not by localized text, and trace every unattended prompt/report-launch side effect. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1215#discussion_r3236944358) |
+| [#1216](https://github.com/microsoft/zerotrustassessment/pull/1216) | Schedule by real service/remoting affinity, not an entire pillar; keep changed public parameter help accurate. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1216#discussion_r3236844672) |
+| [#1219](https://github.com/microsoft/zerotrustassessment/pull/1219) | Build shared views once after dependencies load and avoid unnecessary per-entity requests when supported expansion covers the data. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1219#pullrequestreview-4308693020) |
+| [#1225](https://github.com/microsoft/zerotrustassessment/pull/1225) | Preserve the actual query error and supported framework error path; Investigate was not the chosen mapping in this case. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1225#discussion_r3268561335) |
+| [#1227](https://github.com/microsoft/zerotrustassessment/pull/1227) | Use current license metadata, helper parameter blocks, and scaffold placement, not arbitrary new regions or late helper definitions. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1227#discussion_r3276796091) |
+| [#1229](https://github.com/microsoft/zerotrustassessment/pull/1229) | Missing agent data and feature non-support are different tenant conditions; a licensing suggestion was later qualified for consumption-based checks. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1229#discussion_r3284758979) |
+| [#1234](https://github.com/microsoft/zerotrustassessment/pull/1234) | Use intentional multi-pillar membership. Declared attribute types do not prove AST extraction normalizes scalar inputs. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1234#discussion_r3296712393) |
+| [#1239](https://github.com/microsoft/zerotrustassessment/pull/1239) | Denied pricing reads are not proven bad configuration; consumption-based checks need not invent CompatibleLicense gates. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1239#discussion_r3322074032) |
+| [#1240](https://github.com/microsoft/zerotrustassessment/pull/1240) | Reconcile central scope resolution, required API version, and actual licensing; an illustrative skip name is not an established result API. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1240#discussion_r3304393724) |
+| [#1245](https://github.com/microsoft/zerotrustassessment/pull/1245) | Preserve actual error representation; historical message-word fallbacks are not a mandate to replace modern structured status helpers. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1245#discussion_r3329974317) |
+| [#1263](https://github.com/microsoft/zerotrustassessment/pull/1263) | Enforce actual subscription scope and error distinctions; avoid body-level connection checks already handled by Service metadata. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1263#discussion_r3344792669) |
+| [#1265](https://github.com/microsoft/zerotrustassessment/pull/1265) | Partial query failures must not become empty lookups that falsely label agents unauthenticated; initialize values on every reachable path. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1265#discussion_r3362071110) |
+| [#1268](https://github.com/microsoft/zerotrustassessment/pull/1268) | Use framework license gating and independent shared discovery, not dependency on another assessment's execution. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1268#discussion_r3376619173) |
+| [#1276](https://github.com/microsoft/zerotrustassessment/pull/1276) | Filtering parent subscriptions does not constrain an independently queried workspace set; preserve scope through downstream collection. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1276#discussion_r3354811123) |
+| [#1277](https://github.com/microsoft/zerotrustassessment/pull/1277) | Name the actual helper failure rather than assume permission denial; cross-assessment alignment was acknowledged future work. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1277#discussion_r3388101510) |
+| [#1280](https://github.com/microsoft/zerotrustassessment/pull/1280) | Unexpected null discovery data is unavailable evidence, not automatically inapplicability; report the correct resource surface. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1280#discussion_r3370051003) |
+| [#1296](https://github.com/microsoft/zerotrustassessment/pull/1296) | Shared discovery does not mean another assessment must run first. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1296#discussion_r3387646852) |
+| [#1300](https://github.com/microsoft/zerotrustassessment/pull/1300) | Prefer actionable policy-name links when a reliable object route exists; a later review qualified header-link alternatives. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1300#pullrequestreview-4497554053) |
+| [#1302](https://github.com/microsoft/zerotrustassessment/pull/1302) | Remove unused retrieval. A proposed broad error mapping and numeric-cast objection were questions, not established blanket rules. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1302#discussion_r3439142044) |
+| [#1309](https://github.com/microsoft/zerotrustassessment/pull/1309) | A failed policy detail read is Unknown, not zero approver groups; use object links only when reliable. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1309#discussion_r3414005487) |
+| [#1315](https://github.com/microsoft/zerotrustassessment/pull/1315) | Verify actual DuckDB/nested-setting representation and terminating live-call handling; conditional driver concerns require real-shape tests. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1315#discussion_r3419347754) |
+| [#1317](https://github.com/microsoft/zerotrustassessment/pull/1317) | Preserve timeout units, cache presence/falsy values, callback output, shared result shape, and cleanup. Version-specific upstream workarounds are not permanent rules. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1317#discussion_r3573949269) |
+| [#1329](https://github.com/microsoft/zerotrustassessment/pull/1329) | Eligibility schedules differ from instances and can expire by duration; verify prerequisite licensing and use the status helper. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1329#discussion_r3480652943) |
+| [#1341](https://github.com/microsoft/zerotrustassessment/pull/1341) | Use one intentional assignment source and describe the actual failing operation, not a policies API when data came from SQL. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1341#discussion_r3459033378) |
+| [#1342](https://github.com/microsoft/zerotrustassessment/pull/1342) | Obtain owner clarification of existential versus universal aggregation; this control accepted any qualifying workspace. | [Decision](https://github.com/microsoft/zerotrustassessment/pull/1342#discussion_r3479141136) |
+| [#1345](https://github.com/microsoft/zerotrustassessment/pull/1345) | One-off alias-attribute ordering preference; no demonstrated functional invalidity or universal review gate. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1345#discussion_r3468649731) |
+| [#1351](https://github.com/microsoft/zerotrustassessment/pull/1351) | Check actual sensor enum coverage and the per-domain quantifier; pooled inventory counts do not prove every domain covered. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1351#pullrequestreview-4574557094) |
+| [#1352](https://github.com/microsoft/zerotrustassessment/pull/1352) | Parse structured error codes and distinguish provisioning from access failure. A historical unparseable-403 fallback conflicts with later guidance. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1352#discussion_r3475421075) |
+| [#1353](https://github.com/microsoft/zerotrustassessment/pull/1353) | Hoist a proven invariant mapping out of row loops; do not mandate that exact mapping everywhere. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1353#discussion_r3475223102) |
+| [#1356](https://github.com/microsoft/zerotrustassessment/pull/1356) | Remove unreachable failure handling and verify actual license semantics. Timestamp/service enhancements were qualified, not unequivocal defects. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1356#discussion_r3500242011) |
+| [#1361](https://github.com/microsoft/zerotrustassessment/pull/1361) | Preserve service/remoting execution affinity and partition once; the omitted-service question did not establish its answer. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1361#discussion_r3494553222) |
+| [#1364](https://github.com/microsoft/zerotrustassessment/pull/1364) | Latest-snapshot Top 1 still paged; choose paging intentionally and preserve the returned shape. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1364#discussion_r3497944278) |
+| [#1368](https://github.com/microsoft/zerotrustassessment/pull/1368) | Reuse helpers independently. Enabled-subscription filtering here was a qualified consistency recommendation, not a clear spec violation. | [Qualification](https://github.com/microsoft/zerotrustassessment/pull/1368#pullrequestreview-4646918651) |
+| [#1369](https://github.com/microsoft/zerotrustassessment/pull/1369) | Keep required informational report fields even when they do not affect verdicts; reuse evaluated policy status and placeholders. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1369#discussion_r3513470324) |
+| [#1370](https://github.com/microsoft/zerotrustassessment/pull/1370) | Markdown cleanup must preserve code spans/identifiers, recheck content after stripping, and test every introduced transformation. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1370#discussion_r3589859909) |
+| [#1379](https://github.com/microsoft/zerotrustassessment/pull/1379) | Declare required Service metadata and disclose unmerged-spec dependencies rather than silently treating draft requirements as settled. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1379#discussion_r3514831001) |
+| [#1383](https://github.com/microsoft/zerotrustassessment/pull/1383) | Protect all free-text table branches and contexts, not only one UPN representation; the existing helper is not a universal sanitizer. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1383#discussion_r3514454248) |
+| [#1385](https://github.com/microsoft/zerotrustassessment/pull/1385) | Verify actual license meanings when code and spec repeat the same questionable value; do not make a historical identifier universal. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1385#discussion_r3521227983) |
+| [#1386](https://github.com/microsoft/zerotrustassessment/pull/1386) | Remove initialization only when every path demonstrably overwrites it before use; no general ban on defensive initialization. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1386#discussion_r3530018474) |
+| [#1387](https://github.com/microsoft/zerotrustassessment/pull/1387) | A bounded sample needs a valid total/truncation contract; Investigate still needs safe diagnostics. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1387#discussion_r3560083835) |
+| [#1389](https://github.com/microsoft/zerotrustassessment/pull/1389) | Null numeric comparisons cannot prove compliance; initial skip/query-flow requests were qualified by later owner decisions. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1389#discussion_r3577983666) |
+| [#1390](https://github.com/microsoft/zerotrustassessment/pull/1390) | Disabling paging changed the output envelope and caused no rows to be evaluated; test shape as well as requested switches. UI requirements were separately waived. | [Follow-up review](https://github.com/microsoft/zerotrustassessment/pull/1390#pullrequestreview-4685708536) |
+| [#1392](https://github.com/microsoft/zerotrustassessment/pull/1392) | Unparseable 403s do not prove non-onboarding; preserve missing timestamps and full-precision ordering. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1392#discussion_r3554264313) |
+| [#1397](https://github.com/microsoft/zerotrustassessment/pull/1397) | Check required values/default scope and returned structured permissions; the earlier rendered-text workaround was later replaced by direct property access. | [Later correction](https://github.com/microsoft/zerotrustassessment/pull/1397#discussion_r3658598969) |
+| [#1398](https://github.com/microsoft/zerotrustassessment/pull/1398) | Assess effective rules, exclusions, and policy precedence. The duplicate-rule scenario was rebutted using the actual one-to-one relationship. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1398#issuecomment-4957730354) |
+| [#1405](https://github.com/microsoft/zerotrustassessment/pull/1405) | Unknown workspaces cannot be omitted from a universal requirement; supported clouds also need correct portal hosts. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1405#discussion_r3594599220) |
+| [#1407](https://github.com/microsoft/zerotrustassessment/pull/1407) | A missing required default policy and null threshold do not establish compliance; associated-rule display was a qualified completeness suggestion. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1407#discussion_r3603671988) |
+| [#1413](https://github.com/microsoft/zerotrustassessment/pull/1413) | Unknown health enum values must not silently become out-of-scope and manufacture complete coverage. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1413#discussion_r3603325351) |
+| [#1414](https://github.com/microsoft/zerotrustassessment/pull/1414) | Full-inventory checks must not disable paging; intentional bounded reads still need correct envelope normalization. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1414#discussion_r3603216287) |
+| [#1415](https://github.com/microsoft/zerotrustassessment/pull/1415) | Required counts must distinguish verified zero from unavailable data, including after an initial output fix. | [Later correction](https://github.com/microsoft/zerotrustassessment/pull/1415#pullrequestreview-4724268977) |
+| [#1425](https://github.com/microsoft/zerotrustassessment/pull/1425) | Show the endpoint actually queried in each cloud, preserve 64-bit counts, and verify role guidance. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1425#discussion_r3621246119) |
+| [#1431](https://github.com/microsoft/zerotrustassessment/pull/1431) | Preserve each setting's category/destination relationship; independent aggregates can imply a false routing association. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1431#discussion_r3631836367) |
+| [#1436](https://github.com/microsoft/zerotrustassessment/pull/1436) | Separate prerequisites from the entitlement being assessed; preserve error state, placeholders, and required empty-state evidence. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1436#discussion_r3631369022) |
+| [#1442](https://github.com/microsoft/zerotrustassessment/pull/1442) | Several rollup/UI requests were disputed or removed in updated specs; skipped-child exclusion and removed UI sections are not blanket requirements. | [Discussion](https://github.com/microsoft/zerotrustassessment/pull/1442#discussion_r3655161169) |
+| [#1445](https://github.com/microsoft/zerotrustassessment/pull/1445) | Complete-scan onboarding errors must not disappear behind another workspace's Pass; publish enabled flags only after successful interpretation. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1445#discussion_r3655361061) |
+| [#1448](https://github.com/microsoft/zerotrustassessment/pull/1448) | Preserve required report columns even when query scope fixes their value; array wrapping here was a clarity suggestion, not a proven defect. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1448#discussion_r3658757259) |
+| [#1454](https://github.com/microsoft/zerotrustassessment/pull/1454) | Test the real upstream error format, not a mocked status parser that bypasses the broken integration. A release-specific deferral is not permanent policy. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1454#discussion_r3675178241) |
+| [#1457](https://github.com/microsoft/zerotrustassessment/pull/1457) | Null/cardinality changed scheduling and bypassed timeouts; do not add unused partial dependency infrastructure for a dashboard-only feature. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1457#pullrequestreview-4858069594) |
+| [#1461](https://github.com/microsoft/zerotrustassessment/pull/1461) | Opaque/non-audit data does not prove enforcement. Keep assignment/mode availability separate and verify functional portal routes. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1461#discussion_r3675337580) |
+| [#1470](https://github.com/microsoft/zerotrustassessment/pull/1470) | Match documented special 404 cases precisely and validate all relevant metrics where required, not just the first item. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1470#discussion_r3756080457) |
+| [#1471](https://github.com/microsoft/zerotrustassessment/pull/1471) | Snapshot mismatches are not empty owners; failed/missing group responses are not zero members. Assert complete published distributions. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1471#pullrequestreview-4840954916) |
+| [#1476](https://github.com/microsoft/zerotrustassessment/pull/1476) | Carry child availability, verdicts, and distinct-ID populations through PowerShell, TypeScript, rendered UI, and rebuilt bundles; widths do not replace status. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1476#discussion_r3705346331) |
+| [#1481](https://github.com/microsoft/zerotrustassessment/pull/1481) | Do not invent stricter nullable-field prerequisites; table population must match the specified predicate. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1481#discussion_r3715962114) |
+| [#1484](https://github.com/microsoft/zerotrustassessment/pull/1484) | This existential hunting control has authoritative Pass evidence even when another workspace is unreadable; no error-always-wins rule. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1484#discussion_r3750716332) |
+| [#1487](https://github.com/microsoft/zerotrustassessment/pull/1487) | Inspect actual strength semantics and every OR alternative; unresolved optional data must not hide an independently conclusive failure. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1487#discussion_r3751749352) |
+| [#1488](https://github.com/microsoft/zerotrustassessment/pull/1488) | Preserve required error-evidence rows and use expandable strings for generated links to the correct route. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1488#discussion_r3740938627) |
+| [#1489](https://github.com/microsoft/zerotrustassessment/pull/1489) | Authorization failure means inability to assess, not proof of non-applicability; follow this control's supported outcome. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1489#discussion_r3740897390) |
+| [#1492](https://github.com/microsoft/zerotrustassessment/pull/1492) | Both original requests were resolved through API/spec correction: NoExpiration is an input switch; all-query failure is exempted from tables. | [Decision](https://github.com/microsoft/zerotrustassessment/pull/1492#discussion_r3763540806) |
+| [#1494](https://github.com/microsoft/zerotrustassessment/pull/1494) | Parse dates once and retain existential Pass precedence. The early 395-day proposal was later qualified/reversed for unusable completion dates. | [Later correction](https://github.com/microsoft/zerotrustassessment/pull/1494#discussion_r3850639319) |
+| [#1495](https://github.com/microsoft/zerotrustassessment/pull/1495) | Non-Microsoft does not prove customer authorship; unresolved identity and incomplete workspace coverage need explicit evidence. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1495#discussion_r3760444639) |
+| [#1504](https://github.com/microsoft/zerotrustassessment/pull/1504) | Follow this control's precedence and preserve pinned-profile evidence without claiming every listed control was evaluated. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1504#discussion_r3794237147) |
+| [#1505](https://github.com/microsoft/zerotrustassessment/pull/1505) | Unknown storage plans cannot pass through an else branch; global row caps must not remove contractually required per-table evidence. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1505#discussion_r3817462304) |
+| [#1507](https://github.com/microsoft/zerotrustassessment/pull/1507) | Separate optional reachability warnings, route-level evidence, and aggregate verdicts; row Investigate did not authorize aggregate Investigate here. | [Later correction](https://github.com/microsoft/zerotrustassessment/pull/1507#discussion_r3869329772) |
+| [#1508](https://github.com/microsoft/zerotrustassessment/pull/1508) | Filter before unnecessary expansion; absence of the assessed baseline can fail. The extra-permission request was rebutted for the actual endpoint/app-only contract. | [Decision](https://github.com/microsoft/zerotrustassessment/pull/1508#discussion_r3780824242) |
+| [#1516](https://github.com/microsoft/zerotrustassessment/pull/1516) | A conclusive failure of an every-workspace requirement outranks uncertainty; show unresolved scopes and reuse existing pagination. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1516#discussion_r3799100555) |
+| [#1523](https://github.com/microsoft/zerotrustassessment/pull/1523) | A tenant GUID fallback is not resolved publisher identity. Fallback/output lessons survive, but skip/malformed-response requirements changed during review. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1523#discussion_r3831711502) |
+| [#1524](https://github.com/microsoft/zerotrustassessment/pull/1524) | Cloud-aware portal hosts are durable. Malformed-onboarding and retention-invariant requests were closed after their spec requirements were removed. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1524#discussion_r3832264223) |
+| [#1527](https://github.com/microsoft/zerotrustassessment/pull/1527) | Scope uncertainty to records it can affect; cap flattened rendered rows, not their parent workspaces; populate every required column. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1527#discussion_r3824618071) |
+| [#1528](https://github.com/microsoft/zerotrustassessment/pull/1528) | Base fallback on missing primary evidence, accumulate per-policy errors before rollup, and retain details. Some subtype/exact-match concerns were forward-looking warnings. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1528#discussion_r3831975371) |
+| [#1532](https://github.com/microsoft/zerotrustassessment/pull/1532) | Parse eligibility dates safely; field-specific contracts matter: a successfully read non-Enabled workflow state is Fail in this control. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1532#discussion_r3872872771) |
+| [#1541](https://github.com/microsoft/zerotrustassessment/pull/1541) | Preserve each independent query's error state; a request failure and successful empty result need different safe diagnostics. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1541#discussion_r3902601344) |
+| [#1572](https://github.com/microsoft/zerotrustassessment/pull/1572) | Missing joined users cannot become cloud-only through coalesce; count distinct users separately from role rows. Later direction rejected export-statistics runner plumbing. | [Maintainer decision](https://github.com/microsoft/zerotrustassessment/pull/1572#discussion_r4255986212) |
+| [#1584](https://github.com/microsoft/zerotrustassessment/pull/1584) | Trace initial/continuation output, transport, retries, and fixtures. Deprecations were accepted and other issues deferred; approval explicitly did not mean all fixed. | [Disposition](https://github.com/microsoft/zerotrustassessment/pull/1584#pullrequestreview-5506808792) |
+| [#1590](https://github.com/microsoft/zerotrustassessment/pull/1590) | Recovery must preserve dependent requests across retriable failures and terminate after exhaustion without replaying successes or returning empty success. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1590#discussion_r4275648494) |
+| [#1592](https://github.com/microsoft/zerotrustassessment/pull/1592) | Preserve confirmed findings alongside failed lookups, real matched-failure arguments, and honest lower bounds; existing helper debt was not a new blocker. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1592#discussion_r4264627549) |
+| [#1593](https://github.com/microsoft/zerotrustassessment/pull/1593) | Raw string throws can leak through FullyQualifiedErrorId despite message sanitization; test the complete safe-record/report path. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1593#discussion_r4264960269) |
+| [#1597](https://github.com/microsoft/zerotrustassessment/pull/1597) | Evaluate required population before presentation limits; test a noncompliant record beyond the cap. StringBuilder and copied legacy output do not establish a bound. | [Review](https://github.com/microsoft/zerotrustassessment/pull/1597#pullrequestreview-5538217793) |
+
+### Boundaries on adopting historical feedback
+
+- **Verdict precedence is control-specific.** Compare the existential Pass in
+  [#1484](https://github.com/microsoft/zerotrustassessment/pull/1484#discussion_r3750716332)
+  with complete-scan uncertainty in
+  [#1445](https://github.com/microsoft/zerotrustassessment/pull/1445#discussion_r3655361061)
+  and universal failure in
+  [#1516](https://github.com/microsoft/zerotrustassessment/pull/1516#discussion_r3799100555).
+  Row status, aggregate status, display ordering, and optional warnings are different contracts.
+- **Withdrawn assumptions stay withdrawn.** In
+  [#1524](https://github.com/microsoft/zerotrustassessment/pull/1524#discussion_r3841572972)
+  and [#1523](https://github.com/microsoft/zerotrustassessment/pull/1523#discussion_r3846207734),
+  malformed-response requirements were removed; they do not justify exhaustive
+  validation rules for every successful response.
+  [#1492](https://github.com/microsoft/zerotrustassessment/pull/1492#discussion_r3763540806)
+  corrected an assumed API output representation.
+- **Verify the actual endpoint and owner decision.** The extra permission proposed in
+  [#1508](https://github.com/microsoft/zerotrustassessment/pull/1508#discussion_r3780824242)
+  was rebutted for the expanded list request and app-only mode.
+  [#1572](https://github.com/microsoft/zerotrustassessment/pull/1572#discussion_r4255986212)
+  rejected broad export-statistics plumbing for the assessment fix.
+- **Approval does not erase debt or establish later review.**
+  [#1584's explicit disposition](https://github.com/microsoft/zerotrustassessment/pull/1584#pullrequestreview-5506808792)
+  distinguishes accepted deprecations, a separately merged prerequisite, fixed
+  fixtures, and deferred helper work. Do not repeat all of them as new blockers or
+  claim they were all fixed by approval.
+- **Do not codify taste or a historical workaround as a gate.** Alias ordering,
+  particular caps/emoji mappings, redundant casts, loop initialization, and
+  version-specific cache behavior need their own current evidence. Preserve
+  actual public compatibility and executable rules instead.
+
+### Instruction delivery
+
+The implementation contracts now apply to both cloud coding and code review;
+review-only process guidance retains `excludeAgent: "cloud-agent"`. Separate
+[report](../.github/instructions/report.instructions.md) and
+[workshop](../.github/instructions/workshop-docs.instructions.md) instructions
+describe architecture/build ownership without inventing a React coding standard.
+The [contributor conventions](conventions.md) distinguish source-based Pester,
+the parser gate, packaging side effects, and compatible-CI limitations.
+
+Platform support was checked against GitHub's current
+[repository-instruction documentation](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions),
+[support matrix](https://docs.github.com/en/copilot/reference/custom-instructions-support),
+and [review customization guidance](https://docs.github.com/en/copilot/tutorials/customize-code-review).
+Use focused, self-contained files and correct path matching rather than relying on
+unsupported review formatting instructions, external-link traversal, or old
+fixed-size/base-branch assumptions. These instructions remain guidance, not a
+replacement for executable regression tests or an observed cloud-session trial.
