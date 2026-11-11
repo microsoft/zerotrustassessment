@@ -10,6 +10,9 @@
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
+    "test:browser": "playwright test",
+    "test:browser:production": "playwright test --config playwright.production.config.mjs",
+    "check:ai-links": "node scripts/check-ai-pillar-links.mjs",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids"
   },
@@ -31,8 +34,10 @@
     "react-icons": "^5.7.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "~4.10.2",
     "@docusaurus/module-type-aliases": "^3.10.2",
-    "@docusaurus/types": "^3.10.2"
+    "@docusaurus/types": "^3.10.2",
+    "@playwright/test": "^1.56.1"
   },
   "overrides": {
     "@docusaurus/core": {
