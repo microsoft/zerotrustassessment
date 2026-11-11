@@ -99,6 +99,11 @@ the module provides a titled embedded player and a module-level full-playlist li
 If Playwright reports that Chromium is missing, run `npx playwright install chromium`.
 The start action selects the first lesson and moves focus to its heading without
 autoplay. The outline and previous/next lesson controls remain keyboard accessible.
+Run `npm run test:browser:production` to build the English site and run the AI pillar
+browser tests against a temporary production server on port 3002. Direct-link checks cover hydration
+errors, lesson focus, explicit-link precedence over saved lessons, and resume storage,
+including unpublished and unknown lessons. Hash selection is deferred until after
+hydration so the initial client render matches the generated first-lesson HTML.
 The Workshop Tool action and facilitator-note links open the workshop tool in a
 new tab. Swimlanes without a video show an availability note and lesson navigation,
 but no facilitator notes. Lesson URLs remain shareable through the address bar.

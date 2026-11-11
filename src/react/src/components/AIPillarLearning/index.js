@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from '@docusaurus/Link';
 import { useHistory, useLocation } from '@docusaurus/router';
 import useBrokenLinks from '@docusaurus/useBrokenLinks';
+import useIsBrowser from '@docusaurus/useIsBrowser';
 import { FaArrowLeft, FaArrowRight, FaChevronDown, FaExternalLinkAlt, FaLayerGroup, FaRegClock } from 'react-icons/fa';
 import {
     durationLabel, findLesson, focusAreas, formatDuration, formatTotalDuration, lessonHash, lessons,
@@ -11,7 +12,8 @@ import styles from './styles.module.css';
 
 export default function AIPillarLearning() {
     const location = useLocation();
-    const { hash } = location;
+    const isBrowser = useIsBrowser();
+    const hash = isBrowser ? location.hash : '';
     const history = useHistory();
     const brokenLinks = useBrokenLinks();
     const selectedLesson = findLesson(hash);

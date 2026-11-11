@@ -11,6 +11,7 @@
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "test:browser": "playwright test",
+    "test:browser:production": "playwright test --config playwright.production.config.mjs",
     "check:ai-links": "node scripts/check-ai-pillar-links.mjs",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids"

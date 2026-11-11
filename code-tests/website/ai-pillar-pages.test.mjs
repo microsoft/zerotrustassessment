@@ -25,7 +25,8 @@ test('the module has its full page title while retaining the shorter sidebar lab
     const sidebar = moduleHtml.match(/<aside\b[\s\S]*?<\/aside>/)?.[0];
     assert.ok(sidebar, 'Expected a server-rendered documentation sidebar');
     const sidebarLink = sidebar.match(/<a\b[^>]*href="[^"]*\/AIPillar\/deep-dive-learning-module"[^>]*>([\s\S]*?)<\/a>/);
-    assert.equal(sidebarLink?.[1].replace(/<[^>]+>/g, ''), 'Deep Dive Learning Module');
+    assert.ok(sidebarLink, 'Expected a sidebar link to the Deep Dive Learning Module');
+    assert.match(sidebarLink[1], /^<span\b[^>]*>Deep Dive Learning Module<\/span>$/);
     assert.doesNotMatch(moduleHtml, /AI PILLAR LEARNING PATH|AI Pillar Learning Path/);
 });
 
