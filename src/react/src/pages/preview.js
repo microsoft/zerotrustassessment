@@ -139,7 +139,7 @@ function HomepageHeader() {
           </div>
           {showErrorAlert && (
             <div class="alert alert--danger" role="alert">
-              Sorry something went wrong. Please try again.
+              Sorry, something went wrong. Please try again.
             </div>
           )}
 
@@ -148,7 +148,7 @@ function HomepageHeader() {
               <DialogSurface>
                 <DialogBody>
                   <DialogContent>
-                    <Spinner label="Running assessment. Please wait, this can take a few minutes..." />
+                    <Spinner label="Running assessment. Please wait; this can take a few minutes..." />
                   </DialogContent>
                 </DialogBody>
               </DialogSurface>

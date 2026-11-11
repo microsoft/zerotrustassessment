@@ -18,7 +18,7 @@ const benefits = [
     {
         icon: <FaPuzzlePiece />,
         title: 'Highlight',
-        description: 'cross-product integrations that are both valuable and may not always be considered by siloed teams',
+        description: 'cross-product integrations that are valuable but may not always be considered by siloed teams',
     },
     {
         icon: <FaMicrosoft />,

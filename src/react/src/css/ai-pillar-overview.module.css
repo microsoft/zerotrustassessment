@@ -1,0 +1,50 @@
+.demo {
+    display: block;
+    width: 100%;
+    max-width: 1024px;
+    height: min(68vh, 576px);
+    margin-bottom: var(--ifm-paragraph-margin-bottom);
+    border: 0;
+}
+
+.demoHelp {
+    max-width: 1024px;
+    color: var(--ifm-color-emphasis-700);
+    font-size: 0.875rem;
+}
+
+.demoHelp a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.moduleLink {
+    --ifm-link-color: #1d4ed8;
+    --ifm-link-hover-color: #173da6;
+}
+
+.moduleLink a {
+    display: inline-block;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 0.5rem 0;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    overflow-wrap: anywhere;
+}
+
+[data-theme='dark'] .moduleLink {
+    --ifm-link-color: #93b4ff;
+    --ifm-link-hover-color: #b6ccff;
+}
+
+.demo:focus-visible,
+.demoHelp a:focus-visible,
+.moduleLink a:focus-visible {
+    outline: 3px solid var(--ifm-font-color-base);
+    outline-offset: 4px;
+}
