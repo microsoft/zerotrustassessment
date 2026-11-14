@@ -122,23 +122,23 @@ export default function Dashboard() {
             <div className="w-full flex flex-col gap-6 mt-[26px]">
                 {/* Tenant Info - Single Line Horizontal */}
                 <Card>
-                    <CardHeader className="flex flex-col space-y-1.5 pt-3 pl-4 pr-12 pb-3">
+                    <CardHeader className="flex flex-col space-y-1.5 pt-3 pl-4 pr-4 sm:pr-12 pb-3">
                         <div className="flex flex-row flex-wrap items-baseline gap-x-14 gap-y-2">
                             <div className="flex items-baseline gap-2">
                                 <Building2 className="size-5 shrink-0 self-center" />
                                 <CardTitle className="text-2xl font-semibold leading-none tracking-tight">Tenant info</CardTitle>
                             </div>
-                            <div className="flex flex-1 flex-row items-center gap-x-72">
+                            <div className="flex flex-1 basis-full sm:basis-auto flex-col gap-y-1 min-w-0 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8 xl:flex-nowrap xl:gap-x-72">
                                 <div className="flex flex-row items-baseline gap-2 min-w-0">
-                                    <span className="text-sm text-muted-foreground">Name</span>
+                                    <span className="text-sm text-muted-foreground whitespace-nowrap">Name</span>
                                     <span className="font-medium truncate">{reportData.TenantName || 'Not Available'}</span>
                                 </div>
                                 <div className="flex flex-row items-baseline gap-2 min-w-0">
-                                    <span className="text-sm text-muted-foreground">Tenant ID</span>
+                                    <span className="text-sm text-muted-foreground whitespace-nowrap">Tenant ID</span>
                                     <span className="font-mono text-xs truncate">{reportData.TenantId || 'Not Available'}</span>
                                 </div>
                                 <div className="flex flex-row items-baseline gap-2 min-w-0">
-                                    <span className="text-sm text-muted-foreground">Primary Domain</span>
+                                    <span className="text-sm text-muted-foreground whitespace-nowrap">Primary Domain</span>
                                     <span className="font-medium truncate">{reportData.Domain || 'Not Available'}</span>
                                 </div>
                             </div>
@@ -147,7 +147,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Metrics Grid - Full Width - 4 Columns */}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
                     {/* Users Card */}
                     <Card className="flex h-full flex-col">
                         <CardHeader className="flex flex-col space-y-1.5 p-6 px-4 pt-2 pb-3">
