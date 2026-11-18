@@ -123,12 +123,12 @@ export default function Dashboard() {
             <div className="w-full flex flex-col gap-6 mt-8">
                 {/* Tenant Info - Single Line Horizontal */}
                 <Card>
-                    <CardHeader className="flex flex-row space-y-0 pb-2 pl-6 pr-12 pt-4 items-center gap-8">
+                    <CardHeader className="flex flex-col sm:flex-row space-y-0 pb-2 pl-4 sm:pl-6 pr-4 sm:pr-12 pt-4 sm:items-center gap-2 sm:gap-8">
                         <div className="flex items-center gap-2 shrink-0">
                             <Building2 className="size-5 shrink-0" />
                             <CardTitle className="text-lg">Tenant info</CardTitle>
                         </div>
-                        <div className="flex items-center gap-6 flex-1 min-w-0">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 flex-1 min-w-0">
                             <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-sm text-muted-foreground shrink-0">Name</span>
                                 <span className="font-medium truncate">{reportData.TenantName || 'Not Available'}</span>
@@ -146,7 +146,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Metrics Grid - Full Width - 4 Columns */}
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Users Card */}
                     <Card className="flex h-full flex-col">
                         <CardHeader className="pb-2 pt-4 px-4">

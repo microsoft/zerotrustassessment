@@ -29,11 +29,11 @@ export function Header() {
     return (
         <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/90 backdrop-blur">
             <div className="container px-4 md:px-8 flex h-[50px] items-center">
-                <div className="mr-4 hidden md:flex">
-                    <NavLink to="/" className="mr-6 flex items-center space-x-2">
+                <div className="mr-4 hidden lg:flex">
+                    <NavLink to="/" className="mr-4 xl:mr-6 flex items-center space-x-2">
                         <Logo />
                     </NavLink>
-                    <nav className="flex items-center space-x-6 text-sm font-medium leading-tight">
+                    <nav className="flex items-center space-x-4 xl:space-x-6 text-sm font-medium leading-tight">
                         {mainMenu.map((menu, index) =>
                             menu.items !== undefined ? (
                                 <DropdownMenu key={index}>
@@ -86,7 +86,7 @@ export function Header() {
                     <SheetTrigger asChild>
                         <Button
                             variant="ghost"
-                            className="mr-4 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden">
+                            className="mr-4 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden">
                             <ViewVerticalIcon className="h-5 w-5" />
                             <span className="sr-only">Toggle Menu</span>
                         </Button>
@@ -157,13 +157,13 @@ export function Header() {
                         </ScrollArea>
                     </SheetContent>
                 </Sheet>
-                <a href="/" className="mr-6 flex items-center space-x-2 md:hidden">
-                    <Icons.logo className="h-6 w-6" />
-                    <span className="font-bold inline-block">{ztAppConfig.name}</span>
+                <a href="/" className="mr-2 sm:mr-6 flex min-w-0 items-center space-x-2 lg:hidden">
+                    <Icons.logo className="h-6 w-6 shrink-0" />
+                    <span className="font-bold inline-block leading-tight max-[379px]:sr-only">{ztAppConfig.name}</span>
                 </a>
                 {/* right */}
-                <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-                    <div className="w-full flex-1 md:w-auto md:flex-none">
+                <div className="flex flex-1 shrink-0 items-center justify-between space-x-2 lg:justify-end">
+                    <div className="w-full flex-1 lg:w-auto lg:flex-none">
                         {/* <CommandMenu /> */}
                     </div>
                     <nav className="flex items-center space-x-2">
@@ -190,8 +190,9 @@ export function Header() {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant='ghost'
-                                    className='relative h-7 leading-tight'>
-                                    {reportData.TenantName}
+                                    title={reportData.TenantName}
+                                    className='relative h-7 max-w-[7rem] sm:max-w-[12rem] xl:max-w-xs px-2 sm:px-4 leading-tight'>
+                                    <span className="truncate">{reportData.TenantName}</span>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className='w-100' align='end' forceMount>

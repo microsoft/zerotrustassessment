@@ -255,17 +255,17 @@ export function DataTable<TData extends Test, TValue>({
     return (
 
         <div>
-            <div className="flex items-center py-4 justify-between">
-                <div className="flex items-center gap-4">
+            <div className="flex items-start sm:items-center py-4 justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0">
                     <Input
                         placeholder="Search by name..."
                         value={globalFilter ?? ''}
                         onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-                        className="max-w-sm"
+                        className="w-full sm:w-auto sm:max-w-sm"
                     />
 
                     {/* Risk Filter Toggles */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1">
                         <span className="text-xs font-medium text-muted-foreground mr-1">{riskLabel}:</span>
                         {uniqueRisks.map((risk) => {
                             const isSelected = selectedRisks.includes(risk);
@@ -292,7 +292,7 @@ export function DataTable<TData extends Test, TValue>({
                     </div>
 
                     {/* Status Filter Toggles */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1">
                         <span className="text-xs font-medium text-muted-foreground mr-1">Status:</span>
                         {uniqueStatuses.map((status) => {
                             const isSelected = selectedStatuses.includes(status);
@@ -381,9 +381,9 @@ export function DataTable<TData extends Test, TValue>({
 
             {/* SFI Pillar Toggle Buttons */}
             <div className="mb-4">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">Filter by SFI Pillar:</span>
+                        <span className="text-sm font-medium whitespace-nowrap">Filter by SFI Pillar:</span>
 
                         {selectedSfiPillars.length > 0 && (
                             <Button
@@ -396,8 +396,8 @@ export function DataTable<TData extends Test, TValue>({
                             </Button>
                         )}
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-start sm:items-end gap-1">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                             {/* Clear all filters button */}
                             {(selectedSfiPillars.length > 0 || selectedRisks.length > 0 || selectedStatuses.length > 0 || showSkipped) && (
                                 <Button
@@ -512,14 +512,14 @@ export function DataTable<TData extends Test, TValue>({
                 </Table>
             </div>
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                <SheetContent side="right" className="md:min-w-[700px] lg:min-w-[900px] overflow-y-auto" allowMaximize>
+                <SheetContent side="right" className="w-full sm:w-3/4 md:min-w-[700px] lg:min-w-[900px] overflow-y-auto" allowMaximize>
                     <SheetHeader>
-                        <SheetTitle className="text-2xl text-left">{selectedRow?.TestTitle}</SheetTitle>
+                        <SheetTitle className="text-2xl text-left pr-16 break-words">{selectedRow?.TestTitle}</SheetTitle>
                     </SheetHeader>
                     <div className="grid pt-10 gap-6">
                         <Card>
                             <CardHeader>
-                                <div className={`mt-2 text-sm ${isInfrastructureRow ? "flex flex-col gap-y-2" : "grid grid-cols-3 gap-y-2"}`}>
+                                <div className={`mt-2 text-sm ${isInfrastructureRow ? "flex flex-col gap-y-2" : "grid grid-cols-1 sm:grid-cols-3 gap-y-2"}`}>
                                     <div className="flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-foreground" />
                                         <span className="font-semibold">{isInfrastructureRow ? "Severity:" : "Risk:"}</span>
@@ -573,14 +573,14 @@ export function DataTable<TData extends Test, TValue>({
                                 </div></CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestResult}</Markdown>
+                                <Markdown className="prose max-w-full dark:prose-invert break-words [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestResult}</Markdown>
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader><CardTitle>What was checked</CardTitle></CardHeader>
                             <CardContent>
-                                <Markdown className="prose max-w-fit dark:prose-invert" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestDescription}</Markdown>
+                                <Markdown className="prose max-w-full dark:prose-invert break-words [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto" remarkPlugins={[remarkGfm]} rehypePlugins={mdRehypePlugins}>{selectedRow?.TestDescription}</Markdown>
                             </CardContent>
                         </Card>
                     </div>
